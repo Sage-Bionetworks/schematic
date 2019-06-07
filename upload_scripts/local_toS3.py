@@ -17,7 +17,7 @@ Objective: Upload local file to S3
 
 Dependencies:
 install install boto3, awscli, awsmfa
-configure your aws default/profile with your access key/secret access key and
+configure your aws default/profile that was given access to the S3 with your access key/secret access key
 authenticate with awsmfa (https://sagebionetworks.jira.com/wiki/spaces/IT/pages/763199503/AWS+MFA)
 """
 
