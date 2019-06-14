@@ -1,0 +1,739 @@
+[
+  {
+    "name": "compoundName",
+      "description": "",
+      "columnType": "STRING",
+      "maximumSize": 250,
+      "enumValues": [
+      {
+          "value": "PD0325901",
+          "description": "An orally bioavailable, synthetic organic molecule targeting mitogen-activated protein kinase kinase (MAPK/ERK kinase or MEK) with potential antineoplastic activity. MEK inhibitor PD325901, a derivative of MEK inhibitor CI-1040, selectively binds to and inhibits MEK, which may result in the inhibition of the phosphorylation and activation of MAPK/ERK and the inhibition of tumor cell proliferation. The dual specific threonine/tyrosine kinase MEK is a key component of the RAS/RAF/MEK/ERK signaling pathway that is frequently activated in human tumors.",
+          "source": "http://purl.obolibrary.org/obo/NCIT_C52195"
+        },
+      {
+        "value": "A-1210477",
+        "description": "An MCL-1 inhibitor.",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/2015744"
+      },
+      {
+        "value": "ABBVIE1",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE2",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE3",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE4",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE5",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE6",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE7",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE8",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "Venetoclax",
+        "description": "An orally bioavailable, selective small molecule inhibitor of the anti-apoptotic protein Bcl-2, with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C103147"
+      },
+      {
+        "value": "Doxorubicin",
+        "description": "An anthracycline antibiotic with antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C456"
+      },
+      {
+        "value": "BI 2536",
+        "description": "A small molecule compound with potential antineoplastic activities. BI 2536 binds to and inhibits Polo-like kinase 1 (Plk1), resulting in mitotic arrest, disruption of cytokinesis, and apoptosis in susceptible tumor cell populations.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C49091"
+      },
+      {
+        "value": "Bortezomib",
+        "description": "A dipeptide boronic acid analogue with antineoplastic activity. Bortezomib reversibly inhibits the 26S proteasome, a large protease complex that degrades ubiquinated proteins.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C1851"
+      },
+      {
+        "value": "Carfilzomib",
+        "description": "An epoxomicin derivate with potential antineoplastic activity. Carfilzomib irreversibly binds to and inhibits the chymotrypsin-like activity of the 20S catalytic core subunit of the proteasome, a protease complex responsible for degrading a large variety of cellular proteins.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C52196"
+      },
+      {
+        "value": "Culture Medium",
+        "description": "A liquid or gel containing nutrients, salts, and other factors formulated to support the growth of microorganisms, cells, or plants.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C85504"
+      },
+      {
+        "value": "CPD22",
+        "description": "A novel ILK inhibitor, which exhibit[s] high in vitro potency against a panel of prostate and breast cancer cell lines.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/21823616"
+      },
+      {
+        "value": "Crizotinib",
+        "description": "An orally available aminopyridine-based inhibitor of the receptor tyrosine kinase anaplastic lymphoma kinase (ALK) and the c-Met/hepatocyte growth factor receptor (HGFR) with antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C74061"
+      },
+      {
+        "value": "Curcumin",
+        "description": "A phytopolylphenol pigment isolated from the plant Curcuma longa, commonly known as turmeric, with a variety of pharmacologic properties.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C401"
+      },
+      {
+        "value": "Daratumumab",
+        "description": "A fully human monoclonal antibody directed against the cell surface glycoprotein CD-38 with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C74007"
+      },
+      {
+        "value": "Defactinib",
+        "description": "An orally bioavailable, small-molecule focal adhesion kinase (FAK) inhibitor with potential antiangiogenic and antineoplastic activities.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C79809"
+      },
+      {
+        "value": "Dexamethasone",
+        "description": "A synthetic adrenal corticosteroid with potent anti-inflammatory properties.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C422"
+      },
+      {
+        "value": "Dinaciclib",
+        "description": "A pyrazolo[1,5-a]pyrimidine with potential antineoplastic activity. Dinaciclib selectively inhibits cyclin dependent kinases CDK1, CDK2, CDK5, and CDK9.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C78854"
+      },
+      {
+        "value": "DMSO",
+        "description": "A highly polar organic liquid that is used widely as a chemical solvent and a free radical scavenger.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C437"
+      },
+      {
+        "value": "GGTI-2418",
+        "description": "A potent and selective peptidomimetic inhibitor of geranylgeranyltransferase I (GGTI).",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/19204084"
+      },
+      {
+        "value": "INCB054329",
+        "description": "An inhibitor of the Bromodomain and Extra-Terminal (BET) family of bromodomain-containing proteins with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C121948"
+      },
+      {
+        "value": "IRAK-1/4 Inhibitor",
+        "description": "Interleukin-1 Receptor-Associated-Kinase-1/4 Inhibitor.",
+        "source": "https://pubchem.ncbi.nlm.nih.gov/compound/IRAK-1_4_Inhibitor"
+      },
+      {
+        "value": "IgG",
+        "description": "An immunoglobulin isotype (subclass) that characterizes secondary immune responses.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C568"
+      },
+      {
+        "value": "Ixazomib",
+        "description": "An active metabolite of MLN9708, a second generation, boron containing peptide proteasome inhibitor (PI) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C97940"
+      },
+      {
+        "value": "Selinexor",
+        "description": "An orally available, small molecule inhibitor of CRM1 (chromosome region maintenance 1 protein, exportin 1 or XPO1), with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C102546"
+      },
+      {
+        "value": "Lenalidomide",
+        "description": "A thalidomide analog with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C2668"
+      },
+      {
+        "value": "MA7-038",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "Melphalan",
+        "description": "A phenylalanine derivative of nitrogen mustard with antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C633"
+      },
+      {
+        "value": "MK2206",
+        "description": "An orally bioavailable allosteric inhibitor of the serine/threonine protein kinase Akt (protein kinase B) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C90581"
+      },
+      {
+        "value": "MTI-101",
+        "description": "MTI-101 (cyclized HYD1) binds a CD44 containing complex.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/24048737"
+      },
+      {
+        "value": "Panobinostat",
+        "description": "A cinnamic hydroxamic acid analogue with potential antineoplastic activity. Panobinostat selectively inhibits histone deacetylase (HDAC).",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C66948"
+      },
+      {
+        "value": "Pomalidomide",
+        "description": "An orally bioavailable derivative of thalidomide with potential immunomodulating, antiangiogenic and antineoplastic activities.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C72560"
+      },
+      {
+        "value": "Ponatinib",
+        "description": "An orally bioavailable multitargeted receptor tyrosine kinase (RTK) inhibitor with potential antiangiogenic and antineoplastic activities.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C95777"
+      },
+      {
+        "value": "Ricolinostat",
+        "description": "An orally bioavailable, specific inhibitor of histone deacetylase 6 (HDAC6) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C96431"
+      },
+      {
+        "value": "Silmitasertib",
+        "description": "Silmitasertib selectively binds to and inhibits the enzyme casein kinase II (CK2)",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C98054"
+      },
+      {
+        "value": "SNS-032",
+        "description": "A small aminothiazole molecule and cyclin dependent kinase (CDK) inhibitor with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C62523"
+      },
+      {
+        "value": "SR-3029",
+        "description": "Highly selective casein kinase 1delta/1epsilon inhibitor with potent antiproliferative properties.",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/67585785"
+      },
+      {
+        "value": "THZ1",
+        "description": "A low nanomolar inhibitor of cell proliferation and biochemical CDK7 activity.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4244910/"
+      },
+      {
+        "value": "UMI-77",
+        "description": "An Mcl-1 inhibitor.",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/2003359"
+      },
+      {
+        "value": "Volasertib",
+        "description": "A dihydropteridinone Polo-like kinase 1 (Plk1) inhibitor with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C79844"
+      },
+      {
+        "value": "Fimepinostat",
+        "description": "An orally bioavailable inhibitor of both phosphoinositide 3-kinase (PI3K) class I and pan histone deacetylase (HDAC) enzymes, with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C104008"
+      },
+      {
+        "value": "Brigatinib",
+        "description": "An orally available inhibitor of receptor tyrosine kinases anaplastic lymphoma kinase (ALK) and the epidermal growth factor receptor (EGFR) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C98831"
+      },
+      {
+        "value": "Omipalisib",
+        "description": "A small-molecule pyridylsulfonamide inhibitor of phosphatidylinositol 3-kinase (PI3K) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C88270"
+      },
+      {
+        "value": "Simvastatin",
+        "description": "A lipid-lowering agent derived synthetically from a fermentation product of the fungus Aspergillus terreus.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C29454"
+      },
+      {
+        "value": "Dasatinib",
+        "description": "An orally bioavailable synthetic small molecule-inhibitor of SRC-family protein-tyrosine kinases.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C38713"
+      },
+      {
+        "value": "Sapanisertib",
+        "description": "An orally bioavailable inhibitor of raptor-mTOR (TOR complex 1 or TORC1) and rictor-mTOR (TOR complex 2 or TORC2) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C90548"
+      },
+      {
+        "value": "AR-42",
+        "description": "An orally available phenylbutyrate-derived histone deacetylase (HDAC) inhibitor, with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C116850"
+      },
+      {
+        "value": "Axitinib",
+        "description": "http://purl.obolibrary.org/obo/NCIT_C38718",
+        "source": "An orally bioavailable tyrosine kinase inhibitor."
+      },
+      {
+        "value": "Selumetinib",
+        "description": "An orally active, small molecule with potential antineoplastic activity. Selumetinib is an ATP-independent inhibitor of mitogen-activated protein kinase kinase (MEK or MAPK/ERK kinase) 1 and 2.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C66939"
+      },
+      {
+        "value": "Lapatinib",
+        "description": "A synthetic, orally-active quinazoline with potential antineoplastic properties. Lapatinib reversibly blocks phosphorylation of the epidermal growth factor receptor (EGFR), ErbB2, and the Erk-1 and-2 and AKT kinases; it also inhibits cyclin D protein levels in human tumor cell lines and xenografts",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C26653"
+      },
+      {
+        "value": "Vistusertib",
+        "description": "An orally bioavailable inhibitor of the mammalian target of rapamycin (mTOR) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C88329"
+      },
+      {
+        "value": "Ganetespib",
+        "description": "A synthetic small-molecule inhibitor of heat shock protein 90 (Hsp90) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C77872"
+      },
+      {
+        "value": "Galunisertib",
+        "description": "An orally available, small molecule antagonist of the tyrosine kinase transforming growth factor-beta (TGF-b) receptor type 1 (TGFBR1), with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C116891"
+      },
+      {
+        "value": "GDC-0941 Bismesylate",
+        "description": "The orally bioavailable bismesylate salt of a potent small-molecule thieno[3,2-d]pyrimidine inhibitor of the class I phosphatidylinositol 3 kinase (PI3K) isoforms p100alpha and p100delta with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C82380"
+      },
+      {
+        "value": "Vismodegib",
+        "description": "An orally bioavailable small molecule with potential antineoplastic activity. Hedgehog antagonist GDC-0449 targets the Hedgehog signaling pathway, blocking the activities of the Hedgehog-ligand cell surface receptors PTCH and/or SMO and suppressing Hedgehog signaling. ",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C74038"
+      },
+      {
+        "value": "AR-12",
+        "description": "An orally bioavailable, small-molecule, celecoxib-derived inhibitor of phosphoinositide-dependent kinase-1 (PDK1) with potential antineoplastic activity. Devoid of any COX inhibiting activity, PDK1 inhibitor AR-12 binds to and inhibits the phosphorylation of 3-phosphoinositide-dependent kinase-1 (PDK-1).",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C88271"
+      },
+      {
+        "value": "Everolimus",
+        "description": "A derivative of the natural macrocyclic lactone sirolimus with immunosuppressant and anti-angiogenic properties.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C48387"
+      },
+      {
+        "value": "Vorinostat",
+        "description": "A synthetic hydroxamic acid derivative with antineoplastic activity. Vorinostat, a second generation polar-planar compound, binds to the catalytic domain of the histone deacetylases (HDACs).",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C1796"
+      },
+      {
+        "value": "Perifosine",
+        "description": "An orally active alkyl-phosphocholine compound with potential antineoplastic activity. Targeting cellular membranes, perifosine modulates membrane permeability, membrane lipid composition, phospholipid metabolism, and mitogenic signal transduction, resulting in cell differentiation and inhibition of cell growth.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C1727"
+      },
+      {
+        "value": "Trametinib",
+        "description": "An orally bioavailable inhibitor of mitogen-activated protein kinase kinase (MEK MAPK/ERK kinase) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C77908"
+      },
+      {
+        "value": "GDC-0980",
+        "description": "An orally available agent targeting phosphatidylinositol 3 kinase (PI3K) and mammalian target of rapamycin (mTOR) kinase in the PI3K/mTOR signaling pathway, with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C91731"
+      }
+    ] 
+  },
+  {
+    "name": "secondCompoundName",
+    "description": "",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+            {
+          "value": "PD0325901",
+          "description": "An orally bioavailable, synthetic organic molecule targeting mitogen-activated protein kinase kinase (MAPK/ERK kinase or MEK) with potential antineoplastic activity. MEK inhibitor PD325901, a derivative of MEK inhibitor CI-1040, selectively binds to and inhibits MEK, which may result in the inhibition of the phosphorylation and activation of MAPK/ERK and the inhibition of tumor cell proliferation. The dual specific threonine/tyrosine kinase MEK is a key component of the RAS/RAF/MEK/ERK signaling pathway that is frequently activated in human tumors.",
+          "source": "http://purl.obolibrary.org/obo/NCIT_C52195"
+        },
+       {
+        "value": "A-1210477",
+        "description": "An MCL-1 inhibitor.",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/2015744"
+      },
+      {
+        "value": "ABBVIE1",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE2",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE3",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE4",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE5",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE6",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE7",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "ABBVIE8",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "Venetoclax",
+        "description": "An orally bioavailable, selective small molecule inhibitor of the anti-apoptotic protein Bcl-2, with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C103147"
+      },
+      {
+        "value": "Doxorubicin",
+        "description": "An anthracycline antibiotic with antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C456"
+      },
+      {
+        "value": "BI 2536",
+        "description": "A small molecule compound with potential antineoplastic activities. BI 2536 binds to and inhibits Polo-like kinase 1 (Plk1), resulting in mitotic arrest, disruption of cytokinesis, and apoptosis in susceptible tumor cell populations.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C49091"
+      },
+      {
+        "value": "Bortezomib",
+        "description": "A dipeptide boronic acid analogue with antineoplastic activity. Bortezomib reversibly inhibits the 26S proteasome, a large protease complex that degrades ubiquinated proteins.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C1851"
+      },
+      {
+        "value": "Carfilzomib",
+        "description": "An epoxomicin derivate with potential antineoplastic activity. Carfilzomib irreversibly binds to and inhibits the chymotrypsin-like activity of the 20S catalytic core subunit of the proteasome, a protease complex responsible for degrading a large variety of cellular proteins.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C52196"
+      },
+      {
+        "value": "Culture Medium",
+        "description": "A liquid or gel containing nutrients, salts, and other factors formulated to support the growth of microorganisms, cells, or plants.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C85504"
+      },
+      {
+        "value": "CPD22",
+        "description": "A novel ILK inhibitor, which exhibit[s] high in vitro potency against a panel of prostate and breast cancer cell lines.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/21823616"
+      },
+      {
+        "value": "Crizotinib",
+        "description": "An orally available aminopyridine-based inhibitor of the receptor tyrosine kinase anaplastic lymphoma kinase (ALK) and the c-Met/hepatocyte growth factor receptor (HGFR) with antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C74061"
+      },
+      {
+        "value": "Curcumin",
+        "description": "A phytopolylphenol pigment isolated from the plant Curcuma longa, commonly known as turmeric, with a variety of pharmacologic properties.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C401"
+      },
+      {
+        "value": "Daratumumab",
+        "description": "A fully human monoclonal antibody directed against the cell surface glycoprotein CD-38 with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C74007"
+      },
+      {
+        "value": "Defactinib",
+        "description": "An orally bioavailable, small-molecule focal adhesion kinase (FAK) inhibitor with potential antiangiogenic and antineoplastic activities.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C79809"
+      },
+      {
+        "value": "Dexamethasone",
+        "description": "A synthetic adrenal corticosteroid with potent anti-inflammatory properties.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C422"
+      },
+      {
+        "value": "Dinaciclib",
+        "description": "A pyrazolo[1,5-a]pyrimidine with potential antineoplastic activity. Dinaciclib selectively inhibits cyclin dependent kinases CDK1, CDK2, CDK5, and CDK9.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C78854"
+      },
+      {
+        "value": "DMSO",
+        "description": "A highly polar organic liquid that is used widely as a chemical solvent and a free radical scavenger.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C437"
+      },
+      {
+        "value": "GGTI-2418",
+        "description": "A potent and selective peptidomimetic inhibitor of geranylgeranyltransferase I (GGTI).",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/19204084"
+      },
+      {
+        "value": "INCB054329",
+        "description": "An inhibitor of the Bromodomain and Extra-Terminal (BET) family of bromodomain-containing proteins with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C121948"
+      },
+      {
+        "value": "IRAK-1/4 Inhibitor",
+        "description": "Interleukin-1 Receptor-Associated-Kinase-1/4 Inhibitor.",
+        "source": "https://pubchem.ncbi.nlm.nih.gov/compound/IRAK-1_4_Inhibitor"
+      },
+      {
+        "value": "IgG",
+        "description": "An immunoglobulin isotype (subclass) that characterizes secondary immune responses.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C568"
+      },
+      {
+        "value": "Ixazomib",
+        "description": "An active metabolite of MLN9708, a second generation, boron containing peptide proteasome inhibitor (PI) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C97940"
+      },
+      {
+        "value": "Selinexor",
+        "description": "An orally available, small molecule inhibitor of CRM1 (chromosome region maintenance 1 protein, exportin 1 or XPO1), with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C102546"
+      },
+      {
+        "value": "Lenalidomide",
+        "description": "A thalidomide analog with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C2668"
+      },
+      {
+        "value": "MA7-038",
+        "description": "Internal research compound.",
+        "source": "Moffitt"
+      },
+      {
+        "value": "Melphalan",
+        "description": "A phenylalanine derivative of nitrogen mustard with antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C633"
+      },
+      {
+        "value": "MK2206",
+        "description": "An orally bioavailable allosteric inhibitor of the serine/threonine protein kinase Akt (protein kinase B) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C90581"
+      },
+      {
+        "value": "MTI-101",
+        "description": "MTI-101 (cyclized HYD1) binds a CD44 containing complex.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/24048737"
+      },
+      {
+        "value": "Panobinostat",
+        "description": "A cinnamic hydroxamic acid analogue with potential antineoplastic activity. Panobinostat selectively inhibits histone deacetylase (HDAC).",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C66948"
+      },
+      {
+        "value": "Pomalidomide",
+        "description": "An orally bioavailable derivative of thalidomide with potential immunomodulating, antiangiogenic and antineoplastic activities.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C72560"
+      },
+      {
+        "value": "Ponatinib",
+        "description": "An orally bioavailable multitargeted receptor tyrosine kinase (RTK) inhibitor with potential antiangiogenic and antineoplastic activities.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C95777"
+      },
+      {
+        "value": "Ricolinostat",
+        "description": "An orally bioavailable, specific inhibitor of histone deacetylase 6 (HDAC6) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C96431"
+      },
+      {
+        "value": "Silmitasertib",
+        "description": "Silmitasertib selectively binds to and inhibits the enzyme casein kinase II (CK2)",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C98054"
+      },
+      {
+        "value": "SNS-032",
+        "description": "A small aminothiazole molecule and cyclin dependent kinase (CDK) inhibitor with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C62523"
+      },
+      {
+        "value": "SR-3029",
+        "description": "Highly selective casein kinase 1delta/1epsilon inhibitor with potent antiproliferative properties.",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/67585785"
+      },
+      {
+        "value": "THZ1",
+        "description": "A low nanomolar inhibitor of cell proliferation and biochemical CDK7 activity.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4244910/"
+      },
+      {
+        "value": "UMI-77",
+        "description": "An Mcl-1 inhibitor.",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/2003359"
+      },
+      {
+        "value": "Volasertib",
+        "description": "A dihydropteridinone Polo-like kinase 1 (Plk1) inhibitor with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C79844"
+      },
+      {
+        "value": "Fimepinostat",
+        "description": "An orally bioavailable inhibitor of both phosphoinositide 3-kinase (PI3K) class I and pan histone deacetylase (HDAC) enzymes, with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C104008"
+      },
+      {
+        "value": "Brigatinib",
+        "description": "An orally available inhibitor of receptor tyrosine kinases anaplastic lymphoma kinase (ALK) and the epidermal growth factor receptor (EGFR) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C98831"
+      },
+      {
+        "value": "Omipalisib",
+        "description": "A small-molecule pyridylsulfonamide inhibitor of phosphatidylinositol 3-kinase (PI3K) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C88270"
+      },
+      {
+        "value": "Simvastatin",
+        "description": "A lipid-lowering agent derived synthetically from a fermentation product of the fungus Aspergillus terreus.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C29454"
+      },
+      {
+        "value": "Dasatinib",
+        "description": "An orally bioavailable synthetic small molecule-inhibitor of SRC-family protein-tyrosine kinases.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C38713"
+      },
+      {
+        "value": "Sapanisertib",
+        "description": "An orally bioavailable inhibitor of raptor-mTOR (TOR complex 1 or TORC1) and rictor-mTOR (TOR complex 2 or TORC2) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C90548"
+      },
+      {
+        "value": "AR-42",
+        "description": "An orally available phenylbutyrate-derived histone deacetylase (HDAC) inhibitor, with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C116850"
+      },
+      {
+        "value": "Axitinib",
+        "description": "http://purl.obolibrary.org/obo/NCIT_C38718",
+        "source": "An orally bioavailable tyrosine kinase inhibitor."
+      },
+      {
+        "value": "Selumetinib",
+        "description": "An orally active, small molecule with potential antineoplastic activity. Selumetinib is an ATP-independent inhibitor of mitogen-activated protein kinase kinase (MEK or MAPK/ERK kinase) 1 and 2.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C66939"
+      },
+      {
+        "value": "Lapatinib",
+        "description": "A synthetic, orally-active quinazoline with potential antineoplastic properties. Lapatinib reversibly blocks phosphorylation of the epidermal growth factor receptor (EGFR), ErbB2, and the Erk-1 and-2 and AKT kinases; it also inhibits cyclin D protein levels in human tumor cell lines and xenografts",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C26653"
+      },
+      {
+        "value": "Vistusertib",
+        "description": "An orally bioavailable inhibitor of the mammalian target of rapamycin (mTOR) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C88329"
+      },
+      {
+        "value": "Ganetespib",
+        "description": "A synthetic small-molecule inhibitor of heat shock protein 90 (Hsp90) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C77872"
+      },
+      {
+        "value": "Galunisertib",
+        "description": "An orally available, small molecule antagonist of the tyrosine kinase transforming growth factor-beta (TGF-b) receptor type 1 (TGFBR1), with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C116891"
+      },
+      {
+        "value": "GDC-0941 Bismesylate",
+        "description": "The orally bioavailable bismesylate salt of a potent small-molecule thieno[3,2-d]pyrimidine inhibitor of the class I phosphatidylinositol 3 kinase (PI3K) isoforms p100alpha and p100delta with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C82380"
+      },
+      {
+        "value": "Vismodegib",
+        "description": "An orally bioavailable small molecule with potential antineoplastic activity. Hedgehog antagonist GDC-0449 targets the Hedgehog signaling pathway, blocking the activities of the Hedgehog-ligand cell surface receptors PTCH and/or SMO and suppressing Hedgehog signaling. ",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C74038"
+      },
+      {
+        "value": "AR-12",
+        "description": "An orally bioavailable, small-molecule, celecoxib-derived inhibitor of phosphoinositide-dependent kinase-1 (PDK1) with potential antineoplastic activity. Devoid of any COX inhibiting activity, PDK1 inhibitor AR-12 binds to and inhibits the phosphorylation of 3-phosphoinositide-dependent kinase-1 (PDK-1).",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C88271"
+      },
+      {
+        "value": "Everolimus",
+        "description": "A derivative of the natural macrocyclic lactone sirolimus with immunosuppressant and anti-angiogenic properties.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C48387"
+      },
+      {
+        "value": "Vorinostat",
+        "description": "A synthetic hydroxamic acid derivative with antineoplastic activity. Vorinostat, a second generation polar-planar compound, binds to the catalytic domain of the histone deacetylases (HDACs).",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C1796"
+      },
+      {
+        "value": "Perifosine",
+        "description": "An orally active alkyl-phosphocholine compound with potential antineoplastic activity. Targeting cellular membranes, perifosine modulates membrane permeability, membrane lipid composition, phospholipid metabolism, and mitogenic signal transduction, resulting in cell differentiation and inhibition of cell growth.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C1727"
+      },
+      {
+        "value": "Trametinib",
+        "description": "An orally bioavailable inhibitor of mitogen-activated protein kinase kinase (MEK MAPK/ERK kinase) with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C77908"
+      },
+      {
+        "value": "GDC-0980",
+        "description": "An orally available agent targeting phosphatidylinositol 3 kinase (PI3K) and mammalian target of rapamycin (mTOR) kinase in the PI3K/mTOR signaling pathway, with potential antineoplastic activity.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C91731"
+      }
+    ] 
+  },
+     {
+    "name": "drugScreenType",
+    "description": "String describing general class of drug screen",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues":[
+      {
+        "value": "singleMolecule",
+        "description": "An experiment in which a single molecule was used in an assay",
+        "source": ""
+      },
+      {
+        "value": "smallMoleculeLibraryScreen",
+        "description": "High throughput sample analysis of small molecules for purpose such as drug discovery, or biochemical, genetic or pharmacological tests.",
+        "source": " http://purl.obolibrary.org/obo/ERO_0001726"
+      },
+      {
+        "value":"combinationLibraryScreen",
+        "description":"High throughput sample analysis of collections of compounds that provide a variety of chemically diverse structures that can be used to identify structure types that have affinity with pharmacological targets.",
+        "source":"http://purl.obolibrary.org/obo/ERO_0001686"
+      },
+      {
+        "value": "combinationScreen",
+        "description":"",
+        "source":""
+        }
+    ]
+  },
+  {
+      "name": "compoundDose",
+      "description": "",
+      "columnType": "DOUBLE",
+      "enumValues": []
+  },
+    {
+        "name":"compoundDoseUnit",
+        "description":"",
+        "columnType":"STRING",
+      "maximumSize": 250,
+      "enumValues": []
+    },
+    {
+        "name":"secondCompoundDose",
+        "description":"",
+        "columnType":"DOUBLE",
+        "enumValues":[]
+    },
+    {
+        "name":"secondCompoundDoseUnit",
+        "description":"",
+        "columnType":"STRING",
+        "maximumSize": 250,
+        "enumValues": []
+    },
+    {
+      "name": "compoundDoseRange",
+      "description": "The minimum and maximum values of a treatment range; e.g. 1-25",
+      "columnType": "STRING",
+      "maximumSize": 250,
+      "enumValues": []
+  }
+  ]

@@ -1,0 +1,65 @@
+{
+   "$schema": "http://json-schema.org/draft-07/schema#",
+   "$id": "http://example.com/exampleJSONSchema",
+   "title": "exampleJSONSchema",
+   "type": "object",
+   "properties": {
+      "fileFormat": {
+         "enum": [
+            "txt",
+            "fastq"
+         ]
+      },
+      "resourceType": {
+         "enum": [
+            "experimentalData",
+            "tool"
+         ]
+      }
+   },
+   "required": [
+      "resourceType",
+      "fileFormat"
+   ],
+   "allOf": [
+      {
+         "if": {
+            "properties": {
+               "resourceType": {
+                  "enum": [
+                     "experimentalData"
+                  ]
+               }
+            },
+            "required": [
+               "resourceType"
+            ]
+         },
+         "then": {
+            "required": [
+               "specimenID",
+               "assay"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "resourceType": {
+                  "enum": [
+                     "tool"
+                  ]
+               }
+            },
+            "required": [
+               "resourceType"
+            ]
+         },
+         "then": {
+            "required": [
+               "softwareName"
+            ]
+         }
+      }
+   ]
+}

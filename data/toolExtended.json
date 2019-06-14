@@ -1,0 +1,127 @@
+[
+  {
+    "name": "packageLibraryPlatformVersion", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": []
+  },
+  {
+    "name": "packageBinaryPlatform", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "Windows",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "OSX",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "Linux",
+        "description": "",
+        "source": ""
+      }
+    ]
+  },
+  {
+    "name": "packageBinaryPlatformVersion", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": []
+  },
+  {
+    "name": "containerPlatform", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "Docker",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "Singularity",
+        "description": "",
+        "source": ""
+      }
+    ]
+  },
+  {
+    "name": "containerPlatformVersion", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": []
+  },
+  {
+    "name": "workflowPlatform", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "Nextflow",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "Galaxy",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "Snakemake",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "Rufus",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "CWL",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "WDL",
+        "description": "",
+        "source": ""
+      }
+    ]
+  },
+  {
+    "name": "workflowPlatformVersion", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": []
+  },
+  {
+    "name": "containerToolPlatform", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "Docker-CWL",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "Docker-WDL",
+        "description": "",
+        "source": ""
+      }
+    ]
+  }
+]

@@ -1,0 +1,279 @@
+[
+  {
+    "name": "cellSubType",
+    "biothingsParent":"cancer",
+    "description": "This term is to be used when cell type is not specific enough, such as certain classes of T cells",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": []
+  },
+  {
+    "name": "transplantationRecipientTissue",
+    "biothingsParent":"cancer",
+    "description": "In the case of a transplate, this describes the transplant destination",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": []
+  },
+  {
+    "name": "transplantationType",
+    "biothingsParent":"cancer",
+    "description": "Type of transplantation involved in the experiment, derived from MESH",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "allograft",
+        "description": "Tissues, cells, or organs transplanted between genetically different individuals of the same species",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/68064591"
+      },
+      {
+        "value": "xenograft",
+        "description": "Tissues, cells or organs transplanted between animals of different species",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/68064593"
+      },
+      {
+        "value": "autograft",
+        "description": "Transplant comprised of an individual's own tissue, transferred from one part of the body to another.",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/68064592"
+      },
+      {
+        "value": "isograft",
+        "description": "Tissues, cells or organs transplanted between genetically identical individuals",
+        "source": "https://www.ncbi.nlm.nih.gov/mesh/68064596"
+      }
+    ]
+  },
+  {
+    "name": "genePerturbationType",
+    "biothingsParent":"cancer",
+    "description": "Specific way in which a single gene was perturbed in a sample",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "overexpression",
+        "description": "Gene overexpression refers to genetic techniques in which an organism or cell line is engineered to express increased levels of a gene.",
+        "source": "http://www.bioassayontology.org/bao#BAO_0002442"
+      },
+      {
+        "value": "knockdown",
+        "description": "Gene knockdown refers to techniques by which the expression of one or more of an organism's genes is reduced, either through genetic modification (a change in the DNA of one of the organism's chromosomes) or by treatment with a reagent such as a short DNA or RNA oligonucleotide with a sequence complementary to either an mRNA transcript or a gene.",
+        "source": "http://www.bioassayontology.org/bao#BAO_0002433"
+      },
+      {
+        "value": "knockout",
+        "description": "A gene knockout is a genetic technique in which an organism is engineered to carry genes that have been made inoperative (have been 'knocked out' of the organism).",
+        "source": "http://www.bioassayontology.org/bao#BAO_0002441"
+      }
+    ]
+  },
+  {
+    "name": "genePerturbationTechnology",
+    "biothingsParent":"cancer",
+    "description": "Technology used to perform gene perturbation",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "RNAi",
+        "description": "High throughput sample analysis of RNAi molecules for potential application in gene knockdown or gene silencing of target genes",
+        "source": "http://purl.obolibrary.org/obo/ERO_0001688"
+      },
+      {
+        "value": "CRISPR",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "CRE Recombinase",
+        "description": "CRE Recombinase catalyses site-specific recombination between two 34 base pair loxp sites and maintains the phage genome as a monomeric unit-copy plasmid in the lysogenic state.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C17285"
+      }
+    ]
+  },
+  {
+    "name": "timePointUnit",
+    "biothingsParent":"cancer",
+    "description": "For timed experiments this represents the unit of time measured",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "hours",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "days",
+        "description": "",
+        "source": ""
+      }
+    ]
+  },
+  {
+    "name": "transplantationRecipientSpecies",
+    "biothingsParent":"cancer",
+    "description": "Species into which donor tissue was grown",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "Human",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "Mouse",
+        "description": "",
+        "source": ""
+      }
+    ]
+  },
+  {
+    "name": "experimentalCondition",
+    "biothingsParent":"cancer",
+    "description": "This describes the condition under which the data were collected, designed to be free form, extra things that do not fit in pre-defined terms",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": []
+  },
+  {
+    "name": "experimentalTimePoint",
+    "biothingsParent":"cancer",
+    "description": "Number describing time point at which data was collected",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": []
+  },
+  {
+    "name": "genePerturbed",
+    "biothingsParent":"cancer",
+    "description": "In the case of gene modulation, this describes the gene or genes that were modulated",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": []
+  },
+  {
+    "name": "transplantationDonorTissue",
+    "biothingsParent":"cancer",
+    "description": "",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": []
+  },
+     {
+    "name": "tumorType",
+    "biothingsParent":"cancer",
+    "description": "The type of cells that carcinoma arises from.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "Cutaneous Neurofibroma",
+        "description": "A neurofibroma that grows along small branches of nerves in the dermis in patients with neurofibromatosis. It presents as a solid cutaneous tumor.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C128451"
+      },
+      {
+        "value": "Plexiform Neurofibroma",
+        "description": "An elongated and multinodular neurofibroma, formed when the tumor involves either multiple trunks of a plexus or multiple fascicles of a large nerve, such as the sciatic. Some plexiform neurofibromas resemble a bag of worms, others produce a massive ropy enlargement of the nerve.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C3797"
+      },
+      {
+        "value": "Atypical Neurofibroma",
+        "description": "A neurofibroma characterized by the presence of cellular pleomorphism.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C41426"
+      },
+      {
+        "value": "Malignant Peripheral Nerve Sheath Tumor",
+        "description": "The tumors usually develop along peripheral or cranial nerves and are a central feature of NEUROFIBROMATOSIS 1, where they may occur intracranially or involve spinal roots.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C3798"
+      },
+      {
+        "value": "Adenocarcinoma",
+        "description": "A common cancer characterized by the presence of malignant glandular cells. Morphologically, adenocarcinomas are classified according to the growth pattern (e.g., papillary, alveolar) or according to the secreting product (e.g., mucinous, serous).",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/mp/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FNCIT_C2852"
+      },
+      {
+        "value": "Carcinoma",
+        "description": "A cell type cancer that has_material_basis_in abnormally proliferating cells derives_from epithelial cells.",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/doid/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FDOID_305"
+      },
+      {
+        "value": "Ductal Carcinoma",
+        "description": "Invasive ductal carcinoma (IDC), an infiltrating, malignant and abnormal proliferation of neoplastic cells in the breast tissue, or ductal carcinoma in situ (DCIS), a noninvasive, possibly malignant, neoplasm that is still confined to the milk ducts (lactiferous ducts), where breast cancer most often originates.",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/bto/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FBTO_0004851"
+      },
+      {
+        "value": "Melanoma",
+        "description": "A malignant, usually aggressive tumor composed of atypical, neoplastic melanocytes.",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/mp/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FNCIT_C3224"
+      },
+      {
+        "value": "Glioma",
+        "description": "A benign or malignant brain and spinal cord tumor that arises from glial cells (astrocytes, oligodendrocytes, ependymal cells). Tumors that arise from astrocytes are called astrocytic tumors or astrocytomas. Tumors that arise from oligodendrocytes are called oligodendroglial tumors. Tumors that arise from ependymal cells are called ependymomas.",
+        "source": "http://purl.obolibrary.org/obo/MONDO_0021042"
+      },
+      {
+        "value": "Low Grade Glioma",
+        "description": "Low grade gliomas are brain tumors that come from two different types of brain cells known as astrocytes and oligodendrocytes.",
+        "source": "https://www.urmc.rochester.edu/neurosurgery/specialties/neurooncology/conditions/low-grade-glioma.aspx"
+      },
+      {
+        "value": "Diffuse Astrocytoma",
+        "description": "Also called Low-Grade or Astrocytoma Grade II is a subtype of glial tumor of the brain or spinal cord showing astrocytic differentiation.",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/efo/terms?iri=http%3A%2F%2Fwww.ebi.ac.uk%2Fefo%2FEFO_0000272"
+      },
+      {
+        "value": "Anaplastic Astrocytoma",
+        "description": "A diffusely infiltrating, WHO grade III astrocytoma with focal or dispersed anaplasia, and a marked proliferative potential. It may arise from a low-grade astrocytoma, but it can also be diagnosed at first biopsy, without indication of a less malignant precursor lesion. It has an intrinsic tendency for malignant progression to glioblastoma.",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/efo/terms?iri=http%3A%2F%2Fwww.ebi.ac.uk%2Fefo%2FEFO_0002499"
+      },
+      {
+        "value": "Glioblastoma",
+        "description": "Develop primarily through increasing anaplasia of well differentiated gliomas, mainly astrocytomas or oligodendrogliomas. Typically large and contain cells of different sizes with irrregular nuclei and atypical mitotic figures.",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/mpath/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FMPATH_564"
+      },
+      {
+        "value": "Schwannoma",
+        "description": "A neoplasm that arises from SCHWANN CELLS of the cranial, peripheral, and autonomic nerves. ",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/efo/terms?iri=http%3A%2F%2Fwww.ebi.ac.uk%2Fefo%2FEFO_0000693"
+      },
+      {
+        "value": "Lymphoblastic Lymphoma",
+        "description":"A lymphoma composed of immature small to medium-sized precursor lymphoid cells (lymphoblasts). It includes the B- and T-cell lymphoblastic lymphoma.",
+        "source": "http://purl.obolibrary.org/obo/NCIT_C9360"
+      },
+      {
+        "value": "Meningioma",
+        "description": "A generally slow growing tumor attached to the dura mater. It is composed of neoplastic meningothelial (arachnoidal) cells.",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/mp/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FNCIT_C3230"
+      },
+      {
+        "value": "Myeloma",
+        "description": "A bone marrow cancer that is formed of any one of the bone marrow cells belonging to the granulocytic (neutrophil, eosinophil, basophil), monocytic/macrophage, erythroid, megakaryocytic and mast cell lineages.",
+        "source": "http://purl.obolibrary.org/obo/DOID_0070004"
+      },
+      {
+        "value": "Not Applicable",
+        "description": "",
+        "source": ""
+      },
+      {
+        "value": "T Acute Lymphoblastic Leukemia",
+        "description": "Acute lymphoblastic leukemia of T-cell origin. It comprises about 15% of childhood cases and 25% of adult cases. ",
+        "source":"http://purl.obolibrary.org/obo/NCIT_C3183"
+      },
+      {
+        "value": "chronic lymphocytic leukemia",
+        "description": "A lymphoblastic leukemia characterized by over production of B-cells and their accumulation in bone marrow and blood. ",
+        "source":"http://purl.obolibrary.org/obo/DOID_1040"
+      },
+      {
+        "value": "Acute Myeloid Leukemia",
+        "description":"A clonal expansion of myeloid blasts in the bone marrow, blood or other tissues.",
+        "source":"http://purl.obolibrary.org/obo/NCIT_C3171"
+      }
+    ]
+  }
+]

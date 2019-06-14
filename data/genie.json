@@ -1,0 +1,91 @@
+[
+  {
+    "name": "fileStage", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "staging", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "release", 
+        "description": "", 
+        "source": ""
+      }
+    ]
+  }, 
+  {
+    "name": "cBioFileFormat", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "clinical", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "CNA", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "fusions", 
+        "description": "", 
+        "source": ""
+      }
+    ]
+  }, 
+  {
+    "name": "center", 
+    "description": "", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "NKI", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "DFCI", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "GRCC", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "JHU", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "MSK", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "UHN", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "VICC", 
+        "description": "", 
+        "source": ""
+      }, 
+      {
+        "value": "MDA", 
+        "description": "", 
+        "source": ""
+      }
+    ]
+  }
+]
