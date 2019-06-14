@@ -103,7 +103,6 @@ class ManifestGenerator(object):
         for req in json_schema["required"]: 
             if req in json_schema["properties"]:
                 required_metadata_fields[req] = json_schema["properties"][req]["enum"]
-        print(required_metadata_fields) 
     
         # gathering dependency requirements and allowed value constraints for conditional dependencies
         for conditional_reqs in json_schema["allOf"]: 
@@ -112,15 +111,11 @@ class ManifestGenerator(object):
                     if req in conditional_reqs["if"]["properties"]:
                         if not req in required_metadata_fields: 
                             required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"]
-                 print ("after conditional if") 
-                 print(required_metadata_fields)
+
                  for req in conditional_reqs["then"]["required"]: 
                      if not req in required_metadata_fields:
                          required_metadata_fields[req] = []    
 
-        print ("after conditional if and then") 
-        print(required_metadata_fields)
-        
 
         # adding columns
         end_col = len(required_metadata_fields.keys())
@@ -133,8 +128,6 @@ class ManifestGenerator(object):
                 "values": values 
         }
        
-        print(required_metadata_fields)
-
         service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
 
 
@@ -142,6 +135,9 @@ class ManifestGenerator(object):
         for i, (req, values) in enumerate(required_metadata_fields.items()):
 
             req_vals = [{"userEnteredValue":value} for value in values if value]
+
+            if not req_vals:
+                continue
 
             body =  {
                       "requests": [
@@ -167,6 +163,13 @@ class ManifestGenerator(object):
             }   
 
             response = service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
-            
-            return "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
+        
+        manifest_url = "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
+     
+        print("==========================")
+        print("Manifest successfully generated from schema!")
+        print("URL: " + manifest_url)
+        print("==========================")
+        
 
+        return manifest_url
