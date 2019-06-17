@@ -1,0 +1,1228 @@
+{
+   "$schema": "http://json-schema.org/draft-07/schema#",
+   "$id": "http://example.com/NFJSONschema",
+   "title": "NFJSONschema",
+   "type": "object",
+   "properties": {
+      "resourceType": {
+         "enum": [
+            "analysis",
+            "experimentalData",
+            "curatedData",
+            "tool"
+         ]
+      },
+      "diagnosis": {
+         "enum": [
+            "Colon Cancer",
+            "Lung Cancer",
+            "Fibrocystic Breast Disease",
+            "Skin Cancer",
+            "Bladder Cancer",
+            "Alzheimer Disease",
+            "Pancreatic Cancer",
+            "Affective Disorder",
+            "Juvenile Myelomonocytic Leukemia",
+            "Neurofibromatosis 2",
+            "Ovary Cancer",
+            "Prostate Cancer",
+            "Autism Spectrum Disorder",
+            "Tourette Syndrome",
+            "cancer",
+            "Cervical Cancer",
+            "Breast Cancer",
+            "Bipolar Disorder",
+            "Schizophrenia",
+            "Leukemia",
+            "Neurofibromatosis 1",
+            "Brain Cancer"
+         ]
+      },
+      "assay": {
+         "enum": [
+            "HI-C",
+            "Ribo-Seq",
+            "LC-MS",
+            "jumpingLibrary",
+            "novelty response behavior",
+            "exomeSeq",
+            "LC-MSMS",
+            "scale",
+            "tractionForceMicroscopy",
+            "nextGenerationTargetedSequencing",
+            "scCGIseq",
+            "MIB/MS",
+            "bisulfiteSeq",
+            "questionnaire",
+            "rnaArray",
+            "brightfieldMicroscopy",
+            "DNA optical mapping",
+            "NOMe-Seq",
+            "nextGenerationSequencing",
+            "westernBlot",
+            "Device",
+            "MudPIT",
+            "immunohistochemistry",
+            "mirnaArray",
+            "oxBS-Seq",
+            "snpArray",
+            "wholeGenomeSeq",
+            "cellViabilityAssay",
+            "UPLC-MSMS",
+            "in vivo bioluminescence",
+            "ChIPSeq",
+            "MRI",
+            "ISOSeq",
+            "polymeraseChainReaction",
+            "RPPA",
+            "errBisulfiteSeq",
+            "ATACSeq",
+            "lncrnaSeq",
+            "atomicForceMicroscopy",
+            "rnaSeq",
+            "methylationArray",
+            "active avoidance learning behavior",
+            "mirnaSeq",
+            "FIA-MSMS"
+         ]
+      },
+      "assayTarget": {
+         "enum": [
+            "H3K27me3",
+            "H3K9me3",
+            "H3K4me3",
+            "H3K27ac",
+            "H3K9ac",
+            "input",
+            "CTCF",
+            "H3K36me3",
+            "H3K4me1",
+            "REST"
+         ]
+      },
+      "dissociationMethod": {
+         "enum": [
+            "FACS",
+            "enzymatic",
+            "mechanical",
+            "drop-seq",
+            "Fluidigm C1",
+            " 10x_v2",
+            "none",
+            "mouth pipette",
+            "bulk",
+            "inDrop"
+         ]
+      },
+      "libraryPreparationMethod": {
+         "enum": [
+            "TruSeq",
+            "CEL-seq",
+            "Smart-seq2",
+            "Drop-Seq",
+            "10x"
+         ]
+      },
+      "libraryPrep": {
+         "enum": [
+            "polyAselection",
+            "lncRNAenrichment",
+            "rRNAdepletion",
+            "miRNAenrichment"
+         ]
+      },
+      "nucleicAcidSource": {
+         "enum": [
+            "bulk cell",
+            "single nucleus",
+            "mitochondria",
+            "bulk nuclei",
+            "single cell"
+         ]
+      },
+      "platform": {
+         "enum": [
+            "Affy6.0",
+            "IlluminaHumanHap300",
+            "AffymetrixU133AB",
+            "IlluminaHumanMethylation450",
+            "GAIIx",
+            "Illumina_Omni5M",
+            "Bionano Irys",
+            "Infinium HumanOmniExpressExome",
+            "AffymetrixU133Plus2",
+            "NextSeq500",
+            "SequenomMultiplex",
+            "confocalImaging",
+            "Affymetrix Human Gene 1.0 ST Array",
+            "MiSeq",
+            "Agilent44Karray",
+            "Illumina_h650",
+            "HiSeq2500",
+            "PsychChip",
+            "HiSeq3000",
+            "NanostringnCounter",
+            "Illumina_HumanOmni1-Quadv1.0",
+            "HiSeqX",
+            "HiSeq4000",
+            "HiSeq2000",
+            "IlluminaWholeGenomeDASL",
+            "IlluminaHumanHT-12_V3_0_R1",
+            "PacBioRSII",
+            "Affy5.0",
+            "Illumina_Omni2pt5M",
+            "Illumina MouseWG-6 v2.0 expression beadchip",
+            "Illumina_1M",
+            "Perlegen300Karray",
+            "LTQOrbitrapXL"
+         ]
+      },
+      "readPairOrientation": {
+         "enum": [
+            "outward",
+            "matching",
+            "inward"
+         ]
+      },
+      "runType": {
+         "enum": [
+            "pairedEnd",
+            "singleEnd"
+         ]
+      }
+   },
+   "required": [
+      "resourceType",
+      "consortium",
+      "fileFormat",
+      "fundingAgency"
+   ],
+   "allOf": [
+      {
+         "if": {
+            "properties": {
+               "resourceType": {
+                  "enum": [
+                     "experimentalData"
+                  ]
+               }
+            },
+            "required": [
+               "resourceType"
+            ]
+         },
+         "then": {
+            "required": [
+               "sex",
+               "individualID",
+               "specimenID",
+               "assay",
+               "species",
+               "diagnosis",
+               "dataSubtype",
+               "isCellLine",
+               "dataType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "resourceType": {
+                  "enum": [
+                     "tool"
+                  ]
+               }
+            },
+            "required": [
+               "resourceType"
+            ]
+         },
+         "then": {
+            "required": [
+               "softwareRepository",
+               "softwareName",
+               "outputDataType",
+               "softwareLanguage",
+               "inputDataType",
+               "softwareType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Colon Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Lung Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Fibrocystic Breast Disease"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Skin Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Bladder Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Alzheimer Disease"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Pancreatic Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Affective Disorder"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Juvenile Myelomonocytic Leukemia"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Neurofibromatosis 2"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Ovary Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Prostate Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Autism Spectrum Disorder"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Tourette Syndrome"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Cervical Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Breast Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Bipolar Disorder"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Schizophrenia"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Leukemia"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Neurofibromatosis 1"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tissue"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "diagnosis": {
+                  "enum": [
+                     "Brain Cancer"
+                  ]
+               }
+            },
+            "required": [
+               "diagnosis"
+            ]
+         },
+         "then": {
+            "required": [
+               "tumorType"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "Ribo-Seq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "exomeSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "nextGenerationTargetedSequencing"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "scCGIseq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "bisulfiteSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "rnaArray"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "platform"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "NOMe-Seq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "nextGenerationSequencing"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "westernBlot"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "assayTarget"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "immunohistochemistry"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "assayTarget"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "mirnaArray"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "platform"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "oxBS-Seq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "snpArray"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "platform"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "wholeGenomeSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "cellViabilityAssay"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "chemicalStructure"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "ChIPSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "assayTarget"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "ISOSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "errBisulfiteSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "ATACSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "lncrnaSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "rnaSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "methylationArray"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "platform"
+            ]
+         }
+      },
+      {
+         "if": {
+            "properties": {
+               "assay": {
+                  "enum": [
+                     "mirnaSeq"
+                  ]
+               }
+            },
+            "required": [
+               "assay"
+            ]
+         },
+         "then": {
+            "required": [
+               "runType",
+               "readPairOrientation",
+               "isStranded",
+               "platform",
+               "nucleicAcidSource",
+               "libraryPrep",
+               "libraryPreparationMethod",
+               "readLength",
+               "dissociationMethod"
+            ]
+         }
+      }
+   ]
+}

@@ -1,0 +1,637 @@
+[
+  {
+    "name": "assemblyMethod",
+    "description": "Algorithm used to build a reference genome from short read sequencing data.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "Velvet",
+        "description": "Velvet: An algorithm for de novo short read assembly using de Bruijn graphs",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2336801/"
+      }
+    ]
+  },
+  {
+    "name": "batchEffectCorrectionMethod",
+    "description": "Methods for identifying or correcting potential confounding variables in regression analyses.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "COMBAT",
+        "description": "An empirical Bayes gene expression batch correction method with known covariates",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/16632515"
+      },
+      {
+        "value": "surrogate variable analysis",
+        "description": "Surrogate Variable Analysis: identification and adjustment for hidden confounds that are independent of a known outcome",
+        "source": "http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.0030161"
+      },
+      {
+        "value": "Principal Component Analysis",
+        "description": "Principal Component Analysis: Mathematical procedure that transforms a number of possibly correlated variables into a smaller number of uncorrelated variables called principal components.",
+        "source": "http://purl.bioontology.org/ontology/MESH/D025341"
+      }
+    ]
+  },
+  {
+    "name": "clusteringMethod",
+    "description": "A method to identify groups of similar variables based on their data distribution.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "hierarchical clustering",
+        "description": "A hierarchical clustering is a data transformation which achieves a class discovery objective, which takes as input data item and builds a hierarchy of clusters. The traditional representation of this hierarchy is a tree (visualized by a dendrogram), with the individual input objects at one end (leaves) and a single cluster containing every object at the other (root).",
+        "source": "http://purl.obolibrary.org/obo/OBI_0200042"
+      },
+      {
+        "value": "k-means clustering",
+        "description": "A k-means clustering is a data transformation which achieves a class discovery or partitioning objective, which takes as input a collection of objects (represented as points in multidimensional space) and which partitions them into a specified number k of clusters. The algorithm attempts to find the centers of natural clusters in the data. The most common form of the algorithm starts by partitioning the input points into k initial sets, either at random or using some heuristic data. It then calculates the mean point, or centroid, of each set. It constructs a new partition by associating each point with the closest centroid. Then the centroids are recalculated for the new clusters, and the algorithm repeated by alternate applications of these two steps until convergence, which is obtained when the points no longer switch clusters (or alternatively centroids are no longer changed).",
+        "source": "http://purl.obolibrary.org/obo/OBI_0200041"
+      },
+      {
+        "value": "Weighted correlation network analysis",
+        "description": "A data mining method typically used for studying biological networks based on pairwise correlations between variables.",
+        "source": "http://edamontology.org/operation_3766"
+      },
+      {
+        "value": "principal component analysis",
+        "description": "Principal Component Analysis: Mathematical procedure that transforms a number of possibly correlated variables into a smaller number of uncorrelated variables called principal components.",
+        "source": "http://purl.bioontology.org/ontology/MESH/D025341"
+      }
+    ]
+  },
+  {
+    "name": "somaticMutationCallingMethod",
+    "description": "Algorithm to call somatic mutations.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "VarDict",
+        "description": "A DNA and RNA seq variant caller in cancer research.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/27060149"
+      },
+      {
+        "value": "MuTect",
+        "description": "A method to detect DNA point mutations in heterogeneous and impure cancer samples.",
+        "source": "https://www.nature.com/articles/nbt.2514"
+      },
+      {
+        "value": "VarScan",
+        "description": "A method to detect variants from short read DNA sequencing in individual and pooled samples.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/19542151"
+      }
+    ]
+  },
+  {
+    "name": "multipleTestingAdjustmentMethod",
+    "description": "Method used to control either family wise error rate, false discovery rate, or other measures of burden of false positives and false negatives when performing multiple statistical tests.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "Benjamini Hochberg",
+        "description": "A sequential p-value procedure that controls expected false discovery rate.",
+        "source": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C61596"
+      },
+      {
+        "value": "Bonferroni",
+        "description": "Used in multiple comparison procedures to calculate an adjusted probability, alpha (a), of comparison-wise type I error from the desired probability aFW0 of family-wise type I error. The calculation guarantees that the use of the adjusted a in pairwise comparisons keeps the actual probability aFW of family-wise type I errors not higher than the desired level, as specified by aFW0.",
+        "source": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C61594"
+      }
+    ]
+  },
+  {
+    "name": "peakCallingMethod",
+    "description": "The algorithm used to identify protein-binding regions in a genome sequence from the data generated from a ChIP-sequencing or ChIP-chip experiment.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "MACS",
+        "description": "A dynamic Poisson process based method to identify ChIP-Seq peaks.",
+        "source": "https://genomebiology.biomedcentral.com/articles/10.1186/gb-2008-9-9-r137"
+      },
+      {
+        "value": "GEM",
+        "description": "EM algorithm to identify ChIP-Seq peaks and enriched motifs.",
+        "source": "http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002638"
+      }
+    ]
+  },
+  {
+    "name": "transcriptQuantificationMethod",
+    "description": "Method for quantifying abundance of transcript expression.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "kallisto",
+        "description": "Alignment free quantification method for transcripts.",
+        "source": "https://www.nature.com/articles/nbt.3519"
+      },
+      {
+        "value": "RSEM",
+        "description": "Transcript qunatification without a reference genome.",
+        "source": "https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-12-323"
+      },
+      {
+        "value": "featureCounts",
+        "description": "A method for assigning sequence reads to genomic features.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/24227677"
+      },
+      {
+        "value": "bedtools multicov",
+        "description": "Reports the count of alignments from multiple position-sorted and indexed BAM files that overlap intervals in a BED file.",
+        "source": "http://bedtools.readthedocs.io/en/latest/content/tools/multicov.html"
+      }
+    ]
+  },
+  {
+    "name": "statisticalNetworkReconstructionMethod",
+    "description": "",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "Weighted correlation network analysis",
+        "description": "A data mining method typically used for studying biological networks based on pairwise correlations between variables.",
+        "source": "http://edamontology.org/operation_3766"
+      },
+      {
+        "value": "SPARROW",
+        "description": "Sparse conditional independence graph construction from gene expression data using a variational Bayes spike regression neighorhood selection method.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/?term=25583238"
+      },
+      {
+        "value": "Lasso",
+        "description": "Sparse conditional independence graph construction from gene expression data using an L1 penalized regression neighborhood selection method.",
+        "source": "https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-10-384"
+      },
+      {
+        "value": "ridge",
+        "description": "Conditional independence graph construction from gene expression using an L2^2 penalized regression neighborhood selection method.",
+        "source": "https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-10-384"
+      },
+      {
+        "value": "GENIE3",
+        "description": "Gene expression network reconstruction using random forests.",
+        "source": "http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0012776"
+      },
+      {
+        "value": "TIGRESS",
+        "description": "Gene expression network reconstruction using stability selection.",
+        "source": "https://bmcsystbiol.biomedcentral.com/articles/10.1186/1752-0509-6-145"
+      },
+      {
+        "value": "ARACNE",
+        "description": "Gene expression network reconstruction using mutual information.",
+        "source": "https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-7-S1-S7"
+      },
+      {
+        "value": "MRNET",
+        "description": "An information theoretic method to infer gene expression networks.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/18354736"
+      },
+      {
+        "value": "C3NET",
+        "description": "Method to infer causal relationships in gene expression networks with mutual information.",
+        "source": "https://bmcsystbiol.biomedcentral.com/articles/10.1186/1752-0509-4-132"
+      },
+      {
+        "value": "MEGENA",
+        "description": "Multiscale Embedded Gene Co-expression Network Analysis",
+        "source": "http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004574"
+      },
+      {
+        "value": "WINA",
+        "description": "",
+        "source": ""
+      }
+    ]
+  },
+  {
+    "name": "differentialExpressionMethod",
+    "description": "Method used to test for differentially expressed genes or isoforms.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "limma",
+        "description": "Data analysis, linear models and differential expression for microarray data.",
+        "source": "http://www.ebi.ac.uk/efo/swo/SWO_0000593"
+      },
+      {
+        "value": "sleuth",
+        "description": "Differential expression analysis incorporating quantification uncertainty.",
+        "source": "https://www.nature.com/articles/nmeth.4324"
+      },
+      {
+        "value": "Cuffdiff 2",
+        "description": "Differential expression analysis of transcripts.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3869392/"
+      },
+      {
+        "value": "edgeR",
+        "description": "Estimation and Testing for Differential Expression in Multiple Digital Gene Expression Libraries.",
+        "source": "http://www.ebi.ac.uk/efo/swo/SWO_0000527"
+      },
+      {
+        "value": "DESeq2",
+        "description": "A method for differential analysis of count data, using shrinkage estimation for dispersions and fold changes.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4302049/"
+      }
+    ]
+  },
+  {
+    "name": "alignmentMethod",
+    "description": "DNA or RNA sequence alignment method",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "Burrows-Wheeler technique",
+        "description": "Burrows Wheeler Alignment algorithm.",
+        "source": "http://purl.obolibrary.org/obo/ERO_0100332"
+      },
+      {
+        "value": "Bowtie",
+        "description": "A memory efficient short read alignment algorithm.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/19261174"
+      },
+      {
+        "value": "Bowtie 2",
+        "description": "A memory efficient short read alignment algorithm.",
+        "source": "https://www.nature.com/articles/nmeth.1923"
+      },
+      {
+        "value": "SNAPR",
+        "description": "A pipeline for short read alignment and downstream analyses.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/29270443"
+      },
+      {
+        "value": "GSNAP",
+        "description": "Method to detect complex variants and splicing in short read sequencing.",
+        "source": "https://academic.oup.com/bioinformatics/article/26/7/873/212606"
+      },
+      {
+        "value": "TopHat",
+        "description": "Method to align short read sequencing for outputs such as splice junction detection.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2672628/"
+      },
+      {
+        "value": "MOSAIC",
+        "description": "Segmentation alignment method for DNA alignment.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/11238079"
+      },
+      {
+        "value": "NovoAlign",
+        "description": "Short read sequencing alignment method.",
+        "source": "http://www.novocraft.com/products/novoalign/"
+      },
+      {
+        "value": "OLego",
+        "description": "Alignment method to detect de novo mapping of spliced mRNA-Seq reads.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/23571760"
+      },
+      {
+        "value": "STAR",
+        "description": "Software based on a previously undescribed RNA-seq alignment algorithm that uses sequential maximum mappable seed search in uncompressed suffix arrays followed by seed clustering and stitching procedure.",
+        "source": "https://academic.oup.com/bioinformatics/article/29/1/15/272537"
+      }
+    ]
+  },
+  {
+    "name": "validationMethod",
+    "description": "Method to test targeted sequence level hypothesis.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "CRISPR-Cas9",
+        "description": "Genome manipulation technique to incorporate or delete arbitrary sequence features into germline cells.",
+        "source": "http://science.sciencemag.org/content/346/6213/1258096.full"
+      },
+      {
+        "value": "RNAi",
+        "description": "The process in which double-stranded RNAs silence cognate genes. Involves posttranscriptional gene inactivation ('silencing') both of transgenes or dsRNA introduced into a germline, and of the host gene(s) homologous to the transgenes or dsRNA. This silencing is triggered by the introduction of transgenes or double-stranded RNA (dsRNA), and can occur through a specific decrease in the level of mRNA, or by negative regulation of translation, of both host genes and transgenes.",
+        "source": "http://purl.obolibrary.org/obo/GO_0016246"
+      },
+      {
+        "value": "shRNA",
+        "description": "Short hairpin RNA (shRNA) can be used to achieve stable knockdown of gene expression. shRNA molecules are cloned into lentiviral or other vectors and expressed by a pol III type promoter.",
+        "source": "http://www.bioassayontology.org/bao#BAO_0000323"
+      }
+    ]
+  },
+  {
+    "name": "enrichmentMethod",
+    "description": "",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "Fisher's exact test",
+        "description": "Fisher's exact test is a data transformation used to determine if there are nonrandom associations between two Fisher's exact test is a statistical significance test used in the analysis of contingency tables where sample sizes are small where the significance of the deviation from a null hypothesis can be calculated exactly, rather than relying on an approximation that becomes exact in the limit as the sample size grows to infinity, as with many statistical tests.",
+        "source": "http://purl.obolibrary.org/obo/OBI_0200176"
+      },
+      {
+        "value": "DAVID",
+        "description": "All tools in the DAVID Bioinformatics Resources aim to provide functional interpretation of large lists of genes derived from genomic studies.",
+        "source": "https://david.ncifcrf.gov"
+      },
+      {
+        "value": "GSEA",
+        "description": "A method to identify pathway enrichment in a sample set of genes.",
+        "source": "http://www.pnas.org/content/102/43/15545"
+      },
+      {
+        "value": "Enrichr",
+        "description": "A comprehensive resource for curated gene sets and a search engine that accumulates biological knowledge for further biological discoveries.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4987924/"
+      },
+      {
+        "value": "ssGSEA",
+        "description": "A single sample extension of GSEA that allows one to define an enrichment score that represents the degree of absolute enrichment of a gene set in each sample within a given data set.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/19847166"
+      },
+      {
+        "value": "GSVA",
+        "description": "A GSE method that estimates variation of pathway activity over a sample population in an unsupervised manner.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3618321/"
+      }
+    ]
+  },
+  {
+    "name": "analysisType",
+    "description": "",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "Variant calling",
+        "description": "Identify and map genomic alterations, including single nucleotide polymorphisms, short indels and structural variants, in a genome sequence.",
+        "source": "http://edamontology.org/operation_3227"
+      },
+      {
+        "value": "Sequence alignment",
+        "description": "Alignment of reads to a reference genome",
+        "source": "http://edamontology.org/operation_0292"
+      },
+      {
+        "value": "genotype imputation",
+        "description": "The statistical inference of unobserved genotypes.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/17572673"
+      },
+      {
+        "value": "DNA methylation imputation",
+        "description": "The statistical inference of unobserved DNA methylation marks.",
+        "source": "https://dx.doi.org/10.1534/genetics.115.185967"
+      },
+      {
+        "value": "Polygenic Risk Scores",
+        "description": "A sample level estimate of the genetic component of disease risk based on genome-wide association studies.",
+        "source": "http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1003348"
+      },
+      {
+        "value": "Enrichment analysis",
+        "description": "Over-representation analysis.",
+        "source": "http://edamontology.org/operation_3501"
+      },
+      {
+        "value": "statistical network reconstruction",
+        "description": "Learning network relationships between genes based on their coexpression patterns.",
+        "source": "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Signaling_Network_Reconstruction"
+      },
+      {
+        "value": "differential expression",
+        "description": "Genes or isoforms that are differentially expressed between two conditions.",
+        "source": "http://uri.neuinfo.org/nif/nifstd/nlx_qual_100810"
+      },
+      {
+        "value": "expression quantitative trait loci detection",
+        "description": "A stretch of DNA at a particular chromosomal location that is able to regulate the expression of a specific mRNA or protein.",
+        "source": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C113415"
+      },
+      {
+        "value": "outlier detection",
+        "description": "An observation in a data set that is numerically distant from the rest of the data.",
+        "source": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C79083"
+      },
+      {
+        "value": "covariate specification",
+        "description": "A variable specification that specifies a variable used in statistical analysis to correct, adjust, or modify the values of a dependent variable; an independent variable not manipulated by the investigator",
+        "source": "http://purl.obolibrary.org/obo/OBCS_0000040"
+      },
+      {
+        "value": "hidden confounder detection",
+        "description": "Identification of a hidden or latent variable that may be inflating the type I error rate due to mutual correlation between dependent and independent variable that are being tested.",
+        "source": "http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.0030161"
+      },
+      {
+        "value": "differential network anaysis",
+        "description": "Identification of changes in coexpression patterns between two conditions.",
+        "source": "http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1000616"
+      },
+      {
+        "value": "methylation quantitative trait loci detection",
+        "description": "A stretch of DNA at a particular chromosomal location that is able to regulate the methylation of DNA.",
+        "source": ""
+      },
+      {
+        "value": "network driver detection",
+        "description": "Identification of drivers of disease based on network analyses.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4194029/"
+      },
+      {
+        "value": "principal component analysis",
+        "description": "Principal Component Analysis: Mathematical procedure that transforms a number of possibly correlated variables into a smaller number of uncorrelated variables called principal components.",
+        "source": "http://purl.bioontology.org/ontology/MESH/D025341"
+      },
+      {
+        "value": "Genome-Wide Association",
+        "description": "An analysis comparing the allele frequencies of all available (or a whole GENOME representative set of) polymorphic markers in unrelated patients with a specific symptom or disease condition, and those of healthy controls to identify markers associated with a specific disease or condition.",
+        "source": "http://purl.bioontology.org/ontology/MESH/D055106"
+      },
+      {
+        "value": "Clustering",
+        "description": "Group together some data entities on the basis of similarities such that entities in the same group (cluster) are more similar to each other than to those in other groups (clusters).",
+        "source": "http://edamontology.org/operation_3432"
+      },
+      {
+        "value": "Supervised Machine Learning",
+        "description": "A machine learning paradigm used to make predictions about future instances based on a given set of labeled paired input-output training (sample) data.",
+        "source": "http://purl.bioontology.org/ontology/MESH/D000069553"
+      },
+      {
+        "value": "batch effect correction",
+        "description": "Adjustment of variable of interest for batch effects.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/16632515"
+      },
+      {
+        "value": "ANOVA",
+        "description": "ANOVA or analysis of variance is a data transformation in which a statistical test of whether the means of several groups are all equal.",
+        "source": "http://purl.obolibrary.org/obo/OBI_0200201"
+      },
+      {
+        "value": "variancePartition",
+        "description": "Identification of percentage variance explained of a dependent variable by multiple classes of independent variables.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5123296/"
+      },
+      {
+        "value": "visualization",
+        "description": "Resource that provides access to tools for graphical, interactive, multimodal and multidimensional data and result visualization.",
+        "source": "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Visualization"
+      },
+      {
+        "value": "transcript quantification",
+        "description": "Quantification of the abundunce of specific gene expression transcript isoforms.",
+        "source": "https://www.nature.com/articles/nbt.3519"
+      },
+      {
+        "value": "somatic mutation calling",
+        "description": "Identification of de-novo mutations in somatic cells.",
+        "source": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4803342/"
+      },
+      {
+        "value": "peak calling",
+        "description": "An inferential statistical data analysis to identify protein-binding regions in a genome sequence from the data generated from a ChIP-sequencing or ChIP-chip experiment. When the protein is a transcription factor, the region is a transcription factor binding site (TFBS).",
+        "source": "http://purl.obolibrary.org/obo/OBCS_0000167"
+      },
+      {
+        "value": "Copy number estimation",
+        "description": "Estimate the number of copies of loci of particular gene(s) in DNA sequences typically from gene-expression profiling technology based on microarray hybridisation-based experiments.",
+        "source": "http://edamontology.org/operation_3233"
+      },
+      {
+        "value": "Gene expression comparison",
+        "description": "Comparison of gene expression profiles.",
+        "source": "http://edamontology.org/operation_0315"
+      },
+      {
+        "value":"de-novo assembly",
+        "description": "Assembly of reference sequence from short read sequences without external reference genome build.",
+        "source": "http://purl.obolibrary.org/obo/GENEPIO_0001628"
+      },
+      {
+        "value":"correlation",
+        "description":"The degree to which two or more quantities or events are linearly associated, a statistical relation between two or more variables such that systematic changes in the value of one variable are accompanied by systematic changes in the others.",
+        "source":"http://purl.obolibrary.org/obo/NCIT_C48834"
+      },
+      {
+        "value":"network analysis",
+        "description":"A data transformation that takes as input data that describes biological networks in terms of the node (a.k.a. vertex) and edge graph elements and their characteristics and generates as output properties of the constituent nodes and edges, the sub-graphs, and the entire network.",
+        "source":"http://purl.obolibrary.org/obo/OBI_0200080"
+      },
+      {
+        "value":"purity",
+        "description":"A quantitative assessment of the homogeneity or uniformity of a mixture. Alternatively, purity refers to the degree of being free of contaminants or heterogeneous components",
+        "source":"http://purl.obolibrary.org/obo/NCIT_C62352"
+      },
+      {
+        "value":"dose response study",
+        "description":"A study of the effect of dose changes on the efficacy of a drug in order to determine the dose-response relationship and optimal dose of a therapy.",
+        "source":"http://purl.obolibrary.org/obo/NCIT_C127803"
+      },
+      {
+        "value":"assessment",
+        "description":"The final result of a determination of the value, significance, or extent of.",
+        "source":"http://purl.obolibrary.org/obo/NCIT_C25217"
+      },
+      {
+        "value":"quality control",
+        "description":"A technique used to ensure a certain level of quality in a product or service.",
+        "source":"http://purl.obolibrary.org/obo/ERO_0001219"
+      },
+      {
+        "value":"comparison",
+        "description":"The examination of two or more people or things in order to detect similarities and differences.",
+        "source":"http://purl.obolibrary.org/obo/NCIT_C49156"
+      },
+      {
+        "value": "data normalization",
+        "description": "",
+        "source": "https://www.ebi.ac.uk/ols/ontologies/swo/terms?iri=http%3A%2F%2Fwww.ebi.ac.uk%2Fswo%2Fobjective%2FSWO_7000015"
+      }
+    ]
+  },
+  {
+    "name": "visualizationMethod",
+    "description": "The format in which data is visually displayed.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "scatter plot",
+        "description": "A scatterplot is a graph which uses Cartesian coordinates to display values for two variables for a set of data. The data is displayed as a collection of points, each having the value of one variable determining the position on the horizontal axis and the value of the other variable determining the position on the vertical axis.",
+        "source": "http://purl.obolibrary.org/obo/IAO_0000184"
+      },
+      {
+        "value": "heatmap",
+        "description": "A graphical representation of data where the values taken by a variable in a two-dimensional map are represented as colors.",
+        "source": "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C78549"
+      },
+      {
+        "value": "bar chart",
+        "description": "The bart chart is a graph resulting from plotting rectangular bars with lengths proportional to the values that they represent.",
+        "source": "http://purl.obolibrary.org/obo/STATO_0000166"
+      }
+    ]
+  },
+  {
+    "name": "supervisedLearningMethod",
+    "description": "An algorithm to fit a model to make predictions of future outcomes based past data.",
+    "columnType": "STRING",
+    "maximumSize": 250,
+    "enumValues": [
+      {
+        "value": "penalized regression",
+        "description": "A regression model with a parametric constraint on the allowable solution space.",
+        "source": "https://statweb.stanford.edu/~tibs/lasso/lasso.pdf"
+      },
+      {
+        "value": "random forest",
+        "description": "A method to build an ensemble of decisions trees for classification or regression models.",
+        "source": "http://ect.bell-labs.com/who/tkh/publications/papers/odt.pdf"
+      },
+      {
+        "value": "support vector machine",
+        "description": "A support vector machine is a data transformation with a class prediction objective based on the construction of a separating hyperplane that maximizes the margin between two data sets of vectors in n-dimensional space.",
+        "source": "http://purl.obolibrary.org/obo/OBI_0000700"
+      },
+      {
+        "value": "deep learning",
+        "description": "Rebranded artificial neural networks.",
+        "source": "https://www.ncbi.nlm.nih.gov/pubmed/25462637"
+      },
+      {
+        "value": "boosting",
+        "description": "An ensemble meta algorithm to average over many predictions to reduce bias and variance in predictions.",
+        "source": "https://web.archive.org/web/20150119081741/http://oz.berkeley.edu/~breiman/arcall96.pdf"
+      },
+      {
+        "value": "bagging",
+        "description": "An ensemble method to stabilize predictions, improve accuracy, and reduce variance for regression or decision tree models.",
+        "source": "https://link.springer.com/article/10.1007%2FBF00058655"
+      },
+      {
+        "value": "naive Bayes",
+        "description": "A classification model that assumes independence of predictors and uses Bayes theorem predict outcomes.",
+        "source": "http://engr.case.edu/ray_soumya/mlrg/optimality_of_nb.pdf"
+      },
+      {
+        "value": "Gaussian process regression",
+        "description": "A non parametric kernel based supervised learning regression method.",
+        "source": "http://www.inference.org.uk/itprnn/book.pdf"
+      },
+      {
+        "value": "elastic net",
+        "description": "Elastic net is a shrinkage and selection regression method that linearly combines the L1 and L2 penalties of the lasso and ridge methods.",
+        "source": "http://purl.enanomapper.org/onto/ENM_8000083"
+      }
+    ]
+  }
+]

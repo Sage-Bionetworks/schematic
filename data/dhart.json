@@ -1,0 +1,58 @@
+[
+  {
+    "name": "specimenQuantity", 
+    "description": "Currently unused, but could be used to describe how much specimen remains", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": []
+  }, 
+  {
+    "name": "studySite", 
+    "description": "This describes the site where the specimen was collected", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": []
+  }, 
+  {
+    "name": "caseNumber", 
+    "description": "This is the case number from the virtual repository", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": []
+  }, 
+  {
+    "name": "collectionDate", 
+    "description": "The date when this was collected", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": []
+  }, 
+  {
+    "name": "projectNumber", 
+    "description": "There are four projects on going in the spore. This describes for which one the data was collected.", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "Project 1",
+        "description": "The Plexiform NF project led",
+        "source": ""
+      },
+      {
+        "value": "Project 2",
+        "description": "The MPNST project",
+        "source": ""
+      },
+       {
+        "value": "Project 3",
+        "description": "The JMML project",
+        "source": ""
+      },
+       {
+        "value": "Project 4",
+        "description": "The NF1 survivor project",
+        "source": ""
+      }
+  ]
+ }
+]

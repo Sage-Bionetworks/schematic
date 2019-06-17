@@ -1,0 +1,110 @@
+[
+  {
+    "name": "chemicalDatabase", 
+    "description": "The chemical database from which the data were obtained.", 
+    "columnType": "STRING", 
+    "maximumSize": 50,
+    "enumValues": []
+  },
+  {
+    "name": "chemicalDataType", 
+    "description": "The type of chemical data in the dataset.", 
+    "columnType": "STRING", 
+    "maximumSize": 250, 
+    "enumValues": [
+      {
+        "value": "target", 
+        "description": "The role of a molecular entity (protein or nucleic acid) that is the presumed subject of an assay and whose activity is being regulated by an entity with a perturbagen role in that assay.", 
+        "source": "http://www.bioassayontology.org/bao#BAO_0003064"
+      },
+      {
+        "value": "chemical structure", 
+        "description": "A representation of the arrangement of atoms and bonds. ", 
+        "source": "http://purl.obolibrary.org/obo/NCIT_C103240"
+      },
+      {
+        "value": "chemical hashed fingerprint", 
+        "description": "The chemical hashed fingerprint of a molecule is bit string (a sequence of 0 and 1 digits) that contains information on the structure.", 
+        "source": "https://docs.chemaxon.com/display/docs/Chemical+Hashed+Fingerprint"
+      },
+      {
+        "value": "complex database", 
+        "description": "A database with several types of chemical data", 
+        "source": "Sage Bionetworks"
+      },
+      {
+        "value": "chemical identifier", 
+        "description": "A chemical identifier is an identifier for a chemical entity", 
+        "source": "http://semanticscience.org/resource/SIO_000728"
+      }
+    ]
+  },
+  {
+    "name": "fingerprintType", 
+    "description": "The type of chemical fingerprint used.", 
+    "columnType": "STRING", 
+    "maximumSize": 50,
+    "enumValues": [
+      {
+        "value": "standard", 
+        "description": "Considers paths of a given length. These are hashed fingerprints, with a default length of 1024.", 
+        "source": "https://www.rdocumentation.org/packages/rcdk/versions/3.4.5/topics/get.fingerprint"
+      },
+      {
+        "value": "extended", 
+        "description": "Similar to the standard type, but takes rings and atomic properties into account into account.", 
+        "source": "https://www.rdocumentation.org/packages/rcdk/versions/3.4.5/topics/get.fingerprint"
+      },
+      {
+        "value": "maccs", 
+        "description": "The popular 166 bit MACCS keys described by MDL.", 
+        "source": "https://www.rdocumentation.org/packages/rcdk/versions/3.4.5/topics/get.fingerprint"
+      },
+      {
+        "value": "pubchem", 
+        "description": "881 bit fingerprints defined by PubChem.", 
+        "source": "https://www.rdocumentation.org/packages/rcdk/versions/3.4.5/topics/get.fingerprint"
+      },
+      {
+        "value": "kr", 
+        "description": "4860 bit fingerprint defined by Klekota and Roth.", 
+        "source": "https://www.rdocumentation.org/packages/rcdk/versions/3.4.5/topics/get.fingerprint"
+      },
+      {
+        "value": "circular", 
+        "description": "An implementation of the ECFP6 fingerprint.", 
+        "source": "https://www.rdocumentation.org/packages/rcdk/versions/3.4.5/topics/get.fingerprint"
+      }
+    ]
+  },
+  {
+    "name": "structureFormat", 
+    "description": "The chemical structural representation used.", 
+    "columnType": "STRING", 
+    "maximumSize": 50,
+    "enumValues": [
+      {
+        "value": "SMILES", 
+        "description": "Specification for unambiguously describing the structure of a chemical compound using a short ASCII string.", 
+        "source": "http://purl.obolibrary.org/obo/MS_1000868"
+      },
+      {
+        "value": "InChI", 
+        "description": "A textual identifier for chemical substances designed to provide a standard and human-readable way to encode molecular information that also facilitates searches in printed and electronic data sources.", 
+        "source": "http://purl.obolibrary.org/obo/NCIT_C54683"
+      },
+      {
+        "value": "SDF",
+        "description": "SDF is one of a family of chemical-data file formats developed by MDL Information Systems; it is intended especially for structural information.",
+        "source": "http://edamontology.org/format_3814"
+      }
+    ]
+  },
+  {
+    "name": "chemicalStructure", 
+    "description": "A linear representation of the chemical structure (SMILES, SMARTS, InChI, InChIKey, etc). Note the format using structureFormat.", 
+    "columnType": "STRING", 
+    "maximumSize": 250,
+    "enumValues": []
+  }
+]
