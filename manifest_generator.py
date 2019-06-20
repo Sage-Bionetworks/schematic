@@ -103,18 +103,25 @@ class ManifestGenerator(object):
         for req in json_schema["required"]: 
             if req in json_schema["properties"]:
                 required_metadata_fields[req] = json_schema["properties"][req]["enum"]
-    
+   
+
         # gathering dependency requirements and allowed value constraints for conditional dependencies
         for conditional_reqs in json_schema["allOf"]: 
              if "required" in conditional_reqs["if"]:
                  for req in conditional_reqs["if"]["required"]: 
                     if req in conditional_reqs["if"]["properties"]:
-                        if not req in required_metadata_fields: 
-                            required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"]
-
+                        if not req in required_metadata_fields:
+                            if req in json_schema["properties"]:
+                                required_metadata_fields[req] = json_schema["properties"][req]["enum"]
+                            else:
+                                required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"]
+                
                  for req in conditional_reqs["then"]["required"]: 
                      if not req in required_metadata_fields:
-                         required_metadata_fields[req] = []    
+                            if req in json_schema["properties"]:
+                                required_metadata_fields[req] = json_schema["properties"][req]["enum"]
+                            else:
+                                 required_metadata_fields[req] = []    
 
 
         # adding columns
