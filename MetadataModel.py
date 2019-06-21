@@ -161,7 +161,7 @@ class MetadataModel(object):
                 validate(instance = annotation, schema = jsonSchema)
              except ValidationError as e:
                 
-                errorMessage += "At row " + str(i) + ": "
+                errorMessage += "At row " + str(i + 1) + ": "
                 
                 errors = str(e).split("\n")
                 errorMessage += errors[0]
