@@ -1,5 +1,8 @@
 import pandas as pd
 import networkx as nx
+import json
+from jsonschema import validate, ValidationError
+
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text
@@ -8,6 +11,7 @@ from typing import Any, Dict, Optional, Text
 # as collaboration with Biothings progresses
 from schema_explorer import SchemaExplorer
 from manifest_generator import ManifestGenerator
+from schema_generator import get_JSONSchema_requirements
 
 class MetadataModel(object):
 
@@ -36,11 +40,14 @@ class MetadataModel(object):
           inputMModelLocation:  local path, uri, synapse entity id; (e.g. gs://, syn123, /User/x/…); present location
           inputMModelLocationType: one of [local, gs, aws, synapse]; present location type
         """
+        
         self.se = SchemaExplorer()
 
-        self.se.load_schema(inputMModelLocation)
+        self.inputMModelLocationType = inputMModelLocationType 
+        self.inputMModelLocation = inputMModelLocation
+        
+        self.loadMModel()
 
-        self.inputMModelLocationType = inputMModelLocationType
 
 
      # setting mutators/accessors methods explicitly
@@ -88,7 +95,8 @@ class MetadataModel(object):
      def loadMModel(self) -> None:
          """ load Schema; handles schema file input and sets mmodel
          """
-         pass
+
+         self.se.load_schema(self.inputMModelLocation)
 
 
      def getModelSubgraph(self, rootNode: str, 
@@ -121,3 +129,49 @@ class MetadataModel(object):
 
          return mg.getManifest()
 
+
+     def validateModelManifest(self, manifestPath:str, rootNode:str) -> str:
+         
+         """ check if provided annotations manifest dataframe 
+         satisfied all model requirements
+         Args:
+          rootNode: a schema node label (i.e. term)
+          manifestPath: a path to the manifest csv file containing annotations
+        
+         Returns: a validation status message; if there is an error the message 
+         contains the manifest annotation record (i.e. row) that is invalid, along 
+         with the validation error associated with this record
+         Raises: 
+            ValueError: rootNode not found in metadata model.
+         """
+
+         # get validation schema for a given node in the data model
+         jsonSchema = get_JSONSchema_requirements(self.se, rootNode, rootNode + "_validation")
+
+         # get annotations from manifest (array of json annotations corresponding to manifest rows)
+
+         manifest = pd.read_csv(manifestPath).fillna("")
+         annotations = json.loads(manifest.to_json(orient='records'))
+
+
+         errorMessage = ""
+         for i, annotation in enumerate(annotations):
+             
+             try:
+                validate(instance = annotation, schema = jsonSchema)
+             except ValidationError as e:
+                
+                errorMessage += "At row " + str(i) + ": "
+                
+                errors = str(e).split("\n")
+                errorMessage += errors[0]
+                errorDetail = errors[-2].replace("On instance", "At term")
+                errorMessage += "; " + errorDetail
+                errorDetail = " value " + errors[-1].strip() + " is invalid;"
+                errorMessage += errorDetail
+                errorMessage += ";"
+
+         if not errorMessage:
+            return "Validation success!"
+
+         return errorMessage
