@@ -280,13 +280,19 @@ class SchemaExplorer():
     def explore_class(self, schema_class):
         """Find details about a specific schema class
         """
-       
+
+        subclasses = []
+        if  "subClassOf" in self.schema_nx.node[schema_class]:
+            for subclass in self.schema_nx.node[schema_class]["subClassOf"]:
+
+                subclasses.append(extract_name_from_uri_or_curie(subclass["@id"])) 
+
         class_info = {'properties': self.find_all_class_properties(schema_class),
                       'description': self.schema_nx.node[schema_class]['description'],
                       'uri': curie2uri(self.schema_nx.node[schema_class]["uri"], namespaces),
                       'usage': self.find_class_usages(schema_class),
                       'child_classes': self.find_child_classes(schema_class),
-                      'subClassOf':extract_name_from_uri_or_curie(self.schema_nx.node[schema_class]["subClassOf"]["@id"]) if "subClassOf" in self.schema_nx.node[schema_class] else "", 
+                      'subClassOf':subclasses, 
                       'parent_classes': self.find_parent_classes(schema_class)}
         return class_info
 
