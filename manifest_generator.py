@@ -1,9 +1,13 @@
 from __future__ import print_function
 import pickle
 import os.path
+
+from typing import Any, Dict, Optional, Text
+
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+
 from schema_explorer import SchemaExplorer
 from schema_generator import get_JSONSchema_requirements
 
@@ -16,7 +20,8 @@ class ManifestGenerator(object):
     def __init__(self,
                  se: SchemaExplorer,
                  root: str,
-                 title: str
+                 title: str,
+                 additionalMetadata: Dict
                  ) -> None:
     
         """TODO:
@@ -35,6 +40,7 @@ class ManifestGenerator(object):
 
         self.se = se
 
+        self.additionalMetadata = additionalMetadata
 
     def buildCredentials(self):
 
@@ -124,7 +130,13 @@ class ManifestGenerator(object):
                                 required_metadata_fields[req] = json_schema["properties"][req]["enum"]
                             else:
                                  required_metadata_fields[req] = []    
+        # if additional metadata is provided append columns (if those do not exist already
 
+        if self.additionalMetadata:
+            for column in self.additionalMetadata.keys():
+                if not column in required_metadata_fields:
+                    required_metadata_fields[column] = []
+    
 
         # adding columns
         end_col = len(required_metadata_fields.keys())
@@ -136,13 +148,31 @@ class ManifestGenerator(object):
         body = {
                 "values": values 
         }
+
        
         service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
 
 
-        # adding valid values as dropdowns
+        # adding additinoal metadata values if needed and adding value-constraints from data model as dropdowns
         for i, (req, values) in enumerate(required_metadata_fields.items()):
 
+            #adding additional metadata if needed
+            if self.additionalMetadata and req in self.additionalMetadata:
+
+                values = self.additionalMetadata[req]
+                target_col_letter = self._columnToLetter(i) 
+
+                body =  {
+                            "majorDimension":"COLUMNS",
+                            "values":[values]
+                }
+                
+                response = service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
+
+                continue
+
+
+            # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
 
             if not req_vals:
@@ -172,7 +202,9 @@ class ManifestGenerator(object):
             }   
 
             response = service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
-        
+    
+
+
         manifest_url = "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
      
         print("==========================")

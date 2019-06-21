@@ -114,7 +114,7 @@ class MetadataModel(object):
          pass
 
 
-     def getModelManifest(self, rootNode:str) -> str: 
+     def getModelManifest(self, rootNode:str, additionalMetadata:Dict = None) -> str: 
 
          """ get annotations manifest dataframe 
          Args:
@@ -125,7 +125,7 @@ class MetadataModel(object):
             ValueError: rootNode not found in metadata model.
          """
 
-         mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode)
+         mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode, additionalMetadata)
 
          return mg.getManifest()
 
