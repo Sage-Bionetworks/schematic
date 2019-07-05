@@ -114,7 +114,7 @@ class MetadataModel(object):
          pass
 
 
-     def getModelManifest(self, rootNode:str) -> str: 
+     def getModelManifest(self, rootNode:str, filenames:list = None) -> str: 
 
          """ get annotations manifest dataframe 
          Args:
@@ -125,7 +125,11 @@ class MetadataModel(object):
             ValueError: rootNode not found in metadata model.
          """
 
-         mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode)
+         additionalMetadata = {}
+         if filenames:
+             additionalMetadata["Filename"] = filenames
+
+         mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode, additionalMetadata)
 
          return mg.getManifest()
 
@@ -161,7 +165,7 @@ class MetadataModel(object):
                 validate(instance = annotation, schema = jsonSchema)
              except ValidationError as e:
                 
-                errorMessage += "At row " + str(i) + ": "
+                errorMessage += "At row " + str(i + 2) + ": "
                 
                 errors = str(e).split("\n")
                 errorMessage += errors[0]
