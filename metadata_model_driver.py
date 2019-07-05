@@ -12,10 +12,8 @@ manifest_url = mm.getModelManifest(datasetType, additionalMetadata = {"Filename"
 print(manifest_url)
 
 
-'''
 manifest_path = "./manifest.csv"
 
 annotation_status = mm.validateModelManifest(manifest_path, datasetType)
 
 print(annotation_status)
-'''
