@@ -7,7 +7,7 @@ datasetType = "scRNASeq"
 
 mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
 
-manifest_url = mm.getModelManifest(datasetType, additionalMetadata = {"Filename":["1.txt", "2.txt", "3.txt"]})
+manifest_url = mm.getModelManifest(datasetType, filenames = ["1.txt", "2.txt", "3.txt"])
 
 print(manifest_url)
 
