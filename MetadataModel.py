@@ -165,7 +165,7 @@ class MetadataModel(object):
                 validate(instance = annotation, schema = jsonSchema)
              # this error parsing is too brittle; if something changes in the validator code outputting the validation error we'd have to change the logic; TODO: provide a more robust error parsing
              except ValidationError as e:
-                listExp = re.compile('\[\'(.*?)\'\]')
+                listExp = re.compile('\[(.*?)\]')
                 
                 errorRow = i + 2 # row in the manifest where the error occurred
 
@@ -174,21 +174,25 @@ class MetadataModel(object):
                 
                 errors = str(e).split("\n")
                 
-                errorMessage += errors[0]
+                stringExp = re.compile('\'(.*?)\'')
 
+                # extract wrong value entered
+                errorValue = stringExp.findall(errors[0])[0]
+
+                errorMessage += errors[0]
+                
                 # extract allowed values for the term that was erroneously filled in
-                allowedValues = listExp.findall(errorMessage)[0].split(", ")
+                allowedValues = listExp.findall(errorMessage)[0].replace('\'', '').split(", ")
                 
                 errorDetail = errors[-2].replace("On instance", "At term")
 
-                #extract the term(s) that were erroneously filled in
-                errorTerms = listExp.findall(errorDetail)[0].split(", ")
+                #extract the term(s) that had erroneously filled in values
+                errorTerms = listExp.findall(errorDetail)[0].replace('\'','').split(", ")[0]
 
                 errorMessage += "; " + errorDetail
                 errorDetail = " value " + errors[-1].strip() + " is invalid;"
                 errorMessage += errorDetail
-                errorMessage += ";"
 
-                errorPositions.append((errorRow, errorTerms, allowedValues, errorMessage))
+                errorPositions.append((errorRow, errorTerms, errorValue, allowedValues, errorMessage))
 
          return errorPositions
