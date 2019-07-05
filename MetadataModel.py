@@ -1,6 +1,7 @@
 import pandas as pd
 import networkx as nx
 import json
+import re
 from jsonschema import validate, ValidationError
 
 
@@ -134,7 +135,7 @@ class MetadataModel(object):
          return mg.getManifest()
 
 
-     def validateModelManifest(self, manifestPath:str, rootNode:str) -> str:
+     def validateModelManifest(self, manifestPath:str, rootNode:str) -> list:
          
          """ check if provided annotations manifest dataframe 
          satisfied all model requirements
@@ -157,25 +158,37 @@ class MetadataModel(object):
          manifest = pd.read_csv(manifestPath).fillna("")
          annotations = json.loads(manifest.to_json(orient='records'))
 
-
-         errorMessage = ""
+         errorPositions = []
          for i, annotation in enumerate(annotations):
              
              try:
                 validate(instance = annotation, schema = jsonSchema)
+             # this error parsing is too brittle; if something changes in the validator code outputting the validation error we'd have to change the logic; TODO: provide a more robust error parsing
              except ValidationError as e:
+                listExp = re.compile('\[\'(.*?)\'\]')
                 
-                errorMessage += "At row " + str(i + 2) + ": "
+                errorRow = i + 2 # row in the manifest where the error occurred
+
+                # parse the validation error in a more human readable form
+                errorMessage = "At row " + str(errorRow) + ": "
                 
                 errors = str(e).split("\n")
+                
                 errorMessage += errors[0]
+
+                # extract allowed values for the term that was erroneously filled in
+                allowedValues = listExp.findall(errorMessage)[0].split(", ")
+                
                 errorDetail = errors[-2].replace("On instance", "At term")
+
+                #extract the term(s) that were erroneously filled in
+                errorTerms = listExp.findall(errorDetail)[0].split(", ")
+
                 errorMessage += "; " + errorDetail
                 errorDetail = " value " + errors[-1].strip() + " is invalid;"
                 errorMessage += errorDetail
                 errorMessage += ";"
 
-         if not errorMessage:
-            return "Validation success!"
+                errorPositions.append((errorRow, errorTerms, allowedValues, errorMessage))
 
-         return errorMessage
+         return errorPositions
