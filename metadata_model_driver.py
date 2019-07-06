@@ -14,6 +14,6 @@ print(manifest_url)
 
 manifest_path = "./manifest.csv"
 
-annotation_status = mm.validateModelManifest(manifest_path, datasetType)
+annotation_errors = mm.validateModelManifest(manifest_path, datasetType)
 
-print(annotation_status)
+print(annotation_errors)
