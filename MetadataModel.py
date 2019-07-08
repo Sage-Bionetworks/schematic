@@ -193,6 +193,7 @@ class MetadataModel(object):
                 errorDetail = " value " + errors[-1].strip() + " is invalid;"
                 errorMessage += errorDetail
 
-                errorPositions.append((errorRow, errorTerms, errorValue, allowedValues, errorMessage))
+                #errorPositions.append((errorRow, errorTerms, errorValue, allowedValues, errorMessage))
+                errorPositions.append((errorRow, errorTerms, errorValue, allowedValues))
 
          return errorPositions
