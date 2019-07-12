@@ -130,6 +130,7 @@ class MetadataModel(object):
          if filenames:
              additionalMetadata["Filename"] = filenames
 
+          # TODO: remove reference to HTAN; have a manifestName  attribute
          mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode, additionalMetadata)
 
          return mg.getManifest()
@@ -193,6 +194,26 @@ class MetadataModel(object):
                 errorDetail = " value " + errors[-1].strip() + " is invalid;"
                 errorMessage += errorDetail
 
-                errorPositions.append((errorRow, errorTerms, errorValue, allowedValues, errorMessage))
+                errorPositions.append((errorRow, errorTerms, errorValue, allowedValues))
 
          return errorPositions
+
+     
+     def populateModelManifest(self, manifestPath:str, rootNode:str) -> str:
+         
+         """ populate an existing annotations manifest based on a dataframe          
+         
+         Args:
+          rootNode: a schema node label (i.e. term)
+          manifestPath: a path to the manifest csv file containing annotations
+        
+         Returns: a link to the filled in model manifest (e.g. google sheet)
+
+         Raises: 
+            ValueError: rootNode not found in metadata model.
+         """
+         mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode, {})
+         emptyManifestURL = mg.getManifest()
+
+         return mg.populateManifestSpreasheet(manifestPath, emptyManifestURL)
+

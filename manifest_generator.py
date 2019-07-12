@@ -2,11 +2,14 @@ from __future__ import print_function
 import pickle
 import os.path
 
+import pandas as pd
+
 from typing import Any, Dict, Optional, Text
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+import pygsheets as ps
 
 from schema_explorer import SchemaExplorer
 from schema_generator import get_JSONSchema_requirements
@@ -24,8 +27,7 @@ class ManifestGenerator(object):
                  additionalMetadata: Dict
                  ) -> None:
     
-        """TODO:
-        Add documentation and style according to style-guide
+        """TODO: read in a config file instead of hardcoding paths to credential files...
         """
 
         # If modifying these scopes, delete the file token.pickle.
@@ -42,11 +44,10 @@ class ManifestGenerator(object):
 
         self.additionalMetadata = additionalMetadata
 
+
+    # TODO: replace by pygsheets calls
     def buildCredentials(self):
 
-        """Shows basic usage of the Sheets API.
-        Prints values from a sample spreadsheet.
-        """
         creds = None
         # The file token.pickle stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
@@ -68,7 +69,7 @@ class ManifestGenerator(object):
 
         service = build('sheets', 'v4', credentials=creds)
 
-        return service
+        return service, creds
 
 
     def _columnToLetter(self, column):
@@ -97,7 +98,7 @@ class ManifestGenerator(object):
 
     def getManifest(self): 
 
-        service = self.buildCredentials()
+        service, credentials = self.buildCredentials()
 
         spreadsheet_id = self._createEmptyManifestSpreadsheet(self.title, service)
 
@@ -151,7 +152,6 @@ class ManifestGenerator(object):
 
        
         service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
-
 
         # adding additinoal metadata values if needed and adding value-constraints from data model as dropdowns
         for i, (req, values) in enumerate(required_metadata_fields.items()):
@@ -214,3 +214,15 @@ class ManifestGenerator(object):
         
 
         return manifest_url
+
+    def populateManifestSpreasheet(self, existingManifestPath, emptyManifestURL):
+
+        manifest = pd.read_csv(existingManifestPath).fillna("")
+        service, credentials = self.buildCredentials()
+        gc = ps.authorize(custom_credentials = credentials)
+        sh = gc.open_by_url(emptyManifestURL)
+        wb = sh[0]
+        wb.set_dataframe(manifest, (1,1))
+
+        return sh.url 
+
