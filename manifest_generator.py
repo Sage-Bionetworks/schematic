@@ -62,7 +62,7 @@ class ManifestGenerator(object):
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     self.credentials_path, self.scopes)
-                creds = flow.run_local_server(port = 8090) ### on ShinyServer 8080(default) is taken
+                creds = flow.run_console() ### don't have to deal with ports
             # Save the credentials for the next run
             with open('token.pickle', 'wb') as token:
                 pickle.dump(creds, token)
