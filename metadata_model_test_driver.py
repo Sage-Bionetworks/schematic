@@ -2,11 +2,13 @@ from MetadataModel import MetadataModel
 
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
 inputMModelLocation = "./schemas/scRNASeq.jsonld"
+#inputMModelLocation = "./data/NFSchemaReq.jsonld"
 inputMModelLocationType = "local"
 datasetType = "scRNASeq"
+#datasetType = "Thing"
 
 
-# testing metadata model based manifest generation
+
 print("*****************************************************")
 print("Testing metamodel-based manifest generation")
 print("*****************************************************")

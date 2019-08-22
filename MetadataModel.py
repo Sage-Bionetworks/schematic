@@ -147,7 +147,7 @@ class MetadataModel(object):
          Returns: a validation status message; if there is an error the message 
          contains the manifest annotation record (i.e. row) that is invalid, along 
          with the validation error associated with this record
-         Raises: 
+         Raises: TODO 
             ValueError: rootNode not found in metadata model.
          """
 
@@ -209,7 +209,7 @@ class MetadataModel(object):
         
          Returns: a link to the filled in model manifest (e.g. google sheet)
 
-         Raises: 
+         Raises: TODO 
             ValueError: rootNode not found in metadata model.
          """
          mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode, {})

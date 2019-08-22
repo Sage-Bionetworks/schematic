@@ -4,11 +4,9 @@ import json
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text
 
-
-from dataset import Dataset
-from metadatamodel import MetadataModel
-from governance import Governance
-from googleStorage import GoogleStorage
+from MetadataModel import MetadataModel
+#from governance import Governance
+from SynapseStorage import SynapseStorage
 
 class Bundle(object):
 
