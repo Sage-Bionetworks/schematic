@@ -7,6 +7,8 @@ import pandas as pd
 # Python client for Synapse
 import synapseclient
 
+from synapseclient import File
+
 class SynapseStorage(object):
 
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -59,23 +61,23 @@ class SynapseStorage(object):
         # get the set of all storage Synapse project accessible for this pipeline
         storageProjects = self.storageFileviewTable["projectId"].unique()
 
-        # get the set of storage Synapse project accessible for this user 
+        # get the set of storage Synapse project accessible for this user
+
+        # get current user ID
         currentUser = self.syn.getUserProfile()
-        print(currentUser)
         currentUserName = currentUser.userName 
         currentUserId = currentUser.ownerId
         
-        currentUserProjects = self.syn.restGET('/projects/MY_PARTICIPATED_PROJECTS/user/{principalId}'.format(principalId=currentUserId))
+        # get a set of projects from Synapse (that this user participates in)
+        currentUserProjects = self.syn.restGET('/projects/MY_PARTICIPATED_PROJECTS/user/{principalId}?limit=1000'.format(principalId=currentUserId))
 
-        print(currentUserProjects)
-
+        # prune results json filtering project id
         currentUserProjects = [currentUserProject["id"] for currentUserProject in currentUserProjects["results"]]
 
-        print(currentUserProjects)
-        print(storageProjects)
-
+        # find set of user projects that are also in this pipeline's storage projects set
         storageProjects = list(set(storageProjects) & set(currentUserProjects))
 
+        # prepare a return list of project IDs and names
         projects = []
         for projectId in storageProjects:
             projectName = self.syn.get(projectId, downloadFile = False).name
@@ -122,11 +124,12 @@ class SynapseStorage(object):
 
         return fileList
         
-    def associateMetadataWithFiles(metadataManifestPath:str, datasetId:str) -> str
+
+    def associateMetadataWithFiles(self, metadataManifestPath:str, datasetId:str) -> str:
         """Associate metadata with files in a storage dataset already on Synapse. 
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
         
-            Args: metadataManifestPath path to csv containing a validated metadata manifest. The manifest should include a column fileId containing synapse IDs of files to be associated with metadata 
+            Args: metadataManifestPath path to csv containing a validated metadata manifest. The manifest should include a column entityId containing synapse IDs of files/entities to be associated with metadata 
             Returns: synapse Id of the uploaded manifest
             Raises: TODO
                 FileNotFoundException: Manifest file does not exist at provided path.
@@ -137,10 +140,11 @@ class SynapseStorage(object):
         manifest = pd.read_csv(metadataManifestPath)
 
         # use file ID (that is a synapse ID) as index of the dataframe
-        manifest.set_index("fileId", inplace = True)
+        manifest.set_index("entityId", inplace = True)
 
         # convert metadata in a form suitable for setting annotations on Synapse
         manifestMetadata = manifest.to_dict("index") 
+        print(manifestMetadata)
 
         # set annotations to files on Synapse
         for fileId, metadata in manifestMetadata.items():
@@ -149,6 +153,6 @@ class SynapseStorage(object):
         # store manifest to Synapse
         manifestSynapseFile = File(metadataManifestPath, description = "Manifest for dataset " + datasetId, parent = datasetId)
 
-        manifestSynapseFileId = store(manifestSynapseFile).id
+        manifestSynapseFileId = self.syn.store(manifestSynapseFile).id
 
         return manifestSynapseFileId
