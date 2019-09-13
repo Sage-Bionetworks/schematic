@@ -1973,16 +1973,72 @@
             }
         },
         {
-            "@id": "bts:BiosampleType",
+            "@id": "bts:HTAPP",
             "@type": "rdfs:Class",
-            "rdfs:comment": "The type of source material for the biosample",
-            "rdfs:label": "BiosampleType",
+            "rdfs:comment": "HTAPP minimal metadata extension",
+            "rdfs:label": "HTAPP",
+            "rdfs:requiresDependency": [
+                {
+                    "@id": "sms:HTANParticipantID"
+                },
+                {
+                    "@id": "sms:HTANSampleID"
+                },
+                {
+                    "@id": "sms:CancerType"
+                },
+                {
+                    "@id": "sms:LibraryConstructionMethod"
+                }
+            ],
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Thing"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            }
+        },
+        {
+            "@id": "bts:HTANParticipantID",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "HTAN patient ID",
+            "rdfs:label": "HTANParticipantID",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Case"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            }
+        },
+        {
+            "@id": "bts:HTANSampleID",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Unique identifier for the biosample source material",
+            "rdfs:label": "HTANSampleID",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Biosample"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            }
+        },
+        {
+            "@id": "bts:CancerType",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Cancer diagnosis",
+            "rdfs:label": "CancerType",
             "rdfs:requiresChildAsValue": {
                 "@id": "sms:True"
             },
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:Biosample"
+                    "@id": "bts:Disease"
                 }
             ],
             "schema:isPartOf": {
@@ -1990,13 +2046,13 @@
             }
         },
         {
-            "@id": "bts:BiosampleID",
+            "@id": "bts:BreastCarcinoma",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Unique identifier for the biosample source material",
-            "rdfs:label": "BiosampleID",
+            "rdfs:comment": "Breast cancer",
+            "rdfs:label": "BreastCarcinoma",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:Biosample"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -2004,13 +2060,13 @@
             }
         },
         {
-            "@id": "bts:Donor",
+            "@id": "bts:ColonCarcinoma",
             "@type": "rdfs:Class",
-            "rdfs:comment": "A role which inheres in an organism or part thereof from which any part including cell, organ or tissue is removed with the intention that the donated part will be placed into another organism and/or cultured in vitro.<OBI_1110087>",
-            "rdfs:label": "Donor",
+            "rdfs:comment": "Colon cancer",
+            "rdfs:label": "ColonCarcinoma",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:BiosampleType"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -2018,13 +2074,13 @@
             }
         },
         {
-            "@id": "bts:Specimen",
+            "@id": "bts:LungCarcinoma",
             "@type": "rdfs:Class",
-            "rdfs:comment": "A part of a thing, or of several things, taken to demonstrate or to determine the character of the whole, e.g. a substance, or portion of material obtained for use in testing, examination, or study; particularly, a preparation of tissue or bodily fluid taken for examination or diagnosis.<NCIT_C19157>",
-            "rdfs:label": "Specimen",
+            "rdfs:comment": "Lung cancer",
+            "rdfs:label": "LungCarcinoma",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:BiosampleType"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -2032,13 +2088,13 @@
             }
         },
         {
-            "@id": "bts:Organoid",
+            "@id": "bts:MalignantOvarianNeoplasm",
             "@type": "rdfs:Class",
-            "rdfs:comment": "An artificially grown mass of cells or tissue that resembles an organ.",
-            "rdfs:label": "Organoid",
+            "rdfs:comment": "Ovarian cancer",
+            "rdfs:label": "MalignantOvarianNeoplasm",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:BiosampleType"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -2046,13 +2102,13 @@
             }
         },
         {
-            "@id": "bts:CellSuspension",
+            "@id": "bts:MalignantBrainNeoplasm",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Particles floating in (not necessarily on) a liquid medium, or the mix of particles and liquid itself.< An artificially grown mass of cells or tissue that resembles an organ.<BTO_0000221>",
-            "rdfs:label": "CellSuspension",
+            "rdfs:comment": "Brain cancer",
+            "rdfs:label": "MalignantBrainNeoplasm",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:BiosampleType"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -2060,13 +2116,27 @@
             }
         },
         {
-            "@id": "bts:CellLine",
+            "@id": "bts:MalignantAdrenalGlandNeoplasm",
             "@type": "rdfs:Class",
-            "rdfs:comment": " A cultured cell population that represents a genetically stable and homogenous population of cultured cells that shares a common propagation history (i.e. has been successively passaged together in culture).<CLO_0000031>",
-            "rdfs:label": "CellLine",
+            "rdfs:comment": "Adrenal gland cancer",
+            "rdfs:label": "MalignantAdrenalGlandNeoplasm",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:BiosampleType"
+                    "@id": "bts:CancerType"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            }
+        },
+        {
+            "@id": "bts:MalignantNeoplasmConnectiveSoftTissue",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Soft tissue cancer",
+            "rdfs:label": "MalignantNeoplasmConnectiveSoftTissue",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -2095,79 +2165,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Assay"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:NucleicAcidSource",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "The source of the input nucleic molecule",
-            "rdfs:label": "NucleicAcidSource",
-            "rdfs:requiresChildAsValue": {
-                "@id": "sms:True"
-            },
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SequencingAssay"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:BulkCell",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "A collection of cells",
-            "rdfs:label": "BulkCell",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:NucleicAcidSource"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:SingleCell",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "A cell",
-            "rdfs:label": "SingleCell",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:NucleicAcidSource"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:BulkNuclei",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Nuclei from a collection of cells",
-            "rdfs:label": "BulkNuclei",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:NucleicAcidSource"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:SingleNucleus",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Nucleus from a single cell",
-            "rdfs:label": "SingleNucleus",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:NucleicAcidSource"
                 }
             ],
             "schema:isPartOf": {
@@ -2213,487 +2210,6 @@
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:LibraryConstructionMethod"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:LibraryLayout",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Sequencing read type",
-            "rdfs:label": "LibraryLayout",
-            "rdfs:requiresChildAsValue": {
-                "@id": "sms:True"
-            },
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SequencingAssay"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:PairedEnd",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Sequencing DNA from paired-end tags (PET), the short sequences at the 5 prime and 3 prime ends of the DNA fragment of interest, which can be a piece of genomic DNA or cDNA.<MI_1181>",
-            "rdfs:label": "PairedEnd",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:LibraryLayout"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:SingleRead",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Sequencing DNA from only one end",
-            "rdfs:label": "SingleRead",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:LibraryLayout"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:Primer",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "An oligo to which new deoxyribonucleotides can be added by DNA polymerase. <SO_0000112>",
-            "rdfs:label": "Primer",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SequencingAssay"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:Platform",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "A platform is an object_aggregate that is the set of instruments and software needed to perform a process. <OBI_0000050>",
-            "rdfs:label": "Platform",
-            "rdfs:requiresChildAsValue": {
-                "@id": "sms:True"
-            },
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SequencingAssay"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:IlluminaiNextSeq500",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "sequencing platform",
-            "rdfs:label": "IlluminaiNextSeq500",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Platform"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:IlluminaiNextSeq2500",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "sequencing platform",
-            "rdfs:label": "IlluminaiNextSeq2500",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Platform"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:scRNASeq",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Single-cell RNA-seq.",
-            "rdfs:label": "scRNASeq",
-            "rdfs:requiresDependency": [
-                {
-                    "@id": "sms:BiosampleType"
-                },
-                {
-                    "@id": "sms:BiosampleID"
-                },
-                {
-                    "@id": "sms:NucleicAcidSource"
-                },
-                {
-                    "@id": "sms:LibraryConstructionMethod"
-                },
-                {
-                    "@id": "sms:LibraryLayout"
-                },
-                {
-                    "@id": "sms:Primer"
-                },
-                {
-                    "@id": "sms:Platform"
-                },
-                {
-                    "@id": "sms:SingleCellIsolation"
-                },
-                {
-                    "@id": "sms:SpikeIn"
-                },
-                {
-                    "@id": "sms:ReverseTranscription"
-                },
-                {
-                    "@id": "sms:Amplification"
-                },
-                {
-                    "@id": "sms:Filename"
-                }
-            ],
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SequencingAssay"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:Protocol",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "A plan specification which has sufficient level of detail and quantitative information to communicate it between investigation agents, so that different investigation agents will reliably be able to independently reproduce the process.<OBI_0000272>",
-            "rdfs:label": "Protocol",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Thing"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:SpikeIn",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "An RNA spike-in is an RNA transcript of known sequence and quantity used to calibrate measurements in RNA hybridization assays.",
-            "rdfs:label": "SpikeIn",
-            "rdfs:requiresChildAsValue": {
-                "@id": "sms:True"
-            },
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Protocol"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:ERCC",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "A common set of external RNA controls that has been developed by the External RNA Controls Consortium",
-            "rdfs:label": "ERCC",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SpikeIn"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:OtherSpikeIn",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Other spike-in controls",
-            "rdfs:label": "OtherSpikeIn",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SpikeIn"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:NoSpikeIn",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "No spike-in controls added",
-            "rdfs:label": "NoSpikeIn",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SpikeIn"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:SingleCellIsolation",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "A plan specification which has sufficient level of detail and quantitative information to communicate it between investigation agents, so that different investigation agents will reliably be able to independently reproduce the process.<OBI_0000272>",
-            "rdfs:label": "SingleCellIsolation",
-            "rdfs:requiresChildAsValue": {
-                "@id": "sms:True"
-            },
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Protocol"
-                },
-                {
-                    "@id": "bts:scRNASeq"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:Droplets",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "description pending",
-            "rdfs:label": "Droplets",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SingleCellIsolation"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:FACS",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "description pending",
-            "rdfs:label": "FACS",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SingleCellIsolation"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:Microfluidics chip",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "description pending",
-            "rdfs:label": "Microfluidics chip",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:SingleCellIsolation"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:ReverseTranscription",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "A DNA synthesis process that uses RNA as the initial template for synthesis of DNA, but which also includes an RNase activity to remove the RNA strand of an RNA-DNA heteroduplex produced by the RNA-dependent synthesis step and use of the initial DNA strand as a template for DNA synthesis. <GO_0001171>",
-            "rdfs:label": "ReverseTranscription",
-            "rdfs:requiresChildAsValue": {
-                "@id": "sms:True"
-            },
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Protocol"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:CellBarcode",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "description pending",
-            "rdfs:label": "CellBarcode",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ReverseTranscription"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:UMI",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "description pending",
-            "rdfs:label": "UMI",
-            "rdfs:requiresDependency": [
-                {
-                    "@id": "sms:UMIBarcodeRead"
-                }
-            ],
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ReverseTranscription"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:UMIandCellBarcode",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "description pending",
-            "rdfs:label": "UMIandCellBarcode",
-            "rdfs:requiresDependency": [
-                {
-                    "@id": "sms:UMIBarcodeRead"
-                },
-                {
-                    "@id": "sms:CellBarcodeRead"
-                }
-            ],
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ReverseTranscription"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:CellBarcodeRead",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "description pending",
-            "rdfs:label": "CellBarcodeRead",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:CellBarcode"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:UMIBarcodeRead",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "description pending",
-            "rdfs:label": "UMIBarcodeRead",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:UMI"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:Amplification",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Addition of extra material.<NCIT_C25418>",
-            "rdfs:label": "Amplification",
-            "rdfs:requiresChildAsValue": {
-                "@id": "sms:True"
-            },
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Protocol"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:PCR",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "PCR is the process in which a DNA polymerase is used to amplify a piece of DNA by in vitro enzymatic replication. As PCR progresses, the DNA thus generated is itself used as a template for replication. This sets in motion a chain reaction in which the DNA template is exponentially amplified.<OBI_0000415>",
-            "rdfs:label": "PCR",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Amplification"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:InVitroTranscription",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Biomolecule synthesis of RNA in vitro used for applications such as can be used in blot hybridizations and nuclease protection assays.<ERO_0000905>",
-            "rdfs:label": "InVitroTranscription",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Amplification"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:RawData",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "Data generated as direct output of assay platforms",
-            "rdfs:label": "RawData",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Thing"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:Filename",
-            "@type": "rdfs:Class",
-            "rdfs:comment": " The literal identifier of a file that is not located within a specific record.<NCIT_C82536>",
-            "rdfs:label": "Filename",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:RawData"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            }
-        },
-        {
-            "@id": "bts:AssayType",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "The type of assay pertaining to a dataset",
-            "rdfs:label": "AssayType",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:RawData"
-                },
-                {
-                    "@id": "bts:Assay"
                 }
             ],
             "schema:isPartOf": {
