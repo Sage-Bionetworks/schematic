@@ -153,7 +153,7 @@ class MetadataModel(object):
 
          # get validation schema for a given node in the data model
          jsonSchema = get_JSONSchema_requirements(self.se, rootNode, rootNode + "_validation")
-
+         
          # get annotations from manifest (array of json annotations corresponding to manifest rows)
 
          manifest = pd.read_csv(manifestPath).fillna("")
@@ -182,20 +182,24 @@ class MetadataModel(object):
 
                 errorMessage += errors[0]
                 
-                # extract allowed values for the term that was erroneously filled in
-                allowedValues = listExp.findall(errorMessage)[0].replace('\'', '').split(", ")
+                # extract allowed values, if any, for the term that was erroneously filled in
+                allowedValues = listExp.findall(errorMessage)
+                if allowedValues:
+                    allowedValues[0].replace('\'', '').split(", ")
                 
                 errorDetail = errors[-2].replace("On instance", "At term")
 
-                #extract the term(s) that had erroneously filled in values
-                errorTerms = listExp.findall(errorDetail)[0].replace('\'','').split(", ")[0]
+                #extract the term(s) that had erroneously filled in values, if any
+                errorTerms = listExp.findall(errorDetail)
+                if errorTerms:
+                    errorTerms[0].replace('\'','').split(", ")[0]
 
                 errorMessage += "; " + errorDetail
                 errorDetail = " value " + errors[-1].strip() + " is invalid;"
                 errorMessage += errorDetail
 
                 errorPositions.append((errorRow, errorTerms, errorValue, allowedValues))
-
+         print(errorPositions)
          return errorPositions
 
      

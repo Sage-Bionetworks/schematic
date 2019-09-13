@@ -171,7 +171,9 @@ def get_JSONSchema_requirements(se, root, schema_name):
                             }
                             nodes_with_processed_dependencies.add(child)
                             nodes_to_process.update(child_dependencies)
-                            json_schema["allOf"].append(schema_conditional_dependencies)
+                            # only append dependencies if there are any
+                            #if schema_conditional_dependencies:
+                            #    json_schema["allOf"].append(schema_conditional_dependencies)
 
         '''
         get required nodes by this node (e.g. other terms/nodes
@@ -196,10 +198,13 @@ def get_JSONSchema_requirements(se, root, schema_name):
                             "then": { "required": [process_node_dependencies] },
                     }
 
-                    json_schema["allOf"].append(schema_conditional_dependencies)
+                    # only append dependencies if there are any
+                    #if schema_conditional_dependencies:
+                    #    json_schema["allOf"].append(schema_conditional_dependencies)
 
                 nodes_to_process.update(process_node_dependencies)
                 nodes_with_processed_dependencies.add(process_node)
+
 
         """
         print("Nodes to process")
@@ -210,6 +215,10 @@ def get_JSONSchema_requirements(se, root, schema_name):
     print("=================")
     print("JSONSchema successfully generated from Schema.org schema!")
     print("=================")
+    
+    # if no conditional dependencies were added we can't have an empty 'AllOf' block in the schema, so remove it
+    if not json_schema["allOf"]:
+        del json_schema["allOf"]
 
     return json_schema
 
