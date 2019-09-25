@@ -268,6 +268,9 @@ class ManifestGenerator(object):
         sh = gc.open_by_url(emptyManifestURL)
         wb = sh[0]
         wb.set_dataframe(manifest, (1,1))
+        
+        # set permissions so that anyone with the link can edit
+        sh.share("", role = "writer", type = "anyone")
 
         return sh.url 
 
