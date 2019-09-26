@@ -184,15 +184,16 @@ class MetadataModel(object):
                 
                 # extract allowed values, if any, for the term that was erroneously filled in
                 allowedValues = listExp.findall(errorMessage)
+                
                 if allowedValues:
-                    allowedValues[0].replace('\'', '').split(", ")
+                    allowedValues = allowedValues[0].replace('\'', '').split(", ")
                 
                 errorDetail = errors[-2].replace("On instance", "At term")
 
                 #extract the term(s) that had erroneously filled in values, if any
                 errorTerms = listExp.findall(errorDetail)
                 if errorTerms:
-                    errorTerms[0].replace('\'','').split(", ")[0]
+                    errorTerms = errorTerms[0].replace('\'','').split(", ")[0]
 
                 errorMessage += "; " + errorDetail
                 errorDetail = " value " + errors[-1].strip() + " is invalid;"
