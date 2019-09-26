@@ -144,7 +144,6 @@ class SynapseStorage(object):
 
         # convert metadata in a form suitable for setting annotations on Synapse
         manifestMetadata = manifest.to_dict("index") 
-        print(manifestMetadata)
 
         # set annotations to files on Synapse
         for fileId, metadata in manifestMetadata.items():

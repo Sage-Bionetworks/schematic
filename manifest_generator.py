@@ -21,10 +21,10 @@ class ManifestGenerator(object):
     """
 
     def __init__(self,
-                 se: SchemaExplorer,
-                 root: str,
-                 title: str,
-                 additionalMetadata: Dict
+                 title: str, # manifest sheet title
+                 se: SchemaExplorer = None,
+                 root: str = None,
+                 additional_metadata: Dict = None
                  ) -> None:
     
         """TODO: read in a config file instead of hardcoding paths to credential files...
@@ -37,10 +37,10 @@ class ManifestGenerator(object):
         self.credentials_path = 'credentials.json'
 
         # google service for Drive API
-        self.driveService = None
+        self.drive_service = None
 
         # google service for Sheet API
-        self.sheetService = None
+        self.sheet_service = None
 
         # google service credentials object
         self.creds = None
@@ -55,19 +55,18 @@ class ManifestGenerator(object):
         self.se = se
 
         # additional metadata to add to manifest
-        self.additionalMetadata = additionalMetadata
+        self.additional_metadata = additional_metadata
 
 
-    # TODO: replace by pygsheets calls (need to verify driver service can be supported)?
-    def buildCredentials(self):
+    # TODO: replace by pygsheets calls?
+    def build_credentials(self):
 
         creds = None
-        # The file token.pickle stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
+        # The file token.pickle stores the user's access and refresh tokens, and is created automatically when the authorization flow completes for the first time.
         if os.path.exists('token.pickle'):
             with open('token.pickle', 'rb') as token:
                 creds = pickle.load(token)
+
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
@@ -80,23 +79,25 @@ class ManifestGenerator(object):
             with open('token.pickle', 'wb') as token:
                 pickle.dump(creds, token)
 
-        self.sheetService = build('sheets', 'v4', credentials=creds)
-        self.driveService = build('drive', 'v3', credentials=creds)
+        # get a Google Sheet API service
+        self.sheet_service = build('sheets', 'v4', credentials=creds)
+        # get a Google Drive API service
+        self.drive_service = build('drive', 'v3', credentials=creds)
         self.creds = creds
         
         return
 
 
-    def _columnToLetter(self, column):
+    def _column_to_letter(self, column):
          character = chr(ord('A') + column % 26)
          remainder = column // 26
          if column >= 26:
-            return self._columnToLetter(remainder-1) + character
+            return self._column_to_letter(remainder-1) + character
          else:
             return character
 
 
-    def _createEmptyManifestSpreadsheet(self, title):
+    def _create_empty_manifest_spreadsheet(self, title):
 
         # create an empty spreadsheet
         spreadsheet = {
@@ -105,13 +106,13 @@ class ManifestGenerator(object):
             }
         }   
         
-        spreadsheet = self.sheetService.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
-        spreadsheetId = spreadsheet.get('spreadsheetId')
+        spreadsheet = self.sheet_service.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
+        spreadsheet_id = spreadsheet.get('spreadsheetId')
 
-        return spreadsheetId
+        return spreadsheet_id
 
 
-    def _setPermissions(self, fileId):
+    def _set_permissions(self, fileId):
 
         def callback(request_id, response, exception):
             if exception:
@@ -120,14 +121,14 @@ class ManifestGenerator(object):
             else:
                 print ("Permission Id: %s" % response.get('id'))
 
-        batch = self.driveService.new_batch_http_request(callback = callback)
+        batch = self.drive_service.new_batch_http_request(callback = callback)
        
         worldPermission = {
                             'type': 'anyone',
                             'role': 'writer'
         }
 
-        batch.add(self.driveService.permissions().create(
+        batch.add(self.drive_service.permissions().create(
                                         fileId = fileId,
                                         body = worldPermission,
                                         fields = 'id',
@@ -136,13 +137,14 @@ class ManifestGenerator(object):
         batch.execute()
 
 
-    def getManifest(self): 
+    def get_manifest(self, json_schema = None): 
 
-        self.buildCredentials()
+        self.build_credentials()
 
-        spreadsheetId = self._createEmptyManifestSpreadsheet(self.title)
+        spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
 
-        json_schema = get_JSONSchema_requirements(self.se, self.root, self.title)
+        if not json_schema:
+            json_schema = get_JSONSchema_requirements(self.se, self.root, self.title)
 
         required_metadata_fields = {}
 
@@ -155,8 +157,7 @@ class ManifestGenerator(object):
    
 
         # gathering dependency requirements and allowed value constraints for conditional dependencies if any
-        if "allOf" in json_schema:
-            
+        if "allOf" in json_schema: 
             for conditional_reqs in json_schema["allOf"]: 
                  if "required" in conditional_reqs["if"]:
                      for req in conditional_reqs["if"]["required"]: 
@@ -175,16 +176,15 @@ class ManifestGenerator(object):
                                      required_metadata_fields[req] = []    
 
         # if additional metadata is provided append columns (if those do not exist already
-
-        if self.additionalMetadata:
-            for column in self.additionalMetadata.keys():
+        if self.additional_metadata:
+            for column in self.additional_metadata.keys():
                 if not column in required_metadata_fields:
                     required_metadata_fields[column] = []
     
 
-        # adding columns
+        # adding columns to manifest sheet
         end_col = len(required_metadata_fields.keys())
-        end_col_letter = self._columnToLetter(end_col) 
+        end_col_letter = self._column_to_letter(end_col) 
 
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
         values = [list(required_metadata_fields.keys())]
@@ -194,26 +194,24 @@ class ManifestGenerator(object):
         }
 
        
-        self.sheetService.spreadsheets().values().update(spreadsheetId=spreadsheetId, range=range, valueInputOption="RAW", body=body).execute()
+        self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
 
         # adding additinoal metadata values if needed and adding value-constraints from data model as dropdowns
         for i, (req, values) in enumerate(required_metadata_fields.items()):
 
             #adding additional metadata if needed
-            if self.additionalMetadata and req in self.additionalMetadata:
-
-                values = self.additionalMetadata[req]
-                target_col_letter = self._columnToLetter(i) 
+            if self.additional_metadata and req in self.additional_metadata:
+                values = self.additional_metadata[req]
+                target_col_letter = self._column_to_letter(i) 
 
                 body =  {
                             "majorDimension":"COLUMNS",
                             "values":[values]
                 }
                 
-                response = self.sheetService.spreadsheets().values().update(spreadsheetId=spreadsheetId, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
+                response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
 
                 continue
-
 
             # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
@@ -221,6 +219,7 @@ class ManifestGenerator(object):
             if not req_vals:
                 continue
 
+            # generating sheet api request to populate the dropdown
             body =  {
                       "requests": [
                         {
@@ -244,28 +243,29 @@ class ManifestGenerator(object):
                 ]
             }   
 
-            response = self.sheetService.spreadsheets().batchUpdate(spreadsheetId=spreadsheetId, body=body).execute()
+            response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
     
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
-        self._setPermissions(spreadsheetId)
+        self._set_permissions(spreadsheet_id)
 
-        manifestUrl = "https://docs.google.com/spreadsheets/d/" + spreadsheetId
+        # generating spreadsheet URL
+        manifest_url = "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
      
         print("==========================")
         print("Manifest successfully generated from schema!")
-        print("URL: " + manifestUrl)
+        print("URL: " + manifest_url)
         print("==========================")
         
 
-        return manifestUrl
+        return manifest_url
 
 
-    def populateManifestSpreasheet(self, existingManifestPath, emptyManifestURL):
+    def populate_manifest_spreasheet(self, existing_manifest_path, empty_manifest_url):
 
-        manifest = pd.read_csv(existingManifestPath).fillna("")
-        self.buildCredentials()
+        manifest = pd.read_csv(existing_manifest_path).fillna("")
+        self.build_credentials()
         gc = ps.authorize(custom_credentials = self.creds)
-        sh = gc.open_by_url(emptyManifestURL)
+        sh = gc.open_by_url(empty_manifest_url)
         wb = sh[0]
         wb.set_dataframe(manifest, (1,1))
         
