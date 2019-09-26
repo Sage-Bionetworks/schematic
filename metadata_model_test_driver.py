@@ -1,11 +1,13 @@
 from MetadataModel import MetadataModel
 
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
-inputMModelLocation = "./schemas/scRNASeq.jsonld"
+#inputMModelLocation = "./schemas/scRNASeq.jsonld"
+inputMModelLocation = "./schemas/HTAPP.jsonld"
 #inputMModelLocation = "./data/NFSchemaReq.jsonld"
 inputMModelLocationType = "local"
-datasetType = "scRNASeq"
+#datasetType = "scRNASeq"
 #datasetType = "Thing"
+datasetType = "HTAPP"
 
 
 
