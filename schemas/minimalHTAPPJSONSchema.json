@@ -1,0 +1,32 @@
+{
+   "$schema": "http://json-schema.org/draft-07/schema#",
+   "$id": "http://example.com/minimalHTAPPJSONSchema",
+   "title": "minimalHTAPPJSONSchema",
+   "type": "object",
+   "properties": {
+      "CancerType": {
+         "enum": [
+            "LungCarcinoma",
+            "MalignantBrainNeoplasm",
+            "MalignantOvarianNeoplasm",
+            "MalignantNeoplasmConnectiveSoftTissue",
+            "BreastCarcinoma",
+            "ColonCarcinoma",
+            "MalignantAdrenalGlandNeoplasm"
+         ]
+      },
+      "LibraryConstructionMethod": {
+         "enum": [
+            "10x",
+            "Smart-seq2"
+         ]
+      }
+   },
+   "required": [
+      "LibraryConstructionMethod",
+      "CancerType",
+      "HTANParticipantID",
+      "HTANSampleID"
+   ],
+   "allOf": []
+}
