@@ -1,4 +1,6 @@
+import json
 from MetadataModel import MetadataModel
+from manifest_generator import ManifestGenerator
 
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
 #inputMModelLocation = "./schemas/scRNASeq.jsonld"
@@ -9,33 +11,50 @@ inputMModelLocationType = "local"
 #datasetType = "Thing"
 datasetType = "HTAPP"
 
-
+mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
 
 print("*****************************************************")
 print("Testing metamodel-based manifest generation")
 print("*****************************************************")
-mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
 
-manifest_url = mm.getModelManifest(datasetType, filenames = ["1.txt", "2.txt", "3.txt"])
+# testing manifest generation; manifest is generated based on a jsonSchema parsed from Schema.org schema
+manifestURL = mm.getModelManifest(datasetType, filenames = ["1.txt", "2.txt", "3.txt"])
 
-print(manifest_url)
+print(manifestURL)
+
+# testing manifest generation based on a provided jsonSchema
+jsonSchemaFile = "./schemas/minimalHTAPPJSONSchema.json"
+with open(jsonSchemaFile, "r") as f:
+    jsonSchema = json.load(f)
+
+mg = ManifestGenerator("HTAPP manifest", additional_metadata = {"Filename" : ["1.txt", "2.txt", "3.txt"]})
+
+manifestURL = mg.get_manifest(jsonSchema)
+
+print(manifestURL)
 
 
 print("*****************************************************")
 print("Testing metamodel-based validation")
 print("*****************************************************")
-manifest_path = "./manifest.csv"
+manifestPath = "./manifest.csv"
 
-annotation_errors = mm.validateModelManifest(manifest_path, datasetType)
+# testing validation with jsonSchema generation from Schema.org schema
+annotationErrors = mm.validateModelManifest(manifestPath, datasetType)
+print(annotationErrors)
 
-print(annotation_errors)
+# testing validation with provided jsonSchema
+jsonSchemaFile = "./schemas/minimalHTAPPJSONSchema.json"
+with open(jsonSchemaFile, "r") as f:
+    jsonSchema = json.load(f)
+annotationErrors = mm.validateModelManifest(manifestPath, datasetType, jsonSchema)
+print(annotationErrors)
 
 
 print("*****************************************************")
 print("Testing metamodel-based manifest population")
 print("*****************************************************")
 
-# get a sheet prepopulated with an existing manifest; returns a url to a google sheet
-prepopulated_manifest_url = mm.populateModelManifest(manifest_path, datasetType)
-print(prepopulated_manifest_url)
-
+# get a sheet prepopulated with an existing manifest; returns a url to a google sheet; (this is an example scRNASeq manifest
+prepopulatedManifestURL = mm.populateModelManifest(manifestPath, datasetType)
+print(prepopulatedManifestURL)

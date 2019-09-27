@@ -131,12 +131,12 @@ class MetadataModel(object):
              additionalMetadata["Filename"] = filenames
 
           # TODO: remove reference to HTAN; have a manifestName  attribute
-         mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode, additionalMetadata)
+         mg = ManifestGenerator("HTAN_" + rootNode, self.se, rootNode,  additionalMetadata)
 
-         return mg.getManifest()
+         return mg.get_manifest()
 
 
-     def validateModelManifest(self, manifestPath:str, rootNode:str) -> list:
+     def validateModelManifest(self, manifestPath:str, rootNode:str, jsonSchema:str = None) -> list:
          
          """ check if provided annotations manifest dataframe 
          satisfied all model requirements
@@ -152,7 +152,8 @@ class MetadataModel(object):
          """
 
          # get validation schema for a given node in the data model
-         jsonSchema = get_JSONSchema_requirements(self.se, rootNode, rootNode + "_validation")
+         if not jsonSchema:
+             jsonSchema = get_JSONSchema_requirements(self.se, rootNode, rootNode + "_validation")
          
          # get annotations from manifest (array of json annotations corresponding to manifest rows)
 
@@ -200,7 +201,7 @@ class MetadataModel(object):
                 errorMessage += errorDetail
 
                 errorPositions.append((errorRow, errorTerms, errorValue, allowedValues))
-         print(errorPositions)
+         
          return errorPositions
 
      
@@ -217,8 +218,8 @@ class MetadataModel(object):
          Raises: TODO 
             ValueError: rootNode not found in metadata model.
          """
-         mg = ManifestGenerator(self.se, rootNode, "HTAN_" + rootNode, {})
-         emptyManifestURL = mg.getManifest()
+         mg = ManifestGenerator("HTAN_" + rootNode, self.se, rootNode, {})
+         emptyManifestURL = mg.get_manifest()
 
-         return mg.populateManifestSpreasheet(manifestPath, emptyManifestURL)
+         return mg.populate_manifest_spreasheet(manifestPath, emptyManifestURL)
 

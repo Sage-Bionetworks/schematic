@@ -27,6 +27,5 @@
       "CancerType",
       "HTANParticipantID",
       "HTANSampleID"
-   ],
-   "allOf": []
+   ]
 }

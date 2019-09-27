@@ -139,15 +139,11 @@ def get_JSONSchema_requirements(se, root, schema_name):
         each of these values is a node that in turn is processed for
         dependencies and allowed values
         '''
-        """ 
-        print("===============")
-        print(mm_graph.nodes[process_node])
-        print("===============")
-        """
+        
         if requires_child in mm_graph.nodes[process_node]:
             if mm_graph.nodes[process_node][requires_child]:
                 children = get_node_children(mm_graph, process_node)
-                print(children)
+                
                 # set allowable values based on children nodes
                 if children:
                     schema_properties = { process_node:{"enum":children}}
@@ -206,16 +202,10 @@ def get_JSONSchema_requirements(se, root, schema_name):
                 nodes_with_processed_dependencies.add(process_node)
 
 
-        """
-        print("Nodes to process")
-        print(nodes_to_process)
-        print("=================")
-        """
-
     print("=================")
     print("JSONSchema successfully generated from Schema.org schema!")
     print("=================")
-    
+    print(json_schema)
     # if no conditional dependencies were added we can't have an empty 'AllOf' block in the schema, so remove it
     if not json_schema["allOf"]:
         del json_schema["allOf"]
