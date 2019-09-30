@@ -38,7 +38,8 @@ This semantic sugar enables the generation different kinds of validation schemas
     This support cascades of conditional validation (of arbitrary lengths).
 """
 
-
+requires_dependency = "requiresDependency"
+requires_child = "requiresChildAsValue"
 
 
 """
@@ -119,7 +120,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
 
     # get graph corresponding to data model schema
     mm_graph = se.get_nx_schema()
-
+   
     # nodes to check for dependencies, starting with the provided root
     nodes_to_process = OrderedSet()
     nodes_to_process.add(root) 
@@ -146,7 +147,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
                 
                 # set allowable values based on children nodes
                 if children:
-                    schema_properties = { process_node:{"enum":children}}
+                    schema_properties = {mm_graph.nodes[process_node]["displayName"]:{"enum":[mm_graph.nodes[child]["displayName"] for child in children]}}
                     json_schema["properties"].update(schema_properties)                
                 
                     # add children for requirements processing
@@ -159,17 +160,15 @@ def get_JSONSchema_requirements(se, root, schema_name):
                             schema_conditional_dependencies = {
                                     "if": {
                                         "properties": {
-                                        process_node: { "enum": [child] }
+                                        mm_graph.nodes[process_node]["displayName"]: { "enum": [mm_graph.nodes[child]["displayName"]] }
                                         },
-                                        "required":[process_node],
+                                        "required":[mm_graph.nodes[process_node]["displayName"]],
                                       },
-                                    "then": { "required": child_dependencies },
+                                    "then": { "required": [mm_graph.nodes[child_dependency]["displayName"] for child_dependency in child_dependencies] },
                             }
                             nodes_with_processed_dependencies.add(child)
                             nodes_to_process.update(child_dependencies)
-                            # only append dependencies if there are any
-                            #if schema_conditional_dependencies:
-                            #    json_schema["allOf"].append(schema_conditional_dependencies)
+
 
         '''
         get required nodes by this node (e.g. other terms/nodes
@@ -181,22 +180,19 @@ def get_JSONSchema_requirements(se, root, schema_name):
             process_node_dependencies = get_node_neighbor_dependencies(mm_graph, process_node)
 
             if process_node_dependencies:
-                if process_node == root: # these are unconditional dependencies 
-                    json_schema["required"] += process_node_dependencies
+                if process_node == root: # these are unconditional dependencies
+                    
+                    json_schema["required"] += [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies]
                 else: # these are dependencies given the processed node 
                     schema_conditional_dependencies = {
                             "if": {
                                 "properties": {
-                                process_node: { "string":"*" }
+                                mm_graph.nodes[process_node]["displayName"]: { "string":"*" }
                                 },
-                                "required":[process_node],
+                                "required":[mm_graph.nodes[process_node]["displayName"]],
                               },
-                            "then": { "required": [process_node_dependencies] },
+                            "then": { "required": [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies] },
                     }
-
-                    # only append dependencies if there are any
-                    #if schema_conditional_dependencies:
-                    #    json_schema["allOf"].append(schema_conditional_dependencies)
 
                 nodes_to_process.update(process_node_dependencies)
                 nodes_with_processed_dependencies.add(process_node)
@@ -211,34 +207,3 @@ def get_JSONSchema_requirements(se, root, schema_name):
         del json_schema["allOf"]
 
     return json_schema
-
-
-
-
-"""
-###############################################
-===============================================
-###############################################
-"""
-
-json_schema_output_dir = "./schemas"
-schemaorg_schema_input_dir = "./data"
-requires_dependency = "requiresDependency"
-requires_child = "requiresChildAsValue"
-
-    
-if __name__ == "__main__":
-
-    schemaorg_schema_file_name = "NFSchemaReq.jsonld"
-    json_schema_file_name = "nf_jsonschema.json"
-
-    se = SchemaExplorer()
-    se.load_schema(os.path.join(schemaorg_schema_input_dir, schemaorg_schema_file_name))
-
-    g = se.get_nx_schema()
-
-    json_schema = get_JSONSchema_requirements(se, "Thing", schema_name = "NFJSONschema")
-
-    with open(os.path.join(json_schema_output_dir, json_schema_file_name), "w") as s_f:
-        json.dump(json_schema, s_f, indent = 3)
-

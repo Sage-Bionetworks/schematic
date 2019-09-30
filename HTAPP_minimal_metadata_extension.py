@@ -3,7 +3,7 @@ import json
   
 from schema_explorer import SchemaExplorer
 
-def get_class(class_name, description = None, subclass_of = ["Thing"], requires_dependencies = None, requires_value = None):
+def get_class(class_name, description = None, subclass_of = ["Thing"], requires_dependencies = None, requires_value = None, display_name = None):
 
     class_attributes = {
                     '@id': 'bts:'+class_name,
@@ -25,6 +25,9 @@ def get_class(class_name, description = None, subclass_of = ["Thing"], requires_
         value_constraint = {'rdfs:requiresChildAsValue':{'@id':'sms:' +  str(requires_value)}}
         class_attributes.update(value_constraint)
     
+    if display_name:
+        class_attributes.update({'sms:displayName':display_name})
+
     return class_attributes
 
 
@@ -49,69 +52,98 @@ class_req_add = get_class("HTAPP",\
 )
 se.update_class(class_req_add)
 
-
-class_req_add = get_class("HTANParticipantID",\
+display_name = "HTAN Participant ID"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "HTAN patient ID",\
-                              subclass_of = ["Case"],
+                              subclass_of = ["Case"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
-
-class_req_add = get_class("HTANSampleID",\
+display_name = "HTAN Sample ID"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Unique identifier for the biosample source material",\
-                              subclass_of = ["Biosample"]
+                              subclass_of = ["Biosample"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
-
-class_req_add = get_class("CancerType",\
+display_name = "Cancer Type"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Cancer diagnosis",\
                               subclass_of = ["Disease"],
-                              requires_value = True
+                              requires_value = True,\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
-class_req_add = get_class("BreastCarcinoma",\
+display_name = "Breast Carcinoma"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Breast cancer",\
-                              subclass_of = ["CancerType"]
+                              subclass_of = ["CancerType"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
-
-class_req_add = get_class("ColonCarcinoma",\
+display_name = "Colon Carcinoma"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Colon cancer",\
-                              subclass_of = ["CancerType"]
+                              subclass_of = ["CancerType"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
-class_req_add = get_class("LungCarcinoma",\
+
+display_name = "Lung Carcinoma"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Lung cancer",\
-                              subclass_of = ["CancerType"]
+                              subclass_of = ["CancerType"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
 
-class_req_add = get_class("MalignantOvarianNeoplasm",\
+display_name = "Malignant Ovarian Neoplasm"
+class_name = se.get_class_label_from_display_name(display_name)
+
+class_req_add = get_class(class_name,\
                               description = "Ovarian cancer",\
-                              subclass_of = ["CancerType"]
+                              subclass_of = ["CancerType"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
-class_req_add = get_class("MalignantBrainNeoplasm",\
+display_name = "Malignant Brain Neoplasm"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Brain cancer",\
-                              subclass_of = ["CancerType"]
+                              subclass_of = ["CancerType"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
-class_req_add = get_class("MalignantAdrenalGlandNeoplasm",\
+display_name = "Malignant Adrenal Gland Neoplasm"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Adrenal gland cancer",\
-                              subclass_of = ["CancerType"]
+                              subclass_of = ["CancerType"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
-class_req_add = get_class("MalignantNeoplasmConnectiveSoftTissue",\
+
+display_name = "Malignant Neoplasm Connective Soft Tissue"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Soft tissue cancer",\
-                              subclass_of = ["CancerType"]
+                              subclass_of = ["CancerType"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add)
 
@@ -135,11 +167,13 @@ class_req_add = get_class("SequencingAssay",\
 se.update_class(class_req_add) # note: use update_class to add a new class
 
 
-
-class_req_add = get_class("LibraryConstructionMethod",\
+display_name = "Library Construction Method"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Process which results in the creation of a library from fragments of DNA using cloning vectors or oligonucleotides with the role of adaptors <OBI_0000711>",\
                               subclass_of = ["SequencingAssay"],
-                              requires_value = True
+                              requires_value = True,\
+                              display_name = display_name
 )
 se.update_class(class_req_add) # note: use update_class to add a new class
 
@@ -147,15 +181,21 @@ se.update_class(class_req_add) # note: use update_class to add a new class
 adding children of library construction method
 '''
 
-class_req_add = get_class("10x",\
+display_name = "10x"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "10X is a 'synthetic long-read' technology and works by capturing a barcoded oligo-coated gel-bead and 0.3x genome copies into a single emulsion droplet, processing the equivalent of 1 million pipetting steps. Successive versions of the 10x chemistry use different barcode locations to improve the sequencing yield and quality of 10x experiments.<EFO_0008995>",\
-                              subclass_of = ["LibraryConstructionMethod"]
+                              subclass_of = ["LibraryConstructionMethod"],\
+                              display_name = display_name
 )
 se.update_class(class_req_add) # note: use update_class to add a new class
 
-class_req_add = get_class("Smart-seq2",\
+display_name = "Smart-seq2"
+class_name = se.get_class_label_from_display_name(display_name)
+class_req_add = get_class(class_name,\
                               description = "Switch mechanism at the 5’ end of RNA templates (Smart).<EFO_0008930>",\
-                              subclass_of = ["LibraryConstructionMethod"]
+                              subclass_of = ["LibraryConstructionMethod"],
+                              display_name = display_name
 )
 se.update_class(class_req_add) # note: use update_class to add a new class
 
@@ -171,7 +211,7 @@ class_info = se.explore_class("HTAPP")
 class_req_edit = get_class("HTAPP",\
                               description = class_info["description"],\
                               subclass_of = class_info["subClassOf"],\
-                              requires_dependencies = ["HTANParticipantID","HTANSampleID","CancerType", "LibraryConstructionMethod"]
+                              requires_dependencies = ["HtanParticipantId","HtanSampleId","CancerType", "LibraryConstructionMethod"]
 )
 se.edit_class(class_req_edit) 
 # note: use class_edit to edit a current class; you can explore existing class properties
@@ -187,7 +227,6 @@ se.edit_class(class_req_edit)
 
 # saving updated schema.org schema
 se.export_schema(os.path.join(schema_path, output_schema_name + ".jsonld"))
-
 
 """
 ######################################################

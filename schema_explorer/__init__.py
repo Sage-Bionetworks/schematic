@@ -17,7 +17,7 @@ class SchemaValidator():
     1. Data Structure wise:
       > "@id", "@context", "@graph"
       > Each element in "@graph" should contain "@id", "@type", "rdfs:comment",
-      "rdfs:label"
+      "rdfs:label", "sms:displayName"
       > validate against JSON Schema
       > Should validate the whole structure, and also validate property and 
       value separately
@@ -30,12 +30,15 @@ class SchemaValidator():
           word
         > the value of "rdfs:subClassOf" should be present in the schema or in 
           the core vocabulary
+        > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
       > Property specific
         > rdfs:label field should be carmelCase
         > the value of "schema:domainIncludes" should be present in the schema 
           or in the core vocabulary
         > the value of "schema:rangeIncludes" should be present in the schema 
           or in the core vocabulary
+        > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
+      
     """
     def __init__(self, schema):
         self.schemaorg = {'schema': load_schemaorg(),
@@ -293,8 +296,34 @@ class SchemaExplorer():
                       'usage': self.find_class_usages(schema_class),
                       'child_classes': self.find_child_classes(schema_class),
                       'subClassOf':subclasses, 
-                      'parent_classes': self.find_parent_classes(schema_class)}
+                      'parent_classes': self.find_parent_classes(schema_class)
+        }
+
+        if "displayName" in self.schema_nx.node[schema_class]:
+            class_info['displayName'] = self.schema_nx.node['displayName']
+
         return class_info
+    
+
+    def get_property_label_from_display_name(self, display_name):
+        """Convert a given display name string into a proper property label string
+        """
+        
+        label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
+        label[0] = label[0].lower()
+        
+        return label
+
+
+    def get_class_label_from_display_name(self, display_name):
+        """Convert a given display name string into a proper class label string
+        """
+
+        label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
+
+        return label
+
+
 
     def explore_property(self, schema_property):
         """Find details about a specific property
@@ -310,6 +339,10 @@ class SchemaExplorer():
                     property_info["domain"] = unlist([self.uri2label(record["@id"]) for record in p_domain])
                     p_range = dict2list(record["schema:rangeIncludes"])
                     property_info["range"] = unlist([self.uri2label(record["@id"]) for record in p_range])
+                    
+                    if "displayName" in record:
+                        property_info['displayName'] = record['displayName']
+
         return property_info
 
     def generate_class_template(self):
@@ -374,7 +407,7 @@ class SchemaExplorer():
         validate_schema(self.schema)
         print("Updated the class {} successfully!".format(class_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
-
+        
 
     def update_property(self, property_info):
         """Add a new property into schema

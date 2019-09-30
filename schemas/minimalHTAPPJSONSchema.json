@@ -4,18 +4,18 @@
    "title": "minimalHTAPPJSONSchema",
    "type": "object",
    "properties": {
-      "CancerType": {
+      "Cancer Type": {
          "enum": [
-            "LungCarcinoma",
-            "MalignantBrainNeoplasm",
-            "MalignantOvarianNeoplasm",
-            "MalignantNeoplasmConnectiveSoftTissue",
-            "BreastCarcinoma",
-            "ColonCarcinoma",
-            "MalignantAdrenalGlandNeoplasm"
+            "Colon Carcinoma",
+            "Malignant Ovarian Neoplasm",
+            "Malignant Brain Neoplasm",
+            "Malignant Adrenal Gland Neoplasm",
+            "Lung Carcinoma",
+            "Breast Carcinoma",
+            "Malignant Neoplasm Connective Soft Tissue"
          ]
       },
-      "LibraryConstructionMethod": {
+      "Library Construction Method": {
          "enum": [
             "10x",
             "Smart-seq2"
@@ -23,9 +23,9 @@
       }
    },
    "required": [
-      "LibraryConstructionMethod",
-      "CancerType",
-      "HTANParticipantID",
-      "HTANSampleID"
+      "HTAN Participant ID",
+      "Library Construction Method",
+      "Cancer Type",
+      "HTAN Sample ID"
    ]
 }
