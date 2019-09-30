@@ -1,2 +1,5 @@
-Filename,Primer,SpikeIn,LibraryConstructionMethod,BiosampleType,BiosampleID,Platform,NucleicAcidSource,ReverseTranscription,Amplification,LibraryLayout,SingleCellIsolation,UMIBarcodeRead,CellBarcodeRead,entityId
-1.txt,atcga,OtherSpikeIn,10x,CellSuspension,BS-123,IlluminaiNextSeq2500,SingleCell,UMI,InVitroTranscription,PairedEnd,Microfluidics chip,10,,syn20685745
+HTANSampleID,HTANParticipantID,CancerType,Filename,LibraryConstructionMethod,entityId
+,,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L002_R1_001.fastq.gz,10x,syn19558596
+,,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L001_R2_001.fastq.gz,10x,syn19558619
+,,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L001_R1_001.fastq.gz,10x,syn19558628
+,,BreastCarcinoma,MantonCB1_HiSeq_1_S1_L002_R2_001.fastq.gz,10x,syn19558687
