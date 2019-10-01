@@ -37,7 +37,7 @@ print(manifestURL)
 print("*****************************************************")
 print("Testing metamodel-based validation")
 print("*****************************************************")
-manifestPath = "./manifest.csv"
+manifestPath = "./HTAPP_manifest_valid.csv"
 
 # testing validation with jsonSchema generation from Schema.org schema
 annotationErrors = mm.validateModelManifest(manifestPath, datasetType)

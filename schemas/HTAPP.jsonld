@@ -1979,10 +1979,10 @@
             "rdfs:label": "HTAPP",
             "rdfs:requiresDependency": [
                 {
-                    "@id": "sms:HTANParticipantID"
+                    "@id": "sms:HtanParticipantId"
                 },
                 {
-                    "@id": "sms:HTANSampleID"
+                    "@id": "sms:HtanSampleId"
                 },
                 {
                     "@id": "sms:CancerType"
@@ -2001,10 +2001,10 @@
             }
         },
         {
-            "@id": "bts:HTANParticipantID",
+            "@id": "bts:HtanParticipantId",
             "@type": "rdfs:Class",
             "rdfs:comment": "HTAN patient ID",
-            "rdfs:label": "HTANParticipantID",
+            "rdfs:label": "HtanParticipantId",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Case"
@@ -2012,13 +2012,14 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "HTAN Participant ID"
         },
         {
-            "@id": "bts:HTANSampleID",
+            "@id": "bts:HtanSampleId",
             "@type": "rdfs:Class",
             "rdfs:comment": "Unique identifier for the biosample source material",
-            "rdfs:label": "HTANSampleID",
+            "rdfs:label": "HtanSampleId",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Biosample"
@@ -2026,7 +2027,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "HTAN Sample ID"
         },
         {
             "@id": "bts:CancerType",
@@ -2043,7 +2045,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Cancer Type"
         },
         {
             "@id": "bts:BreastCarcinoma",
@@ -2057,7 +2060,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Breast Carcinoma"
         },
         {
             "@id": "bts:ColonCarcinoma",
@@ -2071,7 +2075,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Colon Carcinoma"
         },
         {
             "@id": "bts:LungCarcinoma",
@@ -2085,7 +2090,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Lung Carcinoma"
         },
         {
             "@id": "bts:MalignantOvarianNeoplasm",
@@ -2099,7 +2105,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Malignant Ovarian Neoplasm"
         },
         {
             "@id": "bts:MalignantBrainNeoplasm",
@@ -2113,7 +2120,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Malignant Brain Neoplasm"
         },
         {
             "@id": "bts:MalignantAdrenalGlandNeoplasm",
@@ -2127,7 +2135,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Malignant Adrenal Gland Neoplasm"
         },
         {
             "@id": "bts:MalignantNeoplasmConnectiveSoftTissue",
@@ -2141,7 +2150,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Malignant Neoplasm Connective Soft Tissue"
         },
         {
             "@id": "bts:Assay",
@@ -2186,7 +2196,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Library Construction Method"
         },
         {
             "@id": "bts:10x",
@@ -2200,7 +2211,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "10x"
         },
         {
             "@id": "bts:Smart-seq2",
@@ -2214,7 +2226,8 @@
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
-            }
+            },
+            "sms:displayName": "Smart-seq2"
         }
     ],
     "@id": "http://schema.biothings.io/#0.1"

@@ -93,12 +93,7 @@ def load_schema_into_networkx(schema):
     for record in schema["@graph"]:
         if record["@type"] == "rdfs:Class":
             
-            #node = deepcopy(record)
             node = {}
-            #del node['rdfs:label']
-            #del node['@type']
-            #del node['@id']
-
             for (k, value) in record.items():
                 if ":" in k:
                     key = k.split(":")[1]
@@ -108,11 +103,6 @@ def load_schema_into_networkx(schema):
                     node[key] = value
                 else:
                     node[k] = value
-
-            '''
-            G.add_node(record['rdfs:label'], uri=record["@id"],
-                       description=record["rdfs:comment"])
-            '''
 
             if "rdfs:subClassOf" in record:
                 parents = record["rdfs:subClassOf"]
@@ -152,8 +142,6 @@ def load_schema_into_networkx(schema):
             if "requiresChildAsValue" in node and node["requiresChildAsValue"]["@id"] == "sms:True":
                 node["requiresChildAsValue"] = True
             
-            #print(node)
-
             node['uri'] = record["@id"] 
             node['description'] = record["rdfs:comment"]
 

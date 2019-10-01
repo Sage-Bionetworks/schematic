@@ -120,7 +120,9 @@ class SynapseStorage(object):
         filesTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "file") & (self.storageFileviewTable["parentId"] == datasetId)]
 
         # return an array of tuples (fileId, fileName)
-        fileList = list(filesTable[["id", "name"]].itertuples(index = False, name = None))
+        # check if a metadata-manifest file has been passed in the list of filenames; assuming the manifest file has a specific filename, e.g. synapse_storage_manifest.csv; remove the manifest filename if so; (no need to add metadata to the metadata container)
+
+        fileList = list(row for row in filesTable[["id", "name"]].itertuples(index = False, name = None) if not row[1] == "synapse_storage_manifest.csv")
 
         return fileList
         
