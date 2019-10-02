@@ -1,5 +1,5 @@
 HTANSampleID,HTANParticipantID,CancerType,Filename,LibraryConstructionMethod,entityId
-,,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L002_R1_001.fastq.gz,10x,syn19558596
+HTAN_12_1,,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L002_R1_001.fastq.gz,10x,syn19558596
 ,,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L001_R2_001.fastq.gz,10x,syn19558619
 ,,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L001_R1_001.fastq.gz,10x,syn19558628
 ,,BreastCarcinoma,MantonCB1_HiSeq_1_S1_L002_R2_001.fastq.gz,10x,syn19558687

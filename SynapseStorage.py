@@ -49,7 +49,7 @@ class SynapseStorage(object):
         # query fileview for all administrative data
         self.storageFileviewTable = self.syn.tableQuery("SELECT * FROM " + self.storageFileview).asDataFrame()
 
-        
+
     def getStorageProjects(self) -> list: 
     
         """ get all storage projects the current user has access to
@@ -69,8 +69,8 @@ class SynapseStorage(object):
         currentUserId = currentUser.ownerId
         
         # get a set of projects from Synapse (that this user participates in)
-        currentUserProjects = self.syn.restGET('/projects/MY_PARTICIPATED_PROJECTS/user/{principalId}?limit=1000'.format(principalId=currentUserId))
-
+        currentUserProjects = self.syn.restGET('/projects/MY_PROJECTS/user/{principalId}?limit=10000'.format(principalId=currentUserId))
+        
         # prune results json filtering project id
         currentUserProjects = [currentUserProject["id"] for currentUserProject in currentUserProjects["results"]]
 

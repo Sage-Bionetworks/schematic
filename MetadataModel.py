@@ -22,11 +22,7 @@ class MetadataModel(object):
      1) manipulate the metadata model;
      2) generate metadata model views:
         - generate manifest view of the metadata metadata model
-        - usage getModelManifest(rootNode)
-
         - generate validation schemas view of the metadata model;
-        - TODO: not currently part of the specification; to be defined.
-
      """
 
      def __init__(self,
@@ -115,7 +111,7 @@ class MetadataModel(object):
          pass
 
 
-     def getModelManifest(self, rootNode:str, filenames:list = None) -> str: 
+     def getModelManifest(self, title, rootNode:str, filenames:list = None) -> str: 
 
          """ get annotations manifest dataframe 
          Args:
@@ -130,8 +126,7 @@ class MetadataModel(object):
          if filenames:
              additionalMetadata["Filename"] = filenames
 
-          # TODO: remove reference to HTAN; have a manifestName  attribute
-         mg = ManifestGenerator("HTAN_" + rootNode, self.se, rootNode,  additionalMetadata)
+         mg = ManifestGenerator(title, self.se, rootNode,  additionalMetadata)
 
          return mg.get_manifest()
 
@@ -205,7 +200,7 @@ class MetadataModel(object):
          return errorPositions
 
      
-     def populateModelManifest(self, manifestPath:str, rootNode:str) -> str:
+     def populateModelManifest(self, title, manifestPath:str, rootNode:str) -> str:
          
          """ populate an existing annotations manifest based on a dataframe          
          
@@ -218,7 +213,7 @@ class MetadataModel(object):
          Raises: TODO 
             ValueError: rootNode not found in metadata model.
          """
-         mg = ManifestGenerator("HTAN_" + rootNode, self.se, rootNode, {})
+         mg = ManifestGenerator(title, self.se, rootNode, {"Filename":[]})
          emptyManifestURL = mg.get_manifest()
 
          return mg.populate_manifest_spreasheet(manifestPath, emptyManifestURL)

@@ -38,6 +38,6 @@ print(file_list)
 print("*****************************************************")
 print("Testing association of antities with annotation from manifest")
 print("*****************************************************")
-manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest.csv", "syn20685746")
+manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest.csv", "syn20687304")
 
 print(manifest_syn_id)
