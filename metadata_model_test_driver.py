@@ -18,7 +18,7 @@ print("Testing metamodel-based manifest generation")
 print("*****************************************************")
 
 # testing manifest generation; manifest is generated based on a jsonSchema parsed from Schema.org schema
-manifestURL = mm.getModelManifest(datasetType, filenames = ["1.txt", "2.txt", "3.txt"])
+manifestURL = mm.getModelManifest("HTAN_" + datasetType, datasetType, filenames = ["1.txt", "2.txt", "3.txt"])
 
 print(manifestURL)
 
@@ -56,5 +56,5 @@ print("Testing metamodel-based manifest population")
 print("*****************************************************")
 
 # get a sheet prepopulated with an existing manifest; returns a url to a google sheet; (this is an example scRNASeq manifest
-prepopulatedManifestURL = mm.populateModelManifest(manifestPath, datasetType)
+prepopulatedManifestURL = mm.populateModelManifest("HTAN_" + datasetType, manifestPath, datasetType)
 print(prepopulatedManifestURL)

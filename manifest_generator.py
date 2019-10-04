@@ -1,6 +1,7 @@
 from __future__ import print_function
 import pickle
 import os.path
+import collections
 
 import pandas as pd
 
@@ -187,18 +188,23 @@ class ManifestGenerator(object):
         end_col_letter = self._column_to_letter(end_col) 
 
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
-        values = [list(required_metadata_fields.keys())]
+        ordered_metadata_fields = [list(required_metadata_fields.keys())]
+
+        # order columns header (since they are generated based on a json schema, which is a dict) the order could be somewhat arbitrary;this is not the case from a better user experience perspective; we can add better rules, but for now alphabetical order where column Filename is first and entityId is last, should suffice
+        
+        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0])
+
         
         body = {
-                "values": values 
+                "values": ordered_metadata_fields
         }
-
        
         self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
-
+        
         # adding additinoal metadata values if needed and adding value-constraints from data model as dropdowns
-        for i, (req, values) in enumerate(required_metadata_fields.items()):
-
+        for i, req in enumerate(ordered_metadata_fields[0]):
+        #for i, (req, values) in enumerate(required_metadata_fields.items()):
+            values = required_metadata_fields[req]
             #adding additional metadata if needed
             if self.additional_metadata and req in self.additional_metadata:
                 values = self.additional_metadata[req]
@@ -263,6 +269,10 @@ class ManifestGenerator(object):
     def populate_manifest_spreasheet(self, existing_manifest_path, empty_manifest_url):
 
         manifest = pd.read_csv(existing_manifest_path).fillna("")
+        manifest_fields = manifest.columns.tolist()
+        manifest_fields = self.sort_manifest_fields(manifest_fields)
+        manifest = manifest[manifest_fields]
+        
         self.build_credentials()
         gc = ps.authorize(custom_credentials = self.creds)
         sh = gc.open_by_url(empty_manifest_url)
@@ -274,3 +284,21 @@ class ManifestGenerator(object):
 
         return sh.url 
 
+
+    def sort_manifest_fields(self, manifest_fields):
+        """ sort a set of metadata fields (e.g. to organize manifest column headers in a more user-friendly and consistent pattern, (e.g. alphabetical))  
+        """
+        print(manifest_fields)
+        manifest_fields.sort()
+
+        if "Filename" in manifest_fields:
+            pos = manifest_fields.index("Filename")
+            manifest_fields[pos] = manifest_fields[0]
+            manifest_fields[0] = "Filename"
+
+        if "entityId" in manifest_fields:
+            manifest_fields.remove("entityId")
+            manifest_fields.append("entityId")
+
+        print(manifest_fields)
+        return manifest_fields
