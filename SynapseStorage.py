@@ -15,9 +15,11 @@ class SynapseStorage(object):
     Provides utilities to list files in a specific project; update files annotations, create fileviews, etc.
     """
 
+
     def __init__(self,
                  storageFileview: str,
-                 syn: synapseclient = None,
+                 # syn: synapseclient = None,
+                 token: str ## gets sessionToken for logging in
                  ) -> None:
 
         """Instantiates a SynapseStorage object
@@ -28,11 +30,12 @@ class SynapseStorage(object):
             TODO: move away from specific project setup and work with an interface that Synapse specifies (e.g. based on schemas)
         """
         
-        if not syn:  
-            self.syn = synapseclient.Synapse()
-            self.syn.login()
-        else:
-            self.syn = syn
+        # if not syn:  
+        self.syn = synapseclient.Synapse()
+            # self.syn.login()
+        self.syn.login(sessionToken = token)
+        # else:
+            # self.syn = syn
 
         self.storageFileview = storageFileview
 
