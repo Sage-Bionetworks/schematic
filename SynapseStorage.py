@@ -9,6 +9,8 @@ import synapseclient
 
 from synapseclient import File
 
+from schema_explorer import SchemaExplorer 
+
 class SynapseStorage(object):
 
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -147,9 +149,24 @@ class SynapseStorage(object):
         # convert metadata in a form suitable for setting annotations on Synapse
         manifestMetadata = manifest.to_dict("index") 
 
+        # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels
+        se = SchemaExplorer()
+
         # set annotations to files on Synapse
         for fileId, metadata in manifestMetadata.items():
-            self.syn.setAnnotations(fileId, metadata)
+
+            #  prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces)
+            metadataSyn = {}
+            for k, v in metadata.items():
+                keySyn = se.get_class_label_from_display_name(str(k))
+                if v:
+                    valSyn = se.get_class_label_from_display_name(str(v))
+                else:
+                    valSyn = ""
+
+                metadataSyn[keySyn] = valSyn
+
+            self.syn.setAnnotations(fileId, metadataSyn)
 
         # store manifest to Synapse
         manifestSynapseFile = File(metadataManifestPath, description = "Manifest for dataset " + datasetId, parent = datasetId)
