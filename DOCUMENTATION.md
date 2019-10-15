@@ -10,6 +10,8 @@ The Data Coordinating Center (DCC) dataset ingress process consists of three mai
 
 The chart below provides a high-level overview of the steps a dataset contributing center needs to complete in each stage. Software tools steamlining the process are linked and documented, as well as contacts of DCC liaisons that can provide additional information and help facilitate dataset submission.
 
+![Dataset ingress flow](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/overall_ingress_flow.png)
+
 ## Data transfer
 
 #### Selecting storage platform
