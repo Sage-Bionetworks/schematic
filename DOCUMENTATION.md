@@ -3,10 +3,15 @@
 The Data Coordinating Center (DCC) dataset ingress process consists of three main stages
 
 1. __Dataset transfer__ 
+
 Depending on dataset size, this step may take anywhere from a few minutes up to multiple hours.
+
 2. __Metadata upload__ 
+
 Depending on amount and diversity of dataset files, this step could take from 10 minutes to a couple of hours.
+
 3. __Metadata validation and dataset submission confirmation__ 
+
 This step should take less than 30 seconds on a typical internet connection.
 
 The chart below provides a high-level overview of the steps a dataset contributing center needs to complete in each stage. Software tools steamlining the process are linked and documented, as well as contacts of DCC liaisons that can provide additional information and help facilitate dataset submission.
@@ -26,8 +31,8 @@ Once a center determines their dataset storage platform, they need to contact th
 #### Data upload
 
 To upload data to their DCC-designated storage location, centers may use 
-1. standard tools provided by cloud platforms 
-2. the Synapse platform tools 
+a. standard tools provided by cloud platforms 
+b. the Synapse platform tools 
 
 In either case, depending on dataset size and other center preferences, they may utilize web-based or programmatic data upload interfaces. Some of the more typical options are described below, along with links to relevant documentation for more detail.
 
@@ -35,13 +40,81 @@ __AWS data upload__
 
 _AWS web console_: 
 
-This option would typically be useful for upload of files residing on your local machine to AWS S3 storage location. You can follow the steps below to complete a data upload
+This option would typically be useful for upload of files residing on your local machine to a AWS S3 storage location. You can follow the steps below to complete a data upload:
 
 * Login to AWS here: 
 * Navigate to Upload
 * Go through prompts and select your target bucket and location
 
+_AWS client_:
 
+This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
+
+You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in other programming languages, please refer to the AWS documentation here. 
+
+* Dataset upload from a local folder to a AWS S3 storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
+* Dataset upload from an existing S3 bucket to another AWS S3 storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
+* Dataset upload from an existing GC bucket to another AWS S3 storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
+__Google Cloud data upload__
+
+_GC web console_: 
+
+This option would typically be useful for upload of files residing on your local machine to a Google Cloud Bucket (GCB) storage location. You can follow the steps below to complete a data upload:
+
+* Login to Google Cloud here: 
+* Navigate to Upload
+* Go through prompts and select your target bucket and location
+
+_GC client_:
+
+This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
+
+You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in other programming languages, please refer to the GC documentation here. 
+
+* Dataset upload from a local folder to a GCB storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
+* Dataset upload from an existing GCB to another GCB storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
+* Dataset upload from an existing AWS S3 bucket to a GCB storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
 
 
 
