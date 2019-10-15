@@ -82,10 +82,14 @@ This option would typically be useful for upload of files residing on your local
 * Navigate to the GC storage location provided by your DCC liaison, which would look like:
 ht<span>tps://</span>storage.cloud.google.com/hta-x
 
-![GC console project screenshot](https://github.com/milen-sage/HTAN-data-pipeline/blob/dev/doc/img/gc_project_console.png)
+![GC console project screenshot](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/gc_project_console.png)
 
-* Navigate to Upload
-* Go through prompts and select your target bucket and location
+* Click on the folder corresponding to your dataset, e.g. hta-x-dataset 
+* Drag and drop files; or use the 'Upload files' (or 'Upload folder') buttons. 
+* When your files have been uploaded successfully you should see them in your console:
+
+![GC console project screenshot](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/gc_file_upload_complete.png)
+
 
 _GC client_:
 
