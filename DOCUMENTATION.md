@@ -3,15 +3,12 @@
 The Data Coordinating Center (DCC) dataset ingress process consists of three main stages
 
 1. __Dataset transfer__ 
-
 Depending on dataset size, this step may take anywhere from a few minutes up to multiple hours.
 
 2. __Metadata upload__ 
-
 Depending on amount and diversity of dataset files, this step could take from 10 minutes to a couple of hours.
 
 3. __Metadata validation and dataset submission confirmation__ 
-
 This step should take less than 30 seconds on a typical internet connection.
 
 The chart below provides a high-level overview of the steps a dataset contributing center needs to complete in each stage. Software tools steamlining the process are linked and documented, as well as contacts of DCC liaisons that can provide additional information and help facilitate dataset submission.
@@ -116,7 +113,45 @@ if (isAwesome){
 }
 ```
 
+__Synapse data upload__
 
+_Synapse web interface_: 
+
+This option would typically be useful for upload of files residing on your local machine to a Synapse storage location. You can follow the steps below to complete a data upload:
+
+* Login to Synapse here: 
+* Navigate to your project
+* Go through prompts and upload your files
+
+_Synapse client_:
+
+This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
+
+You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in R or CLI, please refer to the Synapse documentation here. 
+
+* Dataset upload from a local folder to a Synapse storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
+* Dataset upload from an existing GCB to another GCB storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
+* Dataset upload from an existing AWS S3 bucket to a GCB storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
 
 
 
