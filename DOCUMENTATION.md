@@ -40,8 +40,20 @@ _AWS web console_:
 This option would typically be useful for upload of files residing on your local machine to a AWS S3 storage location. You can follow the steps below to complete a data upload:
 
 * Login to AWS here: 
+<img width="1429" alt="Screen Shot 2019-10-15 at 2 47 22 PM" src="https://user-images.githubusercontent.com/15043209/66873497-71b20580-ef5d-11e9-9891-835890835f36.png">
+
 * Navigate to Upload
+<img width="1412" alt="Screen Shot 2019-10-15 at 2 48 14 PM" src="https://user-images.githubusercontent.com/15043209/66873939-9490e980-ef5e-11e9-85ea-8af7e28d1271.png">
+
 * Go through prompts and select your target bucket and location
+<img width="1411" alt="Screen Shot 2019-10-15 at 3 17 23 PM" src="https://user-images.githubusercontent.com/15043209/66874075-fb160780-ef5e-11e9-9584-1f5279874570.png">
+
+<img width="730" alt="Screen Shot 2019-10-15 at 2 49 05 PM" src="https://user-images.githubusercontent.com/15043209/66874080-ffdabb80-ef5e-11e9-9f3b-6973ab9cddf3.png">
+
+<img width="655" alt="Screen Shot 2019-10-15 at 2 56 47 PM" src="https://user-images.githubusercontent.com/15043209/66874102-1254f500-ef5f-11e9-8392-1459d92b2cb3.png">
+
+<img width="1406" alt="Screen Shot 2019-10-15 at 2 51 00 PM" src="https://user-images.githubusercontent.com/15043209/66874108-154fe580-ef5f-11e9-9fb5-43db8e8eda53.png">
+
 
 _AWS client_:
 
