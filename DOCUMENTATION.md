@@ -2,7 +2,7 @@
 
 The Data Coordinating Center (DCC) dataset ingress process consists of three main stages
 
-1. __Dataset transfer__: depending on dataset size, this step may take anywhere from a few minutes up to multiple hours.
+1. __Dataset transfer to DCC__: depending on dataset size, this step may take anywhere from a few minutes up to multiple hours.
 
 2. __Metadata upload__: depending on amount and diversity of dataset files, this step could take from 10 minutes to a couple of hours.
 
@@ -94,17 +94,38 @@ _GC client_:
 
 This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
 
-You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in other programming languages, please refer to the GC documentation here. 
+To get started with the Python Google Cloud client library, if you have not already, on your command line please run
+
+```
+pip install --upgrade google-cloud-storage google-auth oauthlib
+```
+
+You can modify the Python code vignettes below for your particular dataset upload. For equivalent functionality in other programming languages, or for more details on installing Python, please refer to the GC documentation [here](https://cloud.google.com/storage/docs/reference/libraries).
+
 
 * Dataset upload from a local folder to a GCB storage location:
 
 ```python
-if (isAwesome){
-  return true
-}
+
+# library that allows interacting with Google CLoud Buckets
+from google.cloud import storage
+
+# Explicitly use service account credentials by specifying the private key
+# file provided by your DCC liaison
+client = storage.Client.from_service_account_json('DCC_hta-x_credentials.json')
+        
+# specify GC bucket provided by your DCC liaison
+bucket = client.get_bucket('hta-x')
+
+# prepare to upload by providing a path to it on your local machine 
+blob = bucket.blob('hta-x-dataset/file1.txt')
+# upload the file to the bucket
+blob.upload_from_filename('file1.txt')
+
+# note that the GC storage client supports various options (e.g. returniung signed url to uploaded objects; please refer to more detailed documentation here: https://googleapis.dev/python/storage/latest/client.html)
 ```
 
-* Dataset upload from an existing GCB to another GCB storage location:
+* Dataset transfer from an existing GCB to another GCB storage location:
 
 ```python
 if (isAwesome){
