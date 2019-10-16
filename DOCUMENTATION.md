@@ -117,7 +117,7 @@ client = storage.Client.from_service_account_json('DCC_hta-x_credentials.json')
 # specify GC bucket provided by your DCC liaison
 bucket = client.get_bucket('hta-x')
 
-# prepare a location for the uploaded file (e.g. the dataset folder in your bucket)
+# prepare a location for the uploaded file (e.g. the dataset folder in the DCC provided bucket)
 blob = bucket.blob('hta-x-dataset/file1.txt')
 # upload the file to the bucket by specifying the path to the local file you want to upload
 blob.upload_from_filename('./file1.txt')
@@ -125,12 +125,26 @@ blob.upload_from_filename('./file1.txt')
 # note that the GC storage client supports various options (e.g. returniung signed url to uploaded objects; please refer to more detailed documentation here: https://googleapis.dev/python/storage/latest/client.html)
 ```
 
-* Dataset transfer from an existing GCB to another GCB storage location:
+* Dataset copy from an existing GCB bucket to a GCB storage location provided by a DCC liaison:
 
 ```python
-if (isAwesome){
-  return true
-}
+"""Copies a blob from your storage bucket to a DCC bucket."""
+client = storage.Client.from_service_account_json('DCC_hta-x_credentials.json')
+
+# specify your (source) bucket
+source_bucket = client.get_bucket('your bucket name')
+# specify the source file (including path to the source file in your bucket, if the file is in a folder in your bucket)
+source_blob = source_bucket.blob('path to file in your bucket')
+
+# specify the DCC provided bucket name
+destination_bucket = storage_client.get_bucket('hta-x')
+
+# prepare a location for the copied file on the DCC provided bucket (e.g. the dataset folder in the DCC provided bucket)
+new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x-dataset')
+
+ print('File {} in bucket {} copied to file {} in bucket {}.'.format(
+        source_blob.name, source_bucket.name, new_blob.name,
+        destination_bucket.name))
 ```
 
 __Synapse data upload__
