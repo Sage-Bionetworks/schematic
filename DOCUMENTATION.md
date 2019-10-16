@@ -117,10 +117,10 @@ client = storage.Client.from_service_account_json('DCC_hta-x_credentials.json')
 # specify GC bucket provided by your DCC liaison
 bucket = client.get_bucket('hta-x')
 
-# prepare to upload by providing a path to it on your local machine 
+# prepare a location for the uploaded file (e.g. the dataset folder in your bucket)
 blob = bucket.blob('hta-x-dataset/file1.txt')
-# upload the file to the bucket
-blob.upload_from_filename('file1.txt')
+# upload the file to the bucket by specifying the path to the local file you want to upload
+blob.upload_from_filename('./file1.txt')
 
 # note that the GC storage client supports various options (e.g. returniung signed url to uploaded objects; please refer to more detailed documentation here: https://googleapis.dev/python/storage/latest/client.html)
 ```
