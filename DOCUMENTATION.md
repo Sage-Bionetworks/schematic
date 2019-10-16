@@ -171,15 +171,7 @@ if (isAwesome){
 }
 ```
 
-* Dataset upload from an existing GCB to another GCB storage location:
-
-```python
-if (isAwesome){
-  return true
-}
-```
-
-* Dataset upload from an existing AWS S3 bucket to a GCB storage location:
+* Dataset upload from an existing S3 location to Synapse:
 
 ```python
 if (isAwesome){
