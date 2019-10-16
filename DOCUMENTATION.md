@@ -179,6 +179,64 @@ if (isAwesome){
 }
 ```
 
+## Data curation
+### Access the Data Curator by logging onto Synapse and going to this [link](https://www.synapse.org/#!Wiki:syn20681266/ENTITY)
+#### A. Starting from a fresh template
+* From the first tab select your project (corresponds to your bucket name) and your dataset( corresponds to your folder name).
+<img width="1416" alt="2" src="https://user-images.githubusercontent.com/15043209/66961237-0af71f80-f023-11e9-85d3-244b0be1ee01.png">
+
+* Navigate to the second tab "Get Metadata Template"
+<img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
+
+* Click the Link to Google Sheets Template 
+<img width="1418" alt="4" src="https://user-images.githubusercontent.com/15043209/66961254-15b1b480-f023-11e9-872b-2e7d6521b898.png">
+
+* When you click the link it will take you to the sheet with the filenames pre-populated.
+
+<img width="1430" alt="5" src="https://user-images.githubusercontent.com/15043209/66961318-41349f00-f023-11e9-9107-466bdab77034.png">
+
+* Fill out the sheet using the dropdowns with the allowed values.
+<img width="1434" alt="Screen Shot 2019-10-15 at 4 06 43 PM" src="https://user-images.githubusercontent.com/15043209/66962305-86f26700-f025-11e9-92dc-254a75ef41f9.png">
+
+* Save as a CSV 
+<img width="1428" alt="Screen Shot 2019-10-15 at 4 07 06 PM" src="https://user-images.githubusercontent.com/15043209/66962318-8fe33880-f025-11e9-8426-4ce26de5a2c9.png">
+
+* Navigate to the third tab "Submit & Validate Metadata"
+<img width="1422" alt="Screen Shot 2019-10-15 at 4 07 36 PM" src="https://user-images.githubusercontent.com/15043209/66962329-95d91980-f025-11e9-9fe4-7c44b0d13d42.png">
+
+* Upload your saved CSV 
+<img width="1417" alt="Screen Shot 2019-10-15 at 4 08 00 PM" src="https://user-images.githubusercontent.com/15043209/66962344-9e315480-f025-11e9-9547-9d5ca3d713ca.png">
+
+ * You will see your entries in the Metadata Preview 
+<img width="1402" alt="Screen Shot 2019-10-15 at 4 08 14 PM" src="https://user-images.githubusercontent.com/15043209/66962357-a5586280-f025-11e9-8eb8-7acfc48a54ef.png">
+
+* Click "Validate Metadata". If your metadata is valid a "Submit" button will appear.
+<img width="1404" alt="Screen Shot 2019-10-15 at 4 08 39 PM" src="https://user-images.githubusercontent.com/15043209/66962370-aab5ad00-f025-11e9-890b-8a2b3209c202.png">
+
+* Click the "Submit" button and if it is successful you will receive a link to your manifest on Synapse. 
+<img width="1413" alt="Screen Shot 2019-10-15 at 4 08 50 PM" src="https://user-images.githubusercontent.com/15043209/66962379-b1442480-f025-11e9-9407-34dc6e33952d.png">
+
+* Now your metadata will appear on the in the "Files and Metadata" Table in your Synapse Project. 
+<img width="1426" alt="Screen Shot 2019-10-15 at 4 13 12 PM" src="https://user-images.githubusercontent.com/15043209/66963842-98d60900-f029-11e9-83d9-cb81d0842624.png">
+
+#### B. Fixing an unvalidated template
+* If you have chosen your project, gotten the template, and filled out the template with an error and uploaded it, e.g. this CSV
+<img width="1407" alt="Screen Shot 2019-10-15 at 4 27 04 PM" src="https://user-images.githubusercontent.com/15043209/66964015-29144e00-f02a-11e9-904d-319ac5c11680.png">
+
+* You will receive an error upon pressing the "Validate Metadata" button that highlights the cell and lists the error in detail. 
+<img width="1401" alt="Screen Shot 2019-10-15 at 4 28 03 PM" src="https://user-images.githubusercontent.com/15043209/66964059-4ea15780-f02a-11e9-96ad-cf7e236f0012.png">
+
+* You can edit your file on Google Sheet and re-download it as a CSV or edit the CSV locally. 
+<img width="1130" alt="Screen Shot 2019-10-15 at 4 28 34 PM" src="https://user-images.githubusercontent.com/15043209/66964181-bbb4ed00-f02a-11e9-95ef-2b8e8c3053fe.png">
+
+* Upload your file and see your metadata reflected.
+<img width="1417" alt="Screen Shot 2019-10-15 at 4 28 53 PM" src="https://user-images.githubusercontent.com/15043209/66964212-d38c7100-f02a-11e9-9ce4-68bbac611bfc.png">
+
+* Press the "Validate Metadata" button again. 
+<img width="1398" alt="Screen Shot 2019-10-15 at 4 29 02 PM" src="https://user-images.githubusercontent.com/15043209/66964227-e010c980-f02a-11e9-99f1-b7f06c42c3e5.png">
+
+* Now you can submit your validated metadata. 
+<img width="1397" alt="Screen Shot 2019-10-15 at 4 29 14 PM" src="https://user-images.githubusercontent.com/15043209/66964257-f1f26c80-f02a-11e9-90d7-18f9459dab85.png">
 
 
 
