@@ -15,7 +15,7 @@ The chart below provides a high-level overview of the steps a dataset contributi
 <a name = "data_transfer"></a>
 ## Dataset transfer
 
-#### Selecting storage platform
+### Selecting storage platform
 
 The DCC can provide dataset storage on the cloud, hosted by __Amazon Web Services (AWS)__ or __Google Cloud (GC)__. 
 
@@ -25,7 +25,7 @@ The center may decide to use different storage platform, AWS or GC, for differen
 
 Once a center determines their dataset storage platform, they need to contact their DCC liaison, who will boot-up the required cloud infrastructure and authorize the center to transfer data into a private storage location. The DCC liaison will provide the required cloud authentication credentials and data storage location. Centers do not need to follow a particular folder hierarchy in the provided cloud storage location.
 
-#### Data upload
+### Data upload
 
 To upload data to their DCC-designated storage location, centers may use 
 
@@ -42,13 +42,13 @@ This option would typically be useful for upload of files residing on your local
 * Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
 
 * Create a folder to store your first dataset. 
-<details><summary>Detailed instructions</summary>
+<details><summary style="font-size:smaller"><i>How to create a folder</i></summary>
  <p>
 * Go to the Files tab 
 
  <img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
 
-* Create a folder with Files Tools 
+* Create a folder (click on Files Tools) 
 <img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
 </p>
 </details>
