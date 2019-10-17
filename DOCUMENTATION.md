@@ -2,7 +2,7 @@
 
 The Data Coordinating Center (DCC) dataset ingress process consists of three main stages
 
-1. __Dataset transfer to DCC__: depending on dataset size, this step may take anywhere from a few minutes up to multiple hours.
+1. [__Dataset transfer to DCC__](#data_transfer): depending on dataset size, this step may take anywhere from a few minutes up to multiple hours.
 
 2. __Metadata upload__: depending on amount and diversity of dataset files, this step could take from 10 minutes to a couple of hours.
 
@@ -12,7 +12,7 @@ The chart below provides a high-level overview of the steps a dataset contributi
 
 ![Dataset ingress flow](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/overall_ingress_flow.png)
 
-## Data transfer
+<a id = "#data_transfer"></a>## Dataset transfer
 
 #### Selecting storage platform
 
