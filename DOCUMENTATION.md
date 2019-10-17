@@ -18,20 +18,72 @@ The chart below provides a high-level overview of the steps a dataset contributi
 
 The DCC can provide dataset storage on the cloud, hosted by __Amazon Web Services (AWS)__ or __Google Cloud (GC)__. 
 
-Each center may decide where to store their datasets depending on existing contracts, dataset location, or other preferences. 
+Your center may decide where to store datasets depending on existing contracts, dataset location, or other preferences. 
 
-The center may decide to use different storage platform for different datasets.
+The center may decide to use different storage platform, AWS or GC, for different datasets.
 
 Once a center determines their dataset storage platform, they need to contact their DCC liaison, who will boot-up the required cloud infrastructure and authorize the center to transfer data into a private storage location. The DCC liaison will provide the required cloud authentication credentials and data storage location. Centers do not need to follow a particular folder hierarchy in the provided cloud storage location.
 
 #### Data upload
 
 To upload data to their DCC-designated storage location, centers may use 
-a. standard tools provided by cloud platforms 
+
+a. the Synapse platform tools  
 or
-b. the Synapse platform tools 
+b. standard tools provided by cloud platforms
 
 In either case, depending on dataset size and other center preferences, they may utilize web-based or programmatic data upload interfaces. Some of the more typical options are described below, along with links to relevant documentation for more detail.
+
+<details><summary>__Synapse data upload via web interface__: this option would typically be useful for upload of files residing on your local machine to a Synapse cloud storage location. You can follow the steps below to complete a data upload:</summary>
+<p>
+
+* Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
+
+* Create a folder to store your first dataset. <details><summary>Detailed instructions</summary>
+ <p>
+ * Go to the Files tab 
+
+<img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
+
+* Create a folder with Files Tools 
+<img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
+</p>
+</details>
+
+* Navigate to your folder and upload the files in your dataset (drag and drop; or browse)
+<img width="1421" alt="Screen Shot 2019-10-15 at 4 03 22 PM" src="https://user-images.githubusercontent.com/15043209/66940511-ea669f80-eff9-11e9-9060-1095ed6682f9.png">
+
+* Once uploaded you can preview your files:
+
+<img width="1422" alt="Screen Shot 2019-10-15 at 4 03 55 PM" src="https://user-images.githubusercontent.com/15043209/66940539-f6eaf800-eff9-11e9-8988-57ad3c0b2ab6.png">
+<img width="1436" alt="1" src="https://user-images.githubusercontent.com/15043209/66940841-81335c00-effa-11e9-99d8-9f0a5cf18b8c.png">
+
+</p>
+</details>
+
+
+_Synapse client_:
+
+This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
+
+You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in R or CLI, please refer to the Synapse documentation here. 
+
+* Dataset upload from a local folder to a Synapse storage location:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
+* Dataset upload from an existing S3 location to Synapse:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+
 
 __AWS data upload__
 
@@ -159,52 +211,6 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
         destination_bucket.name))
 ```
 
-__Synapse data upload__
-
-_Synapse web interface_: 
-
-This option would typically be useful for upload of files residing on your local machine to a Synapse storage location. You can follow the steps below to complete a data upload:
-
-* Login to Synapse here: 
-<img width="1418" alt="Screen Shot 2019-10-15 at 4 50 50 PM" src="https://user-images.githubusercontent.com/15043209/66940374-b3908980-eff9-11e9-9efe-44d8b4bae4ff.png">
-
-* Navigate to your project
-<img width="1415" alt="Screen Shot 2019-10-15 at 4 02 16 PM" src="https://user-images.githubusercontent.com/15043209/66940444-ce62fe00-eff9-11e9-81a7-270dc210a639.png">
-
-* Go to the Files tab
-<img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
-
-* Create a folder with Files Tools 
-<img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
-
-* Go to your folder and upload your files
-<img width="1421" alt="Screen Shot 2019-10-15 at 4 03 22 PM" src="https://user-images.githubusercontent.com/15043209/66940511-ea669f80-eff9-11e9-9060-1095ed6682f9.png">
-<img width="1436" alt="Screen Shot 2019-10-15 at 4 03 34 PM" src="https://user-images.githubusercontent.com/15043209/66940531-f18dad80-eff9-11e9-9564-e94467c5d517.png">
-* See your files in the Files tab and Tables tab
-<img width="1422" alt="Screen Shot 2019-10-15 at 4 03 55 PM" src="https://user-images.githubusercontent.com/15043209/66940539-f6eaf800-eff9-11e9-8988-57ad3c0b2ab6.png">
-<img width="1436" alt="1" src="https://user-images.githubusercontent.com/15043209/66940841-81335c00-effa-11e9-99d8-9f0a5cf18b8c.png">
-
-_Synapse client_:
-
-This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
-
-You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in R or CLI, please refer to the Synapse documentation here. 
-
-* Dataset upload from a local folder to a Synapse storage location:
-
-```python
-if (isAwesome){
-  return true
-}
-```
-
-* Dataset upload from an existing S3 location to Synapse:
-
-```python
-if (isAwesome){
-  return true
-}
-```
 
 ## Data curation
 ### Access the Data Curator by logging onto Synapse and going to this [link](https://www.synapse.org/#!Wiki:syn20681266/ENTITY)
