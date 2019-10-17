@@ -137,9 +137,12 @@ This option would typically be useful for upload of files residing on your local
 
 * Create a folder to store your first dataset and upload your files there 
 <details><summary style="font-size:smaller"><i>How to upload files to AWS</i></summary>
+ <p>
 <img width="655" alt="Screen Shot 2019-10-15 at 2 56 47 PM" src="https://user-images.githubusercontent.com/15043209/66874102-1254f500-ef5f-11e9-8392-1459d92b2cb3.png">
 
 <img width="1406" alt="Screen Shot 2019-10-15 at 2 51 00 PM" src="https://user-images.githubusercontent.com/15043209/66874108-154fe580-ef5f-11e9-9fb5-43db8e8eda53.png">
+</p>
+</details>
 </p>
 </details>
 
