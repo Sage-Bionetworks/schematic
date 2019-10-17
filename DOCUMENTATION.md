@@ -119,13 +119,14 @@ if (isAwesome){
 </details>
 
 <details><summary><b>AWS data upload via web interface</b></summary>
-
+<p>
 This option would typically be useful for upload of files residing on your local machine to an AWS S3 storage location. You can follow the steps below to complete a data upload:
 
 * Login to your AWS console (using the AWS account you provided your DCC liaison)
 
 * Navigate to the storage location provided by your DCC liaison (e.g. a bucket named 'hta-x')
 <details><summary style="font-size:smaller"><i>How to navigate to a bucket on AWS</i></summary>
+ <p>
 <img width="1412" alt="Screen Shot 2019-10-15 at 2 48 14 PM" src="https://user-images.githubusercontent.com/15043209/66873939-9490e980-ef5e-11e9-85ea-8af7e28d1271.png">
 
 <img width="1411" alt="Screen Shot 2019-10-15 at 3 17 23 PM" src="https://user-images.githubusercontent.com/15043209/66874075-fb160780-ef5e-11e9-9584-1f5279874570.png">
