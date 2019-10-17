@@ -12,7 +12,8 @@ The chart below provides a high-level overview of the steps a dataset contributi
 
 ![Dataset ingress flow](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/overall_ingress_flow.png)
 
-<a name = "data_transfer"></a>## Dataset transfer
+<a name = "data_transfer"></a>
+## Dataset transfer
 
 #### Selecting storage platform
 
