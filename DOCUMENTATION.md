@@ -34,21 +34,25 @@ b. standard tools provided by cloud platforms
 
 In either case, depending on dataset size and other center preferences, they may utilize web-based or programmatic data upload interfaces. Some of the more typical options are described below, along with links to relevant documentation for more detail.
 
-<details><summary>__Synapse data upload via web interface__: this option would typically be useful for upload of files residing on your local machine to a Synapse cloud storage location. You can follow the steps below to complete a data upload:</summary>
+<details><summary><b>Synapse data upload via web interface</b></summary>
 <p>
+This option would typically be useful for upload of files residing on your local machine to a Synapse cloud storage location. You can follow the steps below to complete a data upload:
 
 * Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
 
-* Create a folder to store your first dataset. <details><summary>Detailed instructions</summary>
+* Create a folder to store your first dataset. 
+<details><summary>Detailed instructions</summary>
  <p>
- * Go to the Files tab 
+* Go to the Files tab 
 
-<img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
+ <img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
 
 * Create a folder with Files Tools 
 <img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
 </p>
 </details>
+
+![GC console project screenshot](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/gc_file_upload_complete.png)
 
 * Navigate to your folder and upload the files in your dataset (drag and drop; or browse)
 <img width="1421" alt="Screen Shot 2019-10-15 at 4 03 22 PM" src="https://user-images.githubusercontent.com/15043209/66940511-ea669f80-eff9-11e9-9060-1095ed6682f9.png">
