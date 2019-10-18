@@ -261,26 +261,37 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
 <details><summary>At present, the DCC supports a web-based metadata upload via the Data Curator web app.</summary> 
  <blockquote>
   
-   We are working on providing 1) a Python package for programmatic metadata upload and management; and 2) an API for programmatic metadata upload and management. These will be available in the next release of the DCC data pipeline. Please check with your DCC liaison on details.
+   We are working on providing 
+   
+   1. a Python package for programmatic metadata upload and management; 
+   and 
+   2. an API for programmatic metadata upload and management. 
+   
+   These will be available in the next release of the DCC data pipeline. Please check with your DCC liaison on details.
  
  </blockquote>
 </details>
 
-<details><summary>Use the Data Curator app to curate a dataset for a first time </summary>
+<details><summary>Use the <a href = "https://www.synapse.org/#!Wiki:syn20681266/ENTITY">Data Curator app</a> to curate a dataset for a first time </summary>
   <blockquote>
-    You have already transfered your dataset to the DCC - congratulations! If you have not, please follow the instructions [here](#data_transfer). Please provide the metadata for your dataset using the Data Curator app. Here we assume your dataset is named 'hta-x-dataset'.
     
-   <details><summary>You can access the Data Curator app by following this [link](https://www.synapse.org/#!Wiki:syn20681266/ENTITY)</summary>
+   You have already transfered your dataset to the DCC - congratulations! If you have not, please follow the instructions [here](#data_transfer). 
+    
+   Please provide the metadata for your dataset using the Data Curator app. Here we assume your dataset is named 'hta-x-dataset'.
+    
+  <details><summary><a href = "https://www.synapse.org/#!Wiki:syn20681266/ENTITY">Access the Data Curator app</a></summary>
   <blockquote>
+  
   If you are prompted to login to Synapse, please use your Synapse account (or associated Google account).
+  
   </blockquote>
   </details>
   
-<details><summary>From the first tab, select your project (corresponds to your bucket name if you have uploaded your dataset directly to a AWS or GC bucket; e.g. hta-x); your dataset (corresponds to a folder name in your bucket; e.g. hta-x-dataset); and the metadata template you would like to use (e.g. scRNASeq if providing metadata for a scRNASeq dataset; if you don't see the correct template for your dataset, you can select the "Minimal Metadata" template and <i>also contact your DCC liaison</i>).</summary>
+  <details><summary>In the app, from the first tab, select your project (e.g. hta-x, corresponds to your bucket name if you have uploaded your dataset directly to a AWS or GC bucket); your dataset (e.g. hta-x-dataset, corresponds to a folder name in your bucket); and the metadata template you would like to use (e.g. scRNASeq if providing metadata for a scRNASeq dataset); if you don't see the correct template for your dataset, you can select the "Minimal Metadata" template and <i>contact your DCC liaison</i>.</summary>
   <blockquote>
-
+    
   <img width="1416" alt="2" src="https://user-images.githubusercontent.com/15043209/66961237-0af71f80-f023-11e9-85d3-244b0be1ee01.png">
-
+  
   <img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
 
   </blockquote>
