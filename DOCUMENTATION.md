@@ -2,93 +2,170 @@
 
 The Data Coordinating Center (DCC) dataset ingress process consists of three main stages
 
-1. __Dataset transfer__: depending on dataset size, this step may take anywhere from a few minutes up to multiple hours.
+1. [__Dataset transfer to DCC__](#data_transfer): depending on dataset size, this step may take you anywhere from a few minutes up to multiple hours.
 
-2. __Metadata upload__: depending on amount and diversity of dataset files, this step could take from 10 minutes to a couple of hours.
+2. [__Metadata upload__](#metadata_upload): depending on amount and diversity of dataset files, this step could take you from 10 minutes to a couple of hours.
 
-3. __Metadata validation and dataset submission confirmation__: this step should take less than 30 seconds on a typical internet connection.
+3. [__Metadata validation and dataset submission confirmation__](#submission_confirmation): this step should take you less than 30 seconds on a typical internet connection.
 
 The chart below provides a high-level overview of the steps a dataset contributing center needs to complete in each stage. Software tools steamlining the process are linked and documented, as well as contacts of DCC liaisons that can provide additional information and help facilitate dataset submission.
 
 ![Dataset ingress flow](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/overall_ingress_flow.png)
 
-## Data transfer
+<a name = "data_transfer"></a>
+## Dataset transfer
 
-#### Selecting storage platform
+### Selecting storage platform
 
-The DCC can provide dataset storage on the cloud, hosted by __Amazon Web Services (AWS)__ or __Google Cloud (GC)__. 
+The DCC can provide dataset storage on the cloud, hosted by __Amazon Web Services (AWS)__ or __Google Cloud (GC)__. The Synapse platform can be used to store datasets on both clouds, as well.
 
-Each center may decide where to store their datasets depending on existing contracts, dataset location, or other preferences. 
+Your center may decide where to store datasets depending on existing contracts, dataset location, or other preferences. 
 
-The center may decide to use different storage platform for different datasets.
+Once your center determines their dataset storage platform, you would need to contact your center's DCC liaison, who will boot-up the required cloud infrastructure and authorize you to transfer data into a private storage location. __The DCC liaison will provide the required cloud authentication credentials and data storage location__. Centers do not need to follow a particular folder hierarchy in the provided cloud storage location.
 
-Once a center determines their dataset storage platform, they need to contact their DCC liaison, who will boot-up the required cloud infrastructure and authorize the center to transfer data into a private storage location. The DCC liaison will provide the required cloud authentication credentials and data storage location. Centers do not need to follow a particular folder hierarchy in the provided cloud storage location.
+Note that depending on your storage platform choice, you would need to provide AWS, GC, or a Synapse account information to your DCC liaison.
 
-#### Data upload
+### Dataset upload
 
-To upload data to their DCC-designated storage location, centers may use 
-a. standard tools provided by cloud platforms 
+To upload data to your DCC-designated storage location, you may use 
+
+1. the Synapse platform tools  
 or
-b. the Synapse platform tools 
+2. standard tools provided by cloud platforms
 
-In either case, depending on dataset size and other center preferences, they may utilize web-based or programmatic data upload interfaces. Some of the more typical options are described below, along with links to relevant documentation for more detail.
+In either case, depending on dataset size and other preferences, you may utilize web-based or programmatic data upload interfaces. Some of the more typical options are described below, along with links to relevant documentation for more detail and the typical usecase for each.
 
-__AWS data upload__
+<details><summary><b>Synapse data upload via web interface</b></summary>
+<p>
+This option would typically be useful for uploading files residing on your local machine to a Synapse cloud storage location. You can follow the steps below to complete a data upload:
 
-_AWS web console_: 
+  * Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
 
-This option would typically be useful for upload of files residing on your local machine to a AWS S3 storage location. You can follow the steps below to complete a data upload:
+  * <details>Create a folder to store your first dataset. <summary style = "display:inline;"><i>How to create a folder</i></summary>
+  <p>
+     * Go to the Files tab 
+<img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
 
-* Login to AWS here: 
-<img width="1429" alt="Screen Shot 2019-10-15 at 2 47 22 PM" src="https://user-images.githubusercontent.com/15043209/66873497-71b20580-ef5d-11e9-9891-835890835f36.png">
+     * Create a folder (click on Files Tools -> Add New folder) 
+<img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
+  </p></details>
 
-* Navigate to Upload
+
+* Go to your folder and upload the files from your dataset (click on Folder tools -> Upload or Link to a File)
+<details><summary style="font-size:smaller"><i>How to upload files</i></summary>
+ <p>
+
+<img width="1421" alt="Screen Shot 2019-10-15 at 4 03 22 PM" src="https://user-images.githubusercontent.com/15043209/66940511-ea669f80-eff9-11e9-9060-1095ed6682f9.png">
+
+* Once uploaded you can preview your files:
+<img width="1422" alt="Screen Shot 2019-10-15 at 4 03 55 PM" src="https://user-images.githubusercontent.com/15043209/66940539-f6eaf800-eff9-11e9-8988-57ad3c0b2ab6.png">
+<img width="1436" alt="1" src="https://user-images.githubusercontent.com/15043209/66940841-81335c00-effa-11e9-99d8-9f0a5cf18b8c.png">
+</p>
+</details>
+</p>
+</details>
+
+<details><summary><b>Synapse data upload via a programmatic client</b></summary>
+<p>
+This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
+
+You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in R or CLI, please refer to the Synapse documentation [here](https://docs.synapse.org/articles/getting_started_clients.html). 
+
+To get started, first install the Synapse Python client:
+
+```
+pip install synapseclient
+```
+
+* Dataset upload from a local folder to a Synapse storage location:
+
+```python
+# the python Synapse client module
+import synapseclient
+
+# Synapse will organize your data files in a folder within project
+# these are the corresponding Synapse modules
+from synapseclient import Project, Folder, File
+
+# Name an dcreate the folder that will store your dataset; 
+# you can use a name representative for your particular dataset, e.g. hta-x-dataset
+# for the parent parameter, please enter the synapse project ID provided by your DCC liaison
+data_folder = Folder('hta-x-dataset', parent='syn123')
+
+# create the folder on Synapse
+data_folder = syn.store(data_folder)
+
+# point to files you'd like to upload in your dataset; note that the description field is optional
+# the code below would upload two files to your folder
+test_entity = File('/path/to/data/file1.txt', description='file 1', parent=data_folder)
+test_entity = syn.store(test_entity)
+
+test_entity = File('/path/to/data/file1.txt', description='file 2', parent=data_folder)
+test_entity = syn.store(test_entity)
+```
+
+<!--
+* Dataset upload from an existing S3 location to Synapse:
+
+```python
+if (isAwesome){
+  return true
+}
+```
+-->
+</p>
+</details>
+
+<details><summary><b>AWS data upload via web interface</b></summary>
+<p>
+This option would typically be useful for upload of files residing on your local machine to an AWS S3 storage location. You can follow the steps below to complete a data upload:
+
+* Login to your AWS console (using the AWS account you provided your DCC liaison)
+
+* Navigate to the storage location provided by your DCC liaison (e.g. a bucket named 'hta-x')
+<details><summary style="font-size:smaller"><i>How to navigate to a bucket on AWS</i></summary>
+ <p>
 <img width="1412" alt="Screen Shot 2019-10-15 at 2 48 14 PM" src="https://user-images.githubusercontent.com/15043209/66873939-9490e980-ef5e-11e9-85ea-8af7e28d1271.png">
 
-* Go through prompts and select your target bucket and location
 <img width="1411" alt="Screen Shot 2019-10-15 at 3 17 23 PM" src="https://user-images.githubusercontent.com/15043209/66874075-fb160780-ef5e-11e9-9584-1f5279874570.png">
 
 <img width="730" alt="Screen Shot 2019-10-15 at 2 49 05 PM" src="https://user-images.githubusercontent.com/15043209/66874080-ffdabb80-ef5e-11e9-9f3b-6973ab9cddf3.png">
+</p>
+</details>
 
+* Create a folder to store your first dataset and upload your files there 
+<details><summary style="font-size:smaller"><i>How to upload files to AWS</i></summary>
+ <p>
 <img width="655" alt="Screen Shot 2019-10-15 at 2 56 47 PM" src="https://user-images.githubusercontent.com/15043209/66874102-1254f500-ef5f-11e9-8392-1459d92b2cb3.png">
 
 <img width="1406" alt="Screen Shot 2019-10-15 at 2 51 00 PM" src="https://user-images.githubusercontent.com/15043209/66874108-154fe580-ef5f-11e9-9fb5-43db8e8eda53.png">
+</p>
+</details>
+</p>
+</details>
 
 
-_AWS client_:
-
+<details><summary><b>AWS data upload via command line client</b></summary>
+<p>
 This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
 
-You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in other programming languages, please refer to the AWS documentation here. 
+You can modify the CLI code vignette below for your particular dataset upload. For equivalent functionality in other programming languages, please refer to the AWS documentation here. 
 
 * Dataset upload from a local folder to a AWS S3 storage location:
-
-```python
-if (isAwesome){
-  return true
-}
+```
+CLI code
 ```
 
 * Dataset upload from an existing S3 bucket to another AWS S3 storage location:
-
-```python
-if (isAwesome){
-  return true
-}
 ```
-
-* Dataset upload from an existing GC bucket to another AWS S3 storage location:
-
-```python
-if (isAwesome){
-  return true
-}
+CLI code
 ```
+</p>
+</details>
 
-__Google Cloud data upload__
 
-_GC web console_: 
-
+<details><summary><b>Google Cloud (GC) data upload via web interface</b></summary>
+<p>
 This option would typically be useful for upload of files residing on your local machine to a Google Cloud Bucket (GCB) storage location. You can follow the steps below to complete a data upload:
 
 * Navigate to the GC storage location provided by your DCC liaison, which would look like:
@@ -101,85 +178,71 @@ ht<span>tps://</span>storage.cloud.google.com/hta-x
 * When your files have been uploaded successfully you should see them in your console:
 
 ![GC console project screenshot](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/gc_file_upload_complete.png)
+</p>
+</details>
 
-_GC client_:
-
+<details><summary><b>Google Cloud (GC) data upload via a programmatic client</b></summary>
+<p>
 This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
 
-You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in other programming languages, please refer to the GC documentation here. 
+To get started with the Python Google Cloud client library, if you have not already, on your command line please run
+
+```
+pip install --upgrade google-cloud-storage google-auth oauthlib
+```
+
+You can modify the Python code vignettes below for your particular dataset upload. For equivalent functionality in other programming languages, or for more details on installing Python, please refer to the GC documentation [here](https://cloud.google.com/storage/docs/reference/libraries).
+
 
 * Dataset upload from a local folder to a GCB storage location:
 
 ```python
-if (isAwesome){
-  return true
-}
+
+# library that allows interacting with Google CLoud Buckets
+from google.cloud import storage
+
+# Explicitly use service account credentials by specifying the private key
+# file provided by your DCC liaison
+client = storage.Client.from_service_account_json('DCC_hta-x_credentials.json')
+        
+# specify GC bucket provided by your DCC liaison
+bucket = client.get_bucket('hta-x')
+
+# prepare a location for the uploaded file (e.g. the dataset folder in the DCC provided bucket)
+blob = bucket.blob('hta-x-dataset/file1.txt')
+# upload the file to the bucket by specifying the path to the local file you want to upload
+blob.upload_from_filename('./file1.txt')
+
+# note that the GC storage client supports various options (e.g. returniung signed url to uploaded objects; please refer to more detailed documentation here: https://googleapis.dev/python/storage/latest/client.html)
 ```
 
-* Dataset upload from an existing GCB to another GCB storage location:
+* Dataset copy from an existing GCB bucket to a GCB storage location provided by a DCC liaison:
 
 ```python
-if (isAwesome){
-  return true
-}
+"""Copies a blob from your storage bucket to a DCC bucket."""
+client = storage.Client.from_service_account_json('DCC_hta-x_credentials.json')
+
+# specify your (source) bucket
+source_bucket = client.get_bucket('your bucket name')
+# specify the source file (including path to the source file in your bucket, if the file is in a folder in your bucket)
+source_blob = source_bucket.blob('path to file in your bucket')
+
+# specify the DCC provided bucket name
+destination_bucket = storage_client.get_bucket('hta-x')
+
+# prepare a location for the copied file on the DCC provided bucket (e.g. the dataset folder in the DCC provided bucket)
+new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x-dataset')
+
+ print('File {} in bucket {} copied to file {} in bucket {}.'.format(
+        source_blob.name, source_bucket.name, new_blob.name,
+        destination_bucket.name))
 ```
+</p>
+</details>
 
-__Synapse data upload__
+<a name="metadata_upload"></a>
+## Metadata upload
 
-_Synapse web interface_: 
-
-This option would typically be useful for upload of files residing on your local machine to a Synapse storage location. You can follow the steps below to complete a data upload:
-
-* Login to Synapse here: 
-<img width="1418" alt="Screen Shot 2019-10-15 at 4 50 50 PM" src="https://user-images.githubusercontent.com/15043209/66940374-b3908980-eff9-11e9-9efe-44d8b4bae4ff.png">
-
-* Navigate to your project
-<img width="1415" alt="Screen Shot 2019-10-15 at 4 02 16 PM" src="https://user-images.githubusercontent.com/15043209/66940444-ce62fe00-eff9-11e9-81a7-270dc210a639.png">
-
-* Go to the Files tab
-<img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
-
-* Create a folder with Files Tools 
-<img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
-
-* Go to your folder and upload your files
-<img width="1421" alt="Screen Shot 2019-10-15 at 4 03 22 PM" src="https://user-images.githubusercontent.com/15043209/66940511-ea669f80-eff9-11e9-9060-1095ed6682f9.png">
-<img width="1436" alt="Screen Shot 2019-10-15 at 4 03 34 PM" src="https://user-images.githubusercontent.com/15043209/66940531-f18dad80-eff9-11e9-9564-e94467c5d517.png">
-* See your files in the Files tab and Tables tab
-<img width="1422" alt="Screen Shot 2019-10-15 at 4 03 55 PM" src="https://user-images.githubusercontent.com/15043209/66940539-f6eaf800-eff9-11e9-8988-57ad3c0b2ab6.png">
-<img width="1436" alt="1" src="https://user-images.githubusercontent.com/15043209/66940841-81335c00-effa-11e9-99d8-9f0a5cf18b8c.png">
-
-_Synapse client_:
-
-This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
-
-You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in R or CLI, please refer to the Synapse documentation here. 
-
-* Dataset upload from a local folder to a Synapse storage location:
-
-```python
-if (isAwesome){
-  return true
-}
-```
-
-* Dataset upload from an existing GCB to another GCB storage location:
-
-```python
-if (isAwesome){
-  return true
-}
-```
-
-* Dataset upload from an existing AWS S3 bucket to a GCB storage location:
-
-```python
-if (isAwesome){
-  return true
-}
-```
-
-## Data curation
 ### Access the Data Curator by logging onto Synapse and going to this [link](https://www.synapse.org/#!Wiki:syn20681266/ENTITY)
 #### A. Starting from a fresh template
 * From the first tab select your project (corresponds to your bucket name) and your dataset( corresponds to your folder name).
@@ -238,7 +301,9 @@ if (isAwesome){
 * Now you can submit your validated metadata. 
 <img width="1397" alt="Screen Shot 2019-10-15 at 4 29 14 PM" src="https://user-images.githubusercontent.com/15043209/66964257-f1f26c80-f02a-11e9-90d7-18f9459dab85.png">
 
+<a name="submission_confirmation"></a>
+## Metadata and dataset submission confirmation
 
+You can verify that both your dataset and metadata have been successfully submitted to the DCC by navigating to the Synapse project containing you dataset (the link to the project was provided by your DCC liaison in stage 1; the link is also generated by the DataCurator app above, when your metadata submission is successful). 
 
-
-
+If your dataset has been successfully submitted, under the Table tab of your project, there would be a table named 'hta-x-dataset', containing the list of files in your dataset and their metadata. 
