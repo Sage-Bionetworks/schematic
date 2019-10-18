@@ -39,20 +39,20 @@ In either case, depending on dataset size and other preferences, you may utilize
 <blockquote>
 This option would typically be useful for uploading files residing on your local machine to a Synapse cloud storage location. You can follow the steps below to complete a data upload:
 
-* Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
+  - Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
 
   <details><summary>Create a folder to store your first dataset.</summary>
   <blockquote>
     
-    * Go to the Files tab 
+  - Go to the Files tab 
      
 <img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
-    * Create a folder (click on Files Tools -> Add New folder) 
+    
+   - Create a folder (click on Files Tools -> Add New folder) 
     
 <img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
   </blockquote>
   </details>
-
 
   <details><summary>Go to your folder and upload the files from your dataset (click on Folder tools -> Upload or Link to a File)</summary>
   <blockquote>
