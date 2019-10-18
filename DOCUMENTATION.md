@@ -443,8 +443,6 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 
 <details><summary>You can fill out the sheet on the web, using dropdowns with allowed values and other standard Google Sheet features.</summary>
   <blockquote>
-
- <img width="1430" alt="5" src="https://user-images.githubusercontent.com/15043209/66961318-41349f00-f023-11e9-9107-466bdab77034.png"> 
  
 <img width="1434" alt="Screen Shot 2019-10-15 at 4 06 43 PM" src="https://user-images.githubusercontent.com/15043209/66962305-86f26700-f025-11e9-92dc-254a75ef41f9.png">
 
