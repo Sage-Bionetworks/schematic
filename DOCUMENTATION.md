@@ -2,13 +2,14 @@
 
 The Data Coordinating Center (DCC) dataset ingress process consists of three main stages
 
-1. [__Dataset transfer to DCC__](#data_transfer): depending on dataset size, this step may take you anywhere from a few minutes up to multiple hours.
+1. [__Dataset transfer to DCC__](#data_transfer): *Transfer your experimental data files to a cloud storage bucket.* Depending on dataset size, this step may take you anywhere from a few minutes up to multiple hours.
 
-2. [__Metadata upload__](#metadata_upload): depending on amount and diversity of dataset files, this step could take you from 10 minutes to a couple of hours.
+2. [__Metadata upload__](#metadata_upload): *Upload a spreadsheet of your metadata annotations for your data files.* Depending on the number and diversity of dataset files, this step could take you from 10 minutes to a couple of hours.
 
-3. [__Metadata validation and dataset submission confirmation__](#submission_confirmation): this step should take you less than 30 seconds on a typical internet connection.
+3. [__Metadata validation and dataset submission confirmation__](#submission_confirmation): *Verify that your metadata meets requirements.* This step should take you less than 30 seconds on a typical internet connection, and completes your submission to the DCC.
 
-The chart below provides a high-level overview of the steps a dataset contributing center needs to complete in each stage. Software tools steamlining the process are linked and documented, as well as contacts of DCC liaisons that can provide additional information and help facilitate dataset submission.
+
+A dataset is a set of experimental data files derived from a single type of experimental platform, such as single-cell RNA sequencing. The chart below provides a high-level overview of the steps an HTAN Center needs to complete in each stage. Software tools steamlining the process are linked and documented, as well as contacts of DCC liaisons that can provide additional information and help facilitate data submission.
 
 ![Dataset ingress flow](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/overall_ingress_flow.png)
 
@@ -19,9 +20,9 @@ The chart below provides a high-level overview of the steps a dataset contributi
 
 The DCC can provide dataset storage on the cloud, hosted by __Amazon Web Services (AWS)__ or __Google Cloud (GC)__. The Synapse platform can be used to store datasets on both clouds, as well.
 
-Your center may decide where to store datasets depending on existing contracts, dataset location, or other preferences. 
+Your Center may decide where to store datasets depending on existing contracts, dataset location, or other preferences. 
 
-Once your center determines their dataset storage platform, you would need to contact your center's DCC liaison, who will boot-up the required cloud infrastructure and authorize you to transfer data into a private storage location. __The DCC liaison will provide the required cloud authentication credentials and data storage location__. Centers do not need to follow a particular folder hierarchy in the provided cloud storage location.
+Once your Center determines their dataset storage platform, you would need to contact your center's DCC Liaison, who will boot-up the required cloud infrastructure and authorize you to transfer data into a private storage location. __The DCC liaison will provide the required cloud authentication credentials and data storage location__. The data storage location is a so-called cloud "bucket". Each dataset is housed in a single folder in the bucket. Within the dataset folder, the file organization and hierarchy is up to the Center.
 
 Note that depending on your storage platform choice, you would need to provide AWS, GC, or a Synapse account information to your DCC liaison.
 
@@ -166,14 +167,19 @@ CLI code
 
 <details><summary><b>Google Cloud (GC) data upload via web interface</b></summary>
 <p>
-This option would typically be useful for upload of files residing on your local machine to a Google Cloud Bucket (GCB) storage location. You can follow the steps below to complete a data upload:
+This option would typically be useful for upload of files residing on your local machine to a Google Cloud Bucket (GCB) storage location.
 
-* Navigate to the GC storage location provided by your DCC liaison, which would look like:
-ht<span>tps://</span>storage.cloud.google.com/hta-x
+You will receive the name and location of a GCS storage bucket via email from the DCC Liaison or a DCC team member. The bucket will have name, say `hta-x`.  The contents of the bucket are usually best viewed using a URL that will be provided, which in this case would be ht<span>tps://</span>storage.cloud.google.com/hta-x
+
+You can follow the steps below to complete a data upload:
+
+* Enter the provided bucket URL into your browser
+
+* The `hta-x` bucket will initially be empty, but you can use the 'Create folder' button to add a folder for a particular dataset, such as `hta-x-dataset`
 
 ![GC console project screenshot](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/gc_project_console.png)
 
-* Click on the folder corresponding to your dataset, e.g. hta-x-dataset 
+* Click on the folder corresponding to your dataset, e.g. `hta-x-dataset` 
 * Drag and drop files; or use the 'Upload files' (or 'Upload folder') buttons. 
 * When your files have been uploaded successfully you should see them in your console:
 
@@ -184,6 +190,25 @@ ht<span>tps://</span>storage.cloud.google.com/hta-x
 <details><summary><b>Google Cloud (GC) data upload via a programmatic client</b></summary>
 <p>
 This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
+
+You will receive the name and location of a GCS storage bucket via email from the DCC Liaison or a DCC team member. The bucket will have name, say `hta-x`.
+
+Programmatic access is available with via command line and Python
+
+*Command Line*
+
+Google Cloud provides the command line tool gsutil, with [extended documentation](https://cloud.google.com/storage/docs/gsutil) and a [Quickstart](https://cloud.google.com/storage/docs/quickstart-gsutil).  The bucket `hta-x` is referenced as `gs://hta-x`. 
+
+* Dataset upload from a local folder to a GCB storage location (the `hta-x-dataset` folder in the bucket `hta-x`)
+
+```
+gsutil cp file1.txt gs://hta-x/hta-x-dataset
+```
+ 
+* Dataset upload from an existing GCS bucket to another GCS bucket is similar, but with both files referenced using `gs://` and the corresponding buckets names.
+
+
+*Python*
 
 To get started with the Python Google Cloud client library, if you have not already, on your command line please run
 
