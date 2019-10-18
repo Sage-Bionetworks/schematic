@@ -41,16 +41,14 @@ This option would typically be useful for uploading files residing on your local
 
   * Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
 
-  <li><span style = "display:block; word-break:breal-all;">Create a folder to store your first dataset. <details><summary><i>How to create a folder</i></summary></li>
+  *<span style = "display:block; word-break:breal-all;">Create a folder to store your first dataset. <details><summary><i>How to create a folder</i></summary>
   <p>
-
      * Go to the Files tab 
 <img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
 
      * Create a folder (click on Files Tools -> Add New folder) 
 <img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
-</p>
-</details>
+  </p></details>
 
 
 * Go to your folder and upload the files from your dataset (click on Folder tools -> Upload or Link to a File)
