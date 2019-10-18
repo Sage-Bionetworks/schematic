@@ -289,9 +289,9 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
   
   <details><summary>In the app, from the first tab, select your project (e.g. hta-x, corresponds to your bucket name if you have uploaded your dataset directly to a AWS or GC bucket); your dataset (e.g. hta-x-dataset, corresponds to a folder name in your bucket); and the metadata template you would like to use (e.g. scRNASeq if providing metadata for a scRNASeq dataset); if you don't see the correct template for your dataset, you can select the "Minimal Metadata" template and <i>contact your DCC liaison</i>.</summary>
   <blockquote>
-      
-  <img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
-
+    
+   Screenshot of selected project, dataset and template here.
+   
   </blockquote>
   </summary>
 </details>
@@ -299,6 +299,8 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
 
 <details><summary>Once you have selected your dataset and metadata template, navigate to the second tab "Get Metadata Template" and click on "Link to Google Sheets Template". This will generate a link to a Google spreadsheet containing an empty template for you to complete with metadata, for each of the files in your dataset. </summary>
   <blockquote>
+
+<img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
  
  <img width="1418" alt="4" src="https://user-images.githubusercontent.com/15043209/66961254-15b1b480-f023-11e9-872b-2e7d6521b898.png">
  <img width="1430" alt="5" src="https://user-images.githubusercontent.com/15043209/66961318-41349f00-f023-11e9-9107-466bdab77034.png"> 
@@ -319,9 +321,11 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
  </details>
   
 
-<details><summary>Once filled in you can save the spreadsheet as a CSV (File -> Download -> Comma-separated Value...)</summary>
+<details><summary>Once filled in, you can save your spreadsheet as a CSV (File -> Download -> Comma-separated Value...)</summary>
   <blockquote>
+    
 <img width="1428" alt="Screen Shot 2019-10-15 at 4 07 06 PM" src="https://user-images.githubusercontent.com/15043209/66962318-8fe33880-f025-11e9-8426-4ce26de5a2c9.png">
+
   </blockquote>
 </details>
 
@@ -331,6 +335,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <img width="1422" alt="Screen Shot 2019-10-15 at 4 07 36 PM" src="https://user-images.githubusercontent.com/15043209/66962329-95d91980-f025-11e9-9fe4-7c44b0d13d42.png">
 
   </blockquote>
+</details>
 
 <details><summary>Upload your saved CSV</summary>
   <blockquote>
@@ -338,9 +343,10 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <img width="1417" alt="Screen Shot 2019-10-15 at 4 08 00 PM" src="https://user-images.githubusercontent.com/15043209/66962344-9e315480-f025-11e9-9547-9d5ca3d713ca.png">
 
 
- * You will see your entries in the Metadata Preview 
+ * If upload was successful, you will see your  metadata entries in the Metadata Preview 
 
 <img width="1402" alt="Screen Shot 2019-10-15 at 4 08 14 PM" src="https://user-images.githubusercontent.com/15043209/66962357-a5586280-f025-11e9-8eb8-7acfc48a54ef.png">
+
   </blockquopte>
 </details>
 
@@ -395,8 +401,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 </details>
 
   </blockquote>
-  </summary>
-  </details>
+</details>
   
 <a name="submission_confirmation"></a>
 ## Metadata and dataset submission confirmation
