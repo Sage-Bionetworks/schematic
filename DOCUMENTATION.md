@@ -41,8 +41,7 @@ This option would typically be useful for uploading files residing on your local
 
   * Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
 
-  <li><span style = "display:block; word-break:breal-all;">Create a folder to store your first dataset. 
-  <details style="display: inline"><summary><i>How to create a folder</i></summary>
+  <li><span style = "display:block; word-break:breal-all;">Create a folder to store your first dataset. <details><summary><i>How to create a folder</i></summary>
   <p>
 
      * Go to the Files tab 
