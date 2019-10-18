@@ -409,10 +409,8 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
      
    Now you'd like to update your metadata in order to 
    
-   * correct mistake(s)
-   
+   * correct mistake(s) 
    * provide further/change metadata to comply with a new iteration of the DCC data model affecting your datasets' metadata
-   
    * provide metadata for files that have been added to your dataset
        
   <details><summary>Access the <a href = "https://www.synapse.org/#!Wiki:syn20681266/ENTITY">Data Curator app</a></summary>
@@ -438,7 +436,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 
 <img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
  
- <img width="1418" alt="4" src="https://user-images.githubusercontent.com/15043209/66961254-15b1b480-f023-11e9-872b-2e7d6521b898.png">
+ ![Data Curator metadata update google sheets link](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/data_curator_metadata_update.png)
  
  </blockquote>
   </details>
