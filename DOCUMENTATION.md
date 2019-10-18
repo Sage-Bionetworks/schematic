@@ -290,7 +290,7 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
   <details><summary>In the app, from the first tab, select your project (e.g. hta-x, corresponds to your bucket name if you have uploaded your dataset directly to a AWS or GC bucket); your dataset (e.g. hta-x-dataset, corresponds to a folder name in your bucket); and the metadata template you would like to use (e.g. scRNASeq if providing metadata for a scRNASeq dataset); if you don't see the correct template for your dataset, you can select the "Minimal Metadata" template and <i>contact your DCC liaison</i>.</summary>
   <blockquote>
     
-   __TODO__ Screenshot of selected project, dataset and template here.
+![DataCurator project selection](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/data_curator_project_selection.png)   
    
   </blockquote>
   </summary>
@@ -424,7 +424,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
   <details><summary>In the app, from the first tab, select your project (e.g. hta-x, corresponds to your bucket name if you have uploaded your dataset directly to a AWS or GC bucket); your dataset (e.g. hta-x-dataset, corresponds to a folder name in your bucket); and the metadata template you would like to use (e.g. scRNASeq if providing metadata for a scRNASeq dataset); if you don't see the correct template for your dataset, you can select the "Minimal Metadata" template and <i>contact your DCC liaison</i>.</summary>
   <blockquote>
     
-   __TODO__ Screenshot of selected project, dataset and template here.
+ ![DataCurator project selection](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/data_curator_project_selection.png)   
    
   </blockquote>
   </summary>
