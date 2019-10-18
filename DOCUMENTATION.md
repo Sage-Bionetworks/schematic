@@ -253,23 +253,52 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
 </blockquote>
 </details>
 
+</hr>
+
 <a name="metadata_upload"></a>
 ## Metadata upload
 
-### Access the Data Curator by logging onto Synapse and going to this [link](https://www.synapse.org/#!Wiki:syn20681266/ENTITY)
-#### A. Starting from a fresh template
-* From the first tab select your project (corresponds to your bucket name) and your dataset( corresponds to your folder name).
-<img width="1416" alt="2" src="https://user-images.githubusercontent.com/15043209/66961237-0af71f80-f023-11e9-85d3-244b0be1ee01.png">
+<details><summary>At present, the DCC supports a web-based metadata upload via the Data Curator web app.</summary> 
+ <blockquote>
+  
+   We are working on providing 1) a Python package for programmatic metadata upload and management; and 2) an API for programmatic metadata upload and management. These will be available in the next release of the DCC data pipeline. Please check with your DCC liaison on details.
+ 
+ </blockquote>
+</details>
 
-* Navigate to the second tab "Get Metadata Template"
-<img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
+<details><summary>Use the Data Curator app to curate a dataset for a first time </summary>
+  <blockquote>
+    You have already transfered your dataset to the DCC - congratulations! If you have not, please follow the instructions [here](#data_transfer). Please provide the metadata for your dataset using the Data Curator app. Here we assume your dataset is named 'hta-x-dataset'.
+    
+   <details><summary>You can access the Data Curator app by following this [link](https://www.synapse.org/#!Wiki:syn20681266/ENTITY)</summary>
+  <blockquote>
+  If you are prompted to login to Synapse, please use your Synapse account (or associated Google account).
+  </blockquote>
+  </details>
+  
+<details><summary>From the first tab, select your project (corresponds to your bucket name if you have uploaded your dataset directly to a AWS or GC bucket; e.g. hta-x); your dataset (corresponds to a folder name in your bucket; e.g. hta-x-dataset); and the metadata template you would like to use (e.g. scRNASeq if providing metadata for a scRNASeq dataset; if you don't see the correct template for your dataset, you can select the "Minimal Metadata" template and <i>also contact your DCC liaison</i>).</summary>
+  <blockquote>
 
-* Click the Link to Google Sheets Template 
+  <img width="1416" alt="2" src="https://user-images.githubusercontent.com/15043209/66961237-0af71f80-f023-11e9-85d3-244b0be1ee01.png">
+
+  <img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
+
+  </blockquote>
+  </summary>
+</details>
+  
+
+<details><summary>Once you have selected your dataset and metadata template, navigate to the second tab "Get Metadata Template" and click on "Link to Google Sheets Template". This will generate a link to a Google spreadsheet containing an empty template for you to complete with metadata, for each of the files in your dataset. </summary>
+  <blockquote>
+ <img width="1430" alt="5" src="https://user-images.githubusercontent.com/15043209/66961318-41349f00-f023-11e9-9107-466bdab77034.png"> 
+  </blockquote>
+  </summary>
+  </details>
+
 <img width="1418" alt="4" src="https://user-images.githubusercontent.com/15043209/66961254-15b1b480-f023-11e9-872b-2e7d6521b898.png">
 
 * When you click the link it will take you to the sheet with the filenames pre-populated.
 
-<img width="1430" alt="5" src="https://user-images.githubusercontent.com/15043209/66961318-41349f00-f023-11e9-9107-466bdab77034.png">
 
 * Fill out the sheet using the dropdowns with the allowed values.
 <img width="1434" alt="Screen Shot 2019-10-15 at 4 06 43 PM" src="https://user-images.githubusercontent.com/15043209/66962305-86f26700-f025-11e9-92dc-254a75ef41f9.png">
@@ -314,6 +343,10 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
 * Now you can submit your validated metadata. 
 <img width="1397" alt="Screen Shot 2019-10-15 at 4 29 14 PM" src="https://user-images.githubusercontent.com/15043209/66964257-f1f26c80-f02a-11e9-90d7-18f9459dab85.png">
 
+  </blockquote>
+  </summary>
+  </details>
+  
 <a name="submission_confirmation"></a>
 ## Metadata and dataset submission confirmation
 
