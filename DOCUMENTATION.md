@@ -39,7 +39,9 @@ In either case, depending on dataset size and other preferences, you may utilize
 <blockquote>
 This option would typically be useful for uploading files residing on your local machine to a Synapse cloud storage location. You can follow the steps below to complete a data upload:
 
-  - Navigate to your project, following the Synapse link provided by your DCC liaison; if prompted, please login with your Synapse account (or an associated Google account).
+  <details><summary>Navigate to your project, following the Synapse link provided by your DCC liaison</summary> 
+  <blockquote> If prompted, please login with your Synapse account (or an associated Google account).</blockqoute>
+  </details>
 
   <details><summary>Create a folder to store your first dataset.</summary>
   <blockquote>
@@ -61,14 +63,13 @@ This option would typically be useful for uploading files residing on your local
 
    * Once uploaded you can preview your files:
 <img width="1422" alt="Screen Shot 2019-10-15 at 4 03 55 PM" src="https://user-images.githubusercontent.com/15043209/66940539-f6eaf800-eff9-11e9-8988-57ad3c0b2ab6.png">
-<img width="1436" alt="1" src="https://user-images.githubusercontent.com/15043209/66940841-81335c00-effa-11e9-99d8-9f0a5cf18b8c.png">
   </blockquote>
   </details>
 </blockquote>
 </details>
 
 <details><summary><b>Synapse data upload via a programmatic client</b></summary>
-<p>
+<blockquote>
 This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
 
 You can modify the Python code vignette below for your particular dataset upload. For equivalent functionality in R or CLI, please refer to the Synapse documentation [here](https://docs.synapse.org/articles/getting_started_clients.html). 
@@ -79,7 +80,7 @@ To get started, first install the Synapse Python client:
 pip install synapseclient
 ```
 
-* Dataset upload from a local folder to a Synapse storage location:
+- To upload a dataset from a local folder to a Synapse storage location, you can modify the script below
 
 ```python
 # the python Synapse client module
@@ -115,57 +116,67 @@ if (isAwesome){
 }
 ```
 -->
-</p>
+</blockquote>
 </details>
 
 <details><summary><b>AWS data upload via web interface</b></summary>
-<p>
-This option would typically be useful for upload of files residing on your local machine to an AWS S3 storage location. You can follow the steps below to complete a data upload:
+<blockquote>
+This option would typically be useful for upload of files residing on your local machine to an AWS S3 storage location. You can follow the steps below to complete a data upload.
 
-Login to your AWS console (using the AWS account you provided your DCC liaison)
+<details><summary>Login to your AWS console</summary> 
+  <blockquote>Please login using the AWS account you have provided to your DCC liaison, in order to access the DCC AWS bucket.   </blockquote>
+</details>
 
-<details><summary>Navigate to the storage location provided by your DCC liaison (e.g. a bucket named 'hta-x')</summary>
- <p>
-<img width="1412" alt="Screen Shot 2019-10-15 at 2 48 14 PM" src="https://user-images.githubusercontent.com/15043209/66873939-9490e980-ef5e-11e9-85ea-8af7e28d1271.png">
+<details><summary>Navigate to the storage-bucket location provided by your DCC liaison</summary>
+ <blockquote>
+   
+ * To find a bucket named 'hta-x' you can click on Services -> S3
+ ![AWS S3 navigation](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/aws_s3_console.png)
+ 
 
-<img width="1411" alt="Screen Shot 2019-10-15 at 3 17 23 PM" src="https://user-images.githubusercontent.com/15043209/66874075-fb160780-ef5e-11e9-9584-1f5279874570.png">
-
-<img width="730" alt="Screen Shot 2019-10-15 at 2 49 05 PM" src="https://user-images.githubusercontent.com/15043209/66874080-ffdabb80-ef5e-11e9-9f3b-6973ab9cddf3.png">
-</p>
+ * Locate the hta-x bucket in the list and click on it to various the bucket management options
+  ![AWS S3 bucket](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/aws_bucket_view.png)
+  
+</blockquote>
 </details>
 
 <details><summary>Create a folder to store your first dataset and upload your files there</summary>
- <p>
-<img width="655" alt="Screen Shot 2019-10-15 at 2 56 47 PM" src="https://user-images.githubusercontent.com/15043209/66874102-1254f500-ef5f-11e9-8392-1459d92b2cb3.png">
+ <blockquote>
 
-<img width="1406" alt="Screen Shot 2019-10-15 at 2 51 00 PM" src="https://user-images.githubusercontent.com/15043209/66874108-154fe580-ef5f-11e9-9fb5-43db8e8eda53.png">
-</p>
+* Click on 'Create folder'; name your folder to reflect the dataset name you'd like (e.g. hta-x-dataset); you can proceed with the default bucket settings for the folder
+![AWS S3 dataset](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/aws_create_dataset.png)
+
+* Click on the folder that you have created; click 'Upload'; you can drag and drop or browse to the files you'd like to upload
+![AWS S3 upload](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/aws_dataset_upload.png)
+
+</blockquote>
 </details>
-</p>
+
+</blockquote>
 </details>
 
 
 <details><summary><b>AWS data upload via command line client</b></summary>
-<p>
+<blockquote>
 This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
 
-You can modify the CLI code vignette below for your particular dataset upload. For equivalent functionality in other programming languages, please refer to the AWS documentation here. 
+You can modify the CLI code vignette below for your particular dataset upload. For equivalent functionality in Python, please refer to the AWS documentation [here](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). 
 
-Dataset upload from a local folder to a AWS S3 storage location:
+- To upload a dataset from a local folder to a S3 storage location, you can modify the script below
 ```
 CLI code
 ```
 
-Dataset upload from an existing S3 bucket to another AWS S3 storage location:
+- To copy a dataset from an existing S3 bucket to another AWS S3 storage location, you can modify the script below
 ```
 CLI code
 ```
-</p>
+</blockquote>
 </details>
 
 
 <details><summary><b>Google Cloud (GC) data upload via web interface</b></summary>
-<p>
+<blockquote>
 This option would typically be useful for upload of files residing on your local machine to a Google Cloud Bucket (GCB) storage location. You can follow the steps below to complete a data upload:
 
 Navigate to the GC storage location provided by your DCC liaison, which would look like:
@@ -180,11 +191,11 @@ Drag and drop files; or use the 'Upload files' (or 'Upload folder') buttons.
 When your files have been uploaded successfully you should see them in your console:
 
 ![GC console project screenshot](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/gc_file_upload_complete.png)
-</p>
+</blockquote>
 </details>
 
 <details><summary><b>Google Cloud (GC) data upload via a programmatic client</b></summary>
-<p>
+<blockquote>
 This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
 
 To get started with the Python Google Cloud client library, if you have not already, on your command line please run
@@ -196,7 +207,7 @@ pip install --upgrade google-cloud-storage google-auth oauthlib
 You can modify the Python code vignettes below for your particular dataset upload. For equivalent functionality in other programming languages, or for more details on installing Python, please refer to the GC documentation [here](https://cloud.google.com/storage/docs/reference/libraries).
 
 
-Dataset upload from a local folder to a GCB storage location:
+- To upload a dataset from a local folder to a GC storage location provided by a DCC liaison, you can modify the script below
 
 ```python
 
@@ -218,7 +229,7 @@ blob.upload_from_filename('./file1.txt')
 # note that the GC storage client supports various options (e.g. returniung signed url to uploaded objects; please refer to more detailed documentation here: https://googleapis.dev/python/storage/latest/client.html)
 ```
 
-Dataset copy from an existing GCB bucket to a GCB storage location provided by a DCC liaison:
+- To copy a dataset from an existing GCB bucket to a GCB storage location provided by a DCC liaison, you can modify the script below
 
 ```python
 """Copies a blob from your storage bucket to a DCC bucket."""
@@ -239,7 +250,7 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
         source_blob.name, source_bucket.name, new_blob.name,
         destination_bucket.name))
 ```
-</p>
+</blockquote>
 </details>
 
 <a name="metadata_upload"></a>
