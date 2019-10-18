@@ -136,7 +136,7 @@ This option would typically be useful for upload of files residing on your local
 </details>
 
 * Create a folder to store your first dataset and upload your files there 
-<details><summary style="font-size:smaller"><i>How to upload files to AWS</i></summary>
+<details style = "display:inline-block"><summary style="font-size:smaller"><i>How to upload files to AWS</i></summary>
  <p>
 <img width="655" alt="Screen Shot 2019-10-15 at 2 56 47 PM" src="https://user-images.githubusercontent.com/15043209/66874102-1254f500-ef5f-11e9-8392-1459d92b2cb3.png">
 
