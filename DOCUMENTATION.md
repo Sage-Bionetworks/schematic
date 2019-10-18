@@ -48,16 +48,16 @@ This option would typically be useful for uploading files residing on your local
 
      * Create a folder (click on Files Tools -> Add New folder) 
 <img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
-  </p></details>
+  </p>
+  </details>
 
 
-* Go to your folder and upload the files from your dataset (click on Folder tools -> Upload or Link to a File)
-<details><summary style="font-size:smaller"><i>How to upload files</i></summary>
- <p>
+  <details><summary style="font-size:smaller">Go to your folder and upload the files from your dataset (click on Folder tools -> Upload or Link to a File)</summary>
+  <p>
 
 <img width="1421" alt="Screen Shot 2019-10-15 at 4 03 22 PM" src="https://user-images.githubusercontent.com/15043209/66940511-ea669f80-eff9-11e9-9060-1095ed6682f9.png">
 
-* Once uploaded you can preview your files:
+   Once uploaded you can preview your files:
 <img width="1422" alt="Screen Shot 2019-10-15 at 4 03 55 PM" src="https://user-images.githubusercontent.com/15043209/66940539-f6eaf800-eff9-11e9-8988-57ad3c0b2ab6.png">
 <img width="1436" alt="1" src="https://user-images.githubusercontent.com/15043209/66940841-81335c00-effa-11e9-99d8-9f0a5cf18b8c.png">
 </p>
@@ -120,10 +120,9 @@ if (isAwesome){
 <p>
 This option would typically be useful for upload of files residing on your local machine to an AWS S3 storage location. You can follow the steps below to complete a data upload:
 
-* Login to your AWS console (using the AWS account you provided your DCC liaison)
+Login to your AWS console (using the AWS account you provided your DCC liaison)
 
-* Navigate to the storage location provided by your DCC liaison (e.g. a bucket named 'hta-x')
-<details><summary style="font-size:smaller"><i>How to navigate to a bucket on AWS</i></summary>
+<details><summary>Navigate to the storage location provided by your DCC liaison (e.g. a bucket named 'hta-x')</summary>
  <p>
 <img width="1412" alt="Screen Shot 2019-10-15 at 2 48 14 PM" src="https://user-images.githubusercontent.com/15043209/66873939-9490e980-ef5e-11e9-85ea-8af7e28d1271.png">
 
@@ -133,8 +132,7 @@ This option would typically be useful for upload of files residing on your local
 </p>
 </details>
 
-* Create a folder to store your first dataset and upload your files there 
-<details><summary style="font-size:smaller"><i>How to upload files to AWS</i></summary>
+<details><summary>Create a folder to store your first dataset and upload your files there</summary>
  <p>
 <img width="655" alt="Screen Shot 2019-10-15 at 2 56 47 PM" src="https://user-images.githubusercontent.com/15043209/66874102-1254f500-ef5f-11e9-8392-1459d92b2cb3.png">
 
@@ -151,12 +149,12 @@ This option would typically be most suitable for upload of files residing on a c
 
 You can modify the CLI code vignette below for your particular dataset upload. For equivalent functionality in other programming languages, please refer to the AWS documentation here. 
 
-* Dataset upload from a local folder to a AWS S3 storage location:
+Dataset upload from a local folder to a AWS S3 storage location:
 ```
 CLI code
 ```
 
-* Dataset upload from an existing S3 bucket to another AWS S3 storage location:
+Dataset upload from an existing S3 bucket to another AWS S3 storage location:
 ```
 CLI code
 ```
@@ -168,14 +166,16 @@ CLI code
 <p>
 This option would typically be useful for upload of files residing on your local machine to a Google Cloud Bucket (GCB) storage location. You can follow the steps below to complete a data upload:
 
-* Navigate to the GC storage location provided by your DCC liaison, which would look like:
+Navigate to the GC storage location provided by your DCC liaison, which would look like:
 ht<span>tps://</span>storage.cloud.google.com/hta-x
 
 ![GC console project screenshot](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/gc_project_console.png)
 
-* Click on the folder corresponding to your dataset, e.g. hta-x-dataset 
-* Drag and drop files; or use the 'Upload files' (or 'Upload folder') buttons. 
-* When your files have been uploaded successfully you should see them in your console:
+Click on the folder corresponding to your dataset, e.g. hta-x-dataset 
+
+Drag and drop files; or use the 'Upload files' (or 'Upload folder') buttons. 
+
+When your files have been uploaded successfully you should see them in your console:
 
 ![GC console project screenshot](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/gc_file_upload_complete.png)
 </p>
@@ -194,7 +194,7 @@ pip install --upgrade google-cloud-storage google-auth oauthlib
 You can modify the Python code vignettes below for your particular dataset upload. For equivalent functionality in other programming languages, or for more details on installing Python, please refer to the GC documentation [here](https://cloud.google.com/storage/docs/reference/libraries).
 
 
-* Dataset upload from a local folder to a GCB storage location:
+Dataset upload from a local folder to a GCB storage location:
 
 ```python
 
@@ -216,7 +216,7 @@ blob.upload_from_filename('./file1.txt')
 # note that the GC storage client supports various options (e.g. returniung signed url to uploaded objects; please refer to more detailed documentation here: https://googleapis.dev/python/storage/latest/client.html)
 ```
 
-* Dataset copy from an existing GCB bucket to a GCB storage location provided by a DCC liaison:
+Dataset copy from an existing GCB bucket to a GCB storage location provided by a DCC liaison:
 
 ```python
 """Copies a blob from your storage bucket to a DCC bucket."""
