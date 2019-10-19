@@ -91,7 +91,12 @@ import synapseclient
 # these are the corresponding Synapse modules
 from synapseclient import Project, Folder, File
 
-# Name an dcreate the folder that will store your dataset; 
+# Log in to synapse
+syn = synapseclient.Synapse()
+
+syn.login('my_username', 'my_password')
+
+# Name and create the folder that will store your dataset; 
 # you can use a name representative for your particular dataset, e.g. hta-x-dataset
 # for the parent parameter, please enter the synapse project ID provided by your DCC liaison
 data_folder = Folder('hta-x-dataset', parent='syn123')
@@ -100,7 +105,7 @@ data_folder = Folder('hta-x-dataset', parent='syn123')
 data_folder = syn.store(data_folder)
 
 # point to files you'd like to upload in your dataset; note that the description field is optional
-# the code below would upload two files to your folder
+# the code below would upload two files to your folder, feel free to create a loop for more files
 test_entity = File('/path/to/data/file1.txt', description='file 1', parent=data_folder)
 test_entity = syn.store(test_entity)
 
@@ -161,16 +166,16 @@ This option would typically be useful for upload of files residing on your local
 <blockquote>
 This option would typically be most suitable for upload of files residing on a cloud or your local machine; and in case of uploading large-number and/or large-size files.
 
-You can modify the CLI code vignette below for your particular dataset upload. For equivalent functionality in Python, please refer to the AWS documentation [here](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). 
+You can modify the CLI code vignette below for your particular dataset upload. To get started, see this link: https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html.  For equivalent functionality in Python, please refer to the AWS documentation [here](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html). 
 
 - To upload a dataset from a local folder to a S3 storage location, you can modify the script below
 ```
-CLI code
+aws s3 cp /hta-x/hta-x-dataset s3://hta-x/hta-x-dataset
 ```
 
 - To copy a dataset from an existing S3 bucket to another AWS S3 storage location, you can modify the script below
 ```
-CLI code
+aws s3 sync s3://SOURCE_BUCKET_NAME s3://hta-x/hta-x-dataset
 ```
 </blockquote>
 </details>
