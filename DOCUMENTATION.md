@@ -44,7 +44,10 @@ In either case, depending on dataset size and other preferences, you may utilize
 This option would typically be useful for uploading files residing on your local machine to a Synapse cloud storage location. You can follow the steps below to complete a data upload:
 
   <details><summary>Navigate to your project, following the Synapse link provided by your DCC liaison</summary> 
-  <blockquote> If prompted, please login with your Synapse account (or an associated Google account).</blockqoute>
+  <blockquote> If prompted, please login with your Synapse account (or an associated Google account).
+
+  ![synapseLogin](https://user-images.githubusercontent.com/15043209/67429375-e0faab80-f594-11e9-9353-1ab2fcd4976e.png)
+  </blockqoute>
   </details>
 
   <details><summary>Create a folder to store your first dataset.</summary>
@@ -52,21 +55,24 @@ This option would typically be useful for uploading files residing on your local
     
   - Go to the Files tab 
      
-<img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
+![htax FilesTab](https://user-images.githubusercontent.com/15043209/67429855-df7db300-f595-11e9-88b4-dab59c3ec95a.png)
     
    - Create a folder (click on Files Tools -> Add New folder) 
     
-<img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
+![htax CreateFolder](https://user-images.githubusercontent.com/15043209/67429986-253a7b80-f596-11e9-8e71-52c6b946f676.png)
   </blockquote>
   </details>
 
   <details><summary>Go to your folder and upload the files from your dataset (click on Folder tools -> Upload or Link to a File)</summary>
   <blockquote>
 
-<img width="1421" alt="Screen Shot 2019-10-15 at 4 03 22 PM" src="https://user-images.githubusercontent.com/15043209/66940511-ea669f80-eff9-11e9-9060-1095ed6682f9.png">
+![htax Folder](https://user-images.githubusercontent.com/15043209/67430041-4733fe00-f596-11e9-90fc-cd88cdef51c1.png)
+
+![htax FileUpload](https://user-images.githubusercontent.com/15043209/67430069-531fc000-f596-11e9-811b-5c48ef1a8ded.png)
 
    * Once uploaded you can preview your files:
-<img width="1422" alt="Screen Shot 2019-10-15 at 4 03 55 PM" src="https://user-images.githubusercontent.com/15043209/66940539-f6eaf800-eff9-11e9-8988-57ad3c0b2ab6.png">
+
+![htaxFilesUploaded](https://user-images.githubusercontent.com/15043209/67430086-5c109180-f596-11e9-9c58-dc7f36c5f134.png)
   </blockquote>
   </details>
 </blockquote>
@@ -140,9 +146,8 @@ This option would typically be useful for upload of files residing on your local
  <blockquote>
    
  * To find a bucket named 'hta-x' you can click on Services -> S3
- ![AWS S3 navigation](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/aws_s3_console.png)
+ ![awsS3 Search](https://user-images.githubusercontent.com/15043209/67430745-c249e400-f597-11e9-876f-fc470b887aeb.png)
  
-
  * Locate the hta-x bucket in the list and click on it to various the bucket management options
   ![AWS S3 bucket](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/aws_bucket_view.png)
   
@@ -335,9 +340,9 @@ Then select the metadata template you would like to use (e.g. scRNASeq if provid
 <details><summary>Once you have selected your dataset and metadata template, navigate to the second tab "Get Metadata Template" and click on "Link to Google Sheets Template". This will generate a link to a Google spreadsheet containing an empty template for you to complete with metadata, for each of the files in your dataset. </summary>
   <blockquote>
 
-<img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
+![dataCurator MetadataTab](https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png)
  
- <img width="1418" alt="4" src="https://user-images.githubusercontent.com/15043209/66961254-15b1b480-f023-11e9-872b-2e7d6521b898.png">
+![dataCurator LinktoTemp](https://user-images.githubusercontent.com/15043209/66961254-15b1b480-f023-11e9-872b-2e7d6521b898.png)
  
  </blockquote>
   </details>
@@ -345,9 +350,9 @@ Then select the metadata template you would like to use (e.g. scRNASeq if provid
 <details><summary>You can fill out the sheet on the web, using dropdowns with allowed values and other standard Google Sheet features.</summary>
   <blockquote>
 
- <img width="1430" alt="5" src="https://user-images.githubusercontent.com/15043209/66961318-41349f00-f023-11e9-9107-466bdab77034.png"> 
+![gtemplate Empty](https://user-images.githubusercontent.com/15043209/66961318-41349f00-f023-11e9-9107-466bdab77034.png)
  
-<img width="1434" alt="Screen Shot 2019-10-15 at 4 06 43 PM" src="https://user-images.githubusercontent.com/15043209/66962305-86f26700-f025-11e9-92dc-254a75ef41f9.png">
+![gtemplate Filled](https://user-images.githubusercontent.com/15043209/66962305-86f26700-f025-11e9-92dc-254a75ef41f9.png)
 
 Note that you can also save the spreadsheet as a CSV file and use a method of your choice to fill it out. The metadata CSV will be validated by the Data Curator app before submission in any case.
   
@@ -358,7 +363,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary>Once filled in, you can save your spreadsheet as a CSV (File -> Download -> Comma-separated Value...)</summary>
   <blockquote>
     
-<img width="1428" alt="Screen Shot 2019-10-15 at 4 07 06 PM" src="https://user-images.githubusercontent.com/15043209/66962318-8fe33880-f025-11e9-8426-4ce26de5a2c9.png">
+![gtemplateDLCSV](https://user-images.githubusercontent.com/15043209/66962318-8fe33880-f025-11e9-8426-4ce26de5a2c9.png)
 
   </blockquote>
 </details>
@@ -366,7 +371,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary>Next: navigate to the third tab "Submit & Validate Metadata"</summary>
   <blockquote>
 
-<img width="1422" alt="Screen Shot 2019-10-15 at 4 07 36 PM" src="https://user-images.githubusercontent.com/15043209/66962329-95d91980-f025-11e9-9fe4-7c44b0d13d42.png">
+![dataCurator SubmitTab](https://user-images.githubusercontent.com/15043209/66962329-95d91980-f025-11e9-9fe4-7c44b0d13d42.png)
 
   </blockquote>
 </details>
@@ -374,12 +379,12 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary>Upload your saved CSV.</summary>
   <blockquote>
 
-<img width="1417" alt="Screen Shot 2019-10-15 at 4 08 00 PM" src="https://user-images.githubusercontent.com/15043209/66962344-9e315480-f025-11e9-9547-9d5ca3d713ca.png">
+![dataCurator UploadCSV](https://user-images.githubusercontent.com/15043209/66962344-9e315480-f025-11e9-9547-9d5ca3d713ca.png)
 
 
  * If upload was successful, you will see your  metadata entries in the Metadata Preview 
 
-<img width="1402" alt="Screen Shot 2019-10-15 at 4 08 14 PM" src="https://user-images.githubusercontent.com/15043209/66962357-a5586280-f025-11e9-8eb8-7acfc48a54ef.png">
+![dataCurator MetadataPrev](https://user-images.githubusercontent.com/15043209/66962357-a5586280-f025-11e9-8eb8-7acfc48a54ef.png)
 
   </blockquopte>
 </details>
@@ -389,11 +394,11 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
    
  * If your metadata is valid, you will see a corresponding message and a "Submit" button will become available.
  
-<img width="1404" alt="Screen Shot 2019-10-15 at 4 08 39 PM" src="https://user-images.githubusercontent.com/15043209/66962370-aab5ad00-f025-11e9-890b-8a2b3209c202.png">
+![dataCurator ValidateSuccess](https://user-images.githubusercontent.com/15043209/66962370-aab5ad00-f025-11e9-890b-8a2b3209c202.png)
 
 * Clicking the "Submit" button confirms that this dataset has been curated according to the relevant DCC  data model. You will receive a link to your metadata in the Synapse system.
 
-<img width="1413" alt="Screen Shot 2019-10-15 at 4 08 50 PM" src="https://user-images.githubusercontent.com/15043209/66962379-b1442480-f025-11e9-9407-34dc6e33952d.png">
+![dataCurator SubmitSuccess](https://user-images.githubusercontent.com/15043209/66962379-b1442480-f025-11e9-9407-34dc6e33952d.png)
 
 </blockquote>
 </details>
@@ -402,7 +407,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary> <span style="color:green">If your metadata has been validated and submitted successfully, your metadata will appear in the "Files and Metadata" Table in your Synapse Project.</span></summary>
   <blockquote>
 
-<img width="1426" alt="Screen Shot 2019-10-15 at 4 13 12 PM" src="https://user-images.githubusercontent.com/15043209/66963842-98d60900-f029-11e9-83d9-cb81d0842624.png">
+![Fileview NewAnno](https://user-images.githubusercontent.com/15043209/66963842-98d60900-f029-11e9-83d9-cb81d0842624.png)
 
   </blockquote>
 </details>
@@ -411,23 +416,23 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary><span style="color:red"> If you receive an error upon pressing the "Validate Metadata" button, the metadata template-cells causing the error will be highlighted, along with a corresponding list of error details</span></summary>
   <blockquote>
   
-<img width="1401" alt="Screen Shot 2019-10-15 at 4 28 03 PM" src="https://user-images.githubusercontent.com/15043209/66964059-4ea15780-f02a-11e9-96ad-cf7e236f0012.png">
+![dataCurator ValidateError](https://user-images.githubusercontent.com/15043209/66964059-4ea15780-f02a-11e9-96ad-cf7e236f0012.png)
 
-* You can edit your file in a Google spreadsheet (click the link following the errors) and re-download it as a CSV.
+* You can edit your file in a Google spreadsheet (click the link following the errors) and re-download it as a CSV or edit your CSV locally, as shown here on Excel.
 
-<img width="1130" alt="Screen Shot 2019-10-15 at 4 28 34 PM" src="https://user-images.githubusercontent.com/15043209/66964181-bbb4ed00-f02a-11e9-95ef-2b8e8c3053fe.png">
+![excel TemplateFixed](https://user-images.githubusercontent.com/15043209/66964181-bbb4ed00-f02a-11e9-95ef-2b8e8c3053fe.png)
 
 * Upload your file and see your metadata updates reflected
 
-<img width="1417" alt="Screen Shot 2019-10-15 at 4 28 53 PM" src="https://user-images.githubusercontent.com/15043209/66964212-d38c7100-f02a-11e9-9ce4-68bbac611bfc.png">
+![dataCurator UploadFixedFile](https://user-images.githubusercontent.com/15043209/66964212-d38c7100-f02a-11e9-9ce4-68bbac611bfc.png)
 
 * Press the "Validate Metadata" button again
 
-<img width="1398" alt="Screen Shot 2019-10-15 at 4 29 02 PM" src="https://user-images.githubusercontent.com/15043209/66964227-e010c980-f02a-11e9-99f1-b7f06c42c3e5.png">
+![dataCurator ValidateFixedFile](https://user-images.githubusercontent.com/15043209/66964227-e010c980-f02a-11e9-99f1-b7f06c42c3e5.png)
 
-* If all erros have been resolved, you can submit your validated metadata
+* If all errors have been resolved, you can submit your validated metadata
 
-<img width="1397" alt="Screen Shot 2019-10-15 at 4 29 14 PM" src="https://user-images.githubusercontent.com/15043209/66964257-f1f26c80-f02a-11e9-90d7-18f9459dab85.png">
+![dataCurator SubmitFixedFile](https://user-images.githubusercontent.com/15043209/66964257-f1f26c80-f02a-11e9-90d7-18f9459dab85.png)
 
 * Please contact your DCC liaison if you cannot resolve a metadata error; or have questions regarding metadata submission.
 
@@ -469,7 +474,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary>Once you have selected your dataset and metadata template, navigate to the second tab "Get Metadata Template" and under "Have Previously Submitted Metadata?" click on 'Link to Google Sheets'. This will generate a link to a Google spreadsheet containing the metadata available for each of the files in your dataset.</summary>
   <blockquote>
 
-<img width="1419" alt="3" src="https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png">
+![dataCurator MetadataTab](https://user-images.githubusercontent.com/15043209/66961248-10546a00-f023-11e9-8cc0-fd5e4f07dd08.png)
  
  ![Data Curator metadata update google sheets link](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/data_curator_metadata_update.png)
  
@@ -479,7 +484,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary>You can fill out the sheet on the web, using dropdowns with allowed values and other standard Google Sheet features.</summary>
   <blockquote>
  
-<img width="1434" alt="Screen Shot 2019-10-15 at 4 06 43 PM" src="https://user-images.githubusercontent.com/15043209/66962305-86f26700-f025-11e9-92dc-254a75ef41f9.png">
+![gtemplate Filled](https://user-images.githubusercontent.com/15043209/66962305-86f26700-f025-11e9-92dc-254a75ef41f9.png)
 
 Note that you can also save the spreadsheet as a CSV file and use a method of your choice to fill it out. The metadata CSV will be validated by the Data Curator app before submission in any case.
   
@@ -490,7 +495,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary>Once updated, you can save your spreadsheet as a CSV (File -> Download -> Comma-separated Value...)</summary>
   <blockquote>
     
-<img width="1428" alt="Screen Shot 2019-10-15 at 4 07 06 PM" src="https://user-images.githubusercontent.com/15043209/66962318-8fe33880-f025-11e9-8426-4ce26de5a2c9.png">
+![gtemplate dlCSV](https://user-images.githubusercontent.com/15043209/66962318-8fe33880-f025-11e9-8426-4ce26de5a2c9.png)
 
   </blockquote>
 </details>
@@ -498,7 +503,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary>Next: navigate to the third tab "Submit & Validate Metadata"</summary>
   <blockquote>
 
-<img width="1422" alt="Screen Shot 2019-10-15 at 4 07 36 PM" src="https://user-images.githubusercontent.com/15043209/66962329-95d91980-f025-11e9-9fe4-7c44b0d13d42.png">
+![dataCurator SubmitTab](https://user-images.githubusercontent.com/15043209/66962329-95d91980-f025-11e9-9fe4-7c44b0d13d42.png)
 
   </blockquote>
 </details>
@@ -506,12 +511,12 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary>Upload your saved CSV.</summary>
   <blockquote>
 
-<img width="1417" alt="Screen Shot 2019-10-15 at 4 08 00 PM" src="https://user-images.githubusercontent.com/15043209/66962344-9e315480-f025-11e9-9547-9d5ca3d713ca.png">
+![dataCurator UploadCSV](https://user-images.githubusercontent.com/15043209/66962344-9e315480-f025-11e9-9547-9d5ca3d713ca.png)
 
 
  * If upload was successful, you will see your  metadata entries in the Metadata Preview 
 
-<img width="1402" alt="Screen Shot 2019-10-15 at 4 08 14 PM" src="https://user-images.githubusercontent.com/15043209/66962357-a5586280-f025-11e9-8eb8-7acfc48a54ef.png">
+![dataCurator MetadataPreview](https://user-images.githubusercontent.com/15043209/66962357-a5586280-f025-11e9-8eb8-7acfc48a54ef.png)
 
   </blockquopte>
 </details>
@@ -521,11 +526,11 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
    
  * If your metadata is valid, you will see a corresponding message and a "Submit" button will become available.
  
-<img width="1404" alt="Screen Shot 2019-10-15 at 4 08 39 PM" src="https://user-images.githubusercontent.com/15043209/66962370-aab5ad00-f025-11e9-890b-8a2b3209c202.png">
+![dataCurator ValidateSuccess](https://user-images.githubusercontent.com/15043209/66962370-aab5ad00-f025-11e9-890b-8a2b3209c202.png)
 
 * Clicking the "Submit" button confirms that this dataset has been curated according to the latest DCC  data model. You will receive a link to your metadata in the Synapse system.
 
-<img width="1413" alt="Screen Shot 2019-10-15 at 4 08 50 PM" src="https://user-images.githubusercontent.com/15043209/66962379-b1442480-f025-11e9-9407-34dc6e33952d.png">
+![dataCurator SubmitSuccess](https://user-images.githubusercontent.com/15043209/66962379-b1442480-f025-11e9-9407-34dc6e33952d.png)
 
 </blockquote>
 </details>
@@ -534,7 +539,7 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary> <span style="color:green">If your metadata has been validated and submitted successfully, your metadata will appear in the "Files and Metadata" Table in your Synapse Project.</span></summary>
   <blockquote>
 
-<img width="1426" alt="Screen Shot 2019-10-15 at 4 13 12 PM" src="https://user-images.githubusercontent.com/15043209/66963842-98d60900-f029-11e9-83d9-cb81d0842624.png">
+![Filewview NewAnno](https://user-images.githubusercontent.com/15043209/66963842-98d60900-f029-11e9-83d9-cb81d0842624.png)
 
   </blockquote>
 </details>
@@ -543,23 +548,23 @@ Note that you can also save the spreadsheet as a CSV file and use a method of yo
 <details><summary><span style="color:red"> If you receive an error upon pressing the "Validate Metadata" button, the metadata template-cells causing the error will be highlighted, along with a corresponding list of error details</span></summary>
   <blockquote>
   
-<img width="1401" alt="Screen Shot 2019-10-15 at 4 28 03 PM" src="https://user-images.githubusercontent.com/15043209/66964059-4ea15780-f02a-11e9-96ad-cf7e236f0012.png">
+![dataCurator ValidateError](https://user-images.githubusercontent.com/15043209/66964059-4ea15780-f02a-11e9-96ad-cf7e236f0012.png)
 
-* You can edit your file in a Google spreadsheet (click the link following the errors) and re-download it as a CSV.
+* You can edit your file in a Google spreadsheet (click the link following the errors) and re-download it as a CSV or edit your CSV locally, as shown here on Excel.
 
-<img width="1130" alt="Screen Shot 2019-10-15 at 4 28 34 PM" src="https://user-images.githubusercontent.com/15043209/66964181-bbb4ed00-f02a-11e9-95ef-2b8e8c3053fe.png">
+![excel TemplateFixed](https://user-images.githubusercontent.com/15043209/66964181-bbb4ed00-f02a-11e9-95ef-2b8e8c3053fe.png)
 
 * Upload your file and see your metadata updates reflected
 
-<img width="1417" alt="Screen Shot 2019-10-15 at 4 28 53 PM" src="https://user-images.githubusercontent.com/15043209/66964212-d38c7100-f02a-11e9-9ce4-68bbac611bfc.png">
+![dataCurator UploadFixedFile](https://user-images.githubusercontent.com/15043209/66964212-d38c7100-f02a-11e9-9ce4-68bbac611bfc.png)
 
 * Press the "Validate Metadata" button again
 
-<img width="1398" alt="Screen Shot 2019-10-15 at 4 29 02 PM" src="https://user-images.githubusercontent.com/15043209/66964227-e010c980-f02a-11e9-99f1-b7f06c42c3e5.png">
+![dataCurator ValidateFixedFile](https://user-images.githubusercontent.com/15043209/66964227-e010c980-f02a-11e9-99f1-b7f06c42c3e5.png)
 
-* If all erros have been resolved, you can submit your validated metadata
+* If all errors have been resolved, you can submit your validated metadata
 
-<img width="1397" alt="Screen Shot 2019-10-15 at 4 29 14 PM" src="https://user-images.githubusercontent.com/15043209/66964257-f1f26c80-f02a-11e9-90d7-18f9459dab85.png">
+![dataCurator SubmitFixedFile](https://user-images.githubusercontent.com/15043209/66964257-f1f26c80-f02a-11e9-90d7-18f9459dab85.png)
 
 * Please contact your DCC liaison if you cannot resolve a metadata error; or have questions regarding metadata updates and submission.
 
