@@ -44,7 +44,10 @@ In either case, depending on dataset size and other preferences, you may utilize
 This option would typically be useful for uploading files residing on your local machine to a Synapse cloud storage location. You can follow the steps below to complete a data upload:
 
   <details><summary>Navigate to your project, following the Synapse link provided by your DCC liaison</summary> 
-  <blockquote> If prompted, please login with your Synapse account (or an associated Google account).</blockqoute>
+  <blockquote> If prompted, please login with your Synapse account (or an associated Google account).
+  
+  ![synapseLogin](https://user-images.githubusercontent.com/15043209/67429375-e0faab80-f594-11e9-9353-1ab2fcd4976e.png)
+  </blockqoute>
   </details>
 
   <details><summary>Create a folder to store your first dataset.</summary>
@@ -52,21 +55,24 @@ This option would typically be useful for uploading files residing on your local
     
   - Go to the Files tab 
      
-<img width="1419" alt="Screen Shot 2019-10-15 at 4 03 02 PM" src="https://user-images.githubusercontent.com/15043209/66940461-d7ec6600-eff9-11e9-9825-18b6b1e3f014.png">
+![htaxFilesTab](https://user-images.githubusercontent.com/15043209/67429855-df7db300-f595-11e9-88b4-dab59c3ec95a.png)
     
    - Create a folder (click on Files Tools -> Add New folder) 
     
-<img width="1420" alt="Screen Shot 2019-10-15 at 4 03 13 PM" src="https://user-images.githubusercontent.com/15043209/66940495-e20e6480-eff9-11e9-8119-0c867b36cc65.png">
+![htaxCreateFolder](https://user-images.githubusercontent.com/15043209/67429986-253a7b80-f596-11e9-8e71-52c6b946f676.png)
   </blockquote>
   </details>
 
   <details><summary>Go to your folder and upload the files from your dataset (click on Folder tools -> Upload or Link to a File)</summary>
   <blockquote>
 
-<img width="1421" alt="Screen Shot 2019-10-15 at 4 03 22 PM" src="https://user-images.githubusercontent.com/15043209/66940511-ea669f80-eff9-11e9-9060-1095ed6682f9.png">
+![htaxFolder](https://user-images.githubusercontent.com/15043209/67430041-4733fe00-f596-11e9-90fc-cd88cdef51c1.png)
+
+![htaxFileUpload](https://user-images.githubusercontent.com/15043209/67430069-531fc000-f596-11e9-811b-5c48ef1a8ded.png)
 
    * Once uploaded you can preview your files:
-<img width="1422" alt="Screen Shot 2019-10-15 at 4 03 55 PM" src="https://user-images.githubusercontent.com/15043209/66940539-f6eaf800-eff9-11e9-8988-57ad3c0b2ab6.png">
+
+![htaxFilesUploaded](https://user-images.githubusercontent.com/15043209/67430086-5c109180-f596-11e9-9c58-dc7f36c5f134.png)
   </blockquote>
   </details>
 </blockquote>
