@@ -45,7 +45,7 @@ This option would typically be useful for uploading files residing on your local
 
   <details><summary>Navigate to your project, following the Synapse link provided by your DCC liaison</summary> 
   <blockquote> If prompted, please login with your Synapse account (or an associated Google account).
-  
+
   ![synapseLogin](https://user-images.githubusercontent.com/15043209/67429375-e0faab80-f594-11e9-9353-1ab2fcd4976e.png)
   </blockqoute>
   </details>
@@ -146,9 +146,8 @@ This option would typically be useful for upload of files residing on your local
  <blockquote>
    
  * To find a bucket named 'hta-x' you can click on Services -> S3
- ![AWS S3 navigation](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/aws_s3_console.png)
+ ![awsS3Search](https://user-images.githubusercontent.com/15043209/67430745-c249e400-f597-11e9-876f-fc470b887aeb.png)
  
-
  * Locate the hta-x bucket in the list and click on it to various the bucket management options
   ![AWS S3 bucket](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/aws_bucket_view.png)
   
