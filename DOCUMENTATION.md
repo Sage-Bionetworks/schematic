@@ -13,27 +13,32 @@ The chart below provides a high-level overview of the steps a dataset contributi
 ![Dataset ingress flow](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/overall_ingress_flow.png)
 
 <a name = "data_transfer"></a>
-## Dataset transfer
+## Dataset transfer to DCC
 
 ### Selecting storage platform
 
-The DCC can provide dataset storage on the cloud, hosted by __Amazon Web Services (AWS)__ or __Google Cloud (GC)__. The Synapse platform can be used to store datasets on both clouds, as well.
-
+The DCC provides dataset storage on the cloud, hosted by __Amazon Web Services (AWS)__ or __Google Cloud (GC)__. 
 Your center may decide where to store datasets depending on existing contracts, dataset location, or other preferences. 
 
-Once your center determines their dataset storage platform, you would need to contact your center's DCC liaison, who will boot-up the required cloud infrastructure and authorize you to transfer data into a private storage location. __The DCC liaison will provide the required cloud authentication credentials and data storage location__. Centers do not need to follow a particular folder hierarchy in the provided cloud storage location.
+The DCC supports dataset transfers to both clouds via the Synapse platform. Please create a Synapse account [here](https://www.synapse.org/), if you do not already have an existing account. 
 
-Note that depending on your storage platform choice, you would need to provide AWS, GC, or a Synapse account information to your DCC liaison.
+Next, please provide your Synapse username and indicate your cloud platform preference to your DCC liaison. You can indicate a cloud platform of your choice, however the DCC recommends the following options:
+
+- if your center's data is already stored on premises/local machines, select AWS as your storage option
+
+- if your center's data is already stored on AWS, select AWS as your storage option and also provide your AWS storage region
+
+- if your center's data is already stored on GC, select GC as your storage option
+
+__Once you determine your dataset storage platform and provide Synapse username(s), your DCC liaison will boot-up the required cloud infrastructure and authorize you to transfer data into a private storage location.__
 
 ### Dataset upload
 
-To upload data to your DCC-designated storage location, you may use 
+Centers do not need to follow a particular folder hierarchy in the provided cloud storage location.
 
-1. the Synapse platform tools  
-or
-2. standard tools provided by cloud platforms
+To upload data to your DCC-designated storage location, you may use the Synapse platform tools.
 
-In either case, depending on dataset size and other preferences, you may utilize web-based or programmatic data upload interfaces. Some of the more typical options are described below, along with links to relevant documentation for more detail and the typical usecase for each.
+Depending on dataset size and other preferences, you may utilize web-based or programmatic data upload interfaces. Some of the more typical options are described below, along with links to relevant documentation for more detail and the typical usecase for each.
 
 <details><summary><b>Synapse data upload via web interface</b></summary>
 <blockquote>
@@ -119,6 +124,8 @@ if (isAwesome){
 </blockquote>
 </details>
 
+
+<!--
 <details><summary><b>AWS data upload via web interface</b></summary>
 <blockquote>
 This option would typically be useful for upload of files residing on your local machine to an AWS S3 storage location. You can follow the steps below to complete a data upload.
@@ -252,13 +259,13 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
 ```
 </blockquote>
 </details>
-
+-->
 </hr>
 
 <a name="metadata_upload"></a>
 ## Metadata upload
 
-<details><summary>At present, the DCC supports a web-based metadata upload via the Data Curator web app.</summary> 
+<details><summary>At present, the DCC supports a web-based metadata upload via the Data Curator web app in Synapse.</summary> 
  <blockquote>
   
    We are working on providing 
