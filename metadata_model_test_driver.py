@@ -30,7 +30,7 @@ credentials_syn_file = "syn21088684"
 
 # try downloading credentials file, if needed 
 
-if not os.path.isfile("./credentials.json"):
+if not os.path.exists("./credentials.json"):
     
     print("Retrieving Google API credentials from Synapse")
     import synapseclient
