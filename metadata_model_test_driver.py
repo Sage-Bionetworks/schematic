@@ -1,4 +1,6 @@
 import json
+import os
+
 from MetadataModel import MetadataModel
 from manifest_generator import ManifestGenerator
 
@@ -17,7 +19,29 @@ print("*****************************************************")
 print("Testing metamodel-based manifest generation")
 print("*****************************************************")
 
-# testing manifest generation; manifest is generated based on a jsonSchema parsed from Schema.org schema
+# testing manifest generation; manifest is generated based on a jsonSchema parsed from Schema.org schema; this generates a google sheet spreadsheet; 
+
+# to generate the sheet, the backend requires Google API credentials in a file credentials.json stored locally in the same directory as this file
+
+# this credentials file is also stored on Synapse and can be retrieved given sufficient permissions to the Synapse project
+
+# Google API credentials file stored on Synapse 
+credentials_syn_file = "syn21088684"
+
+# try downloading credentials file, if needed 
+
+if not os.path.exists("./credentials.json"):
+    
+    print("Retrieving Google API credentials from Synapse")
+    import synapseclient
+
+    syn = synapseclient.Synapse()
+    syn.login()
+    syn.get(credentials_syn_file, downloadLocation = "./")
+    print("Stored Google API credentials")
+
+print("Google API credentials successfully located")
+
 manifestURL = mm.getModelManifest("HTAN_" + datasetType, datasetType, filenames = ["1.txt", "2.txt", "3.txt"])
 
 print(manifestURL)

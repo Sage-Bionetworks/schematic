@@ -25,7 +25,7 @@ class ManifestGenerator(object):
                  title: str, # manifest sheet title
                  se: SchemaExplorer = None,
                  root: str = None,
-                 additional_metadata: Dict = None
+                 additional_metadata: Dict = None 
                  ) -> None:
     
         """TODO: read in a config file instead of hardcoding paths to credential files...
@@ -34,8 +34,8 @@ class ManifestGenerator(object):
         # If modifying these scopes, delete the file token.pickle.
         self.scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 
-        # credentials file path
-        self.credentials_path = 'credentials.json'
+        # path to Google API credentials file
+        self.credentials_path = "credentials.json"
 
         # google service for Drive API
         self.drive_service = None
