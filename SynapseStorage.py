@@ -75,7 +75,7 @@ class SynapseStorage(object):
         currentUserId = currentUser.ownerId
         
         # get a set of projects from Synapse (that this user participates in)
-        currentUserProjects = self.syn.restGET('/projects/MY_PROJECTS/user/{principalId}?limit=10000'.format(principalId=currentUserId))
+        currentUserProjects = self.syn.restGET('/projects/MY_PROJECTS/user/{principalId}'.format(principalId=currentUserId))
         
         # prune results json filtering project id
         currentUserProjects = [currentUserProject["id"] for currentUserProject in currentUserProjects["results"]]

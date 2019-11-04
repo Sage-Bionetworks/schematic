@@ -7,7 +7,7 @@ syn = synapseclient.Synapse()
 syn.login()
 
 
-syn_store = SynapseStorage(storage_fileview, syn)
+syn_store = SynapseStorage(storage_fileview, syn = syn)
 
 
 
@@ -28,7 +28,7 @@ print(folder_list)
 
 
 print("*****************************************************")
-print("Testing retrieval of file list within a given storage dataseyt from Synapse")
+print("Testing retrieval of file list within a given storage dataset from Synapse")
 print("*****************************************************")
 file_list = syn_store.getFilesInStorageDataset("syn19557948")
 
