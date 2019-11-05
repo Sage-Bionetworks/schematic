@@ -3,12 +3,13 @@ from SynapseStorage import SynapseStorage
 
 storage_fileview = "syn20446927"
 
+# test with a synapse client object login 
 syn = synapseclient.Synapse()
 syn.login()
-
-
 syn_store = SynapseStorage(storage_fileview, syn = syn)
 
+# test with a synapse login token (e.g. can test locally by capturing a browser cookie after login to Synapse) 
+# syn_store = SynapseStorage(storage_fileview, token = "token_string")
 
 
 print("*****************************************************")
