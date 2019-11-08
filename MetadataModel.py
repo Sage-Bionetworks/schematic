@@ -11,7 +11,7 @@ from typing import Any, Dict, Optional, Text
 # handle schema logic; to be refactored as SchemaExplorer matures into a package
 # as collaboration with Biothings progresses
 from schema_explorer import SchemaExplorer
-from manifest_generator import ManifestGenerator
+from ManifestGenerator import ManifestGenerator
 from schema_generator import get_JSONSchema_requirements
 
 class MetadataModel(object):

@@ -2,7 +2,7 @@ import json
 import os
 
 from MetadataModel import MetadataModel
-from manifest_generator import ManifestGenerator
+from ManifestGenerator import ManifestGenerator
 
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
 #inputMModelLocation = "./schemas/scRNASeq.jsonld"
