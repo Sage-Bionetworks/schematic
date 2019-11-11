@@ -119,7 +119,7 @@ def load_schema_into_networkx(schema):
 
             # TODO: refactor: abstract adding relationship method
             if "sms:requiresDependency" in record:
-                children = record["rdfs:requiresDependency"]
+                children = record["sms:requiresDependency"]
                 if type(children) == list:
                     for _child in children:
                         n1 = record["rdfs:label"]  

@@ -10,9 +10,9 @@ from schema_explorer import SchemaExplorer
 
 """
 Utility for converting csv file following a data model definition schema (see 
-scRNA-seq.csv for an example; TODO: provide a generic template csv) into schema.org
-schema
+scRNA-seq.csv for an example) into schema.org schema
 """
+#TODO: provide a generic template csv 
 
 def get_class(display_class_name: str, description: str = None, subclass_of: list = ["Thing"], requires_dependencies: list = None, requires_range: list  = None) -> dict:
     
@@ -43,11 +43,11 @@ def get_class(display_class_name: str, description: str = None, subclass_of: lis
         class_attributes.update(parent)
 
     if requires_dependencies:
-        requirement = 'sms:requiresDependency':[{'@id':'sms:' + dep} for dep in requires_dependencies]}
+        requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
         class_attributes.update(requirement)
 
     if requires_range:
-        value_constraint = {'schema:rangeIncludes':[{'@id':'sms:' + val} for val in requires_range]}
+        value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + val} for val in requires_range]}
         class_attributes.update(value_constraint)
     
     if display_name:
@@ -75,7 +75,7 @@ def get_property(property_display_name: str, property_class_name: str, descripti
                     'rdfs:comment': description if description else "",
                     'rdfs:label': property_name,
                     'schema:domainIncludes': {'@id': 'bts:' + property_class_name},
-                    'schema:rangeIncludes': {'@id': 'schema:' + allowed_values},
+                    'schema:rangeIncludes': {'@id': 'bts:' + allowed_values},
                     'schema:isPartOf': {'@id': 'http://schema.biothings.io'},
     }
                     
@@ -87,7 +87,7 @@ def get_property(property_display_name: str, property_class_name: str, descripti
 
 
 # required headers for schema; may or may not abstract further; for now hardcode
-required_headers = set(["Attribute", "Description", "Valid Values", "Requires", "Required", "Parent"])
+required_headers = set(["Attribute", "Description", "Valid Values", "Requires", "Required", "Parent, Properties"])
 
 
 def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
@@ -109,15 +109,58 @@ def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
     return False
 
 
-def create_schema_classes(schema_definition: pd.DataFrame, se: SchemaExplorer) -> SchemaExplorer:
+def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer, base_schema_path: str) -> SchemaExplorer:
     
-    """Creates all attribute classes and adds them to the schema
+    """Creates classes for all attributes and adds them to the schema
     Args:
-        schema_definition: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0 
+        schema_extension: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0 
         se: a schema explorer object allowing the traversal and modification of a schema graph        
+        base_schema_path: a path to a json-ld file containing an existing schema
 
     Returns: an updated schema explorer object
     """
 
+    # instantiate schema explorer
+    se = SchemaExplorer()
+
+    # load existing challenge base schema
+    se.load_schema(base_schema_path)
+        
+    # get attributes from Attribute column
+    attributes = schema_extension[["Attribute", "Description", "Parent", "Valid Values"]].to_dict("records")
+
+    for attribute in attributes:
+        display_name = attribute["Attribute"]
+        new_class = get_class(display_name,\
+                                      description = attribute["Description"],\
+                                      subclass_of = [parent for parent in attribute["Parent"].strip().split(",")]
+        )
+        se.update_class(new_class)
+
+
+    # get attribute properties from Properties column
+    properties= schema_extension[["Attribute", "Properties"]].to_dict("records")
+
+    for prop in properties:
+        if prop["Properties"]: # a class may have or not properties
+            for p in prop["Properties"].strip().split(","): # a class may have multiple properties
+                attribute = prop["Attribute"]
+                if p in schema_extension["Attribute"]:
+                    description = schema_extension.loc[schema_extension["Properties"][p]]["Description"]
+                else: 
+                    description = None
+
+                new_property = get_property(p,\
+                                            attribute,
+                                            description = description
+                )
+
+                se.update_property(new_property)
+                
+
+    # set required values and dependency requirements for each attribute
     
+
+        
+
 

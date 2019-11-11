@@ -1977,7 +1977,7 @@
             "@type": "rdfs:Class",
             "rdfs:comment": "HTAPP minimal metadata extension",
             "rdfs:label": "HTAPP",
-            "rdfs:requiresDependency": [
+            "sms:requiresDependency": [
                 {
                     "@id": "sms:HtanParticipantId"
                 },

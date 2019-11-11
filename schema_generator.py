@@ -5,6 +5,8 @@ from orderedset import OrderedSet
 
 from schema_explorer import SchemaExplorer
 
+#TODO: refactor into class; expose parameters as constructor args
+
 """
 Gather all metadata/annotations requirements for an object part of the schema.org metadata model.
 
@@ -47,8 +49,10 @@ This semantic sugar enables the generation different kinds of validation schemas
 """
 
 requires_dependency_relationship = "requiresDependency"
-requires_range = "rangeIncludes" # "requiresChildAsValue" is also an option here, but will be deprecated
-range_value_relationship = "rangeValue"
+requires_range = "requiresChildAsValue" # "requiresChildAsValue" is also an option here, but will be deprecated
+#requires_range = "rangeIncludes" # "requiresChildAsValue" is also an option here, but will be deprecated
+range_value_relationship = "parentOf" # "parentOf" is also an option here but will be deprecated
+#range_value_relationship = "rangeValue" # "parentOf" is also an option here but will be deprecated
 
 """
 Get the out-edges of a node, where the edges match specific type of relationship: 
@@ -75,7 +79,6 @@ Possible edge relationship types are parentOf, rangeValue, requiresDependency
 
 """
 def get_adgacent_node_by_relationship(mm_graph, u, relationship):
-
     nodes = set()
     for u, v, properties in mm_graph.out_edges(u, data = True):
         if properties["relationship"] == relationship: 
@@ -157,7 +160,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
         
         if requires_range in mm_graph.nodes[process_node]:
             if mm_graph.nodes[process_node][requires_range]:
-                node_range = get_adgacent_node_by_relationship(graph, process_node, range_value_relationship)
+                node_range = get_adgacent_node_by_relationship(mm_graph, process_node, range_value_relationship)
                 
                 # set allowable values based on range nodes
                 if node_range:
@@ -192,7 +195,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
         '''
         if not process_node in nodes_with_processed_dependencies:
             process_node_dependencies = get_adgacent_node_by_relationship(mm_graph, process_node, requires_dependency_relationship)
-
+            print(process_node_dependencies)
             if process_node_dependencies:
                 if process_node == root: # these are unconditional dependencies
                     
@@ -213,11 +216,13 @@ def get_JSONSchema_requirements(se, root, schema_name):
 
 
     print("=================")
-    print("JSONSchema successfully generated from Schema.org schema!")
-    print("=================")
-    print(json_schema)
+    print("JSONSchema successfully generated from Schema.org schema:")
+    
     # if no conditional dependencies were added we can't have an empty 'AllOf' block in the schema, so remove it
     if not json_schema["allOf"]:
         del json_schema["allOf"]
+    
+    print(json_schema)
+    print("=================")
 
     return json_schema
