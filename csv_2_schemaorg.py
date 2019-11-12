@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Text
 import os
 
 import pandas as pd
+import numpy as np
 
 from schema_explorer import SchemaExplorer
 
@@ -14,7 +15,7 @@ scRNA-seq.csv for an example) into schema.org schema
 """
 #TODO: provide a generic template csv 
 
-def get_class(display_class_name: str, description: str = None, subclass_of: list = ["Thing"], requires_dependencies: list = None, requires_range: list  = None) -> dict:
+def get_class(class_display_name: str, description: str = None, subclass_of: list = ["Thing"], requires_dependencies: list = None, requires_range: list  = None) -> dict:
     
     """Constructs a new schema.org compliant class given a set of schema object attributes
 
@@ -28,7 +29,7 @@ def get_class(display_class_name: str, description: str = None, subclass_of: lis
     Returns: a json schema.org object
     """
 
-    class_name = se.get_class_label_from_display_name(display_name)
+    class_name = se.get_class_label_from_display_name(class_display_name)
 
     class_attributes = {
                     '@id': 'bts:'+class_name,
@@ -39,24 +40,23 @@ def get_class(display_class_name: str, description: str = None, subclass_of: lis
     }
 
     if subclass_of:
-        parent = {'rdfs:subClassOf':[{'@id':'bts:' + sub} for sub in subclass_of]}
+        parent = {'rdfs:subClassOf':[{'@id':'bts:' + se.get_class_label_from_display_name(sub)} for sub in subclass_of]}
         class_attributes.update(parent)
 
     if requires_dependencies:
-        requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
+        requirement = {'sms:requiresDependency':[{'@id':'bts:' + se.get_class_label_from_display_name(dep)} for dep in requires_dependencies]}
         class_attributes.update(requirement)
 
     if requires_range:
-        value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + val} for val in requires_range]}
+        value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + se.get_class_label_from_display_name(val)} for val in requires_range]}
         class_attributes.update(value_constraint)
     
-    if display_name:
-        class_attributes.update({'sms:displayName':display_name})
+    class_attributes.update({'sms:displayName':class_display_name})
 
     return class_attributes
 
 
-def get_property(property_display_name: str, property_class_name: str, description: str = None, allowed_values: str = 'Text') -> dict:
+def get_property(property_display_name: str, property_class_name: str, description: str = None, requires_range: list = None, requires_dependencies: list = None) -> dict:
 
     """Constructs a new schema.org compliant property of an existing schema.org object/class; note that the property itself is a schema.org opject class.
 
@@ -69,18 +69,28 @@ def get_property(property_display_name: str, property_class_name: str, descripti
     Returns: a json schema.org  property object
     """
 
-    new_property = {
-                    '@id': 'bts:' + property_name,
+    property_name = se.get_property_label_from_display_name(property_display_name),
+    property_attributes = {
+                    '@id': 'bts:' + property_name
                     '@type': 'rdf:Property',
                     'rdfs:comment': description if description else "",
                     'rdfs:label': property_name,
-                    'schema:domainIncludes': {'@id': 'bts:' + property_class_name},
-                    'schema:rangeIncludes': {'@id': 'bts:' + allowed_values},
+                    'sms:displayName': property_display_name,
+                    'schema:domainIncludes': {'@id': 'bts:' + se.get_class_label_from_display_name(property_class_name)},
                     'schema:isPartOf': {'@id': 'http://schema.biothings.io'},
     }
-                    
+    
+    if requires_range:
+        value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + se.get_class_label_from_display_name(val)} for val in requires_range]}
+    
+    if requires_dependencies:
+        requirement = {'sms:requiresDependency':[{'@id':'bts:' + se.get_class_label_from_display_name(dep)} for dep in requires_dependencies]}
+        class_attributes.update(requirement)
+    
     #'http://schema.org/domainIncludes':{'@id': 'bts:' + property_class_name},
     #'http://schema.org/rangeIncludes':{'@id': 'schema:' + allowed_values},
+    
+    new_property.update({'sms:displayName':display_property_name})
 
     return new_property
 
@@ -127,40 +137,156 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer, ba
     se.load_schema(base_schema_path)
         
     # get attributes from Attribute column
-    attributes = schema_extension[["Attribute", "Description", "Parent", "Valid Values"]].to_dict("records")
-
-    for attribute in attributes:
-        display_name = attribute["Attribute"]
-        new_class = get_class(display_name,\
-                                      description = attribute["Description"],\
-                                      subclass_of = [parent for parent in attribute["Parent"].strip().split(",")]
-        )
-        se.update_class(new_class)
-
-
+    attributes = schema_extension[["Attribute", "Description", "Parent", "Valid Values", "Requires"]].to_dict("records")
+    
+    # get all properties across all attributes from Property column
+    all_properties = set(schema_extension[["Properties"]].as_matrix().flatten())
+    
     # get attribute properties from Properties column
     properties= schema_extension[["Attribute", "Properties"]].to_dict("records")
 
-    for prop in properties:
-        if prop["Properties"]: # a class may have or not properties
-            for p in prop["Properties"].strip().split(","): # a class may have multiple properties
-                attribute = prop["Attribute"]
-                if p in schema_extension["Attribute"]:
-                    description = schema_extension.loc[schema_extension["Properties"][p]]["Description"]
-                else: 
-                    description = None
+    #TODO: check if schema already contains attribute - may require attribute context in csv schema definition
+    for attribute in attributes:
+        if not attribute in all_properties:
+            display_name = attribute["Attribute"]
+            new_class = get_class(display_name,
+                                          description = attribute["Description"],
+                                          subclass_of = [parent for parent in attribute["Parent"].strip().split(",")]
+            )
+            se.update_class(new_class)
 
-                new_property = get_property(p,\
-                                            attribute,
-                                            description = description
-                )
+        else:
+            display_name = attribute["Attribute"]
+            new_property = get_property(display_name,
+                                          attribute["Attribute"],
+                                          description = attribute["Description"],
+            )
+            se.update_property(new_property)
 
-                se.update_property(new_property)
-                
 
-    # set required values and dependency requirements for each attribute
     
 
-        
+    #TODO check if schema already contains property - may require property context in csv schema definition
+    for prop in properties:
+        if prop["Properties"]: # a class may have or not have properties
+            for p in prop["Properties"].strip().split(","): # a class may have multiple properties
+                attribute = prop["Attribute"]
+
+                # check if property is already present as attribute under attributes column
+                # TODO: adjust logic below to compactify code
+                if p in schema_extension["Attribute"]:
+                    description = schema_extension.loc[schema_extension["Attribute"][p]]["Description"] 
+                    property_info = se.explore_property(se.get_class_label_from_display_name(p))
+                    range_values = property_info["range"] if "range" in property_info else None
+                    requires_dependencies = property_info["dependencies"] if "dependencies" in property_info else None
+                        
+                    new_property = get_property(p,
+                                                property_info["domain"],
+                                                description = description,
+                                                requires_range = range_values,
+                                                requires_dependencies = requires_dependencies
+                    )
+                    se.edit_property(new_property)
+                else: 
+                    description = None
+                    new_property = get_property(p,
+                                                attribute,
+                                                description = description
+                    ) 
+                    se.update_property(new_property)
 
 
+    # set range values and dependency requirements for each attribute
+    # if not already added, add each attribute in required values and dependencies to the schema extension 
+    for attribute in attributes:
+
+        # TODO: refactor processing of multi-valued cells in columns and corresponding schema updates; it would compactify code below
+
+        # get values in range for this attribute
+        range_values = attribute["Valid Values"]
+        if range_values:
+            for val in range_values.strip().split(",")
+                # check if value is in attributes column; add it to the list if not
+                if not val in schema_extension["Attribute"]:
+                    new_class = get_class(val,
+                                          description = None,
+                                          subclass_of = [attribute["Attribute"]]
+                    )
+                    se.update_class(new_class)
+                                    
+                #update rangeIncludes of attribute
+                if not attribute["Attribute"] in all_properties:
+                    class_info = se.explore_class(se.get_class_label_from_display_name(attribute))
+                    class_range_edit = get_class(attribute["Attribute"],
+                                                  description = class_info["description"],\
+                                                  subclass_of = class_info["subClassOf"],\
+                                                  requires_dependencies = class_info["dependencies"],\
+                                                  requires_range = class_info["range"].append(se.get_class_label_from_display_name(val))
+                    )
+                    se.edit_class(class_range_edit)
+                else:
+                    property_info = se.explore_property(se.get_property_label_from_display_name(attribute["Attribute"]))
+                    property_range_edit = get_property(attribute["Attribute"],
+                                                       property_info["domain"],
+                                                       description = property_info["description"],
+                                                       requires_dependencies = property_info["dependencies"],
+                                                       requires_range = property_info["range"].append(se.get_class_label_from_display_name(val))
+                    )
+                    se.edit_class(class_range_edit)
+            
+
+        # get dependencies for this attribute
+        requires_dependencies = attribute["Requires"]
+        if requires_dependencies:
+            for dep in requires_dependencies.strip().split(",")
+                # check if dependency is a property or not
+                dep_is_property = dep in all_properties
+
+                dep_label = ""
+                if dep_is_property:
+                    dep_label = se.get_property_label_from_display_name(dep) 
+                else:
+                    dep_label = se.get_class_label_from_display_name(dep)
+
+              
+                # check if dependency is in attributes column; add it to the list if not
+                if not dep in schema_extension["Attribute"]:
+                    # if dependency is a property create a new property; else create a new class
+                    if not dep_is_property:
+                        new_class = get_class(dep,
+                                              description = None, 
+                                              subclass_of = [attribute["Attribute"]]
+                        )
+                        se.update_class(new_class)
+                    else:
+                        description = None
+                        new_property = get_property(dep,\
+                                                    attribute["Attribute"],
+                                                    description = description
+                        ) 
+                        se.update_property(new_property)
+
+                #update required dependencies of attribute
+                # if attribute is not a property then update a class
+                if not attribute["Attribute"] in all_properties:
+                    class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
+                    class_dependencies_edit = get_class(attribute["Attribute"],
+                                                  description = class_info["description"],
+                                                  subclass_of = class_info["subClassOf"],
+                                                  requires_dependencies = class_info["dependencies"].append(dep_label),
+                                                  requires_range = class_info["range"]
+                                                  
+                    )
+                    se.edit_class(class_dependencies_edit)
+                else:
+                    # the attribute is a property then update a property
+                    property_info = se.explore_property(se.get_property_label_from_display_name(attribute["Attribute"]))
+                    property_range_edit = get_property(attribute["Attribute"],
+                                                       property_info["domain"],
+                                                       description = property_info["description"],
+                                                       requires_dependencies = property_info["dependencies"].append(dep_label),
+                                                       requires_range = property_info["range"]
+                    )
+                    se.edit_class(class_range_edit)
+
+    return se
