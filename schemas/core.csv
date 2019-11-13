@@ -1,0 +1,11 @@
+Attribute,Description,Valid Values,Requires,Properties,Required,Parent
+Assay,"A planned process with the objective to produce information about the material entity that is the evaluant, by physically examining it or its proxies.[OBI_0000070]",,,,TRUE,Thing
+Device,"A thing made or adapted for a particular purpose, especially a piece of mechanical or electronic equipment""",,,,TRUE,Assay
+Sequencing,Module for next generation sequencing assays,,,,TRUE,Assay
+Metadata,Module for objects and properties related to metadata,,Metadata Type,Metadata Type,TRUE,Information Content Entity
+Metadata Type,Type of metadata template associated with an Information Content Entity,scRNA-seq,,,TRUE,
+scRNA-seq,Single cell sequencing assay,,,,TRUE,Assay
+File,A type of Information Content Entity specific to OS,,,Filename,TRUE,Information Content Entity
+Filename,Name of a file ,,,,TRUE,
+HTAN Biosample,"HTAN biological entity; bio entity can be a sample, slide, aliquot, analyte, etc.  ",,HTAN Biosample ID,HTAN Biosample ID,TRUE,Biosample
+HTAN Patient,HTAN research participant,,HTAN Patient ID,HTAN Patient ID,TRUE,Case

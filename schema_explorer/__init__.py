@@ -305,7 +305,7 @@ class SchemaExplorer():
         if  "requiresDependency" in self.schema_nx.node[schema_class]:
             for dep_class in self.schema_nx.node[schema_class]["requiresDependency"]:
                 requires_dependencies.append(extract_name_from_uri_or_curie(dep_class["@id"])) 
-
+        
         class_info = {'properties': self.find_all_class_properties(schema_class),
                       'description': self.schema_nx.node[schema_class]['description'],
                       'uri': curie2uri(self.schema_nx.node[schema_class]["uri"], namespaces),
@@ -318,7 +318,7 @@ class SchemaExplorer():
         }
 
         if "displayName" in self.schema_nx.node[schema_class]:
-            class_info['displayName'] = self.schema_nx.node['displayName']
+            class_info['displayName'] = self.schema_nx.node[schema_class]['displayName']
 
         return class_info
     
@@ -328,7 +328,7 @@ class SchemaExplorer():
         """
         
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
-        label[0] = label[0].lower()
+        label = label[:1].lower() + label[1:] if label else ''
         
         return label
 
@@ -342,6 +342,8 @@ class SchemaExplorer():
         return label
 
 
+    def uri2label(self, uri):
+        return uri.split(":")[1]
 
     def explore_property(self, schema_property):
         """Find details about a specific property
@@ -358,9 +360,13 @@ class SchemaExplorer():
                     if "schema:rangeIncludes" in record:
                         p_range = dict2list(record["schema:rangeIncludes"])
                         property_info["range"] = unlist([self.uri2label(record["@id"]) for record in p_range])
-                    
-                    if "displayName" in record:
-                        property_info['displayName'] = record['displayName']
+    
+                    if  "sms:requiresDependency" in record:
+                        p_dependencies = dict2list(record["sms:requiresDependency"])
+                        property_info["dependencies"] = unlist([self.uri2label(record["@id"]) for record in p_dependencies])
+
+                    if "sms:displayName" in record:
+                        property_info['displayName'] = record['sms:displayName']
 
         return property_info
 
