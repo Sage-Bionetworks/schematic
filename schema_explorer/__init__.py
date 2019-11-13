@@ -455,16 +455,12 @@ class SchemaExplorer():
     def edit_property(self, property_info):
         """Edit an existing property into schema
         """
-        print("editing property: " +  property_info["rdfs:label"])
-        print(property_info)
         for i, schema_property in enumerate(self.schema["@graph"]):
             if schema_property["rdfs:label"] == property_info["rdfs:label"]:
                 validate_property_schema(property_info)
-                print("found property in schema")
-                print(self.schema["@graph"][i])
                 self.schema["@graph"][i] = property_info
-                print(self.schema["@graph"][i])
-                
+               
+                #TODO: check if properties are added/edited multiple times (e.g. look at explore_property)
                 break
         
         validate_schema(self.schema)

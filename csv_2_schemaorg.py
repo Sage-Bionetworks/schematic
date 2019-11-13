@@ -45,7 +45,6 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
         class_attributes.update(parent)
 
     if requires_dependencies:
-        print(requires_dependencies)
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + se.get_class_label_from_display_name(dep)} for dep in requires_dependencies]}
         class_attributes.update(requirement)
 
@@ -84,8 +83,6 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
                     'schema:domainIncludes': {'@id': 'bts:' + se.get_class_label_from_display_name(property_class_name)},
                     'schema:isPartOf': {'@id': 'http://schema.biothings.io'},
     }
-    print("requires range")
-    print(requires_range)
     if requires_range:
         value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + se.get_class_label_from_display_name(val)} for val in requires_range]}
         property_attributes.update(value_constraint)
@@ -215,6 +212,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         if not pd.isnull(range_values):
             for val in range_values.strip().split(","):
                 # check if value is in attributes column; add it as a class if not
+                #TODO: maintain a list of added classes and properties and only add if not already added
                 if not val in schema_extension["Attribute"]:
                     new_class = get_class(se, val,
                                           description = None,
@@ -237,7 +235,6 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 # the attribute is a property
                     property_info = se.explore_property(se.get_property_label_from_display_name(attribute["Attribute"]))
                     property_info["range"].append(se.get_class_label_from_display_name(val))
-                    print(property_info["range"])
                     property_range_edit = get_property(se, attribute["Attribute"],
                                                        property_info["domain"],
                                                        description = property_info["description"],
@@ -283,10 +280,11 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 # if attribute is not a property then assume it is a class
                 if not attribute["Attribute"] in all_properties:
                     class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
+                    class_info["dependencies"].append(dep_label)
                     class_dependencies_edit = get_class(se, attribute["Attribute"],
                                                   description = class_info["description"],
                                                   subclass_of = class_info["subClassOf"],
-                                                  requires_dependencies = class_info["dependencies"].append(dep_label),
+                                                  requires_dependencies = class_info["dependencies"], 
                                                   requires_range = class_info["range"]
                                                   
                     )
@@ -294,10 +292,11 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 else:
                     # the attribute is a property then update as a property
                     property_info = se.explore_property(se.get_property_label_from_display_name(attribute["Attribute"]))
+                    property_info["dependencies"].append(dep_label)
                     property_dependencies_edit = get_property(se, attribute["Attribute"],
                                                        property_info["domain"],
                                                        description = property_info["description"],
-                                                       requires_dependencies = property_info["dependencies"].append(dep_label),
+                                                       requires_dependencies = property_info["dependencies"],
                                                        requires_range = property_info["range"]
                     )
                     se.edit_property(property_dependencies_edit)
