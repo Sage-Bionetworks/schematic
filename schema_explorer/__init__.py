@@ -360,14 +360,17 @@ class SchemaExplorer():
                     if "schema:rangeIncludes" in record:
                         p_range = dict2list(record["schema:rangeIncludes"])
                         property_info["range"] = unlist([self.uri2label(record["@id"]) for record in p_range])
+                    else:
+                        property_info["range"] = []
     
                     if  "sms:requiresDependency" in record:
                         p_dependencies = dict2list(record["sms:requiresDependency"])
                         property_info["dependencies"] = unlist([self.uri2label(record["@id"]) for record in p_dependencies])
+                    else:
+                        property_info["dependencies"] = []
 
                     if "sms:displayName" in record:
                         property_info['displayName'] = record['sms:displayName']
-
         return property_info
 
     def generate_class_template(self):
@@ -438,14 +441,14 @@ class SchemaExplorer():
         """Edit an existing property into schema
         """ 
         for i, schema_property in enumerate(self.schema["@graph"]):
-            if schema_class["rdfs:label"] == property_info["rdfs:label"]:
+            if schema_property["rdfs:label"] == property_info["rdfs:label"]:
                 validate_property_schema(property_info)
 
                 self.schema["@graph"][i] = property_info
                 break
 
         validate_schema(self.schema)
-        print("Edited the class {} successfully!".format(property_info["rdfs:label"]))
+        print("Edited the property {} successfully!".format(property_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
 
 

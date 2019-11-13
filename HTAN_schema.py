@@ -32,4 +32,4 @@ for schema_extension_csv in schema_extensions_csv:
     
 
 # saving updated schema.org schema
-base_se.export_schema(os.path.join(os.path.dirname(schema_path), output_schema_name + ".jsonld"))
+base_se.export_schema(os.path.join(os.path.dirname(base_schema_path), output_schema_name + ".jsonld"))
