@@ -1,11 +1,15 @@
-from .base import *
-from .utils import *
+import os
+import string
+
+import tabletext
+from rdflib import Graph, Namespace, plugin, query
+import inflection
 import networkx as nx
 from networkx.algorithms.cycles import find_cycle
-import tabletext
-import os
+
+from .base import *
+from .utils import *
 from .curie import uri2curie, curie2uri
-from rdflib import Graph, Namespace, plugin, query
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
@@ -326,18 +330,23 @@ class SchemaExplorer():
     def get_property_label_from_display_name(self, display_name):
         """Convert a given display name string into a proper property label string
         """
-        
+        ''' 
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
         label = label[:1].lower() + label[1:] if label else ''
+        '''
+        display_name = display_name.translate({ord(c): None for c in string.whitespace})
         
+        label = inflection.camelize(display_name.strip(), uppercase_first_letter=False)
         return label
 
 
     def get_class_label_from_display_name(self, display_name):
         """Convert a given display name string into a proper class label string
         """
-
-        label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
+        '''
+        label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))'''
+        display_name = display_name.translate({ord(c): None for c in string.whitespace})
+        label = inflection.camelize(display_name.strip(), uppercase_first_letter=True)
 
         return label
 

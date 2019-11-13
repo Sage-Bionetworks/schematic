@@ -53,7 +53,7 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
         class_attributes.update(value_constraint)
     
     class_attributes.update({'sms:displayName':class_display_name})
-
+    print(class_attributes)
     return class_attributes
 
 
