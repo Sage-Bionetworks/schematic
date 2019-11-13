@@ -45,6 +45,7 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
         class_attributes.update(parent)
 
     if requires_dependencies:
+        print(requires_dependencies)
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + se.get_class_label_from_display_name(dep)} for dep in requires_dependencies]}
         class_attributes.update(requirement)
 
@@ -53,7 +54,7 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
         class_attributes.update(value_constraint)
     
     class_attributes.update({'sms:displayName':class_display_name})
-    print(class_attributes)
+    
     return class_attributes
 
 
@@ -83,13 +84,15 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
                     'schema:domainIncludes': {'@id': 'bts:' + se.get_class_label_from_display_name(property_class_name)},
                     'schema:isPartOf': {'@id': 'http://schema.biothings.io'},
     }
-    
+    print("requires range")
+    print(requires_range)
     if requires_range:
         value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + se.get_class_label_from_display_name(val)} for val in requires_range]}
+        property_attributes.update(value_constraint)
     
     if requires_dependencies:
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + se.get_class_label_from_display_name(dep)} for dep in requires_dependencies]}
-        class_attributes.update(requirement)
+        property_attributes.update(requirement)
     
     #'http://schema.org/domainIncludes':{'@id': 'bts:' + property_class_name},
     #'http://schema.org/rangeIncludes':{'@id': 'schema:' + allowed_values},
@@ -211,7 +214,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         range_values = attribute["Valid Values"]
         if not pd.isnull(range_values):
             for val in range_values.strip().split(","):
-                # check if value is in attributes column; add it to the list if not
+                # check if value is in attributes column; add it as a class if not
                 if not val in schema_extension["Attribute"]:
                     new_class = get_class(se, val,
                                           description = None,
@@ -233,11 +236,13 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 else:
                 # the attribute is a property
                     property_info = se.explore_property(se.get_property_label_from_display_name(attribute["Attribute"]))
+                    property_info["range"].append(se.get_class_label_from_display_name(val))
+                    print(property_info["range"])
                     property_range_edit = get_property(se, attribute["Attribute"],
                                                        property_info["domain"],
                                                        description = property_info["description"],
                                                        requires_dependencies = property_info["dependencies"],
-                                                       requires_range = property_info["range"].append(se.get_class_label_from_display_name(val))
+                                                       requires_range = property_info["range"]
                     )
                     se.edit_property(property_range_edit)
             

@@ -364,6 +364,7 @@ class SchemaExplorer():
                     property_info["id"] = record["rdfs:label"]
                     property_info["description"] = record["rdfs:comment"]
                     property_info["uri"] = curie2uri(record["@id"], namespaces)
+
                     p_domain = dict2list(record["schema:domainIncludes"])
                     property_info["domain"] = unlist([self.uri2label(record["@id"]) for record in p_domain])
                     if "schema:rangeIncludes" in record:
@@ -380,6 +381,11 @@ class SchemaExplorer():
 
                     if "sms:displayName" in record:
                         property_info['displayName'] = record['sms:displayName']
+                    break
+        
+        #check if properties are added multiple times
+        print(property_info)
+        
         return property_info
 
     def generate_class_template(self):
@@ -448,14 +454,19 @@ class SchemaExplorer():
 
     def edit_property(self, property_info):
         """Edit an existing property into schema
-        """ 
+        """
+        print("editing property: " +  property_info["rdfs:label"])
+        print(property_info)
         for i, schema_property in enumerate(self.schema["@graph"]):
             if schema_property["rdfs:label"] == property_info["rdfs:label"]:
                 validate_property_schema(property_info)
-
+                print("found property in schema")
+                print(self.schema["@graph"][i])
                 self.schema["@graph"][i] = property_info
+                print(self.schema["@graph"][i])
+                
                 break
-
+        
         validate_schema(self.schema)
         print("Edited the property {} successfully!".format(property_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
