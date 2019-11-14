@@ -227,6 +227,7 @@ class SchemaExplorer():
     def find_class_specific_properties(self, schema_class):
         """Find properties specifically associated with a given class
         """
+        #print(schema_class)
         schema_uri = self.schema_nx.node[schema_class]["uri"]
         properties = []
         for record in self.schema["@graph"]:
@@ -350,6 +351,17 @@ class SchemaExplorer():
 
         return label
 
+    def get_class_by_property(self, property_display_name):
+        schema_property = self.get_property_label_from_display_name(property_display_name)
+
+        for record in self.schema["@graph"]:
+            if record["@type"] == "rdf:Property":
+                if record["rdfs:label"] == schema_property:
+                    return unlist([self.uri2label(record["@id"]) for record in p_domain])
+
+                    return None
+
+
 
     def uri2label(self, uri):
         return uri.split(":")[1]
@@ -384,7 +396,6 @@ class SchemaExplorer():
                     break
         
         #check if properties are added multiple times
-        print(property_info)
         
         return property_info
 
@@ -445,6 +456,7 @@ class SchemaExplorer():
     def update_class(self, class_info):
         """Add a new class into schema
         """
+        #print(class_info)
         validate_class_schema(class_info)
         self.schema["@graph"].append(class_info)
         validate_schema(self.schema)

@@ -6,12 +6,13 @@ from ManifestGenerator import ManifestGenerator
 
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
 #inputMModelLocation = "./schemas/scRNASeq.jsonld"
-inputMModelLocation = "./schemas/HTAPP.jsonld"
+#inputMModelLocation = "./schemas/HTAPP.jsonld"
+inputMModelLocation = "./schemas/HTAN.jsonld"
 #inputMModelLocation = "./data/NFSchemaReq.jsonld"
 inputMModelLocationType = "local"
 #datasetType = "scRNASeq"
 #datasetType = "Thing"
-datasetType = "HTAPP"
+datasetType = "ScRNA-seq"
 
 mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
 

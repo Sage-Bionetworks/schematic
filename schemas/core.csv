@@ -4,7 +4,7 @@ Device,"A thing made or adapted for a particular purpose, especially a piece of 
 Sequencing,Module for next generation sequencing assays,,,,TRUE,Assay
 Metadata,Module for objects and properties related to metadata,,Metadata Type,Metadata Type,TRUE,Information Content Entity
 Metadata Type,Type of metadata template associated with an Information Content Entity,scRNA-seq,,,TRUE,
-scRNA-seq,Single cell sequencing assay,,,,TRUE,Assay
+scRNA-seq,Single cell sequencing assay,,,,TRUE,Sequencing
 File,A type of Information Content Entity specific to OS,,Filename,Filename,TRUE,Information Content Entity
 Filename,Name of a file ,,,,TRUE,
 HTAN Biosample,"HTAN biological entity; bio entity can be a sample, slide, aliquot, analyte, etc.  ",,HTAN Biosample ID,HTAN Biosample ID,TRUE,Biosample

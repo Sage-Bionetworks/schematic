@@ -49,10 +49,10 @@ This semantic sugar enables the generation different kinds of validation schemas
 """
 
 requires_dependency_relationship = "requiresDependency"
-requires_range = "requiresChildAsValue" # "requiresChildAsValue" is also an option here, but will be deprecated
-#requires_range = "rangeIncludes" # "requiresChildAsValue" is also an option here, but will be deprecated
-range_value_relationship = "parentOf" # "parentOf" is also an option here but will be deprecated
-#range_value_relationship = "rangeValue" # "parentOf" is also an option here but will be deprecated
+#requires_range = "requiresChildAsValue" # "requiresChildAsValue" is also an option here, but will be deprecated
+requires_range = "rangeIncludes" # "requiresChildAsValue" is also an option here, but will be deprecated
+#range_value_relationship = "parentOf" # "parentOf" is also an option here but will be deprecated
+range_value_relationship = "rangeValue" # "parentOf" is also an option here but will be deprecated
 
 """
 Get the out-edges of a node, where the edges match specific type of relationship: 
