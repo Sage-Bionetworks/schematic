@@ -181,6 +181,12 @@ class SchemaExplorer():
     def get_nx_schema(self):
         return self.schema_nx
 
+    def is_class_in_schema(self, class_label):
+        if self.schema_nx.node[class_label]:
+            return True
+        else:
+            return False
+
     def full_schema_graph(self, size=None):
         edges = self.schema_nx.edges()
         return visualize(edges, size=size)
@@ -243,11 +249,14 @@ class SchemaExplorer():
         # TODO : need to deal with recursive paths
         """
         parents = self.find_parent_classes(schema_class)
+        #print(schema_class)
+        #print(parents)
         properties = [{'class': schema_class,
                        'properties': self.find_class_specific_properties(schema_class)}]
         for path in parents:
             path.reverse()
             for _parent in path:
+                #print(_parent)
                 properties.append({"class": _parent,
                                     "properties": self.find_class_specific_properties(_parent)})
         if not display_as_table:
@@ -357,8 +366,8 @@ class SchemaExplorer():
         for record in self.schema["@graph"]:
             if record["@type"] == "rdf:Property":
                 if record["rdfs:label"] == schema_property:
-                    return unlist([self.uri2label(record["@id"]) for record in p_domain])
-
+                    p_domain = dict2list(record["schema:domainIncludes"])
+                    return unlist([self.uri2label(schema_class["@id"]) for schema_class in p_domain])
                     return None
 
 
@@ -381,13 +390,13 @@ class SchemaExplorer():
                     property_info["domain"] = unlist([self.uri2label(record["@id"]) for record in p_domain])
                     if "schema:rangeIncludes" in record:
                         p_range = dict2list(record["schema:rangeIncludes"])
-                        property_info["range"] = unlist([self.uri2label(record["@id"]) for record in p_range])
+                        property_info["range"] = [self.uri2label(record["@id"]) for record in p_range]
                     else:
                         property_info["range"] = []
     
                     if  "sms:requiresDependency" in record:
                         p_dependencies = dict2list(record["sms:requiresDependency"])
-                        property_info["dependencies"] = unlist([self.uri2label(record["@id"]) for record in p_dependencies])
+                        property_info["dependencies"] = [self.uri2label(record["@id"]) for record in p_dependencies]
                     else:
                         property_info["dependencies"] = []
 

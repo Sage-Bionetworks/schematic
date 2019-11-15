@@ -1,0 +1,33 @@
+Attribute,Description,Valid Values,Requires,Properties,Required,Parent,Manifest Component
+Assay,"A planned process with the objective to produce information about the material entity that is the evaluant, by physically examining it or its proxies.[OBI_0000070]",,,,FALSE,Thing,
+Device,"A thing made or adapted for a particular purpose, especially a piece of mechanical or electronic equipment""",,,,FALSE,Assay,
+Sequencing,Module for next generation sequencing assays,,,,FALSE,Assay,
+Metadata,Module for objects and properties related to metadata,,Metadata Type,Metadata Type,FALSE,Information Content Entity,
+Metadata Type,Type of metadata template associated with an Information Content Entity,"scRNA-seq, Minimal Metadata",,,TRUE,,Minimal Metadata
+File,A type of Information Content Entity specific to OS,,,Filename,FALSE,Information Content Entity,
+Filename,Name of a file ,,,,TRUE,,Minimal Metadata
+HTAN Biosample,"HTAN biological entity; bio entity can be a sample, slide, aliquot, analyte, etc.  ",,HTAN Biosample ID,HTAN Biosample ID,FALSE,Biosample,
+HTAN Biosample ID,HTAN ID associated with this biosample based on HTAN ID SOP,,,,TRUE,,Minimal Metadata
+Nucleic Acid Source,The source of the input nucleic molecule,"Single Cell, Bulk Cell, Single Nucleus, Bulk Nuclei",,,TRUE,Sequencing,scRNA-seq
+Single Cell Isolation,The disassociation method used for scRNASeq assays,"Microfluidics Chip, Droplets, FACS, 10x",,,TRUE,scRNA-seq,scRNA-seq
+Library Layout,Sequencing read type,"Single Read, Paired End",,,TRUE,Sequencing,scRNA-seq
+Library Construction Method,Process which results in the creation of a library from fragments of DNA using cloning vectors or oligonucleotides with the role of adaptors [OBI_0000711],"Smart-seq2,  Smart-SeqV4, 10xV1, 10xV2, 10xV3, CEL-seq2, Drop-seq, inDrops",,,TRUE,Sequencing,scRNA-seq
+Input Molecule,"The specific fraction of biological macromolecule from which the sequencing library is derived, e.g. polyA RNA",,,,TRUE,scRNA-seq,scRNA-seq
+End Bias,"The end of the cDNA molecule that is preferentially sequenced, e.g. 3/5 prime tag/end or the full length transcript","3 Prime, 5 Prime, Full Length Transcript",,,TRUE,Sequencing,scRNA-seq
+Reverse Transcription,"A DNA synthesis process that uses RNA as the initial template for synthesis of DNA, but which also includes an RNase activity to remove the RNA strand of an RNA-DNA heteroduplex produced by the RNA-dependent synthesis step and use of the initial DNA strand as a template for DNA synthesis. [GO_0001171]",cDNA,,,TRUE,Sequencing,scRNA-seq
+cDNA,,,"cDNA Read, cDNA Offset,
+cDNA Size","cDNA Read, cDNA Offset,
+cDNA Size",FALSE,Reverse Transcription,scRNA-seq
+Transcript Identifier,Unique molecular identifier; added at cell isolation or library construction step. Determines which transcript molecule the read originated from.,UMI,,,TRUE,scRNA-seq,scRNA-seq
+UMI,,,"UMI Barcode Read, UMI Barcode Offset, UMI Barcode Length, Median UMIs per Cell Number","UMI Barcode Read, UMI Barcode Offset, UMI Barcode Length, Median UMIs per Cell Number",FALSE,Transcript Identifier,
+Cell Identifier,Unique cell identifier. Determines which cell the read originated from,Cell Barcode,,,TRUE,scRNA-seq,scRNA-seq
+Cell Barcode,,,"Cell Barcode Read, Cell Barcode Offset, Cell Barcode Length, Valid Barcodes Cell Number","Cell Barcode Read, Cell Barcode Offset, Cell Barcode Length, Valid Barcodes Cell Number",FALSE,Cell Identifier,scRNA-seq
+Primer,"An oligo to which new deoxyribonucleotides can be added by DNA polymerase [SO_0000112]. The type of primer used for reverse transcription, e.g. oligo-dT or random primer. This allows users to identify content of the cDNA library input e.g. enriched for mRNA","Oligo-dT, Poly-dT, Random",,,TRUE,Sequencing,scRNA-seq
+Spike In,A set of known synthetic RNA molecules with known sequence that are added to the cell lysis mix,"ERCC, Other Spike In, No Spike In",,,TRUE,scRNA-seq,scRNA-seq
+ERCC,The External RNA Controls Consortium (ERCC) spike in set is commonly used in single-cell experiments for normalization,,Spike In Concentration,,FALSE,Spike In,scRNA-seq
+Spike In Concentration,The final concentration or dilution (for commercial sets) of the spike in mix [PMID:21816910],,,,FALSE,ERCC,scRNA-seq
+Platform,A platform is an object_aggregate that is the set of instruments and software needed to perform a process [OBI_0000050],"Illumina Next Seq 500, Illumina Next Seq 2500 ",,,TRUE,Device,scRNA-seq
+Technical Replicate Group,A common term for all files belonging to the same cell or library. We suggest to use a stable sample accession from a biosample archive like BioSamples.,,,,TRUE,Sequencing,scRNA-seq
+Total Reads Number,Number of reads per cell.,,,,TRUE,Sequencing,scRNA-seq
+Median Number Genes per Cell,Median number of genes detected per cell.,,,,TRUE,Sequencing,scRNA-seq
+scRNA-seq,Single-cell RNA-seq [EFO_0008913],,"Filename, HTAN Biosample ID, Metadata Type, Nucleic Acid Source,Single Cell Isolation,Library Layout,Library Construction Method,Input Molecule,End Bias,Reverse Transcription,Transcript Identifier,Cell Identifier, Primer, Spike In, Platform, Technical Replicate Group, Total Reads Number, Median Number Genes per Cell",,FALSE,Sequencing,

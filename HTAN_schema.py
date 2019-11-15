@@ -16,8 +16,7 @@ output_schema_name = "HTAN"
 
 # schema extension definition csv files
 schema_extensions_csv = [
-                        "./schemas/core.csv",
-                        "./schemas/scRNA-seq.csv"
+                        "./schemas/HTAN.csv"
                         ]
 
 # instantiate schema explorer

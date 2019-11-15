@@ -2,6 +2,7 @@
 from typing import Any, Dict, Optional, Text
 
 import os
+import string
 
 import pandas as pd
 import numpy as np
@@ -15,7 +16,7 @@ scRNA-seq.csv for an example) into schema.org schema
 """
 #TODO: provide a generic template csv 
 
-def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = ["Thing"], requires_dependencies: list = None, requires_range: list  = None) -> dict:
+def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = None, requires_dependencies: list = None, requires_range: list  = None) -> dict:
     
     """Constructs a new schema.org compliant class given a set of schema object attributes
 
@@ -42,7 +43,11 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
 
     if subclass_of:
         parent = {'rdfs:subClassOf':[{'@id':'bts:' + se.get_class_label_from_display_name(sub)} for sub in subclass_of]}
-        class_attributes.update(parent)
+    else:
+        parent = {'rdfs:subClassOf':[{'@id':'schema:Thing'}]}
+
+    class_attributes.update(parent)
+
 
     if requires_dependencies:
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + se.get_class_label_from_display_name(dep)} for dep in requires_dependencies]}
@@ -53,7 +58,9 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
         class_attributes.update(value_constraint)
     
     class_attributes.update({'sms:displayName':class_display_name})
-    
+   
+    print(class_attributes)
+
     return class_attributes
 
 
@@ -95,7 +102,7 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
     #'http://schema.org/rangeIncludes':{'@id': 'schema:' + allowed_values},
     
     property_attributes.update({'sms:displayName':property_display_name})
-
+    print(property_attributes)
     return property_attributes
 
 
@@ -116,7 +123,7 @@ def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
     Raises: Exception
     """
     
-    if set(list(schema_definition.columns)) == required_headers:
+    if required_headers.issubset(set(list(schema_definition.columns))):
         return
     raise Exception()
 
@@ -144,15 +151,25 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         exit()
 
     # get attributes from Attribute column
-    attributes = schema_extension[["Attribute", "Description", "Parent", "Valid Values", "Requires"]].to_dict("records")
+    attributes = schema_extension[["Attribute", "Description", "Parent", "Valid Values", "Requires", "Manifest Component"]].to_dict("records")
     
     # get all properties across all attributes from Property column
-    all_properties = set(schema_extension[["Properties"]].values.flatten())
-    
-    # get attribute properties from Properties column
+    props = set(schema_extension[["Properties"]].dropna().values.flatten())
+
+    # clean properties strings
+    all_properties = []
+    for prop in props:
+        all_properties += [p.strip() for p in prop.split(",")]
+
+    print(all_properties)
+
+    # get both attributes and their properties (if any)
     properties= schema_extension[["Attribute", "Properties"]].to_dict("records")
 
     #TODO: check if schema already contains attribute - may require attribute context in csv schema definition
+    print("=====================")
+    print("Adding attributes")
+    print("=====================")
     for attribute in attributes:
         if not attribute["Attribute"] in all_properties:
             display_name = attribute["Attribute"]
@@ -169,8 +186,17 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                           description = attribute["Description"],
             )
             se.update_property(new_property)
+    
+    print("=====================")
+    print("Done adding attributes")
+    print("=====================")
 
     #TODO check if schema already contains property - may require property context in csv schema definition
+
+    print("=====================")
+    print("Adding properties")
+    print("=====================")
+
     for prop in properties:
         if not pd.isnull(prop["Properties"]): # a class may have or not have properties
             for p in prop["Properties"].strip().split(","): # a class may have multiple properties
@@ -178,7 +204,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
                 # check if property is already present as attribute under attributes column
                 # TODO: adjust logic below to compactify code
-                if p in list(schema_extension["Attribute"]):
+                if p.strip() in list(schema_extension["Attribute"]):
                     description = schema_extension.loc[schema_extension["Attribute"] == p]["Description"].values[0]
                     property_info = se.explore_property(se.get_property_label_from_display_name(p))
                     range_values = property_info["range"] if "range" in property_info else None
@@ -199,9 +225,16 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     ) 
                     se.update_property(new_property)
 
+    print("=====================")
+    print("Done adding properties")
+    print("=====================")
 
     # set range values and dependency requirements for each attribute
-    # if not already added, add each attribute in required values and dependencies to the schema extension 
+    # if not already added, add each attribute in required values and dependencies to the schema extension
+    print("=====================")
+    print("Editing attributes and properties to add requirements and value ranges")
+    print("=====================")
+
     for attribute in attributes:
 
         # TODO: refactor processing of multi-valued cells in columns and corresponding schema updates; it would compactify code below if class and property are encapsulated as objects inheriting from a common attribute parent object
@@ -209,26 +242,27 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         # get values in range for this attribute, if any are specified
         range_values = attribute["Valid Values"]
         if not pd.isnull(range_values):
+            print(">>> Adding value range for " + attribute["Attribute"])
             for val in range_values.strip().split(","):
                 # check if value is in attributes column; add it as a class if not
                 #TODO: maintain a list of added classes and properties and only add if not already added
-                if not val in list(schema_extension["Attribute"]):
+                if not val.strip() in list(schema_extension["Attribute"]):
 
                     #determine parent class of the new value class
                     # if this attribute is not a property, set it as a parent class
                     if not attribute["Attribute"] in all_properties:
                         parent = attribute["Attribute"]
                     else:
-                    # this attribute is a property, set the parent to the domain class of this property
-                        parent = se.get_class_by_property(val)
+                    # this attribute is a property, set the parent to the domain class of this attribute
+                        parent = se.get_class_by_property(attribute["Attribute"])
                         if not parent:
-                            print("ERROR: Listed valid value " + val + " must have a class parent!")
+                            print("ERROR: Listed valid value " + val + " for attribute " + attribute["Attribute"] + " must have a class parent!")
                             print("Could not add extension to schema!")
                             exit()
 
                     new_class = get_class(se, val,
                                           description = None,
-                                          subclass_of = parent
+                                          subclass_of = [parent]
                     )
                     se.update_class(new_class)
                                     
@@ -236,11 +270,12 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 # if attribute is not a property, then assume it is a class
                 if not attribute["Attribute"] in all_properties:
                     class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
+                    class_info["range"].append(se.get_class_label_from_display_name(val))  
                     class_range_edit = get_class(se, attribute["Attribute"],
-                                                  description = class_info["description"],\
-                                                  subclass_of = class_info["subClassOf"],\
+                                                  description = attribute["Description"],\
+                                                  subclass_of = [attribute["Parent"]],\
                                                   requires_dependencies = class_info["dependencies"],\
-                                                  requires_range = class_info["range"].append(se.get_class_label_from_display_name(val))
+                                                  requires_range = class_info["range"]
                     )
                     se.edit_class(class_range_edit)
                 else:
@@ -254,15 +289,19 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                        requires_range = property_info["range"]
                     )
                     se.edit_property(property_range_edit)
+                print(val + " added to value range.")
             
+            print("<<< Done adding value range for " + attribute["Attribute"])
 
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["Requires"]
         if not pd.isnull(requires_dependencies):
+            print(">>> Adding dependencies for " + attribute["Attribute"])
+
             for dep in requires_dependencies.strip().split(","):
                 # check if dependency is a property or not
+                dep = dep.strip()
                 dep_is_property = dep in all_properties
-
                 dep_label = ""
                 # set dependency label based on kind of dependency: class or property 
                 if dep_is_property:
@@ -272,30 +311,40 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
               
                 # check if dependency is in attributes column; add it to the list if not
-                if not dep in list(schema_extension["Attribute"]):
+                if not dep.strip() in list(schema_extension["Attribute"]):
                     # if dependency is a property create a new property; else create a new class
                     if not dep_is_property:
                         # if this attribute is not a property, set it as a parent class
                         if not attribute["Attribute"] in all_properties:
                             parent = attribute["Attribute"]
                         else:
-                        # this attribute is a property, set the parent to the domain class of this property
-                            parent = se.get_class_by_property(dep)
+                        # this attribute is a property, set the parent to the domain class of this attribute
+                            parent = se.get_class_by_property(attribute["Attribute"])
                             if not parent:
-                                print("ERROR: Listed required dependency " + dep + " must have a class parent!")
+                                print("ERROR: Listed required dependency " + dep + "for attribute " + attribute["Attribute"] + " must have a class parent!")
                                 print("Could not add extension to schema!")
                                 exit()
 
                         new_class = get_class(se, dep,
                                               description = None,
-                                              subclass_of = parent
+                                              subclass_of = [parent]
                         )
                         se.update_class(new_class)
 
                     else:
+                        if not attribute["Attribute"] in all_properties:
+                            domain_attribute = attribute["Attribute"]
+                        else:
+                        # this attribute is a property, set the domain of this properti to the domain class of the attribute
+                            domain_attribute = se.get_class_by_property(attribute["Attribute"])
+                            if not domain_attribute:
+                                print("ERROR: Listed required dependency " + dep + " must have a class parent!")
+                                print("Could not add extension to schema!")
+                                exit()
+
                         description = None
                         new_property = get_property(se, dep,
-                                                    attribute["Attribute"],
+                                                    domain_attribute,
                                                     description = description
                         ) 
                         se.update_property(new_property)
@@ -306,8 +355,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
                     class_info["dependencies"].append(dep_label)
                     class_dependencies_edit = get_class(se, attribute["Attribute"],
-                                                  description = class_info["description"],
-                                                  subclass_of = class_info["subClassOf"],
+                                                  description = attribute["Description"],
+                                                  subclass_of = [attribute["Parent"]],
                                                   requires_dependencies = class_info["dependencies"], 
                                                   requires_range = class_info["range"]
                                                   
@@ -324,5 +373,38 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                        requires_range = property_info["range"]
                     )
                     se.edit_property(property_dependencies_edit)
+                print(dep_label + " added to dependencies.")
+
+            print("<<< Done adding dependencies for " + attribute["Attribute"])
+
+    print("=====================")
+    print("Done editing attributes and properties to add requirements and value ranges")
+    print("=====================")
+
+
+    '''
+    # create components if needed and add their requirements
+    for attribute in attributes:
+        #check if component exists in schema
+        component = attribute["Manifest Component"] if not pd.isnull(attribute["Manifest Component"]) else continue
+
+        if not se.is_class_in_schema(se.get_class_label_from_display_name(component)):
+            #component is not in schema so add it with a parent Thing
+            new_class = get_class(se, component,
+                                  description = None
+            )
+            se.update_class(new_class)
+        
+        #update required attributes for component 
+        class_info = se.explore_class(se.get_class_label_from_display_name(component))
+        class_info["dependencies"].append(attribute["Attribute"])
+        class_dependencies_edit = get_class(se, attribute["Attribute"],
+                                      description = class_info["description"],
+                                      subclass_of = class_info["subClassOf"],
+                                      requires_dependencies = class_info["dependencies"], 
+                                      requires_range = class_info["range"]
+        )
+        se.edit_class(class_dependencies_edit)
+    '''
 
     return se

@@ -86,7 +86,7 @@ def extract_name_from_uri_or_curie(item):
 def load_schema_into_networkx(schema):
     G = nx.MultiDiGraph()
     for record in schema["@graph"]:
-        if record["@type"] == "rdfs:Class":
+        #if record["@type"] == "rdfs:Class":
             
             node = {}
             for (k, value) in record.items():
@@ -138,7 +138,7 @@ def load_schema_into_networkx(schema):
                         if n1 != n2:
                             G.add_edge(n1, n2, relationship = "rangeValue")
 
-                elif type(range_node) == dict:
+                elif type(range_nodes) == dict:
                     n1 = record["rdfs:label"]  
                     n2 = extract_name_from_uri_or_curie(range_nodes["@id"]) 
                     # do not allow self-loops
@@ -152,7 +152,7 @@ def load_schema_into_networkx(schema):
             node['description'] = record["rdfs:comment"]
 
             G.add_node(record['rdfs:label'], **node)
-
+            #print(G.nodes())
     return G
 
 

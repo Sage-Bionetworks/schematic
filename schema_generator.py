@@ -198,7 +198,13 @@ def get_JSONSchema_requirements(se, root, schema_name):
             print(process_node_dependencies)
             if process_node_dependencies:
                 if process_node == root: # these are unconditional dependencies
+                   
+                    print(process_node)
                     
+                    for process_node_dependency in process_node_dependencies:
+                         print(process_node_dependency)
+                         print(mm_graph.nodes[process_node_dependency]["displayName"])
+
                     json_schema["required"] += [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies]
                 else: # these are dependencies given the processed node 
                     schema_conditional_dependencies = {
