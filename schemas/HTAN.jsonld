@@ -8,12 +8,6 @@
     },
     "@graph": [
         {
-            "@id": "schema:Thing",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "The most generic type of item.",
-            "rdfs:label": "Thing"
-        },
-        {
             "@id": "bts:BiologicalEntity",
             "@type": "rdfs:Class",
             "rdfs:comment": null,
