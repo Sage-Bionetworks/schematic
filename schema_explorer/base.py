@@ -10,11 +10,6 @@ from copy import deepcopy
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
-
-
-
-
-
 def load_json(file_path):
     """Load json document from file path or url
 
@@ -91,7 +86,7 @@ def extract_name_from_uri_or_curie(item):
 def load_schema_into_networkx(schema):
     G = nx.MultiDiGraph()
     for record in schema["@graph"]:
-        if record["@type"] == "rdfs:Class":
+        #if record["@type"] == "rdfs:Class":
             
             node = {}
             for (k, value) in record.items():
@@ -122,8 +117,9 @@ def load_schema_into_networkx(schema):
                     if n1 != n2:
                         G.add_edge(n1, n2, relationship = "parentOf")
 
-            if "rdfs:requiresDependency" in record:
-                children = record["rdfs:requiresDependency"]
+            # TODO: refactor: abstract adding relationship method
+            if "sms:requiresDependency" in record:
+                children = record["sms:requiresDependency"]
                 if type(children) == list:
                     for _child in children:
                         n1 = record["rdfs:label"]  
@@ -131,13 +127,23 @@ def load_schema_into_networkx(schema):
                         # do not allow self-loops
                         if n1 != n2:
                             G.add_edge(n1, n2, relationship = "requiresDependency")
+            
+            if "schema:rangeIncludes" in record:
+                range_nodes = record["schema:rangeIncludes"]
+                if type(range_nodes) == list:
+                    for _range_node in range_nodes:
+                        n1 = record["rdfs:label"]  
+                        n2 = extract_name_from_uri_or_curie(_range_node["@id"]) 
+                        # do not allow self-loops
+                        if n1 != n2:
+                            G.add_edge(n1, n2, relationship = "rangeValue")
 
-                elif type(children) == dict:
+                elif type(range_nodes) == dict:
                     n1 = record["rdfs:label"]  
-                    n2 = extract_name_from_uri_or_curie(children["@id"]) 
+                    n2 = extract_name_from_uri_or_curie(range_nodes["@id"]) 
                     # do not allow self-loops
                     if n1 != n2:
-                        G.add_edge(n1, n2, relationship = "requiresDependency")
+                        G.add_edge(n1, n2, relationship = "rangeValue")
             
             if "requiresChildAsValue" in node and node["requiresChildAsValue"]["@id"] == "sms:True":
                 node["requiresChildAsValue"] = True
@@ -146,7 +152,7 @@ def load_schema_into_networkx(schema):
             node['description'] = record["rdfs:comment"]
 
             G.add_node(record['rdfs:label'], **node)
-
+            #print(G.nodes())
     return G
 
 
@@ -179,6 +185,3 @@ def visualize(edges, size=None):
     for _item in edges:
         d.edge(_item[0], _item[1])
     return d
-
-
-

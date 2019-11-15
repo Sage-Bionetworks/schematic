@@ -266,7 +266,6 @@
     "@type",
     "rdfs:comment",
     "rdfs:label",
-    "schema:domainIncludes",
-    "schema:rangeIncludes"
+    "schema:domainIncludes"
   ]
 }
