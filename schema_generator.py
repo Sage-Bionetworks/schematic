@@ -5,6 +5,8 @@ from orderedset import OrderedSet
 
 from schema_explorer import SchemaExplorer
 
+#TODO: refactor into class; expose parameters as constructor args
+
 """
 Gather all metadata/annotations requirements for an object part of the schema.org metadata model.
 
@@ -15,7 +17,15 @@ Assumed semantic sugar for requirements:
 
     E.g. suppose resourceType has property requireChildAsValue set to true and suppose
     resourceType has children curatedData, experimentalData, tool, analysis. Then 
-    resourceType must be set either to curatedData, experimentalData, tool, analysis.
+    resourceType must be set either to a value curatedData, experimentalData, tool, analysis.
+
+- rangeIncludes: a node property indicating that the term associated with this node
+    can be set to a value equal to any of the terms associated with this node's range: nodes that are adjacent to this node on links of type "rangeValue". 
+
+    E.g. suppose resourceType has property rangeIncludes and suppose
+    resourceType is connected to curatedData, experimentalData, tool, analysis on links of type "rangeValue". Then 
+    resourceType must be set either to a value curatedData, experimentalData, tool, analysis.
+ 
 
 - requiresDependency: a relationship type corresponding to an edge between two nodes/terms x and y.
     requiresDependency indicates that if a value for term x is specified, then a value for term y 
@@ -38,43 +48,48 @@ This semantic sugar enables the generation different kinds of validation schemas
     This support cascades of conditional validation (of arbitrary lengths).
 """
 
-requires_dependency = "requiresDependency"
-requires_child = "requiresChildAsValue"
-
+requires_dependency_relationship = "requiresDependency"
+#requires_range = "requiresChildAsValue" # "requiresChildAsValue" is also an option here, but will be deprecated
+requires_range = "rangeIncludes" # "requiresChildAsValue" is also an option here, but will be deprecated
+#range_value_relationship = "parentOf" # "parentOf" is also an option here but will be deprecated
+range_value_relationship = "rangeValue" # "parentOf" is also an option here but will be deprecated
 
 """
-Get the parent-children out-edges of a node: i.e. edges connecting to nodes neighbors
-of node u on edges of type "parentOf"
-"""
-def get_children_edges(mm_graph, u):
+Get the out-edges of a node, where the edges match specific type of relationship: 
+i.e. edges connecting to nodes neighbors are of relationship type "parentOf" - set of edges to children/subclass nodes;
 
-    children_edges = []
+Possible edge relationship types are parentOf, rangeValue, requiresDependency
+
+"""
+def get_edges_by_relationship(mm_graph, u, relationship):
+
+    edges = []
     for u, v, properties in mm_graph.out_edges(u, data = True):
-        if properties["relationship"] == "parentOf": 
-            children_edges.append((u,v))
+        if properties["relationship"] == relationship: 
+            edges.append((u,v))
 
-    return children_edges
+    return edges
 
 
 
 """
-Get the children nodes of a node: i.e. nodes neighbors of node u
-on edges of type "parentOf"
-"""
-def get_node_children(mm_graph, u):
+Get the  adjacent nodes of a node by a relationship type: i.e. nodes neighbors of node u on edges of type "parentOf"
 
-    children = set()
+Possible edge relationship types are parentOf, rangeValue, requiresDependency
+
+"""
+def get_adgacent_node_by_relationship(mm_graph, u, relationship):
+    nodes = set()
     for u, v, properties in mm_graph.out_edges(u, data = True):
-        if properties["relationship"] == "parentOf": 
-            children.add(v)
+        if properties["relationship"] == relationship: 
+            nodes.add(v)
 
-    return list(children)
+    return list(nodes)
 
 
 """
 Get the nodes that this node requires as dependencies that are also neihbors of node u
 on edges of type "requiresDependency"
-"""
 def get_node_neighbor_dependencies(mm_graph, u):
     
     children = set()
@@ -83,18 +98,20 @@ def get_node_neighbor_dependencies(mm_graph, u):
             children.add(v)
 
     return list(children)
+"""
+
 
 
 """
+TODO: check if needed and remove the get_node_dependencies method
 Get the nodes that this node requires as dependencies.
 These are all nodes *reachable* on edges of type "requiresDependency"
-"""
 def get_node_dependencies(req_graph, u):
     
-
     descendants = nx.descendants(req_graph, u)
 
     return list(descendants)
+"""
 
 
 """
@@ -140,34 +157,34 @@ def get_JSONSchema_requirements(se, root, schema_name):
         each of these values is a node that in turn is processed for
         dependencies and allowed values
         '''
-        
-        if requires_child in mm_graph.nodes[process_node]:
-            if mm_graph.nodes[process_node][requires_child]:
-                children = get_node_children(mm_graph, process_node)
-                
-                # set allowable values based on children nodes
-                if children:
-                    schema_properties = {mm_graph.nodes[process_node]["displayName"]:{"enum":[mm_graph.nodes[child]["displayName"] for child in children]}}
+        if requires_range in mm_graph.nodes[process_node]:
+            if mm_graph.nodes[process_node][requires_range]:
+                node_range = get_adgacent_node_by_relationship(mm_graph, process_node, range_value_relationship)
+                # set allowable values based on range nodes
+                if node_range:
+                    schema_properties = {mm_graph.nodes[process_node]["displayName"]:{"enum":[mm_graph.nodes[node]["displayName"] for node in node_range]}}
                     json_schema["properties"].update(schema_properties)                
                 
-                    # add children for requirements processing
-                    nodes_to_process.update(children)
+                    # add range nodes for requirements processing
+                    nodes_to_process.update(node_range)
                 
-                    # set conditional dependencies based on children dependencies
-                    for child in children:
-                        child_dependencies = get_node_neighbor_dependencies(mm_graph, child)
-                        if child_dependencies:
+                    # set conditional dependencies based on node range dependencies
+                    for node in node_range:
+                        node_dependencies = get_adgacent_node_by_relationship(mm_graph, node, requires_dependency_relationship)
+                        
+                        if node_dependencies:
                             schema_conditional_dependencies = {
                                     "if": {
                                         "properties": {
-                                        mm_graph.nodes[process_node]["displayName"]: { "enum": [mm_graph.nodes[child]["displayName"]] }
+                                        mm_graph.nodes[process_node]["displayName"]: { "enum": [mm_graph.nodes[node]["displayName"]] }
                                         },
                                         "required":[mm_graph.nodes[process_node]["displayName"]],
                                       },
-                                    "then": { "required": [mm_graph.nodes[child_dependency]["displayName"] for child_dependency in child_dependencies] },
+                                    "then": { "required": [mm_graph.nodes[node_dependency]["displayName"] for node_dependency in node_dependencies] },
                             }
-                            nodes_with_processed_dependencies.add(child)
-                            nodes_to_process.update(child_dependencies)
+                            nodes_with_processed_dependencies.add(node)
+                            nodes_to_process.update(node_dependencies)
+                            json_schema["allOf"].append(schema_conditional_dependencies)
 
 
         '''
@@ -177,8 +194,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
         processed for dependencies in turn.
         '''
         if not process_node in nodes_with_processed_dependencies:
-            process_node_dependencies = get_node_neighbor_dependencies(mm_graph, process_node)
-
+            process_node_dependencies = get_adgacent_node_by_relationship(mm_graph, process_node, requires_dependency_relationship)
             if process_node_dependencies:
                 if process_node == root: # these are unconditional dependencies
                     
@@ -193,17 +209,20 @@ def get_JSONSchema_requirements(se, root, schema_name):
                               },
                             "then": { "required": [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies] },
                     }
+                    json_schema["allOf"].append(schema_conditional_dependencies)
 
                 nodes_to_process.update(process_node_dependencies)
                 nodes_with_processed_dependencies.add(process_node)
 
 
     print("=================")
-    print("JSONSchema successfully generated from Schema.org schema!")
-    print("=================")
-    print(json_schema)
+    print("JSONSchema successfully generated from Schema.org schema:")
+    
     # if no conditional dependencies were added we can't have an empty 'AllOf' block in the schema, so remove it
     if not json_schema["allOf"]:
         del json_schema["allOf"]
+    
+    print(json.dumps(json_schema))
+    print("=================")
 
     return json_schema

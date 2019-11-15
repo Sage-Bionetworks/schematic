@@ -3,12 +3,13 @@ from SynapseStorage import SynapseStorage
 
 storage_fileview = "syn20446927"
 
+# test with a synapse client object login 
 syn = synapseclient.Synapse()
 syn.login()
+syn_store = SynapseStorage(storage_fileview, syn = syn)
 
-
-syn_store = SynapseStorage(storage_fileview, syn)
-
+# test with a synapse login token (e.g. can test locally by capturing a browser cookie after login to Synapse) 
+# syn_store = SynapseStorage(storage_fileview, token = "token_string")
 
 
 print("*****************************************************")
@@ -28,7 +29,7 @@ print(folder_list)
 
 
 print("*****************************************************")
-print("Testing retrieval of file list within a given storage dataseyt from Synapse")
+print("Testing retrieval of file list within a given storage dataset from Synapse")
 print("*****************************************************")
 file_list = syn_store.getFilesInStorageDataset("syn19557948")
 
@@ -36,7 +37,7 @@ print(file_list)
 
 
 print("*****************************************************")
-print("Testing association of antities with annotation from manifest")
+print("Testing association of entities with annotation from manifest")
 print("*****************************************************")
 manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest.csv", "syn20687304")
 

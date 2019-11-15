@@ -10,7 +10,7 @@ The Data Coordinating Center (DCC) dataset ingress process consists of three mai
 
 A dataset is a set of experimental data files derived from a single type of experimental platform, such as single-cell RNA sequencing. The chart below provides a high-level overview of the steps an HTAN Center needs to complete in each stage. Software tools steamlining the process are linked and documented, as well as contacts of DCC liaisons that can provide additional information and help facilitate data submission.
 
-![Dataset ingress flow](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/overall_ingress_flow.png)
+![Dataset ingress flow](https://user-images.githubusercontent.com/41303818/68252636-e1566600-ffda-11e9-8ab9-28b58e1be628.png)
 
 <a name = "data_transfer"></a>
 ## Dataset transfer to DCC
@@ -333,7 +333,7 @@ new_blob = source_bucket.copy_blob(source_blob, destination_bucket, 'hta-x/hta-x
 Then select the metadata template you would like to use (e.g. scRNASeq if providing metadata for a scRNASeq dataset). If you don't see the correct template for your dataset, you can select the "Minimal Metadata" template and <i>contact your DCC liaison</i>.</summary>
   <blockquote>
     
-![DataCurator project selection](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/dev/doc/img/data_curator_project_selection.png)   
+![DataCurator project selection](https://user-images.githubusercontent.com/41303818/68252750-29758880-ffdb-11e9-80a9-dd1efa2174d4.png)   
    
   </blockquote>
   </summary>

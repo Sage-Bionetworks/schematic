@@ -2,16 +2,17 @@ import json
 import os
 
 from MetadataModel import MetadataModel
-from manifest_generator import ManifestGenerator
+from ManifestGenerator import ManifestGenerator
 
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
 #inputMModelLocation = "./schemas/scRNASeq.jsonld"
-inputMModelLocation = "./schemas/HTAPP.jsonld"
+#inputMModelLocation = "./schemas/HTAPP.jsonld"
+inputMModelLocation = "./schemas/HTAN.jsonld"
 #inputMModelLocation = "./data/NFSchemaReq.jsonld"
 inputMModelLocationType = "local"
 #datasetType = "scRNASeq"
 #datasetType = "Thing"
-datasetType = "HTAPP"
+datasetType = "ScRNA-seq"
 
 mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
 
@@ -42,11 +43,12 @@ if not os.path.exists("./credentials.json"):
 
 print("Google API credentials successfully located")
 
+print("Testing manifest generation based on a provided Schema.org schema")
 manifestURL = mm.getModelManifest("HTAN_" + datasetType, datasetType, filenames = ["1.txt", "2.txt", "3.txt"])
 
 print(manifestURL)
 
-# testing manifest generation based on a provided jsonSchema
+print("Testing manifest generation based on a provided jsonSchema")
 jsonSchemaFile = "./schemas/minimalHTAPPJSONSchema.json"
 with open(jsonSchemaFile, "r") as f:
     jsonSchema = json.load(f)
@@ -63,11 +65,11 @@ print("Testing metamodel-based validation")
 print("*****************************************************")
 manifestPath = "./HTAPP_manifest_valid.csv"
 
-# testing validation with jsonSchema generation from Schema.org schema
+print("Testing validation with jsonSchema generation from Schema.org schema")
 annotationErrors = mm.validateModelManifest(manifestPath, datasetType)
 print(annotationErrors)
 
-# testing validation with provided jsonSchema
+print("Testing validation with provided jsonSchema")
 jsonSchemaFile = "./schemas/minimalHTAPPJSONSchema.json"
 with open(jsonSchemaFile, "r") as f:
     jsonSchema = json.load(f)
@@ -79,6 +81,6 @@ print("*****************************************************")
 print("Testing metamodel-based manifest population")
 print("*****************************************************")
 
-# get a sheet prepopulated with an existing manifest; returns a url to a google sheet; (this is an example scRNASeq manifest
+print("Get a sheet prepopulated with an existing manifest; this is an example scRNASeq manifest")
 prepopulatedManifestURL = mm.populateModelManifest("HTAN_" + datasetType, manifestPath, datasetType)
 print(prepopulatedManifestURL)
