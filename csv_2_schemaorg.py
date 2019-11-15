@@ -181,9 +181,14 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
     for attribute in attributes:
         if not attribute["Attribute"] in all_properties:
             display_name = attribute["Attribute"]
+           
+            subclass_of = None
+            if not pd.isnull(attribute["Parent"]):
+                subclass_of = [parent for parent in attribute["Parent"].strip().split(",")]
+
             new_class = get_class(se, display_name,
                                           description = attribute["Description"],
-                                          subclass_of = [parent for parent in attribute["Parent"].strip().split(",")]
+                                          subclass_of = subclass_of
             )
             se.update_class(new_class)
 
