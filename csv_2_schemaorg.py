@@ -50,7 +50,7 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
 
 
     if requires_dependencies:
-        requirement = {'sms:requiresDependency':[{'@id':'bts:' + se.get_class_label_from_display_name(dep)} for dep in requires_dependencies]}
+        requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
         class_attributes.update(requirement)
 
     if requires_range:
@@ -59,7 +59,7 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
     
     class_attributes.update({'sms:displayName':class_display_name})
    
-    print(class_attributes)
+    #print(class_attributes)
 
     return class_attributes
 
@@ -95,14 +95,14 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
         property_attributes.update(value_constraint)
     
     if requires_dependencies:
-        requirement = {'sms:requiresDependency':[{'@id':'bts:' + se.get_class_label_from_display_name(dep)} for dep in requires_dependencies]}
+        requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
         property_attributes.update(requirement)
     
     #'http://schema.org/domainIncludes':{'@id': 'bts:' + property_class_name},
     #'http://schema.org/rangeIncludes':{'@id': 'schema:' + allowed_values},
     
     property_attributes.update({'sms:displayName':property_display_name})
-    print(property_attributes)
+    #print(property_attributes)
     return property_attributes
 
 
@@ -166,6 +166,14 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
     # get both attributes and their properties (if any)
     properties= schema_extension[["Attribute", "Properties"]].to_dict("records")
 
+    #property to class map
+    prop_2_class = {}
+    for record in properties:
+        if not pd.isnull(record["Properties"]):
+            props = record["Properties"].strip().split(",")
+            for p in props:
+                prop_2_class[p] = record["Attribute"]
+
     #TODO: check if schema already contains attribute - may require attribute context in csv schema definition
     print("=====================")
     print("Adding attributes")
@@ -181,8 +189,9 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
         else:
             display_name = attribute["Attribute"]
+
             new_property = get_property(se, display_name,
-                                          attribute["Attribute"],
+                                          prop_2_class[display_name],
                                           description = attribute["Description"],
             )
             se.update_property(new_property)
@@ -204,7 +213,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
                 # check if property is already present as attribute under attributes column
                 # TODO: adjust logic below to compactify code
-                if p.strip() in list(schema_extension["Attribute"]):
+                p = p.strip()
+                if p in list(schema_extension["Attribute"]):
                     description = schema_extension.loc[schema_extension["Attribute"] == p]["Description"].values[0]
                     property_info = se.explore_property(se.get_property_label_from_display_name(p))
                     range_values = property_info["range"] if "range" in property_info else None
@@ -373,7 +383,9 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                        requires_range = property_info["range"]
                     )
                     se.edit_property(property_dependencies_edit)
-                print(dep_label + " added to dependencies.")
+                print(dep + " added to dependencies.")
+
+            #TODO check for cycles in dependencies graph
 
             print("<<< Done adding dependencies for " + attribute["Attribute"])
 

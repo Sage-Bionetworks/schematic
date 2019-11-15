@@ -157,11 +157,9 @@ def get_JSONSchema_requirements(se, root, schema_name):
         each of these values is a node that in turn is processed for
         dependencies and allowed values
         '''
-        
         if requires_range in mm_graph.nodes[process_node]:
             if mm_graph.nodes[process_node][requires_range]:
                 node_range = get_adgacent_node_by_relationship(mm_graph, process_node, range_value_relationship)
-                
                 # set allowable values based on range nodes
                 if node_range:
                     schema_properties = {mm_graph.nodes[process_node]["displayName"]:{"enum":[mm_graph.nodes[node]["displayName"] for node in node_range]}}
@@ -173,6 +171,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
                     # set conditional dependencies based on node range dependencies
                     for node in node_range:
                         node_dependencies = get_adgacent_node_by_relationship(mm_graph, node, requires_dependency_relationship)
+                        
                         if node_dependencies:
                             schema_conditional_dependencies = {
                                     "if": {
@@ -185,6 +184,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
                             }
                             nodes_with_processed_dependencies.add(node)
                             nodes_to_process.update(node_dependencies)
+                            json_schema["allOf"].append(schema_conditional_dependencies)
 
 
         '''
@@ -195,16 +195,9 @@ def get_JSONSchema_requirements(se, root, schema_name):
         '''
         if not process_node in nodes_with_processed_dependencies:
             process_node_dependencies = get_adgacent_node_by_relationship(mm_graph, process_node, requires_dependency_relationship)
-            print(process_node_dependencies)
             if process_node_dependencies:
                 if process_node == root: # these are unconditional dependencies
-                   
-                    print(process_node)
                     
-                    for process_node_dependency in process_node_dependencies:
-                         print(process_node_dependency)
-                         print(mm_graph.nodes[process_node_dependency]["displayName"])
-
                     json_schema["required"] += [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies]
                 else: # these are dependencies given the processed node 
                     schema_conditional_dependencies = {
@@ -216,6 +209,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
                               },
                             "then": { "required": [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies] },
                     }
+                    json_schema["allOf"].append(schema_conditional_dependencies)
 
                 nodes_to_process.update(process_node_dependencies)
                 nodes_with_processed_dependencies.add(process_node)
@@ -228,7 +222,7 @@ def get_JSONSchema_requirements(se, root, schema_name):
     if not json_schema["allOf"]:
         del json_schema["allOf"]
     
-    print(json_schema)
+    print(json.dumps(json_schema))
     print("=================")
 
     return json_schema
