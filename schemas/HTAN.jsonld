@@ -1838,7 +1838,7 @@
             "rdfs:label": "Assay",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:Thing"
+                    "@id": "schema:Thing"
                 }
             ],
             "schema:isPartOf": {
