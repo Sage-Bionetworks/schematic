@@ -8,7 +8,7 @@
     },
     "@graph": [
         {
-            "@id": "http://schema.org/Thing",
+            "@id": "schema:Thing",
             "@type": "rdfs:Class",
             "rdfs:comment": "The most generic type of item.",
             "rdfs:label": "Thing"
