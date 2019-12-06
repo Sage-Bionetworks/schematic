@@ -4,9 +4,9 @@ The Data Coordinating Center (DCC) dataset ingress process consists of three mai
 
 1. [__Dataset transfer to DCC__](#data_transfer): *Transfer your experimental data files to a cloud storage bucket.* Depending on dataset size, this step may take you anywhere from a few minutes up to multiple hours.
 
-2. [__Metadata upload__](#metadata_upload): *Upload a spreadsheet of your metadata annotations for your data files.* Depending on the number and diversity of dataset files, this step could take you from 10 minutes to a couple of hours.
+2. [__Metadata upload_and validation_](#metadata_upload): *Upload a spreadsheet of your metadata annotations for your data files.* Depending on the number and diversity of dataset files, this step could take you from 10 minutes to a couple of hours.
 
-3. [__Metadata validation and dataset submission confirmation__](#submission_confirmation): *Verify that your metadata meets requirements.* This step should take you less than 30 seconds on a typical internet connection, and completes your submission to the DCC.
+3. [__Metadata and dataset submission confirmation__](#submission_confirmation): *Verify that your metadata meets requirements.* This step should take you less than 30 seconds on a typical internet connection, and completes your submission to the DCC.
 
 A dataset is a set of experimental data files derived from a single type of experimental platform, such as single-cell RNA sequencing. The chart below provides a high-level overview of the steps an HTAN Center needs to complete in each stage. Software tools steamlining the process are linked and documented, as well as contacts of DCC liaisons that can provide additional information and help facilitate data submission.
 
