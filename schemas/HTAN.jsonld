@@ -2664,7 +2664,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Minimal Metadata"
+            "sms:displayName": "Minimal Metadata"
         },
         {
             "@id": "bts:SingleCell",
@@ -2694,7 +2694,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Bulk Cell"
+            "sms:displayName": "Bulk Cell"
         },
         {
             "@id": "bts:SingleNucleus",
@@ -2709,7 +2709,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Single Nucleus"
+            "sms:displayName": "Single Nucleus"
         },
         {
             "@id": "bts:BulkNuclei",
@@ -2724,7 +2724,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Bulk Nuclei"
+            "sms:displayName": "Bulk Nuclei"
         },
         {
             "@id": "bts:MicrofluidicsChip",
@@ -2754,7 +2754,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Droplets"
+            "sms:displayName": "Droplets"
         },
         {
             "@id": "bts:FACS",
@@ -2769,7 +2769,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " FACS"
+            "sms:displayName": "FACS"
         },
         {
             "@id": "bts:10x",
@@ -2784,7 +2784,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " 10x"
+            "sms:displayName": "10x"
         },
         {
             "@id": "bts:SingleRead",
@@ -2814,7 +2814,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Paired End"
+            "sms:displayName": "Paired End"
         },
         {
             "@id": "bts:Smart-seq2",
@@ -2844,7 +2844,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "  Smart-SeqV4"
+            "sms:displayName": "Smart-SeqV4"
         },
         {
             "@id": "bts:10xV1",
@@ -2859,7 +2859,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " 10xV1"
+            "sms:displayName": "10xV1"
         },
         {
             "@id": "bts:10xV2",
@@ -2874,7 +2874,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " 10xV2"
+            "sms:displayName": "10xV2"
         },
         {
             "@id": "bts:10xV3",
@@ -2889,7 +2889,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " 10xV3"
+            "sms:displayName": "10xV3"
         },
         {
             "@id": "bts:CEL-seq2",
@@ -2904,7 +2904,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " CEL-seq2"
+            "sms:displayName": "CEL-seq2"
         },
         {
             "@id": "bts:Drop-seq",
@@ -2919,7 +2919,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Drop-seq"
+            "sms:displayName": "Drop-seq"
         },
         {
             "@id": "bts:InDrops",
@@ -2934,7 +2934,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " inDrops"
+            "sms:displayName": "inDrops"
         },
         {
             "@id": "bts:3Prime",
@@ -2964,7 +2964,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " 5 Prime"
+            "sms:displayName": "5 Prime"
         },
         {
             "@id": "bts:FullLengthTranscript",
@@ -2979,7 +2979,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Full Length Transcript"
+            "sms:displayName": "Full Length Transcript"
         },
         {
             "@id": "bts:cDNARead",
@@ -3152,7 +3152,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Poly-dT"
+            "sms:displayName": "Poly-dT"
         },
         {
             "@id": "bts:Random",
@@ -3167,7 +3167,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Random"
+            "sms:displayName": "Random"
         },
         {
             "@id": "bts:OtherSpikeIn",
@@ -3182,7 +3182,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Other Spike In"
+            "sms:displayName": "Other Spike In"
         },
         {
             "@id": "bts:NoSpikeIn",
@@ -3197,7 +3197,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " No Spike In"
+            "sms:displayName": "No Spike In"
         },
         {
             "@id": "bts:IlluminaNextSeq500",
@@ -3227,7 +3227,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": " Illumina Next Seq 2500"
+            "sms:displayName": "Illumina Next Seq 2500"
         }
     ],
     "@id": "http://schema.biothings.io/#0.1"
