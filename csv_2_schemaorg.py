@@ -56,8 +56,9 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
     if requires_range:
         value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + se.get_class_label_from_display_name(val)} for val in requires_range]}
         class_attributes.update(value_constraint)
-    
-    class_attributes.update({'sms:displayName':class_display_name})
+
+    # ensure display name does not contain leading/trailing white spaces
+    class_attributes.update({'sms:displayName':class_display_name.strip()})
    
     #print(class_attributes)
 
@@ -101,8 +102,9 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
     #'http://schema.org/domainIncludes':{'@id': 'bts:' + property_class_name},
     #'http://schema.org/rangeIncludes':{'@id': 'schema:' + allowed_values},
     
-    property_attributes.update({'sms:displayName':property_display_name})
-    #print(property_attributes)
+    # ensure display name does not contain leading/trailing white spaces
+    property_attributes.update({'sms:displayName':property_display_name.strip()})
+    
     return property_attributes
 
 
