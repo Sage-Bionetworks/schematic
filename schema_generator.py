@@ -27,6 +27,10 @@ Assumed semantic sugar for requirements:
     resourceType must be set either to a value curatedData, experimentalData, tool, analysis.
  
 
+- requiresComponent: a node property indicating that this node requires a component (a higher level class/ontology category containing multiple attributes/objects) for its full characterization
+
+    E.g. scRNA-seq Assay is an object that requires components Biospecimen (e.g. containing attributes describing the assay sample input); scRNA-seq QC is an object that requires component scRNA-seq Assay (e.g .containing attributes describing the assay for which this QC is performed).
+
 - requiresDependency: a relationship type corresponding to an edge between two nodes/terms x and y.
     requiresDependency indicates that if a value for term x is specified, then a value for term y 
     is also required.
@@ -35,7 +39,6 @@ Assumed semantic sugar for requirements:
     E.g. suppose node experimentalData has requiresDependency edges respectively to assay and dataType.
     Then, if experimentalData is specified that requires that both assay and dataType are specified
     (e.g. in annotations of an object).
-
 
 This semantic sugar enables the generation different kinds of validation schemas including:
     - validate that all required annotation terms (i.e. properties) of an object are present in the 
@@ -49,10 +52,15 @@ This semantic sugar enables the generation different kinds of validation schemas
 """
 
 requires_dependency_relationship = "requiresDependency"
-#requires_range = "requiresChildAsValue" # "requiresChildAsValue" is also an option here, but will be deprecated
+
 requires_range = "rangeIncludes" # "requiresChildAsValue" is also an option here, but will be deprecated
-#range_value_relationship = "parentOf" # "parentOf" is also an option here but will be deprecated
+#requires_range = "requiresChildAsValue"
+
 range_value_relationship = "rangeValue" # "parentOf" is also an option here but will be deprecated
+#range_value_relationship = "parentOf"
+
+requires_component_relationship = "requiresComponent"
+
 
 """
 Get the out-edges of a node, where the edges match specific type of relationship: 
@@ -87,31 +95,56 @@ def get_adgacent_node_by_relationship(mm_graph, u, relationship):
     return list(nodes)
 
 
-"""
-Get the nodes that this node requires as dependencies that are also neihbors of node u
-on edges of type "requiresDependency"
-def get_node_neighbor_dependencies(mm_graph, u):
+def get_component_requirements(graph: MultiDiGraph, source_component: str) -> list:
+    """
+    Get all components that are associated with the given source component and required by it
+
+    Args:
+        graph: metadata model schema graph
+        source_component: source component for which to find all downstream required components
+    Returns: A list of required components
+    """
+
+    req_components = get_descendants_by_edge_type(graph, source_component, relationship_type = requires_component_relationship)
+
+    return req_components
+
+
+def get_descendants_by_edge_type(graph: MultiDiGraph, source_node_label: str, relationship_type: str) -> list:
+    """
+    Get all nodes that are reachable from this node on a specific type of edge, i.e. edge relationship type.
+
+    Args: 
+        graph: a networkx directed hypergraph; with typed edges
+        source_node_label: node whose descendants are requested
+        relationship: edge relationship type (see possible types above)
+    Returns: a list of reachable nodes
+    """
+
+
+    # get all nodes reachable from the specified root node in the data model
+    # TODO: catch if root is not in graph?
+    root_descendants = nx.descendants(graph, source_node_label)
+
+    # get the subgraph induced on all nodes reachable from the root node
+    descendants_subgraph = graph.subgraph(list(root_descendants))
+
+    '''
+    prune the descendants subgraph to include only relationship edges matching relationship type
+    '''
+    rel_edges = []
+    for u, v, properties in descendants_subgraph.edges(data = True):
+        if properties["relationship"] == relationship_type:
+            rel_edges.append((u,v))
     
-    children = set()
-    for u, v, properties in mm_graph.out_edges(u, data = True):
-        if properties["relationship"] == requires_dependency: 
-            children.add(v)
+    relationship_subgraph = descendants_subgraph.edge_subgraph(rel_edges)
 
-    return list(children)
-"""
+    # get only the nodes reachable from the root node (after the pruning above some nodes in the root-descendants subgraph might have become disconnected and will be omitted)
+    relationship_subgraph = nx.descendants(relationship_subgraph, source_node_label)
 
-
-
-"""
-TODO: check if needed and remove the get_node_dependencies method
-Get the nodes that this node requires as dependencies.
-These are all nodes *reachable* on edges of type "requiresDependency"
-def get_node_dependencies(req_graph, u):
-    
-    descendants = nx.descendants(req_graph, u)
+    descendants = nx.descendants(relationship_subgraph, source_node_label)
 
     return list(descendants)
-"""
 
 
 """

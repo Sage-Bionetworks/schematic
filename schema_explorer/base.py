@@ -86,6 +86,8 @@ def extract_name_from_uri_or_curie(item):
 def load_schema_into_networkx(schema):
     G = nx.MultiDiGraph()
     for record in schema["@graph"]:
+       
+        # TODO: clean up obsolete code 
         #if record["@type"] == "rdfs:Class":
             
             node = {}
@@ -119,15 +121,25 @@ def load_schema_into_networkx(schema):
 
             # TODO: refactor: abstract adding relationship method
             if "sms:requiresDependency" in record:
-                children = record["sms:requiresDependency"]
-                if type(children) == list:
-                    for _child in children:
+                dependencies = record["sms:requiresDependency"]
+                if type(dependencies) == list:
+                    for _dep in dependencies:
                         n1 = record["rdfs:label"]  
-                        n2 = extract_name_from_uri_or_curie(_child["@id"]) 
+                        n2 = extract_name_from_uri_or_curie(_dep["@id"]) 
                         # do not allow self-loops
                         if n1 != n2:
                             G.add_edge(n1, n2, relationship = "requiresDependency")
-            
+
+            if "sms:requiresComponent" in record:
+                components = record["sms:requiresComponent"]
+                if type(components) == list:
+                    for _comp in components:
+                        n1 = record["rdfs:label"]  
+                        n2 = extract_name_from_uri_or_curie(_comp["@id"]) 
+                        # do not allow self-loops
+                        if n1 != n2:
+                            G.add_edge(n1, n2, relationship = "requiresComponent")
+
             if "schema:rangeIncludes" in record:
                 range_nodes = record["schema:rangeIncludes"]
                 if type(range_nodes) == list:

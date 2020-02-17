@@ -16,7 +16,7 @@ scRNA-seq.csv for an example) into schema.org schema
 """
 #TODO: provide a generic template csv 
 
-def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = None, requires_dependencies: list = None, requires_range: list  = None) -> dict:
+def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = None, requires_dependencies: list = None, requires_range: list  = None, requires_components: list = None) -> dict:
     
     """Constructs a new schema.org compliant class given a set of schema object attributes
 
@@ -27,12 +27,14 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
        subclass_of: *schema* label of this attribute/object's parent node in the schema
        requires_dependencies: important characteristics, if any, of attribute X that need to be recorded as metadata features given attribute X is specified. These characteristics are attributes themselves and need to pre-exist in the schema as such
        requires_range: a set/range of values that this attribute can be assigned to. this domain is stored in the rangeIncludes property of this object. 
+       requires_components: a set of associated components/categories that this object/entity requires for its full specification; each component is a high level ontology class in which entities/objects are categorized/componentized and it is an entity on its own that needs to exist in the schema.
 
     Returns: a json schema.org object
     """
 
     class_name = se.get_class_label_from_display_name(class_display_name)
 
+    # setup biothings object template with mandatory elements
     class_attributes = {
                     '@id': 'bts:'+class_name,
                     '@type': 'rdfs:Class',
@@ -41,6 +43,8 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
                     'schema:isPartOf': {'@id': 'http://schema.biothings.io'}
     }
 
+    # determine parent class of element and add subclass relationship to schema - required by biothings
+    # if no subclass is provided, set a default to schema.org Thing
     if subclass_of:
         parent = {'rdfs:subClassOf':[{'@id':'bts:' + se.get_class_label_from_display_name(sub)} for sub in subclass_of]}
     else:
@@ -49,13 +53,24 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
     class_attributes.update(parent)
 
 
+    # add optional attribute specifying attributes/objects that are required for the specification of this object
+    # useful for specifying annotation requirements, for example
     if requires_dependencies:
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
         class_attributes.update(requirement)
 
+    # add optional attribute specifying the possible values this object can be set to; can be other objects, including primitives 
     if requires_range:
         value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + se.get_class_label_from_display_name(val)} for val in requires_range]}
         class_attributes.update(value_constraint)
+
+
+    # add optional attribute specifying the required components (i.e. high level ontology class in which entities/objects are categorized/componentized) 
+    # that are required for the specification of this object
+    if requires_components:
+        requirement = {'sms:requiresComponent':[{'@id':'bts:' + c} for c in requires_components]}
+        class_attributes.update(requirement)
+
 
     # ensure display name does not contain leading/trailing white spaces
     class_attributes.update({'sms:displayName':class_display_name.strip()})
@@ -110,7 +125,7 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
 
 
 # required headers for schema; may or may not abstract further; for now hardcode
-required_headers = set(["Attribute", "Description", "Valid Values", "Requires", "Required", "Parent", "Properties"])
+required_headers = set(["Attribute", "Description", "Valid Values", "Requires", "Required", "Parent", "Properties", "Requires Component", "Source"])
 
 
 def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
@@ -153,7 +168,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         exit()
 
     # get attributes from Attribute column
-    attributes = schema_extension[["Attribute", "Description", "Parent", "Valid Values", "Requires", "Manifest Component"]].to_dict("records")
+    attributes = schema_extension[list(required_headers)].to_dict("records")
     
     # get all properties across all attributes from Property column
     props = set(schema_extension[["Properties"]].dropna().values.flatten())
@@ -392,38 +407,49 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     se.edit_property(property_dependencies_edit)
                 print(dep + " added to dependencies.")
 
-            #TODO check for cycles in dependencies graph
+            #TODO check for cycles in attribute dependencies schema subgraph
 
             print("<<< Done adding dependencies for " + attribute["Attribute"])
 
+
+            # check if the attribute requires any components
+            component_dependencies = attribute["Requires Component"] if not pd.isnull(attribute["Requires Component"]) else continue
+
+            print(">>> Adding component dependencies for " + attribute["Attribute"])
+
+            # iterate over potentially multiple dependency components
+            for comp_dep in component_dependencies.strip().split(","):
+
+                # check if a component is already defined as an attribute; if not define it in the schema
+                if not comp_dep.strip() in list(schema_extension["Attribute"]):
+
+                    #component is not in schema so add it as a class with a parent Thing
+                    new_class = get_class(se, component,
+                                          description = None
+                    )
+                    se.update_class(new_class)
+            
+                #update this attribute requirements to include component
+                class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
+                class_info["component_dependencies"].append(se.get_class_label_from_display_name(component))
+                class_component_dependencies_edit = get_class(se, attribute["Attribute"],
+                                              description = class_info["description"],
+                                              subclass_of = class_info["subClassOf"],
+                                              requires_dependencies = class_info["dependencies"], 
+                                              requires_range = class_info["range"],
+                                              requires_components = class_info["component_dependencies"]
+                )
+                se.edit_class(class_dependencies_edit)
+
+
+            #TODO check for cycles in component dependencies schema subgraph
+
+            print("<<< Done adding component dependencies for " + attribute["Attribute"])
+
+
     print("=====================")
-    print("Done editing attributes and properties to add requirements and value ranges")
+    print("Done adding requirements and value ranges to attributes")
     print("=====================")
 
-
-    '''
-    # create components if needed and add their requirements
-    for attribute in attributes:
-        #check if component exists in schema
-        component = attribute["Manifest Component"] if not pd.isnull(attribute["Manifest Component"]) else continue
-
-        if not se.is_class_in_schema(se.get_class_label_from_display_name(component)):
-            #component is not in schema so add it with a parent Thing
-            new_class = get_class(se, component,
-                                  description = None
-            )
-            se.update_class(new_class)
-        
-        #update required attributes for component 
-        class_info = se.explore_class(se.get_class_label_from_display_name(component))
-        class_info["dependencies"].append(attribute["Attribute"])
-        class_dependencies_edit = get_class(se, attribute["Attribute"],
-                                      description = class_info["description"],
-                                      subclass_of = class_info["subClassOf"],
-                                      requires_dependencies = class_info["dependencies"], 
-                                      requires_range = class_info["range"]
-        )
-        se.edit_class(class_dependencies_edit)
-    '''
 
     return se

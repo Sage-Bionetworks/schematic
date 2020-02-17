@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional, Text
 # as collaboration with Biothings progresses
 from schema_explorer import SchemaExplorer
 from ManifestGenerator import ManifestGenerator
-from schema_generator import get_JSONSchema_requirements
+from schema_generator import get_JSONSchema_requirements, get_component_requirements
 
 class MetadataModel(object):
 
@@ -130,6 +130,26 @@ class MetadataModel(object):
 
          return mg.get_manifest()
 
+
+    def get_component_requirements(self, source_component: str) -> list:
+
+        """ Given a source model component, return all components required by it
+        Args: 
+            source_component: an attribute label indicating the source component
+
+        Returns: a list of required components associated with the source component
+        """
+        
+        # get metadata model schema graph
+        mm_graph = self.se.get_nx_schema()
+
+        # get required components for the input component
+        req_components = get_component_requirements(mm_graph, source_component) 
+
+        return req_components
+
+
+    # TODO: abstract validation in its own module
 
      def validateModelManifest(self, manifestPath:str, rootNode:str, jsonSchema:str = None) -> list:
          
