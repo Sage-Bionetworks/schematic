@@ -413,7 +413,10 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
 
             # check if the attribute requires any components
-            component_dependencies = attribute["Requires Component"] if not pd.isnull(attribute["Requires Component"]) else continue
+            if not pd.isnull(attribute["Requires Component"]):
+                component_dependencies = attribute["Requires Component"] 
+            else: 
+                continue
 
             print(">>> Adding component dependencies for " + attribute["Attribute"])
 

@@ -95,7 +95,7 @@ def get_adgacent_node_by_relationship(mm_graph, u, relationship):
     return list(nodes)
 
 
-def get_component_requirements(graph: MultiDiGraph, source_component: str) -> list:
+def get_component_requirements(graph: nx.MultiDiGraph, source_component: str) -> list:
     """
     Get all components that are associated with the given source component and required by it
 
@@ -110,7 +110,7 @@ def get_component_requirements(graph: MultiDiGraph, source_component: str) -> li
     return req_components
 
 
-def get_descendants_by_edge_type(graph: MultiDiGraph, source_node_label: str, relationship_type: str) -> list:
+def get_descendants_by_edge_type(graph: nx.MultiDiGraph, source_node_label: str, relationship_type: str) -> list:
     """
     Get all nodes that are reachable from this node on a specific type of edge, i.e. edge relationship type.
 

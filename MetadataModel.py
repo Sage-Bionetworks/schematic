@@ -131,9 +131,9 @@ class MetadataModel(object):
          return mg.get_manifest()
 
 
-    def get_component_requirements(self, source_component: str) -> list:
+     def get_component_requirements(self, source_component: str) -> list:
 
-        """ Given a source model component, return all components required by it
+        """ Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it. Useful to construct requirement dependencies not only between specific attributes but also between categories/components of attributes; can be utilized to track metadata copletion progress across multiple categories of attributes.
         Args: 
             source_component: an attribute label indicating the source component
 
