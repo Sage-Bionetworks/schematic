@@ -11,6 +11,8 @@ from synapseclient import File
 
 from schema_explorer import SchemaExplorer 
 
+import synapseutils
+
 class SynapseStorage(object):
 
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -54,7 +56,31 @@ class SynapseStorage(object):
         """
         # query fileview for all administrative data
         self.storageFileviewTable = self.syn.tableQuery("SELECT * FROM " + self.storageFileview).asDataFrame()
+    
+    def getPaginatedRestResults(currentUserId) -> dict:
+        """
+            Gets the paginated results of the REST call to Synapse to check what projects the current user is part of. 
+            
+            Returns: a dictionary with a next page token and the results
+        """
+        rest_call = syn.restGET('/projects/user/{principalId}'.format(principalId=currentUserId))
+    
+        if 'nextPageToken' in rest_call: ### if there is a next page token on the first page
+            next_page_token = rest_call['nextPageToken']
+            next_rest_call = syn.restGET('/projects/user/{principalId}?nextPageToken={nextPageToken}'.format(principalId=currentUserId, nextPageToken = next_page_token))
+            rest_call['results'].extend(next_rest_call['results'])
+            rest_call['nextPageToken'] = next_rest_call['nextPageToken'] ### update token
 
+            while next_page_token != rest_call['nextPageToken']: #if updated dict had new token
+                new_next_page_token = rest_call['nextPageToken']
+                new_next_rest_call = syn.restGET('/projects/user/{principalId}?nextPageToken={nextPageToken}'.format(principalId=currentUserId, nextPageToken = new_next_page_token))
+                rest_call['results'].extend(new_next_rest_call['results'])
+                ### update token if there is a next one
+                if 'nextPageToken' in new_next_rest_call:
+                    rest_call['nextPageToken'] = new_next_rest_call['nextPageToken'] ### update token
+                else:
+                    next_page_token = rest_call['nextPageToken']
+        return(rest_call)
 
     def getStorageProjects(self) -> list: 
     
@@ -74,7 +100,7 @@ class SynapseStorage(object):
         currentUserName = currentUser.userName 
         currentUserId = currentUser.ownerId
         
-        # get a set of projects from Synapse (that this user participates in)
+        # get a set of projects from Synapse 
         currentUserProjects = self.syn.restGET('/projects/user/{principalId}'.format(principalId=currentUserId))
         
         # prune results json filtering project id

@@ -35,7 +35,6 @@ class MetadataModel(object):
         Args: 
           se: a SchemaExplorer instance 
           inputMModelLocation:  local path, uri, synapse entity id; (e.g. gs://, syn123, /User/x/…); present location
-          inputMModelLocationType: one of [local, gs, aws, synapse]; present location type
         """
         
         self.se = SchemaExplorer()
@@ -173,7 +172,8 @@ class MetadataModel(object):
          # get annotations from manifest (array of json annotations corresponding to manifest rows)
 
          manifest = pd.read_csv(manifestPath).fillna("")
-         annotations = json.loads(manifest.to_json(orient='records'))
+         manifest_trimmed = manifest.apply(lambda x: x.str.strip() if x.dtype == "object" else x)###remove whitespaces from manifest
+         annotations = json.loads(manifest_trimmed.to_json(orient='records'))
 
          errorPositions = []
          for i, annotation in enumerate(annotations):
