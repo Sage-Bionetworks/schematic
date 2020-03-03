@@ -56,31 +56,30 @@ class SynapseStorage(object):
         """
         # query fileview for all administrative data
         self.storageFileviewTable = self.syn.tableQuery("SELECT * FROM " + self.storageFileview).asDataFrame()
-    
-    def getPaginatedRestResults(currentUserId) -> dict:
+   
+
+    def getPaginatedRestResults(currentUserId : str) -> dict:
         """
-            Gets the paginated results of the REST call to Synapse to check what projects the current user is part of. 
+            Gets the paginated results of the REST call to Synapse to check what projects the current user is part of.
+
+            Args:
+                currentUserId: synapse id for the user whose projects we want to get 
             
             Returns: a dictionary with a next page token and the results
         """
-        rest_call = syn.restGET('/projects/user/{principalId}'.format(principalId=currentUserId))
+        all_results = syn.restGET('/projects/user/{principalId}'.format(principalId=currentUserId))
     
-        if 'nextPageToken' in rest_call: ### if there is a next page token on the first page
-            next_page_token = rest_call['nextPageToken']
-            next_rest_call = syn.restGET('/projects/user/{principalId}?nextPageToken={nextPageToken}'.format(principalId=currentUserId, nextPageToken = next_page_token))
-            rest_call['results'].extend(next_rest_call['results'])
-            rest_call['nextPageToken'] = next_rest_call['nextPageToken'] ### update token
+        while 'nextPageToken' in all_results: # iterate over next page token in results while there is any
+            results_token = syn.restGET('/projects/user/{principalId}?nextPageToken={nextPageToken}'.format(principalId=currentUserId, nextPageToken = all_results['nextPageToken']))
+            all_results['results'].extend(results_token['results'])
 
-            while next_page_token != rest_call['nextPageToken']: #if updated dict had new token
-                new_next_page_token = rest_call['nextPageToken']
-                new_next_rest_call = syn.restGET('/projects/user/{principalId}?nextPageToken={nextPageToken}'.format(principalId=currentUserId, nextPageToken = new_next_page_token))
-                rest_call['results'].extend(new_next_rest_call['results'])
-                ### update token if there is a next one
-                if 'nextPageToken' in new_next_rest_call:
-                    rest_call['nextPageToken'] = new_next_rest_call['nextPageToken'] ### update token
-                else:
-                    next_page_token = rest_call['nextPageToken']
-        return(rest_call)
+            if 'nextPageToken' in results_token:
+                all_results['nextPageToken'] = results_token['nextPageToken']
+            else:
+                del(all_results['nextPageToken'])
+
+        return all_results
+            
 
     def getStorageProjects(self) -> list: 
     

@@ -110,24 +110,28 @@ def get_component_requirements(graph: nx.MultiDiGraph, source_component: str) ->
     return req_components
 
 
-def get_descendants_by_edge_type(graph: nx.MultiDiGraph, source_node_label: str, relationship_type: str) -> list:
+def get_descendants_by_edge_type(graph: nx.MultiDiGraph, source_node_label: str, relationship_type: str, connected: bool = True, ordered: bool = False) -> list:
     """
-    Get all nodes that are reachable from this node on a specific type of edge, i.e. edge relationship type.
+    Get all nodes that are descendent from this node on a specific type of edge, i.e. edge relationship type.
 
     Args: 
         graph: a networkx directed hypergraph; with typed edges
         source_node_label: node whose descendants are requested
         relationship: edge relationship type (see possible types above)
-    Returns: a list of reachable nodes
+        connected: if True ensure that all descendent nodes are reachable - i.e. are in the same connected component - from the source node; if False, the descendent nodes could be in multiple connected components. Default is True. 
+        ordered: if True, the list of descendant nodes will be topologically ordered. Default is False. 
+    Returns: a list of nodes, descending from this node
     """
 
 
     # get all nodes reachable from the specified root node in the data model
-    # TODO: catch if root is not in graph?
-    root_descendants = nx.descendants(graph, source_node_label)
+    # TODO: catch if root is not in graph currently networkx would throw an exception?
 
+    root_descendants = nx.descendants(graph, source_node_label)
     # get the subgraph induced on all nodes reachable from the root node
-    descendants_subgraph = graph.subgraph(list(root_descendants))
+    subgraph_nodes = list(root_descendants)
+    subgraph_nodes.append(source_node_label)
+    descendants_subgraph = graph.subgraph(subgraph_nodes)
 
     '''
     prune the descendants subgraph to include only relationship edges matching relationship type
@@ -137,12 +141,30 @@ def get_descendants_by_edge_type(graph: nx.MultiDiGraph, source_node_label: str,
         if properties["relationship"] == relationship_type:
             rel_edges.append((u,v))
     
-    relationship_subgraph = descendants_subgraph.edge_subgraph(rel_edges)
+    
+    relationship_subgraph = nx.DiGraph()
+    relationship_subgraph.add_edges_from(rel_edges)
 
-    # get only the nodes reachable from the root node (after the pruning above some nodes in the root-descendants subgraph might have become disconnected and will be omitted)
-    relationship_subgraph = nx.descendants(relationship_subgraph, source_node_label)
+    #relationship_subgraph = descendants_subgraph.edge_subgraph(rel_edges)
 
-    descendants = nx.descendants(relationship_subgraph, source_node_label)
+    descendants = relationship_subgraph.nodes()
+    
+    if connected and ordered:
+        # get the set of reachable nodes from the source node
+        descendants = nx.descendants(relationship_subgraph, source_node_label)
+        descendants.add(source_node_label)
+        # the descendants are unordered (peculiarity of nx descendants call)
+        # form the subgraph on descendants and order it topologically
+        # this assumes an acyclic subgraph
+        descendants = nx.topological_sort(relationship_subgraph.subgraph(descendants))
+    elif connected:
+        # get only the nodes reachable from the root node (after the pruning above some nodes in the root-descendants subgraph might have become disconnected and will be omitted)
+        descendants = nx.descendants(relationship_subgraph, source_node_label)
+        descendants.add(source_node_label)
+    elif ordered:
+        # sort nodes topologically - this requires an acyclic graph 
+        descendants = nx.topological_sort(relationship_subgraph)
+
 
     return list(descendants)
 
@@ -256,6 +278,8 @@ def get_JSONSchema_requirements(se, root, schema_name):
         del json_schema["allOf"]
     
     print(json.dumps(json_schema))
+    with open("./schemas/json_schema_log.json", "w") as js_f:
+        json.dump(json_schema, js_f, indent = 2)
     print("=================")
 
     return json_schema

@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional, Text
 # as collaboration with Biothings progresses
 from schema_explorer import SchemaExplorer
 from ManifestGenerator import ManifestGenerator
-from schema_generator import get_JSONSchema_requirements, get_component_requirements
+from schema_generator import get_JSONSchema_requirements, get_component_requirements, get_descendants_by_edge_type
 
 class MetadataModel(object):
 
@@ -109,6 +109,23 @@ class MetadataModel(object):
          """
          pass
 
+     def getOrderedModelNodes(self, rootNode: str, relationshipType: str) -> list:
+        """ get a list of model objects ordered by their topological sort rank in a model subgraph on edges of a given relationship type.
+
+        Args:
+          rootNode: a schema object/node label (i.e. term); all returned nodes will be this node's descendants
+          relationshipType: edge label type of the schema subgraph (e.g. requiresDependency)
+        Returns: an ordered list of objects 
+         Raises: TODO 
+             ValueError: rootNode not found in metadata model.
+        """
+
+        ordered_nodes = get_descendants_by_edge_type(self.se.schema_nx, rootNode, relationshipType, connected = True, ordered = True)
+
+        ordered_nodes.reverse()
+
+        return ordered_nodes
+         
 
      def getModelManifest(self, title, rootNode:str, filenames:list = None) -> str: 
 
