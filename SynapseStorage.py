@@ -151,7 +151,7 @@ class SynapseStorage(object):
         filesTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "file") & (self.storageFileviewTable["parentId"] == datasetId)]
 
         # return an array of tuples (fileId, fileName)
-        # check if a metadata-manifest file has been passed in the list of filenames; assuming the manifest file has a specific filename, e.g. synapse_storage_manifest.csv; remove the manifest filename if so; (no need to add metadata to the metadata container)
+        # check if a metadata-manifest file has been passed in the list of filenames; assuming the manifest file has a specific filename, e.g. synapse_storage_manifest.csv; remove the manifest filename if so; (no need to add metadata to the metadata container); TODO: expose manifest filename as a configurable parameter and don't hard code.
 
         fileList = list(row for row in filesTable[["id", "name"]].itertuples(index = False, name = None) if not row[1] == "synapse_storage_manifest.csv")
 
@@ -162,7 +162,7 @@ class SynapseStorage(object):
         """Associate metadata with files in a storage dataset already on Synapse. 
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
         
-            Args: metadataManifestPath path to csv containing a validated metadata manifest. The manifest should include a column entityId containing synapse IDs of files/entities to be associated with metadata 
+            Args: metadataManifestPath path to csv containing a validated metadata manifest. The manifest should include a column entityId containing synapse IDs of files/entities to be associated with metadata, if that is applicable to the dataset type. Some datasets, e.g. clinical data, do not contain file id's, but data is stored in a table: one row per item. In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file. 
             Returns: synapse Id of the uploaded manifest
             Raises: TODO
                 FileNotFoundException: Manifest file does not exist at provided path.
@@ -171,6 +171,23 @@ class SynapseStorage(object):
 
         # read manifest csv
         manifest = pd.read_csv(metadataManifestPath)
+
+
+        # there are no Synapse entities associated with the rows of this manifest
+        # this may be due to data type (e.g. clinical data) being tabular and not requiring files; to utilize uniform interfaces downstream (i.e. fileviews), a Synapse entity (a folder) is created for each row and an entity column is added to the manifest containing the resulting entity IDs; a table is also created at present as an additional interface for query and interaction with the data. 
+        if not "entityId" in manifest.columns:
+            entityIds = []
+            
+            for index, row in manifest.iterrows():
+                rowEntity = Folder(datasetId + "_" + str(index), parent=datasetId)
+                rowEntity = syn.store(rowEntity)
+                entityIds.append(rowEntity)
+
+            manifest["entityId"] = entityIds
+
+            # create and store a table corresponding to this dataset in this dataset parent project
+            table = build_table(datasetId, syn.get(datasetId, downloadFile = False).parent, manifest)
+            table = syn.store(table)
 
         # use file ID (that is a synapse ID) as index of the dataframe
         manifest.set_index("entityId", inplace = True)

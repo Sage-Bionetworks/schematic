@@ -291,6 +291,8 @@ class ManifestGenerator(object):
         print(manifest_fields)
         manifest_fields.sort()
 
+        # should be able to abstract custom logic so that certain
+        # special fields appear as first (or last) columns
         if "Filename" in manifest_fields:
             pos = manifest_fields.index("Filename")
             manifest_fields[pos] = manifest_fields[0]
