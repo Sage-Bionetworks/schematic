@@ -21,9 +21,9 @@ print(projects_list)
 
 
 print("*****************************************************")
-print("Testing retrieval of folder list within a given storage project from Synapse")
+print("Testing retrieval of dataset list within a given storage project from Synapse")
 print("*****************************************************")
-folder_list = syn_store.getStorageDatasetsInProject("syn19557917")
+folder_list = syn_store.getStorageDatasetsInProject("syn20687304")
 
 print(folder_list)
 
@@ -39,6 +39,6 @@ print(file_list)
 print("*****************************************************")
 print("Testing association of entities with annotation from manifest")
 print("*****************************************************")
-manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest.csv", "syn20687304")
+manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest_no_entity_ids.csv", "syn21682582")
 
 print(manifest_syn_id)

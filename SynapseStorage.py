@@ -7,7 +7,8 @@ import pandas as pd
 # Python client for Synapse
 import synapseclient
 
-from synapseclient import File
+from synapseclient import File, Folder
+from synapseclient.table import build_table
 
 from schema_explorer import SchemaExplorer 
 
@@ -131,10 +132,18 @@ class SynapseStorage(object):
         # select all folders and their names w/in the storage project
         foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["projectId"] == projectId)]
 
-        # return an array of tuples (folderId, folderName)
-        folderList = list(foldersTable[["id", "name"]].itertuples(index = False, name = None))
-
-        return folderList
+        # get an array of tuples (folderId, folderName)
+        # some folders are part of datasets; others contain datasets
+        # each dataset parent is the project; folders part of a dataset have another folder as a parent
+        # to get folders if and only if they contain datasets for each folder 
+        # check if folder's parent is the project; if so that folder contains a dataset 
+        
+        datasetList = [] 
+        for folder in list(foldersTable[["id", "name"]].itertuples(index = False, name = None)):
+            if self.syn.get(folder[0], downloadFile = False).properties["parentId"] == projectId:
+                datasetList.append(folder)
+        
+        return datasetList
 
 
     def getFilesInStorageDataset(self, datasetId:str) -> list:
@@ -173,28 +182,36 @@ class SynapseStorage(object):
         manifest = pd.read_csv(metadataManifestPath)
 
 
-        # there are no Synapse entities associated with the rows of this manifest
-        # this may be due to data type (e.g. clinical data) being tabular and not requiring files; to utilize uniform interfaces downstream (i.e. fileviews), a Synapse entity (a folder) is created for each row and an entity column is added to the manifest containing the resulting entity IDs; a table is also created at present as an additional interface for query and interaction with the data. 
+        # if there are no Synapse entities associated with the rows of this manifest
+        # this may be due to data type (e.g. clinical data) being tabular 
+        # and not requiring files; to utilize uniform interfaces downstream
+        # (i.e. fileviews), a Synapse entity (a folder) is created for each row 
+        # and an entity column is added to the manifest containing the resulting 
+        # entity IDs; a table is also created at present as an additional interface 
+        # for downstream query and interaction with the data. 
+        # TODO: associate metadata with objects in the same loop iteration;
+        # currently there is an extra iteration below.
         if not "entityId" in manifest.columns:
             entityIds = []
             
             for index, row in manifest.iterrows():
                 rowEntity = Folder(datasetId + "_" + str(index), parent=datasetId)
-                rowEntity = syn.store(rowEntity)
-                entityIds.append(rowEntity)
+                rowEntity = self.syn.store(rowEntity)
+                entityIds.append(rowEntity["id"])
 
             manifest["entityId"] = entityIds
 
             # create and store a table corresponding to this dataset in this dataset parent project
-            table = build_table(datasetId, syn.get(datasetId, downloadFile = False).parent, manifest)
-            table = syn.store(table)
+            table = build_table(datasetId, self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
+        
+        table = self.syn.store(table)
 
         # use file ID (that is a synapse ID) as index of the dataframe
         manifest.set_index("entityId", inplace = True)
 
         # convert metadata in a form suitable for setting annotations on Synapse
         manifestMetadata = manifest.to_dict("index") 
-
+        
         # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels
         se = SchemaExplorer()
 
