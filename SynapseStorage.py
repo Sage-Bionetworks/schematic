@@ -18,6 +18,7 @@ class SynapseStorage(object):
 
     """Implementation of Storage interface for datasets/files stored on Synapse.
     Provides utilities to list files in a specific project; update files annotations, create fileviews, etc.
+    TODO: Need to define the interface and rename and/or refactor some of the methods below.
     """
 
 
@@ -46,7 +47,10 @@ class SynapseStorage(object):
         self.storageFileview = storageFileview
 
         # get data in administrative fileview for this pipeline 
-        self.setStorageFileviewTable() 
+        self.setStorageFileviewTable()
+
+        # default manifest name
+        self.manifest = "synapse_storage_manifest.csv"
 
 
     def setStorageFileviewTable(self) -> None:
@@ -80,7 +84,7 @@ class SynapseStorage(object):
                 del(all_results['nextPageToken'])
 
         return all_results
-            
+
 
     def getStorageProjects(self) -> list: 
     
@@ -146,11 +150,13 @@ class SynapseStorage(object):
         return datasetList
 
 
-    def getFilesInStorageDataset(self, datasetId:str) -> list:
+    def getFilesInStorageDataset(self, datasetId:str, fileNames:list = None) -> list:
         """ get all files in a given dataset folder 
 
         Args:
             datasetId: synapse ID of a storage dataset
+            fileName: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
+            metadata manifests); if fileNames is not None all files matching the names in the fileNames list are returned if present
         Returns: a list of files; the list consist of tuples (fileId, fileName)
         Raises: TODO
             ValueError: Dataset ID not found.
@@ -160,12 +166,74 @@ class SynapseStorage(object):
         filesTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "file") & (self.storageFileviewTable["parentId"] == datasetId)]
 
         # return an array of tuples (fileId, fileName)
-        # check if a metadata-manifest file has been passed in the list of filenames; assuming the manifest file has a specific filename, e.g. synapse_storage_manifest.csv; remove the manifest filename if so; (no need to add metadata to the metadata container); TODO: expose manifest filename as a configurable parameter and don't hard code.
+        fileList = []
+        for row in filesTable[["id", "name"]].itertuples(index = False, name = None): 
+            if not row[1] == self.manifest and not fileNames:
+                # check if a metadata-manifest file has been passed in the list of filenames; assuming the manifest file has a specific filename, e.g. synapse_storage_manifest.csv; remove the manifest filename if so; (no need to add metadata to the metadata container); TODO: expose manifest filename as a configurable parameter and don't hard code.
+                fileList.append(row)
 
-        fileList = list(row for row in filesTable[["id", "name"]].itertuples(index = False, name = None) if not row[1] == "synapse_storage_manifest.csv")
+            elif not fileNames == None and row[1] in fileNames:
+                # if fileNames is specified and file is in fileNames add it to the returned list
+                fileList.append(row)
 
         return fileList
         
+
+    def getDatasetManifest(self, datasetId:str) -> str:
+        """ get the manifest associated with a given dataset 
+
+        Args:
+            datasetId: synapse ID of a storage dataset
+        Returns: a list of files; the list consist of tuples (fileId, fileName); returns empty list if no manifest is found
+        """
+
+        # get a list of files containing the manifest for this dataset (if any)
+        
+        manifest = self.getFilesInStorageDataset(datasetId, fileNames = [self.manifest])
+        
+        if not manifest:
+            return []
+        else:
+            return manifest[0] # extract manifest tuple from list
+
+
+    def getAllManifests(self) -> list:
+        """ get all metadata manifest files across all datasets in projects a user has access to
+
+        Returns: a list of projects, datasets per project and metadata manifest Synapse ID for each dataset
+        as a list of tuples, one for each manifest:
+                     [
+                        (
+                            (projectId, projectName),
+                            (datasetId, dataName),
+                            (manifestId, manifestName)
+                        ),
+                        ...
+                     ]
+
+        TODO: return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
+        """
+        
+        projects = self.getStorageProjects()
+
+        for (projectId, projectName) in projects:
+
+            datasets = self.getStorageDatasetsInProject(projectId)
+
+            manifests = []
+            for (datasetId, datasetName) in datasets:
+
+                # encode information about the manifest in a simple list (so that R clients can unpack it)
+                # eventually can serialize differently
+                manifest = (
+                            (projectId, projectName),
+                            (datasetId, datasetName),
+                            self.getDatasetManifest(datasetId)
+                )
+                manifests.append(manifest)
+
+        return manifests
+
 
     def associateMetadataWithFiles(self, metadataManifestPath:str, datasetId:str) -> str:
         """Associate metadata with files in a storage dataset already on Synapse. 
