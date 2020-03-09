@@ -21,7 +21,7 @@ inputMModelLocationType = "local"
 modelType = "TableA" 
 
 mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
-"""
+
 print("*****************************************************")
 print("Testing metamodel-based manifest generation")
 print("*****************************************************")
@@ -90,9 +90,9 @@ print("*****************************************************")
 print("Get a sheet prepopulated with an existing manifest; this is an example manifest")
 prepopulatedManifestURL = mm.populateModelManifest("Test_" + modelType, manifestPath, modelType)
 print(prepopulatedManifestURL)
-"""
 
-"""
+
+
 print("*****************************************************")
 print("Testing metamodel-based object dependency generation")
 print("*****************************************************")
@@ -105,7 +105,7 @@ with open(modelType + "_dependencies.json", "w") as f:
     json.dump(dependencies, f, indent = 3)
 
 print("Dependencies stored: " + modelType + "_dependencies.json")
-"""
+
 
 print("*****************************************************")
 print("Testing metamodel-based component dependency generation")
