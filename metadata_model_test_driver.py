@@ -1,18 +1,20 @@
 import json
 import os
+import pprint
 
 from MetadataModel import MetadataModel
 from ManifestGenerator import ManifestGenerator
 
+pp = pprint.PrettyPrinter(indent = 3)
+
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
-#inputMModelLocation = "./schemas/scRNASeq.jsonld"
-#inputMModelLocation = "./schemas/HTAPP.jsonld"
 inputMModelLocation = "./schemas/HTAN.jsonld"
-#inputMModelLocation = "./data/NFSchemaReq.jsonld"
+inputMModelLocation = "./schemas/Test.jsonld"
 inputMModelLocationType = "local"
-#datasetType = "scRNASeq"
-#datasetType = "Thing"
-datasetType = "ScRNA-seq"
+#modelType = "Thing"
+#modelType = "Treatment"
+
+modelType = "TableA" 
 
 mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
 
@@ -29,8 +31,8 @@ print("*****************************************************")
 # Google API credentials file stored on Synapse 
 credentials_syn_file = "syn21088684"
 
-# try downloading credentials file, if needed 
 
+# try downloading credentials file, if needed 
 if not os.path.exists("./credentials.json"):
     
     print("Retrieving Google API credentials from Synapse")
@@ -44,7 +46,7 @@ if not os.path.exists("./credentials.json"):
 print("Google API credentials successfully located")
 
 print("Testing manifest generation based on a provided Schema.org schema")
-manifestURL = mm.getModelManifest("HTAN_" + datasetType, datasetType, filenames = ["1.txt", "2.txt", "3.txt"])
+manifestURL = mm.getModelManifest("Test_" + modelType, modelType, filenames = ["1.txt", "2.txt", "3.txt"])
 
 print(manifestURL)
 
@@ -66,21 +68,52 @@ print("*****************************************************")
 manifestPath = "./HTAPP_manifest_valid.csv"
 
 print("Testing validation with jsonSchema generation from Schema.org schema")
-annotationErrors = mm.validateModelManifest(manifestPath, datasetType)
-print(annotationErrors)
+annotationErrors = mm.validateModelManifest(manifestPath, modelType)
+pp.pprint(annotationErrors)
 
 print("Testing validation with provided jsonSchema")
 jsonSchemaFile = "./schemas/minimalHTAPPJSONSchema.json"
 with open(jsonSchemaFile, "r") as f:
     jsonSchema = json.load(f)
-annotationErrors = mm.validateModelManifest(manifestPath, datasetType, jsonSchema)
-print(annotationErrors)
+annotationErrors = mm.validateModelManifest(manifestPath, modelType, jsonSchema)
+pp.pprint(annotationErrors)
 
 
 print("*****************************************************")
 print("Testing metamodel-based manifest population")
 print("*****************************************************")
 
-print("Get a sheet prepopulated with an existing manifest; this is an example scRNASeq manifest")
-prepopulatedManifestURL = mm.populateModelManifest("HTAN_" + datasetType, manifestPath, datasetType)
+print("Get a sheet prepopulated with an existing manifest; this is an example manifest")
+prepopulatedManifestURL = mm.populateModelManifest("Test_" + modelType, manifestPath, modelType)
 print(prepopulatedManifestURL)
+
+
+
+print("*****************************************************")
+print("Testing metamodel-based object dependency generation")
+print("*****************************************************")
+
+print("Generating dependency graph and ordering dependencies")
+dependencies = mm.getOrderedModelNodes(modelType, "requiresDependency")
+pp.pprint(dependencies)
+
+with open(modelType + "_dependencies.json", "w") as f:
+    json.dump(dependencies, f, indent = 3)
+
+print("Dependencies stored: " + modelType + "_dependencies.json")
+
+
+print("*****************************************************")
+print("Testing metamodel-based component dependency generation")
+print("*****************************************************")
+
+print("Generating dependency graph and ordering dependencies")
+modelType = "CoordinationCenterProject"
+dependencies = mm.getOrderedModelNodes(modelType, "requiresComponent")
+pp.pprint(dependencies)
+
+with open(modelType + "component_dependencies.json", "w") as f:
+    json.dump(dependencies, f, indent = 3)
+
+print("Component dependencies stored: " + modelType + "component_dependencies.json")
+

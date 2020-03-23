@@ -314,12 +314,19 @@ class SchemaExplorer():
         requires_range = []
         if  "rangeIncludes" in self.schema_nx.node[schema_class]:
             for range_class in self.schema_nx.node[schema_class]["rangeIncludes"]:
-                requires_range.append(extract_name_from_uri_or_curie(range_class["@id"])) 
+                requires_range.append(extract_name_from_uri_or_curie(range_class["@id"]))
+
         requires_dependencies = []
         if  "requiresDependency" in self.schema_nx.node[schema_class]:
             for dep_class in self.schema_nx.node[schema_class]["requiresDependency"]:
                 requires_dependencies.append(extract_name_from_uri_or_curie(dep_class["@id"])) 
-        
+
+        requires_components = []
+        if  "requiresComponent" in self.schema_nx.node[schema_class]:
+            for comp_dep_class in self.schema_nx.node[schema_class]["requiresComponent"]:
+                requires_components.append(extract_name_from_uri_or_curie(comp_dep_class["@id"])) 
+
+
         class_info = {'properties': self.find_all_class_properties(schema_class),
                       'description': self.schema_nx.node[schema_class]['description'],
                       'uri': curie2uri(self.schema_nx.node[schema_class]["uri"], namespaces),
@@ -328,6 +335,7 @@ class SchemaExplorer():
                       'subClassOf':subclasses, 
                       'range':requires_range,
                       'dependencies': requires_dependencies,
+                      'component_dependencies': requires_components,
                       'parent_classes': self.find_parent_classes(schema_class)
         }
 

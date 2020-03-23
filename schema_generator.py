@@ -27,6 +27,10 @@ Assumed semantic sugar for requirements:
     resourceType must be set either to a value curatedData, experimentalData, tool, analysis.
  
 
+- requiresComponent: a node property indicating that this node requires a component (a higher level class/ontology category containing multiple attributes/objects) for its full characterization
+
+    E.g. scRNA-seq Assay is an object that requires components Biospecimen (e.g. containing attributes describing the assay sample input); scRNA-seq QC is an object that requires component scRNA-seq Assay (e.g .containing attributes describing the assay for which this QC is performed).
+
 - requiresDependency: a relationship type corresponding to an edge between two nodes/terms x and y.
     requiresDependency indicates that if a value for term x is specified, then a value for term y 
     is also required.
@@ -35,7 +39,6 @@ Assumed semantic sugar for requirements:
     E.g. suppose node experimentalData has requiresDependency edges respectively to assay and dataType.
     Then, if experimentalData is specified that requires that both assay and dataType are specified
     (e.g. in annotations of an object).
-
 
 This semantic sugar enables the generation different kinds of validation schemas including:
     - validate that all required annotation terms (i.e. properties) of an object are present in the 
@@ -49,10 +52,15 @@ This semantic sugar enables the generation different kinds of validation schemas
 """
 
 requires_dependency_relationship = "requiresDependency"
-#requires_range = "requiresChildAsValue" # "requiresChildAsValue" is also an option here, but will be deprecated
+
 requires_range = "rangeIncludes" # "requiresChildAsValue" is also an option here, but will be deprecated
-#range_value_relationship = "parentOf" # "parentOf" is also an option here but will be deprecated
+#requires_range = "requiresChildAsValue"
+
 range_value_relationship = "rangeValue" # "parentOf" is also an option here but will be deprecated
+#range_value_relationship = "parentOf"
+
+requires_component_relationship = "requiresComponent"
+
 
 """
 Get the out-edges of a node, where the edges match specific type of relationship: 
@@ -87,31 +95,78 @@ def get_adgacent_node_by_relationship(mm_graph, u, relationship):
     return list(nodes)
 
 
-"""
-Get the nodes that this node requires as dependencies that are also neihbors of node u
-on edges of type "requiresDependency"
-def get_node_neighbor_dependencies(mm_graph, u):
+def get_component_requirements(graph: nx.MultiDiGraph, source_component: str) -> list:
+    """
+    Get all components that are associated with the given source component and required by it
+
+    Args:
+        graph: metadata model schema graph
+        source_component: source component for which to find all downstream required components
+    Returns: A list of required components
+    """
+
+    req_components = get_descendants_by_edge_type(graph, source_component, relationship_type = requires_component_relationship)
+
+    return req_components
+
+
+def get_descendants_by_edge_type(graph: nx.MultiDiGraph, source_node_label: str, relationship_type: str, connected: bool = True, ordered: bool = False) -> list:
+    """
+    Get all nodes that are descendent from this node on a specific type of edge, i.e. edge relationship type.
+
+    Args: 
+        graph: a networkx directed hypergraph; with typed edges
+        source_node_label: node whose descendants are requested
+        relationship: edge relationship type (see possible types above)
+        connected: if True ensure that all descendent nodes are reachable - i.e. are in the same connected component - from the source node; if False, the descendent nodes could be in multiple connected components. Default is True. 
+        ordered: if True, the list of descendant nodes will be topologically ordered. Default is False. 
+    Returns: a list of nodes, descending from this node
+    """
+
+
+    # get all nodes reachable from the specified root node in the data model
+    # TODO: catch if root is not in graph currently networkx would throw an exception?
+
+    root_descendants = nx.descendants(graph, source_node_label)
+    # get the subgraph induced on all nodes reachable from the root node
+    subgraph_nodes = list(root_descendants)
+    subgraph_nodes.append(source_node_label)
+    descendants_subgraph = graph.subgraph(subgraph_nodes)
+
+    '''
+    prune the descendants subgraph to include only relationship edges matching relationship type
+    '''
+    rel_edges = []
+    for u, v, properties in descendants_subgraph.edges(data = True):
+        if properties["relationship"] == relationship_type:
+            rel_edges.append((u,v))
     
-    children = set()
-    for u, v, properties in mm_graph.out_edges(u, data = True):
-        if properties["relationship"] == requires_dependency: 
-            children.add(v)
-
-    return list(children)
-"""
-
-
-
-"""
-TODO: check if needed and remove the get_node_dependencies method
-Get the nodes that this node requires as dependencies.
-These are all nodes *reachable* on edges of type "requiresDependency"
-def get_node_dependencies(req_graph, u):
     
-    descendants = nx.descendants(req_graph, u)
+    relationship_subgraph = nx.DiGraph()
+    relationship_subgraph.add_edges_from(rel_edges)
+
+    #relationship_subgraph = descendants_subgraph.edge_subgraph(rel_edges)
+
+    descendants = relationship_subgraph.nodes()
+    
+    if connected and ordered:
+        # get the set of reachable nodes from the source node
+        descendants = nx.descendants(relationship_subgraph, source_node_label)
+        descendants.add(source_node_label)
+        # the descendants are unordered (peculiarity of nx descendants call)
+        # form the subgraph on descendants and order it topologically
+        # this assumes an acyclic subgraph
+        descendants = nx.topological_sort(relationship_subgraph.subgraph(descendants))
+    elif connected:
+        # get only the nodes reachable from the root node (after the pruning above some nodes in the root-descendants subgraph might have become disconnected and will be omitted)
+        descendants = nx.descendants(relationship_subgraph, source_node_label)
+        descendants.add(source_node_label)
+    elif ordered:
+        # sort nodes topologically - this requires an acyclic graph 
+        descendants = nx.topological_sort(relationship_subgraph)
+
 
     return list(descendants)
-"""
 
 
 """
@@ -223,6 +278,8 @@ def get_JSONSchema_requirements(se, root, schema_name):
         del json_schema["allOf"]
     
     print(json.dumps(json_schema))
+    with open("./schemas/json_schema_log.json", "w") as js_f:
+        json.dump(json_schema, js_f, indent = 2)
     print("=================")
 
     return json_schema

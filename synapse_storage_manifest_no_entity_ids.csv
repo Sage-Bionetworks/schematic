@@ -1,0 +1,5 @@
+HTANSampleID,HTANParticipantID,CancerType,Filename,LibraryConstructionMethod
+HTAN_12_1,1,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L002_R1_001.fastq.gz,10x
+HTAN_12_2,2,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L001_R2_001.fastq.gz,10x
+HTAN_12_3,3,MalignantBrainNeoplasm,MantonCB1_HiSeq_1_S1_L001_R1_001.fastq.gz,10x
+HTAN_12_4,4,BreastCarcinoma,MantonCB1_HiSeq_1_S1_L002_R2_001.fastq.gz,10x

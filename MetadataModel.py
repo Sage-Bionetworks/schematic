@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional, Text
 # as collaboration with Biothings progresses
 from schema_explorer import SchemaExplorer
 from ManifestGenerator import ManifestGenerator
-from schema_generator import get_JSONSchema_requirements
+from schema_generator import get_JSONSchema_requirements, get_component_requirements, get_descendants_by_edge_type
 
 class MetadataModel(object):
 
@@ -109,6 +109,23 @@ class MetadataModel(object):
          """
          pass
 
+     def getOrderedModelNodes(self, rootNode: str, relationshipType: str) -> list:
+        """ get a list of model objects ordered by their topological sort rank in a model subgraph on edges of a given relationship type.
+
+        Args:
+          rootNode: a schema object/node label (i.e. term); all returned nodes will be this node's descendants
+          relationshipType: edge label type of the schema subgraph (e.g. requiresDependency)
+        Returns: an ordered list of objects 
+         Raises: TODO 
+             ValueError: rootNode not found in metadata model.
+        """
+
+        ordered_nodes = get_descendants_by_edge_type(self.se.schema_nx, rootNode, relationshipType, connected = True, ordered = True)
+
+        ordered_nodes.reverse()
+
+        return ordered_nodes
+         
 
      def getModelManifest(self, title, rootNode:str, filenames:list = None) -> str: 
 
@@ -129,6 +146,26 @@ class MetadataModel(object):
 
          return mg.get_manifest()
 
+
+     def get_component_requirements(self, source_component: str) -> list:
+
+        """ Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it. Useful to construct requirement dependencies not only between specific attributes but also between categories/components of attributes; can be utilized to track metadata copletion progress across multiple categories of attributes.
+        Args: 
+            source_component: an attribute label indicating the source component
+
+        Returns: a list of required components associated with the source component
+        """
+        
+        # get metadata model schema graph
+        mm_graph = self.se.get_nx_schema()
+
+        # get required components for the input component
+        req_components = get_component_requirements(mm_graph, source_component) 
+
+        return req_components
+
+
+    # TODO: abstract validation in its own module
 
      def validateModelManifest(self, manifestPath:str, rootNode:str, jsonSchema:str = None) -> list:
          
@@ -213,7 +250,8 @@ class MetadataModel(object):
          Raises: TODO 
             ValueError: rootNode not found in metadata model.
          """
-         mg = ManifestGenerator(title, self.se, rootNode, {"Filename":[]})
+         #mg = ManifestGenerator(title, self.se, rootNode, {"Filename":[]})
+         mg = ManifestGenerator(title, self.se, rootNode)
          emptyManifestURL = mg.get_manifest()
 
          return mg.populate_manifest_spreasheet(manifestPath, emptyManifestURL)
