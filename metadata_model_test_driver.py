@@ -8,15 +8,11 @@ from ManifestGenerator import ManifestGenerator
 pp = pprint.PrettyPrinter(indent = 3)
 
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
-#inputMModelLocation = "./schemas/scRNASeq.jsonld"
-#inputMModelLocation = "./schemas/HTAPP.jsonld"
-#inputMModelLocation = "./schemas/HTAN.jsonld"
-#inputMModelLocation = "./data/NFSchemaReq.jsonld"
+inputMModelLocation = "./schemas/HTAN.jsonld"
 inputMModelLocation = "./schemas/Test.jsonld"
 inputMModelLocationType = "local"
-#modelType = "scRNASeq"
 #modelType = "Thing"
-#modelType = "ScRNA-seq"
+#modelType = "Treatment"
 
 modelType = "TableA" 
 

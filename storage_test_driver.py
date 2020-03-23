@@ -43,7 +43,8 @@ print(file_list)
 print("*****************************************************")
 print("Testing association of entities with annotation from manifest")
 print("*****************************************************")
-manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest_no_entity_ids.csv", "syn21682582")
+#manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest_no_entity_ids.csv", "syn21682582")
+manifest_syn_id = syn_store.associateMetadataWithFiles("./FamilyHistory_manifest.csv", "syn21753028")
 
 print(manifest_syn_id)
 
@@ -51,6 +52,5 @@ print("*****************************************************")
 print("Testing getting all manifests associated with a project accessible by user")
 print("*****************************************************")
 manifests = syn_store.getAllManifests()
-
 pp.pprint(manifests)
 

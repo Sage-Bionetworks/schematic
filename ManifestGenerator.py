@@ -222,6 +222,10 @@ class ManifestGenerator(object):
             # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
 
+            if len(req_vals) > 499:
+                print("WARNING: Value range > Google Sheet limit of 500. Truncating...")
+                req_vals = req_vals[:499]
+
             if not req_vals:
                 continue
 

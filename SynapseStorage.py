@@ -216,11 +216,11 @@ class SynapseStorage(object):
         
         projects = self.getStorageProjects()
 
+        manifests = []
         for (projectId, projectName) in projects:
 
             datasets = self.getStorageDatasetsInProject(projectId)
 
-            manifests = []
             for (datasetId, datasetName) in datasets:
 
                 # encode information about the manifest in a simple list (so that R clients can unpack it)
