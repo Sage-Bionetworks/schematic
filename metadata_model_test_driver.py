@@ -9,12 +9,12 @@ pp = pprint.PrettyPrinter(indent = 3)
 
 #inputMModelLocation = "./schemas/exampleSchemaReq.jsonld"
 inputMModelLocation = "./schemas/HTAN.jsonld"
-inputMModelLocation = "./schemas/Test.jsonld"
+#inputMModelLocation = "./schemas/Test.jsonld"
 inputMModelLocationType = "local"
 #modelType = "Thing"
 #modelType = "Treatment"
 
-modelType = "TableA" 
+modelType = "ScRNA-seqAssay" 
 
 mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
 
@@ -108,7 +108,7 @@ print("Testing metamodel-based component dependency generation")
 print("*****************************************************")
 
 print("Generating dependency graph and ordering dependencies")
-modelType = "CoordinationCenterProject"
+modelType = "ScRNA-seqAssay"
 dependencies = mm.getOrderedModelNodes(modelType, "requiresComponent")
 pp.pprint(dependencies)
 
@@ -116,4 +116,3 @@ with open(modelType + "component_dependencies.json", "w") as f:
     json.dump(dependencies, f, indent = 3)
 
 print("Component dependencies stored: " + modelType + "component_dependencies.json")
-

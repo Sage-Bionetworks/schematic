@@ -2281,41 +2281,6 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "schema:rangeIncludes": [
-                {
-                    "@id": "bts:Biospecimen"
-                },
-                {
-                    "@id": "bts:Patient"
-                },
-                {
-                    "@id": "bts:ScRNA-seqAssay"
-                },
-                {
-                    "@id": "bts:ScRNA-seqAlignment"
-                },
-                {
-                    "@id": "bts:ScRNA-seqQC"
-                },
-                {
-                    "@id": "bts:ScATAC-seqAssay"
-                },
-                {
-                    "@id": "bts:Demographics"
-                },
-                {
-                    "@id": "bts:FamilyHistory"
-                },
-                {
-                    "@id": "bts:Exposure"
-                },
-                {
-                    "@id": "bts:FollowUp"
-                },
-                {
-                    "@id": "bts:Treatment"
-                }
-            ],
             "sms:displayName": "Component"
         },
         {
