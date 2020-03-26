@@ -2,7 +2,19 @@ Attribute,Description,Valid Values,Requires,Properties,Required,Parent,Requires 
 Assay,"A planned process with the objective to produce information about the material entity that is the evaluant, by physically examining it or its proxies.[OBI_0000070]",,,,FALSE,,,http://purl.obolibrary.org/obo/OBI_0000070
 Device,"A thing made or adapted for a particular purpose, especially a piece of mechanical or electronic equipment""",,,,FALSE,Assay,,https://w3id.org/biolink/vocab/Device
 Sequencing,Module for next generation sequencing assays,,,,FALSE,Assay,,http://example.org/htan/Sequencing
-Component,Name of the high level ontology class in which this entity is categorized. Corresponds to the label for the biolink entity type class. In a neo4j database this MAY correspond to the neo4j label tag,"Biospecimen, Patient, scRNA-seq Assay, scRNA-seq Alignment, scRNA-seq QC, scATAC-seq Assay, Demographics, Family History, Exposure, Follow Up, Treatment",,,TRUE,,,https://w3id.org/biolink/vocab/category
+Component,"Name of the high level ontology class in which this entity is categorized. Corresponds to the label for the biolink entity type class. In a neo4j database this MAY correspond to the neo4j label tag; currently used components 
+
+Biospecimen, 
+Patient, 
+scRNA-seq Assay,
+scRNA-seq Alignment, 
+scRNA-seq QC, 
+scATAC-seq Assay, 
+Demographics, 
+Family History, 
+Exposure, 
+Follow Up, 
+Treatment",,,,TRUE,,,https://w3id.org/biolink/vocab/category
 File,A type of Information Content Entity specific to OS,,,"Filename, File Format",FALSE,Information Content Entity,,https://w3id.org/biolink/vocab/DataFile
 Filename,Name of a file ,,,,TRUE,,,http://example.org/htan/filename
 File Format,"Format of a file (e.g. txt, csv, fastq, bam, etc.)",,,,TRUE,,,http://example.org/htan/fileFormat
