@@ -168,7 +168,8 @@ class SynapseStorage(object):
         # return an array of tuples (fileId, fileName)
         fileList = []
         for row in filesTable[["id", "name"]].itertuples(index = False, name = None): 
-            if not row[1] == self.manifest and not fileNames:
+            #if not row[1] == self.manifest and not fileNames:
+            if not "manifest" in row[1] and not fileNames:
                 # check if a metadata-manifest file has been passed in the list of filenames; assuming the manifest file has a specific filename, e.g. synapse_storage_manifest.csv; remove the manifest filename if so; (no need to add metadata to the metadata container); TODO: expose manifest filename as a configurable parameter and don't hard code.
                 fileList.append(row)
 
