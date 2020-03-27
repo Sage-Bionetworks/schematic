@@ -183,8 +183,11 @@ class ManifestGenerator(object):
                     required_metadata_fields[column] = []
     
         # if 'component' is in column set (seeyour input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry 
-        if 'component' in required_metadata_fields.keys():
-            self.additional_metadata['component'] = [self.root]
+        if 'Component' in required_metadata_fields.keys():
+
+            # if any additional data is provided (e.g. filenames) match the number of
+            # entries for the component; otherwise just add once
+            self.additional_metadata['Component'] = [self.root]
 
 
         # adding columns to manifest sheet

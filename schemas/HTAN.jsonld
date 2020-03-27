@@ -2349,9 +2349,6 @@
             "sms:requiresDependency": [
                 {
                     "@id": "bts:hTANBiosampleID"
-                },
-                {
-                    "@id": "bts:component"
                 }
             ]
         },
