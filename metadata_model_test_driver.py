@@ -12,9 +12,9 @@ inputMModelLocation = "./schemas/HTAN.jsonld"
 #inputMModelLocation = "./schemas/Test.jsonld"
 inputMModelLocationType = "local"
 #modelType = "Thing"
-#modelType = "Treatment"
+modelType = "Treatment"
 
-modelType = "ScRNA-seqAssay" 
+#modelType = "ScRNA-seqAssay" 
 
 mm = MetadataModel(inputMModelLocation, inputMModelLocationType)
 

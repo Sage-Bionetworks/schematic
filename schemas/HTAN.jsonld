@@ -1052,6 +1052,9 @@
                 },
                 {
                     "@id": "bts:TreatmentType"
+                },
+                {
+                    "@id": "bts:component"
                 }
             ]
         },
@@ -2451,6 +2454,9 @@
                 },
                 {
                     "@id": "bts:WeeksGestationatBirth"
+                },
+                {
+                    "@id": "bts:component"
                 }
             ]
         },
@@ -2474,6 +2480,9 @@
                 },
                 {
                     "@id": "bts:RelativewithCancerHistory"
+                },
+                {
+                    "@id": "bts:component"
                 }
             ]
         },
@@ -2551,6 +2560,9 @@
                 },
                 {
                     "@id": "bts:TypeofTobaccoUsed"
+                },
+                {
+                    "@id": "bts:component"
                 }
             ]
         },
@@ -2673,6 +2685,9 @@
                 },
                 {
                     "@id": "bts:Weight"
+                },
+                {
+                    "@id": "bts:component"
                 }
             ]
         },

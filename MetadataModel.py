@@ -251,6 +251,7 @@ class MetadataModel(object):
             ValueError: rootNode not found in metadata model.
          """
          #mg = ManifestGenerator(title, self.se, rootNode, {"Filename":[]})
+         
          mg = ManifestGenerator(title, self.se, rootNode)
          emptyManifestURL = mg.get_manifest()
 
