@@ -252,7 +252,6 @@ def get_JSONSchema_requirements(se, root, schema_name):
             process_node_dependencies = get_adgacent_node_by_relationship(mm_graph, process_node, requires_dependency_relationship)
             if process_node_dependencies:
                 if process_node == root: # these are unconditional dependencies
-                    print(process_node_dependencies)
                     json_schema["required"] += [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies]
                 else: # these are dependencies given the processed node 
                     schema_conditional_dependencies = {

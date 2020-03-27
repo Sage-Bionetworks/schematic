@@ -63,7 +63,7 @@ class ManifestGenerator(object):
     def build_credentials(self):
 
         creds = None
-        # The file token.pickle stores the user's access and refresh tokens, and is created automatically when the authorization flow completes for the first time.
+# The file token.pickle stores the user's access and refresh tokens, and is created automatically when the authorization flow completes for the first time.
         if os.path.exists('token.pickle'):
             with open('token.pickle', 'rb') as token:
                 creds = pickle.load(token)
@@ -185,10 +185,12 @@ class ManifestGenerator(object):
         # if 'component' is in column set (seeyour input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry 
         if 'Component' in required_metadata_fields.keys():
 
-            # if any additional data is provided (e.g. filenames) match the number of
-            # entries for the component; otherwise just add once
-            self.additional_metadata['Component'] = [self.root]
+            # check if additional metadata has actually been instantiated in the constructor (it's optional)
+            # if not, instantiate it
+            if not self.additional_metadata:
+                self.additional_metadata = {}
 
+            self.additional_metadata['Component'] = [self.root]
 
         # adding columns to manifest sheet
         end_col = len(required_metadata_fields.keys())
