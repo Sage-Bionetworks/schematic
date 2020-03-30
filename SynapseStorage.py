@@ -269,11 +269,13 @@ class SynapseStorage(object):
                 entityIds.append(rowEntity["id"])
 
             manifest["entityId"] = entityIds
-
             # create and store a table corresponding to this dataset in this dataset parent project
             table = build_table(datasetId, self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
-        
-        table = self.syn.store(table)
+            table = self.syn.store(table)
+            
+            # update the manifest file, so that it contains the relevant entity IDs
+            manifest.to_csv(metadataManifestPath, index = False)
+
 
         # use file ID (that is a synapse ID) as index of the dataframe
         manifest.set_index("entityId", inplace = True)
