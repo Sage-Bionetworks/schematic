@@ -1,6 +1,9 @@
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text
 
+# used to generate unique names for entities
+import uuid
+
 # manipulation of dataframes 
 import pandas as pd
 
@@ -9,10 +12,11 @@ import synapseclient
 
 from synapseclient import File, Folder
 from synapseclient.table import build_table
+import synapseutils
 
+from utils import update_df
 from schema_explorer import SchemaExplorer 
 
-import synapseutils
 
 class SynapseStorage(object):
 
@@ -247,51 +251,52 @@ class SynapseStorage(object):
 
         """
 
-        # read manifest csv
+        # read new manifest csv
         manifest = pd.read_csv(metadataManifestPath)
 
+        # check if there is an existing manifest
+        existingManifest = self.getDatasetManifest(datasetId)
+        if existingManifest:
 
-        # if there are no Synapse entities associated with the rows of this manifest
+            # update the existing manifest, so that existing entities get updated metadata and new entities are preserved; 
+            # note that an existing manifest always contains an entityId column, which is assumed to be the index key
+            # if updating an existing manifest the new manifest should also contain an entityId column 
+            # (it is ok if the entities ID in the new manifest are blank)
+            manifest['entityId'].fillna('', inplace = True)
+            manifest = update_df(manifest, existingManifest)
+
+
+        # if this is a new manifest there could be no Synapse entities associated with the rows of this manifest
         # this may be due to data type (e.g. clinical data) being tabular 
         # and not requiring files; to utilize uniform interfaces downstream
         # (i.e. fileviews), a Synapse entity (a folder) is created for each row 
         # and an entity column is added to the manifest containing the resulting 
         # entity IDs; a table is also created at present as an additional interface 
         # for downstream query and interaction with the data. 
-        # TODO: associate metadata with objects in the same loop iteration;
-        # currently there is an extra iteration below.
-        if not "entityId" in manifest.columns:
-            entityIds = []
-            
-            for index, row in manifest.iterrows():
-                rowEntity = Folder(datasetId + "_" + str(index), parent=datasetId)
-                rowEntity = self.syn.store(rowEntity)
-                entityIds.append(rowEntity["id"])
-
-            manifest["entityId"] = entityIds
-            # create and store a table corresponding to this dataset in this dataset parent project
-            table = build_table(datasetId, self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
-            table = self.syn.store(table)
-            
-            # update the manifest file, so that it contains the relevant entity IDs
-            manifest.to_csv(metadataManifestPath, index = False)
-
-
-        # use file ID (that is a synapse ID) as index of the dataframe
-        manifest.set_index("entityId", inplace = True)
-
-        # convert metadata in a form suitable for setting annotations on Synapse
-        manifestMetadata = manifest.to_dict("index") 
         
-        # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels
+        if not "entityId" in manifest.columns:
+            manifest["entityId"] = ""
+
+        # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
         se = SchemaExplorer()
-
-        # set annotations to files on Synapse
-        for fileId, metadata in manifestMetadata.items():
-
+        
+        # iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
+        # also set metadata for each synapse entity as Synapse annotations
+        for idx, row in manifest.iterrows():
+            if not row["entityId"]:
+               # no entity exists for this row
+               # so create one
+               rowEntity = Folder(str(uuid.uuid4()), parent=datasetId)
+               rowEntity = self.syn.store(rowEntity)
+               entityId = rowEntity["id"]
+               manifest.loc[idx, "entityId"] = entityId
+            else:
+               # get the entity id corresponding to this row
+               entityId = row["entityId"]
+            
             #  prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces)
             metadataSyn = {}
-            for k, v in metadata.items():
+            for k, v in row.to_dict().items():
                 keySyn = se.get_class_label_from_display_name(str(k))
                 if v:
                     valSyn = se.get_class_label_from_display_name(str(v))
@@ -300,7 +305,14 @@ class SynapseStorage(object):
 
                 metadataSyn[keySyn] = valSyn
 
-            self.syn.setAnnotations(fileId, metadataSyn)
+            self.syn.setAnnotations(entityId, metadataSyn)
+
+        # create and store a table corresponding to this dataset in this dataset's parent project
+        table = build_table(datasetId, self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
+        table = self.syn.store(table)
+            
+        # update the manifest file, so that it contains the relevant entity IDs
+        manifest.to_csv(metadataManifestPath, index = False)
 
         # store manifest to Synapse
         manifestSynapseFile = File(metadataManifestPath, description = "Manifest for dataset " + datasetId, parent = datasetId)
