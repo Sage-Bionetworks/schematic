@@ -10,7 +10,7 @@ import pandas as pd
 # Python client for Synapse
 import synapseclient
 
-from synapseclient import File, Folder
+from synapseclient import File, Folder, Table
 from synapseclient.table import build_table
 import synapseutils
 
@@ -251,11 +251,18 @@ class SynapseStorage(object):
 
         """
 
+        # determine dataset name
+        datasetEntity = self.syn.get(datasetId, downloadFile = False)
+        datasetName = datasetEntity.name
+        datasetParentProject = datasetEntity.properties["parentId"]
+
         # read new manifest csv
         manifest = pd.read_csv(metadataManifestPath)
 
         # check if there is an existing manifest
         existingManifest = self.getDatasetManifest(datasetId)
+        existingTableId = None
+
         if existingManifest:
 
             # update the existing manifest, so that existing entities get updated metadata and new entities are preserved; 
@@ -263,9 +270,11 @@ class SynapseStorage(object):
             # if updating an existing manifest the new manifest should also contain an entityId column 
             # (it is ok if the entities ID in the new manifest are blank)
             manifest['entityId'].fillna('', inplace = True)
-            manifest = update_df(manifest, existingManifest)
+            manifest = update_df(manifest, existingManifest, "entityId")
 
-
+            # retrieve Synapse table associated with this manifest, so that it can be updated below
+            existingTableId = self.syn.findEntityId(datasetName+"_table", datasetParentProject)
+            
         # if this is a new manifest there could be no Synapse entities associated with the rows of this manifest
         # this may be due to data type (e.g. clinical data) being tabular 
         # and not requiring files; to utilize uniform interfaces downstream
@@ -289,6 +298,7 @@ class SynapseStorage(object):
                rowEntity = Folder(str(uuid.uuid4()), parent=datasetId)
                rowEntity = self.syn.store(rowEntity)
                entityId = rowEntity["id"]
+               row["entityId"] = entityId
                manifest.loc[idx, "entityId"] = entityId
             else:
                # get the entity id corresponding to this row
@@ -307,8 +317,15 @@ class SynapseStorage(object):
 
             self.syn.setAnnotations(entityId, metadataSyn)
 
-        # create and store a table corresponding to this dataset in this dataset's parent project
-        table = build_table(datasetId, self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
+        # create/update a table corresponding to this dataset in this dataset's parent project
+
+        if existingTableId:
+            # if table already exists, delete it and upload the new table
+            # TODO: do a proper Synapse table update
+            self.syn.delete(existingTableId)
+        
+        # create table using latest manifest content
+        table = build_table(datasetName + "_table", self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
         table = self.syn.store(table)
             
         # update the manifest file, so that it contains the relevant entity IDs
