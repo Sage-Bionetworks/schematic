@@ -181,12 +181,12 @@ class SynapseStorage(object):
         return fileList
         
 
-    def getDatasetManifest(self, datasetId:str) -> str:
+    def getDatasetManifest(self, datasetId:str) -> list:
         """ get the manifest associated with a given dataset 
 
         Args:
             datasetId: synapse ID of a storage dataset
-        Returns: a list of files; the list consist of tuples (fileId, fileName); returns empty list if no manifest is found
+        Returns: a tuple of manifest file ID and manifest name; (fileId, fileName); returns empty list if no manifest is found
         """
 
         # get a list of files containing the manifest for this dataset (if any)
@@ -197,6 +197,56 @@ class SynapseStorage(object):
             return []
         else:
             return manifest[0] # extract manifest tuple from list
+
+    def update_dataset_manifest_files(self, dataset_id:str) -> str:
+
+        """ Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest, if any; with new files, if any
+
+        Args:
+            dataset_id: synapse ID of a storage dataset
+        Returns: synapse ID of updated manifest 
+        """
+
+        # get existing manifest Synapse ID
+        manifest_id_name = self.getDatasetManifest(dataset_id)
+        if not manifest_id_name:
+            # no manifest exists yet: abort
+            print("No manifest found in storage dataset " + dataset_id + "! Abort.")
+            return ""
+
+        manifest_id = manifest_id_name[0]
+        manifest_filepath = self.syn.get(manifest_id).path
+        manifest = pd.read_csv(manifest_filepath)
+
+        # get current list of files
+        dataset_files = self.getFilesInStorageDataset(dataset_id)
+
+        # update manifest with additional filenames, if any;    
+        # note that if there is an existing manifest and there are files in the dataset the columns Filename and entityId are assumed to be present in manifest schema
+        # TODO: use idiomatic panda syntax
+        if dataset_files:
+            new_files = {
+                    "Filename":[],
+                    "entityId":[]
+            }
+
+            # find new files if any
+            for file_id, file_name in dataset_files:
+                if not file_id in manifest["entityId"].values:
+                    new_files["Filename"].append(file_name)
+                    new_files["entityId"].append(file_id)
+            
+            # update manifest so that it contain new files
+            #manifest = pd.DataFrame(new_files)
+            new_files = pd.DataFrame(new_files)
+            manifest = pd.concat([new_files, manifest], sort = False).reset_index().drop("index", axis = 1)
+            # update the manifest file, so that it contains the relevant entity IDs
+            manifest.to_csv(manifest_filepath, index = False)
+
+            # store manifest and update associated metadata withmanifest on Synapse
+            manifest_id = self.associateMetadataWithFiles(manifest_filepath, dataset_id)
+            
+        return manifest_id
 
 
     def getAllManifests(self) -> list:
@@ -324,7 +374,7 @@ class SynapseStorage(object):
         # create table using latest manifest content
         table = build_table(datasetName + "_table", self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
         table = self.syn.store(table)
-            
+         
         # update the manifest file, so that it contains the relevant entity IDs
         manifest.to_csv(metadataManifestPath, index = False)
 
