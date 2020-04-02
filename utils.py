@@ -1,6 +1,6 @@
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text
-import numpy as np
+
 import pandas as pd
 
 def update_df(existing_df:pd.DataFrame, new_df:pd.DataFrame, idx_key:str) -> pd.DataFrame:

@@ -11,7 +11,9 @@ storage_fileview = "syn20446927"
 # test with a synapse client object login 
 syn = synapseclient.Synapse()
 syn.login()
-syn_store = SynapseStorage(storage_fileview, syn = syn)
+#syn_store = SynapseStorage(storage_fileview, syn = syn)
+
+syn_store = SynapseStorage(syn = syn)
 
 # test with a synapse login token (e.g. can test locally by capturing a browser cookie after login to Synapse) 
 # syn_store = SynapseStorage(storage_fileview, token = "token_string")
@@ -44,7 +46,8 @@ print("*****************************************************")
 print("Testing association of entities with annotation from manifest")
 print("*****************************************************")
 #manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest_no_entity_ids.csv", "syn21682582")
-manifest_syn_id = syn_store.associateMetadataWithFiles("./FamilyHistory_manifest.csv", "syn21753028")
+#manifest_syn_id = syn_store.associateMetadataWithFiles("./FamilyHistory_manifest.csv", "syn21753028")
+manifest_syn_id = syn_store.associateMetadataWithFiles("./synapse_storage_manifest.csv", "syn21867840")
 
 print(manifest_syn_id)
 

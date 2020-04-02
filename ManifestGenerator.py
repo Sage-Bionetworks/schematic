@@ -14,6 +14,7 @@ import pygsheets as ps
 
 from schema_explorer import SchemaExplorer
 from schema_generator import get_JSONSchema_requirements
+from config import storage
 
 class ManifestGenerator(object):
 
@@ -279,13 +280,52 @@ class ManifestGenerator(object):
         return manifest_url
 
 
-    def populate_manifest_spreasheet(self, existing_manifest_path, empty_manifest_url):
+    def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url, dataset_id = None, storage_credentials_token = None):
 
+        """ Creates a google sheet manifest
+        based on existing manifest; if storage token credentials and a dataset identifier are provided, login and fetch the names and entity IDs of all current files in dataset in store; update manifest with new files as needed
+
+        Args:
+            existing_manifest_path: the location of the manifest containing metadata presently stored
+            empty_manifest_url: the path to a manifest template to be prepopulated with existing's manifest metadata
+            dataset_id: dataset identifier in storage; optional
+            storage_credentials_token: login token (e.g. to Synapse storage)
+        """        
+        
+        # read existing manifest
         manifest = pd.read_csv(existing_manifest_path).fillna("")
+
+        if storage_credentials_token and dataset_id:
+            # given storage token and dataset id fetch all files currently in dataset
+            # TODO: replace with common storage interface instead of SynapseStorage
+            storage = SynapseStorage(token = storage_credentials_token)
+            dataset_files = storage.getFilesInStorageDataset(dataset_id)
+
+            # update manifest with additional filenames, if any;    
+            # note that if there is an existing manifest and there are files in the dataset the columns Filename and entityId are assumed to be present in manifest schema
+            # TODO: use idiomatic panda syntax
+            if dataset_files:
+                new_files = {
+                        "Filename":[],
+                        "entityId":[]
+                }
+
+                # find new files if any
+                for file_id, file_name in dataset_files:
+                    if not file_id in manifest["entityId"]:
+                        new_files["Filename"].append(file_name)
+                        new_files["entityId"].append(file_id)
+
+                # update existing manifest
+                new_files = pd.DataFrame(new_files)
+
+                manifest = pd.concat([new_files, manifest], sort = False).reset_index().drop("index", axis = 1)
+
+        # sort manifest columns
         manifest_fields = manifest.columns.tolist()
         manifest_fields = self.sort_manifest_fields(manifest_fields)
         manifest = manifest[manifest_fields]
-        
+
         self.build_credentials()
         gc = ps.authorize(custom_credentials = self.creds)
         sh = gc.open_by_url(empty_manifest_url)

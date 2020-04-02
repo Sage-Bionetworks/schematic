@@ -16,7 +16,7 @@ import synapseutils
 
 from utils import update_df
 from schema_explorer import SchemaExplorer 
-
+from config import storage
 
 class SynapseStorage(object):
 
@@ -27,7 +27,6 @@ class SynapseStorage(object):
 
 
     def __init__(self,
-                 storageFileview: str,
                  syn: synapseclient = None,
                  token: str = None ## gets sessionToken for logging in
                  ) -> None:
@@ -37,7 +36,6 @@ class SynapseStorage(object):
         Args:
             syn: synapse client; if not provided instantiate one
             token: if provided, use to instantiate a synapse client and login using the toke
-            storageFileview: synapse ID of fileview containing administrative storage metadata; 
             TODO: move away from specific project setup and work with an interface that Synapse specifies (e.g. based on schemas)
         """
      
@@ -48,13 +46,12 @@ class SynapseStorage(object):
         elif syn: # if no token, assume a logged in synapse client has been provided
             self.syn = syn
 
-        self.storageFileview = storageFileview
+        self.storageFileview = storage["Synapse"]["masterFileview"]
 
         # get data in administrative fileview for this pipeline 
         self.setStorageFileviewTable()
 
-        # default manifest name
-        self.manifest = "synapse_storage_manifest.csv"
+        self.manifest = storage["Synapse"]["manifestFilename"]
 
 
     def setStorageFileviewTable(self) -> None:
@@ -159,7 +156,7 @@ class SynapseStorage(object):
 
         Args:
             datasetId: synapse ID of a storage dataset
-            fileName: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
+            fileNames: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
             metadata manifests); if fileNames is not None all files matching the names in the fileNames list are returned if present
         Returns: a list of files; the list consist of tuples (fileId, fileName)
         Raises: TODO
