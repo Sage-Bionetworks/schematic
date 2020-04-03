@@ -255,5 +255,5 @@ class MetadataModel(object):
          mg = ManifestGenerator(title, self.se, rootNode)
          emptyManifestURL = mg.get_manifest()
 
-         return mg.populate_manifest_spreasheet(manifestPath, emptyManifestURL)
+         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
 

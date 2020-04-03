@@ -14,6 +14,7 @@ import pygsheets as ps
 
 from schema_explorer import SchemaExplorer
 from schema_generator import get_JSONSchema_requirements
+from config import storage
 
 class ManifestGenerator(object):
 
@@ -279,13 +280,24 @@ class ManifestGenerator(object):
         return manifest_url
 
 
-    def populate_manifest_spreasheet(self, existing_manifest_path, empty_manifest_url):
+    def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
 
+        """ Creates a google sheet manifest
+        based on existing manifest; if storage token credentials and a dataset identifier are provided, login and 
+
+        Args:
+            existing_manifest_path: the location of the manifest containing metadata presently stored
+            empty_manifest_url: the path to a manifest template to be prepopulated with existing's manifest metadata
+        """        
+        
+        # read existing manifest
         manifest = pd.read_csv(existing_manifest_path).fillna("")
+
+        # sort manifest columns
         manifest_fields = manifest.columns.tolist()
         manifest_fields = self.sort_manifest_fields(manifest_fields)
         manifest = manifest[manifest_fields]
-        
+
         self.build_credentials()
         gc = ps.authorize(custom_credentials = self.creds)
         sh = gc.open_by_url(empty_manifest_url)
