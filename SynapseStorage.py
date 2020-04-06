@@ -134,18 +134,26 @@ class SynapseStorage(object):
             ValueError: Project ID not found.
         """
         
-        # select all folders and their names w/in the storage project
-        foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["projectId"] == projectId)]
+        # select all folders and their names w/in the storage project; if folder content type is define, only select folders that contain datasets
+        areDatasets = False
+        if "contentType" in self.storageFileviewTable.columns:
+            foldersTable = self.storageFileviewTable[(self.storageFileviewTable["contentType"] == "dataset") & (self.storageFileviewTable["projectId"] == projectId)]
+            areDatasets = True
+        else:
+            foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["projectId"] == projectId)]
+
 
         # get an array of tuples (folderId, folderName)
         # some folders are part of datasets; others contain datasets
         # each dataset parent is the project; folders part of a dataset have another folder as a parent
         # to get folders if and only if they contain datasets for each folder 
-        # check if folder's parent is the project; if so that folder contains a dataset 
+        # check if folder's parent is the project; if so that folder contains a dataset,
+        # unless the folder list has already been filtered to dataset folders based on contentType attribute above
         
-        datasetList = [] 
-        for folder in list(foldersTable[["id", "name"]].itertuples(index = False, name = None)):
-            if self.syn.get(folder[0], downloadFile = False).properties["parentId"] == projectId:
+        datasetList = []
+        folderProperties = ["id", "name"]
+        for folder in list(foldersTable[folderProperties].itertuples(index = False, name = None)):
+            if self.syn.get(folder[0], downloadFile = False).properties["parentId"] == projectId or areDatasets:
                 datasetList.append(folder)
         
         return datasetList
