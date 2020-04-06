@@ -14,7 +14,6 @@ import pygsheets as ps
 
 from schema_explorer import SchemaExplorer
 from schema_generator import get_JSONSchema_requirements
-from config import storage
 
 class ManifestGenerator(object):
 
@@ -283,7 +282,7 @@ class ManifestGenerator(object):
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
 
         """ Creates a google sheet manifest
-        based on existing manifest; if storage token credentials and a dataset identifier are provided, login and 
+        based on existing manifest;  
 
         Args:
             existing_manifest_path: the location of the manifest containing metadata presently stored
@@ -312,8 +311,9 @@ class ManifestGenerator(object):
 
     def sort_manifest_fields(self, manifest_fields):
         """ sort a set of metadata fields (e.g. to organize manifest column headers in a more user-friendly and consistent pattern, (e.g. alphabetical))  
+        TODO: below is very adhoc and arguably not very user friendly way to sort; rearrange
         """
-        manifest_fields.sort()
+
 
         # should be able to abstract custom logic so that certain
         # special fields appear as first (or last) columns
@@ -325,6 +325,8 @@ class ManifestGenerator(object):
         if "entityId" in manifest_fields:
             manifest_fields.remove("entityId")
             manifest_fields.append("entityId")
+
+        manifest_fields[1:-1] = sorted(manifest_fields[1:-1])
 
         print("Manifest fields:")
         print()

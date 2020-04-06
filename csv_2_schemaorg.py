@@ -167,7 +167,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         print(set(list(schema_extension.columns)))
         print("do not match required schema headers: ")
         print(required_headers)
-        print("ERROR: could not add extension " + schema_extension_csv + " to schema!")
+        print("ERROR: could not add extension to schema!")
         exit()
 
     # get attributes from Attribute column
