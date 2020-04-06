@@ -404,24 +404,45 @@ class ManifestGenerator(object):
         return sh.url 
 
 
-    def sort_manifest_fields(self, manifest_fields):
+    def sort_manifest_fields(self, manifest_fields, order = "schema"):
         """ sort a set of metadata fields (e.g. to organize manifest column headers in a more user-friendly and consistent pattern, (e.g. alphabetical))  
         TODO: below is very adhoc and arguably not very user friendly way to sort; rearrange
         """
 
+        if order == "alphabetical":
 
-        # should be able to abstract custom logic so that certain
-        # special fields appear as first (or last) columns
-        if "Filename" in manifest_fields:
-            pos = manifest_fields.index("Filename")
-            manifest_fields[pos] = manifest_fields[0]
-            manifest_fields[0] = "Filename"
+            # should be able to abstract custom logic so that certain
+            # special fields appear as first (or last) columns
+            if "Filename" in manifest_fields:
+                pos = manifest_fields.index("Filename")
+                manifest_fields[pos] = manifest_fields[0]
+                manifest_fields[0] = "Filename"
 
-        if "entityId" in manifest_fields:
-            manifest_fields.remove("entityId")
-            manifest_fields.append("entityId")
+            if "entityId" in manifest_fields:
+                manifest_fields.remove("entityId")
+                manifest_fields.append("entityId")
 
+        # order manifest fields alphabetically        # (default/base order)
         manifest_fields[1:-1] = sorted(manifest_fields[1:-1])
+
+        if order == "schema":
+            if self.se and self.root:
+                # get schema graph
+                schema_graph = self.se.get_nx_schema()
+                
+                # get root dependencies in the order defined in schema for root
+                required_dependencies = self.se.explore_class(self.root)["dependencies"]
+                
+                # get display names of dependencies
+                dependencies_display_names = []               
+                for req in required_dependencies:
+                    dependencies_display_names.append(schema_graph.nodes[req]["displayName"])
+
+                # reorder manifest fields so that root dependencies are first and follow schema order
+                manifest_fields = sorted(manifest_fields, key = lambda x: dependencies_display_names.index(x) if x in dependencies_display_names else len(manifest_fields) -1)
+            
+            else:
+                print("No schema provided! Cannot order based on schema without a specified schema and a schema root attribute.")
 
         print("Manifest fields:")
         print()
