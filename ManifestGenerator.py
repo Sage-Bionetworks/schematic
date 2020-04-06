@@ -222,15 +222,15 @@ class ManifestGenerator(object):
                         "cell": {
                           "userEnteredFormat": {
                             "backgroundColor": {
-                              "red": 204.0/255,
-                              "green": 255.0/255,
-                              "blue": 204.0/255
+                              "red": 224.0/255,
+                              "green": 224.0/255,
+                              "blue": 224.0/255
                             },
                             "horizontalAlignment" : "CENTER",
                             "textFormat": {
                               "foregroundColor": {
                                 "red": 0.0/255,
-                                "green": 51.0/255,
+                                "green": 0.0/255,
                                 "blue": 0.0/255 
                               },
                               "fontSize": 10,

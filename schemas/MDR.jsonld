@@ -2012,9 +2012,6 @@
                     "@id": "bts:CauseofDeath"
                 },
                 {
-                    "@id": "bts:InitialDiseaseStatus"
-                },
-                {
                     "@id": "bts:TreatmentAnatomicSite"
                 },
                 {
@@ -3760,21 +3757,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "bam"
-        },
-        {
-            "@id": "bts:InitialDiseaseStatus",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "InitialDiseaseStatus",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Patient"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Initial Disease Status"
         },
         {
             "@id": "bts:StatusAlive",
