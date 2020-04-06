@@ -182,7 +182,7 @@ class ManifestGenerator(object):
                 if not column in required_metadata_fields:
                     required_metadata_fields[column] = []
     
-        # if 'component' is in column set (seeyour input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry 
+        # if 'component' is in column set (see your input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry 
         if 'Component' in required_metadata_fields.keys():
 
             # check if additional metadata has actually been instantiated in the constructor (it's optional)
@@ -209,7 +209,62 @@ class ManifestGenerator(object):
         }
        
         self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
-        
+
+        # format header
+        header_format_body = {
+                "requests":[
+                {
+                      "repeatCell": {
+                        "range": {
+                          "startRowIndex": 0,
+                          "endRowIndex": 1
+                        },
+                        "cell": {
+                          "userEnteredFormat": {
+                            "backgroundColor": {
+                              "red": 224.0/255,
+                              "green": 224.0/255,
+                              "blue": 224.0/255
+                            },
+                            "horizontalAlignment" : "CENTER",
+                            "textFormat": {
+                              "foregroundColor": {
+                                "red": 0.0/255,
+                                "green": 0.0/255,
+                                "blue": 0.0/255 
+                              },
+                              "fontSize": 10,
+                              "bold": True
+                            }
+                          }
+                        },
+                        "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
+                      }
+                    },
+                    {
+                      "updateSheetProperties": {
+                        "properties": {
+                          "gridProperties": {
+                            "frozenRowCount": 1
+                          }
+                        },
+                        "fields": "gridProperties.frozenRowCount"
+                      }
+                    },
+                    {
+                        "autoResizeDimensions": {
+                            "dimensions": {
+                                "dimension": "COLUMNS",
+                                "startIndex": 0
+                            }
+                        } 
+                    }
+                ]
+                }
+
+        response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body).execute()
+
+
         # adding additinoal metadata values if needed and adding value-constraints from data model as dropdowns
         for i, req in enumerate(ordered_metadata_fields[0]):
         #for i, (req, values) in enumerate(required_metadata_fields.items()):
@@ -226,20 +281,58 @@ class ManifestGenerator(object):
                 
                 response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
 
-                continue
+                #continue
+
+            # adding description to headers
+            if self.se:
+                # get node label of requirements
+                schema_graph = self.se.get_nx_schema()
+                req_class_label = self.se.get_class_label_from_display_name(req)
+                req_property_label = self.se.get_property_label_from_display_name(req)
+
+                note = schema_graph.nodes[req_class_label]["comment"] if req_class_label in schema_graph.nodes else schema_graph.nodes[req_property_label]["comment"]
+
+                notes_body =  {
+                            "requests":[
+                                {
+                                    "updateCells": {
+                                    "range": {
+                                        "startRowIndex": 0,
+                                        "endRowIndex": 1,
+                                        "startColumnIndex": i,
+                                        "endColumnIndex": i+1
+                                    },
+                                   "rows": [
+                                      {
+                                        "values": [
+                                          {
+                                            "note": note
+                                          }
+                                        ]
+                                      }
+                                    ],
+                                    "fields": "note"
+                                    }
+                                }
+                            ]
+                }
+
+                response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=notes_body).execute()
+
 
             # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
+            
+            if not req_vals:
+                continue
 
             if len(req_vals) > 499:
                 print("WARNING: Value range > Google Sheet limit of 500. Truncating...")
                 req_vals = req_vals[:499]
 
-            if not req_vals:
-                continue
 
             # generating sheet api request to populate the dropdown
-            body =  {
+            validation_body =  {
                       "requests": [
                         {
                         'setDataValidation':{
@@ -257,13 +350,15 @@ class ManifestGenerator(object):
                                 'strict':True,
                                 'showCustomUi': True
                             }
-                        }            
+                        },
+
                     }
                 ]
             }   
 
-            response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=body).execute()
-    
+            response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=validation_body).execute()
+
+
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
         self._set_permissions(spreadsheet_id)
 
