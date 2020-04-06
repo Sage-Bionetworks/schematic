@@ -1909,7 +1909,7 @@
         {
             "@id": "bts:filename",
             "@type": "rdf:Property",
-            "rdfs:comment": "Name of a file ",
+            "rdfs:comment": "REQUIRED: Name of a file ",
             "rdfs:label": "filename",
             "schema:domainIncludes": {
                 "@id": "bts:File"
@@ -1922,7 +1922,7 @@
         {
             "@id": "bts:fileFormat",
             "@type": "rdf:Property",
-            "rdfs:comment": "Format of a file (e.g. txt, csv, fastq, bam, etc.)",
+            "rdfs:comment": "REQUIRED: Format of a file (e.g. txt, csv, fastq, bam, etc.)",
             "rdfs:label": "fileFormat",
             "schema:domainIncludes": {
                 "@id": "bts:File"
@@ -1974,7 +1974,7 @@
         {
             "@id": "bts:sampleID",
             "@type": "rdf:Property",
-            "rdfs:comment": "ID associated with this biosample; e.g. S1, S2,..., etc.",
+            "rdfs:comment": "REQUIRED: ID associated with this biosample; e.g. S1, S2,..., etc.",
             "rdfs:label": "sampleID",
             "schema:domainIncludes": {
                 "@id": "bts:Biospecimen"
@@ -2037,7 +2037,7 @@
         {
             "@id": "bts:PatientID",
             "@type": "rdfs:Class",
-            "rdfs:comment": "ID associated with a patient: e.g. P1, P2,..., etc.",
+            "rdfs:comment": "REQUIRED: ID associated with a patient: e.g. P1, P2,..., etc.",
             "rdfs:label": "PatientID",
             "rdfs:subClassOf": [
                 {
@@ -2052,7 +2052,7 @@
         {
             "@id": "bts:VitalStatus",
             "@type": "rdfs:Class",
-            "rdfs:comment": "The survival state of the person registered on the protocol.",
+            "rdfs:comment": "REQUIRED: The survival state of the person registered on the protocol.",
             "rdfs:label": "VitalStatus",
             "rdfs:subClassOf": [
                 {
@@ -2101,7 +2101,7 @@
         {
             "@id": "bts:CauseofDeath",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Text term to identify the cause of death for a patient.",
+            "rdfs:comment": "REQUIRED IF Vital Status Dead: Text term to identify the cause of death for a patient.",
             "rdfs:label": "CauseofDeath",
             "rdfs:subClassOf": [
                 {
@@ -2151,7 +2151,7 @@
         {
             "@id": "bts:YearOfBirth",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Patient's birth year: YYYY",
+            "rdfs:comment": "REQUIRED: Patient's birth year: YYYY",
             "rdfs:label": "YearOfBirth",
             "rdfs:subClassOf": [
                 {
@@ -2166,7 +2166,7 @@
         {
             "@id": "bts:TreatmentAnatomicSite",
             "@type": "rdfs:Class",
-            "rdfs:comment": "The anatomic site or field targeted by a treatment regimen or single agent therapy.",
+            "rdfs:comment": "REQUIRED: The anatomic site or field targeted by a treatment regimen or single agent therapy.",
             "rdfs:label": "TreatmentAnatomicSite",
             "rdfs:subClassOf": [
                 {
@@ -3086,7 +3086,7 @@
         {
             "@id": "bts:TreatmentEffect",
             "@type": "rdfs:Class",
-            "rdfs:comment": "The text term used to describe the pathologic effect a treatment(s) had on the tumor.",
+            "rdfs:comment": "REQUIRED: The text term used to describe the pathologic effect a treatment(s) had on the tumor.",
             "rdfs:label": "TreatmentEffect",
             "rdfs:subClassOf": [
                 {
@@ -3118,7 +3118,7 @@
         {
             "@id": "bts:TreatmentIntentType",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Text term to identify the reason for the administration of a treatment regimen. [Manually-curated]",
+            "rdfs:comment": "REQUIRED: Text term to identify the reason for the administration of a treatment regimen. [Manually-curated]",
             "rdfs:label": "TreatmentIntentType",
             "rdfs:subClassOf": [
                 {
@@ -3159,7 +3159,7 @@
         {
             "@id": "bts:TreatmentOutcome",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Text term that describes the patient's final outcome after the treatment was administered.",
+            "rdfs:comment": "REQUIRED: Text term that describes the patient's final outcome after the treatment was administered.",
             "rdfs:label": "TreatmentOutcome",
             "rdfs:subClassOf": [
                 {
@@ -3215,7 +3215,7 @@
         {
             "@id": "bts:TreatmentType",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Text term that describes the kind of treatment administered.",
+            "rdfs:comment": "REQUIRED: Text term that describes the kind of treatment administered.",
             "rdfs:label": "TreatmentType",
             "rdfs:subClassOf": [
                 {
@@ -3412,7 +3412,7 @@
         {
             "@id": "bts:LibraryConstructionMethod",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Process which results in the creation of a library from fragments of DNA using cloning vectors or oligonucleotides with the role of adaptors [OBI_0000711]",
+            "rdfs:comment": "REQUIRED: Process which results in the creation of a library from fragments of DNA using cloning vectors or oligonucleotides with the role of adaptors [OBI_0000711]",
             "rdfs:label": "LibraryConstructionMethod",
             "rdfs:subClassOf": [
                 {
@@ -3462,7 +3462,7 @@
         {
             "@id": "bts:LibraryPreparationDate",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Number of days since sample received in lab: proxy for the date that the libraries were prepared for sequencing",
+            "rdfs:comment": "REQUIRED: Number of days since sample received in lab: proxy for the date that the libraries were prepared for sequencing",
             "rdfs:label": "LibraryPreparationDate",
             "rdfs:subClassOf": [
                 {
@@ -3477,7 +3477,7 @@
         {
             "@id": "bts:SequencingPlatform",
             "@type": "rdfs:Class",
-            "rdfs:comment": "A platform is an object_aggregate that is the set of instruments and software needed to perform a process [OBI_0000050]",
+            "rdfs:comment": "REQUIRED: A platform is an object_aggregate that is the set of instruments and software needed to perform a process [OBI_0000050]",
             "rdfs:label": "SequencingPlatform",
             "rdfs:subClassOf": [
                 {
@@ -3503,7 +3503,7 @@
         {
             "@id": "bts:ReverseTranscriptionPrimer",
             "@type": "rdfs:Class",
-            "rdfs:comment": "An oligo to which new deoxyribonucleotides can be added by DNA polymerase [SO_0000112]. The type of primer used for reverse transcription, e.g. oligo-dT or random primer. This allows users to identify content of the cDNA library input e.g. enriched for mRNA",
+            "rdfs:comment": "REQUIRED: An oligo to which new deoxyribonucleotides can be added by DNA polymerase [SO_0000112]. The type of primer used for reverse transcription, e.g. oligo-dT or random primer. This allows users to identify content of the cDNA library input e.g. enriched for mRNA",
             "rdfs:label": "ReverseTranscriptionPrimer",
             "rdfs:subClassOf": [
                 {
@@ -3532,7 +3532,7 @@
         {
             "@id": "bts:TotalNumberofInputCells",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Number of cells loaded/placed on plates",
+            "rdfs:comment": "REQUIRED: Number of cells loaded/placed on plates",
             "rdfs:label": "TotalNumberofInputCells",
             "rdfs:subClassOf": [
                 {
@@ -3547,7 +3547,7 @@
         {
             "@id": "bts:SpikeIn",
             "@type": "rdfs:Class",
-            "rdfs:comment": "A set of known synthetic RNA molecules with known sequence that are added to the cell lysis mix",
+            "rdfs:comment": "REQUIRED: A set of known synthetic RNA molecules with known sequence that are added to the cell lysis mix",
             "rdfs:label": "SpikeIn",
             "rdfs:subClassOf": [
                 {
@@ -3573,7 +3573,7 @@
         {
             "@id": "bts:NucleicAcidSource",
             "@type": "rdfs:Class",
-            "rdfs:comment": "The source of the input nucleic molecule",
+            "rdfs:comment": "REQUIRED: The source of the input nucleic molecule",
             "rdfs:label": "NucleicAcidSource",
             "rdfs:subClassOf": [
                 {
@@ -3602,7 +3602,7 @@
         {
             "@id": "bts:CryopreservedCellsinSample",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Indicate if library preparation was based on revived frozen cells.",
+            "rdfs:comment": "REQUIRED: Indicate if library preparation was based on revived frozen cells.",
             "rdfs:label": "CryopreservedCellsinSample",
             "rdfs:subClassOf": [
                 {
@@ -3614,10 +3614,10 @@
             },
             "schema:rangeIncludes": [
                 {
-                    "@id": "bts:True"
+                    "@id": "bts:Yes"
                 },
                 {
-                    "@id": "bts:False"
+                    "@id": "bts:No"
                 }
             ],
             "sms:displayName": "Cryopreserved Cells in Sample"
@@ -3625,7 +3625,7 @@
         {
             "@id": "bts:SingleCellIsolationMethod",
             "@type": "rdfs:Class",
-            "rdfs:comment": "The method by which cells are isolated into individual reaction containers at a single cell resolution (e.g. wells, micro-droplets)",
+            "rdfs:comment": "REQUIRED: The method by which cells are isolated into individual reaction containers at a single cell resolution (e.g. wells, micro-droplets)",
             "rdfs:label": "SingleCellIsolationMethod",
             "rdfs:subClassOf": [
                 {
@@ -10167,10 +10167,10 @@
             "sms:displayName": "Bulk Nuclei"
         },
         {
-            "@id": "bts:True",
+            "@id": "bts:Yes",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "True",
+            "rdfs:label": "Yes",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:CryopreservedCellsinSample"
@@ -10179,13 +10179,13 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "True"
+            "sms:displayName": "Yes"
         },
         {
-            "@id": "bts:False",
+            "@id": "bts:No",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "False",
+            "rdfs:label": "No",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:CryopreservedCellsinSample"
@@ -10194,7 +10194,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "False"
+            "sms:displayName": "No"
         },
         {
             "@id": "bts:MicrofluidicsChip",
