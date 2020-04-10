@@ -148,6 +148,9 @@ def get_descendants_by_edge_type(graph: nx.MultiDiGraph, source_node_label: str,
     #relationship_subgraph = descendants_subgraph.edge_subgraph(rel_edges)
 
     descendants = relationship_subgraph.nodes()
+    if not descendants:
+        # there might not be any nodes reachable from this node on this relationship type
+        return []
     
     if connected and ordered:
         # get the set of reachable nodes from the source node

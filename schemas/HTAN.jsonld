@@ -2364,6 +2364,9 @@
             "sms:displayName": "Demographics",
             "sms:requiresDependency": [
                 {
+                    "@id": "bts:component"
+                },
+                {
                     "@id": "bts:HTANID"
                 },
                 {
@@ -2429,6 +2432,9 @@
             "sms:displayName": "Family History",
             "sms:requiresDependency": [
                 {
+                    "@id": "bts:component"
+                },
+                {
                     "@id": "bts:HTANID"
                 },
                 {
@@ -2451,6 +2457,9 @@
             },
             "sms:displayName": "Exposure",
             "sms:requiresDependency": [
+                {
+                    "@id": "bts:component"
+                },
                 {
                     "@id": "bts:HTANID"
                 },
@@ -2489,6 +2498,9 @@
             },
             "sms:displayName": "Follow Up",
             "sms:requiresDependency": [
+                {
+                    "@id": "bts:component"
+                },
                 {
                     "@id": "bts:HTANID"
                 },
@@ -2597,6 +2609,9 @@
             "sms:displayName": "Therapy",
             "sms:requiresDependency": [
                 {
+                    "@id": "bts:component"
+                },
+                {
                     "@id": "bts:HTANID"
                 },
                 {
@@ -2649,6 +2664,9 @@
             },
             "sms:displayName": "Diagnosis",
             "sms:requiresDependency": [
+                {
+                    "@id": "bts:component"
+                },
                 {
                     "@id": "bts:HTANID"
                 },
@@ -3319,6 +3337,9 @@
             ],
             "sms:requiresDependency": [
                 {
+                    "@id": "bts:component"
+                },
+                {
                     "@id": "bts:filename"
                 },
                 {
@@ -3362,9 +3383,6 @@
                 },
                 {
                     "@id": "bts:TechnicalReplicateGroup"
-                },
-                {
-                    "@id": "bts:component"
                 }
             ]
         },
@@ -3388,6 +3406,9 @@
                 }
             ],
             "sms:requiresDependency": [
+                {
+                    "@id": "bts:component"
+                },
                 {
                     "@id": "bts:MedianNumberofReadsorUMIsperCell"
                 },

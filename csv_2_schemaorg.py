@@ -14,7 +14,10 @@ from schema_explorer import SchemaExplorer
 Utility for converting csv file following a data model definition schema (see 
 scRNA-seq.csv for an example) into schema.org schema
 """
-#TODO: provide a generic template csv 
+
+# required headers for schema; may or may not abstract further; for now hardcode
+required_headers = set(["Attribute", "Description", "Valid Values", "Requires", "Required", "Parent", "Properties", "Requires Component", "Source"])
+
 
 def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = None, requires_dependencies: list = None, requires_range: list  = None, requires_components: list = None) -> dict:
     
@@ -126,9 +129,22 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
     return property_attributes
 
 
+def attribute_exists(se: SchemaExplorer, attribute_label:str) -> bool:
 
-# required headers for schema; may or may not abstract further; for now hardcode
-required_headers = set(["Attribute", "Description", "Valid Values", "Requires", "Required", "Parent", "Properties", "Requires Component", "Source"])
+    """Check if a given attribute exists already in schema
+
+    Args:
+       se: a schema explorer object allowing the traversal and modification of a schema graph        
+       attribute_label: a schema label for the attribute to check
+
+    Returns:
+       True/False indicating if attribute exists or not
+    """
+    schema_graph = se.get_nx_schema()
+    
+    if attribute_label in schema_graph.nodes:
+        return True
+    return False
 
 
 def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
@@ -181,8 +197,6 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
     for prop in props:
         all_properties += [p.strip() for p in prop.split(",")]
 
-    print(all_properties)
-
     # get both attributes and their properties (if any)
     properties= schema_extension[["Attribute", "Properties"]].to_dict("records")
 
@@ -194,7 +208,6 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             for p in props:
                 prop_2_class[p.strip()] = record["Attribute"]
 
-    #TODO: check if schema already contains attribute - may require attribute context in csv schema definition
     print("=====================")
     print("Adding attributes")
     print("=====================")
@@ -210,7 +223,17 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                           description = attribute["Description"],
                                           subclass_of = subclass_of
             )
+            
             se.update_class(new_class)
+
+            """
+            # check if attribute doesn't already exist and add it
+            if not attribute_exists(se, new_class["rdfs:label"]):
+                se.update_class(new_class)
+            else:
+                print("ATTRIBUTE EXISTS")
+                print(new_class)
+            """
 
         else:
             display_name = attribute["Attribute"]
@@ -219,7 +242,9 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                           prop_2_class[display_name],
                                           description = attribute["Description"],
             )
-            se.update_property(new_property)
+            # check if attribute doesn't already exist and add it
+            if not attribute_exists(se, new_property["rdfs:label"]):
+                se.update_property(new_property)
     
     print("=====================")
     print("Done adding attributes")
@@ -280,7 +305,6 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             print(">>> Adding value range for " + attribute["Attribute"])
             for val in range_values.strip().split(","):
                 # check if value is in attributes column; add it as a class if not
-                #TODO: maintain a list of added classes and properties and only add if not already added
                 if not val.strip() in list(schema_extension["Attribute"]):
 
                     #determine parent class of the new value class
@@ -299,7 +323,9 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                           description = None,
                                           subclass_of = [parent]
                     )
-                    se.update_class(new_class)
+                    # check if attribute doesn't already exist and add it
+                    if not attribute_exists(se, new_class["rdfs:label"]):
+                        se.update_class(new_class)
                                     
                 #update rangeIncludes of attribute
                 # if attribute is not a property, then assume it is a class
@@ -365,13 +391,16 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                               description = None,
                                               subclass_of = [parent]
                         )
-                        se.update_class(new_class)
+                        #se.update_class(new_class)
+                        # check if attribute doesn't already exist and add it
+                        if not attribute_exists(se, new_class["rdfs:label"]):
+                            se.update_class(new_class)
 
                     else:
                         if not attribute["Attribute"] in all_properties:
                             domain_attribute = attribute["Attribute"]
                         else:
-                        # this attribute is a property, set the domain of this properti to the domain class of the attribute
+                        # this attribute is a property, set the domain of this property to the domain class of the attribute
                             domain_attribute = se.get_class_by_property(attribute["Attribute"])
                             if not domain_attribute:
                                 print("ERROR: Listed required dependency " + dep + " must have a class parent!")
@@ -382,8 +411,10 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                         new_property = get_property(se, dep,
                                                     domain_attribute,
                                                     description = description
-                        ) 
-                        se.update_property(new_property)
+                        )
+                        # check if attribute doesn't already exist and add it
+                        if not attribute_exists(se, new_property["rdfs:label"]):
+                            se.update_property(new_property)
 
                 # update required dependencies of attribute
                 # if attribute is not a property then assume it is a class
@@ -430,11 +461,15 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             # check if a component is already defined as an attribute; if not define it in the schema
             if not comp_dep.strip() in list(schema_extension["Attribute"]):
 
-                #component is not in schema so add it as a class with a parent Thing
+                #component is not in csv schema so try adding it as a class with a parent Thing
                 new_class = get_class(se, comp_dep,
                                       description = None
                 )
-                se.update_class(new_class)
+                
+                # check if attribute doesn't already exist in schema.org schema and add it
+                # (component may not be in csv schema, but could be in the base schema we are extending)
+                if not attribute_exists(se, new_class["rdfs:label"]):
+                    se.update_class(new_class)
         
             #update this attribute requirements to include component
             class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))

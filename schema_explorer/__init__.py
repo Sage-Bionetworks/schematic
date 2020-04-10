@@ -42,6 +42,7 @@ class SchemaValidator():
         > the value of "schema:rangeIncludes" should be present in the schema 
           or in the core vocabulary
         > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
+        TODO: add dependencies and component dependencies to class structure documentation
       
     """
     def __init__(self, schema):
@@ -464,8 +465,8 @@ class SchemaExplorer():
                 self.schema["@graph"][i] = class_info
                 break
 
-        
-        validate_schema(self.schema)
+        # TODO: do we actually need to validate the entire schema if a class is just edited and the class passes validation?
+        #validate_schema(self.schema)
         print("Edited the class {} successfully!".format(class_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
 
