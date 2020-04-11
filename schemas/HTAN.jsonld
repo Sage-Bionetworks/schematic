@@ -2832,6 +2832,9 @@
                     "@id": "bts:FollowUp"
                 },
                 {
+                    "@id": "bts:Diagnosis"
+                },
+                {
                     "@id": "bts:Therapy"
                 }
             ]
@@ -3417,9 +3420,6 @@
                 },
                 {
                     "@id": "bts:TotalNumberofCells"
-                },
-                {
-                    "@id": "bts:component"
                 }
             ]
         },
@@ -3755,7 +3755,7 @@
         {
             "@id": "bts:CauseofDeath",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Text term to identify the cause of death for a patient.",
+            "rdfs:comment": "Filename, HTAN Biosample ID, Nucleic Acid Source,Single Cell Isolation,Library Layout,Library Construction Method,Input Molecule,End Bias,Reverse Transcription,Transcript Identifier,Cell Identifier, Primer, Spike In, Platform, Technical Replicate Group",
             "rdfs:label": "CauseofDeath",
             "rdfs:subClassOf": [
                 {
@@ -4202,10 +4202,10 @@
             ]
         },
         {
-            "@id": "bts:Smokingexposure",
+            "@id": "bts:SmokingExposure",
             "@type": "rdfs:Class",
             "rdfs:comment": "Indicate if individual has smoking exposure",
-            "rdfs:label": "Smokingexposure",
+            "rdfs:label": "SmokingExposure",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Exposure"
@@ -4219,10 +4219,10 @@
                     "@id": "bts:Yes-SmokingExposure"
                 },
                 {
-                    "@id": "bts:No-smokingexposure"
+                    "@id": "bts:No-SmokingExposure"
                 }
             ],
-            "sms:displayName": "Smoking exposure"
+            "sms:displayName": "Smoking Exposure"
         },
         {
             "@id": "bts:Yes-SmokingExposure",
@@ -4240,28 +4240,28 @@
             "sms:displayName": "Yes - Smoking Exposure",
             "sms:requiresDependency": [
                 {
-                    "@id": "bts:HTANID"
+                    "@id": "bts:PackYearsSmoked"
                 },
                 {
-                    "@id": "bts:SmokingExposure"
+                    "@id": "bts:CigarettesperDay"
                 },
                 {
-                    "@id": "bts:AlcoholExposure"
+                    "@id": "bts:SmokingFrequency"
                 },
                 {
-                    "@id": "bts:AsbestosExposure"
+                    "@id": "bts:TimebetweenWakingandFirstSmoke"
                 },
                 {
-                    "@id": "bts:CoalDustExposure"
+                    "@id": "bts:TobaccoSmokingOnsetYear"
                 },
                 {
-                    "@id": "bts:EnvironmentalTobaccoSmokeExposure"
+                    "@id": "bts:TobaccoSmokingQuitYear"
                 },
                 {
-                    "@id": "bts:RadonExposure"
+                    "@id": "bts:TobaccoSmokingStatus"
                 },
                 {
-                    "@id": "bts:RespirableCrystallineSilicaExposure"
+                    "@id": "bts:TypeofTobaccoUsed"
                 }
             ]
         },
@@ -20960,21 +20960,6 @@
             "sms:displayName": "Analyte"
         },
         {
-            "@id": "bts:SmokingExposure",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "SmokingExposure",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Exposure"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Smoking Exposure"
-        },
-        {
             "@id": "bts:BarrettsEsophagusGobletCellsPresent",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -24410,19 +24395,34 @@
             "sms:displayName": "None"
         },
         {
-            "@id": "bts:No-smokingexposure",
+            "@id": "bts:No-SmokingExposure",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "No-smokingexposure",
+            "rdfs:label": "No-SmokingExposure",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:Smokingexposure"
+                    "@id": "bts:SmokingExposure"
                 }
             ],
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "No - smoking exposure"
+            "sms:displayName": "No - Smoking Exposure"
+        },
+        {
+            "@id": "bts:TimebetweenWakingandFirstSmoke",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "TimebetweenWakingandFirstSmoke",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Yes-SmokingExposure"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Time between Waking and First Smoke"
         },
         {
             "@id": "bts:No-AlcoholExposure",
