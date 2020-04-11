@@ -13,7 +13,9 @@ from google.auth.transport.requests import Request
 import pygsheets as ps
 
 from schema_explorer import SchemaExplorer
-from schema_generator import get_JSONSchema_requirements
+import schema_generator as sg
+
+#from schema_generator import get_JSONSchema_requirements, get_node_dependencies
 
 class ManifestGenerator(object):
 
@@ -89,7 +91,19 @@ class ManifestGenerator(object):
         return
 
 
+    def _attribute_to_letter(self, attribute, manifest_fields):
+        """Map attribute to column letter in a google sheet
+        """
+
+        # find index of attribute in manifest field
+        column_idx = index(attribute, manifest_fields)
+
+        # return the google sheet letter representation of the column index
+        return self._column_to_letter(column_idx)
+
     def _column_to_letter(self, column):
+         """Find google sheet letter representation of a column index integer
+         """
          character = chr(ord('A') + column % 26)
          remainder = column // 26
          if column >= 26:
@@ -97,6 +111,28 @@ class ManifestGenerator(object):
          else:
             return character
 
+
+    def _columns_to_sheet_ranges(self, column_idxs):
+        """map a set of column indexes to a set of Google sheet API ranges: each range includes exactly one column
+        """
+        ranges = []
+
+        for column_idx in column_idxs:
+            col_range = {
+                        "startColumnIndex":column_idx,
+                        "endColumnIndex": column_idx + 1
+            }
+
+            ranges.append(col_range)
+
+        return ranges
+            
+
+    def _column_to_cond_format_eq_rules(self, column_idx, condition_arguments):
+        """Given a column index and a set of equality arguments (e.g. valid values for the given column fields), generate a set of conditional formatting rules based on a custom formula encoding the logic: 
+
+        'if a cell in column idx is equal to condition argument, then set specified formatting below'
+        """
 
     def _create_empty_manifest_spreadsheet(self, title):
 
@@ -140,12 +176,23 @@ class ManifestGenerator(object):
 
     def get_manifest(self, json_schema = None): 
 
+        # TODO: Refactor get_manifest method
+        # - abstract function for requirements gathering
+        # - abstract google sheet API requests as functions
+        # --- specifying row format
+        # --- setting valid values in dropdowns for columns/cells
+        # --- setting notes/comments to cells
+      
         self.build_credentials()
 
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
 
         if not json_schema:
-            json_schema = get_JSONSchema_requirements(self.se, self.root, self.title)
+            # if no json schema is provided; there must be
+            # schema explorer defined for schema.org schema
+            # o.w. this will throw an error
+            # TODO: catch error
+            json_schema = sg.get_JSONSchema_requirements(self.se, self.root, self.title)
 
         required_metadata_fields = {}
 
@@ -176,7 +223,7 @@ class ManifestGenerator(object):
                                 else:
                                      required_metadata_fields[req] = []    
 
-        # if additional metadata is provided append columns (if those do not exist already
+        # if additional metadata is provided append columns (if those do not exist already)
         if self.additional_metadata:
             for column in self.additional_metadata.keys():
                 if not column in required_metadata_fields:
@@ -184,7 +231,6 @@ class ManifestGenerator(object):
     
         # if 'component' is in column set (see your input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry 
         if 'Component' in required_metadata_fields.keys():
-
             # check if additional metadata has actually been instantiated in the constructor (it's optional)
             # if not, instantiate it
             if not self.additional_metadata:
@@ -199,18 +245,14 @@ class ManifestGenerator(object):
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
         ordered_metadata_fields = [list(required_metadata_fields.keys())]
 
-        # order columns header (since they are generated based on a json schema, which is a dict) the order could be somewhat arbitrary;this is not the case from a better user experience perspective; we can add better rules, but for now alphabetical order where column Filename is first and entityId is last, should suffice
-        
-        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0])
-
-        
+        # order columns header (since they are generated based on a json schema, which is a dict)
+        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0]) 
         body = {
                 "values": ordered_metadata_fields
         }
-       
         self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
 
-        # format header
+        # format column header row
         header_format_body = {
                 "requests":[
                 {
@@ -260,30 +302,27 @@ class ManifestGenerator(object):
                         } 
                     }
                 ]
-                }
+        }
 
         response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body).execute()
 
-
-        # adding additinoal metadata values if needed and adding value-constraints from data model as dropdowns
+        # adding additional metadata values if needed and adding value-constraints from data model as dropdowns
         for i, req in enumerate(ordered_metadata_fields[0]):
-        #for i, (req, values) in enumerate(required_metadata_fields.items()):
             values = required_metadata_fields[req]
             #adding additional metadata if needed
             if self.additional_metadata and req in self.additional_metadata:
                 values = self.additional_metadata[req]
                 target_col_letter = self._column_to_letter(i) 
-
                 body =  {
                             "majorDimension":"COLUMNS",
                             "values":[values]
-                }
-                
+                }                
                 response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
 
-                #continue
 
             # adding description to headers
+            # this is not executed if only JSON schema is defined
+            # TODO: abstract better and document
             if self.se:
                 # get node label of requirements
                 schema_graph = self.se.get_nx_schema()
@@ -319,7 +358,6 @@ class ManifestGenerator(object):
 
                 response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=notes_body).execute()
 
-
             # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
             
@@ -350,14 +388,51 @@ class ManifestGenerator(object):
                                 'strict':True,
                                 'showCustomUi': True
                             }
-                        },
-
+                        }
                     }
                 ]
             }   
 
             response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=validation_body).execute()
 
+            # adding conditional formatting depending on user entry
+            
+            dependency_formatting_body = {
+                        "requests": [
+                        {
+                          "addConditionalFormatRule": {
+                            "rule": {
+                              "ranges": [
+                                {
+                                  "startColumnIndex":5,
+                                  "endColumnIndex": 6,
+                                }
+                              ],
+                              "booleanRule": {
+                                "condition": {
+                                  "type": "CUSTOM_FORMULA",
+                                  "values": [
+                                    {
+                                        "userEnteredValue": '=$C1 = "Yes - Smoking Exposure"'
+                                    }
+                                  ]
+                                },
+                                "format":{
+                                    'backgroundColor': {
+                                    'red': 1,
+                                    'green': 0.4,
+                                    'blue': 0.4
+                                    }
+                                }
+                              }
+                            },
+                            "index": 0
+                          }
+                        }
+                    ]
+        }
+        response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=dependency_formatting_body).execute()
+    
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
         self._set_permissions(spreadsheet_id)
@@ -405,44 +480,33 @@ class ManifestGenerator(object):
 
 
     def sort_manifest_fields(self, manifest_fields, order = "schema"):
-        """ sort a set of metadata fields (e.g. to organize manifest column headers in a more user-friendly and consistent pattern, (e.g. alphabetical))  
-        TODO: below is very adhoc and arguably not very user friendly way to sort; rearrange
-        """
 
+        # order manifest fields alphabetically (base order)
+        manifest_fields = sorted(manifest_fields)
+        
         if order == "alphabetical":
-
-            # should be able to abstract custom logic so that certain
-            # special fields appear as first (or last) columns
+            # if the order is alphabetical ensure that filename is first, if present
             if "Filename" in manifest_fields:
-                pos = manifest_fields.index("Filename")
-                manifest_fields[pos] = manifest_fields[0]
-                manifest_fields[0] = "Filename"
+                manifest_fields.remove("Filename")
+                manifest_fields.insert(0, "Filename")
 
-            if "entityId" in manifest_fields:
-                manifest_fields.remove("entityId")
-                manifest_fields.append("entityId")
 
-        # order manifest fields alphabetically        # (default/base order)
-        manifest_fields[1:-1] = sorted(manifest_fields[1:-1])
-
+        # order manifest fields based on schema (schema.org)
         if order == "schema":
             if self.se and self.root:
-                # get schema graph
-                schema_graph = self.se.get_nx_schema()
-                
-                # get root dependencies in the order defined in schema for root
-                required_dependencies = self.se.explore_class(self.root)["dependencies"]
-                
                 # get display names of dependencies
-                dependencies_display_names = []               
-                for req in required_dependencies:
-                    dependencies_display_names.append(schema_graph.nodes[req]["displayName"])
+                dependencies_display_names = sg.get_node_dependencies(self.se, self.root)
 
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(manifest_fields, key = lambda x: dependencies_display_names.index(x) if x in dependencies_display_names else len(manifest_fields) -1)
             
             else:
                 print("No schema provided! Cannot order based on schema without a specified schema and a schema root attribute.")
+
+        # always have entityId as last columnn, if present
+        if "entityId" in manifest_fields:
+            manifest_fields.remove("entityId")
+            manifest_fields.append("entityId")
 
         print("Manifest fields:")
         print()

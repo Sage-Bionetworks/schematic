@@ -3,9 +3,12 @@ import json
 import networkx as nx
 from orderedset import OrderedSet
 
+# allows specifying explicit variable types
+from typing import Any, Dict, Optional, Text
+
 from schema_explorer import SchemaExplorer
 
-#TODO: refactor into class; expose parameters as constructor args
+#TODO: refactor into class(es); expose parameters as constructor args
 
 """
 Gather all metadata/annotations requirements for an object part of the schema.org metadata model.
@@ -170,6 +173,66 @@ def get_descendants_by_edge_type(graph: nx.MultiDiGraph, source_node_label: str,
 
 
     return list(descendants)
+
+
+def get_node_dependencies(se:SchemaExplorer, node_label:str, display_names:bool = True) -> list:
+         
+        """ get the node dependencies (i.e. immediate dependencies) given a node label  
+         Args:
+          se: a schema explorer object instantiated with a schema.org schema
+          node_label: a schema node label (i.e. term)
+          display_names: if True return display names of dependencies; otherwise return node_labels
+        
+         Returns: a list of dependencies (strings)
+         Raises: 
+            ValueError: TODO: node label not found in metadata model.
+        """
+
+        # get schema graph
+        schema_graph = se.get_nx_schema()
+        
+        # get node dependencies in the order defined in schema for root
+        required_dependencies = se.explore_class(node_label)["dependencies"]
+        
+        if display_names:
+            # get display names of dependencies
+            dependencies_display_names = []               
+            for req in required_dependencies:
+                dependencies_display_names.append(schema_graph.nodes[req]["displayName"])
+
+            return dependencies_display_names
+
+        return required_dependencies
+
+
+def get_node_range(se:SchemaExplorer, node_label:str, display_names:bool = True) -> list:
+         
+        """ get the node range (i.e. valid values) given a node label  
+         Args:
+          se: a schema explorer object instantiated with a schema.org schema
+          node_label: a schema node label (i.e. term)
+          display_names: if True return display names of range; otherwise return node_labels
+        
+         Returns: a list of range nodes (strings)
+         Raises: 
+            ValueError: TODO: node label not found in metadata model.
+        """
+
+        # get schema graph
+        schema_graph = se.get_nx_schema()
+        
+        # get node range in the order defined in schema for root
+        required_range = se.explore_class(node_label)["range"]
+        
+        if display_names:
+            # get display names of dependencies
+            dependencies_display_names = []               
+            for req in required_range:
+                dependencies_display_names.append(schema_graph.nodes[req]["displayName"])
+
+            return dependencies_display_names
+
+        return required_range
 
 
 """
