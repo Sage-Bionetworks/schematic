@@ -128,11 +128,34 @@ class ManifestGenerator(object):
         return ranges
             
 
-    def _column_to_cond_format_eq_rules(self, column_idx, condition_arguments):
-        """Given a column index and a set of equality arguments (e.g. valid values for the given column fields), generate a set of conditional formatting rules based on a custom formula encoding the logic: 
+    def _column_to_cond_format_eq_rule(self, column_idx:int, condition_argument:str) -> dict:
+        """Given a column index and an equality argument (e.g. one of valid values for the given column fields), generate a conditional formatting rule based on a custom formula encoding the logic: 
 
-        'if a cell in column idx is equal to condition argument, then set specified formatting below'
+        'if a cell in column idx is equal to condition argument, then set specified formatting'
         """
+        
+        col_letter = self._column_to_letter(column_idx)
+
+        boolean_rule =  {
+                        "condition": {
+                        "type": "CUSTOM_FORMULA",
+                        "values": [
+                                    {
+                                        "userEnteredValue": '=$' + col_letter + '1 = "' + condition_argument + '"'
+                                    }
+                                  ]
+                        },
+                        "format":{
+                            'backgroundColor': {
+                            'red': 1,
+                            'green': 0.4,
+                            'blue': 0.4
+                            }
+                        }
+        }
+    
+        return boolean_rule
+
 
     def _create_empty_manifest_spreadsheet(self, title):
 
@@ -306,7 +329,8 @@ class ManifestGenerator(object):
 
         response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body).execute()
 
-        # adding additional metadata values if needed and adding value-constraints from data model as dropdowns
+        # adding additional metadata values if needed
+        # adding value-constraints from data model as dropdowns
         for i, req in enumerate(ordered_metadata_fields[0]):
             values = required_metadata_fields[req]
             #adding additional metadata if needed
@@ -324,12 +348,9 @@ class ManifestGenerator(object):
             # this is not executed if only JSON schema is defined
             # TODO: abstract better and document
             if self.se:
-                # get node label of requirements
-                schema_graph = self.se.get_nx_schema()
-                req_class_label = self.se.get_class_label_from_display_name(req)
-                req_property_label = self.se.get_property_label_from_display_name(req)
-
-                note = schema_graph.nodes[req_class_label]["comment"] if req_class_label in schema_graph.nodes else schema_graph.nodes[req_property_label]["comment"]
+                
+                # get node definition
+                note = sg.get_node_definition(self.se, req)
 
                 notes_body =  {
                             "requests":[
@@ -395,43 +416,61 @@ class ManifestGenerator(object):
 
             response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=validation_body).execute()
 
-            # adding conditional formatting depending on user entry
-            
-            dependency_formatting_body = {
-                        "requests": [
-                        {
+            # generate a conditional format rule for each requiered value (i.e. valid value) 
+            # for this field (i.e. if this field is set to a valid value that may require additional
+            # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background) 
+            for req_val in req_vals:
+                # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
+                req_val = req_val["userEnteredValue"]
+              
+                val_node_label = sg.get_node_label(self.se, req_val)
+                if not val_node_label:
+                    # if this node is not in the graph
+                    # continue - there are no dependencies for it
+                    continue
+
+                dependency_formatting_body = {
+                        "requests": []
+                }
+
+                # check if this required/valid value has additional dependency attributes
+                val_dependencies = sg.get_node_dependencies(self.se, val_node_label, schema_ordered = False)
+                if val_dependencies:
+                    # if there are additional attribute dependencies find the corresponding
+                    # fields that need to be filled in and construct conditional formatting rules
+                    # indicating the dependencies need to be filled in
+                    
+                        
+                    # set target ranges for this rule
+                    # i.e. dependency attribute columns that will be formatted
+
+                    # find dependency column indexes
+                    # note that dependencies values must be in index 
+                    # TODO: catch value error that shouldn't happen
+                    column_idxs = [ordered_metadata_fields[0].index(val_dep) for val_dep in val_dependencies]
+
+                    # construct ranges based on dependency column indexes
+                    rule_ranges = self._columns_to_sheet_ranges(column_idxs)
+                    
+                    # construct formatting rule
+                    formatting_rule = self._column_to_cond_format_eq_rule(i, req_val)
+
+                    # construct conditional format rule 
+                    conditional_format_rule = {
                           "addConditionalFormatRule": {
                             "rule": {
-                              "ranges": [
-                                {
-                                  "startColumnIndex":5,
-                                  "endColumnIndex": 6,
-                                }
-                              ],
-                              "booleanRule": {
-                                "condition": {
-                                  "type": "CUSTOM_FORMULA",
-                                  "values": [
-                                    {
-                                        "userEnteredValue": '=$C1 = "Yes - Smoking Exposure"'
-                                    }
-                                  ]
-                                },
-                                "format":{
-                                    'backgroundColor': {
-                                    'red': 1,
-                                    'green': 0.4,
-                                    'blue': 0.4
-                                    }
-                                }
-                              }
-                            },
+                              "ranges": rule_ranges,
+                              "booleanRule": formatting_rule,
+                             },
                             "index": 0
                           }
-                        }
-                    ]
-        }
-        response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=dependency_formatting_body).execute()
+                    }
+
+                    dependency_formatting_body["requests"].append(conditional_format_rule)
+    
+                # check if dependency formatting rules have been added and update sheet if so
+                if dependency_formatting_body["requests"]:
+                    response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=dependency_formatting_body).execute()
     
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
