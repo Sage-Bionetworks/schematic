@@ -31,18 +31,18 @@ class SchemaValidator():
       > There should be no duplicate "@id"
       > Class specific
         > rdfs:label field should be capitalize the first character of each 
-          word
+          word for a class; 
         > the value of "rdfs:subClassOf" should be present in the schema or in 
           the core vocabulary
         > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
       > Property specific
-        > rdfs:label field should be carmelCase
+        > rdfs:label field should be cammelCase
         > the value of "schema:domainIncludes" should be present in the schema 
           or in the core vocabulary
         > the value of "schema:rangeIncludes" should be present in the schema 
           or in the core vocabulary
         > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
-        TODO: add dependencies and component dependencies to class structure documentation
+        TODO: add dependencies and component dependencies to class structure documentation; as well as value range and required property
       
     """
     def __init__(self, schema):
@@ -327,6 +327,10 @@ class SchemaExplorer():
             for comp_dep_class in self.schema_nx.node[schema_class]["requiresComponent"]:
                 requires_components.append(extract_name_from_uri_or_curie(comp_dep_class["@id"])) 
 
+        required = False
+        if "required" in self.schema_nx.node[schema_class]:
+            required = self.schema_nx.node[schema_class]
+
 
         class_info = {'properties': self.find_all_class_properties(schema_class),
                       'description': self.schema_nx.node[schema_class]['description'],
@@ -336,6 +340,7 @@ class SchemaExplorer():
                       'subClassOf':subclasses, 
                       'range':requires_range,
                       'dependencies': requires_dependencies,
+                      'required': required,
                       'component_dependencies': requires_components,
                       'parent_classes': self.find_parent_classes(schema_class)
         }
@@ -402,7 +407,14 @@ class SchemaExplorer():
                         property_info["range"] = [self.uri2label(record["@id"]) for record in p_range]
                     else:
                         property_info["range"] = []
-    
+   
+                    if "sms:required" in record:
+                        if "sms:True" == record["sms:required"]:
+                            property_info["required"] = True  
+                        else: 
+                            property_info["required"] = False 
+                            
+
                     if  "sms:requiresDependency" in record:
                         p_dependencies = dict2list(record["sms:requiresDependency"])
                         property_info["dependencies"] = [self.uri2label(record["@id"]) for record in p_dependencies]

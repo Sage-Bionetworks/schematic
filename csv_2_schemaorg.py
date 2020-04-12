@@ -19,7 +19,7 @@ scRNA-seq.csv for an example) into schema.org schema
 required_headers = set(["Attribute", "Description", "Valid Values", "Requires", "Required", "Parent", "Properties", "Requires Component", "Source"])
 
 
-def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = None, requires_dependencies: list = None, requires_range: list  = None, requires_components: list = None) -> dict:
+def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = None, requires_dependencies: list = None, requires_range: list  = None, requires_components: list = None, required:bool = None) -> dict:
     
     """Constructs a new schema.org compliant class given a set of schema object attributes
 
@@ -31,6 +31,7 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
        requires_dependencies: important characteristics, if any, of attribute X that need to be recorded as metadata features given attribute X is specified. These characteristics are attributes themselves and need to pre-exist in the schema as such
        requires_range: a set/range of values that this attribute can be assigned to. this domain is stored in the rangeIncludes property of this object. 
        requires_components: a set of associated components/categories that this object/entity requires for its full specification; each component is a high level ontology class in which entities/objects are categorized/componentized and it is an entity on its own that needs to exist in the schema.
+       required: indicates if this attribute is required or optional in a schema
 
     Returns: a json schema.org object
     """
@@ -77,6 +78,11 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
         requirement = {'sms:requiresComponent':[{'@id':'bts:' + c} for c in requires_components]}
         class_attributes.update(requirement)
 
+    if not (required == none):
+        if required.strip().lower() == "true":
+            class_attributes.update({'sms:required':'sms:true'})
+        else:
+            class_attributes.update({'sms:required':'sms:false'})
 
     # ensure display name does not contain leading/trailing white spaces
     class_attributes.update({'sms:displayName':class_display_name.strip()})
@@ -86,7 +92,7 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
     return class_attributes
 
 
-def get_property(se: SchemaExplorer, property_display_name: str, property_class_name: str, description: str = None, requires_range: list = None, requires_dependencies: list = None) -> dict:
+def get_property(se: SchemaExplorer, property_display_name: str, property_class_name: str, description: str = None, requires_range: list = None, requires_dependencies: list = None, required:bool = None) -> dict:
 
     """Constructs a new schema.org compliant property of an existing schema.org object/class; note that the property itself is a schema.org object class.
 
@@ -119,7 +125,13 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
     if requires_dependencies:
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
         property_attributes.update(requirement)
-    
+   
+    if not (required == none):
+        if required.strip().lower() == "true":
+            property_attributes.update({'sms:required':'sms:true'})
+        else:
+            property_attributes.update({'sms:required':'sms:false'})
+
     #'http://schema.org/domainIncludes':{'@id': 'bts:' + property_class_name},
     #'http://schema.org/rangeIncludes':{'@id': 'schema:' + allowed_values},
     
