@@ -138,16 +138,17 @@ class ManifestGenerator(object):
 
         if not required:
            bg_color = {
-                        'red': 1,
-                        'green': 0.4,
-                        'blue': 0.4
+                        'red': 229.0/255,
+                        'green': 255.0/255,
+                        'blue': 204.0/255,
+                        'alpha':0.8
             }
         else:
            bg_color = {
-                        'red': 0.5,
-                        'green': 0.5,
-                        'blue': 0.5,
-                        'alpha':0.7
+                        'red': 255.0/255,
+                        'green': 204.0/255,
+                        'blue': 204.0/255,
+                        'alpha':0.8
             }
 
         
@@ -231,13 +232,6 @@ class ManifestGenerator(object):
         required_metadata_fields = {}
 
         # gathering dependency requirements and corresponding allowed values constraints for root node
-        """
-        for req in json_schema["required"]: 
-            if req in json_schema["properties"]:
-                required_metadata_fields[req] = json_schema["properties"][req]["enum"]
-            else:
-                required_metadata_fields[req] = []
-        """
         for req in json_schema["properties"].keys():
             if not "enum" in json_schema["properties"][req]:
                 # if no valid/allowed values specified
@@ -402,6 +396,39 @@ class ManifestGenerator(object):
 
                 response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=notes_body).execute()
 
+            # update background colors so that columns that are required are highlighted
+            # check if attribute is required and set a corresponding color
+            if req in json_schema["required"]:
+                bg_color = {
+
+                        'red': 255.0/255,
+                        'green': 204.0/255,
+                        'blue': 204.0/255,
+                        "alpha":0.8
+                }
+                
+                req_format_body = {
+                        "requests":[
+                            {
+                                "repeatCell": {
+                                    "range": {
+                                      "startColumnIndex": i,
+                                      "endColumnIndex": i+1
+                                    },
+                                    "cell": {
+                                      "userEnteredFormat": {
+                                        "backgroundColor": bg_color
+                                      }
+                                    },
+                                    "fields": "userEnteredFormat(backgroundColor)"
+                                  }
+                            }
+                        ]
+                }
+                
+                response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=req_format_body).execute()
+
+
             # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
             
@@ -499,37 +526,6 @@ class ManifestGenerator(object):
                 if dependency_formatting_body["requests"]:
                     response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=dependency_formatting_body).execute()
     
-            # update background colors so that columns that are required are highlighted
-            # check if attribute is required and set a corresponding color
-            if req in json_schema["required"]:
-                bg_color = {
-                             "red": 0.5,
-                             "green": 0.5,
-                             "blue": 0.5,
-                             "alpha":0.7
-                }
-                
-                req_format_body = {
-                        "requests":[
-                            {
-                                "repeatCell": {
-                                    "range": {
-                                      "startColumnIndex": i,
-                                      "endColumnIndex": i+1
-                                    },
-                                    "cell": {
-                                      "userEnteredFormat": {
-                                        "backgroundColor": bg_color
-                                      }
-                                    },
-                                    "fields": "userEnteredFormat(backgroundColor)"
-                                  }
-                            }
-                        ]
-                }
-                
-                response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=req_format_body).execute()
-
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
         self._set_permissions(spreadsheet_id)
 
