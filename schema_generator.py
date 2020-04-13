@@ -196,7 +196,7 @@ def get_node_dependencies(se:SchemaExplorer, node_label:str, display_names:bool 
             # get node dependencies in the order defined in schema for root
             required_dependencies = se.explore_class(node_label)["dependencies"]
         else:
-            required_dependencies = get_adjacent_node_by_relationship(schema_graph, node_label, relationship = "requiresDependency")
+            required_dependencies = get_adjacent_node_by_relationship(schema_graph, node_label, relationship = requires_dependency_relationship)
 
         if display_names:
             # get display names of dependencies
@@ -322,10 +322,10 @@ def get_JSONSchema_requirements(se, root, schema_name):
     '''
     keep checking for dependencies until there are no nodes
     left to process
+    TODO: there's repeating logic that can be abstracted as methods
     '''
     while nodes_to_process:  
         process_node = nodes_to_process.pop()
-
         '''
         get allowable values for this node;
         each of these values is a node that in turn is processed for
@@ -345,7 +345,18 @@ def get_JSONSchema_requirements(se, root, schema_name):
                     # set conditional dependencies based on node range dependencies
                     for node in node_range:
                         node_dependencies = get_adjacent_node_by_relationship(mm_graph, node, requires_dependency_relationship)
-                        
+                       
+                        # if only require dependencies that are required by the schema; otherwise add dependencies as validation schema properties
+                        required_dependencies = []
+                        for node_dependency in node_dependencies:
+                            node_dep_name = mm_graph.nodes[node_dependency]["displayName"]
+                            #if a node is not yet in the schema properties add it
+                            if not node_dep_name in json_schema["properties"]:
+                                schema_properties = {node_dep_name:{}}
+                                json_schema["properties"].update(schema_properties)                       
+
+                            if mm_graph.nodes[node_dependency]["required"]:
+                                required_dependencies.append(node_dep_name)
                         if node_dependencies:
                             schema_conditional_dependencies = {
                                     "if": {
@@ -354,12 +365,13 @@ def get_JSONSchema_requirements(se, root, schema_name):
                                         },
                                         "required":[mm_graph.nodes[process_node]["displayName"]],
                                       },
-                                    "then": { "required": [mm_graph.nodes[node_dependency]["displayName"] for node_dependency in node_dependencies] },
+                                    #"then": { "required": [mm_graph.nodes[node_dependency]["displayName"] for node_dependency in node_dependencies] },
+                                    "then":{"required":required_dependencies}
                             }
                             nodes_with_processed_dependencies.add(node)
                             nodes_to_process.update(node_dependencies)
                             json_schema["allOf"].append(schema_conditional_dependencies)
-
+        
 
         '''
         get required nodes by this node (e.g. other terms/nodes
@@ -368,11 +380,38 @@ def get_JSONSchema_requirements(se, root, schema_name):
         processed for dependencies in turn.
         '''
         if not process_node in nodes_with_processed_dependencies:
+            print(process_node)
             process_node_dependencies = get_adjacent_node_by_relationship(mm_graph, process_node, requires_dependency_relationship)
+            print(process_node_dependencies)
             if process_node_dependencies:
-                if process_node == root: # these are unconditional dependencies
-                    json_schema["required"] += [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies]
+
+                if process_node == root: # these are unconditional dependencies (unless explicitly marked as not required in the schema)
+                    for process_node_dependency in process_node_dependencies:
+                        print(mm_graph.nodes[process_node_dependency])
+                        if mm_graph.nodes[process_node_dependency]["required"]:
+                            # check if a node is required and only add to the required set if so
+                            json_schema["required"] += [mm_graph.nodes[process_node_dependency]["displayName"]]
+       
+                        if not mm_graph.nodes[process_node_dependency]["displayName"] in json_schema["properties"]:
+                            #if a node is not yet in the schema properties add it
+                            schema_properties = {mm_graph.nodes[process_node_dependency]["displayName"]:{}}
+                            json_schema["properties"].update(schema_properties)                       
+                    
+
+                    #json_schema["required"] += [mm_graph.nodes[process_node_dependency]["displayName"] if mm_graph.nodes[process_node_dependency]["required"] for process_node_dependency in process_node_dependencies]
                 else: # these are dependencies given the processed node 
+                    # if dependencies are not required attributes do not require them  
+                    required_dependencies = []
+                    for process_node_dependency in process_node_dependencies:
+                        node_dep_name = mm_graph.nodes[process_node_dependency]["displayName"]
+                        if mm_graph.nodes[process_node_dependency]["required"]:
+                            required_dependencies.append(node_dep_name)
+     
+                        if not node_dep_name in json_schema["properties"]:
+                            #if a node is not yet in the schema properties add it
+                            schema_properties = {node_dep_name:{}}
+                            json_schema["properties"].update(schema_properties)                       
+
                     schema_conditional_dependencies = {
                             "if": {
                                 "properties": {
@@ -380,7 +419,8 @@ def get_JSONSchema_requirements(se, root, schema_name):
                                 },
                                 "required":[mm_graph.nodes[process_node]["displayName"]],
                               },
-                            "then": { "required": [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies] },
+                            #"then": { "required": [mm_graph.nodes[process_node_dependency]["displayName"] for process_node_dependency in process_node_dependencies] },
+                            "then": { "required": required_dependencies },
                     }
                     json_schema["allOf"].append(schema_conditional_dependencies)
 

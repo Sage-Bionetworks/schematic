@@ -409,7 +409,7 @@ class SchemaExplorer():
                         property_info["range"] = []
    
                     if "sms:required" in record:
-                        if "sms:True" == record["sms:required"]:
+                        if "sms:true" == record["sms:required"]:
                             property_info["required"] = True  
                         else: 
                             property_info["required"] = False 

@@ -78,11 +78,11 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
         requirement = {'sms:requiresComponent':[{'@id':'bts:' + c} for c in requires_components]}
         class_attributes.update(requirement)
 
-    if not (required == none):
-        if required.strip().lower() == "true":
-            class_attributes.update({'sms:required':'sms:true'})
-        else:
-            class_attributes.update({'sms:required':'sms:false'})
+    if required:
+        class_attributes.update({'sms:required':'sms:true'})
+    else:
+        class_attributes.update({'sms:required':'sms:false'})
+
 
     # ensure display name does not contain leading/trailing white spaces
     class_attributes.update({'sms:displayName':class_display_name.strip()})
@@ -126,11 +126,11 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
         property_attributes.update(requirement)
    
-    if not (required == none):
-        if required.strip().lower() == "true":
-            property_attributes.update({'sms:required':'sms:true'})
-        else:
-            property_attributes.update({'sms:required':'sms:false'})
+    if required:
+        property_attributes.update({'sms:required':'sms:true'})
+    else:
+        property_attributes.update({'sms:required':'sms:false'})
+
 
     #'http://schema.org/domainIncludes':{'@id': 'bts:' + property_class_name},
     #'http://schema.org/rangeIncludes':{'@id': 'schema:' + allowed_values},
@@ -224,6 +224,12 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
     print("Adding attributes")
     print("=====================")
     for attribute in attributes:
+
+        required = None
+        if not pd.isnull(attribute["Required"]):
+            required = attribute["Required"]
+
+
         if not attribute["Attribute"] in all_properties:
             display_name = attribute["Attribute"]
            
@@ -233,7 +239,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
             new_class = get_class(se, display_name,
                                           description = attribute["Description"],
-                                          subclass_of = subclass_of
+                                          subclass_of = subclass_of,
+                                          required = required
             )
             
             se.update_class(new_class)
@@ -253,6 +260,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             new_property = get_property(se, display_name,
                                           prop_2_class[display_name],
                                           description = attribute["Description"],
+                                          required = required
             )
             # check if attribute doesn't already exist and add it
             if not attribute_exists(se, new_property["rdfs:label"]):

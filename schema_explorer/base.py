@@ -161,7 +161,7 @@ def load_schema_into_networkx(schema):
                 node["requiresChildAsValue"] = True
             
             if "required" in node:
-                if "sms:True" == record["sms:required"]:
+                if "sms:true" == record["sms:required"]:
                     node["required"] = True  
                 else:
                     node["required"] = False

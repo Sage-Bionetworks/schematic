@@ -220,12 +220,20 @@ class ManifestGenerator(object):
         required_metadata_fields = {}
 
         # gathering dependency requirements and corresponding allowed values constraints for root node
+        """
         for req in json_schema["required"]: 
             if req in json_schema["properties"]:
                 required_metadata_fields[req] = json_schema["properties"][req]["enum"]
             else:
                 required_metadata_fields[req] = []
-   
+        """
+        for req in json_schema["properties"].keys():
+            if not "enum" in json_schema["properties"][req]:
+                # if no valid/allowed values specified
+                json_schema["properties"][req]["enum"] = []
+            
+            required_metadata_fields[req] = json_schema["properties"][req]["enum"]
+
 
         # gathering dependency requirements and allowed value constraints for conditional dependencies if any
         if "allOf" in json_schema: 
@@ -235,14 +243,16 @@ class ManifestGenerator(object):
                         if req in conditional_reqs["if"]["properties"]:
                             if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
+                                    if not "enum" in json_schema["properties"][req]:
+                                        # if no valid/allowed values specified
+                                        json_schema["properties"][req]["enum"] = []
                                     required_metadata_fields[req] = json_schema["properties"][req]["enum"]
                                 else:
-                                    required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"]
-                    
+                                    required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"] if "enum" in conditional_reqs["if"]["properties"][req] else []                   
                      for req in conditional_reqs["then"]["required"]: 
                          if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
-                                    required_metadata_fields[req] = json_schema["properties"][req]["enum"]
+                                    required_metadata_fields[req] = json_schema["properties"][req]["enum"] if "enum" in json_schema["properties"][req] else []
                                 else:
                                      required_metadata_fields[req] = []    
 
@@ -347,6 +357,8 @@ class ManifestGenerator(object):
             # adding description to headers
             # this is not executed if only JSON schema is defined
             # TODO: abstract better and document
+            
+            # also formatting required columns
             if self.se:
                 
                 # get node definition
@@ -416,7 +428,7 @@ class ManifestGenerator(object):
 
             response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=validation_body).execute()
 
-            # generate a conditional format rule for each requiered value (i.e. valid value) 
+            # generate a conditional format rule for each required value (i.e. valid value) 
             # for this field (i.e. if this field is set to a valid value that may require additional
             # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background) 
             for req_val in req_vals:
@@ -472,6 +484,36 @@ class ManifestGenerator(object):
                 if dependency_formatting_body["requests"]:
                     response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=dependency_formatting_body).execute()
     
+            # update background colors so that columns that are required are highlighted
+            # check if attribute is required and set a corresponding color
+            if req in json_schema["required"]:
+                bg_color = {
+                             "red": 0.5,
+                             "green": 0.5,
+                             "blue": 0.5,
+                             "alpha":0.7
+                }
+                
+                req_format_body = {
+                        "requests":[
+                            {
+                                "repeatCell": {
+                                    "range": {
+                                      "startColumnIndex": i,
+                                      "endColumnIndex": i+1
+                                    },
+                                    "cell": {
+                                      "userEnteredFormat": {
+                                        "backgroundColor": bg_color
+                                      }
+                                    },
+                                    "fields": "userEnteredFormat(backgroundColor)"
+                                  }
+                            }
+                        ]
+                }
+                
+                response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=req_format_body).execute()
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
         self._set_permissions(spreadsheet_id)
