@@ -287,6 +287,26 @@ def get_node_definition(se:SchemaExplorer, node_display_name:str) -> str:
         return node_definition
 
 
+def is_node_required(se:SchemaExplorer, node_display_name:str) -> bool:
+        """ determine if a node is required given a node display name  
+         Args:
+          se: a schema explorer object instantiated with a schema.org schema
+          display_name: node display name
+        
+         Returns: True if a node is required; False otherwise 
+         Raises: 
+            ValueError: TODO: node label not found in metadata model.
+        """
+        # get node label
+        node_label = get_node_label(se, node_display_name)
+
+        # get node definition from schema
+        schema_graph = se.get_nx_schema()
+         
+        node_required = schema_graph.nodes[node_label]["required"] 
+
+        return node_required
+
 
 """
 Gather dependencies and value-constraints across terms/nodes in 

@@ -128,7 +128,7 @@ class ManifestGenerator(object):
         return ranges
             
 
-    def _column_to_cond_format_eq_rule(self, column_idx:int, condition_argument:str) -> dict:
+    def _column_to_cond_format_eq_rule(self, column_idx:int, condition_argument:str, required:bool = False) -> dict:
         """Given a column index and an equality argument (e.g. one of valid values for the given column fields), generate a conditional formatting rule based on a custom formula encoding the logic: 
 
         'if a cell in column idx is equal to condition argument, then set specified formatting'
@@ -136,6 +136,21 @@ class ManifestGenerator(object):
         
         col_letter = self._column_to_letter(column_idx)
 
+        if not required:
+           bg_color = {
+                        'red': 1,
+                        'green': 0.4,
+                        'blue': 0.4
+            }
+        else:
+           bg_color = {
+                        'red': 0.5,
+                        'green': 0.5,
+                        'blue': 0.5,
+                        'alpha':0.7
+            }
+
+        
         boolean_rule =  {
                         "condition": {
                         "type": "CUSTOM_FORMULA",
@@ -146,11 +161,7 @@ class ManifestGenerator(object):
                                   ]
                         },
                         "format":{
-                            'backgroundColor': {
-                            'red': 1,
-                            'green': 0.4,
-                            'blue': 0.4
-                            }
+                            'backgroundColor': bg_color 
                         }
         }
     
@@ -463,22 +474,26 @@ class ManifestGenerator(object):
 
                     # construct ranges based on dependency column indexes
                     rule_ranges = self._columns_to_sheet_ranges(column_idxs)
-                    
-                    # construct formatting rule
-                    formatting_rule = self._column_to_cond_format_eq_rule(i, req_val)
+                    for j,val_dep in enumerate(val_dependencies):
+                        is_required = False
+                        if sg.is_node_required(self.se, val_dep):
+                            # construct formatting rule
+                            is_required = True
+                        
+                        formatting_rule = self._column_to_cond_format_eq_rule(i, req_val, required = is_required)
 
-                    # construct conditional format rule 
-                    conditional_format_rule = {
-                          "addConditionalFormatRule": {
-                            "rule": {
-                              "ranges": rule_ranges,
-                              "booleanRule": formatting_rule,
-                             },
-                            "index": 0
-                          }
-                    }
+                        # construct conditional format rule 
+                        conditional_format_rule = {
+                              "addConditionalFormatRule": {
+                                "rule": {
+                                  "ranges": rule_ranges[j],
+                                  "booleanRule": formatting_rule,
+                                 },
+                                "index": 0
+                              }
+                        }
 
-                    dependency_formatting_body["requests"].append(conditional_format_rule)
+                        dependency_formatting_body["requests"].append(conditional_format_rule)
     
                 # check if dependency formatting rules have been added and update sheet if so
                 if dependency_formatting_body["requests"]:
