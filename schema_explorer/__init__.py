@@ -329,7 +329,7 @@ class SchemaExplorer():
 
         required = False
         if "required" in self.schema_nx.node[schema_class]:
-            required = self.schema_nx.node[schema_class]
+            required = self.schema_nx.node[schema_class]["required"]
 
 
         class_info = {'properties': self.find_all_class_properties(schema_class),

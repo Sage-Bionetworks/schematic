@@ -83,11 +83,8 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
     else:
         class_attributes.update({'sms:required':'sms:false'})
 
-
     # ensure display name does not contain leading/trailing white spaces
     class_attributes.update({'sms:displayName':class_display_name.strip()})
-   
-    #print(class_attributes)
 
     return class_attributes
 
@@ -246,6 +243,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             se.update_class(new_class)
 
             """
+            print(se.get_nx_schema().nodes[new_class["rdfs:label"]])
+
             # check if attribute doesn't already exist and add it
             if not attribute_exists(se, new_class["rdfs:label"]):
                 se.update_class(new_class)
@@ -289,12 +288,14 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     property_info = se.explore_property(se.get_property_label_from_display_name(p))
                     range_values = property_info["range"] if "range" in property_info else None
                     requires_dependencies = property_info["dependencies"] if "dependencies" in property_info else None
-                        
+                    required = property_info["required"] if "required" in property_info else None
+                                    
                     new_property = get_property(se, p,
                                                 property_info["domain"],
                                                 description = description,
                                                 requires_range = range_values,
-                                                requires_dependencies = requires_dependencies
+                                                requires_dependencies = requires_dependencies,
+                                                required = required
                     )
                     se.edit_property(new_property)
                 else: 
@@ -352,12 +353,13 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 if not attribute["Attribute"] in all_properties:
                     print(attribute["Attribute"])
                     class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
-                    class_info["range"].append(se.get_class_label_from_display_name(val)) 
+                    class_info["range"].append(se.get_class_label_from_display_name(val))
                     class_range_edit = get_class(se, attribute["Attribute"],
                                                   description = attribute["Description"],\
                                                   subclass_of = [attribute["Parent"]],\
                                                   requires_dependencies = class_info["dependencies"],\
-                                                  requires_range = class_info["range"]
+                                                  requires_range = class_info["range"],
+                                                  required = class_info["required"]
                     )
                     se.edit_class(class_range_edit)
                 else:
@@ -368,7 +370,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                        property_info["domain"],
                                                        description = property_info["description"],
                                                        requires_dependencies = property_info["dependencies"],
-                                                       requires_range = property_info["range"]
+                                                       requires_range = property_info["range"],
+                                                       required = property_info["required"]
                     )
                     se.edit_property(property_range_edit)
                 print(val + " added to value range.")
@@ -445,8 +448,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                   description = attribute["Description"],
                                                   subclass_of = [attribute["Parent"]],
                                                   requires_dependencies = class_info["dependencies"], 
-                                                  requires_range = class_info["range"]
-                                                  
+                                                  requires_range = class_info["range"],
+                                                  required = class_info["required"] 
                     )
                     se.edit_class(class_dependencies_edit)
                 else:
@@ -457,7 +460,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                        property_info["domain"],
                                                        description = property_info["description"],
                                                        requires_dependencies = property_info["dependencies"],
-                                                       requires_range = property_info["range"]
+                                                       requires_range = property_info["range"],
+                                                       required = property_info["required"]
                     )
                     se.edit_property(property_dependencies_edit)
                 print(dep + " added to dependencies.")

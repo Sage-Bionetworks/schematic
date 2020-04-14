@@ -15,6 +15,8 @@ import pygsheets as ps
 from schema_explorer import SchemaExplorer
 import schema_generator as sg
 
+from config import style
+
 #from schema_generator import get_JSONSchema_requirements, get_node_dependencies
 
 class ManifestGenerator(object):
@@ -137,20 +139,9 @@ class ManifestGenerator(object):
         col_letter = self._column_to_letter(column_idx)
 
         if not required:
-           bg_color = {
-                        'red': 229.0/255,
-                        'green': 255.0/255,
-                        'blue': 204.0/255,
-                        'alpha':0.8
-            }
+           bg_color = style["googleManifest"]["optBgColor"] 
         else:
-           bg_color = {
-                        'red': 255.0/255,
-                        'green': 204.0/255,
-                        'blue': 204.0/255,
-                        'alpha':0.8
-            }
-
+           bg_color = style["googleManifest"]["reqBgColor"]
         
         boolean_rule =  {
                         "condition": {
@@ -346,6 +337,7 @@ class ManifestGenerator(object):
 
         # adding additional metadata values if needed
         # adding value-constraints from data model as dropdowns
+        num_requests = 0
         for i, req in enumerate(ordered_metadata_fields[0]):
             values = required_metadata_fields[req]
             #adding additional metadata if needed
@@ -393,20 +385,15 @@ class ManifestGenerator(object):
                                 }
                             ]
                 }
-
+                
                 response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=notes_body).execute()
+                num_requests += 1
 
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
-                bg_color = {
+                bg_color = style["googleManifest"]["reqBgColor"]
 
-                        'red': 255.0/255,
-                        'green': 204.0/255,
-                        'blue': 204.0/255,
-                        "alpha":0.8
-                }
-                
                 req_format_body = {
                         "requests":[
                             {
@@ -427,7 +414,7 @@ class ManifestGenerator(object):
                 }
                 
                 response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=req_format_body).execute()
-
+                num_requests += 1
 
             # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
@@ -465,7 +452,7 @@ class ManifestGenerator(object):
             }   
 
             response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=validation_body).execute()
-
+            num_requests += 1
             # generate a conditional format rule for each required value (i.e. valid value) 
             # for this field (i.e. if this field is set to a valid value that may require additional
             # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background) 
@@ -473,18 +460,20 @@ class ManifestGenerator(object):
                 # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
                 req_val = req_val["userEnteredValue"]
               
-                val_node_label = sg.get_node_label(self.se, req_val)
-                if not val_node_label:
+                req_val_node_label = sg.get_node_label(self.se, req_val)
+                if not req_val_node_label:
                     # if this node is not in the graph
                     # continue - there are no dependencies for it
                     continue
 
+                # check if this required/valid value has additional dependency attributes
+                val_dependencies = sg.get_node_dependencies(self.se, req_val_node_label, schema_ordered = False)
+
+                # prepare request calls
                 dependency_formatting_body = {
                         "requests": []
                 }
 
-                # check if this required/valid value has additional dependency attributes
-                val_dependencies = sg.get_node_dependencies(self.se, val_node_label, schema_ordered = False)
                 if val_dependencies:
                     # if there are additional attribute dependencies find the corresponding
                     # fields that need to be filled in and construct conditional formatting rules
@@ -501,12 +490,16 @@ class ManifestGenerator(object):
 
                     # construct ranges based on dependency column indexes
                     rule_ranges = self._columns_to_sheet_ranges(column_idxs)
+                    # go over valid value dependencies
                     for j,val_dep in enumerate(val_dependencies):
                         is_required = False
-                        if sg.is_node_required(self.se, val_dep):
-                            # construct formatting rule
-                            is_required = True
                         
+                        if sg.is_node_required(self.se, val_dep):
+                            is_required = True
+                        else:
+                            continue
+                        
+                        # construct formatting rule
                         formatting_rule = self._column_to_cond_format_eq_rule(i, req_val, required = is_required)
 
                         # construct conditional format rule 
@@ -519,13 +512,13 @@ class ManifestGenerator(object):
                                 "index": 0
                               }
                         }
-
                         dependency_formatting_body["requests"].append(conditional_format_rule)
-    
+                  
                 # check if dependency formatting rules have been added and update sheet if so
                 if dependency_formatting_body["requests"]:
                     response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=dependency_formatting_body).execute()
-    
+                
+
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
         self._set_permissions(spreadsheet_id)
 

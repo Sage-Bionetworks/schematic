@@ -149,8 +149,6 @@ def get_descendants_by_edge_type(graph: nx.MultiDiGraph, source_node_label: str,
     relationship_subgraph = nx.DiGraph()
     relationship_subgraph.add_edges_from(rel_edges)
 
-    #relationship_subgraph = descendants_subgraph.edge_subgraph(rel_edges)
-
     descendants = relationship_subgraph.nodes()
     if not descendants:
         # there might not be any nodes reachable from this node on this relationship type
@@ -448,9 +446,10 @@ def get_JSONSchema_requirements(se, root, schema_name):
     if not json_schema["allOf"]:
         del json_schema["allOf"]
     
-    print(json.dumps(json_schema))
     with open("./schemas/json_schema_log.json", "w") as js_f:
         json.dump(json_schema, js_f, indent = 2)
+    
+    print("Schema file log stored as ./schemas/json_schema_log.json")
     print("=================")
 
     return json_schema

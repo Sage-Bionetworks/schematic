@@ -2236,7 +2236,7 @@
         {
             "@id": "bts:component",
             "@type": "rdf:Property",
-            "rdfs:comment": "Name of the high level ontology class in which this entity is categorized. Corresponds to the label for the biolink entity type class. In a neo4j database this MAY correspond to the neo4j label tag; currently used components \n\nBiospecimen, \nPatient, \nscRNA-seq Assay,\nscRNA-seq Alignment, \nscRNA-seq QC, \nscATAC-seq Assay, \nDemographics, \nFamily History, \nExposure, \nFollow Up, \nTreatment, Diagnosis",
+            "rdfs:comment": "Category of metadata (e.g. Diagnosis, Biospecimen, scRNA-seq Assay, etc.); provide the same one for all items/rows.",
             "rdfs:label": "component",
             "schema:domainIncludes": {
                 "@id": "bts:Patient"
@@ -2275,7 +2275,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Filename",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:fileFormat",
@@ -2289,7 +2289,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "File Format",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:Biospecimen",
@@ -2343,7 +2343,7 @@
                 }
             ],
             "sms:displayName": "Biospecimen Type",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:hTANBiosampleID",
@@ -2357,7 +2357,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "HTAN Biosample ID",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:Demographics",
@@ -2397,9 +2397,6 @@
                     "@id": "bts:DaystoBirth"
                 },
                 {
-                    "@id": "bts:YearofDeath"
-                },
-                {
                     "@id": "bts:AgeatIndex"
                 },
                 {
@@ -2407,15 +2404,6 @@
                 },
                 {
                     "@id": "bts:YearOfBirth"
-                },
-                {
-                    "@id": "bts:CauseofDeath"
-                },
-                {
-                    "@id": "bts:CauseofDeathSource"
-                },
-                {
-                    "@id": "bts:DaystoDeath"
                 },
                 {
                     "@id": "bts:OccupationDurationYears"
@@ -2545,9 +2533,6 @@
                 },
                 {
                     "@id": "bts:DaystoComorbidity"
-                },
-                {
-                    "@id": "bts:Free"
                 },
                 {
                     "@id": "bts:DiabetesTreatmentType"
@@ -2874,7 +2859,7 @@
                 }
             ],
             "sms:displayName": "HTAN Patient ID",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:NucleicAcidSource",
@@ -2904,7 +2889,7 @@
                 }
             ],
             "sms:displayName": "Nucleic Acid Source",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:SingleCellIsolation",
@@ -2934,7 +2919,7 @@
                 }
             ],
             "sms:displayName": "Single Cell Isolation",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:LibraryLayout",
@@ -2958,7 +2943,7 @@
                 }
             ],
             "sms:displayName": "Library Layout",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:LibraryConstructionMethod",
@@ -3000,7 +2985,7 @@
                 }
             ],
             "sms:displayName": "Library Construction Method",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:InputMolecule",
@@ -3043,7 +3028,7 @@
                 }
             ],
             "sms:displayName": "End Bias",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:ReverseTranscription",
@@ -3064,7 +3049,7 @@
                 }
             ],
             "sms:displayName": "Reverse Transcription",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:CDNA",
@@ -3112,7 +3097,7 @@
                 }
             ],
             "sms:displayName": "Transcript Identifier",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:UMI",
@@ -3163,7 +3148,7 @@
                 }
             ],
             "sms:displayName": "Cell Identifier",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:CellBarcode",
@@ -3220,7 +3205,7 @@
                 }
             ],
             "sms:displayName": "Primer",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:SpikeIn",
@@ -3247,7 +3232,7 @@
                 }
             ],
             "sms:displayName": "Spike In",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:ERCC",
@@ -3284,7 +3269,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Spike In Concentration",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:Platform",
@@ -3308,7 +3293,7 @@
                 }
             ],
             "sms:displayName": "Platform",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:TechnicalReplicateGroup",
@@ -3575,7 +3560,7 @@
                 }
             ],
             "sms:displayName": "Ethnicity",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:Gender",
@@ -3608,7 +3593,7 @@
                 }
             ],
             "sms:displayName": "Gender",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:Race",
@@ -3653,7 +3638,7 @@
                 }
             ],
             "sms:displayName": "Race",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:VitalStatus",
@@ -3683,7 +3668,7 @@
                 }
             ],
             "sms:displayName": "Vital Status",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:Dead",
@@ -3698,7 +3683,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "schema:rangeIncludes": [
+            "sms:requiresDependency": [
                 {
                     "@id": "bts:YearofDeath"
                 },
@@ -3745,12 +3730,9 @@
                 "@id": "http://schema.biothings.io"
             },
             "schema:rangeIncludes": [
-                {
-                    "@id": "bts:NotApplicable"
-                }
             ],
             "sms:displayName": "Year of Death",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:AgeatIndex",
@@ -3857,7 +3839,7 @@
                 }
             ],
             "sms:displayName": "Cause of Death",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:CauseofDeathSource",
@@ -8575,7 +8557,7 @@
                 }
             ],
             "sms:displayName": "Progression or Recurrence",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:Yes-ProgressionorRecurrence",
@@ -11671,7 +11653,7 @@
                 }
             ],
             "sms:displayName": "Last Known Disease Status",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:Morphology",
@@ -15073,7 +15055,7 @@
                 }
             ],
             "sms:displayName": "Morphology",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:PrimaryDiagnosis",
@@ -16585,7 +16567,7 @@
                 }
             ],
             "sms:displayName": "Primary Diagnosis",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:SiteofResectionorBiopsy",
@@ -17599,7 +17581,7 @@
                 }
             ],
             "sms:displayName": "Site of Resection or Biopsy",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:TissueorOrganofOrigin",
@@ -18613,7 +18595,7 @@
                 }
             ],
             "sms:displayName": "Tissue or Organ of Origin",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:TumorGrade",
@@ -18664,7 +18646,7 @@
                 }
             ],
             "sms:displayName": "Tumor Grade",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:AJCCClinicalM",
