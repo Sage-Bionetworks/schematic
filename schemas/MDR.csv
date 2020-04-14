@@ -11,7 +11,7 @@ Filename,REQUIRED: Name of a file ,,,,TRUE,,,http://example.org/htan/filename
 File Format,"REQUIRED: Format of a file (e.g. txt, csv, fastq, bam, etc.)","txt, csv, fastq, bam",,,TRUE,,,http://example.org/htan/fileFormat
 Biospecimen,"HTAN biological entity; bio entity can be a sample, slide, aliquot, analyte, etc.  ",,Sample ID,Sample ID,FALSE,Biosample,Patient,http://example.org/htan/Biospecimen
 Sample ID,"REQUIRED: ID associated with this biosample; e.g. S1, S2,..., etc.",,,,TRUE,,,http://www.w3.org/ns/prov#Entity
-Patient,Individual biomedical demographics attributes,,"Patient ID,  Vital Status, Year Of Birth, Cause of Death, Treatment Anatomic Site, Treatment Type, Treatment Effect, Treatment Outcome, Treatment Intent Type, Component",,FALSE,Patient,,
+Patient,Individual biomedical demographics attributes,,"Patient ID,  Year Of Birth,  Vital Status, Cause of Death, Treatment Anatomic Site, Treatment Type, Treatment Effect, Treatment Outcome, Treatment Intent Type, Component",,FALSE,Patient,,
 Patient ID,"REQUIRED: ID associated with a patient: e.g. P1, P2,..., etc.",,,,TRUE,Patient,,http://www.w3.org/ns/prov#Entity
 Vital Status,REQUIRED: The survival state of the person registered on the protocol.,"Status Alive, Status Dead, Status Unknown, Status Not Reported",,,TRUE,Patient,,
 Status Dead,A patient has died,,Cause of Death,,FALSE,Patient,,

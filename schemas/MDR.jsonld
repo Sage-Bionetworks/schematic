@@ -2003,10 +2003,10 @@
                     "@id": "bts:PatientID"
                 },
                 {
-                    "@id": "bts:VitalStatus"
+                    "@id": "bts:YearOfBirth"
                 },
                 {
-                    "@id": "bts:YearOfBirth"
+                    "@id": "bts:VitalStatus"
                 },
                 {
                     "@id": "bts:CauseofDeath"
