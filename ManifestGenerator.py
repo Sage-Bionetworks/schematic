@@ -304,7 +304,7 @@ class ManifestGenerator(object):
                                 "green": 0.0/255,
                                 "blue": 0.0/255 
                               },
-                              "fontSize": 10,
+                              "fontSize": 8,
                               "bold": True
                             }
                           }
