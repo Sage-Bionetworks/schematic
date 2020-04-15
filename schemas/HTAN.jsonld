@@ -2910,9 +2910,6 @@
                     "@id": "bts:InputCellsandNuclei"
                 },
                 {
-                    "@id": "bts:TechnicalReplicateGroup"
-                },
-                {
                     "@id": "bts:LibraryPreparationDate"
                 },
                 {
@@ -2926,6 +2923,9 @@
                 },
                 {
                     "@id": "bts:ProtocolLink"
+                },
+                {
+                    "@id": "bts:TechnicalReplicateGroup"
                 }
             ]
         },
@@ -3195,7 +3195,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "cDNA",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
                     "@id": "bts:CDNAOffset"
@@ -3219,7 +3219,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "cDNA Offset",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:CDNALength",
@@ -3235,7 +3235,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "cDNA Length",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:CellBarcodeandUMI",
@@ -3449,7 +3449,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "schema:rangeIncludes": [
+            "sms:requiresDependency": [
                 {
                     "@id": "bts:EmptyWellBarcode"
                 },
@@ -21452,7 +21452,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Protocol Link",
-            "sms:required": "sms:false"
+            "sms:required": "sms:true"
         },
         {
             "@id": "bts:AssociatedwithapatientbasedonHTANIDSOP",
