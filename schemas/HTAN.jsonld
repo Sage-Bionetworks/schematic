@@ -3002,11 +3002,6 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "schema:rangeIncludes": [
-                {
-                    "@id": "bts:AssociatedwithapatientbasedonHTANIDSOP"
-                }
-            ],
             "sms:displayName": "HTAN Patient ID",
             "sms:required": "sms:true"
         },
