@@ -354,7 +354,13 @@ def get_JSONSchema_requirements(se, root, schema_name):
                 node_range = get_adjacent_node_by_relationship(mm_graph, process_node, range_value_relationship)
                 # set allowable values based on range nodes
                 if node_range:
-                    schema_properties = {mm_graph.nodes[process_node]["displayName"]:{"enum":[mm_graph.nodes[node]["displayName"] for node in node_range]}}
+                    node_range_d = [mm_graph.nodes[node]["displayName"] for node in node_range]
+                    if not mm_graph.nodes[process_node]["required"]:
+                        # if a node is not required allow blank
+                        node_range_d += [""] 
+
+                    schema_properties = {mm_graph.nodes[process_node]["displayName"]:{"enum":node_range_d}}
+
                     json_schema["properties"].update(schema_properties)                
                 
                     # add range nodes for requirements processing
