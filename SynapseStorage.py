@@ -228,7 +228,7 @@ class SynapseStorage(object):
 
         # get current list of files
         dataset_files = self.getFilesInStorageDataset(dataset_id)
-
+        print(dataset_files)
         # update manifest with additional filenames, if any;    
         # note that if there is an existing manifest and there are files in the dataset the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
@@ -299,7 +299,9 @@ class SynapseStorage(object):
         """Associate metadata with files in a storage dataset already on Synapse. 
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
         
-            Args: metadataManifestPath path to csv containing a validated metadata manifest. The manifest should include a column entityId containing synapse IDs of files/entities to be associated with metadata, if that is applicable to the dataset type. Some datasets, e.g. clinical data, do not contain file id's, but data is stored in a table: one row per item. In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file. 
+            Args: 
+                metadataManifestPath: path to csv containing a validated metadata manifest. The manifest should include a column entityId containing synapse IDs of files/entities to be associated with metadata, if that is applicable to the dataset type. Some datasets, e.g. clinical data, do not contain file id's, but data is stored in a table: one row per item. In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file. 
+                datasetId: synapse ID of folder containing the dataset
             Returns: synapse Id of the uploaded manifest
             Raises: TODO
                 FileNotFoundException: Manifest file does not exist at provided path.
@@ -363,12 +365,8 @@ class SynapseStorage(object):
             metadataSyn = {}
             for k, v in row.to_dict().items():
                 keySyn = se.get_class_label_from_display_name(str(k))
-                if v:
-                    valSyn = se.get_class_label_from_display_name(str(v))
-                else:
-                    valSyn = ""
 
-                metadataSyn[keySyn] = valSyn
+                metadataSyn[keySyn] = v
 
             self.syn.setAnnotations(entityId, metadataSyn)
 
