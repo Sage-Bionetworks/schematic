@@ -331,128 +331,190 @@ def get_JSONSchema_requirements(se, root, schema_name):
     mm_graph = se.get_nx_schema()
    
     # nodes to check for dependencies, starting with the provided root
-    nodes_to_process = OrderedSet()
-    nodes_to_process.add(root) 
+    nodes_to_process = []
+    #nodes_to_process.add(root) 
 
     # keep track of nodes with processed dependencies
-    nodes_with_processed_dependencies = set()
+    #nodes_with_processed_dependencies = set()
+    processed_nodes = []
+    
+    # keep a map between conditional nodes and their dependencies (reversed)
+    # {dependency : conditional node}
+    reverse_dependencies = {}
 
-    '''
-    keep checking for dependencies until there are no nodes
-    left to process
-    TODO: there's repeating logic that can be abstracted as methods
-    '''
-    while nodes_to_process:  
-        process_node = nodes_to_process.pop()
-        '''
-        get allowable values for this node;
-        each of these values is a node that in turn is processed for
-        dependencies and allowed values
-        '''
-        if requires_range in mm_graph.nodes[process_node]:
-            if mm_graph.nodes[process_node][requires_range]:
-                node_range = get_adjacent_node_by_relationship(mm_graph, process_node, range_value_relationship)
-                # set allowable values based on range nodes
-                if node_range:
-                    node_range_d = [mm_graph.nodes[node]["displayName"] for node in node_range]
-                    if not mm_graph.nodes[process_node]["required"]:
-                        # if a node is not required allow blank
-                        node_range_d += [""] 
+    # keep a map between range nodes and their domain node
+    # {range value:domain node}
+    # the domain node is very likely the parent of a range node
+    # but that is not necessarily the case
+    # TODO: if convention is settled on above, use the parent node and don't keep track of domain node 
+    range_domain_map = {}
 
-                    schema_properties = {mm_graph.nodes[process_node]["displayName"]:{"enum":node_range_d}}
 
-                    json_schema["properties"].update(schema_properties)                
-                
-                    # add range nodes for requirements processing
-                    nodes_to_process.update(node_range)
-                
-                    # set conditional dependencies based on node range dependencies
-                    for node in node_range:
-                        node_dependencies = get_adjacent_node_by_relationship(mm_graph, node, requires_dependency_relationship)
-                       
-                        # if only require dependencies that are required by the schema; otherwise add dependencies as validation schema properties
-                        required_dependencies = {}
-                        for node_dependency in node_dependencies:
-                            node_dep_name = mm_graph.nodes[node_dependency]["displayName"]
-                            #if a node is not yet in the schema properties add it
-                            if not node_dep_name in json_schema["properties"]:
-                                schema_properties = {node_dep_name:{}}
-                                json_schema["properties"].update(schema_properties)                       
+    def get_nodes_dispay_names(nodes, mm_graph):
+        """
+        get nodes display names to schema based on provided node labels
+        """
+        return [mm_graph.nodes[node]["displayName"] for node in nodes]
+    
 
-                            if mm_graph.nodes[node_dependency]["required"]:
-                                required_dependencies.update({node_dep_name:{"not":{"type":"null"},"minLength":1}})
-
-                        if node_dependencies:
-                            schema_conditional_dependencies = {
-                                    "if": {
-                                        "properties": {
-                                        mm_graph.nodes[process_node]["displayName"]: { "enum": [mm_graph.nodes[node]["displayName"]] }
-                                        },
-                                        "required":[mm_graph.nodes[process_node]["displayName"]],
-                                      },
-                                    "then":{
-                                        "properties":required_dependencies,
-                                        "required":list(required_dependencies.keys())}
-                            }
-                            nodes_with_processed_dependencies.add(node)
-                            nodes_to_process.update(node_dependencies)
-                            json_schema["allOf"].append(schema_conditional_dependencies)
+    def get_range_schema(node_range, node_name, blank = False):
+        """
+        Add a set of nodes to the schema enum for a given node 
+        if blank is True add "" to the enum, else do not.
+        """
+        if blank:
+            schema_node_range = {node_name:{"enum":node_range + [""]}}
+        else:
+            schema_node_range = {node_name:{"enum":node_range}}
         
-        '''
-        get required nodes by this node (e.g. other terms/nodes
-        that need to be specified based on a data model, if the 
-        given term is specified); each of these node/terms needs to be 
-        processed for dependencies in turn.
-        '''
-        if not process_node in nodes_with_processed_dependencies:
-            process_node_dependencies = get_adjacent_node_by_relationship(mm_graph, process_node, requires_dependency_relationship)
-            if process_node_dependencies:
+        return schema_node_range
+    
+    def get_non_blank_schema(node_name):
+        """
+        Get a schema rule that does not allow null or empty values
+        """
+        return {node_name:{"not":{"type":"null"},"minLength":1}}
+   
+    def is_required(node, mm_graph):
+        """
+        Check if a node is required
+        TODO: align with other function for required nodes above 
+        """
+        return mm_graph.nodes[node]["required"] 
 
-                if process_node == root: # these are unconditional dependencies (unless explicitly marked as not required in the schema)
-                    for process_node_dependency in process_node_dependencies:
+    
 
-                        if mm_graph.nodes[process_node_dependency]["required"]:
-                            # check if a node is required and only add to the required set if so
-                            json_schema["required"] += [mm_graph.nodes[process_node_dependency]["displayName"]]
-                            #also add it to the schema properties and ensure only non-empty strings are accepted
-                            schema_properties = {mm_graph.nodes[process_node_dependency]["displayName"]:{"not":{"type":"null"}, "minLength":1}}
-                            json_schema["properties"].update(schema_properties)                       
-       
-                        if not mm_graph.nodes[process_node_dependency]["displayName"] in json_schema["properties"]:
-                            #if a node is not yet in the schema properties add it
-                            schema_properties = {mm_graph.nodes[process_node_dependency]["displayName"]:{}}
-                            json_schema["properties"].update(schema_properties)                       
+    root_dependencies = get_adjacent_node_by_relationship(mm_graph, root, requires_dependency_relationship)
+
+    nodes_to_process += root_dependencies
+    
+    process_node = nodes_to_process.pop(0)
+
+    while process_node:
+        
+        if not process_node in processed_nodes:
+            # node is being processed
+            node_is_processed = True
+
+            node_range = get_adjacent_node_by_relationship(mm_graph, process_node, range_value_relationship)
+
+            # get node range display name
+            node_range_d = get_nodes_dispay_names(node_range, mm_graph)
+             
+            node_dependencies = get_adjacent_node_by_relationship(mm_graph, process_node, requires_dependency_relationship)
+            
+            # get process node display name
+            node_display_name = mm_graph.nodes[process_node]["displayName"]  
+
+            # updating map between node and node's valid values 
+            for n in node_range_d:
+                if not n in range_domain_map:
+                    range_domain_map[n] = []
+                range_domain_map[n].append(node_display_name)
+
+
+            node_required = is_required(process_node, mm_graph)
+
+            if node_display_name in reverse_dependencies:
+                # if node has conditionals set schema properties and conditional dependencies
+                # set schema properties
+                if node_range:
+                    # if process node has valid value range set it in schema properties
+                    schema_valid_vals = get_range_schema(node_range_d, node_display_name, blank = True)
                     
-                else: # these are dependencies given the processed node 
-                    # if dependencies are not required attributes do not require them  
+                else:
+                    # otherwise, by default allow any values
+                    schema_valid_vals = {node_display_name:{}}
 
-                    required_dependencies = {}
-                    for process_node_dependency in process_node_dependencies:
-                        node_dep_name = mm_graph.nodes[process_node_dependency]["displayName"]
+                json_schema["properties"].update(schema_valid_vals)
+
+                # set schema conditional dependencies
+                for node in reverse_dependencies[node_display_name]:
+                    # set all of the conditional nodes that require this process node
+                    
+                    # get node domain if any
+                    # ow this is node a conditional requirement
+                    if node in range_domain_map:
+                        domain_nodes = range_domain_map[node]
+                        conditional_properties = {}
+
+                        for domain_node in domain_nodes:
                         
-                        if mm_graph.nodes[process_node_dependency]["required"]:
-                            required_dependencies.update({node_dep_name:{"not":{"type":"null"},"minLength":1}})
-     
-                        if not node_dep_name in json_schema["properties"]:
-                            #if a node is not yet in the schema properties add it
-                            schema_properties = {node_dep_name:{}}
-                            json_schema["properties"].update(schema_properties)                       
+                            # set range of conditional node schema
+                            conditional_properties.update({"properties":{domain_node:{"enum":[node]}}, "required":[domain_node]})
 
-                    schema_conditional_dependencies = {
-                            "if": {
-                                "properties": {
-                                mm_graph.nodes[process_node]["displayName"]: { "string":"*" }
-                                },
-                                "required":[mm_graph.nodes[process_node]["displayName"]],
-                              },
-                            "then": {
-                                "properties":required_dependencies,
-                                "required": list(required_dependencies.keys())}
-                    }
-                    json_schema["allOf"].append(schema_conditional_dependencies)
+                            # given node conditional are satisfied, this process node (which is dependent on these conditionals) has to be set or not depending on whether it is required
+                            if node_range:    
+                                dependency_properties = get_range_schema(node_range_d, node_display_name, blank = not node_required)
+                            else:
+                                if node_required:
+                                    dependency_properties = get_non_blank_schema(node_display_name)    
+                                else:
+                                    dependency_properties = {node_display_name:{}}
+                            schema_conditional_dependencies = {
+                                    "if": conditional_properties, 
+                                    "then":{
+                                        "properties":dependency_properties,
+                                        "required":[node_display_name]
+                                    }
+                            }
+                                
+                            # update conditional-dependency rules in json schema
+                            json_schema["allOf"].append(schema_conditional_dependencies)
 
-                nodes_to_process.update(process_node_dependencies)
-                nodes_with_processed_dependencies.add(process_node)
+            else:
+                # node doesn't have conditionals
+                if node_required:
+                    if node_range:
+                        schema_valid_vals = get_range_schema(node_range_d, node_display_name, blank = False)
+                    else:
+                        schema_valid_vals = get_non_blank_schema(node_display_name)
+                    
+                    json_schema["properties"].update(schema_valid_vals)
+                    # add node to required fields
+                    json_schema["required"] += [node_display_name]
+
+                elif process_node in root_dependencies:
+                    # node doesn't have conditionals and is not required; it belongs in the schema only if it is in root's dependencies
+                    
+                    if node_range:
+                        schema_valid_vals = get_range_schema(node_range_d, node_display_name, blank = True)
+                    else:
+                        schema_valid_vals = {node_display_name:{}}
+                    json_schema["properties"].update(schema_valid_vals)
+                    
+                else:
+                    # node doesn't have conditionals and it is not required and it is not a root dependency
+                    # the node doesn't belong in the schema
+                    # do not add to processed nodes since its conditional may be traversed at a later iteration (though unlikely for most schemas we consider)
+                    node_is_processed = False
+                
+            # add process node as a conditional to its dependencies
+            node_dependencies_d = get_nodes_dispay_names(node_dependencies, mm_graph)
+
+            for dep in node_dependencies_d:
+                if not dep in reverse_dependencies:
+                    reverse_dependencies[dep] = []
+                
+                reverse_dependencies[dep].append(node_display_name)
+
+            # add nodes found as dependencies and range of this processed node
+            # to the list of nodes to be processed
+            nodes_to_process += node_range
+            nodes_to_process += node_dependencies
+            
+            # if the node is processed add it to the processed nodes set
+            if node_is_processed:
+                processed_nodes.append(process_node)
+
+        # if the list of nodes to process is not empty 
+        # set the process node the next remaining node to process
+        if nodes_to_process:
+            process_node = nodes_to_process.pop(0)
+        else:
+            # no more nodes to process
+            # exit the loop
+            break
 
 
     print("=================")
