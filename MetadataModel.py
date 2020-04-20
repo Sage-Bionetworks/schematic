@@ -212,6 +212,10 @@ class MetadataModel(object):
                 """
                 errorRow = i + 2
                 errorMessage = e.message[0:1000]
+                if "data." in errorMessage:
+                    errorMessage = errorMessage[5:1000]
+
+
                 errors.append([errorRow, e.path[1], e.value, errorMessage])    
                 
          return errors
