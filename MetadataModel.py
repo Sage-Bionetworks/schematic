@@ -200,9 +200,8 @@ class MetadataModel(object):
                 validate(jsonSchema, annotation)
             
              except JsonSchemaException as e:
-                print(e.message)
                 errorRow = i + 2
-                errorMessage = e.message
+                errorMessage = e.message[0:1000]
                 errors.append([errorRow, errorMessage])    
                 
          return errors
