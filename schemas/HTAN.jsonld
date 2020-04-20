@@ -2413,9 +2413,6 @@
                     "@id": "bts:DaystoBirth"
                 },
                 {
-                    "@id": "bts:YearofDeath"
-                },
-                {
                     "@id": "bts:AgeatIndex"
                 },
                 {
@@ -2423,15 +2420,6 @@
                 },
                 {
                     "@id": "bts:YearOfBirth"
-                },
-                {
-                    "@id": "bts:CauseofDeath"
-                },
-                {
-                    "@id": "bts:CauseofDeathSource"
-                },
-                {
-                    "@id": "bts:DaystoDeath"
                 },
                 {
                     "@id": "bts:OccupationDurationYears"
@@ -2561,9 +2549,6 @@
                 },
                 {
                     "@id": "bts:DaystoComorbidity"
-                },
-                {
-                    "@id": "bts:Free"
                 },
                 {
                     "@id": "bts:DiabetesTreatmentType"
@@ -2821,19 +2806,7 @@
                     "@id": "bts:AJCCClinicalT"
                 },
                 {
-                    "@id": "bts:AJCCPathologicM"
-                },
-                {
-                    "@id": "bts:AJCCPathologicN"
-                },
-                {
                     "@id": "bts:AJCCPathologicStage"
-                },
-                {
-                    "@id": "bts:AJCCPathologicT"
-                },
-                {
-                    "@id": "bts:AJCCStagingSystemEdition"
                 }
             ]
         },
@@ -4076,9 +4049,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "schema:rangeIncludes": [
-                {
-                    "@id": "bts:NotApplicable"
-                }
             ],
             "sms:displayName": "Year of Death",
             "sms:required": "sms:true"
@@ -4114,10 +4084,10 @@
             },
             "schema:rangeIncludes": [
                 {
-                    "@id": "bts:True"
+                    "@id": "bts:Yes"
                 },
                 {
-                    "@id": "bts:False"
+                    "@id": "bts:No"
                 }
             ],
             "sms:displayName": "Age Is Obfuscated",
@@ -22282,10 +22252,10 @@
             "sms:required": "sms:false"
         },
         {
-            "@id": "bts:True",
+            "@id": "bts:Yes",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "True",
+            "rdfs:label": "Yes",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:AgeIsObfuscated"
@@ -22294,14 +22264,14 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "true",
+            "sms:displayName": "Yes",
             "sms:required": "sms:false"
         },
         {
-            "@id": "bts:False",
+            "@id": "bts:No",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "False",
+            "rdfs:label": "No",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:AgeIsObfuscated"
@@ -22310,7 +22280,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "false",
+            "sms:displayName": "No",
             "sms:required": "sms:false"
         },
         {

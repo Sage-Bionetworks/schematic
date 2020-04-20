@@ -2,7 +2,9 @@ import pandas as pd
 import networkx as nx
 import json
 import re
-from jsonschema import validate, ValidationError
+#from fastjsonschema import validate, ValidationError
+from fastjsonschema import validate, JsonSchemaException
+#from jsonschema import validate, ValidationError
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text
@@ -185,55 +187,24 @@ class MetadataModel(object):
          if not jsonSchema:
              jsonSchema = get_JSONSchema_requirements(self.se, rootNode, rootNode + "_validation")
          
+         errors = []
+ 
          # get annotations from manifest (array of json annotations corresponding to manifest rows)
 
          manifest = pd.read_csv(manifestPath).fillna("")
          manifest_trimmed = manifest.apply(lambda x: x.str.strip() if x.dtype == "object" else x)###remove whitespaces from manifest
          annotations = json.loads(manifest_trimmed.to_json(orient='records'))
 
-         errorPositions = []
          for i, annotation in enumerate(annotations):
-             
              try:
-                validate(instance = annotation, schema = jsonSchema)
-             # this error parsing is too brittle; if something changes in the validator code outputting the validation error we'd have to change the logic; TODO: provide a more robust error parsing
-             except ValidationError as e:
-                listExp = re.compile('\[(.*?)\]')
+                validate(jsonSchema, annotation)
+            
+             except JsonSchemaException as e:
+                errorRow = i + 2
+                errorMessage = e.message[0:1000]
+                errors.append([errorRow, errorMessage])    
                 
-                errorRow = i + 2 # row in the manifest where the error occurred
-
-                # parse the validation error in a more human readable form
-                errorMessage = "At row " + str(errorRow) + ": "
-                
-                errors = str(e).split("\n")
-                
-                stringExp = re.compile('\'(.*?)\'')
-
-                # extract wrong value entered
-                errorValue = stringExp.findall(errors[0])[0]
-
-                errorMessage += errors[0]
-                
-                # extract allowed values, if any, for the term that was erroneously filled in
-                allowedValues = listExp.findall(errorMessage)
-                
-                if allowedValues:
-                    allowedValues = allowedValues[0].replace('\'', '').split(", ")
-                
-                errorDetail = errors[-2].replace("On instance", "At term")
-
-                #extract the term(s) that had erroneously filled in values, if any
-                errorTerms = listExp.findall(errorDetail)
-                if errorTerms:
-                    errorTerms = errorTerms[0].replace('\'','').split(", ")[0]
-
-                errorMessage += "; " + errorDetail
-                errorDetail = " value " + errors[-1].strip() + " is invalid;"
-                errorMessage += errorDetail
-
-                errorPositions.append((errorRow, errorTerms, errorValue, allowedValues))
-         
-         return errorPositions
+         return errors
 
      
      def populateModelManifest(self, title, manifestPath:str, rootNode:str) -> str:
