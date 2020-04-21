@@ -15,9 +15,9 @@ import pygsheets as ps
 from schema_explorer import SchemaExplorer
 import schema_generator as sg
 
-from config import style
+from utils import execute_google_api_requests
 
-#from schema_generator import get_JSONSchema_requirements, get_node_dependencies
+from config import style
 
 class ManifestGenerator(object):
 
@@ -337,7 +337,10 @@ class ManifestGenerator(object):
 
         # adding additional metadata values if needed
         # adding value-constraints from data model as dropdowns
-        num_requests = 0
+        
+        #store all requests to execute at once
+        requests_body = {}
+        requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
             values = required_metadata_fields[req]
             #adding additional metadata if needed
@@ -386,8 +389,7 @@ class ManifestGenerator(object):
                             ]
                 }
                 
-                response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=notes_body).execute()
-                num_requests += 1
+                requests_body["requests"].append(notes_body["requests"])
 
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
@@ -413,8 +415,7 @@ class ManifestGenerator(object):
                         ]
                 }
                 
-                response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=req_format_body).execute()
-                num_requests += 1
+                requests_body["requests"].append(req_format_body["requests"])
 
             # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
@@ -451,8 +452,8 @@ class ManifestGenerator(object):
                 ]
             }   
 
-            response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=validation_body).execute()
-            num_requests += 1
+            requests_body["requests"].append(validation_body["requests"])
+            
             # generate a conditional format rule for each required value (i.e. valid value) 
             # for this field (i.e. if this field is set to a valid value that may require additional
             # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background) 
@@ -516,8 +517,9 @@ class ManifestGenerator(object):
                   
                 # check if dependency formatting rules have been added and update sheet if so
                 if dependency_formatting_body["requests"]:
-                    response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=dependency_formatting_body).execute()
+                    requests_body["requests"].append(dependency_formatting_body["requests"])
                 
+        execute_google_api_requests(self.sheet_service, requests_body, service_type = "batch_update", spreadsheet_id = spreadsheet_id)
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
         self._set_permissions(spreadsheet_id)
