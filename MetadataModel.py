@@ -201,7 +201,7 @@ class MetadataModel(object):
             
              except JsonSchemaException as e:
 
-                """
+                """ 
                 print(e.message)
                 print(e.name)
                 print(e.path)
@@ -210,13 +210,16 @@ class MetadataModel(object):
                 print(e.rule)
                 print(e.rule_definition)
                 """
+
                 errorRow = i + 2
                 errorMessage = e.message[0:1000]
                 if "data." in errorMessage:
                     errorMessage = errorMessage[5:1000]
 
-
-                errors.append([errorRow, e.path[1], e.value, errorMessage])    
+                if len(e.path) < 2:
+                    errors.append([errorRow, "Manifest with wrong schema provided", e.value, errorMessage])    
+                else:
+                    errors.append([errorRow, e.path[1], e.value, errorMessage])    
                 
          return errors
 
