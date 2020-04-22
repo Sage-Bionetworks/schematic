@@ -215,12 +215,16 @@ class MetadataModel(object):
                 errorMessage = e.message[0:1000]
                 if "data." in errorMessage:
                     errorMessage = errorMessage[5:1000]
-
+                
+                
+                errors.append([errorRow, e.path[1], e.value, errorMessage])    
+                
+                """
                 if len(e.path) < 2:
                     errors.append([errorRow, "Manifest with wrong schema provided", e.value, errorMessage])    
                 else:
                     errors.append([errorRow, e.path[1], e.value, errorMessage])    
-                
+                """
          return errors
 
      
