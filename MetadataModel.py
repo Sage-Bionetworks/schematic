@@ -2,9 +2,8 @@ import pandas as pd
 import networkx as nx
 import json
 import re
-#from fastjsonschema import validate, ValidationError
-from fastjsonschema import validate, JsonSchemaException
-#from jsonschema import validate, ValidationError
+
+from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text
@@ -53,6 +52,11 @@ class MetadataModel(object):
      def inputMModelLocation(self) -> str:
          """Gets or sets the inputMModelLocation path"""
          return self.__inputMModelLocation
+
+     @property
+     def se(self) -> SchemaExplorer:
+         return self.__se
+
 
      @inputMModelLocation.setter
      def inputMModelLocation(self, inputMModelLocation) -> None:
@@ -190,41 +194,24 @@ class MetadataModel(object):
          errors = []
  
          # get annotations from manifest (array of json annotations corresponding to manifest rows)
-
          manifest = pd.read_csv(manifestPath).fillna("")
 
-         manifest_trimmed = manifest.apply(lambda x: x.str.strip() if x.dtype == "str" else x)###remove whitespaces from manifest
+         # remove whitespaces from manifest 
+         manifest_trimmed = manifest.apply(lambda x: x.str.strip() if x.dtype == "str" else x)
         
          annotations = json.loads(manifest_trimmed.to_json(orient='records'))
          
          for i, annotation in enumerate(annotations):
-             try:
-                validate(jsonSchema, annotation)
-            
-             except JsonSchemaException as e:
-                """
-                print(e.message)
-                print(e.name)
-                print(e.path)
-                print(e.definition)
-                print(e.value)
-                print(e.rule)
-                print(e.rule_definition)
-                """
-                errorRow = i + 2
-                errorMessage = e.message[0:1000]
-                if "data." in errorMessage:
-                    errorMessage = errorMessage[5:1000]
+         
+             v = Draft7Validator(jsonSchema)
+             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
+                 errorRow = i + 2
+                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema" 
+                 errorMsg = error.message[0:500]
+                 errorVal = error.instance
+
+                 errors.append([errorRow, errorCol, errorMsg, errorVal])
                 
-                
-                errors.append([errorRow, e.path[1], e.value, errorMessage])    
-                
-                """
-                if len(e.path) < 2:
-                    errors.append([errorRow, "Manifest with wrong schema provided", e.value, errorMessage])    
-                else:
-                    errors.append([errorRow, e.path[1], e.value, errorMessage])    
-                """
          return errors
 
      
