@@ -208,7 +208,7 @@ class MetadataModel(object):
                  errorRow = i + 2
                  errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema" 
                  errorMsg = error.message[0:500]
-                 errorVal = error.instance
+                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
                  errors.append([errorRow, errorCol, errorMsg, errorVal])
                 
