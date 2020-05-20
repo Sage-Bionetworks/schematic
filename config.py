@@ -22,7 +22,7 @@ style = {
         "googleManifest":{
             #required columns/cells background color
             "reqBgColor":{
-                        'red': 231.0/255,
+                        'red': 235.0/255,
                         'green': 248.0/255,
                         'blue': 250.0/255
             },
