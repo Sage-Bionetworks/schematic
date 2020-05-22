@@ -27,9 +27,9 @@ class SynapseStorage(object):
 
 
     def __init__(self,
-                 syn: synapseclient = None,
-                 token: str = None ## gets sessionToken for logging in
-                 ) -> None:
+                syn: synapseclient = None,
+                token: str = None # optional parameter retreived from browser cookie
+                ) -> None:
 
         """Instantiates a SynapseStorage object
 
@@ -46,23 +46,22 @@ class SynapseStorage(object):
         elif syn: # if no token, assume a logged in synapse client has been provided
             self.syn = syn
 
-        self.storageFileview = storage["Synapse"]["masterFileview"]
+        try:
+            self.storageFileview = storage["Synapse"]["masterFileview"]
 
-        # get data in administrative fileview for this pipeline 
-        self.setStorageFileviewTable()
+            # get data in administrative fileview for this pipeline
+            self.storageFileviewTable = self.syn.tableQuery("SELECT * FROM " + self.storageFileview).asDataFrame()
 
-        self.manifest = storage["Synapse"]["manifestFilename"]
+            self.manifest = storage["Synapse"]["manifestFilename"]
+        except KeyError as key_exc:
+            print("Missing value(s) for the {} key(s) in the config file.".format(key_exc))
+        except AttributeError:
+            print("'storageFileview' attribute does not have a value.")
+        except synapseclient.core.exceptions.SynapseHTTPError:
+            print("Check if you have ACCESS to project: {}.".format(self.storageFileview))
+        except ValueError:
+            print("Administrative Fileview {} not found.".format(self.storageFileview))
 
-
-    def setStorageFileviewTable(self) -> None:
-        """ 
-            Gets all data in an administrative fileview as a pandas dataframe and sets the SynapseStorage storageFileviewTable attribute
-            Raises: TODO 
-                ValueError: administrative fileview not found.
-        """
-        # query fileview for all administrative data
-        self.storageFileviewTable = self.syn.tableQuery("SELECT * FROM " + self.storageFileview).asDataFrame()
-   
 
     def getPaginatedRestResults(currentUserId : str) -> dict:
         """
