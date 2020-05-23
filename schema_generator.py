@@ -274,8 +274,12 @@ def get_node_definition(se:SchemaExplorer, node_display_name:str) -> str:
          Raises: 
             ValueError: TODO: node label not found in metadata model.
         """
+
         # get node label
         node_label = get_node_label(se, node_display_name)
+
+        if not node_label:
+            return ""
 
         # get node definition from schema
         schema_graph = se.get_nx_schema()
