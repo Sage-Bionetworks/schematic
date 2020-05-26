@@ -3025,7 +3025,10 @@
                     "@id": "bts:LibraryConstructionMethod"
                 },
                 {
-                    "@id": "bts:LibraryLayout"
+                    "@id": "bts:Read1"
+                },
+                {
+                    "@id": "bts:Read2"
                 },
                 {
                     "@id": "bts:EndBias"
@@ -3164,10 +3167,19 @@
                     "@id": "bts:LibraryPreparationKitVersion"
                 },
                 {
+                    "@id": "bts:LibraryPreparationDate"
+                },
+                {
+                    "@id": "bts:SpikeIn"
+                },
+                {
                     "@id": "bts:AdapterName"
                 },
                 {
                     "@id": "bts:AdapterSequence"
+                },
+                {
+                    "@id": "bts:AdapterContent"
                 },
                 {
                     "@id": "bts:BaseCallerName"
@@ -3203,13 +3215,7 @@
                     "@id": "bts:MultiplexBarcode"
                 },
                 {
-                    "@id": "bts:LibraryPreparationDate"
-                },
-                {
                     "@id": "bts:SizeSelectionRange"
-                },
-                {
-                    "@id": "bts:SpikeIn"
                 },
                 {
                     "@id": "bts:TargetDepth"
@@ -3225,9 +3231,6 @@
                 },
                 {
                     "@id": "bts:DV200"
-                },
-                {
-                    "@id": "bts:AdapterContent"
                 },
                 {
                     "@id": "bts:BasicStatistics"
@@ -3248,10 +3251,7 @@
                     "@id": "bts:PerBaseSequenceContent"
                 },
                 {
-                    "@id": "bts:Per"
-                },
-                {
-                    "@id": "bts:BaseSequenceQuality"
+                    "@id": "bts:PerBaseSequenceQuality"
                 },
                 {
                     "@id": "bts:PerSequenceGCContent"
@@ -3509,15 +3509,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Paired End",
-            "sms:required": "sms:false",
-            "sms:requiresDependency": [
-                {
-                    "@id": "bts:Read1"
-                },
-                {
-                    "@id": "bts:Read2"
-                }
-            ]
+            "sms:required": "sms:false"
         },
         {
             "@id": "bts:Read1",
@@ -24391,22 +24383,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Cell Barcode",
-            "sms:required": "sms:false"
-        },
-        {
-            "@id": "bts:Per",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "Per",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:BulkRNA-seqAssay"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Per",
             "sms:required": "sms:false"
         },
         {
