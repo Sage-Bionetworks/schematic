@@ -498,7 +498,7 @@ class ManifestGenerator(object):
                         if sg.is_node_required(self.se, val_dep):
                             is_required = True
                         else:
-                            continue
+                            is_required = False
                         
                         # construct formatting rule
                         formatting_rule = self._column_to_cond_format_eq_rule(i, req_val, required = is_required)
