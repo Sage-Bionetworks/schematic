@@ -2,13 +2,12 @@
 
 ## Directory Structure
 
-A bird's eye view of structure and classification of various modules / packages within this repository is:
+A bird's eye view of structure and classification of various modules / packages within this repository:
     
     HTANdataPipeline/
                     data/
                     docs/
                     dataIngressPipeline/
-                                        __init__.py
                                         schemaExplorer/
                                                       __init__.py
                                                       schemaExplorerModule.py
@@ -34,6 +33,7 @@ A bird's eye view of structure and classification of various modules / packages 
                       tests/
                       setup/
                         
+Note: The suffix "Reqs" indicates any other files that may be required by the main module.
 
 # Contribution guidelines
 * please consult CONTRIBUTION.md
