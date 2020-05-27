@@ -6,7 +6,7 @@ import re
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text
+from typing import Any, Dict, Optional, Text, List
 
 # handle schema logic; to be refactored as SchemaExplorer matures into a package
 # as collaboration with Biothings progresses
@@ -34,15 +34,28 @@ class MetadataModel(object):
 
         Args:
             inputMModelLocation: local path, uri, synapse entity id; (e.g. gs://, syn123, /User/x/…); present location
+            inputMModelLocationType: specifier to indicate where the metadata model resource can be found; (e.g. 'local' if file/JSON-LD is on local machine)
         """
         # create an instance of SchemaExplorer
         self.se = SchemaExplorer()
 
-        self.inputMModelLocationType = inputMModelLocationType 
-        self.inputMModelLocation = inputMModelLocation
+        # extract extension of 'inputMModelLocation'
+        # ensure that it is necessarily pointing to a '.jsonld' file
+        if inputMModelLocation.rpartition('.')[-1] == "jsonld":
+            self.inputMModelLocation = inputMModelLocation
+        else:
+            print("Please make sure the 'inputMModelLocation' argument is pointing to a JSON-LD file.")
+            return
+
+        # check if the type of MModel file is "local"
+        # currently, the application only supports reading from local JSON-LD files
+        if inputMModelLocationType == "local":
+            self.inputMModelLocationType = inputMModelLocationType
+        else:
+            print("Please make sure to use a local JSON-LD file. 'InputMModelLocationType' must be 'local'.")
+            return
         
         self.loadMModel()
-
 
     # setting mutator/accessor methods explicitly
     @property
@@ -92,7 +105,7 @@ class MetadataModel(object):
 
     def getModelSubgraph(self, rootNode: str, 
                         subgraphType: str) -> nx.DiGraph:
-        """Get a schema subgraph from rootNode descendants on edge/node properties of type subgraphType.
+        """Gets a schema subgraph from rootNode descendants based on edge/node properties of type subgraphType.
         
         Args:
             rootNode: a schema node label (i.e. term)
@@ -106,7 +119,7 @@ class MetadataModel(object):
         """
         pass
 
-    def getOrderedModelNodes(self, rootNode: str, relationshipType: str) -> list:
+    def getOrderedModelNodes(self, rootNode: str, relationshipType: str) -> List[str]:
         """Get a list of model objects ordered by their topological sort rank in a model subgraph on edges of a given relationship type.
 
         Args:
@@ -154,8 +167,10 @@ class MetadataModel(object):
         return mg.get_manifest()
 
 
-    def get_component_requirements(self, source_component: str) -> list:
-        """Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it. Useful to construct requirement dependencies not only between specific attributes but also between categories/components of attributes; can be utilized to track metadata completion progress across multiple categories of attributes.
+    def get_component_requirements(self, source_component: str) -> List[str]:
+        """Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it.
+        Useful to construct requirement dependencies not only between specific attributes but also between categories/components of attributes;
+        Can be utilized to track metadata completion progress across multiple categories of attributes.
         
         Args: 
             source_component: an attribute label indicating the source component
@@ -173,7 +188,7 @@ class MetadataModel(object):
 
 
     # TODO: abstract validation in its own module
-    def validateModelManifest(self, manifestPath: str, rootNode: str, jsonSchema: str = None) -> list:     
+    def validateModelManifest(self, manifestPath: str, rootNode: str, jsonSchema: str = None) -> List[str]:     
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
         Args:
@@ -233,11 +248,9 @@ class MetadataModel(object):
         try:
             mg = ManifestGenerator(title, self.se, rootNode)
             emptyManifestURL = mg.get_manifest()
-
-            googleSheetManifest = mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
         except ValueError:
             print("rootNode not found in metadata model.")
         except:
-            print("There was an error retrieving/populating the manifest.")
+            print("There was an error retrieving the manifest.")
 
-        return googleSheetManifest
+        return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
