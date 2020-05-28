@@ -9,22 +9,35 @@ A bird's eye view of structure and classification of various modules / packages 
                     docs/
                     dataIngressPipeline/
                                         schemaExplorer/
-                                                      __init__.py
-                                                      schemaExplorerModule.py
-                                                      schemaExplorerModuleReqs.py
-                                                      tests
-                                        manifest/
-                                                __init__.py
-                                                manifestGeneratorModule.py
-                                                manifestGeneratorModuleReqs.py
+                                                       __init__.py
+                                                       schemaExplorerModule.py
+                                                       schemaExplorerModuleReqs.py
+                                                       examples/
+                                                                schemaExplorerUsage.py
+                                        schemaGenerator/
+                                                        __init__.py
+                                                        schemaGeneratorModule.py
+                                                        schemaGeneratorModuleReqs.py
+                                                        examples/
+                                                                 schemaGeneratorUsage.py
+                                        manifestGenerator/
+                                                          __init__.py
+                                                          manifestGeneratorModule.py
+                                                          manifestGeneratorModuleReqs.py
+                                                          examples/
+                                                                   manifestGeneratorUsage.py
                                         metadataModel/
                                                       __init__.py
                                                       metadataModelModule.py
                                                       metadataModelModuleReqs.py
+                                                      examples/
+                                                               metadataModelUsage.py
                                         synapseStore/
                                                     __init.py__
                                                     synapseStoreModule.py
                                                     synapseStoreModuleReqs.py
+                                                    examples/
+                                                             synapseStoreUsage.py
                                         utils/
                                               utils.py
                                         misc/
