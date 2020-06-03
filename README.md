@@ -4,40 +4,40 @@
 
 A bird's eye view of structure and classification of various modules / packages within this repository:
     
-    HTANdataPipeline/
-                     data/
-                     docs/
-                     dataIngressPipeline/
-                                         schemaExplorer/
-                                                        __init__.py
-                                                        schemaExplorerModule.py
-                                                        schemaExplorerModuleReqs.py
-                                                        examples/
-                                                                 schemaExplorerUsage.py
-                                         schemaGenerator/
-                                                         __init__.py
-                                                         schemaGeneratorModule.py
-                                                         schemaGeneratorModuleReqs.py
-                                                         examples/
-                                                                  schemaGeneratorUsage.py
-                                         manifestGenerator/
-                                                           __init__.py
-                                                           manifestGeneratorModule.py
-                                                           manifestGeneratorModuleReqs.py
+    HTAN-data-pipeline/
+                       data/
+                       docs/
+                       data-ingress-pipeline/
+                                             schema-explorer/
+                                                             __init__.py
+                                                             schema_explorer_module.py
+                                                             schema_explorer_module_reqs.py
+                                                             examples/
+                                                                      schema_explorer_usage.py
+                                             schema-generator/
+                                                              __init__.py
+                                                              schema_generator_module.py
+                                                              schema_generator_module_reqs.py
+                                                              examples/
+                                                                       schema_generator_usage.py
+                                             manifest-generator/
+                                                                __init__.py
+                                                                manifest_generator_module.py
+                                                                manifest_generator_module_reqs.py
+                                                                examples/
+                                                                         manifest_generator_usage.py
+                                             metadata-model/
+                                                            __init__.py
+                                                            metadata_model_module.py
+                                                            metadata_model_module_reqs.py
+                                                            examples/
+                                                                     metadata_model_usage.py
+                                             synapse-store/
+                                                           __init.py__
+                                                           synapse_store_module.py
+                                                           synapse_store_module_reqs.py
                                                            examples/
-                                                                    manifestGeneratorUsage.py
-                                         metadataModel/
-                                                       __init__.py
-                                                       metadataModelModule.py
-                                                       metadataModelModuleReqs.py
-                                                       examples/
-                                                                metadataModelUsage.py
-                                         synapseStore/
-                                                     __init.py__
-                                                     synapseStoreModule.py
-                                                     synapseStoreModuleReqs.py
-                                                     examples/
-                                                              synapseStoreUsage.py
+                                                                    synapse_store_usage.py
                                          utils/
                                                utils.py
                                          misc/
@@ -46,7 +46,7 @@ A bird's eye view of structure and classification of various modules / packages 
                        tests/
                        setup/
                         
-Note: The suffix "Reqs" indicates any other files that may be required by the main module.
+Note: The suffix "reqs" indicates any other files that may be required by the main module.
 
 # Contribution guidelines
 * please consult CONTRIBUTION.md
