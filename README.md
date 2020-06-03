@@ -38,10 +38,10 @@ A bird's eye view of structure and classification of various modules / packages 
                                                            synapse_store_module_reqs.py
                                                            examples/
                                                                     synapse_store_usage.py
-                                         utils/
-                                               utils.py
-                                         misc/
-                                             misc.py
+                                             utils/
+                                                   utils.py
+                                             misc/
+                                                  misc.py
                        
                        tests/
                        setup/
