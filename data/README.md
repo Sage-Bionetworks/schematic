@@ -1,0 +1,1 @@
+This folder contains all the assets used by the application -- JSON-LD data models, JSON validation schemas, example MANIFEST files, etc.
