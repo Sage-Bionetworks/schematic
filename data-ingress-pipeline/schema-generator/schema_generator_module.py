@@ -534,12 +534,3 @@ class SchemaGenerator(object):
         print("====================================================================")
 
         return json_schema
-
-
-if __name__ == "__main__":
-    sg = SchemaGenerator("./schemas/HTAN.jsonld")
-
-    result = sg.get_json_schema_requirements("FamilyHistory", "HTAN-schema")
-    print(result)
-    # sg = SchemaGenerator("./schemas/HTAN.jsonld")
-    # print(sg.get_descendants_by_edge_type("FamilyHistory", "requiresDependency"))
