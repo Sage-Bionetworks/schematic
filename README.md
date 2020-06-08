@@ -3,6 +3,7 @@
 ## Directory Structure
 
 A bird's eye view of structure and classification of various modules / packages within this repository:
+      
       HTAN-data-pipeline/
                         data/
                         docs/
@@ -40,7 +41,7 @@ A bird's eye view of structure and classification of various modules / packages 
                         setup/
 
 See below a recursive directory listing, which summarizes the file(s) / folder(s) listing that you see above:
-
+```bash
 .
 ├── data
 ├── docs
@@ -59,10 +60,11 @@ See below a recursive directory listing, which summarizes the file(s) / folder(s
 │       └── utils.py
 ├── setup
 └── tests
-
+```
 # Contribution guidelines
 
 Clone a copy of the repository here:
+      
       git clone --single-branch --branch organized-into-packages https://github.com/sujaypatil96/HTAN-data-pipeline.git
 
 Modify your files, add them to the staging area, use a descriptive commit message and push to the same branch as a pull request for review.
