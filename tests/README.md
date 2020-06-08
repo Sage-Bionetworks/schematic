@@ -1,1 +1,0 @@
-This folder contains files which execute test cases on the different modules within this application.

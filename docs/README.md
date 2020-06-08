@@ -1,1 +1,0 @@
-This folder contains a lot of the documentation, presentation assets, API reference, etc.

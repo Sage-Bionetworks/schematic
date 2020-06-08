@@ -3,50 +3,68 @@
 ## Directory Structure
 
 A bird's eye view of structure and classification of various modules / packages within this repository:
-    
-    HTAN-data-pipeline/
-                       data/
-                       docs/
-                       data-ingress-pipeline/
-                                             schema_explorer/
-                                                             __init__.py
-                                                             schema_explorer_module.py
-                                                             schema_explorer_module_reqs.py
-                                                             examples/
-                                                                      schema_explorer_usage.py
-                                             schema_generator/
-                                                              __init__.py
-                                                              schema_generator_module.py
-                                                              schema_generator_module_reqs.py
-                                                              examples/
-                                                                       schema_generator_usage.py
-                                             manifest_generator/
-                                                                __init__.py
-                                                                manifest_generator_module.py
-                                                                manifest_generator_module_reqs.py
-                                                                examples/
-                                                                         manifest_generator_usage.py
-                                             metadata_model/
-                                                            __init__.py
-                                                            metadata_model_module.py
-                                                            metadata_model_module_reqs.py
-                                                            examples/
-                                                                     metadata_model_usage.py
-                                             synapse_store/
-                                                           __init.py__
-                                                           synapse_store_module.py
-                                                           synapse_store_module_reqs.py
-                                                           examples/
-                                                                    synapse_store_usage.py
-                                             utils/
-                                                   utils.py
-                                             misc/
-                                                  misc.py
+      HTAN-data-pipeline/
+                        data/
+                        docs/
+                        ingresspipe/
+                                    manifest/
+                                                # package & modules for handling manifests
+                                                __init__.py
+                                                generator.py
+                                                examples/
+                                                            schema_explorer_usage.py
+                                    models/
+                                                # package & modules for wrapping data models
+                                                __init__.py
+                                                metadata.py
+                                                examples/
+                                                            schema_generator_usage.py
+                                    schemas/
+                                                # packages & modules for handling schemas
+                                                __init__.py
+                                                explorer.py
+                                                generator.py
+                                                examples/
+                                                            explorer_usage.py
+                                                            generator_usage.py
+                                    synapse/
+                                                # packages and modules for interacting with Synapse
+                                                __init.py__
+                                                store.py
+                                                examples/
+                                                            synapse_store_usage.py
+                                    utils/
+                                                utils.py
                        
-                       tests/
-                       setup/
-                        
-Note: The suffix "reqs" indicates any other files that may be required by the main module.
+                        tests/
+                        setup/
+
+See below a recursive directory listing, which summarizes the file(s) / folder(s) listing that you see above:
+
+.
+├── data
+├── docs
+├── ingresspipe
+│   ├── manifest
+│   ├── models
+│   │   └── __init__.py
+│   ├── schemas
+│   │   ├── __init__.py
+│   │   ├── examples
+│   │   │   └── generator_usage.py
+│   │   └── generator.py
+│   ├── synapse
+│   │   └── __init__.py
+│   └── utils
+│       └── utils.py
+├── setup
+└── tests
 
 # Contribution guidelines
-* please consult CONTRIBUTION.md
+
+Clone a copy of the repository here:
+      git clone --single-branch --branch organized-into-packages https://github.com/sujaypatil96/HTAN-data-pipeline.git
+
+Modify your files, add them to the staging area, use a descriptive commit message and push to the same branch as a pull request for review.
+
+* Please consult CONTRIBUTION.md for further reference

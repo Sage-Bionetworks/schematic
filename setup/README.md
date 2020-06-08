@@ -1,1 +1,0 @@
-This folder contains the necessary files to allow the application to be setup using tools like `setuptools`.
