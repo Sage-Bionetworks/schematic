@@ -43,10 +43,13 @@ A bird's eye view of structure and classification of various modules / packages 
 See below a recursive directory listing, which summarizes the file(s) / folder(s) listing that you see above:
 ```bash
 .
+├── CONTRIBUTION.md
+├── README.md
 ├── data
 ├── docs
 ├── ingresspipe
 │   ├── manifest
+│   │   └── __init__.py
 │   ├── models
 │   │   └── __init__.py
 │   ├── schemas
