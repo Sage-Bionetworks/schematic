@@ -1,6 +1,6 @@
 ## Setting up virtual environment (for testing)
 
-Python 3 has a built-in support for virtual environments (using `venv` module). Perform the following steps:
+Python 3 has built-in support for virtual environments (using `venv` module). Perform the following steps:
 
 _Note: It is assumed that you are running all the below commands from the `ingresspipe` directory._
 
@@ -19,3 +19,7 @@ Install all the necessary packages/dependencies (as specified in `requirements.t
     .venv/bin/pip3 install -r ../requirements.txt
 
 Now, your environment is ready to test the modules within the application.
+
+Once, you have finished testing the application within the virtual environment and want to deactivate it, simply run:
+
+    deactivate
