@@ -1,0 +1,12 @@
+{
+    "@id": "bts:precedes",
+    "@type": "rdf:Property",
+    "rdfs:comment": "holds between two processes, where one completes before the other begins",
+    "rdfs:label": "precedes",
+    "schema:domainIncludes": {
+        "@id": "bts:Occurrent"
+    },
+    "schema:isPartOf": {
+        "@id": "http://schema.biothings.io"
+    }
+}

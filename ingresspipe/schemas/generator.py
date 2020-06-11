@@ -5,8 +5,8 @@ from orderedset import OrderedSet
 
 from typing import Any, Dict, Optional, Text, List
 
-from schema_explorer import SchemaExplorer
-from schema_explorer.base import load_json, load_schema_into_networkx, validate_schema
+from .explorer import SchemaExplorer
+from .base import load_json, load_schema_into_networkx, validate_schema
 
 class SchemaGenerator(object):
     def __init__(self,
@@ -534,3 +534,9 @@ class SchemaGenerator(object):
         print("====================================================================")
 
         return json_schema
+
+# if __name__ == "__main__":
+#     sg = SchemaGenerator("../data/HTAN.jsonld")
+#     result = sg.get_json_schema_requirements("BulkRNA-seqAssay", "FamHist")
+
+#     print(result)
