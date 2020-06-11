@@ -434,20 +434,3 @@ class SynapseStorage(object):
         manifestSynapseFileId = self.syn.store(manifestSynapseFile).id
 
         return manifestSynapseFileId
-
-if __name__ == "__main__":
-    # test with a synapse client object login 
-    syn = synapseclient.Synapse()
-    syn.login("sujaypatil", "Sujay123@#@")
-
-    syn_store = SynapseStorage(syn = syn)
-
-    # test with a synapse login token (e.g. can test locally by capturing a browser cookie after login to Synapse) 
-    # syn_store = SynapseStorage(storage_fileview, token = "token_string")
-
-    print("*****************************************************")
-    print("Testing retrieval of project list from Synapse")
-    print("*****************************************************")
-    projects_list = syn_store.getStorageProjects()
-
-    print(projects_list)
