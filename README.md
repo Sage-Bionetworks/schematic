@@ -8,26 +8,27 @@ A bird's eye view of structure and classification of various modules / packages 
                         data/
                         docs/
                         ingresspipe/
+                                    __init__.py
                                     manifest/
                                                 # package & modules for handling manifests
                                                 __init__.py
                                                 generator.py
                                                 examples/
-                                                            schema_explorer_usage.py
+                                                            manifest_explorer_usage.py
                                     models/
                                                 # package & modules for wrapping data models
                                                 __init__.py
                                                 metadata.py
                                                 examples/
-                                                            schema_generator_usage.py
+                                                            metadata_model_usage.py
                                     schemas/
                                                 # packages & modules for handling schemas
                                                 __init__.py
                                                 explorer.py
                                                 generator.py
                                                 examples/
-                                                            explorer_usage.py
-                                                            generator_usage.py
+                                                            schema_explorer_usage.py
+                                                            schema_generator_usage.py
                                     synapse/
                                                 # packages and modules for interacting with Synapse
                                                 __init.py__
@@ -35,7 +36,11 @@ A bird's eye view of structure and classification of various modules / packages 
                                                 examples/
                                                             synapse_store_usage.py
                                     utils/
+                                                __init__.py
                                                 utils.py
+                                    config/
+                                                __init__.py
+                                                config.py
                        
                         tests/
                         setup/
@@ -90,7 +95,7 @@ See below a recursive directory listing, which summarizes the file(s) / folder(s
 └── tests
     └── test.py
 ```
-# Contribution guidelines
+## Contribution Guidelines
 
 Clone a copy of the repository here:
       
