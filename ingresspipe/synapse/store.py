@@ -14,9 +14,6 @@ from synapseclient import File, Folder, Table
 from synapseclient.table import build_table
 import synapseutils
 
-import sys
-sys.path.append("..") # Adds higher directory to python modules path.
-
 from ingresspipe.utils.general import update_df
 from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.config.config import storage

@@ -536,10 +536,3 @@ class SchemaExplorer():
         with open(file_path, 'w') as f:
             json.dump(self.schema, f, sort_keys = True, indent = 4,
                ensure_ascii = False)
-
-# if __name__ == "__main__":
-#     se = SchemaExplorer()
-#     se.load_schema("../data/HTAN.jsonld")
-
-#     nx_g = se.full_schema_graph()
-#     print(nx_g)

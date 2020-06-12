@@ -11,9 +11,6 @@ from typing import Any, Dict, Optional, Text, List
 # handle schema logic; to be refactored as SchemaExplorer matures into a package
 # as collaboration with Biothings progresses
 
-import sys
-sys.path.append("..") # Adds higher directory to python modules path.
-
 from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.manifest.generator import ManifestGenerator
 from ingresspipe.schemas.generator import SchemaGenerator

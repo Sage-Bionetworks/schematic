@@ -527,16 +527,10 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
             
-        with open("./schemas/json_schema_log.json", "w") as js_f:
+        with open("./data/json_schema_log.json", "w") as js_f:
             json.dump(json_schema, js_f, indent = 2)
             
-        print("Schema log file stored as ./schemas/json_schema_log.json")
+        print("Schema log file stored as ./data/json_schema_log.json")
         print("====================================================================")
 
         return json_schema
-
-# if __name__ == "__main__":
-#     sg = SchemaGenerator("../data/HTAN.jsonld")
-#     result = sg.get_json_schema_requirements("BulkRNA-seqAssay", "FamHist")
-
-#     print(result)

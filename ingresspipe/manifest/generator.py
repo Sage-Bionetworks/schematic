@@ -12,9 +12,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pygsheets as ps
 
-import sys
-sys.path.append("..") # Adds higher directory to python modules path.
-
 from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.schemas.generator import SchemaGenerator
 
@@ -600,9 +597,3 @@ class ManifestGenerator(object):
         print()
         print(manifest_fields)
         return manifest_fields
-
-if __name__ == "__main__":
-    mg = ManifestGenerator(title="Follow Up Sheet", path_to_json_ld="../data/HTAN.jsonld", root="FollowUp")
-    result = mg.get_manifest()
-
-    print(result)
