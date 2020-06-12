@@ -35,9 +35,9 @@ Once, you have finished testing the application within the virtual environment a
 To install the package, run the command:
 
       .venv/bin/pip3 install -e .
-      
 
-```
+----
+
 # Contribution
 
 Clone a copy of the repository here:
