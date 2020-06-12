@@ -16,7 +16,6 @@ else:
         long_description = f.read()
 
 setup(
-    
     name='ingresspipe',
     version=version['__version__'],
     description='Packages responsible for data ingress from HTAN collaborators',
