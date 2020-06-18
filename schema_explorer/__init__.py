@@ -164,7 +164,6 @@ class SchemaExplorer():
     """
     def __init__(self):
         self.load_default_schema()
-        #print('Preloaded with BioLink schema. Upload your own schema using "load_schema" function.')
 
     def load_schema(self, schema):
         """Load schema and convert it to networkx graph
@@ -309,22 +308,62 @@ class SchemaExplorer():
 
         subclasses = []
         if  "subClassOf" in self.schema_nx.node[schema_class]:
-            for subclass in self.schema_nx.node[schema_class]["subClassOf"]:
-                subclasses.append(extract_name_from_uri_or_curie(subclass["@id"])) 
+            # the below if/else block exists to solve the inconsitencies in the spec of "subClassOf" in the HTAN schema
+            # a few classes are specified as lists and a few as simple dicts
+            schema_node_val = self.schema_nx.node[schema_class]["subClassOf"]
+
+            if isinstance(schema_node_val, dict):
+                subclass_list = []
+                subclass_list.append(self.schema_nx.node[schema_class]["subClassOf"])
+            else:
+                subclass_list = schema_node_val     
+
+            for subclass in subclass_list:
+                subclasses.append(extract_name_from_uri_or_curie(subclass["@id"]))
         
         requires_range = []
         if  "rangeIncludes" in self.schema_nx.node[schema_class]:
-            for range_class in self.schema_nx.node[schema_class]["rangeIncludes"]:
+            # the below if/else block exists to solve the inconsitencies in the spec of "rangeIncludes" in the HTAN schema
+            # a few classes are specified as lists and a few as simple dicts
+            schema_node_val = self.schema_nx.node[schema_class]["rangeIncludes"]
+
+            if isinstance(schema_node_val, dict):
+                subclass_list = []
+                subclass_list.append(self.schema_nx.node[schema_class]["rangeIncludes"])
+            else:
+                subclass_list = schema_node_val
+
+            for range_class in subclass_list:
                 requires_range.append(extract_name_from_uri_or_curie(range_class["@id"]))
 
         requires_dependencies = []
         if  "requiresDependency" in self.schema_nx.node[schema_class]:
-            for dep_class in self.schema_nx.node[schema_class]["requiresDependency"]:
+            # the below if/else block exists to solve the inconsitencies in the spec of "requiresDependency" in the HTAN schema
+            # a few classes are specified as lists and a few as simple dicts
+            schema_node_val = self.schema_nx.node[schema_class]["requiresDependency"]
+
+            if isinstance(schema_node_val, dict):
+                subclass_list = []
+                subclass_list.append(self.schema_nx.node[schema_class]["requiresDependency"])
+            else:
+                subclass_list = schema_node_val
+                
+            for dep_class in subclass_list:
                 requires_dependencies.append(extract_name_from_uri_or_curie(dep_class["@id"])) 
 
         requires_components = []
         if  "requiresComponent" in self.schema_nx.node[schema_class]:
-            for comp_dep_class in self.schema_nx.node[schema_class]["requiresComponent"]:
+            # the below if/else block exists to solve the inconsitencies in the spec of "requiresComponent" in the HTAN schema
+            # a few classes are specified as lists and a few as simple dicts
+            schema_node_val = self.schema_nx.node[schema_class]["requiresComponent"]
+
+            if isinstance(schema_node_val, dict):
+                subclass_list = []
+                subclass_list.append(self.schema_nx.node[schema_class]["requiresComponent"])
+            else:
+                subclass_list = schema_node_val
+
+            for comp_dep_class in subclass_list:
                 requires_components.append(extract_name_from_uri_or_curie(comp_dep_class["@id"])) 
 
         required = False
@@ -382,7 +421,8 @@ class SchemaExplorer():
                 if record["rdfs:label"] == schema_property:
                     p_domain = dict2list(record["schema:domainIncludes"])
                     return unlist([self.uri2label(schema_class["@id"]) for schema_class in p_domain])
-                    return None
+        
+        return None
 
 
 
