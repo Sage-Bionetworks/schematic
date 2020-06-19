@@ -81,6 +81,9 @@ seq_subgraph.render('SUB-GV', view=True)
 logger.info("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
 ```
 
+Output from the execution of above block of code
+![alt text](https://github.com/sujaypatil96/HTAN-data-pipeline/blob/organized-into-packages/data/gviz/SUB-GV.png)
+
 Returns list of successors of a node
 
 ```python    
