@@ -38,7 +38,7 @@ To install the package, run the command:
 
 ----
 
-# Contribution
+## Contribution
 
 Clone a copy of the repository here:
       
@@ -46,4 +46,4 @@ Clone a copy of the repository here:
 
 Modify your files, add them to the staging area, use a descriptive commit message and push to the same branch as a pull request for review.
 
-* Please consult CONTRIBUTION.md for further reference.
+* Please consult [CONTRIBUTION.md](https://github.com/sujaypatil96/HTAN-data-pipeline/blob/organized-into-packages/CONTRIBUTION.md) for further reference.
