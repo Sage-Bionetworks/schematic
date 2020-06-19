@@ -28,9 +28,9 @@ style = {
             },
             #optional columns/cells background color
             "optBgColor":{
-                        'red': 229.0/255,
+                        'red': 255.0/255,
                         'green': 255.0/255,
-                        'blue': 204.0/255
+                        'blue': 230.0/255
             }
         }
 }
