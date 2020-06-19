@@ -164,7 +164,6 @@ class SchemaExplorer():
     """
     def __init__(self):
         self.load_default_schema()
-        #print('Preloaded with BioLink schema. Upload your own schema using "load_schema" function.')
 
     def load_schema(self, schema):
         """Load schema and convert it to networkx graph
@@ -214,7 +213,7 @@ class SchemaExplorer():
             return visualize(edges, size=size)
 
     def find_children_classes(self, schema_class):
-        return self.schema_nx.successors(schema_class)
+        return list(self.schema_nx.successors(schema_class))
 
     def find_parent_classes(self, schema_class):
         """Find all parents of the class
@@ -223,12 +222,12 @@ class SchemaExplorer():
         digraph = self.get_digraph_by_edge_type("parentOf")
         
         root_node = list(nx.topological_sort(digraph))[0]
-        #root_node = list(nx.topological_sort(self.schema_nx))[0]
+        # root_node = list(nx.topological_sort(self.schema_nx))[0]
         
         paths = nx.all_simple_paths(self.schema_nx,
                                     source=root_node,
                                     target=schema_class)
-        #print(root_node)
+        # print(root_node)
         return [_path[:-1] for _path in paths]
 
     def find_class_specific_properties(self, schema_class):
@@ -309,22 +308,62 @@ class SchemaExplorer():
 
         subclasses = []
         if  "subClassOf" in self.schema_nx.node[schema_class]:
-            for subclass in self.schema_nx.node[schema_class]["subClassOf"]:
-                subclasses.append(extract_name_from_uri_or_curie(subclass["@id"])) 
+            # the below if/else block exists to solve the inconsitencies in the spec of "subClassOf" in the HTAN schema
+            # a few classes are specified as lists and a few as simple dicts
+            schema_node_val = self.schema_nx.node[schema_class]["subClassOf"]
+
+            subclass_list = []
+            if isinstance(schema_node_val, dict):
+                subclass_list.append(self.schema_nx.node[schema_class]["subClassOf"])
+            else:
+                subclass_list = schema_node_val
+            
+            for subclass in subclass_list:
+                subclasses.append(extract_name_from_uri_or_curie(subclass["@id"]))
         
         requires_range = []
         if  "rangeIncludes" in self.schema_nx.node[schema_class]:
-            for range_class in self.schema_nx.node[schema_class]["rangeIncludes"]:
+            # the below if/else block exists to solve the inconsitencies in the spec of "rangeIncludes" in the HTAN schema
+            # a few classes are specified as lists and a few as simple dicts
+            schema_node_val = self.schema_nx.node[schema_class]["rangeIncludes"]
+
+            if isinstance(schema_node_val, dict):
+                subclass_list = []
+                subclass_list.append(self.schema_nx.node[schema_class]["rangeIncludes"])
+            else:
+                subclass_list = schema_node_val
+
+            for range_class in subclass_list:
                 requires_range.append(extract_name_from_uri_or_curie(range_class["@id"]))
 
         requires_dependencies = []
         if  "requiresDependency" in self.schema_nx.node[schema_class]:
-            for dep_class in self.schema_nx.node[schema_class]["requiresDependency"]:
+            # the below if/else block exists to solve the inconsitencies in the spec of "requiresDependency" in the HTAN schema
+            # a few classes are specified as lists and a few as simple dicts
+            schema_node_val = self.schema_nx.node[schema_class]["requiresDependency"]
+
+            if isinstance(schema_node_val, dict):
+                subclass_list = []
+                subclass_list.append(self.schema_nx.node[schema_class]["requiresDependency"])
+            else:
+                subclass_list = schema_node_val
+                
+            for dep_class in subclass_list:
                 requires_dependencies.append(extract_name_from_uri_or_curie(dep_class["@id"])) 
 
         requires_components = []
         if  "requiresComponent" in self.schema_nx.node[schema_class]:
-            for comp_dep_class in self.schema_nx.node[schema_class]["requiresComponent"]:
+            # the below if/else block exists to solve the inconsitencies in the spec of "requiresComponent" in the HTAN schema
+            # a few classes are specified as lists and a few as simple dicts
+            schema_node_val = self.schema_nx.node[schema_class]["requiresComponent"]
+
+            if isinstance(schema_node_val, dict):
+                subclass_list = []
+                subclass_list.append(self.schema_nx.node[schema_class]["requiresComponent"])
+            else:
+                subclass_list = schema_node_val
+
+            for comp_dep_class in subclass_list:
                 requires_components.append(extract_name_from_uri_or_curie(comp_dep_class["@id"])) 
 
         required = False
@@ -363,7 +402,6 @@ class SchemaExplorer():
         label = inflection.camelize(display_name.strip(), uppercase_first_letter=False)
         return label
 
-
     def get_class_label_from_display_name(self, display_name):
         """Convert a given display name string into a proper class label string
         """
@@ -382,9 +420,8 @@ class SchemaExplorer():
                 if record["rdfs:label"] == schema_property:
                     p_domain = dict2list(record["schema:domainIncludes"])
                     return unlist([self.uri2label(schema_class["@id"]) for schema_class in p_domain])
-                    return None
-
-
+        
+        return None
 
     def uri2label(self, uri):
         return uri.split(":")[1]
@@ -466,11 +503,13 @@ class SchemaExplorer():
         }
         return template
 
-
     def edit_class(self, class_info):
         """Edit an existing class into schema
         """ 
         for i, schema_class in enumerate(self.schema["@graph"]):
+            print(schema_class)
+            print(schema_class["rdfs:label"])
+            print(class_info["rdfs:label"])
             if schema_class["rdfs:label"] == class_info["rdfs:label"]:
                 validate_class_schema(class_info)
 
@@ -482,7 +521,6 @@ class SchemaExplorer():
         print("Edited the class {} successfully!".format(class_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
 
-
     def update_class(self, class_info):
         """Add a new class into schema
         """
@@ -493,7 +531,6 @@ class SchemaExplorer():
         print("Updated the class {} successfully!".format(class_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
         
-
     def edit_property(self, property_info):
         """Edit an existing property into schema
         """
@@ -508,7 +545,6 @@ class SchemaExplorer():
         validate_schema(self.schema)
         print("Edited the property {} successfully!".format(property_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
-
 
     def update_property(self, property_info):
         """Add a new property into schema
