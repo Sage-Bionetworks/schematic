@@ -26,7 +26,6 @@ class SynapseStorage(object):
     TODO: Need to define the interface and rename and/or refactor some of the methods below.
     """
 
-
     def __init__(self,
                 syn: synapseclient = None,
                 token: str = None # optional parameter retreived from browser cookie
@@ -61,7 +60,7 @@ class SynapseStorage(object):
             except synapseclient.core.exceptions.SynapseHTTPError:
                 print("Please enter a valid session token.")
                 return
-        elif syn: # if no token, assume a logged in synapse client has been provided
+        elif syn: # if no token, assume a logged in synapseclient instance has been provided
             if isinstance(syn, synapseclient.Synapse):
                 self.syn = syn
             else:
@@ -85,7 +84,7 @@ class SynapseStorage(object):
             print("Administrative Fileview {} not found.".format(self.storageFileview))
 
 
-    def getPaginatedRestResults(self, syn: synapseclient, currentUserId : str) -> Dict[str, str]:
+    def getPaginatedRestResults(self, currentUserId : str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
 
         Args:
@@ -94,10 +93,10 @@ class SynapseStorage(object):
         Returns: 
             A dictionary with a next page token and the results.
         """
-        all_results = syn.restGET('/projects/user/{principalId}'.format(principalId=currentUserId))
+        all_results = self.syn.restGET('/projects/user/{principalId}'.format(principalId=currentUserId))
     
         while 'nextPageToken' in all_results: # iterate over next page token in results while there is any
-            results_token = syn.restGET('/projects/user/{principalId}?nextPageToken={nextPageToken}'.format(principalId=currentUserId, nextPageToken = all_results['nextPageToken']))
+            results_token = self.syn.restGET('/projects/user/{principalId}?nextPageToken={nextPageToken}'.format(principalId=currentUserId, nextPageToken = all_results['nextPageToken']))
             all_results['results'].extend(results_token['results'])
 
             if 'nextPageToken' in results_token:
@@ -143,7 +142,9 @@ class SynapseStorage(object):
             projectName = self.syn.get(projectId, downloadFile = False).name
             projects.append((projectId, projectName))
 
-        return projects
+        sorted_projects_list = sorted(projects, key=lambda tup: tup[0])
+
+        return sorted_projects_list
 
 
     def getStorageDatasetsInProject(self, projectId: str) -> List[str]:
@@ -184,7 +185,9 @@ class SynapseStorage(object):
             except ValueError:
                 print("The project id {} was not found.".format(projectId))
 
-        return datasetList
+        sorted_dataset_list = sorted(datasetList, key=lambda tup: tup[0])
+
+        return sorted_dataset_list
 
 
     def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None) -> List[str]:
@@ -216,7 +219,9 @@ class SynapseStorage(object):
                 # if fileNames is specified and file is in fileNames add it to the returned list
                 fileList.append(row)
 
-        return fileList
+        sorted_files_list = sorted(fileList, key=lambda tup: tup[0])
+
+        return sorted_files_list
         
 
     def getDatasetManifest(self, datasetId: str) -> List[str]:
