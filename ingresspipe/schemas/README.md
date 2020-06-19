@@ -82,7 +82,8 @@ logger.info("The svg visualization of the sub-schema with {} as the source node 
 ```
 
 Output from the execution of above block of code
-![alt text](https://github.com/sujaypatil96/HTAN-data-pipeline/blob/organized-into-packages/data/gviz/SUB-GV.png)
+
+    ![alt text](https://github.com/sujaypatil96/HTAN-data-pipeline/blob/organized-into-packages/data/gviz/SUB-GV.png)
 
 Returns list of successors of a node
 
