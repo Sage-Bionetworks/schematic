@@ -14,9 +14,9 @@ from synapseclient import File, Folder, Table
 from synapseclient.table import build_table
 import synapseutils
 
-from ingresspipe.utils.general import update_df
-from ingresspipe.schemas.explorer import SchemaExplorer
-from ingresspipe.config.config import storage
+from utils import update_df
+from schema_explorer import SchemaExplorer 
+from config import storage
 
 class SynapseStorage(object):
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -435,11 +435,3 @@ class SynapseStorage(object):
         manifestSynapseFileId = self.syn.store(manifestSynapseFile).id
 
         return manifestSynapseFileId
-
-if __name__ == "__main__":
-    syn = synapseclient.Synapse()
-    syn.login('sujaypatil', 'Sujay123@#@')
-
-    syn_store = SynapseStorage(syn)
-
-    print(syn_store.getDatasetManifest("syn21973663"))
