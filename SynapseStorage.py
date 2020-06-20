@@ -133,8 +133,6 @@ class SynapseStorage(object):
         # prune results json filtering project id
         currentUserProjects = [currentUserProject.get('id') for currentUserProject in currentUserProjects["results"]]
 
-        print(currentUserProjects)
-        print(storageProjects)
         # find set of user projects that are also in this pipeline's storage projects set
         storageProjects = list(set(storageProjects) & set(currentUserProjects))
 
