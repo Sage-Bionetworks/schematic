@@ -98,7 +98,7 @@ class SynapseStorage(object):
         while 'nextPageToken' in all_results: # iterate over next page token in results while there is any
             results_token = self.syn.restGET('/projects/user/{principalId}?nextPageToken={nextPageToken}'.format(principalId=currentUserId, nextPageToken = all_results['nextPageToken']))
             all_results['results'].extend(results_token['results'])
-
+            
             if 'nextPageToken' in results_token:
                 all_results['nextPageToken'] = results_token['nextPageToken']
             else:
@@ -127,14 +127,18 @@ class SynapseStorage(object):
         currentUserName = currentUser.userName
         currentUserId = currentUser.ownerId
         
-        # get a list of projects from Synapse
-        currentUserProjects = self.syn.restGET('/projects/user/{principalId}'.format(principalId=currentUserId))
-        
+        # get a list of projects from Synapse 
+        currentUserProjects = self.getPaginatedRestResults(currentUserId)
+
         # prune results json filtering project id
         currentUserProjects = [currentUserProject.get('id') for currentUserProject in currentUserProjects["results"]]
 
+        print(currentUserProjects)
+        print(storageProjects)
         # find set of user projects that are also in this pipeline's storage projects set
         storageProjects = list(set(storageProjects) & set(currentUserProjects))
+
+        
 
         # prepare a return list of project IDs and names
         projects = []
