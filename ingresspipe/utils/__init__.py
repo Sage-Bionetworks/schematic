@@ -1,1 +1,1 @@
-from .general import update_df, execute_google_api_requests
+from .general import update_df, execute_google_api_requests, expand_curie_to_uri, expand_curies_in_schema, find_duplicates, uri2label

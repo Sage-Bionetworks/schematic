@@ -530,7 +530,7 @@ class SchemaGenerator(object):
         with open("./data/json_schema_log.json", "w") as js_f:
             json.dump(json_schema, js_f, indent = 2)
             
-        print("Schema log file stored as ./data/json_schema_log.json")
+        print("Schema log file stored as ./data/json_schema_logs/json_schema_log.json")
         print("====================================================================")
 
         return json_schema

@@ -5,7 +5,7 @@ from graphviz import Digraph, Source
 
 import logging
 
-logging.basicConfig(evel=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 PATH_TO_JSONLD = "./data/schema_org_schemas/HTAN.jsonld"

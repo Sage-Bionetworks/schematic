@@ -7,8 +7,7 @@ from jsonschema import validate
 
 from copy import deepcopy
 
-_ROOT = os.path.abspath(os.path.dirname(__file__))
-
+_ROOT = "./data/"
 
 def load_json(file_path):
     """Load json document from file path or url
@@ -37,21 +36,21 @@ def export_json(json_doc, file_path):
 def load_default():
     """Load biolink vocabulary
     """
-    biothings_path = os.path.join(_ROOT, 'data', 'biothings.jsonld')
+    biothings_path = os.path.join(_ROOT, 'schema_org_schemas', 'biothings.jsonld')
     return load_json(biothings_path)
 
 
 def load_schemaorg():
     """Load SchemOrg vocabulary
     """
-    schemaorg_path = os.path.join(_ROOT, 'data', 'all_layer.jsonld')
+    schemaorg_path = os.path.join(_ROOT, 'schema_org_schemas', 'all_layer.jsonld')
     return load_json(schemaorg_path)
 
 
 def validate_schema(schema):
-    """Validate schema against SchemaORG standard
+    """Validate schema against schema.org standard
     """
-    json_schema_path = os.path.join(_ROOT, 'data', 'schema.json')
+    json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'schema.json')
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)
 
@@ -59,7 +58,7 @@ def validate_schema(schema):
 def validate_property_schema(schema):
     """Validate schema against SchemaORG property definition standard
     """
-    json_schema_path = os.path.join(_ROOT, 'data', 'property_json_schema.json')
+    json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'property_json_schema.json')
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)
 
@@ -67,7 +66,7 @@ def validate_property_schema(schema):
 def validate_class_schema(schema):
     """Validate schema against SchemaORG class definition standard
     """
-    json_schema_path = os.path.join(_ROOT, 'data', 'class_json_schema.json')
+    json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'class_json_schema.json')
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)
 
@@ -200,6 +199,7 @@ def visualize(edges, size=None):
         d = graphviz.Digraph(graph_attr=[('size', size)])
     else:
         d = graphviz.Digraph()
+        
     for _item in edges:
         d.edge(_item[0], _item[1])
     return d
