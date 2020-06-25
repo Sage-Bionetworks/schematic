@@ -1,3 +1,12 @@
+def extract_name_from_uri_or_curie(item):
+    """Extract name from uri or curie
+    """
+    if 'http' not in item and len(item.split(":")) == 2:
+        return item.split(":")[-1]
+    elif len(item.split("//")[-1].split('/')) > 1:
+        return item.split("//")[-1].split('/')[-1]
+    else:
+        print("error")
 
 def expand_curie_to_uri(curie, context_info):
     """Expand curie to uri based on the context given
@@ -20,7 +29,6 @@ def expand_curie_to_uri(curie, context_info):
             return curie
     else:
         return curie
-
 
 def expand_curies_in_schema(schema):
     """Expand all curies in a SchemaOrg JSON-LD file into URI
@@ -54,9 +62,3 @@ def uri2label(uri, schema):
     """Given a URI, return the label
     """
     return [record["rdfs:label"] for record in schema["@graph"] if record['@id'] == uri][0]
-
-
-def find_duplicates(_list):
-    """Find duplicate items in a list
-    """
-    return set([x for x in _list if _list.count(x) > 1])

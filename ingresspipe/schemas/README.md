@@ -1,4 +1,4 @@
-## Usage of methods in `schemas.explorer` module
+## Usage of methods in `ingresspipe.schemas.explorer` module
 
 Path to the data model/schema that you want to load using the `SchemaExplorer` object:
 
@@ -7,6 +7,7 @@ PATH_TO_JSONLD = "./data/schema_org_schemas/HTAN.jsonld"
 ```
 
 Create an object of the SchemaExplorer() class:
+
 ```python
 schema_explorer = SchemaExplorer()
 ```
@@ -182,4 +183,111 @@ Verify that the comment associated with `TEST_CLASS` has indeed been changed:
 ```python
 class_details = schema_explorer.explore_class(TEST_CLASS)
 logger.info("Modified {} details : {}".format(TEST_CLASS, class_details))
+```
+
+## Usage of methods in `ingresspipe.schemas.generator` module
+
+Create an object of the `SchemaGenerator` class:
+
+```python
+schema_generator = SchemaGenerator(PATH_TO_JSONLD)
+```
+
+Check if object has been properly instantiated or not:
+
+```python
+if isinstance(schema_generator, SchemaGenerator):
+    logger.info("'schema_generator' - an object of the SchemaGenerator class has been created successfully.")
+else:
+    logger.error("object of class SchemaGenerator could not be created.")
+```
+
+Get the list of out-edges from a specific node, based on a particular type of relationship:
+
+```python
+TEST_NODE = "Sequencing"
+TEST_REL = "parentOf"
+
+out_edges = schema_generator.get_edges_by_relationship(TEST_NODE, TEST_REL)
+
+if out_edges:
+    logger.info("The out-edges from class {}, based on {} relationship are: {}".format(TEST_NODE, TEST_REL, out_edges))
+else:
+    logger.error("The class does not have any out-edges.")
+```
+
+Get the list of nodes that are adjacent to a given node, based on a particular type of relationship:
+
+```python
+adj_nodes = schema_generator.get_adjacent_nodes_by_relationship(TEST_NODE, TEST_REL)
+
+if adj_nodes:
+    logger.info("The node(s) adjacent to {}, based on {} relationship are: {}".format(TEST_NODE, TEST_REL, adj_nodes))
+else:
+    logger.error("The class does not have any adjacent nodes.")
+```
+
+Get the list of descendants (all nodes that are reachable from a given node) of a node:
+
+```python
+desc_nodes = schema_generator.get_descendants_by_edge_type(TEST_NODE, TEST_REL)
+
+if desc_nodes:
+    logger.info("The descendant(s) from {} are: {}".format(TEST_NODE, desc_nodes))
+else:
+    logger.error("The class does not have descendants.")
+```
+
+Get the list of components that are associated with a given component:
+
+```python
+TEST_COMP = "Patient"
+req_comps = schema_generator.get_component_requirements(TEST_COMP)
+
+if req_comps:
+    logger.info("The component(s) that are associated with a given component: {}".format(req_comps))
+else:
+    logger.error("There are no components associated with {}".format(TEST_COMP))
+```
+
+Get the list of immediate dependencies of a particular node:
+
+```python
+node_deps = schema_generator.get_node_dependencies(TEST_COMP)
+
+if node_deps:
+    logger.info("The immediate dependencies of {} are: {}".format(TEST_COMP, node_deps))
+else:
+    logger.error("The node has no immediate dependencies.")
+```
+
+Get the `label` associated with a node, based on the node's display name:
+
+```python
+try:
+    node_label = schema_generator.get_node_label(TEST_NODE)
+
+    logger.info("The label name for the node {} is: {}".format(TEST_NODE, node_label))
+except KeyError:
+    logger.error("Please try a valid node name.")
+```
+
+Get the `definition/comment` associated with a given node:
+
+```python
+try:
+    node_def = schema_generator.get_node_definition(TEST_NODE)
+
+    logger.info("The node definition for node {} is: {}".format(TEST_NODE, node_def))
+except KeyError:
+    logger.error("Please try a valid node name.")
+```
+
+Gather all the dependencies and value-constraints associated with a particular node
+
+```python
+json_schema = schema_generator.get_json_schema_requirements(TEST_COMP, "Patient-Schema")
+
+logger.info("The JSON schema based on {} as source node is:".format(TEST_COMP))
+logger.info(json_schema)
 ```
