@@ -16,7 +16,7 @@ schema_explorer = SchemaExplorer()
 if isinstance(schema_explorer, SchemaExplorer):
     logger.info("'schema_explorer' - an object of the SchemaExplorer class has been created successfully.")
 else:
-    logger.error("object of class SchemaExplorer could not be created.")    
+    logger.error("object of class SchemaExplorer could not be created.")
 
 # by default schema exploerer loads the biothings schema
 # to explicitly load a different data model/json-ld schema use load_schema()
@@ -40,20 +40,20 @@ if is_or_not == True:
 else:
     logger.error("The class {} is not present in the schema.".format(TEST_CLASS))
 
-# # graph visualization of the entire HTAN JSON-LD schema
-# gv_digraph = schema_explorer.full_schema_graph()
+# graph visualization of the entire HTAN JSON-LD schema
+gv_digraph = schema_explorer.full_schema_graph()
 
-# # since the graph is very big, we will generate an svg viz. of it
-# gv_digraph.format = 'svg'
-# gv_digraph.render('./data/viz/HTAN-GV', view=True)
-# logger.info("The svg visualization of the entire schema has been rendered.")
+# since the graph is very big, we will generate an svg viz. of it
+gv_digraph.format = 'svg'
+gv_digraph.render('./data/viz/HTAN-GV', view=True)
+logger.info("The svg visualization of the entire schema has been rendered.")
 
-# # graph visualization of a sub-schema
-# seq_subgraph = schema_explorer.sub_schema_graph(TEST_CLASS, "up")
+# graph visualization of a sub-schema
+seq_subgraph = schema_explorer.sub_schema_graph(TEST_CLASS, "up")
 
-# seq_subgraph.format = 'svg'
-# seq_subgraph.render('SUB-GV', view=True)
-# logger.info("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
+seq_subgraph.format = 'svg'
+seq_subgraph.render('SUB-GV', view=True)
+logger.info("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
 
 # returns list of successors of a node
 seq_children = schema_explorer.find_children_classes(TEST_CLASS)

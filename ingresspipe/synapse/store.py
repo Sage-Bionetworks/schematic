@@ -14,7 +14,7 @@ from synapseclient import File, Folder, Table
 from synapseclient.table import build_table
 import synapseutils
 
-from ingresspipe.utils.general import update_df
+from ingresspipe.utils.df_utils import update_df
 from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.config.config import storage
 

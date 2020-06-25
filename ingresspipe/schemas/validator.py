@@ -1,7 +1,10 @@
 import os
+from jsonschema import validate
 
-from .base import *
-from ingresspipe.utils.general import expand_curies_in_schema, uri2label, find_duplicates
+from ingresspipe.utils.load_utils import load_schemaorg, load_json, load_default
+from ingresspipe.utils.general import str2list, dict2list, find_duplicates
+from ingresspipe.utils.curie_utils import expand_curies_in_schema, extract_name_from_uri_or_curie
+from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
 
 _ROOT = './data/'
 

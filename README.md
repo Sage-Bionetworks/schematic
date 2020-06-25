@@ -28,8 +28,6 @@ Once, you have finished testing the application within the virtual environment a
 
     deactivate
 
-----
-
 ### Install Package
 
 To install the package, run the command:
@@ -42,8 +40,8 @@ To install the package, run the command:
 
 Clone a copy of the repository here:
       
-      git clone --single-branch --branch organized-into-packages https://github.com/sujaypatil96/HTAN-data-pipeline.git
+      git clone --single-branch --branch organized-into-packages https://github.com/Sage-Bionetworks/HTAN-data-pipeline.git
 
 Modify your files, add them to the staging area, use a descriptive commit message and push to the same branch as a pull request for review.
 
-* Please consult [CONTRIBUTION.md](https://github.com/sujaypatil96/HTAN-data-pipeline/blob/organized-into-packages/CONTRIBUTION.md) for further reference.
+* Please consult [CONTRIBUTION.md](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/organized-into-packages/CONTRIBUTION.md) for further reference.

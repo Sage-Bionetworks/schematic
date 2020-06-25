@@ -7,8 +7,13 @@ import inflection
 import networkx as nx
 from networkx.algorithms.cycles import find_cycle
 
-from .base import *
-from ingresspipe.utils.general import expand_curies_in_schema, uri2label, find_duplicates
+from ingresspipe.utils.curie_utils import expand_curies_in_schema, uri2label, extract_name_from_uri_or_curie
+from ingresspipe.utils.general import find_duplicates
+from ingresspipe.utils.load_utils import load_default, load_json, load_schemaorg
+from ingresspipe.utils.schema_utils import load_schema_into_networkx
+from ingresspipe.utils.general import visualize, dict2list, unlist
+from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
+
 from .curie import uri2curie, curie2uri
 
 namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
@@ -229,8 +234,8 @@ class SchemaExplorer():
                       'uri': curie2uri(self.schema_nx.node[schema_class]["uri"], namespaces),
                       'usage': self.find_class_usages(schema_class),
                       'child_classes': self.find_child_classes(schema_class),
-                      'subClassOf':subclasses, 
-                      'range':requires_range,
+                      'subClassOf': subclasses, 
+                      'range': requires_range,
                       'dependencies': requires_dependencies,
                       'required': required,
                       'component_dependencies': requires_components,
@@ -416,9 +421,3 @@ class SchemaExplorer():
         #print(nx.find_cycle(digraph, orientation = "ignore"))
 
         return digraph
-
-
-    def export_schema(self, file_path):
-        with open(file_path, 'w') as f:
-            json.dump(self.schema, f, sort_keys = True, indent = 4,
-               ensure_ascii = False)

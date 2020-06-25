@@ -5,8 +5,11 @@ from orderedset import OrderedSet
 
 from typing import Any, Dict, Optional, Text, List
 
-from .explorer import SchemaExplorer
-from .base import load_json, load_schema_into_networkx, validate_schema
+from ingresspipe.schemas.explorer import SchemaExplorer
+
+from ingresspipe.utils.load_utils import load_json
+from ingresspipe.utils.schema_utils import load_schema_into_networkx
+from ingresspipe.utils.validate_utils import validate_schema
 
 class SchemaGenerator(object):
     def __init__(self,

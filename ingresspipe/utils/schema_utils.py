@@ -1,86 +1,7 @@
-import json
-import urllib.request
-import os
 import networkx as nx
-import graphviz
-from jsonschema import validate
+import json
 
-from copy import deepcopy
-
-_ROOT = "./data/"
-
-def load_json(file_path):
-    """Load json document from file path or url
-
-    :arg str file_path: The path of the url doc, could be url or file path
-    """
-    if file_path.startswith("http"):
-        with urllib.request.urlopen(file_path) as url:
-            data = json.loads(url.read().decode())
-            return data
-    # handle file path
-    else:
-        with open(file_path) as f:
-            data = json.load(f)
-            return data
-
-
-def export_json(json_doc, file_path):
-    """Export JSON doc to file
-    """
-    with open(file_path, 'w') as f:
-        json.dump(json_doc, f, sort_keys=True,
-                  indent=4, ensure_ascii=False)
-
-
-def load_default():
-    """Load biolink vocabulary
-    """
-    biothings_path = os.path.join(_ROOT, 'schema_org_schemas', 'biothings.jsonld')
-    return load_json(biothings_path)
-
-
-def load_schemaorg():
-    """Load SchemOrg vocabulary
-    """
-    schemaorg_path = os.path.join(_ROOT, 'schema_org_schemas', 'all_layer.jsonld')
-    return load_json(schemaorg_path)
-
-
-def validate_schema(schema):
-    """Validate schema against schema.org standard
-    """
-    json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'schema.json')
-    json_schema = load_json(json_schema_path)
-    return validate(schema, json_schema)
-
-
-def validate_property_schema(schema):
-    """Validate schema against SchemaORG property definition standard
-    """
-    json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'property_json_schema.json')
-    json_schema = load_json(json_schema_path)
-    return validate(schema, json_schema)
-
-
-def validate_class_schema(schema):
-    """Validate schema against SchemaORG class definition standard
-    """
-    json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'class_json_schema.json')
-    json_schema = load_json(json_schema_path)
-    return validate(schema, json_schema)
-
-
-def extract_name_from_uri_or_curie(item):
-    """Extract name from uri or curie
-    """
-    if 'http' not in item and len(item.split(":")) == 2:
-        return item.split(":")[-1]
-    elif len(item.split("//")[-1].split('/')) > 1:
-        return item.split("//")[-1].split('/')[-1]
-    else:
-        print("error")
-
+from ingresspipe.utils.curie_utils import extract_name_from_uri_or_curie
 
 def load_schema_into_networkx(schema):
     G = nx.MultiDiGraph()
@@ -172,34 +93,7 @@ def load_schema_into_networkx(schema):
             #print(G.nodes())
     return G
 
-
-def dict2list(dictionary):
-    if type(dictionary) == list:
-        return dictionary
-    elif type(dictionary) == dict:
-        return [dictionary]
-
-
-def str2list(_str):
-    if type(_str) == str:
-        return [_str]
-    elif type(_str) == list:
-        return _str
-
-
-def unlist(_list):
-    if len(_list) == 1:
-        return _list[0]
-    else:
-        return _list
-
-
-def visualize(edges, size=None):
-    if size:
-        d = graphviz.Digraph(graph_attr=[('size', size)])
-    else:
-        d = graphviz.Digraph()
-        
-    for _item in edges:
-        d.edge(_item[0], _item[1])
-    return d
+def export_schema(self, file_path):
+    with open(file_path, 'w') as f:
+        json.dump(self.schema, f, sort_keys = True, indent = 4,
+            ensure_ascii = False)
