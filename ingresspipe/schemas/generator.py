@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Text, List
 
 from ingresspipe.schemas.explorer import SchemaExplorer
 
-from ingresspipe.utils.load_utils import load_json
+from ingresspipe.utils.io_utils import load_json
 from ingresspipe.utils.schema_utils import load_schema_into_networkx
 from ingresspipe.utils.validate_utils import validate_schema
 
