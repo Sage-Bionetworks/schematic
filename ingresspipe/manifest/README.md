@@ -10,7 +10,7 @@ First, we need to make sure the google API credentials file (which is required t
 try:
     download_creds_file()
 except synapseclient.core.exceptions.SynapseHTTPError:
-    logger.error("Make sure the credentials set in the config file are correct.")
+    print("Make sure the credentials set in the config file are correct.")
 ```
 
 Create an object of `ManifestGenerator`, and feed the path to the master schema (JSON-LD). In addition, also change the name of the root node (component) based on the custom template type of your choice:
