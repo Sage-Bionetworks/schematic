@@ -16,9 +16,9 @@ Check if object has been instantiated or not:
 
 ```python
 if isinstance(schema_explorer, SchemaExplorer):
-    logger.info("'schema_explorer' - an object of the SchemaExplorer class has been created successfully.")
+    print("'schema_explorer' - an object of the SchemaExplorer class has been created successfully.")
 else:
-    logger.error("object of class SchemaExplorer could not be created.")    
+    print("object of class SchemaExplorer could not be created.")    
 ```
 
 By default schema exploerer loads the biothings schema. To explicitly load a different data model/json-ld schema, 
@@ -26,7 +26,7 @@ use `load_schema()`:
 
 ```python
 schema_explorer.load_schema(PATH_TO_JSONLD)
-logger.info("schema at {} has been loaded.".format(PATH_TO_JSONLD))
+print("schema at {} has been loaded.".format(PATH_TO_JSONLD))
 ```
 
 Get the networkx graph generated from the json-ld:
@@ -39,9 +39,9 @@ Check if `nx_graph` has been instantiated correctly:
 
 ```python
 if isinstance(nx_graph, nx.MultiDiGraph):
-    logger.info("'nx_graph' - object of class MultiDiGraph has been retreived successfully.")
+    print("'nx_graph' - object of class MultiDiGraph has been retreived successfully.")
 else:
-    logger.error("object of class SchemaExplorer could not be retreived.")
+    print("object of class SchemaExplorer could not be retreived.")
 ```
 
 Check if a particular class is in the current `HTAN JSON-LD` schema (or any schema that has been loaded):
@@ -51,9 +51,9 @@ TEST_CLASS = 'Sequencing'
 is_or_not = schema_explorer.is_class_in_schema(TEST_CLASS)
 
 if is_or_not == True:
-    logger.info("The class {} is present in the schema.".format(TEST_CLASS))
+    print("The class {} is present in the schema.".format(TEST_CLASS))
 else:
-    logger.error("The class {} is not present in the schema.".format(TEST_CLASS))
+    print("The class {} is not present in the schema.".format(TEST_CLASS))
 ```
 
 Generate graph visualization of the entire HTAN JSON-LD schema using `graphviz` package:
@@ -67,7 +67,7 @@ Since the graph is very big, we will generate an svg viz. of it. Please allow so
 ```python
 gv_digraph.format = 'svg'
 gv_digraph.render('./data/viz/HTAN-GV', view=True)
-logger.info("The svg visualization of the entire schema has been rendered.")
+print("The svg visualization of the entire schema has been rendered.")
 ```
 
 _Note: The above visualization is too big to be rendered here, but see the sub-schema below for a small visualization._
@@ -79,7 +79,7 @@ seq_subgraph = schema_explorer.sub_schema_graph(TEST_CLASS, "up")
 
 seq_subgraph.format = 'svg'
 seq_subgraph.render('SUB-GV', view=True)
-logger.info("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
+print("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
 ```
 
 _Fig.: Output from the execution of above block of code_
@@ -90,14 +90,14 @@ Returns list of successors of a node:
 
 ```python    
 seq_children = schema_explorer.find_children_classes(TEST_CLASS)
-logger.info("These are the children of {} class: {}".format(TEST_CLASS, seq_children))
+print("These are the children of {} class: {}".format(TEST_CLASS, seq_children))
 ```
 
 Returns list of parents of a node:
 
 ```python
 seq_parents = schema_explorer.find_parent_classes(TEST_CLASS)
-logger.info("These are the parents of {} class: {}".format(TEST_CLASS, seq_parents))
+print("These are the parents of {} class: {}".format(TEST_CLASS, seq_parents))
 ```
 
 Find the properties that are associated with a class:
@@ -105,21 +105,21 @@ Find the properties that are associated with a class:
 ```python
 PROP_CLASS = 'BiologicalEntity'
 class_props = schema_explorer.find_class_specific_properties(PROP_CLASS)
-logger.info("The properties associated with class {} are: {}".format(PROP_CLASS, class_props))
+print("The properties associated with class {} are: {}".format(PROP_CLASS, class_props))
 ```
 
 Find the schema classes that inherit from a given class:
 
 ```python
 inh_classes = schema_explorer.find_child_classes("Assay")
-logger.info("classes that inherit from class 'Assay' are: {}".format(inh_classes))
+print("classes that inherit from class 'Assay' are: {}".format(inh_classes))
 ```
 
 Get all details about a specific class in the schema:
 
 ```python
 class_details = schema_explorer.explore_class(TEST_CLASS)
-logger.info("information/details about class {} : {} ".format(TEST_CLASS, class_details))
+print("information/details about class {} : {} ".format(TEST_CLASS, class_details))
 ```
 
 Get all details about a specific property in the schema:
@@ -127,28 +127,28 @@ Get all details about a specific property in the schema:
 ```python
 TEST_PROP = 'increasesActivityOf'
 prop_details = schema_explorer.explore_property(TEST_PROP)
-logger.info("information/details about property {} : {}".format(TEST_PROP, prop_details))
+print("information/details about property {} : {}".format(TEST_PROP, prop_details))
 ```
 
 Get name/label of the property associated with a given class' display name:
 
 ```python
 prop_label = schema_explorer.get_property_label_from_display_name("Basic Statistics")
-logger.info("label of the property associated with 'Basic Statistics': {}".format(prop_label))
+print("label of the property associated with 'Basic Statistics': {}".format(prop_label))
 ```
 
 Get name/label of the class associated with a given class' display name:
 
 ```python
 class_label = schema_explorer.get_property_label_from_display_name("Basic Statistics")
-logger.info("label of the class associated with 'Basic Statistics': {}".format(class_label))
+print("label of the class associated with 'Basic Statistics': {}".format(class_label))
 ```
 
 Generate template of class in schema:
 
 ```python
 class_temp = schema_explorer.generate_class_template()
-logger.info("generic template of a class in the schema/data model: {}".format(class_temp))
+print("generic template of a class in the schema/data model: {}".format(class_temp))
 ```
 
 Modified `TEST_CLASS ("Sequencing")` based on the above generated template:
@@ -182,7 +182,7 @@ Verify that the comment associated with `TEST_CLASS` has indeed been changed:
 
 ```python
 class_details = schema_explorer.explore_class(TEST_CLASS)
-logger.info("Modified {} details : {}".format(TEST_CLASS, class_details))
+print("Modified {} details : {}".format(TEST_CLASS, class_details))
 ```
 
 ## Usage of methods in `ingresspipe.schemas.generator` module
@@ -197,9 +197,9 @@ Check if object has been properly instantiated or not:
 
 ```python
 if isinstance(schema_generator, SchemaGenerator):
-    logger.info("'schema_generator' - an object of the SchemaGenerator class has been created successfully.")
+    print("'schema_generator' - an object of the SchemaGenerator class has been created successfully.")
 else:
-    logger.error("object of class SchemaGenerator could not be created.")
+    print("object of class SchemaGenerator could not be created.")
 ```
 
 Get the list of out-edges from a specific node, based on a particular type of relationship:
@@ -211,9 +211,9 @@ TEST_REL = "parentOf"
 out_edges = schema_generator.get_edges_by_relationship(TEST_NODE, TEST_REL)
 
 if out_edges:
-    logger.info("The out-edges from class {}, based on {} relationship are: {}".format(TEST_NODE, TEST_REL, out_edges))
+    print("The out-edges from class {}, based on {} relationship are: {}".format(TEST_NODE, TEST_REL, out_edges))
 else:
-    logger.error("The class does not have any out-edges.")
+    print("The class does not have any out-edges.")
 ```
 
 Get the list of nodes that are adjacent to a given node, based on a particular type of relationship:
@@ -222,9 +222,9 @@ Get the list of nodes that are adjacent to a given node, based on a particular t
 adj_nodes = schema_generator.get_adjacent_nodes_by_relationship(TEST_NODE, TEST_REL)
 
 if adj_nodes:
-    logger.info("The node(s) adjacent to {}, based on {} relationship are: {}".format(TEST_NODE, TEST_REL, adj_nodes))
+    print("The node(s) adjacent to {}, based on {} relationship are: {}".format(TEST_NODE, TEST_REL, adj_nodes))
 else:
-    logger.error("The class does not have any adjacent nodes.")
+    print("The class does not have any adjacent nodes.")
 ```
 
 Get the list of descendants (all nodes that are reachable from a given node) of a node:
@@ -233,9 +233,9 @@ Get the list of descendants (all nodes that are reachable from a given node) of 
 desc_nodes = schema_generator.get_descendants_by_edge_type(TEST_NODE, TEST_REL)
 
 if desc_nodes:
-    logger.info("The descendant(s) from {} are: {}".format(TEST_NODE, desc_nodes))
+    print("The descendant(s) from {} are: {}".format(TEST_NODE, desc_nodes))
 else:
-    logger.error("The class does not have descendants.")
+    print("The class does not have descendants.")
 ```
 
 Get the list of components that are associated with a given component:
@@ -245,9 +245,9 @@ TEST_COMP = "Patient"
 req_comps = schema_generator.get_component_requirements(TEST_COMP)
 
 if req_comps:
-    logger.info("The component(s) that are associated with a given component: {}".format(req_comps))
+    print("The component(s) that are associated with a given component: {}".format(req_comps))
 else:
-    logger.error("There are no components associated with {}".format(TEST_COMP))
+    print("There are no components associated with {}".format(TEST_COMP))
 ```
 
 Get the list of immediate dependencies of a particular node:
@@ -256,9 +256,9 @@ Get the list of immediate dependencies of a particular node:
 node_deps = schema_generator.get_node_dependencies(TEST_COMP)
 
 if node_deps:
-    logger.info("The immediate dependencies of {} are: {}".format(TEST_COMP, node_deps))
+    print("The immediate dependencies of {} are: {}".format(TEST_COMP, node_deps))
 else:
-    logger.error("The node has no immediate dependencies.")
+    print("The node has no immediate dependencies.")
 ```
 
 Get the `label` associated with a node, based on the node's display name:
@@ -267,9 +267,9 @@ Get the `label` associated with a node, based on the node's display name:
 try:
     node_label = schema_generator.get_node_label(TEST_NODE)
 
-    logger.info("The label name for the node {} is: {}".format(TEST_NODE, node_label))
+    print("The label name for the node {} is: {}".format(TEST_NODE, node_label))
 except KeyError:
-    logger.error("Please try a valid node name.")
+    print("Please try a valid node name.")
 ```
 
 Get the `definition/comment` associated with a given node:
@@ -278,9 +278,9 @@ Get the `definition/comment` associated with a given node:
 try:
     node_def = schema_generator.get_node_definition(TEST_NODE)
 
-    logger.info("The node definition for node {} is: {}".format(TEST_NODE, node_def))
+    print("The node definition for node {} is: {}".format(TEST_NODE, node_def))
 except KeyError:
-    logger.error("Please try a valid node name.")
+    print("Please try a valid node name.")
 ```
 
 Gather all the dependencies and value-constraints associated with a particular node
@@ -288,6 +288,6 @@ Gather all the dependencies and value-constraints associated with a particular n
 ```python
 json_schema = schema_generator.get_json_schema_requirements(TEST_COMP, "Patient-Schema")
 
-logger.info("The JSON schema based on {} as source node is:".format(TEST_COMP))
-logger.info(json_schema)
+print("The JSON schema based on {} as source node is:".format(TEST_COMP))
+print(json_schema)
 ```

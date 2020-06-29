@@ -3,11 +3,6 @@ from ingresspipe.manifest.generator import ManifestGenerator
 
 from ingresspipe.utils.google_api_utils import download_creds_file
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 PATH_TO_JSONLD = "./data/schema_org_schemas/HTAN.jsonld"
 
 # create an instance of ManifestGenerator class
@@ -18,7 +13,7 @@ manifest_generator = ManifestGenerator(title="Demo Manifest", path_to_json_ld=PA
 try:
     download_creds_file()
 except synapseclient.core.exceptions.SynapseHTTPError:
-    logger.error("Make sure the credentials set in the config file are correct.")
+    print("Make sure the credentials set in the config file are correct.")
 
 # get manifest (csv) url
 manifest_generator.get_manifest()
