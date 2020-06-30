@@ -3,42 +3,37 @@ import networkx as nx
 from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
 from graphviz import Digraph, Source
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 PATH_TO_JSONLD = "./data/schema_org_schemas/HTAN.jsonld"
 
 # create an object of the SchemaExplorer() class
 schema_explorer = SchemaExplorer()
 
 if isinstance(schema_explorer, SchemaExplorer):
-    logger.info("'schema_explorer' - an object of the SchemaExplorer class has been created successfully.")
+    print("'schema_explorer' - an object of the SchemaExplorer class has been created successfully.")
 else:
-    logger.error("object of class SchemaExplorer could not be created.")
+    print("object of class SchemaExplorer could not be created.")
 
 # by default schema exploerer loads the biothings schema
 # to explicitly load a different data model/json-ld schema use load_schema()
 schema_explorer.load_schema(PATH_TO_JSONLD)
-logger.info("schema at {} has been loaded.".format(PATH_TO_JSONLD))
+print("schema at {} has been loaded.".format(PATH_TO_JSONLD))
 
 # get the networkx graph generated from the json-ld
 nx_graph = schema_explorer.get_nx_schema()
 
 if isinstance(nx_graph, nx.MultiDiGraph):
-    logger.info("'nx_graph' - object of class MultiDiGraph has been retreived successfully.")
+    print("'nx_graph' - object of class MultiDiGraph has been retreived successfully.")
 else:
-    logger.error("object of class SchemaExplorer could not be retreived.")
+    print("object of class SchemaExplorer could not be retreived.")
 
 # check if a particular class is in the current HTAN JSON-LD schema (or any schema that has been loaded)
 TEST_CLASS = 'Sequencing'
 is_or_not = schema_explorer.is_class_in_schema(TEST_CLASS)
 
 if is_or_not == True:
-    logger.info("The class {} is present in the schema.".format(TEST_CLASS))
+    print("The class {} is present in the schema.".format(TEST_CLASS))
 else:
-    logger.error("The class {} is not present in the schema.".format(TEST_CLASS))
+    print("The class {} is not present in the schema.".format(TEST_CLASS))
 
 # graph visualization of the entire HTAN JSON-LD schema
 gv_digraph = schema_explorer.full_schema_graph()
@@ -46,52 +41,52 @@ gv_digraph = schema_explorer.full_schema_graph()
 # since the graph is very big, we will generate an svg viz. of it
 gv_digraph.format = 'svg'
 gv_digraph.render('./data/viz/HTAN-GV', view=True)
-logger.info("The svg visualization of the entire schema has been rendered.")
+print("The svg visualization of the entire schema has been rendered.")
 
 # graph visualization of a sub-schema
 seq_subgraph = schema_explorer.sub_schema_graph(TEST_CLASS, "up")
 
 seq_subgraph.format = 'svg'
 seq_subgraph.render('SUB-GV', view=True)
-logger.info("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
+print("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
 
 # returns list of successors of a node
 seq_children = schema_explorer.find_children_classes(TEST_CLASS)
-logger.info("These are the children of {} class: {}".format(TEST_CLASS, seq_children))
+print("These are the children of {} class: {}".format(TEST_CLASS, seq_children))
 
 # returns list of parents of a node
 seq_parents = schema_explorer.find_parent_classes(TEST_CLASS)
-logger.info("These are the parents of {} class: {}".format(TEST_CLASS, seq_parents))
+print("These are the parents of {} class: {}".format(TEST_CLASS, seq_parents))
 
 # find the properties that are associated with a class
 PROP_CLASS = 'BiologicalEntity'
 class_props = schema_explorer.find_class_specific_properties(PROP_CLASS)
-logger.info("The properties associated with class {} are: {}".format(PROP_CLASS, class_props))
+print("The properties associated with class {} are: {}".format(PROP_CLASS, class_props))
 
 # find the schema classes that inherit from a given class
 inh_classes = schema_explorer.find_child_classes("Assay")
-logger.info("classes that inherit from class 'Assay' are: {}".format(inh_classes))
+print("classes that inherit from class 'Assay' are: {}".format(inh_classes))
 
 # get all details about a specific class in the schema
 class_details = schema_explorer.explore_class(TEST_CLASS)
-logger.info("information/details about class {} : {} ".format(TEST_CLASS, class_details))
+print("information/details about class {} : {} ".format(TEST_CLASS, class_details))
 
 # get all details about a specific property in the schema
 TEST_PROP = 'increasesActivityOf'
 prop_details = schema_explorer.explore_property(TEST_PROP)
-logger.info("information/details about property {} : {}".format(TEST_PROP, prop_details))
+print("information/details about property {} : {}".format(TEST_PROP, prop_details))
 
 # get name/label of the property associated with a given class' display name
 prop_label = schema_explorer.get_property_label_from_display_name("Basic Statistics")
-logger.info("label of the property associated with 'Basic Statistics': {}".format(prop_label))
+print("label of the property associated with 'Basic Statistics': {}".format(prop_label))
 
 # get name/label of the class associated with a given class' display name
 class_label = schema_explorer.get_property_label_from_display_name("Basic Statistics")
-logger.info("label of the class associated with 'Basic Statistics': {}".format(class_label))
+print("label of the class associated with 'Basic Statistics': {}".format(class_label))
 
 # generate template of class in schema
 class_temp = schema_explorer.generate_class_template()
-logger.info("generic template of a class in the schema/data model: {}".format(class_temp))
+print("generic template of a class in the schema/data model: {}".format(class_temp))
 
 # modified TEST_CLASS ("Sequencing") based on the above generated template
 class_mod = {
@@ -116,4 +111,4 @@ schema_explorer.edit_class(class_info=class_mod)
 
 # verify that the comment associated with TEST_CLASS has indeed been changed
 class_details = schema_explorer.explore_class(TEST_CLASS)
-logger.info("Modified {} details : {}".format(TEST_CLASS, class_details))
+print("Modified {} details : {}".format(TEST_CLASS, class_details))

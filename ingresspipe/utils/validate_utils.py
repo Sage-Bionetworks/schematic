@@ -1,5 +1,5 @@
 import os
-from .load_utils import load_json
+from .io_utils import load_json
 from jsonschema import validate
 
 _ROOT = "./data/"

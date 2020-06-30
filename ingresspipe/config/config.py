@@ -7,7 +7,8 @@ storage = {
         "masterFileview": "syn20446927",    # synapse ID of fileview containing administrative storage metadata
         "manifestFilename": "./data/synapse_storage_manifest.csv",  # default manifest name
         "username": "",
-        "password": ""
+        "password": "",
+        "api_creds": "syn21088684"
     }
 }
 

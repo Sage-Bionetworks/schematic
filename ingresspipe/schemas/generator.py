@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Text, List
 
 from ingresspipe.schemas.explorer import SchemaExplorer
 
-from ingresspipe.utils.load_utils import load_json
+from ingresspipe.utils.io_utils import load_json
 from ingresspipe.utils.schema_utils import load_schema_into_networkx
 from ingresspipe.utils.validate_utils import validate_schema
 
@@ -265,7 +265,7 @@ class SchemaGenerator(object):
         elif node_property_label in self.se.schema_nx.nodes:
             node_label = node_property_label
         else:
-            raise KeyError('The given node display name could not be found in the graph. Please try a different node\'s display name.')
+            node_label = ""
 
         return node_label
 
@@ -282,8 +282,11 @@ class SchemaGenerator(object):
         """
         node_label = self.get_node_label(node_display_name)
 
-        node_definition = self.se.schema_nx.nodes[node_label]["comment"]
+        if not node_label:
+            return ""
 
+        node_definition = self.se.schema_nx.nodes[node_label]["comment"] 
+         
         return node_definition
 
 
@@ -530,7 +533,7 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
             
-        with open("./data/json_schema_log.json", "w") as js_f:
+        with open("./data/json_schema_logs/json_schema_log.json", "w") as js_f:
             json.dump(json_schema, js_f, indent = 2)
             
         print("Schema log file stored as ./data/json_schema_logs/json_schema_log.json")

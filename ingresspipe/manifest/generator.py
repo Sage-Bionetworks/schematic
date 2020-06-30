@@ -15,7 +15,7 @@ import pygsheets as ps
 from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.schemas.generator import SchemaGenerator
 
-from ingresspipe.utils.general import execute_google_api_requests
+from ingresspipe.utils.google_api_utils import execute_google_api_requests
 
 from ingresspipe.config.config import style
 
@@ -225,11 +225,10 @@ class ManifestGenerator(object):
             # the ones that are in blue come from this block
 
         # gathering dependency requirements and allowed value constraints for conditional dependencies (if any)
-        # put this into a function?
         if "allOf" in json_schema: 
             for conditional_reqs in json_schema["allOf"]: 
                  if "required" in conditional_reqs["if"]:
-                     for req in conditional_reqs["if"]["required"]: 
+                    for req in conditional_reqs["if"]["required"]: 
                         if req in conditional_reqs["if"]["properties"]:
                             if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
@@ -239,7 +238,8 @@ class ManifestGenerator(object):
                                     required_metadata_fields[req] = json_schema["properties"][req]["enum"]
                                 else:
                                     required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"] if "enum" in conditional_reqs["if"]["properties"][req] else []                   
-                     for req in conditional_reqs["then"]["required"]: 
+                    
+                    for req in conditional_reqs["then"]["required"]: 
                          if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
                                     required_metadata_fields[req] = json_schema["properties"][req]["enum"] if "enum" in json_schema["properties"][req] else []
@@ -248,7 +248,6 @@ class ManifestGenerator(object):
         # some are conditionally optional, unconditionally optional
 
         # if additional metadata is provided, append columns (if those do not exist already)
-        # put this into a function?
         if self.additional_metadata:
             for column in self.additional_metadata.keys():
                 if not column in required_metadata_fields:
@@ -593,7 +592,4 @@ class ManifestGenerator(object):
             manifest_fields.remove("entityId")
             manifest_fields.append("entityId")
 
-        print("Manifest fields:")
-        print()
-        print(manifest_fields)
         return manifest_fields

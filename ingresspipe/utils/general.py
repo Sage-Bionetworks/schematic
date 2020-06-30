@@ -1,8 +1,6 @@
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text
 
-import graphviz
-
 def find_duplicates(_list):
     """Find duplicate items in a list
     """
@@ -28,14 +26,3 @@ def unlist(_list):
         return _list[0]
     else:
         return _list
-
-
-def visualize(edges, size=None):
-    if size:
-        d = graphviz.Digraph(graph_attr=[('size', size)])
-    else:
-        d = graphviz.Digraph()
-        
-    for _item in edges:
-        d.edge(_item[0], _item[1])
-    return d
