@@ -12,6 +12,19 @@ storage = {
     }
 }
 
+model = {
+    "input": {
+        "model_location": "./data/schema_org_schemas/HTAN.jsonld",
+        "model_file_type": "local"
+    },
+    "demo": {
+        "htapp_location": "./data/schema_org_schemas/HTAPP.jsonld",
+        "htapp_file_type": "local",
+        "htapp_validation_file_location": "./data/validation_schemas/minimalHTAPPJSONSchema.json",
+        "valid_manifest": "./data/manifests/HTAPP_manifest_valid.csv"
+    }
+}
+
 schema = {
     "schemaLocation": "./schemas/HTAN.jsonld"
 }

@@ -1,1 +1,1 @@
-from .metadata import MetadataModel
+from ingresspipe.models.metadata import MetadataModel

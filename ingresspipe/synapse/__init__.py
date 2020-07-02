@@ -1,1 +1,1 @@
-from .store import SynapseStorage
+from ingresspipe.synapse.store import SynapseStorage

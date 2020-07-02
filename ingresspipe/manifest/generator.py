@@ -215,20 +215,19 @@ class ManifestGenerator(object):
         required_metadata_fields = {}
 
         # gathering dependency requirements and corresponding allowed values constraints for root node
-        # put this into a function?
         for req in json_schema["properties"].keys():
             if not "enum" in json_schema["properties"][req]:
                 # if no valid/allowed values specified
                 json_schema["properties"][req]["enum"] = []
             
             required_metadata_fields[req] = json_schema["properties"][req]["enum"]
-            # the ones that are in blue come from this block
 
-        # gathering dependency requirements and allowed value constraints for conditional dependencies (if any)
+
+        # gathering dependency requirements and allowed value constraints for conditional dependencies if any
         if "allOf" in json_schema: 
             for conditional_reqs in json_schema["allOf"]: 
                  if "required" in conditional_reqs["if"]:
-                    for req in conditional_reqs["if"]["required"]: 
+                     for req in conditional_reqs["if"]["required"]: 
                         if req in conditional_reqs["if"]["properties"]:
                             if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
@@ -238,24 +237,20 @@ class ManifestGenerator(object):
                                     required_metadata_fields[req] = json_schema["properties"][req]["enum"]
                                 else:
                                     required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"] if "enum" in conditional_reqs["if"]["properties"][req] else []                   
-                    
-                    for req in conditional_reqs["then"]["required"]: 
+                     for req in conditional_reqs["then"]["required"]: 
                          if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
                                     required_metadata_fields[req] = json_schema["properties"][req]["enum"] if "enum" in json_schema["properties"][req] else []
                                 else:
-                                     required_metadata_fields[req] = []
-        # some are conditionally optional, unconditionally optional
+                                     required_metadata_fields[req] = []    
 
-        # if additional metadata is provided, append columns (if those do not exist already)
+        # if additional metadata is provided append columns (if those do not exist already)
         if self.additional_metadata:
             for column in self.additional_metadata.keys():
                 if not column in required_metadata_fields:
                     required_metadata_fields[column] = []
     
-        # if 'component' is in column set (see your input jsonld schema for definition of 'component'
-        # if the 'component' attribute is present, add the root node as an additional metadata component entry
-        # put this into a function?
+        # if 'component' is in column set (see your input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry 
         if 'Component' in required_metadata_fields.keys():
             # check if additional metadata has actually been instantiated in the constructor (it's optional)
             # if not, instantiate it
@@ -269,89 +264,87 @@ class ManifestGenerator(object):
         end_col_letter = self._column_to_letter(end_col) 
 
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
-        ordered_metadata_fields = [list(required_metadata_fields.keys())]   # alphabetical / based on the JSON-LD schema
+        ordered_metadata_fields = [list(required_metadata_fields.keys())]
 
-        # order column headers (since they are generated based on a json schema, which is a dict)
-        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0])
+        # order columns header (since they are generated based on a json schema, which is a dict)
+        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0]) 
         body = {
                 "values": ordered_metadata_fields
         }
-
         self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
 
         # format column header row
         header_format_body = {
                 "requests":[
                 {
-                    "repeatCell": {
+                      "repeatCell": {
                         "range": {
-                            "startRowIndex": 0,
-                            "endRowIndex": 1
+                          "startRowIndex": 0,
+                          "endRowIndex": 1
                         },
                         "cell": {
-                            "userEnteredFormat": {
-                                "backgroundColor": {
-                                    "red": 224.0/255,
-                                    "green": 224.0/255,
-                                    "blue": 224.0/255
+                          "userEnteredFormat": {
+                            "backgroundColor": {
+                              "red": 224.0/255,
+                              "green": 224.0/255,
+                              "blue": 224.0/255
                             },
-                            "horizontalAlignment": "CENTER",
+                            "horizontalAlignment" : "CENTER",
                             "textFormat": {
-                                "foregroundColor": {
-                                    "red": 0.0/255,
-                                    "green": 0.0/255,
-                                    "blue": 0.0/255 
-                                },
-                                "fontSize": 8,
-                                "bold": True
+                              "foregroundColor": {
+                                "red": 0.0/255,
+                                "green": 0.0/255,
+                                "blue": 0.0/255 
+                              },
+                              "fontSize": 8,
+                              "bold": True
                             }
-                            }
+                          }
                         },
                         "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
-                    }
-                },
-                {
-                    "updateSheetProperties": {
+                      }
+                    },
+                    {
+                      "updateSheetProperties": {
                         "properties": {
-                            "gridProperties": {
+                          "gridProperties": {
                             "frozenRowCount": 1
-                        }
+                          }
                         },
                         "fields": "gridProperties.frozenRowCount"
+                      }
+                    },
+                    {
+                        "autoResizeDimensions": {
+                            "dimensions": {
+                                "dimension": "COLUMNS",
+                                "startIndex": 0
+                            }
+                        } 
                     }
-                },
-                {
-                    "autoResizeDimensions": {
-                        "dimensions": {
-                            "dimension": "COLUMNS",
-                            "startIndex": 0
-                        }
-                    } 
-                }
                 ]
         }
 
-        self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body).execute()
+        response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body).execute()
 
-        # adding additional metadata values if present
+        # adding additional metadata values if needed
         # adding value-constraints from data model as dropdowns
         
-        # store all requests to execute at once
-        # TODO: try to make it a batchUpdate()
+        #store all requests to execute at once
         requests_body = {}
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
             values = required_metadata_fields[req]
-            # adding additional metadata if provided
+            #adding additional metadata if needed
             if self.additional_metadata and req in self.additional_metadata:
                 values = self.additional_metadata[req]
                 target_col_letter = self._column_to_letter(i) 
                 body =  {
-                            "majorDimension": "COLUMNS",
-                            "values": [values]
+                            "majorDimension":"COLUMNS",
+                            "values":[values]
                 }                
-                
-                self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
+                response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
+
 
             # adding description to headers
             # this is not executed if only JSON schema is defined
@@ -359,33 +352,34 @@ class ManifestGenerator(object):
             
             # also formatting required columns
             if self.sg.se:
+                
                 # get node definition
                 note = self.sg.get_node_definition(req)
 
                 notes_body =  {
-                                "requests": [
+                            "requests":[
                                 {
                                     "updateCells": {
                                     "range": {
                                         "startRowIndex": 0,
                                         "endRowIndex": 1,
                                         "startColumnIndex": i,
-                                        "endColumnIndex": i + 1
+                                        "endColumnIndex": i+1
                                     },
-                                    "rows": [
-                                        {
-                                            "values": [
-                                            {
-                                                "note": note
-                                            }
-                                            ]
-                                        }
+                                   "rows": [
+                                      {
+                                        "values": [
+                                          {
+                                            "note": note
+                                          }
+                                        ]
+                                      }
                                     ],
                                     "fields": "note"
                                     }
                                 }
-                                ]
-                            }
+                            ]
+                }
                 
                 requests_body["requests"].append(notes_body["requests"])
 
@@ -399,8 +393,8 @@ class ManifestGenerator(object):
                             {
                                 "repeatCell": {
                                     "range": {
-                                        "startColumnIndex": i,
-                                        "endColumnIndex": i + 1
+                                      "startColumnIndex": i,
+                                      "endColumnIndex": i+1
                                     },
                                     "cell": {
                                       "userEnteredFormat": {
@@ -416,8 +410,7 @@ class ManifestGenerator(object):
                 requests_body["requests"].append(req_format_body["requests"])
 
             # adding value-constraints if any
-            # valid values that each of the fields/attributes can assume (values are stored in the dropdowns)
-            req_vals = [{"userEnteredValue": value} for value in values if value]
+            req_vals = [{"userEnteredValue":value} for value in values if value]
             
             if not req_vals:
                 continue
@@ -426,29 +419,30 @@ class ManifestGenerator(object):
                 print("WARNING: Value range > Google Sheet limit of 500. Truncating...")
                 req_vals = req_vals[:499]
 
+
             # generating sheet api request to populate the dropdown
             validation_body =  {
                       "requests": [
                         {
-                        'setDataValidation': {
-                            'range': {
-                                'startRowIndex': 1,
-                                'startColumnIndex': i, 
-                                'endColumnIndex': i + 1, 
+                        'setDataValidation':{
+                            'range':{
+                                'startRowIndex':1,
+                                'startColumnIndex':i, 
+                                'endColumnIndex':i+1, 
                             },
-                            'rule': {
-                                'condition': {
+                            'rule':{
+                                'condition':{
                                     'type':'ONE_OF_LIST', 
                                     'values': req_vals
                                 },
-                                'inputMessage': 'Choose one from dropdown',
-                                'strict': True,
+                                'inputMessage' : 'Choose one from dropdown',
+                                'strict':True,
                                 'showCustomUi': True
                             }
                         }
-                        }
-                    ]
-            }   
+                    }
+                ]
+            }
 
             requests_body["requests"].append(validation_body["requests"])
             
@@ -478,6 +472,7 @@ class ManifestGenerator(object):
                     # fields that need to be filled in and construct conditional formatting rules
                     # indicating the dependencies need to be filled in
                     
+                        
                     # set target ranges for this rule
                     # i.e. dependency attribute columns that will be formatted
 
@@ -488,30 +483,28 @@ class ManifestGenerator(object):
 
                     # construct ranges based on dependency column indexes
                     rule_ranges = self._columns_to_sheet_ranges(column_idxs)
-
-                    # iterate over valid value dependencies
-                    for j, val_dep in enumerate(val_dependencies):
+                    # go over valid value dependencies
+                    for j,val_dep in enumerate(val_dependencies):
                         is_required = False
                         
                         if self.sg.is_node_required(val_dep):
                             is_required = True
                         else:
-                            continue
+                            is_required = False
                         
                         # construct formatting rule
                         formatting_rule = self._column_to_cond_format_eq_rule(i, req_val, required = is_required)
 
                         # construct conditional format rule 
                         conditional_format_rule = {
-                            "addConditionalFormatRule": {
+                              "addConditionalFormatRule": {
                                 "rule": {
-                                    "ranges": rule_ranges[j],
-                                    "booleanRule": formatting_rule,
-                                },
+                                  "ranges": rule_ranges[j],
+                                  "booleanRule": formatting_rule,
+                                 },
                                 "index": 0
-                            }
+                              }
                         }
-
                         dependency_formatting_body["requests"].append(conditional_format_rule)
                   
                 # check if dependency formatting rules have been added and update sheet if so
@@ -526,10 +519,10 @@ class ManifestGenerator(object):
         # generating spreadsheet URL
         manifest_url = "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
      
-        print("====================================================")
-        print("Manifest successfully generated from schema!")
-        print("URL: " + manifest_url)
-        print("====================================================")
+        # print("========================================================================================================")
+        # print("Manifest successfully generated from schema!")
+        # print("URL: " + manifest_url)
+        # print("========================================================================================================")
         
 
         return manifest_url
@@ -560,11 +553,10 @@ class ManifestGenerator(object):
         # set permissions so that anyone with the link can edit
         sh.share("", role = "writer", type = "anyone")
 
-        return sh.url 
+        return sh.url
 
 
     def sort_manifest_fields(self, manifest_fields, order = "schema"):
-
         # order manifest fields alphabetically (base order)
         manifest_fields = sorted(manifest_fields)
         
@@ -577,13 +569,12 @@ class ManifestGenerator(object):
 
         # order manifest fields based on schema (schema.org)
         if order == "schema":
-            if self.sg.se and self.root:
+            if self.sg and self.root:
                 # get display names of dependencies
                 dependencies_display_names = self.sg.get_node_dependencies(self.root)
 
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(manifest_fields, key = lambda x: dependencies_display_names.index(x) if x in dependencies_display_names else len(manifest_fields) -1)
-            
             else:
                 print("No schema provided! Cannot order based on schema without a specified schema and a schema root attribute.")
 
