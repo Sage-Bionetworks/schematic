@@ -20,10 +20,10 @@ class MetadataModel(object):
     
     Provides basic utilities to:
 
-    1) manipulate the metadata model;
+    1) manipulate the metadata model
     2) generate metadata model views:
         - generate manifest view of the metadata model
-        - generate validation schema view of the metadata model;
+        - generate validation schema view of the metadata model
     """
 
     def __init__(self,
@@ -34,8 +34,8 @@ class MetadataModel(object):
         """Instantiates a MetadataModel object.
 
         Args:
-            inputMModelLocation: local path, uri, synapse entity id; (e.g. gs://, syn123, /User/x/…); present location
-            inputMModelLocationType: specifier to indicate where the metadata model resource can be found; (e.g. 'local' if file/JSON-LD is on local machine)
+            inputMModelLocation: local path, uri, synapse entity id (e.g. gs://, syn123, /User/x/…); present location
+            inputMModelLocationType: specifier to indicate where the metadata model resource can be found (e.g. 'local' if file/JSON-LD is on local machine)
         """
         # extract extension of 'inputMModelLocation'
         # ensure that it is necessarily pointing to a '.jsonld' file
@@ -54,37 +54,6 @@ class MetadataModel(object):
         else:
             print("Please make sure to use a local JSON-LD file. 'InputMModelLocationType' must be 'local'.")
             return
-        
-        # self.loadMModel()
-
-    # setting mutator/accessor methods explicitly
-    # @property
-    # def se(self) -> SchemaExplorer:
-    #     """Gets or sets a SchemaExplorer instance."""
-    #     return self.__se
-
-    # @se.setter
-    # def se(self, se: SchemaExplorer) -> None:
-    #     self.__se = se
-
-    # @property
-    # def inputMModelLocation(self) -> str:
-    #     """Gets or sets the inputMModelLocation path."""
-    #     return self.__inputMModelLocation
-
-    # @inputMModelLocation.setter
-    # def inputMModelLocation(self, inputMModelLocation) -> None:
-    #     self.__inputMModelLocation = inputMModelLocation     
-
-    # @property
-    # def inputMModelLocationType(self) -> str:
-    #     """Gets or sets the inputMModelLocationType."""
-    #     return self.__inputMModelLocationType
-
-    # @inputMModelLocationType.setter
-    # def inputMModelLocationType(self, inputMModelLocationType) -> None:
-    #     self.__inputMModelLocationType = inputMModelLocationType
-
 
     # business logic: expose metadata model "views" depending on "controller" logic
     # (somewhat analogous to Model View Controller pattern for GUI/web applications)
@@ -95,28 +64,19 @@ class MetadataModel(object):
     # controller components are (loosely speaking) responsible for handling the interaction between views and the model
     # some of these components right now reside in the Bundle class
 
-
-    def loadMModel(self) -> None:
-        """Loads schema; handles schema file input and sets mmodel.
-        """
-
-        self.sg.se.load_schema(self.inputMModelLocation)
-        # self.se.load_schema(self.inputMModelLocation)
-
-
     def getModelSubgraph(self, rootNode: str, 
                         subgraphType: str) -> nx.DiGraph:
         """Gets a schema subgraph from rootNode descendants based on edge/node properties of type subgraphType.
         
         Args:
-            rootNode: a schema node label (i.e. term)
-            subgraphType: the kind of subgraph to traverse (i.e. based on node properties or edge labels)
+            rootNode: a schema node label (i.e. term).
+            subgraphType: the kind of subgraph to traverse (i.e. based on node properties or edge labels).
         
         Returns:
-            A directed subgraph (networkx DiGraph) of the metadata model with vertex set root node descendants
+            A directed subgraph (networkx DiGraph) of the metadata model with vertex set root node descendants.
 
         Raises: 
-            ValueError: rootNode not found in metadata model
+            ValueError: rootNode not found in metadata model.
         """
         pass
 
@@ -128,10 +88,10 @@ class MetadataModel(object):
             relationshipType: edge label type of the schema subgraph (e.g. requiresDependency)
         
         Returns:
-            An ordered list of objects, that are all descendants of rootNode
+            An ordered list of objects, that are all descendants of rootNode.
 
         Raises: 
-            ValueError: rootNode not found in metadata model
+            ValueError: rootNode not found in metadata model.
         """
         ordered_nodes = self.sg.get_descendants_by_edge_type(rootNode, relationshipType, connected=True, ordered=True)
 
@@ -140,19 +100,19 @@ class MetadataModel(object):
         return ordered_nodes
 
     
-    def getModelManifest(self, title: str, rootNode: str, filenames: list = None) -> str: 
+    def getModelManifest(self, title: str, rootNode: str, jsonSchema: str = None, filenames: list = None) -> str: 
         """Gets data from the annotations manifest file.
 
         TBD: Does this method belong here or in manifest generator?
         
         Args:
-            rootNode: a schema node label (i.e. term)
+            rootNode: a schema node label (i.e. term).
         
         Returns:
-            A manifest URI (assume Google doc for now)
+            A manifest URI (assume Google doc for now).
 
         Raises: 
-            ValueError: rootNode not found in metadata model
+            ValueError: rootNode not found in metadata model.
         """
         additionalMetadata = {}
         if filenames:
@@ -162,8 +122,13 @@ class MetadataModel(object):
             mg = ManifestGenerator(title, self.inputMModelLocation, rootNode, additionalMetadata)
         except ValueError:
             print("rootNode not found in metadata model.")
+            return
         except:
             print("There was a problem retrieving the manifest.")
+            return
+
+        if jsonSchema:
+            return mg.get_manifest(jsonSchema)
 
         return mg.get_manifest()
 
@@ -174,10 +139,10 @@ class MetadataModel(object):
         Can be utilized to track metadata completion progress across multiple categories of attributes.
         
         Args: 
-            source_component: an attribute label indicating the source component
+            source_component: an attribute label indicating the source component.
 
         Returns: 
-            A list of required components associated with the source component
+            A list of required components associated with the source component.
         """ 
         # get metadata model schema graph
         # mm_graph = self.se.get_nx_schema()
@@ -194,21 +159,19 @@ class MetadataModel(object):
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
         Args:
-            rootNode: a schema node label (i.e. term)
-            manifestPath: a path to the manifest csv file containing annotations
+            rootNode: a schema node label (i.e. term).
+            manifestPath: a path to the manifest csv file containing annotations.
         
         Returns:
-            a validation status message; if there is an error the message 
-            contains the manifest annotation record (i.e. row) that is invalid, along 
-            with the validation error associated with this record
+            A validation status message; if there is an error the message.
+            contains the manifest annotation record (i.e. row) that is invalid, along with the validation error associated with this record.
         
         Raises: 
-            ValueError: rootNode not found in metadata model
+            ValueError: rootNode not found in metadata model.
         """
         # get validation schema for a given node in the data model, if the user has not provided input validation schema
         if not jsonSchema:
             jsonSchema = self.sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
-            # jsonSchema = get_JSONSchema_requirements(self.se, rootNode, rootNode + "_validation")
          
         errors = []
  
@@ -237,23 +200,17 @@ class MetadataModel(object):
         """Populate an existing annotations manifest based on a dataframe.
          
         Args:
-            rootNode: a schema node label (i.e. term)
-            manifestPath: a path to the manifest csv file containing annotations
+            rootNode: a schema node label (i.e. term).
+            manifestPath: a path to the manifest csv file containing annotations.
         
         Returns:
-            A link to the filled in model manifest (e.g. google sheet)
+            A link to the filled in model manifest (e.g. google sheet).
 
         Raises: 
-            ValueError: rootNode not found in metadata model
+            ValueError: rootNode not found in metadata model.
         """
-        # mg = ManifestGenerator(title, self.se, rootNode, {"Filename":[]})
-
-        try:
-            mg = ManifestGenerator(title, self.sg.se, rootNode)
-            emptyManifestURL = mg.get_manifest()
-        except ValueError:
-            print("rootNode not found in metadata model.")
-        except:
-            print("There was an error retrieving the manifest.")
+        mg = ManifestGenerator(title, self.inputMModelLocation, rootNode)
+        
+        emptyManifestURL = mg.get_manifest()
 
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)

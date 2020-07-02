@@ -1,27 +1,28 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://example.com/FamHist",
-  "title": "FamHist",
+  "$id": "http://example.com/Test_ScRNA-seqAssay",
+  "title": "Test_ScRNA-seqAssay",
   "type": "object",
   "properties": {
-    "Total Reads": {},
-    "Filename": {
-      "not": {
-        "type": "null"
-      },
-      "minLength": 1
-    },
-    "Per Sequence Quality Score": {
+    "Cryopreserved Cells in Sample": {
       "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
+        "No",
+        "Yes"
       ]
     },
-    "Library Preparation Kit Vendor": {
+    "Dissociation Method": {
+      "enum": [
+        "gentleMACS"
+      ]
+    },
+    "End Bias": {
+      "enum": [
+        "3 Prime",
+        "5 Prime",
+        "Full Length Transcript"
+      ]
+    },
+    "HTAN Data File ID": {
       "not": {
         "type": "null"
       },
@@ -33,93 +34,26 @@
       },
       "minLength": 1
     },
-    "Adapter Sequence": {},
-    "Library Preparation Kit Version": {
+    "Input Cells and Nuclei": {
       "not": {
         "type": "null"
       },
       "minLength": 1
     },
-    "Sequence Length Distribution": {
+    "Library Construction Method": {
       "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
+        "10xV1",
+        "10xV2",
+        "10xV3",
+        "10xV3.1",
+        "CEL-seq2",
+        "Drop-seq",
+        "inDropsV2",
+        "inDropsV3",
+        "Smart-SeqV4",
+        "Smart-seq2",
+        "TruDrop"
       ]
-    },
-    "Read Length": {
-      "not": {
-        "type": "null"
-      },
-      "minLength": 1
-    },
-    "Fragment Minimum Length": {},
-    "Transcript Integrity Number (TIN)": {},
-    "Per": {},
-    "Multiplex Barcode": {},
-    "RIN": {},
-    "Per Base N Content": {
-      "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
-      ]
-    },
-    "Library Strand": {
-      "enum": [
-        "First Stranded",
-        "Second Stranded",
-        "Not Applicable",
-        "Unstranded",
-        ""
-      ]
-    },
-    "Base Sequence Quality": {},
-    "QC Workflow Link": {},
-    "Base Caller Name": {},
-    "Sequencing Batch ID": {
-      "not": {
-        "type": "null"
-      },
-      "minLength": 1
-    },
-    "Target Depth": {},
-    "Fragment Mean Length": {},
-    "Kmer Content": {
-      "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
-      ]
-    },
-    "Per Tile Sequence Quality": {
-      "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
-      ]
-    },
-    "Flow": {},
-    "Fragment Standard Deviation Length": {},
-    "Fragment Maximum Length": {},
-    "QC Workflow Version": {},
-    "File Format": {
-      "not": {
-        "type": "null"
-      },
-      "minLength": 1
     },
     "Library Preparation Date": {
       "not": {
@@ -127,138 +61,1103 @@
       },
       "minLength": 1
     },
-    "Adapter Content": {
+    "Nucleic Acid Capture Date": {
+      "not": {
+        "type": "null"
+      },
+      "minLength": 1
+    },
+    "Nucleic Acid Source": {
       "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
+        "Bulk Nuclei",
+        "Bulk Whole Cell",
+        "Single Cell",
+        "Single Nucleus"
       ]
     },
-    "QC Workflow Type": {},
+    "Protocol Link": {},
+    "Read1": {
+      "enum": [
+        "cDNA",
+        "Cell Barcode and UMI"
+      ]
+    },
+    "Read2": {
+      "enum": [
+        "cDNA",
+        "Cell Barcode and UMI"
+      ]
+    },
+    "Reverse Transcription Primer": {
+      "enum": [
+        "Feature barcoding",
+        "Oligo-dT",
+        "Poly-dT",
+        "Random"
+      ]
+    },
+    "Sequencing Library Construction Date": {
+      "not": {
+        "type": "null"
+      },
+      "minLength": 1
+    },
+    "Sequencing Platform": {
+      "enum": [
+        "454 GS FLX Titanium",
+        "AB SOLiD 3",
+        "AB SOLiD 4 AB SOLiD 2",
+        "Complete Genomics",
+        "Illumina Genome Analyzer II",
+        "Illumina Genome Analyzer IIx",
+        "Illumina HiSeq 2000",
+        "Illumina HiSeq 2500",
+        "Illumina HiSeq 4000",
+        "Illumina HiSeq X Five",
+        "Illumina HiSeq X Ten",
+        "Illumina MiSeq",
+        "Illumina NextSeq",
+        "Illumina Next Seq 2500",
+        "Illumina Next Seq 500",
+        "Illumina NovaSeq 6000",
+        "Ion Torrent PGM",
+        "Ion Torrent Proton",
+        "Ion Torrent S5",
+        "Not Reported",
+        "Other",
+        "PacBio RS",
+        "Unknown"
+      ]
+    },
+    "Single Cell Dissociation Date": {
+      "not": {
+        "type": "null"
+      },
+      "minLength": 1
+    },
+    "Single Cell Isolation Method": {
+      "enum": [
+        "Droplets",
+        "FACS",
+        "Microfluidics Chip"
+      ]
+    },
+    "Spike In": {
+      "enum": [
+        "ERCC",
+        "No Spike In",
+        "Other Spike In",
+        "PhiX"
+      ]
+    },
+    "Technical Replicate Group": {},
+    "Total Number of Input Cells": {
+      "not": {
+        "type": "null"
+      },
+      "minLength": 1
+    },
     "Component": {
       "not": {
         "type": "null"
       },
       "minLength": 1
     },
-    "Library Preparation Kit Name": {
+    "File Format": {
       "not": {
         "type": "null"
       },
       "minLength": 1
     },
-    "To Trim Adapter Sequence": {
-      "enum": [
-        "Yes",
-        "No",
-        ""
-      ]
-    },
-    "Encoding": {},
-    "Per Sequence GC Content": {
-      "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
-      ]
-    },
-    "Size Selection Range": {},
-    "Cell Barcode": {},
-    "Adapter Name": {},
-    "Sequence Duplication Levels": {
-      "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
-      ]
-    },
-    "Percent GC Content": {},
-    "Per Base Sequence Content": {
-      "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
-      ]
-    },
-    "Overrepresented Sequences": {
-      "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
-      ]
-    },
-    "Base Caller Version": {},
-    "Basic Statistics": {
-      "enum": [
-        "PASS",
-        "WARN",
-        "Unknown",
-        "FAIL",
-        "Not Reported",
-        ""
-      ]
-    },
-    "DV200": {},
-    "Lane Number": {},
-    "HTAN Data File ID": {
+    "Filename": {
       "not": {
         "type": "null"
       },
       "minLength": 1
     },
-    "Spike In Concentration": {},
-    "Read2": {
-      "enum": [
-        "CDNA",
-        "CellBarcodeandUMI",
-        ""
-      ]
-    },
-    "Read1": {
-      "enum": [
-        "CDNA",
-        "CellBarcodeandUMI",
-        ""
-      ]
-    },
+    "Empty Well Barcode": {},
+    "Well Index": {},
     "cDNA Length": {},
     "cDNA Offset": {},
-    "Median UMIs per Cell Number": {},
     "Cell Barcode Length": {},
-    "Valid Barcodes Cell Number": {},
     "Cell Barcode Offset": {},
+    "Median UMIs per Cell Number": {},
+    "UMI Barcode Length": {},
     "UMI Barcode Offset": {},
-    "UMI Barcode Length": {}
+    "Valid Barcodes Cell Number": {},
+    "Feature Reference Id": {},
+    "Spike In Concentration": {}
   },
   "required": [
-    "Filename",
-    "Library Preparation Kit Vendor",
+    "Cryopreserved Cells in Sample",
+    "Dissociation Method",
+    "End Bias",
+    "HTAN Data File ID",
     "HTAN Parent Biospecimen ID",
-    "Library Preparation Kit Version",
-    "Read Length",
-    "Sequencing Batch ID",
-    "File Format",
+    "Input Cells and Nuclei",
+    "Library Construction Method",
     "Library Preparation Date",
+    "Nucleic Acid Capture Date",
+    "Nucleic Acid Source",
+    "Read1",
+    "Read2",
+    "Reverse Transcription Primer",
+    "Sequencing Library Construction Date",
+    "Sequencing Platform",
+    "Single Cell Dissociation Date",
+    "Single Cell Isolation Method",
+    "Spike In",
+    "Total Number of Input Cells",
     "Component",
-    "Library Preparation Kit Name",
-    "HTAN Data File ID"
+    "File Format",
+    "Filename"
   ],
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "Library Construction Method": {
+            "enum": [
+              "CEL-seq2"
+            ]
+          }
+        },
+        "required": [
+          "Library Construction Method"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Empty Well Barcode": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Empty Well Barcode"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Library Construction Method": {
+            "enum": [
+              "CEL-seq2"
+            ]
+          }
+        },
+        "required": [
+          "Library Construction Method"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Well Index": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Well Index"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "cDNA"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cDNA Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cDNA Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "cDNA"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cDNA Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cDNA Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "cDNA"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cDNA Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cDNA Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "cDNA"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cDNA Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cDNA Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "cDNA"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cDNA Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cDNA Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "cDNA"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cDNA Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cDNA Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "cDNA"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cDNA Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cDNA Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "cDNA"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "cDNA Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cDNA Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cell Barcode Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Cell Barcode Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cell Barcode Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Cell Barcode Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cell Barcode Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Cell Barcode Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cell Barcode Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Cell Barcode Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cell Barcode Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Cell Barcode Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cell Barcode Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Cell Barcode Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cell Barcode Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Cell Barcode Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cell Barcode Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Cell Barcode Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Median UMIs per Cell Number": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Median UMIs per Cell Number"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Median UMIs per Cell Number": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Median UMIs per Cell Number"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Median UMIs per Cell Number": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Median UMIs per Cell Number"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Median UMIs per Cell Number": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Median UMIs per Cell Number"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "UMI Barcode Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "UMI Barcode Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "UMI Barcode Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "UMI Barcode Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "UMI Barcode Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "UMI Barcode Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "UMI Barcode Length": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "UMI Barcode Length"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "UMI Barcode Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "UMI Barcode Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "UMI Barcode Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "UMI Barcode Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "UMI Barcode Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "UMI Barcode Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "UMI Barcode Offset": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "UMI Barcode Offset"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Valid Barcodes Cell Number": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Valid Barcodes Cell Number"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Valid Barcodes Cell Number": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Valid Barcodes Cell Number"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Valid Barcodes Cell Number": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Valid Barcodes Cell Number"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Read2": {
+            "enum": [
+              "Cell Barcode and UMI"
+            ]
+          }
+        },
+        "required": [
+          "Read2"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Valid Barcodes Cell Number": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Valid Barcodes Cell Number"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Reverse Transcription Primer": {
+            "enum": [
+              "Feature barcoding"
+            ]
+          }
+        },
+        "required": [
+          "Reverse Transcription Primer"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Feature Reference Id": {
+            "not": {
+              "type": "null"
+            },
+            "minLength": 1
+          }
+        },
+        "required": [
+          "Feature Reference Id"
+        ]
+      }
+    },
     {
       "if": {
         "properties": {
@@ -283,492 +1182,6 @@
         },
         "required": [
           "Spike In Concentration"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Library Layout": {
-            "enum": [
-              "Paired End"
-            ]
-          }
-        },
-        "required": [
-          "Library Layout"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Read2": {
-            "enum": [
-              "cDNA",
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read2"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Library Layout": {
-            "enum": [
-              "Paired End"
-            ]
-          }
-        },
-        "required": [
-          "Library Layout"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "cDNA",
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "cDNA"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "cDNA Length": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "cDNA Length"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "cDNA"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "cDNA Length": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "cDNA Length"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "cDNA"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "cDNA Offset": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "cDNA Offset"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "cDNA"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "cDNA Offset": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "cDNA Offset"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Median UMIs per Cell Number": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "Median UMIs per Cell Number"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Median UMIs per Cell Number": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "Median UMIs per Cell Number"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Cell Barcode Length": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "Cell Barcode Length"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Cell Barcode Length": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "Cell Barcode Length"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Valid Barcodes Cell Number": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "Valid Barcodes Cell Number"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Valid Barcodes Cell Number": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "Valid Barcodes Cell Number"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Cell Barcode Offset": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "Cell Barcode Offset"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "Cell Barcode Offset": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "Cell Barcode Offset"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "UMI Barcode Offset": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "UMI Barcode Offset"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "UMI Barcode Offset": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "UMI Barcode Offset"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "UMI Barcode Length": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "UMI Barcode Length"
-        ]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "Read1": {
-            "enum": [
-              "Cell Barcode and UMI"
-            ]
-          }
-        },
-        "required": [
-          "Read1"
-        ]
-      },
-      "then": {
-        "properties": {
-          "UMI Barcode Length": {
-            "not": {
-              "type": "null"
-            },
-            "minLength": 1
-          }
-        },
-        "required": [
-          "UMI Barcode Length"
         ]
       }
     }

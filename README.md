@@ -10,37 +10,59 @@ _Note: It is assumed that you are running all the below commands from the main/r
 
 After cloning the git repository, navigate into the `HTAN-data-pipeline` directory and run the command as below:
 
-    python3 -m venv .venv
+```bash
+python[3] -m venv .venv
+```
 
-This creates a Python3 virtual environment, with its own site directories (isolated from the system site directories).
+This creates a Python3 virtual environment (within the `root` folder/package), with its own site directories (isolated from the system site directories).
 
 To activate the virtual environment, run:
 
-    source .venv/bin/activate
+```bash
+source .venv/bin/activate
+```
 
-Install all the necessary packages/dependencies (as specified in `requirements.txt` file), by running the following command:
+_Note: You should now see the name of the virtual environment to the left of the prompt._
 
-    .venv/bin/pip3 install -r requirements.txt
+### Install App/Package
+
+To install the package/bundle/application:
+
+```bash
+pip[3] install -e .
+```
+
+To verify that the package has been installed (as a `pip` package), check here:
+
+```bash
+pip[3] list
+```
 
 Now, your environment is ready to test the modules within the application.
 
 Once, you have finished testing the application within the virtual environment and want to deactivate it, simply run:
 
-    deactivate
+```bash
+deactivate
+```
 
-### Install Package
+To run any of the example file(s), go to your root directory and execute/run python script in the following way:
 
-To install the package, run the command:
+Let's say you want to run the `metadata_usage` example - then do this:
 
-      .venv/bin/pip3 install -e .
+```bash
+python[3] ingresspipe/models/examples/metadata_usage.py
+```
 
 ----
 
-## Contribution
+### Contribution
 
 Clone a copy of the repository here:
       
-      git clone --single-branch --branch organized-into-packages https://github.com/Sage-Bionetworks/HTAN-data-pipeline.git
+```bash
+git clone --single-branch --branch organized-into-packages https://github.com/Sage-Bionetworks/HTAN-data-pipeline.git
+```
 
 Modify your files, add them to the staging area, use a descriptive commit message and push to the same branch as a pull request for review.
 
