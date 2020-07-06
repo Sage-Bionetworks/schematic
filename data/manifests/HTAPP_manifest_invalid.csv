@@ -1,0 +1,4 @@
+Filename,Primer,SpikeIn,LibraryConstructionMethod,BiosampleType,BiosampleID,Platform,NucleicAcidSource,ReverseTranscription,Amplification,LibraryLayout,SingleCellIsolation,UMIBarcodeRead,CellBarcodeRead
+1.txt,atcga,OtherSpikeIn,10x,CellSuspension,BS-123,IlluminaiNextSeq2500,SingleCell,UMI,InVitroTranscription,PairedEnd,Microfluidics chip,10,
+2.txt,sadsa,sadsa,sadsa,sadsa,sadsa,sadsa,sadsa,sadsa,sadsa,sadsa,sadsa,sadsa,sadsa
+3.txt,,,,,,,,,,,,,

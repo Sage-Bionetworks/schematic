@@ -1,0 +1,1 @@
+from ingresspipe.synapse.store import SynapseStorage
