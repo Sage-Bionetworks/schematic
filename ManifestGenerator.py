@@ -92,6 +92,21 @@ class ManifestGenerator(object):
         
         return
 
+    def _gdrive_copy_file(self, origin_file_id, copy_title):
+        """Copy an existing file.
+
+        Args:
+            origin_file_id: ID of the origin file to copy.
+            copy_title: Title of the copy.
+
+        Returns:
+            The copied file if successful, None otherwise.
+        """
+        copied_file = {'name': copy_title}
+
+        # return new copy sheet ID
+        return self.drive_service.files().copy(fileId = origin_file_id, body = copied_file).execute()["id"]
+
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet
@@ -162,15 +177,15 @@ class ManifestGenerator(object):
 
     def _create_empty_manifest_spreadsheet(self, title):
 
-        # create an empty spreadsheet
-        spreadsheet = {
-            'properties': {
-                'title': title
-            }
-        }   
-        
-        spreadsheet = self.sheet_service.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
-        spreadsheet_id = spreadsheet.get('spreadsheetId')
+        if style["googleManifest"]["masterTemplateId"]:
+
+            # if provided with a template manifest google sheet, use it
+            spreadsheet_id = self._gdrive_copy_file(style["googleManifest"]["masterTemplateId"], title)
+
+        else:
+            # if no template, create an empty spreadsheet
+            spreadsheet = self.sheet_service.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
+            spreadsheet_id = spreadsheet.get('spreadsheetId')
 
         return spreadsheet_id
 
