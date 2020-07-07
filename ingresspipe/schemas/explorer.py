@@ -41,7 +41,7 @@ class SchemaExplorer():
         return self.schema_nx
 
     def is_class_in_schema(self, class_label):
-        if self.schema_nx.node[class_label]:
+        if self.schema_nx.nodes[class_label]:
             return True
         else:
             return False
@@ -93,7 +93,7 @@ class SchemaExplorer():
         """Find properties specifically associated with a given class
         """
         #print(schema_class)
-        schema_uri = self.schema_nx.node[schema_class]["uri"]
+        schema_uri = self.schema_nx.nodes[schema_class]["uri"]
         properties = []
         for record in self.schema["@graph"]:
             if record['@type'] == "rdf:Property":
@@ -140,7 +140,7 @@ class SchemaExplorer():
         """Find where a given class is used as a value of a property
         """
         usages = []
-        schema_uri = self.schema_nx.node[schema_class]["uri"]
+        schema_uri = self.schema_nx.nodes[schema_class]["uri"]
         for record in self.schema["@graph"]:
             usage = {}
             if record["@type"] == "rdf:Property":
@@ -166,14 +166,14 @@ class SchemaExplorer():
         """
 
         subclasses = []
-        if  "subClassOf" in self.schema_nx.node[schema_class]:
+        if  "subClassOf" in self.schema_nx.nodes[schema_class]:
             # the below if/else block exists to solve the inconsitencies in the spec of "subClassOf" in the HTAN schema
             # a few classes are specified as lists and a few as simple dicts
-            schema_node_val = self.schema_nx.node[schema_class]["subClassOf"]
+            schema_node_val = self.schema_nx.nodes[schema_class]["subClassOf"]
 
             subclass_list = []
             if isinstance(schema_node_val, dict):
-                subclass_list.append(self.schema_nx.node[schema_class]["subClassOf"])
+                subclass_list.append(self.schema_nx.nodes[schema_class]["subClassOf"])
             else:
                 subclass_list = schema_node_val
             
@@ -181,14 +181,14 @@ class SchemaExplorer():
                 subclasses.append(extract_name_from_uri_or_curie(subclass["@id"]))
         
         requires_range = []
-        if  "rangeIncludes" in self.schema_nx.node[schema_class]:
+        if  "rangeIncludes" in self.schema_nx.nodes[schema_class]:
             # the below if/else block exists to solve the inconsitencies in the spec of "rangeIncludes" in the HTAN schema
             # a few classes are specified as lists and a few as simple dicts
-            schema_node_val = self.schema_nx.node[schema_class]["rangeIncludes"]
+            schema_node_val = self.schema_nx.nodes[schema_class]["rangeIncludes"]
 
             if isinstance(schema_node_val, dict):
                 subclass_list = []
-                subclass_list.append(self.schema_nx.node[schema_class]["rangeIncludes"])
+                subclass_list.append(self.schema_nx.nodes[schema_class]["rangeIncludes"])
             else:
                 subclass_list = schema_node_val
 
@@ -196,14 +196,14 @@ class SchemaExplorer():
                 requires_range.append(extract_name_from_uri_or_curie(range_class["@id"]))
 
         requires_dependencies = []
-        if  "requiresDependency" in self.schema_nx.node[schema_class]:
+        if  "requiresDependency" in self.schema_nx.nodes[schema_class]:
             # the below if/else block exists to solve the inconsitencies in the spec of "requiresDependency" in the HTAN schema
             # a few classes are specified as lists and a few as simple dicts
-            schema_node_val = self.schema_nx.node[schema_class]["requiresDependency"]
+            schema_node_val = self.schema_nx.nodes[schema_class]["requiresDependency"]
 
             if isinstance(schema_node_val, dict):
                 subclass_list = []
-                subclass_list.append(self.schema_nx.node[schema_class]["requiresDependency"])
+                subclass_list.append(self.schema_nx.nodes[schema_class]["requiresDependency"])
             else:
                 subclass_list = schema_node_val
                 
@@ -211,14 +211,14 @@ class SchemaExplorer():
                 requires_dependencies.append(extract_name_from_uri_or_curie(dep_class["@id"])) 
 
         requires_components = []
-        if  "requiresComponent" in self.schema_nx.node[schema_class]:
+        if  "requiresComponent" in self.schema_nx.nodes[schema_class]:
             # the below if/else block exists to solve the inconsitencies in the spec of "requiresComponent" in the HTAN schema
             # a few classes are specified as lists and a few as simple dicts
-            schema_node_val = self.schema_nx.node[schema_class]["requiresComponent"]
+            schema_node_val = self.schema_nx.nodes[schema_class]["requiresComponent"]
 
             if isinstance(schema_node_val, dict):
                 subclass_list = []
-                subclass_list.append(self.schema_nx.node[schema_class]["requiresComponent"])
+                subclass_list.append(self.schema_nx.nodes[schema_class]["requiresComponent"])
             else:
                 subclass_list = schema_node_val
 
@@ -226,13 +226,13 @@ class SchemaExplorer():
                 requires_components.append(extract_name_from_uri_or_curie(comp_dep_class["@id"])) 
 
         required = False
-        if "required" in self.schema_nx.node[schema_class]:
-            required = self.schema_nx.node[schema_class]["required"]
+        if "required" in self.schema_nx.nodes[schema_class]:
+            required = self.schema_nx.nodes[schema_class]["required"]
 
 
         class_info = {'properties': self.find_all_class_properties(schema_class),
-                      'description': self.schema_nx.node[schema_class]['description'],
-                      'uri': curie2uri(self.schema_nx.node[schema_class]["uri"], namespaces),
+                      'description': self.schema_nx.nodes[schema_class]['description'],
+                      'uri': curie2uri(self.schema_nx.nodes[schema_class]["uri"], namespaces),
                       'usage': self.find_class_usages(schema_class),
                       'child_classes': self.find_child_classes(schema_class),
                       'subClassOf': subclasses, 
@@ -243,8 +243,8 @@ class SchemaExplorer():
                       'parent_classes': self.find_parent_classes(schema_class)
         }
 
-        if "displayName" in self.schema_nx.node[schema_class]:
-            class_info['displayName'] = self.schema_nx.node[schema_class]['displayName']
+        if "displayName" in self.schema_nx.nodes[schema_class]:
+            class_info['displayName'] = self.schema_nx.nodes[schema_class]['displayName']
 
         return class_info
     
