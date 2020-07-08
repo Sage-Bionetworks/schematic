@@ -1,5 +1,0 @@
-Filename,entityId,HTANSampleID,HTANParticipantID,CancerType,LibraryConstructionMethod
-sample_file1.fq.txt,syn21893769,HTAN_12_9,HTAN_12,BreastCarcinoma,10x
-sample_file2.fq.txt,syn21893770,HTAN_12_10,HTAN_12,BreastCarcinoma,10x
-sample_file3.fq.txt,syn21893771,HTAN_12_11,HTAN_12,MalignantBrainNeoplasm,10x
-sample_file4.fq.txt,syn21893772,HTAN_12_12,HTAN_12,BreastCarcinoma,
