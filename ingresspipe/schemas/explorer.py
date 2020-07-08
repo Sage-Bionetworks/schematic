@@ -229,7 +229,12 @@ class SchemaExplorer():
         if "required" in self.schema_nx.node[schema_class]:
             required = self.schema_nx.node[schema_class]["required"]
 
+        validation_rules = []
+        if "validationRules" in self.schema_nx.node[schema_class]:
+            validation_rules = self.schema_nx.node[schema_class]["validationRules"]
 
+        # TODO: make class_info keys here the same as keys in schema graph nodes(e.g. schema_class above); note that downstream code using explore_class would have to be updated as well (e.g. csv_2_schemaorg)
+      
         class_info = {'properties': self.find_all_class_properties(schema_class),
                       'description': self.schema_nx.node[schema_class]['description'],
                       'uri': curie2uri(self.schema_nx.node[schema_class]["uri"], namespaces),
@@ -238,6 +243,7 @@ class SchemaExplorer():
                       'subClassOf': subclasses, 
                       'range': requires_range,
                       'dependencies': requires_dependencies,
+                      'validation_rules': validation_rules,
                       'required': required,
                       'component_dependencies': requires_components,
                       'parent_classes': self.find_parent_classes(schema_class)
@@ -287,6 +293,7 @@ class SchemaExplorer():
 
     def explore_property(self, schema_property):
         """Find details about a specific property
+        TODO: refactor so that explore class and explore property reuse logic - they are *very* similar
         """
         property_info = {}
         for record in self.schema["@graph"]:
@@ -309,6 +316,10 @@ class SchemaExplorer():
                             property_info["required"] = True  
                         else: 
                             property_info["required"] = False 
+
+                    validation_rules = []
+                    if "sms:validationRules" in record:
+                        property_info["validation_rules"] = record["sms:validationRules"]
                             
 
                     if  "sms:requiresDependency" in record:
@@ -319,6 +330,7 @@ class SchemaExplorer():
 
                     if "sms:displayName" in record:
                         property_info['displayName'] = record['sms:displayName']
+
                     break
         
         #check if properties are added multiple times

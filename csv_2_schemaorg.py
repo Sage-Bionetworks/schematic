@@ -397,6 +397,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         validation_rules = attribute["Validation Rules"]
         if not pd.isnull(validation_rules):
             print(">>> Adding validation rules for " + attribute["Attribute"])
+
+            # TODO: make validation rules delimiter configurable parameter
             validation_rules = [val_rule.strip() for val_rule in validation_rules.strip().split("::")]
 
             #update validation rules of attribute

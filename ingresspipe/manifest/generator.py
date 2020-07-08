@@ -12,7 +12,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pygsheets as ps
 
-from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.schemas.generator import SchemaGenerator
 
 from ingresspipe.utils.google_api_utils import execute_google_api_requests
@@ -152,18 +151,34 @@ class ManifestGenerator(object):
     
         return boolean_rule
 
+    
+    def _gdrive_copy_file(self, origin_file_id, copy_title):
+        """Copy an existing file.
 
+        Args:
+            origin_file_id: ID of the origin file to copy.
+            copy_title: Title of the copy.
+
+        Returns:
+            The copied file if successful, None otherwise.
+        """
+        copied_file = {'name': copy_title}
+
+        # return new copy sheet ID
+        return self.drive_service.files().copy(fileId = origin_file_id, body = copied_file).execute()["id"]
+
+    
     def _create_empty_manifest_spreadsheet(self, title):
 
-        # create an empty spreadsheet
-        spreadsheet = {
-            'properties': {
-                'title': title
-            }
-        }   
-        
-        spreadsheet = self.sheet_service.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
-        spreadsheet_id = spreadsheet.get('spreadsheetId')
+        if style["googleManifest"]["masterTemplateId"]:
+
+            # if provided with a template manifest google sheet, use it
+            spreadsheet_id = self._gdrive_copy_file(style["googleManifest"]["masterTemplateId"], title)
+
+        else:
+            # if no template, create an empty spreadsheet
+            spreadsheet = self.sheet_service.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
+            spreadsheet_id = spreadsheet.get('spreadsheetId')
 
         return spreadsheet_id
 
@@ -383,6 +398,43 @@ class ManifestGenerator(object):
                 
                 requests_body["requests"].append(notes_body["requests"])
 
+
+            # get node validation rules if any
+            validation_rules = self.sg.get_node_validation_rules(req)
+
+            # if 'list' in validation rules add a note with instructions on 
+            # adding a list of multiple values
+            # TODO: add validation and QC rules "compiler/generator" class elsewhere
+            # for now have the list logic here
+            if "list" in validation_rules:
+                note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
+                notes_body =  {
+                            "requests":[
+                                {
+                                    "updateCells": {
+                                    "range": {
+                                        "startRowIndex": 1,
+                                        "startColumnIndex": i,
+                                        "endColumnIndex": i+1
+                                    },
+                                   "rows": [
+                                      {
+                                        "values": [
+                                          {
+                                            "note": note
+                                          }
+                                        ]
+                                      }
+                                    ],
+                                    "fields": "note"
+                                    }
+                                }
+                            ]
+                }
+                
+                requests_body["requests"].append(notes_body["requests"])
+                
+
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
@@ -420,7 +472,18 @@ class ManifestGenerator(object):
                 req_vals = req_vals[:499]
 
 
-            # generating sheet api request to populate the dropdown
+            # generating sheet api request to populate a dropdown or a multi selection UI
+
+            validation_type = "ONE_OF_LIST"
+            strict = True
+            custom_ui = True
+            input_message = 'Choose one from dropdown'
+
+            if "list" in validation_rules:
+                strict = False
+                custom_ui = False
+                input_message = ""
+
             validation_body =  {
                       "requests": [
                         {
@@ -432,12 +495,12 @@ class ManifestGenerator(object):
                             },
                             'rule':{
                                 'condition':{
-                                    'type':'ONE_OF_LIST', 
+                                    'type':validation_type, 
                                     'values': req_vals
                                 },
-                                'inputMessage' : 'Choose one from dropdown',
-                                'strict':True,
-                                'showCustomUi': True
+                                'inputMessage' : input_message,
+                                'strict':strict,
+                                'showCustomUi': custom_ui 
                             }
                         }
                     }

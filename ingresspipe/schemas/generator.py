@@ -302,6 +302,27 @@ class SchemaGenerator(object):
         return node_definition
 
 
+    def get_node_validation_rules(self,
+                           node_display_name: str) -> str:
+        """Get validation rules associated with a node,  
+
+        Args:
+            node_display_name: Display name of the node which you want to get the label for.
+
+        Returns:
+            A set of validation rules associated with node, as a list.
+        """
+        node_label = self.get_node_label(node_display_name)
+
+        if not node_label:
+            return []
+
+        mm_graph = self.se.get_nx_schema()
+        node_validation_rules = mm_graph.nodes[node_label]["validationRules"] 
+         
+        return node_validation_rules
+
+
     def is_node_required(self,
                         node_display_name: str) -> bool:
         """Check if a given node is required or not.
