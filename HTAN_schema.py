@@ -9,14 +9,14 @@ from csv_2_schemaorg import create_schema_classes
 
 
 # path to base schema
-base_schema_path = "./schemas/biothings_schema.jsonld"
+base_schema_path = "./data/schema_org_schemas/biothings_schema.jsonld"
 
 # schema name (used to name schema json-ld file as well)
 output_schema_name = "HTAN"
 
 # schema extension definition csv files
 schema_extensions_csv = [
-                        "./schemas/HTAN.csv"
+                        "./data/schema_org_schemas/HTAN.csv"
                         ]
 
 # instantiate schema explorer
