@@ -1,5 +1,6 @@
 import os
 import string
+import json
 
 import tabletext
 from rdflib import Graph, Namespace, plugin, query
@@ -30,6 +31,11 @@ class SchemaExplorer():
         """
         self.schema = load_json(schema)
         self.schema_nx = load_schema_into_networkx(self.schema)
+
+    def export_schema(self, file_path):
+        with open(file_path, 'w') as f:
+            json.dump(self.schema, f, sort_keys = True, indent = 4, ensure_ascii = False)
+
 
     def load_default_schema(self):
         """Load default schema, either schema.org or biothings
@@ -164,7 +170,6 @@ class SchemaExplorer():
     def explore_class(self, schema_class):
         """Find details about a specific schema class
         """
-
         subclasses = []
         if  "subClassOf" in self.schema_nx.node[schema_class]:
             # the below if/else block exists to solve the inconsitencies in the spec of "subClassOf" in the HTAN schema

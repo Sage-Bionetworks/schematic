@@ -216,9 +216,9 @@ class SchemaGenerator(object):
             for req in required_dependencies:
                 dependencies_display_names.append(mm_graph.nodes[req]["displayName"])
 
-            return sorted(dependencies_display_names)
+            return dependencies_display_names
 
-        return sorted(required_dependencies)
+        return required_dependencies
 
 
     def get_node_range(self,

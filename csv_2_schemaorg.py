@@ -7,7 +7,7 @@ import string
 import pandas as pd
 import numpy as np
 
-from schema_explorer import SchemaExplorer
+from ingresspipe.schemas.explorer import SchemaExplorer
 
 
 """

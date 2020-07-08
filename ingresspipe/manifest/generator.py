@@ -411,21 +411,15 @@ class ManifestGenerator(object):
                 notes_body =  {
                             "requests":[
                                 {
-                                    "updateCells": {
+                                    "repeatCell": {
                                     "range": {
                                         "startRowIndex": 1,
                                         "startColumnIndex": i,
                                         "endColumnIndex": i+1
                                     },
-                                   "rows": [
-                                      {
-                                        "values": [
-                                          {
-                                            "note": note
-                                          }
-                                        ]
-                                      }
-                                    ],
+                                    "cell":{
+                                      "note": note
+                                    },
                                     "fields": "note"
                                     }
                                 }
@@ -473,16 +467,40 @@ class ManifestGenerator(object):
 
 
             # generating sheet api request to populate a dropdown or a multi selection UI
-
+            
+            # by default assume no extra validation rules are needed and a dropdown is sufficient
             validation_type = "ONE_OF_LIST"
             strict = True
             custom_ui = True
             input_message = 'Choose one from dropdown'
+            valid_values = req_vals 
 
             if "list" in validation_rules:
+                # if list is in validation rule attempt to create a multi-value 
+                # selection UI, which requires explicit valid values range in 
+                # the spreadsheet; store valid values explicitly in Sheet2 of the workbook
+                # TODO: currently assumes a workbook template is used that contains Sheet2
+                # in general need to check if sheet2 exists and create it if not
                 strict = False
                 custom_ui = False
                 input_message = ""
+                validation_type = "ONE_OF_RANGE"
+ 
+                # store valid values explicitly in workbook
+                target_col_letter = self._column_to_letter(i)
+                body =  {
+                            "majorDimension":"COLUMNS",
+                            "values":[values]
+                }
+                target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
+                valid_values = [
+                                { 
+                                    "userEnteredValue" : "=" + target_range
+                                }
+                ]
+
+                response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "RAW", body = body).execute()
+
 
             validation_body =  {
                       "requests": [
@@ -496,7 +514,7 @@ class ManifestGenerator(object):
                             'rule':{
                                 'condition':{
                                     'type':validation_type, 
-                                    'values': req_vals
+                                    'values': valid_values
                                 },
                                 'inputMessage' : input_message,
                                 'strict':strict,

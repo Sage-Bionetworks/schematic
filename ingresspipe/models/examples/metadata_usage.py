@@ -14,7 +14,9 @@ metadata_model_htan = MetadataModel(MM_LOC, MM_TYPE)
 print("*****************************************************")
 
 # TEST_COMP used for testing methods in 'metadata.py'
-TEST_COMP = "ScRNA-seqAssay"
+#TEST_COMP = "ScRNA-seqAssay"
+
+TEST_COMP = "FHA-HIV"
 
 # testing manifest generation - manifest is generated based on a JSON schema parsed from schema.org schema, which generates a google spreadsheet.
 # To generate the sheet, the backend requires Google API credentials in a file credentials.json stored locally in the same directory as this file
