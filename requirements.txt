@@ -14,4 +14,3 @@ inflection==0.3.1
 synapseclient==1.9.2
 setuptools==41.2.0
 pyyaml==5.3.1
-matplotlib==3.2.2
