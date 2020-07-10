@@ -420,8 +420,6 @@ class SynapseStorage(object):
                 if anno_k in metadataSyn:
                     annos[anno_k] = metadataSyn[anno_k]
 
-            print(annos)
-
             self.syn.set_annotations(annos)
             # self.syn.set_annotations(metadataSyn) -- deprecated code
 
