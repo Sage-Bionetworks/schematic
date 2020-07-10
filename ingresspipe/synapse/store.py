@@ -413,7 +413,17 @@ class SynapseStorage(object):
 
                 metadataSyn[keySyn] = v
 
-            self.syn.setAnnotations(entityId, metadataSyn)
+            # set annotation(s) for the various objects/items in a dataset on Synapse
+            annos = self.syn.get_annotations(entityId)
+
+            for anno_k, anno_v in annos.items():
+                if anno_k in metadataSyn:
+                    annos[anno_k] = metadataSyn[anno_k]
+
+            print(annos)
+
+            self.syn.set_annotations(annos)
+            # self.syn.set_annotations(metadataSyn) -- deprecated code
 
         # create/update a table corresponding to this dataset in this dataset's parent project
 
