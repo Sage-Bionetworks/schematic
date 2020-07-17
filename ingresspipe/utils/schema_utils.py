@@ -85,12 +85,19 @@ def load_schema_into_networkx(schema):
                     node["required"] = True  
                 else:
                     node["required"] = False
-             
+
+
+            if "sms:validationRules" in record:
+                node["validationRules"] = record["sms:validationRules"]
+            else:
+                node["validationRules"] = []
+
             node['uri'] = record["@id"] 
             node['description'] = record["rdfs:comment"]
             G.add_node(record['rdfs:label'], **node)
             #print(node)
             #print(G.nodes())
+
     return G
 
 def export_schema(self, file_path):

@@ -12,7 +12,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pygsheets as ps
 
-from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.schemas.generator import SchemaGenerator
 
 from ingresspipe.utils.google_api_utils import execute_google_api_requests
@@ -125,7 +124,6 @@ class ManifestGenerator(object):
 
     def _column_to_cond_format_eq_rule(self, column_idx:int, condition_argument:str, required:bool = False) -> dict:
         """Given a column index and an equality argument (e.g. one of valid values for the given column fields), generate a conditional formatting rule based on a custom formula encoding the logic: 
-
         'if a cell in column idx is equal to condition argument, then set specified formatting'
         """
         
@@ -152,18 +150,32 @@ class ManifestGenerator(object):
     
         return boolean_rule
 
+    
+    def _gdrive_copy_file(self, origin_file_id, copy_title):
+        """Copy an existing file.
+        Args:
+            origin_file_id: ID of the origin file to copy.
+            copy_title: Title of the copy.
+        Returns:
+            The copied file if successful, None otherwise.
+        """
+        copied_file = {'name': copy_title}
 
+        # return new copy sheet ID
+        return self.drive_service.files().copy(fileId = origin_file_id, body = copied_file).execute()["id"]
+
+    
     def _create_empty_manifest_spreadsheet(self, title):
 
-        # create an empty spreadsheet
-        spreadsheet = {
-            'properties': {
-                'title': title
-            }
-        }   
-        
-        spreadsheet = self.sheet_service.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
-        spreadsheet_id = spreadsheet.get('spreadsheetId')
+        if style["googleManifest"]["masterTemplateId"]:
+
+            # if provided with a template manifest google sheet, use it
+            spreadsheet_id = self._gdrive_copy_file(style["googleManifest"]["masterTemplateId"], title)
+
+        else:
+            # if no template, create an empty spreadsheet
+            spreadsheet = self.sheet_service.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
+            spreadsheet_id = spreadsheet.get('spreadsheetId')
 
         return spreadsheet_id
 
@@ -383,6 +395,37 @@ class ManifestGenerator(object):
                 
                 requests_body["requests"].append(notes_body["requests"])
 
+
+            # get node validation rules if any
+            validation_rules = self.sg.get_node_validation_rules(req)
+
+            # if 'list' in validation rules add a note with instructions on 
+            # adding a list of multiple values
+            # TODO: add validation and QC rules "compiler/generator" class elsewhere
+            # for now have the list logic here
+            if "list" in validation_rules:
+                note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
+                notes_body =  {
+                            "requests":[
+                                {
+                                    "repeatCell": {
+                                    "range": {
+                                        "startRowIndex": 1,
+                                        "startColumnIndex": i,
+                                        "endColumnIndex": i+1
+                                    },
+                                    "cell":{
+                                      "note": note
+                                    },
+                                    "fields": "note"
+                                    }
+                                }
+                            ]
+                }
+                
+                requests_body["requests"].append(notes_body["requests"])
+                
+
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
@@ -420,7 +463,42 @@ class ManifestGenerator(object):
                 req_vals = req_vals[:499]
 
 
-            # generating sheet api request to populate the dropdown
+            # generating sheet api request to populate a dropdown or a multi selection UI
+            
+            # by default assume no extra validation rules are needed and a dropdown is sufficient
+            validation_type = "ONE_OF_LIST"
+            strict = True
+            custom_ui = True
+            input_message = 'Choose one from dropdown'
+            valid_values = req_vals 
+
+            if "list" in validation_rules:
+                # if list is in validation rule attempt to create a multi-value 
+                # selection UI, which requires explicit valid values range in 
+                # the spreadsheet; store valid values explicitly in Sheet2 of the workbook
+                # TODO: currently assumes a workbook template is used that contains Sheet2
+                # in general need to check if sheet2 exists and create it if not
+                strict = False
+                custom_ui = False
+                input_message = ""
+                validation_type = "ONE_OF_RANGE"
+ 
+                # store valid values explicitly in workbook
+                target_col_letter = self._column_to_letter(i)
+                body =  {
+                            "majorDimension":"COLUMNS",
+                            "values":[values]
+                }
+                target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
+                valid_values = [
+                                { 
+                                    "userEnteredValue" : "=" + target_range
+                                }
+                ]
+
+                response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "RAW", body = body).execute()
+
+
             validation_body =  {
                       "requests": [
                         {
@@ -432,12 +510,12 @@ class ManifestGenerator(object):
                             },
                             'rule':{
                                 'condition':{
-                                    'type':'ONE_OF_LIST', 
-                                    'values': req_vals
+                                    'type':validation_type, 
+                                    'values': valid_values
                                 },
-                                'inputMessage' : 'Choose one from dropdown',
-                                'strict':True,
-                                'showCustomUi': True
+                                'inputMessage' : input_message,
+                                'strict':strict,
+                                'showCustomUi': custom_ui 
                             }
                         }
                     }
@@ -530,7 +608,6 @@ class ManifestGenerator(object):
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
         """Creates a google sheet manifest based on existing manifest.
-
         Args:
             existing_manifest_path: the location of the manifest containing metadata presently stored
             empty_manifest_url: the path to a manifest template to be prepopulated with existing's manifest metadata
