@@ -1,0 +1,31 @@
+Attribute,Description,Valid Values,Requires,Properties,Required,Parent,Requires Component,Source,Validation Rules
+Filename,REQUIRED: Name of file ,,,,TRUE,,,,
+Experiment,,,,,FALSE,,,,
+Experiment Date,REQUIRED: Experiment date. Format: YYYYMMDD.,,,,TRUE,,,,
+Experimenter,REQUIRED: Name of the experimenter,"Sydney Fine, Molly OhAinle, Emily Hsieh, Vanessa Montoya",,,TRUE,,,,
+Target Cell Info,,,,,FALSE,,,,
+Cell Type,REQUIRED,"THP1, Jurkat, JLat 10.6, JLat 5A8, SupT1, MT4",,,TRUE,,,,
+Clone Name,,"ZAP KO-13, ZAP KO-14, NELFB-6",,,FALSE,,,,
+Genes Knocked Out,,"None, ZAP, hTRIM34, NELFB",,,FALSE,,,,list
+Genes Overexpressed,,"None, hTRIM5, CCR5-dtomato, CCR5, CD4",,,FALSE,,,,list
+Virus Info,,,,,FALSE,,,,
+Latency,REQUIRED,"Latency Screen, Not Latency Screen",,,TRUE,,,,
+Not Latency Screen,,,"Plasmid Name, Viral Envelope, Receptor Tropism, Known Virus Mutations, Other Markers",,FALSE,,,,
+Plasmid Name,REQUIRED if not latency screen,"LAI, Q23.BG505, SIVcpz LB715, SIVcpz EK505, N74D, P90A, SIVcpz CP2139, NL43 macCA, NL43HIV123CA, CH470 TF, CH470 6mo",,,TRUE,,,,
+Viral Envelope,REQUIRED if not latency screen,"HIV, VSVG",,,TRUE,,,,
+Receptor Tropism,REQUIRED if not latency screen,"CCR5, CXCR4, NA",,,TRUE,,,,
+Known Virus Mutations,REQUIRED if not latency screen,"None, del Vpr, del Vpu, del Vif, del Nef, CA-N74D, CA-P90A",,,TRUE,,,,list
+Other Markers,REQUIRED if not latency screen,"None, GFP, mCherry, dTomato",,,TRUE,,,,list
+Library,,,,,FALSE,,,,
+Library Name,REQUIRED,"PIKA, TKOV3, HUEPI, HIVDEP, HIVCA+TRIMs",,,TRUE,,,,
+Vector Backbone,REQUIRED,"HIVCRISPR, TOP, lentiCRISPRv2, HIVCRISPR-optTrac",,,TRUE,,,,
+Barcode Version,REQUIRED,"1,2,3",,,TRUE,,,,
+Barcode Sequence,REQUIRED,"1_GCCAAT, 1_TAGCTT, 1_GGCTAC, 1_TTAGGC, 1_GATCAG, 1_GAGTGG, 1_AGTCAA, 1_AGTTCC, 1_ACAGTG, 1_CTTGTA, 1_CAGATC, 1_CGTACG, 1_GTCCGC, 1_TGACCA, 1_ACTTGA, 1_CCGTCC, 1_ATTCCT, 1_ACTGAT, 1_CGATGT, 1_ATCACG, 1_GTTTCG, 1_ATGTCA, 1_GTGGCC, 1_GTGAAA, 2_ATCACG, 2_CGATGT, 2_TTAGGC, 2_TGACCA, 2_ACAGTG, 2_GCCAAT, 2_CAGATC, 2_ACTTGA, 2_GATCAG, 2_TAGCTT, 2_GGCTAC, 2_CTTGTA, 2_AGTCAA, 2_AGTTCC, 2_ATGTCA, 2_CCGTCC, 2_GTAGAG, 2_GTCCGC, 2_GTGAAA, 2_GTGGCC, 2_GTTTCG, 2_CGTACG, 2_GAGTGG, 2_GGTAGC, 2_ACTGAT, 2_ATGAGC, 2_ATTCCT, 2_CAAAAG, 2_CAACTA, 2_CACCGG, 2_CACGAT, 2_CACTCA, 2_CAGGCG, 2_CATGGC, 2_CATTTT, 2_CCAACA, 2_CGGAAT, 2_CTAGCT, 2_CTATAC, 2_CTCAGA, 2_GACGAC, 2_TAATCG, 2_TACAGC, 2_TATAAT, 2_TCATTC, 2_TCCCGA, 2_TCGAAG, 2_TCGGCA, 3_ATGCCTAA, 3_GAATCTGA, 3_AACGTGAT, 3_CACTTCGA, 3_GCCAAGAC, 3_GACTAGTA, 3_ATTGGCTC, 3_GATGAATC, 3_AGCAGGAA, 3_GAGCTGAA, 3_AAACATCG, 3_GAGTTAGC, 3_CGAACTTA, 3_GATAGACA, 3_AAGGACAC, 3_GACAGTGC, 3_ATCATTCC, 3_GCCACATA, 3_ACCACTGT, 3_CTGGCATA, 3_ACCTCCAA, 3_GCGAGTAA, 3_ACTATGCA, 3_CGGATTGC, 3_AACTCACC, 3_GCTAACGA, 3_CAGATCTG, 3_ATCCTGTA, 3_CTGTAGCC, 3_GCTCGGTA, 3_ACACGACC, 3_AGTCACTA, 3_AACGCTTA, 3_GGAGAACA, 3_CATCAAGT, 3_AAGGTACA, 3_CGCTGATC, 3_GGTGCGAA, 3_CCTAATCC, 3_CTGAGCCA, 3_AGCCATGC, 3_GTACGCAA, 3_AGTACAAG, 3_ACATTGGC, 3_ATTGAGGA, 3_GTCGTAGA, 3_AGAGTCAA, 3_CCGACAAC",,,TRUE,,,,
+Experimental Treatment,,,,,FALSE,,,,
+Drug or Agent,REQUIRED,"None, IFNalpha, IFNbeta, JQ1, SAHA, AZD5582, HMBA, GSK-343, EPZ-6438, UNC-0638, GSKJ4, MG-149, AZD4573",,,TRUE,,,,list
+Collection Day,REQUIRED,,,,TRUE,,,,
+Percent Virus Infection,,,,,FALSE,,,,
+Sample Info,,,,,FALSE,,,,
+Replicate Number,REQUIRED,,,,TRUE,,,,
+Sample Type,REQUIRED,"gDNA, vRNA",,,TRUE,,,,
+FHA-HIV,HIV schema main component,,"Filename, Experiment Date, Experimenter, Collection Day, Sample Type, Cell Type,  Percent Virus Infection, Latency, Library Name, Vector Backbone, Barcode Version, Barcode Sequence, Clone Name, Genes Knocked Out, Genes Overexpressed, Drug or Agent, Replicate Number",,FALSE,,,,

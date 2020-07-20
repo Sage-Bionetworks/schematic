@@ -16,4 +16,4 @@ except synapseclient.core.exceptions.SynapseHTTPError:
     print("Make sure the credentials set in the config file are correct.")
 
 # get manifest (csv) url
-manifest_generator.get_manifest()
+print(manifest_generator.get_manifest())

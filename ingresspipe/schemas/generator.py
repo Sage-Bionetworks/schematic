@@ -20,17 +20,14 @@ class SchemaGenerator(object):
                 requires_component_relationship: str = "requiresComponent"
                 ) -> None:
         """Create / Initialize object of type SchemaGenerator().
-
         Methods / utilities that are part of this module can be used to generate JSON validation schemas for different schema.org 
         specification models.
-
         Args:
             path_to_json_ld: Path to the JSON-LD file that is representing the schema.org data model that we want to validate.
             requires_dependency_relationship: Edge relationship between two nodes indicating that they are dependent on each other.
             requires_range: A node propertly indicating that a term can assume a value equal to any of the terms that are in the current term's range.
             range_value_relationship: Edge relationship that indicates a term / node that another node depends on, is part of the other node's range.
             requires_component_relationship: A node property indicating that this node requires a component for its full characterization.
-
         Returns:
             None
         """
@@ -55,14 +52,11 @@ class SchemaGenerator(object):
                                 node: str,
                                 relationship: str) -> List[str]:
         """Get a list of out-edges of a node where the edges match a specifc type of relationship.
-
         i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf" (set of edges to children / sub-class nodes).
         Note: possible edge relationships are -- parentOf, rangeValue, requiresDependency.
-
         Args:
             node: the node whose edges we need to look at.
             relationship: the type of link(s) that the above node and its immediate neighbors share.
-
         Returns:
             List of edges that are connected to the node.
         """
@@ -81,7 +75,6 @@ class SchemaGenerator(object):
                                           node: str,
                                           relationship: str) -> List[str]:
         """Get a list of nodes that is / are adjacent to a given node, based on a relationship type.
-
         Args:
             node: the node whose edges we need to look at.
             relationship: the type of link(s) that the above node and its immediate neighbors share.
@@ -106,7 +99,6 @@ class SchemaGenerator(object):
                                     connected: bool = True,
                                     ordered: bool = False) -> List[str]:
         """Get all nodes that are descendants of a given source node, based on a specific type of edge / relationship type.
-
         Args:
             source_node: The node whose descendants need to be retreived.
             relationship: Edge / link relationship type with possible values same as in above docs.
@@ -173,10 +165,8 @@ class SchemaGenerator(object):
     def get_component_requirements(self,
                                   source_component: str) -> List[str]:
         """Get all components that are associated with a given source component and are required by it.
-
         Args:
             source_component: source component for which we need to find all required downstream components.
-
         Returns:
             List of nodes that are descendants from the source component are are related to the source through a specific component relationship.
         """
@@ -190,14 +180,12 @@ class SchemaGenerator(object):
                             display_names: bool = True,
                             schema_ordered: bool = True) -> List[str]:
         """Get the immediate dependencies that are related to a given source node.
-
         Args:
             source_node: The node whose dependencies we need to compute.
             display_names: if True, return list of display names of each of the dependencies.
                            if False, return list of node labels of each of the dependencies.
             schema_ordered: if True, return the dependencies of the node following the order of the schema (slower).
                             if False, return dependencies from graph without guaranteeing schema order (faster)
-
         Returns:
             List of nodes that are dependent on the source node.
         """
@@ -216,19 +204,17 @@ class SchemaGenerator(object):
             for req in required_dependencies:
                 dependencies_display_names.append(mm_graph.nodes[req]["displayName"])
 
-            return sorted(dependencies_display_names)
+            return dependencies_display_names
 
-        return sorted(required_dependencies)
+        return required_dependencies
 
 
     def get_node_range(self,
                       node_label: str,
                       display_names: bool = True) -> List[str]:
         """Get the range, i.e., all the valid values that are associated with a node label.
-
         Args:
             node_label: Node / termn for which you need to retrieve the range.
-
         Returns:
             List of display names of nodes associateed with the given node.
         """
@@ -259,10 +245,8 @@ class SchemaGenerator(object):
         
         Args:
             node_display_name: Display name of the node which you want to get the label for.
-
         Returns:
             Node label associated with given node.
-
         Raises:
             KeyError: If the node cannot be found in the graph.
         """
@@ -284,10 +268,8 @@ class SchemaGenerator(object):
     def get_node_definition(self,
                            node_display_name: str) -> str:
         """Get the node definition, i.e., the "comment" associated with a given node display name. 
-
         Args:
             node_display_name: Display name of the node which you want to get the label for.
-
         Returns:
             Comment associated with node, as a string.
         """
@@ -302,15 +284,31 @@ class SchemaGenerator(object):
         return node_definition
 
 
+    def get_node_validation_rules(self,
+                           node_display_name: str) -> str:
+        """Get validation rules associated with a node,  
+        Args:
+            node_display_name: Display name of the node which you want to get the label for.
+        Returns:
+            A set of validation rules associated with node, as a list.
+        """
+        node_label = self.get_node_label(node_display_name)
+
+        if not node_label:
+            return []
+
+        mm_graph = self.se.get_nx_schema()
+        node_validation_rules = mm_graph.nodes[node_label]["validationRules"] 
+         
+        return node_validation_rules
+
+
     def is_node_required(self,
                         node_display_name: str) -> bool:
         """Check if a given node is required or not.
-
         Note: The possible options that a node can be associated with -- "required" / "optional".
-
         Args:
             node_display_name: Display name of the node which you want to get the label for.
-
         Returns:
             True: If the given node is a "required" node.
             False: If the given node is not a "required" (i.e., an "optional") node.
@@ -327,10 +325,8 @@ class SchemaGenerator(object):
                                node_list: List[str],
                                mm_graph: nx.MultiDiGraph) -> List[str]:
         """Get display names associated with the given list of nodes.
-
         Args:
             node_list: List of nodes whose display names we need to retrieve.
-
         Returns:
             List of display names.
         """
@@ -344,13 +340,11 @@ class SchemaGenerator(object):
                         node_name: str,
                         blank = False) -> Dict[str, Dict[str, List[str]]]:
         """Add a list of nodes to the "enum" key in a given JSON schema object.
-
         Args:
             node_name: Name of the "main" / "head" key in the JSON schema / object.
             node_range: List of nodes to be added to the JSON object.
             blank: If True, add empty node to end of node list.
                    If False, do not add empty node to end of node list.
-
         Returns:
             JSON object with nodes.
         """
@@ -365,10 +359,8 @@ class SchemaGenerator(object):
     def get_non_blank_schema(self,
                             node_name: str) -> Dict:    # can't define heterogenous Dict generic types
         """Get a schema rule that does not allow null or empty values.
-
         Args:
             node_name: Name of the node on which the schema rule is to be applied.
-
         Returns:
             Schema rule as a JSON object.
         """
@@ -380,10 +372,8 @@ class SchemaGenerator(object):
     def is_required(self, node_name: str, mm_graph: nx.MultiDiGraph) -> bool:
         """
         Check if a node is required
-
         Args:
             node_name: Name of the node on which the check is to be applied.
-
         Returns:
             Boolean value indicating if the node is required or not.
                 True: yes, it is required.

@@ -1,5 +1,6 @@
 import os
 import string
+import json
 
 import tabletext
 from rdflib import Graph, Namespace, plugin, query
@@ -15,7 +16,7 @@ from ingresspipe.utils.general import dict2list, unlist
 from ingresspipe.utils.viz_utils import visualize
 from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
 
-from .curie import uri2curie, curie2uri
+from ingresspipe.schemas.curie import uri2curie, curie2uri
 
 namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
 
@@ -30,6 +31,11 @@ class SchemaExplorer():
         """
         self.schema = load_json(schema)
         self.schema_nx = load_schema_into_networkx(self.schema)
+
+    def export_schema(self, file_path):
+        with open(file_path, 'w') as f:
+            json.dump(self.schema, f, sort_keys = True, indent = 4, ensure_ascii = False)
+
 
     def load_default_schema(self):
         """Load default schema, either schema.org or biothings
@@ -164,7 +170,6 @@ class SchemaExplorer():
     def explore_class(self, schema_class):
         """Find details about a specific schema class
         """
-
         subclasses = []
         if  "subClassOf" in self.schema_nx.nodes[schema_class]:
             # the below if/else block exists to solve the inconsitencies in the spec of "subClassOf" in the HTAN schema
@@ -229,7 +234,12 @@ class SchemaExplorer():
         if "required" in self.schema_nx.nodes[schema_class]:
             required = self.schema_nx.nodes[schema_class]["required"]
 
+        validation_rules = []
+        if "validationRules" in self.schema_nx.nodes[schema_class]:
+            validation_rules = self.schema_nx.nodes[schema_class]["validationRules"]
 
+        # TODO: make class_info keys here the same as keys in schema graph nodes(e.g. schema_class above); note that downstream code using explore_class would have to be updated as well (e.g. csv_2_schemaorg)
+      
         class_info = {'properties': self.find_all_class_properties(schema_class),
                       'description': self.schema_nx.nodes[schema_class]['description'],
                       'uri': curie2uri(self.schema_nx.nodes[schema_class]["uri"], namespaces),
@@ -238,6 +248,7 @@ class SchemaExplorer():
                       'subClassOf': subclasses, 
                       'range': requires_range,
                       'dependencies': requires_dependencies,
+                      'validation_rules': validation_rules,
                       'required': required,
                       'component_dependencies': requires_components,
                       'parent_classes': self.find_parent_classes(schema_class)
@@ -287,6 +298,7 @@ class SchemaExplorer():
 
     def explore_property(self, schema_property):
         """Find details about a specific property
+        TODO: refactor so that explore class and explore property reuse logic - they are *very* similar
         """
         property_info = {}
         for record in self.schema["@graph"]:
@@ -309,6 +321,10 @@ class SchemaExplorer():
                             property_info["required"] = True  
                         else: 
                             property_info["required"] = False 
+
+                    validation_rules = []
+                    if "sms:validationRules" in record:
+                        property_info["validation_rules"] = record["sms:validationRules"]
                             
 
                     if  "sms:requiresDependency" in record:
@@ -319,6 +335,7 @@ class SchemaExplorer():
 
                     if "sms:displayName" in record:
                         property_info['displayName'] = record['sms:displayName']
+
                     break
         
         #check if properties are added multiple times
