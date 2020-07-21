@@ -128,7 +128,7 @@ class SynapseStorage(object):
         currentUserId = currentUser.ownerId
         
         # get a list of projects from Synapse
-        currentUserProjects = self.syn.restGET('/projects/user/{principalId}'.format(principalId=currentUserId))
+        currentUserProjects = self.getPaginatedRestResults(currentUserId)
         
         # prune results json filtering project id
         currentUserProjects = [currentUserProject.get('id') for currentUserProject in currentUserProjects["results"]]
