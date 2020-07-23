@@ -18,6 +18,8 @@ from ingresspipe.utils.df_utils import update_df
 from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.config.config import storage
 
+import yaml
+
 class SynapseStorage(object):
     """Implementation of Storage interface for datasets/files stored on Synapse.
 
@@ -443,3 +445,10 @@ class SynapseStorage(object):
         manifestSynapseFileId = self.syn.store(manifestSynapseFile).id
 
         return manifestSynapseFileId
+
+if __name__ == "__main__":
+    with open("./config.yml", 'r') as stream:
+        try:
+            print(yaml.safe_load(stream))
+        except yaml.YAMLError as exc:
+            print(exc)

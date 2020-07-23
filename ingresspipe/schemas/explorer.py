@@ -7,11 +7,12 @@ from rdflib import Graph, Namespace, plugin, query
 import inflection
 import networkx as nx
 from networkx.algorithms.cycles import find_cycle
+from networkx.readwrite import json_graph
 
 from ingresspipe.utils.curie_utils import expand_curies_in_schema, uri2label, extract_name_from_uri_or_curie
 from ingresspipe.utils.general import find_duplicates
 from ingresspipe.utils.io_utils import load_default, load_json, load_schemaorg
-from ingresspipe.utils.schema_utils import load_schema_into_networkx
+from ingresspipe.utils.schema_utils import load_schema_into_networkx, class_to_node
 from ingresspipe.utils.general import dict2list, unlist
 from ingresspipe.utils.viz_utils import visualize
 from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
@@ -384,7 +385,7 @@ class SchemaExplorer():
         """ 
         for i, schema_class in enumerate(self.schema["@graph"]):
             if schema_class["rdfs:label"] == class_info["rdfs:label"]:
-                validate_class_schema(class_info)
+                validate_class_schema(class_info)   # why are we doing this in a loop?
 
                 self.schema["@graph"][i] = class_info
                 break
@@ -439,3 +440,40 @@ class SchemaExplorer():
         #print(nx.find_cycle(digraph, orientation = "ignore"))
 
         return digraph
+
+if __name__ == "__main__":
+    se = SchemaExplorer()
+    se.load_schema("./data/schema_org_schemas/HTAN.jsonld")
+
+    class_mod = {
+                "@id": "bts:Sequencing",
+                "@type": "rdfs:Class",
+                "rdfs:comment": "Modified Test: Module for next generation sequencing assays",
+                "rdfs:label": "Sequencing",
+                "rdfs:subClassOf": [
+                    {
+                        "@id": "bts:Assay"
+                    }
+                ],
+                "schema:isPartOf": {
+                    "@id": "http://schema.biothings.io"
+                },
+                "sms:displayName": "Sequencing",
+                "sms:required": "sms:false"
+            }
+
+    # se.edit_class(class_mod)
+
+    replacement_graph = class_to_node(class_info=class_mod)
+
+    schema_nx = load_schema_into_networkx(se.schema)
+
+    for node in schema_nx.nodes():
+        for r_node in replacement_graph.nodes():
+            if schema_nx.nodes[node]["id"] == replacement_graph.nodes[r_node]["id"]:
+                schema_nx.nodes[node]["comment"] = replacement_graph.nodes[r_node]["comment"]
+
+    data = json_graph.node_link_data(schema_nx)
+    
+    with open('./data/data.json', 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)

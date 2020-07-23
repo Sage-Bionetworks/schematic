@@ -4,14 +4,11 @@ import pandas as pd
 from ingresspipe.synapse.store import SynapseStorage
 from ingresspipe.config.config import storage
 
-SYN_USERNAME = storage["Synapse"]["username"]
-SYN_PASSWORD = storage["Synapse"]["password"]
-
 # create an instance of synapseclient.Synapse() and login
 syn = synapseclient.Synapse()
 
 try:
-    syn.login(SYN_USERNAME, SYN_PASSWORD)
+    syn.login()
 except synapseclient.core.exceptions.SynapseNoCredentialsError:
     print("Please make sure the 'username' and 'password' keys in config have been filled out.")
 except synapseclient.core.exceptions.SynapseAuthenticationError:

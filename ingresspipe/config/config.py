@@ -6,8 +6,6 @@ storage = {
     "Synapse": {
         "masterFileview": "syn20446927",    # synapse ID of fileview containing administrative storage metadata
         "manifestFilename": "./data/synapse_storage_manifest.csv",  # default manifest name
-        "username": "",
-        "password": "",
         "api_creds": "syn21088684"
     }
 }
@@ -44,6 +42,6 @@ style = {
             },
             # google sheet ID of spreadsheet to be used as a template for all generated manifests
             # if empty, an empty google sheet will be created for each manifest
-            "masterTemplateId":"1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
+            "masterTemplateId": "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
         }
 }
