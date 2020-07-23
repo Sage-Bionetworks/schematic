@@ -214,7 +214,3 @@ class MetadataModel(object):
         emptyManifestURL = mg.get_manifest()
 
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
-
-if __name__ == "__main__":
-    metadata_mod = MetadataModel("./data/schema_org_schemas/HIV.jsonld", "local")
-    print(metadata_mod.getModelManifest(title="Demo", rootNode="NotLatencyScreen"))
