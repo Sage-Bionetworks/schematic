@@ -56,7 +56,7 @@ python[3] ingresspipe/models/examples/metadata_usage.py
 
 ### Configure Synapse Credentials
 
-Find the synapse configuration file (`_.synapseConfig_`) in your home directory. Access it like this:
+Find the synapse configuration file (_`.synapseConfig`_) in your home directory. Access it like this:
 
 ```bash
 vi[m] ~/.synapseConfig
