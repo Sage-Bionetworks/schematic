@@ -124,6 +124,7 @@ class ManifestGenerator(object):
 
     def _column_to_cond_format_eq_rule(self, column_idx:int, condition_argument:str, required:bool = False) -> dict:
         """Given a column index and an equality argument (e.g. one of valid values for the given column fields), generate a conditional formatting rule based on a custom formula encoding the logic: 
+
         'if a cell in column idx is equal to condition argument, then set specified formatting'
         """
         
@@ -153,9 +154,11 @@ class ManifestGenerator(object):
     
     def _gdrive_copy_file(self, origin_file_id, copy_title):
         """Copy an existing file.
+
         Args:
             origin_file_id: ID of the origin file to copy.
             copy_title: Title of the copy.
+
         Returns:
             The copied file if successful, None otherwise.
         """
@@ -608,6 +611,7 @@ class ManifestGenerator(object):
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
         """Creates a google sheet manifest based on existing manifest.
+
         Args:
             existing_manifest_path: the location of the manifest containing metadata presently stored
             empty_manifest_url: the path to a manifest template to be prepopulated with existing's manifest metadata

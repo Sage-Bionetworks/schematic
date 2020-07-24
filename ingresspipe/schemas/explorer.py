@@ -7,6 +7,7 @@ from rdflib import Graph, Namespace, plugin, query
 import inflection
 import networkx as nx
 from networkx.algorithms.cycles import find_cycle
+from networkx.readwrite import json_graph
 
 from ingresspipe.utils.curie_utils import expand_curies_in_schema, uri2label, extract_name_from_uri_or_curie
 from ingresspipe.utils.general import find_duplicates
@@ -384,7 +385,7 @@ class SchemaExplorer():
         """ 
         for i, schema_class in enumerate(self.schema["@graph"]):
             if schema_class["rdfs:label"] == class_info["rdfs:label"]:
-                validate_class_schema(class_info)
+                validate_class_schema(class_info)   # why are we doing this in a loop?
 
                 self.schema["@graph"][i] = class_info
                 break

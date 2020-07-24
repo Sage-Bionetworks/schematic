@@ -13,13 +13,14 @@ metadata_model_htan = MetadataModel(MM_LOC, MM_TYPE)
 You need to make sure you have a copy of the `credentials.json` file that is required by our API when accessing google services
 Execute the following snippet to download a copy of the credentials file and store in your root directory:
 
-_Note: Make sure to fill out values for your Synapse username and password credentials in the config file before executing the below snippet._
+_Note_: 
+
+- Make sure to fill out values for your Synapse username and password credentials in the `.synapseConfig` file before executing the below snippet. The `.synapseConfig` file can be found in your home directory. Read more here to understand how to [manage your synapse credentials](https://python-docs.synapse.org/build/html/Credentials.html).
+
+- `vi[m] ~/.synapseConfig` : use this command to access the hidden _.synapseConfig_ file.
 
 ```python
 API_CREDS = storage["Synapse"]["api_creds"]
-
-SYN_USERNAME = storage["Synapse"]["username"]
-SYN_PASSWORD = storage["Synapse"]["password"]
 
 # try downloading 'credentials.json' file (if not present already)
 if not os.path.exists("./credentials.json"):
@@ -28,7 +29,7 @@ if not os.path.exists("./credentials.json"):
     import synapseclient
 
     syn = synapseclient.Synapse()
-    syn.login(SYN_USERNAME, SYN_PASSWORD, rememberMe=False)
+    syn.login()
     syn.get(API_CREDS, downloadLocation = "./")
     print("Stored Google API credentials.")
 

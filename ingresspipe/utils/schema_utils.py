@@ -100,7 +100,6 @@ def load_schema_into_networkx(schema):
 
     return G
 
-def export_schema(self, file_path):
+def export_schema(schema, file_path):
     with open(file_path, 'w') as f:
-        json.dump(self.schema, f, sort_keys = True, indent = 4,
-            ensure_ascii = False)
+        json.dump(schema, f, sort_keys = True, indent = 4, ensure_ascii = False)
