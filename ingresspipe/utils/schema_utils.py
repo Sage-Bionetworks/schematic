@@ -100,24 +100,6 @@ def load_schema_into_networkx(schema):
 
     return G
 
-def class_to_node(class_info: dict) -> nx.MultiDiGraph:
-    G = nx.MultiDiGraph()
-
-    node = {}
-    for (k, value) in class_info.items():
-        if ":" in k:
-            key = k.split(":")[1]
-            node[key] = value
-        elif "@" in k:
-            key = k[1:]
-            node[key] = value
-        else:
-            node[k] = value
-
-    G.add_node(class_info['rdfs:label'], **node)
-
-    return G
-
 def export_schema(schema, file_path):
     with open(file_path, 'w') as f:
         json.dump(schema, f, sort_keys = True, indent = 4, ensure_ascii = False)

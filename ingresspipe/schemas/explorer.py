@@ -12,7 +12,7 @@ from networkx.readwrite import json_graph
 from ingresspipe.utils.curie_utils import expand_curies_in_schema, uri2label, extract_name_from_uri_or_curie
 from ingresspipe.utils.general import find_duplicates
 from ingresspipe.utils.io_utils import load_default, load_json, load_schemaorg
-from ingresspipe.utils.schema_utils import load_schema_into_networkx, class_to_node
+from ingresspipe.utils.schema_utils import load_schema_into_networkx
 from ingresspipe.utils.general import dict2list, unlist
 from ingresspipe.utils.viz_utils import visualize
 from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
