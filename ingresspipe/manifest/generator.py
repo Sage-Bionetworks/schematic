@@ -16,7 +16,11 @@ from ingresspipe.schemas.generator import SchemaGenerator
 
 from ingresspipe.utils.google_api_utils import execute_google_api_requests
 
-from ingresspipe.config.config import style
+from ingresspipe.utils.config_utils import load_yaml
+
+from definitions import CONFIG_PATH, DATA_PATH
+
+config_data = load_yaml(CONFIG_PATH)
 
 class ManifestGenerator(object):
     def __init__(self,
@@ -131,9 +135,9 @@ class ManifestGenerator(object):
         col_letter = self._column_to_letter(column_idx)
 
         if not required:
-           bg_color = style["googleManifest"]["optBgColor"] 
+           bg_color = config_data["style"]["google_manifest"]["opt_bg_color"]
         else:
-           bg_color = style["googleManifest"]["reqBgColor"]
+           bg_color = config_data["style"]["google_manifest"]["req_bg_color"]
         
         boolean_rule =  {
                         "condition": {
@@ -169,11 +173,10 @@ class ManifestGenerator(object):
 
     
     def _create_empty_manifest_spreadsheet(self, title):
-
-        if style["googleManifest"]["masterTemplateId"]:
+        if config_data["style"]["google_manifest"]["master_template_id"]:
 
             # if provided with a template manifest google sheet, use it
-            spreadsheet_id = self._gdrive_copy_file(style["googleManifest"]["masterTemplateId"], title)
+            spreadsheet_id = self._gdrive_copy_file(config_data["style"]["google_manifest"]["master_template_id"], title)
 
         else:
             # if no template, create an empty spreadsheet
@@ -432,7 +435,7 @@ class ManifestGenerator(object):
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
-                bg_color = style["googleManifest"]["reqBgColor"]
+                bg_color = config_data["style"]["google_manifest"]["req_bg_color"]
 
                 req_format_body = {
                         "requests":[

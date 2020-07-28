@@ -1,18 +1,21 @@
 import os
 import synapseclient
 
-from ingresspipe.config.config import storage
+from ingresspipe.utils.config_utils import load_yaml
+from definitions import ROOT_DIR, CONFIG_PATH, CREDS_PATH
+
+config_data = load_yaml(CONFIG_PATH)
 
 # synapse ID of the 'credentials.json' file, which we need in order to establish communication with gAPIs/services
-SYN_CREDS = storage["Synapse"]["api_creds"]
+SYN_CREDS = config_data["synapse"]["api_creds"]
 
 def download_creds_file():
-    if not os.path.exists("./credentials.json"):
+    if not os.path.exists(CREDS_PATH):
     
         print("Retrieving Google API credentials from Synapse...")
         syn = synapseclient.Synapse()
         syn.login()
-        syn.get(SYN_CREDS, downloadLocation = "./")
+        syn.get(SYN_CREDS, downloadLocation = ROOT_DIR)
         print("Downloaded Google API credentials file.")
 
 def execute_google_api_requests(service, requests_body, **kwargs):

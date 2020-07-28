@@ -1,13 +1,20 @@
 import synapseclient
+import os
+
 from ingresspipe.manifest.generator import ManifestGenerator
 
 from ingresspipe.utils.google_api_utils import download_creds_file
+from ingresspipe.utils.config_utils import load_yaml
 
-PATH_TO_JSONLD = "./data/schema_org_schemas/HTAN.jsonld"
+from definitions import CONFIG_PATH, DATA_PATH
+
+config_data = load_yaml(CONFIG_PATH)
+
+PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
 
 # create an instance of ManifestGenerator class
 TEST_NODE = "FollowUp"
-manifest_generator = ManifestGenerator(title="Demo Manifest", path_to_json_ld=PATH_TO_JSONLD, root=TEST_NODE)
+manifest_generator = ManifestGenerator(title="FollowUp Manifest", path_to_json_ld=PATH_TO_JSONLD, root=TEST_NODE)
 
 # make sure the 'credentials.json' file is downloaded and is present in the right path/location
 try:

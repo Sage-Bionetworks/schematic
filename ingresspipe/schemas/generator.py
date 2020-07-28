@@ -10,6 +10,11 @@ from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.utils.io_utils import load_json
 from ingresspipe.utils.schema_utils import load_schema_into_networkx
 from ingresspipe.utils.validate_utils import validate_schema
+from ingresspipe.utils.config_utils import load_yaml
+
+from definitions import CONFIG_PATH, DATA_PATH
+
+config_data = load_yaml(CONFIG_PATH)
 
 class SchemaGenerator(object):
     def __init__(self,
@@ -587,10 +592,11 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
         
-        # with open("./data/json_schema_logs/json_schema_log.json", "w") as js_f:
-        #     json.dump(json_schema, js_f, indent = 2)
+        json_schema_log_file = os.path.join(DATA_PATH, '', config_data["model"]["input"]["log_location"])
+        with open(json_schema_log_file, "w") as js_f:
+            json.dump(json_schema, js_f, indent = 2)
         
-        print("JSON schema file log stored as ./data/json_schema_logs/json_schema_log.json")
+        print("JSON schema file log stored as {}".format(json_schema_log_file))
         print("========================================================================================")
 
         return json_schema

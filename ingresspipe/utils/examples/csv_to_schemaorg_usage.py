@@ -6,16 +6,21 @@ import pandas as pd
 from ingresspipe.schemas.explorer import SchemaExplorer
 
 from ingresspipe.utils.csv_utils import create_schema_classes
+from ingresspipe.utils.config_utils import load_yaml
+
+from definitions import CONFIG_PATH, DATA_PATH
+
+config_data = load_yaml(CONFIG_PATH)
 
 # path to base schema
-base_schema_path = "./data/schema_org_schemas/biothings.jsonld"
+base_schema_path = os.path.join(DATA_PATH, '', config_data["model"]["biothings"]["location"])
 
 # schema name (used to name schema json-ld file as well)
 output_schema_name = "HIV"
 
 # schema extension definition csv files
 schema_extensions_csv = [
-                        "./data/csv/HIV.csv"
+                        os.path.join(DATA_PATH, '', 'csv/HIV.csv')
                         ]
 
 # instantiate schema explorer

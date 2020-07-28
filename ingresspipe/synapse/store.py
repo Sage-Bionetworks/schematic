@@ -1,6 +1,8 @@
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
 
+import os
+
 # used to generate unique names for entities
 import uuid
 
@@ -16,7 +18,11 @@ import synapseutils
 
 from ingresspipe.utils.df_utils import update_df
 from ingresspipe.schemas.explorer import SchemaExplorer
-from ingresspipe.config.config import storage
+
+from ingresspipe.utils.config_utils import load_yaml
+from definitions import ROOT_DIR, CONFIG_PATH, DATA_PATH
+
+config_data = load_yaml(CONFIG_PATH)
 
 class SynapseStorage(object):
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -68,12 +74,12 @@ class SynapseStorage(object):
                 return
 
         try:
-            self.storageFileview = storage["Synapse"]["masterFileview"]
+            self.storageFileview = config_data["synapse"]["master_fileview"]
 
             # get data in administrative fileview for this pipeline
             self.storageFileviewTable = self.syn.tableQuery("SELECT * FROM " + self.storageFileview).asDataFrame()
 
-            self.manifest = storage["Synapse"]["manifestFilename"]
+            self.manifest = os.path.join(DATA_PATH, config_data["synapse"]["manifest_filename"])
         except KeyError as key_exc:
             print("Missing value(s) for the {} key(s) in the config file.".format(key_exc))
         except AttributeError:

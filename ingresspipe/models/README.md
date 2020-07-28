@@ -1,14 +1,16 @@
 ## Usage of methods in `ingresspipe.models.metadata` module
 
-_Note: Make sure to look at the config file in `ingresspipe.config.config` to configure the `model` parameters used here._
+_Note: Make sure to look at the `config.yml` file to configure the `model` parameters used here._
 
 Create an instance of the `MetadataModel` class:
 ```python
-MM_LOC = model["input"]["model_location"]   # location of HTAN data model (JSON-LD)
+MM_LOC = os.path.join(DATA_PATH, model["input"]["model_location"])   # location of HTAN data model (JSON-LD)
 MM_TYPE = model["input"]["model_file_type"] # type of file -- "local"
 
 metadata_model_htan = MetadataModel(MM_LOC, MM_TYPE)
 ```
+
+_Note: `CONFIG_PATH`, `ROOT_DIR`, `DATA_PATH` (constants) are specified in `definitions.py` file._
 
 You need to make sure you have a copy of the `credentials.json` file that is required by our API when accessing google services
 Execute the following snippet to download a copy of the credentials file and store in your root directory:
@@ -23,14 +25,14 @@ _Note_:
 API_CREDS = storage["Synapse"]["api_creds"]
 
 # try downloading 'credentials.json' file (if not present already)
-if not os.path.exists("./credentials.json"):
+if not os.path.exists(CONFIG_PATH):
     
     print("Retrieving Google API credentials from Synapse..")
     import synapseclient
 
     syn = synapseclient.Synapse()
     syn.login()
-    syn.get(API_CREDS, downloadLocation = "./")
+    syn.get(API_CREDS, downloadLocation = ROOT_DIR)
     print("Stored Google API credentials.")
 
 print("Google API credentials successfully located..")
@@ -50,12 +52,12 @@ Generate a manifest based on a schema.org schema, which in this case is specifie
 
 ```python
 print("Testing manifest generation based on an additionally provided JSON schema..")
-HTAPP_VALIDATION_SCHEMA = model["demo"]["htapp_validation_file_location"]
+HTAPP_VALIDATION_SCHEMA = os.path.join(DATA_PATH, model["demo"]["htapp_validation_file_location"])
 
 with open(HTAPP_VALIDATION_SCHEMA, "r") as f:
     json_schema = json.load(f)
 
-HTAPP_SCHEMA = model["demo"]["htapp_location"]
+HTAPP_SCHEMA = os.path.join(DATA_PATH, model["demo"]["htapp_location"])
 HTAPP_SCHEMA_TYPE = model["demo"]["htapp_file_type"]
 
 metadata_model_htapp = MetadataModel(HTAPP_SCHEMA, HTAPP_SCHEMA_TYPE)
@@ -70,7 +72,7 @@ Case 1: Without additionally provided JSON validation schema:
 ```python
 print("Testing metadata model-based validation..")
 
-MANIFEST_PATH = model["demo"]["valid_manifest"]
+MANIFEST_PATH = os.path.join(DATA_PATH, model["demo"]["valid_manifest"])
 print("Testing validation with jsonSchema generation from schema.org schema..")
 annotation_errors = metadata_model_htan.validateModelManifest(MANIFEST_PATH, TEST_COMP)
 print(annotation_errors)

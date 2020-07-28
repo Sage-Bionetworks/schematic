@@ -1,8 +1,14 @@
 import synapseclient
 import pandas as pd
+import os
 
 from ingresspipe.synapse.store import SynapseStorage
-from ingresspipe.config.config import storage
+
+from ingresspipe.utils.config_utils import load_yaml
+
+from definitions import CONFIG_PATH, DATA_PATH
+
+config_data = load_yaml(CONFIG_PATH)
 
 # create an instance of synapseclient.Synapse() and login
 syn = synapseclient.Synapse()
@@ -39,8 +45,9 @@ print(files_df)
 
 # testing the association of entities with annotation(s) from manifest
 # synapse ID of "HTAN_CenterA_FamilyHistory" dataset and associating with it a validated manifest
+MANIFEST_LOC = os.path.join(DATA_PATH, '', config_data["synapse"]["manifest_filename"])
 print("Testing association of entities with annotation from manifest...")
-manifest_syn_id = syn_store.associateMetadataWithFiles("./data/manifests/synapse_storage_manifest.csv", "syn21984120")
+manifest_syn_id = syn_store.associateMetadataWithFiles(MANIFEST_LOC, "syn21984120")
 print(manifest_syn_id)
 
 # testing the successful retreival of all manifests associated with a project, accessible by the current user
