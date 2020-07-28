@@ -1,9 +1,15 @@
 from ingresspipe.schemas.explorer import SchemaExplorer
 import networkx as nx
+import os
 from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
 from graphviz import Digraph, Source
 
-PATH_TO_JSONLD = "./data/schema_org_schemas/HTAN.jsonld"
+from definitions import DATA_PATH, CONFIG_PATH
+from ingresspipe.utils.config_utils import load_yaml
+
+config_data = load_yaml(CONFIG_PATH)
+
+PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
 
 # create an object of the SchemaExplorer() class
 schema_explorer = SchemaExplorer()
@@ -40,7 +46,7 @@ gv_digraph = schema_explorer.full_schema_graph()
 
 # since the graph is very big, we will generate an svg viz. of it
 gv_digraph.format = 'svg'
-gv_digraph.render('./data/viz/HTAN-GV', view=True)
+gv_digraph.render(os.path.join(DATA_PATH, '', 'viz/HTAN-GV'), view=True)
 print("The svg visualization of the entire schema has been rendered.")
 
 # graph visualization of a sub-schema

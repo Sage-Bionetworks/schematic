@@ -2,7 +2,7 @@
 
 _Note: Refer to the `store_usage` module within the `examples/` directory here for the snippets._
 
-**Make sure to configure the values of `"username"` and `"password"` in the `ingresspipe.config.config` package/module.**
+**Make sure to configure the values of `"username"` and `"password"` in the `.synapseConfig` file as described in the main README.**
 
 To retreive a list of all the Synapse projects that the current user (user whose credentials are registered with the instance of `synapseclient.Synapse`), run the following:
 
@@ -14,7 +14,7 @@ print(projects_df)
 ```
 The above snippet returns a dataframe with 'synapse ID' in the first column, and 'Project Name' in second.
 
-From this list, select any project of your choice. Feed the synapse ID of the selected project to the `getStorageDatasetsInProject` method as follows:
+From this list, select any project of your choice. Feed the synapse ID of the selected project to the `getStorageDatasetsInProject()` method as follows:
 
 _The below example uses the synapse ID of the `HTAN CenterA` project._
 
@@ -25,7 +25,7 @@ datasets_df = pd.DataFrame(datasets_list, columns=["Synapse ID", "Dataset Name"]
 print(datasets_df)
 ```
 
-Similarly, from the above list of datasets, select any dataset of your choice, and feed the synapse ID of that dataset to the `getFilesInStorageDataset` method as follows:
+Similarly, from the above list of datasets, select any dataset of your choice, and feed the synapse ID of that dataset to the `getFilesInStorageDataset()` method as follows:
 
 _The below example uses the synapse ID of "HTAN_CenterA_BulkRNAseq_AlignmentDataset_1" dataset._
 
@@ -40,7 +40,7 @@ Once you have generated/filled out/validated a metadata manifest file, and want 
 
 ```python
 print("Testing association of entities with annotation from manifest...")
-manifest_syn_id = syn_store.associateMetadataWithFiles("./data/manifests/synapse_storage_manifest.csv", "syn21984120")
+manifest_syn_id = syn_store.associateMetadataWithFiles(os.path.join('DATA_PATH', config_data["synapse"]["manifest_filename"]), "syn21984120")
 print(manifest_syn_id)
 ```
 

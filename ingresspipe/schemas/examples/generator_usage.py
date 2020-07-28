@@ -1,6 +1,12 @@
+import os
 from ingresspipe.schemas.generator import SchemaGenerator
 
-PATH_TO_JSONLD = "./data/schema_org_schemas/HTAN.jsonld"
+from definitions import DATA_PATH, CONFIG_PATH
+from ingresspipe.utils.config_utils import load_yaml
+
+config_data = load_yaml(CONFIG_PATH)
+
+PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
 
 # create an object of SchemaGenerator() class
 schema_generator = SchemaGenerator(PATH_TO_JSONLD)
