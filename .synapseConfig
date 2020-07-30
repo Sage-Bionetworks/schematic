@@ -8,9 +8,9 @@
 ## Alternatively you can use rememberMe=True in synapseclient.login or login subcommand of the commandline client to 
 ## cache your API key elsewhere.
 [authentication]
-username = ""
+username = <username>
 #password = <password>
-apikey = ""
+apikey = <apikey>
 
 
 
