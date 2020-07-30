@@ -18,7 +18,7 @@ from ingresspipe.utils.google_api_utils import execute_google_api_requests
 
 from ingresspipe.utils.config_utils import load_yaml
 
-from definitions import CONFIG_PATH, DATA_PATH
+from definitions import CONFIG_PATH, DATA_PATH, CREDS_PATH, TOKEN_PICKLE
 
 config_data = load_yaml(CONFIG_PATH)
 
@@ -37,7 +37,7 @@ class ManifestGenerator(object):
         self.scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 
         # path to Google API credentials file
-        self.credentials_path = "credentials.json"
+        self.credentials_path = CREDS_PATH
 
         # google service for Drive API
         self.drive_service = None
@@ -66,8 +66,8 @@ class ManifestGenerator(object):
         creds = None
         # The file token.pickle stores the user's access and refresh tokens, 
         # and is created automatically when the authorization flow completes for the first time.
-        if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
+        if os.path.exists(TOKEN_PICKLE):
+            with open(TOKEN_PICKLE, 'rb') as token:
                 creds = pickle.load(token)
 
         # If there are no (valid) credentials available, let the user log in.
@@ -78,7 +78,7 @@ class ManifestGenerator(object):
                 flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.scopes)
                 creds = flow.run_console() ### don't have to deal with ports
             # Save the credentials for the next run
-            with open('token.pickle', 'wb') as token:
+            with open(TOKEN_PICKLE, 'wb') as token:
                 pickle.dump(creds, token)
 
         # get a Google Sheet API service
