@@ -6,19 +6,21 @@ from ingresspipe.synapse.store import SynapseStorage
 
 from ingresspipe.utils.config_utils import load_yaml
 
-from definitions import CONFIG_PATH, DATA_PATH
+from definitions import ROOT_DIR, CONFIG_PATH, DATA_PATH
 
 config_data = load_yaml(CONFIG_PATH)
 
+PATH_TO_SYN_CONF = os.path.join(ROOT_DIR, '.synapseConfig')
+
 # create an instance of synapseclient.Synapse() and login
-syn = synapseclient.Synapse()
+syn = synapseclient.Synapse(configPath=PATH_TO_SYN_CONF)
 
 try:
     syn.login()
 except synapseclient.core.exceptions.SynapseNoCredentialsError:
-    print("Please make sure the 'username' and 'password' keys in config have been filled out.")
+    print("Please make sure the 'username' and 'password'/'api_key' values have been filled out in .synapseConfig.")
 except synapseclient.core.exceptions.SynapseAuthenticationError:
-    print("Please make sure the credentials in the config file are correct.")
+    print("Please make sure the credentials in the .synapseConfig file are correct.")
 
 syn_store = SynapseStorage(syn=syn)
 
