@@ -182,7 +182,7 @@ class MetadataModel(object):
         manifest_trimmed = manifest.apply(lambda x: x.str.strip() if x.dtype == "str" else x)
         
         annotations = json.loads(manifest_trimmed.to_json(orient='records'))
-         
+        print(annotations) 
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):

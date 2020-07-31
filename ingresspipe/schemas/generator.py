@@ -117,7 +117,7 @@ class SchemaGenerator(object):
                      If False, the list has no particular order (depends on the order in which the descendats were traversed in the subgraph).
         
         Returns:
-            List of nodes that are descendats from a particular node (sorted / unsorted)
+            List of nodes that are descendants from a particular node (sorted / unsorted)
         """
         mm_graph = self.se.get_nx_schema()
 
@@ -383,6 +383,36 @@ class SchemaGenerator(object):
         return schema_node_range
 
 
+    def get_array_schema(self,
+                        node_range: List[str],
+                        node_name: str,
+                        blank = False) -> Dict[str, Dict[str, List[str]]]:
+        """Add a list of nodes to the "enum" key in a given JSON schema object.
+           Allow a node to be mapped to any subset of the list
+
+        Args:
+            node_name: Name of the "main" / "head" key in the JSON schema / object.
+            node_range: List of nodes to be added to the JSON object.
+            blank: If True, add empty node to end of node list.
+                   If False, do not add empty node to end of node list.
+
+        Returns:
+            JSON object with array validation rule.
+        """
+        if blank:
+            node_range += [""]
+
+        schema_node_range_array = {
+                                "type": "array",
+                                "items": {
+                                    "enum": node_range
+                                },
+                                "maxItems": len(node_range)
+        }
+
+        return schema_node_range_array
+
+
     def get_non_blank_schema(self,
                             node_name: str) -> Dict:    # can't define heterogenous Dict generic types
         """Get a schema rule that does not allow null or empty values.
@@ -476,8 +506,12 @@ class SchemaGenerator(object):
                         range_domain_map[n] = []
                     range_domain_map[n].append(node_display_name)
 
-
+                # can this node be map to the empty set (if required no; it not required yes)
+                # TODO: change "required" to different term, required may be a bit misleading (i.e. is the node required in the schema) 
                 node_required = self.is_required(process_node, mm_graph)
+
+                # get any additional validation rules associated with this node (e.g. can this node be mapped to a list of other nodes)
+                node_validation_rules = self.get_node_validation_rules(node_display_name)
 
                 if node_display_name in reverse_dependencies:
                     # if node has conditionals set schema properties and conditional dependencies
@@ -486,6 +520,15 @@ class SchemaGenerator(object):
                         # if process node has valid value range set it in schema properties
                         schema_valid_vals = self.get_range_schema(node_range_d, node_display_name, blank = True)
                         
+                        if node_validation_rules:
+                            # if this node has extra validation rules process them
+                            # TODO: abstract this into its own validation rule constructor/generator module/class
+                            
+                            if "list" in node_validation_rules:
+                                # if this node can be mapped to a list of nodes
+                                # set its schema accordingly
+                                schema_valid_vals = self.get_array_schema(node_range_d, node_display_name, blank = True)
+            
                     else:
                         # otherwise, by default allow any values
                         schema_valid_vals = {node_display_name:{}}
@@ -497,7 +540,7 @@ class SchemaGenerator(object):
                         # set all of the conditional nodes that require this process node
                         
                         # get node domain if any
-                        # ow this is node a conditional requirement
+                        # ow this node is a conditional requirement
                         if node in range_domain_map:
                             domain_nodes = range_domain_map[node]
                             conditional_properties = {}
@@ -510,11 +553,18 @@ class SchemaGenerator(object):
                                 # given node conditional are satisfied, this process node (which is dependent on these conditionals) has to be set or not depending on whether it is required
                                 if node_range:    
                                     dependency_properties = self.get_range_schema(node_range_d, node_display_name, blank = not node_required)
+
+                                    if node_validation_rules: 
+                                        if "list" in node_validation_rules:
+                                            #TODO: get_range_schema and get_range_schema have similar behavior - combine in one module
+                                            dependency_properties = self.get_array_schema(node_range_d, node_display_name, blank = not node_required)
+
                                 else:
                                     if node_required:
                                         dependency_properties = self.get_non_blank_schema(node_display_name)    
                                     else:
                                         dependency_properties = {node_display_name:{}}
+
                                 schema_conditional_dependencies = {
                                         "if": conditional_properties, 
                                         "then":{
@@ -531,6 +581,10 @@ class SchemaGenerator(object):
                     if node_required:
                         if node_range:
                             schema_valid_vals = self.get_range_schema(node_range_d, node_display_name, blank = False)
+
+                            if node_validation_rules: 
+                                if "list" in node_validation_rules:
+                                    schema_valid_vals = self.get_array_schema(node_range_d, node_display_name, blank = False)
                         else:
                             schema_valid_vals = self.get_non_blank_schema(node_display_name)
                         
@@ -543,8 +597,14 @@ class SchemaGenerator(object):
                         
                         if node_range:
                             schema_valid_vals = self.get_range_schema(node_range_d, node_display_name, blank = True)
+                            
+                            if node_validation_rules: 
+                                if "list" in node_validation_rules:
+                                    schema_valid_vals = self.get_array_schema(node_range_d, node_display_name, blank = True)
+
                         else:
                             schema_valid_vals = {node_display_name:{}}
+                        
                         json_schema["properties"].update(schema_valid_vals)
                         
                     else:
