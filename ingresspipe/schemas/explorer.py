@@ -12,7 +12,7 @@ from networkx.readwrite import json_graph
 from ingresspipe.utils.curie_utils import expand_curies_in_schema, uri2label, extract_name_from_uri_or_curie
 from ingresspipe.utils.general import find_duplicates
 from ingresspipe.utils.io_utils import load_default, load_json, load_schemaorg
-from ingresspipe.utils.schema_utils import load_schema_into_networkx
+from ingresspipe.utils.schema_utils import load_schema_into_networkx, class_to_node
 from ingresspipe.utils.general import dict2list, unlist
 from ingresspipe.utils.viz_utils import visualize
 from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
@@ -36,7 +36,6 @@ class SchemaExplorer():
     def export_schema(self, file_path):
         with open(file_path, 'w') as f:
             json.dump(self.schema, f, sort_keys = True, indent = 4, ensure_ascii = False)
-
 
     def load_default_schema(self):
         """Load default schema, either schema.org or biothings
@@ -440,3 +439,128 @@ class SchemaExplorer():
         #print(nx.find_cycle(digraph, orientation = "ignore"))
 
         return digraph
+
+    def edit_class_nx(self, class_mod: dict) -> nx.MultiDiGraph:
+        node_to_replace = class_to_node(class_to_convert=class_mod)
+
+        # get the networkx graph associated with the SchemaExplorer object in its current state
+        schema_graph_nx = self.get_nx_schema()
+    
+        # outer loop to loop over all the nodes in the graph constructed from master schema
+        for node, data in schema_graph_nx.nodes(data=True):
+
+            # innner loop to loop over the single node that is to be replaced/edited in the master graph
+            for replace_node, replace_data in node_to_replace.nodes(data=True):
+
+                # find the node to be replaced in the graph
+                if node == replace_node:
+
+                    # for the "comment", "required", "displayName", "validationRules" fields/keys it's okay to do a direct replacement
+                    # without having to worry about adding/removing any associated edges
+                    
+                    # ques. is it more expensive to do a checking operation (diff b/w fields) or a replace operation?
+
+                    if "comment" in data and "comment" in replace_data: # replace contents of "comment" from replacement node
+                        schema_graph_nx.nodes[node]["comment"] = node_to_replace.nodes[replace_node]["comment"]
+                        schema_graph_nx.nodes[node]["description"] = node_to_replace.nodes[replace_node]["description"]
+
+                    if "required" in data and "required" in replace_data:   # replace boolean value of "required" from replacement node
+                        schema_graph_nx.nodes[node]["required"] = node_to_replace.nodes[replace_node]["required"]
+
+                    if "displayName" in data and "displayName" in replace_data: # replace contents of "displayName" from replacement node
+                        schema_graph_nx.nodes[node]["displayName"] = node_to_replace.nodes[replace_node]["displayName"]
+
+                    if "validationRules" in data and "validationRules" in replace_data: # replace contents of "validationRules" from replacement node
+                        schema_graph_nx.nodes[node]["validationRules"] = node_to_replace.nodes[replace_node]["validationRules"]
+
+                    # for the "subClassOf", "requiresDependency", "requiresComponent", "rangeIncludes" fields/keys require rejiggering
+                    # of associated edges
+                    # general strategy we follow for rejiggering is remove edges that existed formerly and add new edges based on contents
+                    # of the replacement node
+
+                    # "subClassOf" key related edge manipulation
+                    if "subClassOf" in data and "subClassOf" in replace_data:
+
+                        # remove formerly existant edges from the master schema/graph
+                        for (u, v) in list(schema_graph_nx.in_edges([node])):
+                            for _edges_to_replace in data["subClassOf"]:
+                                edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
+
+                                if edge_repl == u:
+                                    schema_graph_nx.remove_edge(u, v)
+
+                        # extract node names from replacement node and use it to add edges to the master schema/graph
+                        parents = replace_data["subClassOf"]
+                        for _parent in parents:
+                            target_node = extract_name_from_uri_or_curie(_parent["@id"])
+
+                            # label to be associated with "subClassOf" keys is "parentOf"
+                            if target_node != replace_node:
+
+                                # make note of the fact that we are changing in-edges here
+                                schema_graph_nx.add_edge(target_node, replace_node, relationship = "parentOf")
+
+                        # once the edges have been added, change the contents of the node
+                        schema_graph_nx.nodes[node]["subClassOf"] = node_to_replace.nodes[replace_node]["subClassOf"]
+
+                    # "requiresDependency" key related edge manipulation
+                    if "requiresDependency" in data and "requiresDependency" in replace_data:
+                        
+                        for (u, v) in list(schema_graph_nx.out_edges([node])):
+                            for _edges_to_replace in data["requiresDependency"]:
+                                edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
+
+                                if edge_repl == v:
+                                    schema_graph_nx.remove_edge(u, v)
+                                    
+                        deps = replace_data["requiresDependency"]
+                        for _dep in deps:
+                            target_node = extract_name_from_uri_or_curie(_dep["@id"])
+
+                            if target_node != replace_node:
+
+                                # make not of the fact that edges being added here are out-edges
+                                schema_graph_nx.add_edge(replace_node, target_node, relationship = "requiresDependency")
+
+                        schema_graph_nx.nodes[node]["requiresDependency"] = node_to_replace.nodes[replace_node]["requiresDependency"]
+
+                    # "requiresComponent" key related edge manipulation
+                    if "requiresComponent" in data and "requiresComponent" in replace_data:
+                        
+                        for (u, v) in list(schema_graph_nx.out_edges([node])):
+                            for _edges_to_replace in data["requiresComponent"]:
+                                edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
+
+                                if edge_repl == v:
+                                    schema_graph_nx.remove_edge(u, v)
+                                    
+                        comps = replace_data["requiresComponent"]
+                        for _comp in comps:
+                            target_node = extract_name_from_uri_or_curie(_comp["@id"])
+
+                            if target_node != replace_node:
+                                schema_graph_nx.add_edge(replace_node, target_node, relationship = "requiresComponent")
+
+                        schema_graph_nx.nodes[node]["requiresComponent"] = node_to_replace.nodes[replace_node]["requiresComponent"]
+
+                    # "rangeIncludes" key related edge manipulation
+                    if "rangeIncludes" in data and "rangeIncludes" in replace_data:
+                        
+                        for (u, v) in list(schema_graph_nx.out_edges([node])):
+                            for _edges_to_replace in data["rangeIncludes"]:
+                                edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
+
+                                if edge_repl == v:
+                                    schema_graph_nx.remove_edge(u, v)
+                                    
+                        range_inc = replace_data["rangeIncludes"]
+                        for _rinc in range_inc:
+                            target_node = extract_name_from_uri_or_curie(_rinc["@id"])
+
+                            if target_node != replace_node:
+                                schema_graph_nx.add_edge(replace_node, target_node, relationship = "rangeValue")
+
+                        schema_graph_nx.nodes[node]["rangeIncludes"] = node_to_replace.nodes[replace_node]["rangeIncludes"]
+
+        
+        return schema_graph_nx
