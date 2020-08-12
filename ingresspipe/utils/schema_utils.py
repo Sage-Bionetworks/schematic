@@ -34,14 +34,14 @@ def load_schema_into_networkx(schema):
 
                         # do not allow self-loops
                         if n1 != n2:
-                            G.add_edge(n1, n2, relationship = "parentOf")
+                            G.add_edge(n1, n2, key="parentOf")
                 elif type(parents) == dict:
                     n1 = extract_name_from_uri_or_curie(parents["@id"])
                     n2 = record["rdfs:label"]
 
                     # do not allow self-loops
                     if n1 != n2:
-                        G.add_edge(n1, n2, relationship = "parentOf")
+                        G.add_edge(n1, n2, key="parentOf")
 
             # TODO: refactor: abstract adding relationship method
             if "sms:requiresDependency" in record:
@@ -52,7 +52,7 @@ def load_schema_into_networkx(schema):
                         n2 = extract_name_from_uri_or_curie(_dep["@id"]) 
                         # do not allow self-loops
                         if n1 != n2:
-                            G.add_edge(n1, n2, relationship = "requiresDependency")
+                            G.add_edge(n1, n2, key="requiresDependency")
 
             if "sms:requiresComponent" in record:
                 components = record["sms:requiresComponent"]
@@ -62,7 +62,7 @@ def load_schema_into_networkx(schema):
                         n2 = extract_name_from_uri_or_curie(_comp["@id"]) 
                         # do not allow self-loops
                         if n1 != n2:
-                            G.add_edge(n1, n2, relationship = "requiresComponent")
+                            G.add_edge(n1, n2, key="requiresComponent")
 
             if "schema:rangeIncludes" in record:
                 range_nodes = record["schema:rangeIncludes"]
@@ -72,13 +72,13 @@ def load_schema_into_networkx(schema):
                         n2 = extract_name_from_uri_or_curie(_range_node["@id"]) 
                         # do not allow self-loops
                         if n1 != n2:
-                            G.add_edge(n1, n2, relationship = "rangeValue")
+                            G.add_edge(n1, n2, key="rangeValue")
                 elif type(range_nodes) == dict:
                     n1 = record["rdfs:label"]  
                     n2 = extract_name_from_uri_or_curie(range_nodes["@id"]) 
                     # do not allow self-loops
                     if n1 != n2:
-                        G.add_edge(n1, n2, relationship = "rangeValue")
+                        G.add_edge(n1, n2, key="rangeValue")
             
             if "requiresChildAsValue" in node and node["requiresChildAsValue"]["@id"] == "sms:True":
                 node["requiresChildAsValue"] = True
