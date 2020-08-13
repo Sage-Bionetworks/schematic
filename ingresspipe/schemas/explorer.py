@@ -432,9 +432,9 @@ class SchemaExplorer():
         multi_digraph = self.schema_nx   
 
         digraph = nx.DiGraph()
-        for edge in multi_digraph.edges(data = True, keys = True):
-            if edge[3]["relationship"] == edge_type:
-                digraph.add_edge(edge[0], edge[1])
+        for (u, v, key, c) in multi_digraph.edges(data=True, keys=True):
+            if key == edge_type:
+                digraph.add_edge(u, v)
 
         #print(nx.find_cycle(digraph, orientation = "ignore"))
 
