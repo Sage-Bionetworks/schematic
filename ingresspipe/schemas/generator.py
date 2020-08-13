@@ -75,8 +75,8 @@ class SchemaGenerator(object):
 
         mm_graph = self.se.get_nx_schema()
 
-        for u, v, properties in mm_graph.out_edges(node, data=True):
-            if properties["relationship"] == relationship:
+        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
+            if key == relationship:
                 edges.append((u, v))
 
         return sorted(edges)
@@ -98,8 +98,8 @@ class SchemaGenerator(object):
         
         mm_graph = self.se.get_nx_schema()
 
-        for u, v, properties in mm_graph.out_edges(node, data=True):
-            if properties["relationship"] == relationship:
+        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
+            if key == relationship:
                 nodes.add(v)
 
         return sorted(list(nodes))
@@ -140,8 +140,8 @@ class SchemaGenerator(object):
 
         # prune the descendants subgraph so as to include only those edges that match the relationship type
         rel_edges = []
-        for u, v, properties in descendants_subgraph.edges(data=True):
-            if properties["relationship"] == relationship:
+        for (u, v, key, c) in descendants_subgraph.edges(data=True, keys=True):
+            if key == relationship:
                 rel_edges.append((u, v))
 
         relationship_subgraph = nx.DiGraph()
