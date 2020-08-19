@@ -440,7 +440,7 @@ class SchemaExplorer():
 
         return digraph
 
-    def edit_class_nx(self, class_mod: dict) -> nx.MultiDiGraph:
+    def edit_class_nx(self, class_mod: dict) -> None:
         node_to_replace = class_to_node(class_to_convert=class_mod)
 
         # get the networkx graph associated with the SchemaExplorer object in its current state
@@ -645,5 +645,13 @@ class SchemaExplorer():
 
                         schema_graph_nx.nodes[node]["rangeIncludes"] = node_to_replace.nodes[replace_node]["rangeIncludes"]
 
-        
-        return schema_graph_nx
+        # set the networkx schema graph to the the modified networkx schema
+        self.schema_nx = schema_graph_nx
+
+        # part of the code that replaces the modified class in the original JSON-LD schema (not in the data/ folder though)
+        for i, schema_class in enumerate(self.schema["@graph"]):
+            if schema_class["rdfs:label"] == class_mod["rdfs:label"]:
+                validate_class_schema(class_mod)    # validate that the class to be modified follows the structure for any generic class (node)
+
+                self.schema["@graph"][i] = class_mod
+                break
