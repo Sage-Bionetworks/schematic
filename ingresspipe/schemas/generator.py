@@ -506,7 +506,7 @@ class SchemaGenerator(object):
                         range_domain_map[n] = []
                     range_domain_map[n].append(node_display_name)
 
-                # can this node be map to the empty set (if required no; it not required yes)
+                # can this node be map to the empty set (if required no; if not required yes)
                 # TODO: change "required" to different term, required may be a bit misleading (i.e. is the node required in the schema) 
                 node_required = self.is_required(process_node, mm_graph)
 

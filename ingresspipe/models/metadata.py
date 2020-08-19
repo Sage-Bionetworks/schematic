@@ -154,6 +154,7 @@ class MetadataModel(object):
         return req_components
 
 
+
     # TODO: abstract validation in its own module
     def validateModelManifest(self, manifestPath: str, rootNode: str, jsonSchema: str = None) -> List[str]:     
         """Check if provided annotations manifest dataframe satisfies all model requirements.
@@ -180,11 +181,22 @@ class MetadataModel(object):
 
         # remove whitespaces from manifest 
         manifest_trimmed = manifest.apply(lambda x: x.str.strip() if x.dtype == "str" else x)
-        
+
+
+        """ 
+        check if each of the provided annotation columns has validation rule 'list'
+        if so, assume annotation for this column are comma separated list of multi-value annotations
+        convert multi-valued annotations to list
+        """
+        for col in manifest_trimmed.columns:
+            if "list" in self.sg.get_node_validation_rules(col): 
+                manifest_trimmed[col] = df[col].apply(lambda x: str(x).split(","))
+
         annotations = json.loads(manifest_trimmed.to_json(orient='records'))
         print(annotations) 
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
+
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
                 errorRow = i + 2
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema" 
