@@ -10,6 +10,11 @@ from ingresspipe.schemas.explorer import SchemaExplorer
 from ingresspipe.utils.io_utils import load_json
 from ingresspipe.utils.schema_utils import load_schema_into_networkx
 from ingresspipe.utils.validate_utils import validate_schema
+from ingresspipe.utils.config_utils import load_yaml
+
+from definitions import CONFIG_PATH, DATA_PATH
+
+config_data = load_yaml(CONFIG_PATH)
 
 class SchemaGenerator(object):
     def __init__(self,
@@ -70,8 +75,8 @@ class SchemaGenerator(object):
 
         mm_graph = self.se.get_nx_schema()
 
-        for u, v, properties in mm_graph.out_edges(node, data=True):
-            if properties["relationship"] == relationship:
+        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
+            if key == relationship:
                 edges.append((u, v))
 
         return sorted(edges)
@@ -93,8 +98,8 @@ class SchemaGenerator(object):
         
         mm_graph = self.se.get_nx_schema()
 
-        for u, v, properties in mm_graph.out_edges(node, data=True):
-            if properties["relationship"] == relationship:
+        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
+            if key == relationship:
                 nodes.add(v)
 
         return sorted(list(nodes))
@@ -135,8 +140,8 @@ class SchemaGenerator(object):
 
         # prune the descendants subgraph so as to include only those edges that match the relationship type
         rel_edges = []
-        for u, v, properties in descendants_subgraph.edges(data=True):
-            if properties["relationship"] == relationship:
+        for (u, v, key, c) in descendants_subgraph.edges(data=True, keys=True):
+            if key == relationship:
                 rel_edges.append((u, v))
 
         relationship_subgraph = nx.DiGraph()
@@ -248,9 +253,9 @@ class SchemaGenerator(object):
             for req in required_range:
                 dependencies_display_names.append(mm_graph.nodes[req]["displayName"])
 
-            return sorted(dependencies_display_names)
+            return dependencies_display_names
 
-        return sorted(required_range)
+        return required_range
 
 
     def get_node_label(self,
@@ -302,8 +307,7 @@ class SchemaGenerator(object):
         return node_definition
 
 
-    def get_node_validation_rules(self,
-                           node_display_name: str) -> str:
+    def get_node_validation_rules(self, node_display_name: str) -> str:
         """Get validation rules associated with a node,  
 
         Args:
@@ -648,10 +652,11 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
         
-        # with open("./data/json_schema_logs/json_schema_log.json", "w") as js_f:
-        #     json.dump(json_schema, js_f, indent = 2)
+        json_schema_log_file = os.path.join(DATA_PATH, '', config_data["model"]["input"]["log_location"])
+        with open(json_schema_log_file, "w") as js_f:
+            json.dump(json_schema, js_f, indent = 2)
         
-        print("JSON schema file log stored as ./data/json_schema_logs/json_schema_log.json")
+        print("JSON schema file log stored as {}".format(json_schema_log_file))
         print("========================================================================================")
 
         return json_schema

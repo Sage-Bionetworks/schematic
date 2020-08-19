@@ -1,4 +1,4 @@
-networkx==2.2
+networkx==2.4
 rdflib==4.2.2
 tabletext==0.1
 graphviz==0.8.4
@@ -11,7 +11,7 @@ google-auth-oauthlib==0.4.0
 pandas==0.23.4
 pygsheets==2.0.1
 inflection==0.3.1
-synapseclient==1.9.2
+synapseclient==2.1.0
 setuptools==41.2.0
 pyyaml==5.3.1
 matplotlib==3.2.2

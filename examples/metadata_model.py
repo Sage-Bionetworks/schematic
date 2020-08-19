@@ -28,7 +28,7 @@ TEST_COMP = "FollowUp"
 # To generate the sheet, the backend requires Google API credentials in a file credentials.json stored locally in the same directory as this file
 # this credentials file is also stored on Synapse and can be retrieved given sufficient permissions to the Synapse project
 
-# Google API credentials file stored on Synapse 
+# Google API credentials file stored on Synapse
 API_CREDS = config_data["synapse"]["api_creds"]
 
 # try downloading 'credentials.json' file (if not present already)
@@ -64,7 +64,7 @@ HTAPP_SCHEMA = os.path.join(DATA_PATH, config_data["model"]["demo"]["location"])
 HTAPP_SCHEMA_TYPE = config_data["model"]["demo"]["file_type"]
 
 metadata_model_htapp = MetadataModel(HTAPP_SCHEMA, HTAPP_SCHEMA_TYPE)
-manifest_url = metadata_model_htapp.getModelManifest(title="HTAPP Manifest", rootNode="", jsonSchema=json_schema, filenames=["1.txt", "2.txt", "3.txt"])
+manifest_url = metadata_model_htapp.getModelManifest(title="Example Manifest", rootNode="", jsonSchema=json_schema)
 print(manifest_url)
 
 print("*****************************************************")

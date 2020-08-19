@@ -54,6 +54,18 @@ Let's say you want to run the `metadata_usage` example - then do this:
 python[3] ingresspipe/models/examples/metadata_usage.py
 ```
 
+### Configure Synapse Credentials
+
+Find the synapse configuration file (_`.synapseConfig`_) downloaded to the current source directory. Access it like this:
+
+```bash
+vi[m] .synapseConfig
+```
+
+Open the config file, and under the authentication section, replace _< username >_ and _< apikey >_ with your Synapse username and API key.
+
+_Note: You can get your Synapse API key by: **logging into Synapse > Settings > Synapse API Key > Show API Key**_.
+
 ----
 
 ### Contribution

@@ -6,7 +6,11 @@ from ingresspipe.utils.general import str2list, dict2list, find_duplicates
 from ingresspipe.utils.curie_utils import expand_curies_in_schema, extract_name_from_uri_or_curie
 from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
 
-_ROOT = './data/'
+from ingresspipe.utils.config_utils import load_yaml
+
+from definitions import CONFIG_PATH, DATA_PATH
+
+config_data = load_yaml(CONFIG_PATH)
 
 class SchemaValidator():
     """Validate Schema against SchemaOrg standard
@@ -116,21 +120,21 @@ class SchemaValidator():
     def validate_schema(self, schema):
         """Validate schema against SchemaORG standard
         """
-        json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'schema.json')
+        json_schema_path = os.path.join(DATA_PATH, 'validation_schemas', 'schema.json')
         json_schema = load_json(json_schema_path)
         return validate(schema, json_schema)
 
     def validate_property_schema(self, schema):
         """Validate schema against SchemaORG property definition standard
         """
-        json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'property_json_schema.json')
+        json_schema_path = os.path.join(DATA_PATH, 'validation_schemas', 'property_json_schema.json')
         json_schema = load_json(json_schema_path)
         return validate(schema, json_schema)
 
     def validate_class_schema(self, schema):
         """Validate schema against SchemaORG class definition standard
         """
-        json_schema_path = os.path.join(_ROOT, 'validation_schemas', 'class_json_schema.json')
+        json_schema_path = os.path.join(DATA_PATH, 'validation_schemas', 'class_json_schema.json')
         json_schema = load_json(json_schema_path)
         return validate(schema, json_schema)
 
