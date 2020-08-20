@@ -11,7 +11,7 @@ import pygsheets as ps
 
 from schematic.schemas.generator import SchemaGenerator
 
-from schematic.utils.google_api_utils import build_credentials, build_service_account_creds, execute_google_api_requests
+from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
 
 from schematic.utils.config_utils import load_yaml
 
