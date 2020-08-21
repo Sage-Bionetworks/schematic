@@ -5,7 +5,7 @@ import collections
 
 import pandas as pd
 
-from typing import Any, Dict, Optional, Text
+from typing import Any, Dict, Optional, Text, List
 
 import pygsheets as ps
 
