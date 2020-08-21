@@ -403,17 +403,17 @@ class SchemaGenerator(object):
         Returns:
             JSON object with array validation rule.
         """
-        if blank:
-            node_range += [""]
 
         schema_node_range_array = {
-                                "type": "array",
-                                "items": {
-                                    "enum": node_range
-                                },
-                                "maxItems": len(node_range)
+                                    node_name:{
+                                        "type": "array",
+                                        "items": {
+                                            "enum": node_range + [""] if blank else node_range 
+                                        },
+                                        "maxItems": len(node_range)
+                                    }
         }
-
+        
         return schema_node_range_array
 
 
