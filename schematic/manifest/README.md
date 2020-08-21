@@ -1,4 +1,4 @@
-## Usage of method(s) in `ingresspipe.manifest.generator` module
+## Usage of method(s) in `schematic.manifest.generator` module
 
 An important method in the `manifest.generator` module is the `get_manifest()` method which takes care of generating the manifest link, based on the underlying `JSON-LD schema` (in this case, `HTAN.jsonld`) and an optionally provided `JSON schema`.
 

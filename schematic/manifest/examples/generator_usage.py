@@ -1,10 +1,10 @@
 import synapseclient
 import os
 
-from ingresspipe.manifest.generator import ManifestGenerator
+from schematic.manifest.generator import ManifestGenerator
 
-from ingresspipe.utils.google_api_utils import download_creds_file
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.google_api_utils import download_creds_file
+from schematic.utils.config_utils import load_yaml
 
 from definitions import CONFIG_PATH, DATA_PATH
 

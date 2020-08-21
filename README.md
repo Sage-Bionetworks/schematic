@@ -51,7 +51,7 @@ To run any of the example file(s), go to your root directory and execute/run pyt
 Let's say you want to run the `metadata_usage` example - then do this:
 
 ```bash
-python[3] ingresspipe/models/examples/metadata_usage.py
+python[3] schematic/models/examples/metadata_usage.py
 ```
 
 ### Configure Synapse Credentials
@@ -73,9 +73,9 @@ _Note: You can get your Synapse API key by: **logging into Synapse > Settings > 
 Clone a copy of the repository here:
       
 ```bash
-git clone --single-branch --branch organized-into-packages https://github.com/Sage-Bionetworks/HTAN-data-pipeline.git
+git clone --single-branch --branch develop https://github.com/Sage-Bionetworks/HTAN-data-pipeline.git
 ```
 
 Modify your files, add them to the staging area, use a descriptive commit message and push to the same branch as a pull request for review.
 
-* Please consult [CONTRIBUTION.md](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/organized-into-packages/CONTRIBUTION.md) for further reference.
+* Please consult [CONTRIBUTION.md](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/develop/CONTRIBUTION.md) for further reference.

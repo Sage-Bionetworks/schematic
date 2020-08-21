@@ -5,12 +5,12 @@ from orderedset import OrderedSet
 
 from typing import Any, Dict, Optional, Text, List
 
-from ingresspipe.schemas.explorer import SchemaExplorer
+from schematic.schemas.explorer import SchemaExplorer
 
-from ingresspipe.utils.io_utils import load_json
-from ingresspipe.utils.schema_utils import load_schema_into_networkx
-from ingresspipe.utils.validate_utils import validate_schema
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.io_utils import load_json
+from schematic.utils.schema_utils import load_schema_into_networkx
+from schematic.utils.validate_utils import validate_schema
+from schematic.utils.config_utils import load_yaml
 
 from definitions import CONFIG_PATH, DATA_PATH
 
@@ -568,7 +568,6 @@ class SchemaGenerator(object):
                                         dependency_properties = self.get_non_blank_schema(node_display_name)    
                                     else:
                                         dependency_properties = {node_display_name:{}}
-
                                 schema_conditional_dependencies = {
                                         "if": conditional_properties, 
                                         "then":{

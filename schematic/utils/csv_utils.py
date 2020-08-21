@@ -7,7 +7,7 @@ import string
 import pandas as pd
 import numpy as np
 
-from ingresspipe.schemas.explorer import SchemaExplorer
+from schematic.schemas.explorer import SchemaExplorer
 
 """
 Utility for converting csv file containing a data model definition schema (see scRNA-seq.csv for an example) into schema.org schema.

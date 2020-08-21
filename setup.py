@@ -5,7 +5,7 @@ import sys
 _here = os.path.abspath(os.path.dirname(__file__))
 version = {}
 
-with open(os.path.join(_here, 'ingresspipe', 'version.py')) as f:
+with open(os.path.join(_here, 'schematic', 'version.py')) as f:
     exec(f.read(), version)
 
 if sys.version_info[0] < 3:
@@ -16,15 +16,15 @@ else:
         long_description = f.read()
 
 setup(
-    name='ingresspipe',
+    name='schematic',
     version=version['__version__'],
     description='Packages responsible for data ingress from HTAN collaborators',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Milen Nikolov',
     author_email='milen.nikolov@sagebase.org',
-    url='https://github.com/Sage-Bionetworks/HTAN-data-pipeline/tree/organized-into-packages',
-    packages=find_packages(include=['ingresspipe', 'ingresspipe.*']),
+    url='https://github.com/Sage-Bionetworks/HTAN-data-pipeline/tree/develop',
+    packages=find_packages(include=['schematic', 'schematic.*']),
     python_requires='>=3.0',
     install_requires=[
         'networkx>=2.4', 'rdflib==4.2.2', 'tabletext==0.1', 'graphviz==0.8.4',

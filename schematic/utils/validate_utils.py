@@ -1,5 +1,5 @@
 import os
-from ingresspipe.utils.io_utils import load_json
+from schematic.utils.io_utils import load_json
 from jsonschema import validate
 
 from definitions import DATA_PATH

@@ -1,1 +1,1 @@
-from ingresspipe.manifest.generator import ManifestGenerator
+from schematic.manifest.generator import ManifestGenerator

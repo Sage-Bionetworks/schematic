@@ -2,9 +2,9 @@ import json
 import os
 import sys
 
-from ingresspipe.models.metadata import MetadataModel
+from schematic.models.metadata import MetadataModel
 
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.config_utils import load_yaml
 from definitions import ROOT_DIR, CONFIG_PATH, CREDS_PATH, DATA_PATH
 
 # load config data from yaml file into config_data dict
@@ -28,7 +28,7 @@ TEST_COMP = "FollowUp"
 # To generate the sheet, the backend requires Google API credentials in a file credentials.json stored locally in the same directory as this file
 # this credentials file is also stored on Synapse and can be retrieved given sufficient permissions to the Synapse project
 
-# Google API credentials file stored on Synapse 
+# Google API credentials file stored on Synapse
 API_CREDS = config_data["synapse"]["api_creds"]
 
 # try downloading 'credentials.json' file (if not present already)
@@ -44,14 +44,14 @@ if not os.path.exists(CREDS_PATH):
 
 print("Google API credentials successfully located..")
 
-print("*****************************************************")
+# print("*****************************************************")
 
-# testing manifest generation from a given root node without optionally provided JSON schema
-print("Testing manifest generation based on a provided schema.org schema..")
-manifest_url = metadata_model_htan.getModelManifest(title="Test_" + TEST_COMP, rootNode=TEST_COMP, filenames=["1.txt", "2.txt", "3.txt"])
-print(manifest_url)
+# # testing manifest generation from a given root node without optionally provided JSON schema
+# print("Testing manifest generation based on a provided schema.org schema..")
+# manifest_url = metadata_model_htan.getModelManifest(title="Test_" + TEST_COMP, rootNode=TEST_COMP, filenames=["1.txt", "2.txt", "3.txt"])
+# print(manifest_url)
 
-print("*****************************************************")
+# print("*****************************************************")
 
 # testing manifest generation with optionally provided JSON validation schema
 print("Testing manifest generation based on an additionally provided JSON schema..")
@@ -64,10 +64,10 @@ HTAPP_SCHEMA = os.path.join(DATA_PATH, config_data["model"]["demo"]["location"])
 HTAPP_SCHEMA_TYPE = config_data["model"]["demo"]["file_type"]
 
 metadata_model_htapp = MetadataModel(HTAPP_SCHEMA, HTAPP_SCHEMA_TYPE)
-manifest_url = metadata_model_htapp.getModelManifest(title="HTAPP Manifest", rootNode="", jsonSchema=json_schema, filenames=["1.txt", "2.txt", "3.txt"])
+manifest_url = metadata_model_htapp.getModelManifest(title="Example Manifest", rootNode="", jsonSchema=json_schema)
 print(manifest_url)
 
-print("*****************************************************")
+# print("*****************************************************")
 
 # use JSON schema object to validate the integrity of annotations in manifest file (track annotation errors)
 # without optionally/additionally provided JSON schema

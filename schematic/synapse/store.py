@@ -16,10 +16,10 @@ from synapseclient import File, Folder, Table
 from synapseclient.table import build_table
 import synapseutils
 
-from ingresspipe.utils.df_utils import update_df
-from ingresspipe.schemas.explorer import SchemaExplorer
+from schematic.utils.df_utils import update_df
+from schematic.schemas.explorer import SchemaExplorer
 
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.config_utils import load_yaml
 from definitions import ROOT_DIR, CONFIG_PATH, DATA_PATH
 
 config_data = load_yaml(CONFIG_PATH)

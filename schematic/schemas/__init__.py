@@ -1,3 +1,3 @@
-from ingresspipe.schemas.explorer import SchemaExplorer
-from ingresspipe.schemas.generator import SchemaGenerator
-from ingresspipe.schemas.validator import SchemaValidator
+from schematic.schemas.explorer import SchemaExplorer
+from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.validator import SchemaValidator

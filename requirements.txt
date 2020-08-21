@@ -8,7 +8,7 @@ orderedset==2.0.1
 google-api-python-client==1.7.9
 google-auth-httplib2==0.0.3 
 google-auth-oauthlib==0.4.0
-pandas==0.23.4
+pandas==1.1.0
 pygsheets==2.0.1
 inflection==0.3.1
 synapseclient==2.1.0

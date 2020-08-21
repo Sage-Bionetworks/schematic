@@ -1,8 +1,8 @@
 import os
-from ingresspipe.schemas.generator import SchemaGenerator
+from schematic.schemas.generator import SchemaGenerator
 
 from definitions import DATA_PATH, CONFIG_PATH
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.config_utils import load_yaml
 
 config_data = load_yaml(CONFIG_PATH)
 

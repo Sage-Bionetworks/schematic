@@ -9,15 +9,15 @@ import networkx as nx
 from networkx.algorithms.cycles import find_cycle
 from networkx.readwrite import json_graph
 
-from ingresspipe.utils.curie_utils import expand_curies_in_schema, uri2label, extract_name_from_uri_or_curie
-from ingresspipe.utils.general import find_duplicates
-from ingresspipe.utils.io_utils import load_default, load_json, load_schemaorg
-from ingresspipe.utils.schema_utils import load_schema_into_networkx, class_to_node
-from ingresspipe.utils.general import dict2list, unlist
-from ingresspipe.utils.viz_utils import visualize
-from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
+from schematic.utils.curie_utils import expand_curies_in_schema, uri2label, extract_name_from_uri_or_curie
+from schematic.utils.general import find_duplicates
+from schematic.utils.io_utils import load_default, load_json, load_schemaorg
+from schematic.utils.schema_utils import load_schema_into_networkx, class_to_node
+from schematic.utils.general import dict2list, unlist
+from schematic.utils.viz_utils import visualize
+from schematic.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
 
-from ingresspipe.schemas.curie import uri2curie, curie2uri
+from schematic.schemas.curie import uri2curie, curie2uri
 
 namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
 
@@ -235,7 +235,6 @@ class SchemaExplorer():
             required = self.schema_nx.nodes[schema_class]["required"]
 
         validation_rules = []
-        
         if "validationRules" in self.schema_nx.nodes[schema_class]:
             validation_rules = self.schema_nx.nodes[schema_class]["validationRules"]
 
@@ -441,7 +440,7 @@ class SchemaExplorer():
 
         return digraph
 
-    def edit_class_nx(self, class_mod: dict) -> nx.MultiDiGraph:
+    def edit_class_nx(self, class_mod: dict) -> None:
         node_to_replace = class_to_node(class_to_convert=class_mod)
 
         # get the networkx graph associated with the SchemaExplorer object in its current state
@@ -646,5 +645,13 @@ class SchemaExplorer():
 
                         schema_graph_nx.nodes[node]["rangeIncludes"] = node_to_replace.nodes[replace_node]["rangeIncludes"]
 
-        
-        return schema_graph_nx
+        # set the networkx schema graph to the the modified networkx schema
+        self.schema_nx = schema_graph_nx
+
+        # part of the code that replaces the modified class in the original JSON-LD schema (not in the data/ folder though)
+        for i, schema_class in enumerate(self.schema["@graph"]):
+            if schema_class["rdfs:label"] == class_mod["rdfs:label"]:
+                validate_class_schema(class_mod)    # validate that the class to be modified follows the structure for any generic class (node)
+
+                self.schema["@graph"][i] = class_mod
+                break

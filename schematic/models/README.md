@@ -1,4 +1,4 @@
-## Usage of methods in `ingresspipe.models.metadata` module
+## Usage of methods in `schematic.models.metadata` module
 
 _Note: Make sure to look at the `config.yml` file to configure the `model` parameters used here._
 

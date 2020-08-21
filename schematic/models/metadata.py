@@ -11,9 +11,9 @@ from typing import Any, Dict, Optional, Text, List
 # handle schema logic; to be refactored as SchemaExplorer matures into a package
 # as collaboration with Biothings progresses
 
-from ingresspipe.schemas.explorer import SchemaExplorer
-from ingresspipe.manifest.generator import ManifestGenerator
-from ingresspipe.schemas.generator import SchemaGenerator
+from schematic.schemas.explorer import SchemaExplorer
+from schematic.manifest.generator import ManifestGenerator
+from schematic.schemas.generator import SchemaGenerator
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.
@@ -154,7 +154,6 @@ class MetadataModel(object):
         return req_components
 
 
-
     # TODO: abstract validation in its own module
     def validateModelManifest(self, manifestPath: str, rootNode: str, jsonSchema: str = None) -> List[str]:     
         """Check if provided annotations manifest dataframe satisfies all model requirements.
@@ -201,9 +200,6 @@ class MetadataModel(object):
             if "list" in self.sg.get_node_validation_rules(col): 
                 manifest[col] = manifest[col].apply(lambda x: [s.strip() for s in str(x).split(",")])
                 print(manifest[col])
-
-
-        #manifest[col] = manifest[col].apply(lambda x: x.strip() if x.dtype == "str" else str(x))
 
         annotations = json.loads(manifest.to_json(orient='records'))
         print(annotations) 

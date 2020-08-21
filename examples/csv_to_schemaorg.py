@@ -3,10 +3,10 @@ import json
 
 import pandas as pd
 
-from ingresspipe.schemas.explorer import SchemaExplorer
+from schematic.schemas.explorer import SchemaExplorer
 
-from ingresspipe.utils.csv_utils import create_schema_classes
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.csv_utils import create_schema_classes
+from schematic.utils.config_utils import load_yaml
 
 from definitions import CONFIG_PATH, DATA_PATH
 

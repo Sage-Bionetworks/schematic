@@ -1,12 +1,12 @@
 import os
 from jsonschema import validate
 
-from ingresspipe.utils.io_utils import load_schemaorg, load_json, load_default
-from ingresspipe.utils.general import str2list, dict2list, find_duplicates
-from ingresspipe.utils.curie_utils import expand_curies_in_schema, extract_name_from_uri_or_curie
-from ingresspipe.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
+from schematic.utils.io_utils import load_schemaorg, load_json, load_default
+from schematic.utils.general import str2list, dict2list, find_duplicates
+from schematic.utils.curie_utils import expand_curies_in_schema, extract_name_from_uri_or_curie
+from schematic.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
 
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.config_utils import load_yaml
 
 from definitions import CONFIG_PATH, DATA_PATH
 

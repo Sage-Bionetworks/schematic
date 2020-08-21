@@ -1,11 +1,11 @@
-from ingresspipe.schemas.explorer import SchemaExplorer
+from schematic.schemas.explorer import SchemaExplorer
 import networkx as nx
 import os
 from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
 from graphviz import Digraph, Source
 
 from definitions import DATA_PATH, CONFIG_PATH
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.config_utils import load_yaml
 
 config_data = load_yaml(CONFIG_PATH)
 

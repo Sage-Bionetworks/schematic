@@ -5,18 +5,15 @@ import collections
 
 import pandas as pd
 
-from typing import Any, Dict, Optional, Text, List
+from typing import Any, Dict, Optional, Text
 
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 import pygsheets as ps
 
-from ingresspipe.schemas.generator import SchemaGenerator
+from schematic.schemas.generator import SchemaGenerator
 
-from ingresspipe.utils.google_api_utils import execute_google_api_requests
+from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
 
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.config_utils import load_yaml
 
 from definitions import CONFIG_PATH, DATA_PATH, CREDS_PATH, TOKEN_PICKLE
 
@@ -33,20 +30,17 @@ class ManifestGenerator(object):
         """TODO: read in a config file instead of hardcoding paths to credential files...
         """
 
-        # If modifying these scopes, delete the file token.pickle.
-        self.scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-
-        # path to Google API credentials file
-        self.credentials_path = CREDS_PATH
-
-        # google service for Drive API
-        self.drive_service = None
+        # make a call to the build_credentials() function
+        services_creds = build_credentials()
 
         # google service for Sheet API
-        self.sheet_service = None
+        self.sheet_service = services_creds["sheet_service"]
+
+        # google service for Drive API
+        self.drive_service = services_creds["drive_service"]
 
         # google service credentials object
-        self.creds = None
+        self.creds = services_creds["creds"]
 
         # schema root
         self.root = root
@@ -59,33 +53,6 @@ class ManifestGenerator(object):
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
-
-    # it will create 'token.pickle' based on credentials.json
-    # TODO: replace by pygsheets calls?
-    def build_credentials(self) -> None:
-        creds = None
-        # The file token.pickle stores the user's access and refresh tokens, 
-        # and is created automatically when the authorization flow completes for the first time.
-        if os.path.exists(TOKEN_PICKLE):
-            with open(TOKEN_PICKLE, 'rb') as token:
-                creds = pickle.load(token)
-
-        # If there are no (valid) credentials available, let the user log in.
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.scopes)
-                creds = flow.run_console() ### don't have to deal with ports
-            # Save the credentials for the next run
-            with open(TOKEN_PICKLE, 'wb') as token:
-                pickle.dump(creds, token)
-
-        # get a Google Sheet API service
-        self.sheet_service = build('sheets', 'v4', credentials=creds)
-        # get a Google Drive API service
-        self.drive_service = build('drive', 'v3', credentials=creds)
-        self.creds = creds
 
 
     def _attribute_to_letter(self, attribute, manifest_fields):
@@ -237,10 +204,7 @@ class ManifestGenerator(object):
         # --- specifying row format
         # --- setting valid values in dropdowns for columns/cells
         # --- setting notes/comments to cells
-        # - switch to using only json-ld schema instead of a mix of JSONSchema and json-ld schema? (The use of JSONSchema is a left over of a feature where manifest generator could be done entirely based on JSONSchema; that feature may be deprecated.)
       
-        self.build_credentials()
-
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
 
         if not json_schema:
@@ -642,7 +606,6 @@ class ManifestGenerator(object):
         manifest_fields = self.sort_manifest_fields(manifest_fields)
         manifest = manifest[manifest_fields]
 
-        self.build_credentials()
         gc = ps.authorize(custom_credentials = self.creds)
         sh = gc.open_by_url(empty_manifest_url)
         wb = sh[0]

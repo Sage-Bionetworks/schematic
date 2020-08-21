@@ -1,4 +1,4 @@
-## Usage of methods in `ingresspipe.schemas.explorer` module
+## Usage of methods in `schematic.schemas.explorer` module
 
 Path to the data model/schema that you want to load using the `SchemaExplorer` object:
 
@@ -84,7 +84,7 @@ print("The svg visualization of the sub-schema with {} as the source node has be
 
 _Fig.: Output from the execution of above block of code_
 
-![alt text](https://github.com/sujaypatil96/HTAN-data-pipeline/blob/organized-into-packages/data/gviz/SUB-GV.png)
+![alt text](https://github.com/sujaypatil96/HTAN-data-pipeline/blob/develop/data/gviz/SUB-GV.png)
 
 Returns list of successors of a node:
 
@@ -185,7 +185,7 @@ class_details = schema_explorer.explore_class(TEST_CLASS)
 print("Modified {} details : {}".format(TEST_CLASS, class_details))
 ```
 
-## Usage of methods in `ingresspipe.schemas.generator` module
+## Usage of methods in `schematic.schemas.generator` module
 
 Create an object of the `SchemaGenerator` class:
 

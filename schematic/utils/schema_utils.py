@@ -1,7 +1,7 @@
 import networkx as nx
 import json
 
-from ingresspipe.utils.curie_utils import extract_name_from_uri_or_curie
+from schematic.utils.curie_utils import extract_name_from_uri_or_curie
 
 def load_schema_into_networkx(schema):
     G = nx.MultiDiGraph()
@@ -80,6 +80,7 @@ def load_schema_into_networkx(schema):
                     if n1 != n2:
                         G.add_edge(n1, n2, key="rangeValue")
             
+            # check schema generator (JSON validation schema gen)
             if "requiresChildAsValue" in node and node["requiresChildAsValue"]["@id"] == "sms:True":
                 node["requiresChildAsValue"] = True
             

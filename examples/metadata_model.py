@@ -2,9 +2,9 @@ import json
 import os
 import sys
 
-from ingresspipe.models.metadata import MetadataModel
+from schematic.models.metadata import MetadataModel
 
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.config_utils import load_yaml
 from definitions import ROOT_DIR, CONFIG_PATH, CREDS_PATH, DATA_PATH
 
 # load config data from yaml file into config_data dict

@@ -2,9 +2,9 @@ import synapseclient
 import pandas as pd
 import os
 
-from ingresspipe.synapse.store import SynapseStorage
+from schematic.synapse.store import SynapseStorage
 
-from ingresspipe.utils.config_utils import load_yaml
+from schematic.utils.config_utils import load_yaml
 
 from definitions import ROOT_DIR, CONFIG_PATH, DATA_PATH
 
