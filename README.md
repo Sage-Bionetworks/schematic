@@ -56,6 +56,21 @@ python[3] schematic/models/examples/metadata_usage.py
 
 ### Configure Synapse Credentials
 
+Download a copy of the `credentials.json` file (or the file needed for authentication using service account, called `quickstart-1560359685924-198a7114b6b5.json`) stored on Synapse, using the synapse client command line utility. The credentials file is necessary for authentication to use Google services/APIs. To do so:
+
+
+_Note: Make sure you have `download` access/permissions to the above files before running the below commands._
+
+For `credentials.json` file:
+```bash
+synapse get syn21088684
+```
+
+For `quickstart-1560359685924-198a7114b6b5.json` file:
+```bash
+synapse get syn22316486
+```
+
 Find the synapse configuration file (_`.synapseConfig`_) downloaded to the current source directory. Access it like this:
 
 ```bash
