@@ -9,7 +9,7 @@ from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 
 from schematic.utils.config_utils import load_yaml
-from definitions import ROOT_DIR, CONFIG_PATH, CREDS_PATH, TOKEN_PICKLE, CREDS_PATH
+from definitions import ROOT_DIR, CONFIG_PATH, CREDS_PATH, TOKEN_PICKLE, CREDS_PATH, SERVICE_ACCT_CREDS
 
 config_data = load_yaml(CONFIG_PATH)
 
@@ -49,6 +49,20 @@ def build_credentials() -> dict:
         'sheet_service': sheet_service,
         'drive_service': drive_service,
         'creds': creds
+    }
+
+def build_service_account_creds():
+    credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCT_CREDS, scopes=SCOPES)
+
+    # get a Google Sheet API service
+    sheet_service = build('sheets', 'v4', credentials=credentials)
+    # get a Google Drive API service
+    drive_service = build('drive', 'v3', credentials=credentials)
+    
+    return {
+        'sheet_service': sheet_service,
+        'drive_service': drive_service,
+        'creds': credentials
     }
 
 def download_creds_file():
