@@ -2,6 +2,7 @@ import networkx as nx
 import json
 
 from schematic.utils.curie_utils import extract_name_from_uri_or_curie
+from schematic.utils.validate_utils import validate_class_schema
 
 def load_schema_into_networkx(schema):
     G = nx.MultiDiGraph()
@@ -200,6 +201,15 @@ def class_to_node(class_to_convert: dict) -> nx.Graph:
     G.add_node(class_to_convert["rdfs:label"], **node)
 
     return G
+
+def replace_node_in_schema(schema: nx.MultiDiGraph, class_add_mod: dict) -> None:
+    # part of the code that replaces the modified class in the original JSON-LD schema (not in the data/ folder though)
+    for i, schema_class in enumerate(schema["@graph"]):
+        if schema_class["rdfs:label"] == class_add_mod["rdfs:label"]:
+            validate_class_schema(class_add_mod)    # validate that the class to be modified follows the structure for any generic class (node)
+
+            schema["@graph"][i] = class_add_mod
+            break
 
 def export_schema(schema, file_path):
     with open(file_path, 'w') as f:
