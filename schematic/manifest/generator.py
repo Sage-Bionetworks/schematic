@@ -5,7 +5,7 @@ import collections
 
 import pandas as pd
 
-from typing import Any, Dict, Optional, Text
+from typing import Any, Dict, Optional, Text, List
 
 import pygsheets as ps
 
@@ -178,6 +178,25 @@ class ManifestGenerator(object):
         batch.execute()
 
 
+    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]: 
+        """Get valid values for a manifest attribute based on the corresponding 
+        values of node's properties in JSONSchema
+        
+        Args:
+            prop: node properties - jsonschema dictionary 
+
+        Returns:
+            List of valid values
+        """
+
+        if "enum" in prop: 
+            return prop["enum"]
+        elif "items" in prop:
+            return prop["items"]["enum"]
+        else:
+            return []
+
+
     def get_manifest(self, json_schema = None):
         # TODO: Refactor get_manifest method
         # - abstract function for requirements gathering
@@ -197,14 +216,12 @@ class ManifestGenerator(object):
 
         required_metadata_fields = {}
 
-        # gathering dependency requirements and corresponding allowed values constraints for root node
+        # gathering dependency requirements and corresponding allowed values constraints (i.e. valid values) for root node
         for req in json_schema["properties"].keys():
-            if not "enum" in json_schema["properties"][req]:
-                # if no valid/allowed values specified
-                json_schema["properties"][req]["enum"] = []
-            
-            required_metadata_fields[req] = json_schema["properties"][req]["enum"]
-
+            required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
+            # the following line may not be needed
+            json_schema["properties"][req]["enum"] = required_metadata_fields[req]
+                
 
         # gathering dependency requirements and allowed value constraints for conditional dependencies if any
         if "allOf" in json_schema: 
@@ -214,18 +231,14 @@ class ManifestGenerator(object):
                         if req in conditional_reqs["if"]["properties"]:
                             if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
-                                    if not "enum" in json_schema["properties"][req]:
-                                        # if no valid/allowed values specified
-                                        json_schema["properties"][req]["enum"] = []
-                                    required_metadata_fields[req] = json_schema["properties"][req]["enum"]
+                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
                                 else:
-                                    required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"] if "enum" in conditional_reqs["if"]["properties"][req] else []                   
+                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(conditional_reqs["if"]["properties"][req])
+
                      for req in conditional_reqs["then"]["required"]: 
                          if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
-                                    required_metadata_fields[req] = json_schema["properties"][req]["enum"] if "enum" in json_schema["properties"][req] else []
-                                else:
-                                     required_metadata_fields[req] = []    
+                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])    
 
         # if additional metadata is provided append columns (if those do not exist already)
         if self.additional_metadata:

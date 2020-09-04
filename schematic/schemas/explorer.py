@@ -657,6 +657,7 @@ class SchemaExplorer():
                 self.schema["@graph"][i] = class_mod
                 break
 
+
     # version of update_class() method that directly acts on the networkx graph 
     def add_class_nx(self, class_add: dict, **kwargs: dict) -> None:
         node = node_attrs_cleanup(class_add)
