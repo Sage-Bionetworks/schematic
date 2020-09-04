@@ -12,7 +12,7 @@ from networkx.readwrite import json_graph
 from schematic.utils.curie_utils import expand_curies_in_schema, uri2label, extract_name_from_uri_or_curie
 from schematic.utils.general import find_duplicates
 from schematic.utils.io_utils import load_default, load_json, load_schemaorg
-from schematic.utils.schema_utils import load_schema_into_networkx, class_to_node
+from schematic.utils.schema_utils import load_schema_into_networkx, node_attrs_cleanup, class_to_node, relationship_edges
 from schematic.utils.general import dict2list, unlist
 from schematic.utils.viz_utils import visualize
 from schematic.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
@@ -610,7 +610,7 @@ class SchemaExplorer():
 
                     # "rangeIncludes" key related edge manipulation
                     if "rangeIncludes" in replace_data:
-
+                        
                         if "rangeIncludes" in data:
                             for (u, v) in list(schema_graph_nx.out_edges([node])):
                                 # there are certain nodes which have "rangeIncludes" data in list format
@@ -654,4 +654,38 @@ class SchemaExplorer():
                 validate_class_schema(class_mod)    # validate that the class to be modified follows the structure for any generic class (node)
 
                 self.schema["@graph"][i] = class_mod
+                break
+
+    def add_class_nx(self, class_add: dict, **kwargs: dict) -> None:
+        node = node_attrs_cleanup(class_add)
+
+        # get the networkx graph associated with the SchemaExplorer object in its current state
+        schema_graph_nx = self.get_nx_schema()
+
+        schema_graph_nx = relationship_edges(schema_graph_nx, class_add, **kwargs)
+
+        if "required" in node:
+            if "sms:true" == class_add["sms:required"]:
+                node["required"] = True  
+            else:
+                node["required"] = False
+
+        # not sure if this is required?
+        if "sms:validationRules" in class_add:
+            node["validationRules"] = class_add["sms:validationRules"]
+        else:
+            node["validationRules"] = []
+
+        # add node to graph
+        schema_graph_nx.add_node(class_add["rdfs:label"], **node)
+
+        # set the networkx schema graph to the the modified networkx schema
+        self.schema_nx = schema_graph_nx
+
+        # part of the code that replaces the modified class in the original JSON-LD schema (not in the data/ folder though)
+        for i, schema_class in enumerate(self.schema["@graph"]):
+            if schema_class["rdfs:label"] == class_add["rdfs:label"]:
+                validate_class_schema(class_add)    # validate that the class to be modified follows the structure for any generic class (node)
+
+                self.schema["@graph"][i] = class_add
                 break
