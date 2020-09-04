@@ -440,6 +440,7 @@ class SchemaExplorer():
 
         return digraph
 
+    # version of edit_class() method that directly acts on the networkx graph
     def edit_class_nx(self, class_mod: dict) -> None:
         node_to_replace = class_to_node(class_to_convert=class_mod)
 
@@ -656,6 +657,7 @@ class SchemaExplorer():
                 self.schema["@graph"][i] = class_mod
                 break
 
+    # version of update_class() method that directly acts on the networkx graph 
     def add_class_nx(self, class_add: dict, **kwargs: dict) -> None:
         node = node_attrs_cleanup(class_add)
 
