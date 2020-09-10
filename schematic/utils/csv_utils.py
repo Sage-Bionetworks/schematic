@@ -7,6 +7,8 @@ import string
 import pandas as pd
 import numpy as np
 
+import re
+
 from schematic.schemas.explorer import SchemaExplorer
 
 """
@@ -210,7 +212,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
     # get attributes from Attribute column
     attributes = schema_extension[list(required_headers)].to_dict("records")
     
-    # get all properties across all attributes from Property column
+    # get all properties across all attributes from Properties column
     props = set(schema_extension[["Properties"]].dropna().values.flatten())
 
     # clean properties strings
@@ -336,7 +338,16 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         range_values = attribute["Valid Values"]
         if not pd.isnull(range_values):
             print(">>> Adding value range for " + attribute["Attribute"])
-            for val in range_values.strip().split(","):
+
+            # prepare the range values list and split based on appropriate delimiter
+            # if the string "range_values" starts with double quotes, then extract all "valid values" within double quotes
+            range_values_list = []
+            if range_values[0] == "\"":
+                range_values_list = re.findall(r'"([^"]*)"', range_values)
+            else:
+                range_values_list = range_values.strip().split(",")
+
+            for val in range_values_list:
                 # check if value is in attributes column; add it as a class if not
                 if not val.strip() in list(schema_extension["Attribute"]):
 
@@ -373,8 +384,9 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                 requires_range = class_info["range"],
                                                 required = class_info["required"],
                                                 validation_rules = class_info["validation_rules"] 
-                    )
+                    )                    
                     se.edit_class(class_range_edit)
+
                 else:
                 # the attribute is a property
                     property_info = se.explore_property(se.get_property_label_from_display_name(attribute["Attribute"]))
@@ -388,7 +400,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                     validation_rules = property_info["validation_rules"]
                     )
                     se.edit_property(property_range_edit)
-                print(val + " added to value range.")
+                print(val + " added to value range.")            
             
             print("<<< Done adding value range for " + attribute["Attribute"])
 
