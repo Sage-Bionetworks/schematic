@@ -85,14 +85,14 @@ def load_schema_into_networkx(schema):
             domain_nodes = record["schema:domainIncludes"]
             if type(domain_nodes) == list:
                 for _domain_node in domain_nodes:
-                    n1 = record["rdfs:label"]  
-                    n2 = extract_name_from_uri_or_curie(_domain_node["@id"]) 
+                    n1 = extract_name_from_uri_or_curie(_domain_node["@id"])
+                    n2 = record["rdfs:label"]
                     # do not allow self-loops
                     if n1 != n2:
                         G.add_edge(n1, n2, key="domainValue")
             elif type(domain_nodes) == dict:
-                n1 = record["rdfs:label"]  
-                n2 = extract_name_from_uri_or_curie(domain_nodes["@id"]) 
+                n1 = extract_name_from_uri_or_curie(domain_nodes["@id"])
+                n2 = record["rdfs:label"]
                 # do not allow self-loops
                 if n1 != n2:
                     G.add_edge(n1, n2, key="domainValue")
