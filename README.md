@@ -8,7 +8,13 @@ Python 3 has built-in support for virtual environments (using `venv` module). Pe
 
 _Note: It is assumed that you are running all the below commands from the main/root (`schematic`) directory._
 
-After cloning the git repository, navigate into the `schematic` directory and run the command as below:
+Clone this branch of the git repository 
+
+```
+git clone --single-branch --branch main https://github.com/Sage-Bionetworks/schematic.git
+```
+
+Navigate into the `schematic` directory and run the command as below:
 
 ```bash
 python[3] -m venv .venv
