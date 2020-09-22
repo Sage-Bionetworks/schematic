@@ -92,7 +92,7 @@ class RDB(object):
             # there should be at least one class property ow table will not be created
             # assume the primary key, if any, is a class property of the form <tableLabel>_id
 
-            table_attributes = self.sg.se.find_class_specific_properties(table_label) 
+            table_attributes = self.sg.se.find_class_specific_properties(table_label)
             
             if not table_attributes:
                 continue
@@ -103,11 +103,17 @@ class RDB(object):
 
             attributes = {}
             primary_key = self.sg.se.get_property_label_from_display_name(table_label+'_id')
-            for attr in table_attributes:
-                attributes[attr] = {'type':'TEXT'}
             
             # get foreign keys based on db schema graph 
             foreign_keys = self.get_table_foreign_keys(table_label)
+
+            # ensure primary and foreign keys are added to the attributes
+            table_attributes += [primary_key]
+            table_attributes += foreign_keys
+            
+            # set the schema for a set of table attributes
+            for attr in set(table_attributes):
+                attributes[attr] = {'type':'TEXT'}
 
             table = {
                         'attributes': attributes,
@@ -159,7 +165,8 @@ class RDB(object):
         """Given a set of attributes (e.g. columns in input table) and the RDB schema graph,
         find all tables targeted for update (i.e. set of tables where each table contains at least one
         attribute from the set of input attributes); return tables in update order ensuring 
-        join tables are updated after entity tables are updated
+        join tables are updated after entity tables are updated; this may not be necessary for most 
+        usecases
         
         Returns:
             An ordered list of matching target table labels to be updated

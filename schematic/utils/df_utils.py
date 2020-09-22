@@ -29,3 +29,25 @@ def update_df(existing_df: pd.DataFrame, new_df: pd.DataFrame, idx_key: str) -> 
     updated_df = updated_df[existing_df.columns]
 
     return updated_df
+
+
+def normalize_table(df, primary_key:str) -> pd.DataFrame:
+
+    """ Normalize a table (e.g. dedup, drop nan's)
+
+        Args:
+            primary_key: table primary key
+        Returns:
+            A normalized dataframe or same df if the primary key is not in the df
+    """
+
+    try:
+        # if valid primary key has been provided normalize df
+        df = df.reset_index()
+        df_norm = df.dropna().drop_duplicates(subset = [primary_key])
+        return df_norm
+    except KeyError:
+        # if the primary key is not in the df; then return the same df w/o changes
+        print("Specified primary key is not in table schema. Proceeding without table changes.") 
+        return df
+
