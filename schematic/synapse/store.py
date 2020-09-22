@@ -240,7 +240,7 @@ class SynapseStorage(object):
         """
 
         # get a list of files containing the manifest for this dataset (if any)
-        manifest = self.getFilesInStorageDataset(datasetId, fileNames = [self.manifest])
+        manifest = self.getFilesInStorageDataset(datasetId, fileNames = [os.path.basename(self.manifest)])
         
         if not manifest:
             return []
