@@ -9,7 +9,7 @@ import pandas as pd
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.utils.csv_utils import create_schema_classes
-from schematic.utils.config_utils import load_yaml
+from schematic import CONFIG
 
 # Constants (to avoid magic numbers)
 FIRST = 0
@@ -25,16 +25,20 @@ parser = argparse.ArgumentParser()
 parser.add_argument("schema_csv_list", nargs="+", metavar="schema_csv",
                     help="Input CSV schema files.")
 parser.add_argument("--output_jsonld", "-o", help="Output JSON-LD schema file.")
-parser.add_argument("--base_schema_jsonld", "-b", default=biothings,
-                    help="Input base schema JSON-LD file. Typically BioThings schema.",
-                    required=is_biothings_absent, metavar="biothings.jsonld")
+parser.add_argument("--config", "-c", required=True,
+                    help="Configuration YAML file.")
 args = parser.parse_args()
+
+# Load configuration
+config_data = CONFIG.load_config(args.config)
+biothings_jsonld = CONFIG["model"]["biothings"]["location"]
+base_schema_path = os.path.join(CONFIG.DATA_PATH, biothings_jsonld)
 
 # instantiate schema explorer
 base_se = SchemaExplorer()
 
 # load base schema (BioThings)
-base_se.load_schema(args.base_schema_jsonld)
+base_se.load_schema(base_schema_path)
 
 for schema_extension_csv in args.schema_csv_list:
     schema_extension = pd.read_csv(schema_extension_csv)
