@@ -2,7 +2,7 @@ import os
 import json
 import urllib.request
 
-from definitions import DATA_PATH
+from schematic import CONFIG
 
 def load_json(file_path):
     """Load json document from file path or url
