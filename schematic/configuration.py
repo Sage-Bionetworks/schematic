@@ -26,12 +26,7 @@ class Configuration(object):
     def __getattribute__(self, name):
         value = super().__getattribute__(name)
         if value is None and "SCHEMATIC_CONFIG" in os.environ:
-            schematic_config = os.environ["SCHEMATIC_CONFIG"]
-            print(
-                "Loading config YAML file specified in 'SCHEMATIC_CONFIG' "
-                "environment variable: %s" % schematic_config
-            )
-            self.load_config(schematic_config)
+            self.load_config_from_env()
             value = super().__getattribute__(name)
         elif value is None and "SCHEMATIC_CONFIG" not in os.environ:
             raise AttributeError(
@@ -70,7 +65,26 @@ class Configuration(object):
         return os.path.normpath(path)
 
 
-    def load_config(self, config_path):
+    def load_config_from_env(self):
+        schematic_config = os.environ["SCHEMATIC_CONFIG"]
+        print(
+            "Loading config YAML file specified in 'SCHEMATIC_CONFIG' "
+            "environment variable: %s" % schematic_config
+        )
+        return self.load_config(schematic_config)
+
+
+    def load_config(self, config_path=None):
+        # If config_path is None, try loading from environment
+        if config_path is None and "SCHEMATIC_CONFIG" in os.environ:
+            return self.load_config_from_env()
+        # Otherwise, raise an error
+        elif config_path is None and "SCHEMATIC_CONFIG" not in os.environ:
+            raise ValueError(
+                "No configuration file provided to the `config_path` argument "
+                "in `load_config`()`, nor was one specified in the "
+                "'SCHEMATIC_CONFIG' environment variable. Quitting now..."
+            )
         # Load configuration YAML file
         config_path = os.path.expanduser(config_path)
         config_path = os.path.abspath(config_path)
