@@ -494,15 +494,23 @@ class SchemaExplorer():
 
                                         if edge_repl == u:
 
-                                            # we need to make sure to remove only edges that are tagged with the "parentOf" label
-                                            schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
+                                            try:
+                                                # we need to make sure to remove only edges that are tagged with the "parentOf" label
+                                                schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
+                                            except:
+                                                pass
+
                                 # there are certain nodes which have "subClassOf" data in dict format
                                 elif type(data["subClassOf"]) == dict:
                                     for k_id, v_curie in data["subClassOf"].items():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == u:
-                                            schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
+
+                                            try:
+                                                schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
+                                            except:
+                                                pass
 
                         # extract node names from replacement node and use it to add edges to the master schema/graph
                         parents = replace_data["subClassOf"]
@@ -542,14 +550,23 @@ class SchemaExplorer():
                                         edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
+                                            
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
+                                            except:
+                                                pass
+
                                 # there are certain nodes which have "requiresDependency" data in dict format
                                 elif type(data["requiresDependency"]) == dict:
                                     for k_id, v_curie in data["requiresDependency"].items():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == u:
-                                            schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
+                                            
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
+                                            except:
+                                                pass
 
                             deps = replace_data["requiresDependency"]
                             if type(deps) == list:
@@ -582,13 +599,22 @@ class SchemaExplorer():
                                         edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
+
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
+                                            except:
+                                                pass
+
                                 elif type(data["requiresComponent"]) == dict:
                                     for k_id, v_curie in data["requiresComponent"].items():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
+
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
+                                            except:
+                                                pass
 
                         comps = replace_data["requiresComponent"]
                         if type(comps) == list:
@@ -619,14 +645,21 @@ class SchemaExplorer():
                                         edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
+                                            except:
+                                                pass
+
                                 elif type(data["rangeIncludes"]) == dict:
                                     for k_id, v_curie in data["rangeIncludes"].items():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
-                                    
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
+                                            except:
+                                                pass
+
                         range_inc = replace_data["rangeIncludes"]
                         if type(range_inc) == list:
                             for _rinc in range_inc:
@@ -662,11 +695,6 @@ class SchemaExplorer():
     def add_schema_object_nx(self, schema_object: dict, **kwargs: dict) -> None:
         node = node_attrs_cleanup(schema_object)
 
-        # get the networkx graph associated with the SchemaExplorer object in its current state
-        schema_graph_nx = self.get_nx_schema()
-
-        schema_graph_nx = relationship_edges(schema_graph_nx, schema_object, **kwargs)
-
         if "required" in node:
             if "sms:true" == schema_object["sms:required"]:
                 node["required"] = True  
@@ -679,10 +707,15 @@ class SchemaExplorer():
             node["validationRules"] = []
 
         node['uri'] = schema_object["@id"]
-        node['description'] = schema_object["rdfs:comment"]
+        node['description'] = schema_object["rdfs:comment"]        
+
+        # get the networkx graph associated with the SchemaExplorer object in its current state
+        schema_graph_nx = self.get_nx_schema()
 
         # add node to graph
         schema_graph_nx.add_node(schema_object["rdfs:label"], **node)
+
+        schema_graph_nx = relationship_edges(schema_graph_nx, schema_object, **kwargs)
 
         # set the networkx schema graph to the the modified networkx schema
         self.schema_nx = schema_graph_nx

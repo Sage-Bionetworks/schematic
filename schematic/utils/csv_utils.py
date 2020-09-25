@@ -733,10 +733,10 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
     print("Done adding properties")
     print("====================================================================================")
 
-    # set range values and dependency requirements for each attribute
-    # if not already added, add each attribute in required values and dependencies to the schema extension
-    print("Editing attributes and properties to add requirements and value ranges")
-    print("====================================================================================")
+    # # set range values and dependency requirements for each attribute
+    # # if not already added, add each attribute in required values and dependencies to the schema extension
+    # print("Editing attributes and properties to add requirements and value ranges")
+    # print("====================================================================================")
 
     for attribute in attributes:
 
@@ -789,7 +789,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                 requires_range = class_info["range"],
                                                 required = class_info["required"],
                                                 validation_rules = class_info["validation_rules"] 
-                    )                    
+                    )
                     se.edit_schema_object_nx(class_range_edit)
 
                 else:

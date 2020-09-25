@@ -215,6 +215,11 @@ def class_to_node(class_to_convert: dict) -> nx.Graph:
         else:
             node["required"] = False
 
+    if "sms:validationRules" in class_to_convert:
+        node["validationRules"] = class_to_convert["sms:validationRules"]
+    else:
+        node["validationRules"] = []
+
     node["uri"] = class_to_convert["@id"]   # add separate "uri" key
     node["description"] = class_to_convert["rdfs:comment"] # separately store "comment" as "description"
     G.add_node(class_to_convert["rdfs:label"], **node)
