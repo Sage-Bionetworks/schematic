@@ -141,7 +141,7 @@ class SynapseStorage(object):
 
         # find set of user projects that are also in this pipeline's storage projects set
         storageProjects = list(set(storageProjects) & set(currentUserProjects))
-
+    
         # prepare a return list of project IDs and names
         projects = []
         for projectId in storageProjects:
@@ -240,7 +240,7 @@ class SynapseStorage(object):
         """
 
         # get a list of files containing the manifest for this dataset (if any)
-        manifest = self.getFilesInStorageDataset(datasetId, fileNames = [self.manifest])
+        manifest = self.getFilesInStorageDataset(datasetId, fileNames = [os.path.basename(self.manifest)])
         
         if not manifest:
             return []
@@ -422,12 +422,11 @@ class SynapseStorage(object):
             # set annotation(s) for the various objects/items in a dataset on Synapse
             annos = self.syn.get_annotations(entityId)
 
-            for anno_k, anno_v in annos.items():
-                if anno_k in metadataSyn:
-                    annos[anno_k] = metadataSyn[anno_k]
+            for anno_k, anno_v in metadataSyn.items():
+                annos[anno_k] = metadataSyn[anno_k]
 
             self.syn.set_annotations(annos)
-            # self.syn.set_annotations(metadataSyn) -- deprecated code
+            #self.syn.set_annotations(metadataSyn) #-- deprecated code
 
         # create/update a table corresponding to this dataset in this dataset's parent project
 
