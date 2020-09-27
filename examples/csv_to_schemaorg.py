@@ -14,12 +14,6 @@ from schematic import CONFIG
 # Constants (to avoid magic numbers)
 FIRST = 0
 
-# Try to find BioThings JSON-LD file relative to script
-script_dir = os.path.dirname(os.path.realpath(__file__))
-biothings  = os.path.join(script_dir, "..", "data", "schema_org_schemas",
-                          "biothings.jsonld")
-is_biothings_absent = not os.path.exists(biothings)
-
 # Create command-line argument parser
 parser = argparse.ArgumentParser()
 parser.add_argument("schema_csv_list", nargs="+", metavar="schema_csv",
