@@ -1,1 +1,1 @@
-from .configuration import CONFIG
+from schematic.configuration import CONFIG
