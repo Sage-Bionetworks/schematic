@@ -77,7 +77,7 @@ class SynapseStorage(object):
             # get data in administrative fileview for this pipeline
             self.storageFileviewTable = self.syn.tableQuery("SELECT * FROM " + self.storageFileview).asDataFrame()
 
-            self.manifest = os.path.join(CONFIG.DATA_PATH, CONFIG["synapse"]["manifest_filename"])
+            self.manifest = CONFIG["synapse"]["manifest_filename"]
         except KeyError as key_exc:
             print("Missing value(s) for the {} key(s) in the config file.".format(key_exc))
         except AttributeError:

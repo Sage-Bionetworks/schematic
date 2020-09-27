@@ -649,7 +649,7 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
 
-        json_schema_log_file = os.path.join(CONFIG.DATA_PATH, '', CONFIG["model"]["input"]["log_location"])
+        json_schema_log_file = CONFIG["model"]["input"]["log_location"]
         with open(json_schema_log_file, "w") as js_f:
             json.dump(json_schema, js_f, indent = 2)
 

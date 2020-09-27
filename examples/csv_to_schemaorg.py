@@ -24,8 +24,7 @@ args = parser.parse_args()
 
 # Load configuration
 config_data = CONFIG.load_config(args.config)
-biothings_jsonld = CONFIG["model"]["biothings"]["location"]
-base_schema_path = os.path.join(CONFIG.DATA_PATH, biothings_jsonld)
+base_schema_path = CONFIG["model"]["biothings"]["location"]
 
 # instantiate schema explorer
 base_se = SchemaExplorer()

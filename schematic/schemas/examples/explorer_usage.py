@@ -7,7 +7,7 @@ from graphviz import Digraph, Source
 from schematic import CONFIG
 
 
-PATH_TO_JSONLD = os.path.join(CONFIG.DATA_PATH, CONFIG["model"]["input"]["location"])
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of the SchemaExplorer() class
 schema_explorer = SchemaExplorer()
@@ -44,7 +44,7 @@ gv_digraph = schema_explorer.full_schema_graph()
 
 # since the graph is very big, we will generate an svg viz. of it
 gv_digraph.format = 'svg'
-gv_digraph.render(os.path.join(CONFIG.DATA_PATH, '', 'viz/example-GV'), view=True)
+gv_digraph.render('viz/example-GV', view=True)
 print("The svg visualization of the entire schema has been rendered.")
 
 # # graph visualization of a sub-schema

@@ -4,7 +4,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic import CONFIG
 
 
-PATH_TO_JSONLD = os.path.join(CONFIG.DATA_PATH, CONFIG["model"]["input"]["location"])
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of SchemaGenerator() class
 schema_generator = SchemaGenerator(PATH_TO_JSONLD)

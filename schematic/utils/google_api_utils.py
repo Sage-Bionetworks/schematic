@@ -64,11 +64,16 @@ def download_creds_file():
     if not os.path.exists(CONFIG.CREDS_PATH):
 
         print("Retrieving Google API credentials from Synapse...")
-        # synapse ID of the 'credentials.json' file, which we need in order to establish communication with gAPIs/services
-        SYN_CREDS = CONFIG["synapse"]["api_creds"]
+        # synapse ID of the 'credentials.json' file, which we need in
+        # order to establish communication with gAPIs/services
+        API_CREDS = CONFIG["synapse"]["api_creds"]
         syn = synapseclient.Synapse()
         syn.login()
-        syn.get(SYN_CREDS, downloadLocation = CONFIG.ROOT_DIR)
+        # Download in parent directory of CREDS_PATH to
+        # ensure same file system for os.rename()
+        creds_dir = os.path.dirname(CONFIG.CREDS_PATH)
+        creds_file = syn.get(API_CREDS, downloadLocation = creds_dir)
+        os.rename(creds_file.path, CONFIG.CREDS_PATH)
         print("Downloaded Google API credentials file.")
 
 def execute_google_api_requests(service, requests_body, **kwargs):

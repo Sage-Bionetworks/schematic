@@ -7,7 +7,7 @@ from schematic.utils.google_api_utils import download_creds_file
 
 from schematic import CONFIG
 
-PATH_TO_JSONLD = os.path.join(CONFIG.DATA_PATH, CONFIG["model"]["input"]["location"])
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an instance of ManifestGenerator class
 TEST_NODE = "FollowUp"
