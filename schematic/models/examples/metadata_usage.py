@@ -10,7 +10,7 @@ if CONFIG.DATA is None:
     sys.exit("Your config file may be empty.")
 
 # path to the JSON-LD schema that is stored "locally" in the app directory
-MM_LOC = os.path.join(CONFIG.DATA_PATH, CONFIG["model"]["input"]["location"])
+MM_LOC = CONFIG["model"]["input"]["location"]
 MM_TYPE = CONFIG["model"]["input"]["file_type"]
 
 # create instance of MetadataModel class
@@ -35,7 +35,11 @@ if not os.path.exists(CONFIG.CREDS_PATH):
 
     syn = synapseclient.Synapse()
     syn.login()
-    syn.get(API_CREDS, downloadLocation = CONFIG.ROOT_DIR)
+    # Download in parent directory of CREDS_PATH to
+    # ensure same file system for os.rename()
+    creds_dir = os.path.dirname(CONFIG.CREDS_PATH)
+    creds_file = syn.get(API_CREDS, downloadLocation = creds_dir)
+    os.rename(creds_file.path, CONFIG.CREDS_PATH)
     print("Stored Google API credentials.")
 
 print("Google API credentials successfully located..")
@@ -51,12 +55,12 @@ print("Google API credentials successfully located..")
 
 # testing manifest generation with optionally provided JSON validation schema
 print("Testing manifest generation based on an additionally provided JSON schema..")
-HTAPP_VALIDATION_SCHEMA = os.path.join(CONFIG.DATA_PATH, CONFIG["model"]["demo"]["validation_file_location"])
+HTAPP_VALIDATION_SCHEMA = CONFIG["model"]["demo"]["validation_file_location"]
 
 with open(HTAPP_VALIDATION_SCHEMA, "r") as f:
     json_schema = json.load(f)
 
-HTAPP_SCHEMA = os.path.join(CONFIG.DATA_PATH, CONFIG["model"]["demo"]["location"])
+HTAPP_SCHEMA = CONFIG["model"]["demo"]["location"]
 HTAPP_SCHEMA_TYPE = CONFIG["model"]["demo"]["file_type"]
 
 metadata_model_htapp = MetadataModel(HTAPP_SCHEMA, HTAPP_SCHEMA_TYPE)
@@ -69,7 +73,7 @@ print(manifest_url)
 # without optionally/additionally provided JSON schema
 print("Testing metadata model-based validation..")
 
-MANIFEST_PATH = os.path.join(CONFIG.DATA_PATH, CONFIG["model"]["demo"]["valid_manifest"])
+MANIFEST_PATH = CONFIG["model"]["demo"]["valid_manifest"]
 print("Testing validation with jsonSchema generation from schema.org schema..")
 annotation_errors = metadata_model_htan.validateModelManifest(MANIFEST_PATH, TEST_COMP)
 print(annotation_errors)

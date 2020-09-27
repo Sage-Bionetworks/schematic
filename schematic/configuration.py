@@ -5,16 +5,12 @@ import yaml
 class Configuration(object):
 
     def __init__(self):
-        # this is the project's root directory
-        self.ROOT_DIR = None
         # path to config.yml file
         self.CONFIG_PATH = None
         # path to credentials.json file
         self.CREDS_PATH = None
         # path to token.pickle file
         self.TOKEN_PICKLE = None
-        # path to data directory
-        self.DATA_PATH = None
         # path to service account credentials file
         self.SERVICE_ACCT_CREDS = None
         # path to synapse config file
@@ -90,19 +86,15 @@ class Configuration(object):
         config_path = os.path.abspath(config_path)
         self.DATA = self.load_yaml(config_path)
         # Update module-level configuration constants
-        self.ROOT_DIR = self.DATA["definitions"]["root_dir"]
         self.CONFIG_PATH = config_path
         self.CREDS_PATH = self.DATA["definitions"]["creds_path"]
         self.TOKEN_PICKLE = self.DATA["definitions"]["token_pickle"]
-        self.DATA_PATH = self.DATA["definitions"]["data_path"]
         self.SERVICE_ACCT_CREDS = self.DATA["definitions"]["service_acct_creds"]
         self.SYNAPSE_CONFIG_PATH = self.DATA["definitions"]["synapse_config"]
         # Normalize all file paths as absolute file paths
-        self.ROOT_DIR = self.normalize_path(self.ROOT_DIR)
         self.CONFIG_PATH = self.normalize_path(self.CONFIG_PATH)
         self.CREDS_PATH = self.normalize_path(self.CREDS_PATH)
         self.TOKEN_PICKLE = self.normalize_path(self.TOKEN_PICKLE)
-        self.DATA_PATH = self.normalize_path(self.DATA_PATH)
         self.SERVICE_ACCT_CREDS = self.normalize_path(self.SERVICE_ACCT_CREDS)
         self.SYNAPSE_CONFIG_PATH = self.normalize_path(self.SYNAPSE_CONFIG_PATH)
         # Return self.DATA as a side-effect
