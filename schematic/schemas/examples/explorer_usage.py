@@ -4,12 +4,10 @@ import os
 from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
 from graphviz import Digraph, Source
 
-from definitions import DATA_PATH, CONFIG_PATH
-from schematic.utils.config_utils import load_yaml
+from schematic import CONFIG
 
-config_data = load_yaml(CONFIG_PATH)
 
-PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of the SchemaExplorer() class
 schema_explorer = SchemaExplorer()
@@ -46,7 +44,7 @@ gv_digraph = schema_explorer.full_schema_graph()
 
 # since the graph is very big, we will generate an svg viz. of it
 gv_digraph.format = 'svg'
-gv_digraph.render(os.path.join(DATA_PATH, '', 'viz/example-GV'), view=True)
+gv_digraph.render('viz/example-GV', view=True)
 print("The svg visualization of the entire schema has been rendered.")
 
 # # graph visualization of a sub-schema
@@ -112,7 +110,7 @@ print("The svg visualization of the entire schema has been rendered.")
 #                 "sms:required": "sms:false"
 #             }
 
-# # make edits to TEST_CLASS based on the above template and pass it to edit_class() 
+# # make edits to TEST_CLASS based on the above template and pass it to edit_class()
 # schema_explorer.edit_class(class_info=class_mod)
 
 # # verify that the comment associated with TEST_CLASS has indeed been changed

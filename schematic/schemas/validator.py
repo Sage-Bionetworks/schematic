@@ -6,11 +6,8 @@ from schematic.utils.general import str2list, dict2list, find_duplicates
 from schematic.utils.curie_utils import expand_curies_in_schema, extract_name_from_uri_or_curie
 from schematic.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
 
-from schematic.utils.config_utils import load_yaml
+from schematic import CONFIG
 
-from definitions import CONFIG_PATH, DATA_PATH
-
-config_data = load_yaml(CONFIG_PATH)
 
 class SchemaValidator():
     """Validate Schema against SchemaOrg standard
@@ -21,27 +18,27 @@ class SchemaValidator():
       > Each element in "@graph" should contain "@id", "@type", "rdfs:comment",
       "rdfs:label", "sms:displayName"
       > validate against JSON Schema
-      > Should validate the whole structure, and also validate property and 
+      > Should validate the whole structure, and also validate property and
       value separately
     2. Data Content wise:
       > "@id" field should match with "rdfs:label" field
       > all prefixes used in the file should be defined in "@context"
       > There should be no duplicate "@id"
       > Class specific
-        > rdfs:label field should be capitalize the first character of each 
-          word for a class; 
-        > the value of "rdfs:subClassOf" should be present in the schema or in 
+        > rdfs:label field should be capitalize the first character of each
+          word for a class;
+        > the value of "rdfs:subClassOf" should be present in the schema or in
           the core vocabulary
         > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
       > Property specific
         > rdfs:label field should be cammelCase
-        > the value of "schema:domainIncludes" should be present in the schema 
+        > the value of "schema:domainIncludes" should be present in the schema
           or in the core vocabulary
-        > the value of "schema:rangeIncludes" should be present in the schema 
+        > the value of "schema:rangeIncludes" should be present in the schema
           or in the core vocabulary
         > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
         TODO: add dependencies and component dependencies to class structure documentation; as well as value range and required property
-      
+
     """
     def __init__(self, schema):
         self.schemaorg = {'schema': load_schemaorg(),
@@ -120,21 +117,21 @@ class SchemaValidator():
     def validate_schema(self, schema):
         """Validate schema against SchemaORG standard
         """
-        json_schema_path = os.path.join(DATA_PATH, 'validation_schemas', 'schema.json')
+        json_schema_path = os.path.join('validation_schemas', 'schema.json')
         json_schema = load_json(json_schema_path)
         return validate(schema, json_schema)
 
     def validate_property_schema(self, schema):
         """Validate schema against SchemaORG property definition standard
         """
-        json_schema_path = os.path.join(DATA_PATH, 'validation_schemas', 'property_json_schema.json')
+        json_schema_path = os.path.join('validation_schemas', 'property_json_schema.json')
         json_schema = load_json(json_schema_path)
         return validate(schema, json_schema)
 
     def validate_class_schema(self, schema):
         """Validate schema against SchemaORG class definition standard
         """
-        json_schema_path = os.path.join(DATA_PATH, 'validation_schemas', 'class_json_schema.json')
+        json_schema_path = os.path.join('validation_schemas', 'class_json_schema.json')
         json_schema = load_json(json_schema_path)
         return validate(schema, json_schema)
 
