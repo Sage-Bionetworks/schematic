@@ -4328,7 +4328,52 @@
                     "@id": "bts:HTANDataFileID"
                 },
                 {
-                    "@id": "bts:AssayType"
+                    "@id": "bts:NucleicAcidSource"
+                },
+                {
+                    "@id": "bts:DissociationMethod"
+                },
+                {
+                    "@id": "bts:SingleNucleusBuffer"
+                },
+                {
+                    "@id": "bts:SingleCellIsolationMethod"
+                },
+                {
+                    "@id": "bts:TranspositionReaction"
+                },
+                {
+                    "@id": "bts:ScATAC-seqLibraryLayout"
+                },
+                {
+                    "@id": "bts:NucleiBarcodeLength"
+                },
+                {
+                    "@id": "bts:NucleiBarcodeRead"
+                },
+                {
+                    "@id": "bts:ScATAC-seqRead1"
+                },
+                {
+                    "@id": "bts:ScATAC-seqRead2"
+                },
+                {
+                    "@id": "bts:LibraryConstructionMethod"
+                },
+                {
+                    "@id": "bts:NucleusIdentifier"
+                },
+                {
+                    "@id": "bts:SequencingPlatform"
+                },
+                {
+                    "@id": "bts:TechnicalReplicateGroup"
+                },
+                {
+                    "@id": "bts:TotalReads"
+                },
+                {
+                    "@id": "bts:ProtocolsLink"
                 }
             ],
             "sms:validationRules": []
