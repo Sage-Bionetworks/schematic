@@ -31,7 +31,7 @@ def export_json(json_doc, file_path):
 def load_default():
     """Load biolink vocabulary
     """
-    biothings_path = os.path.join('schema_org_schemas', 'biothings.jsonld')
+    biothings_path = CONFIG["model"]["biothings"]["location"]
     return load_json(biothings_path)
 
 
