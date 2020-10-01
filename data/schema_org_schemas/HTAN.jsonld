@@ -3138,6 +3138,12 @@
                     "@id": "bts:CollectionDaysfromIndex"
                 },
                 {
+                    "@id": "bts:CollectionDaysfromIndex"
+                },
+                {
+                    "@id": "bts:AdjacentBiospecimenID"
+                },
+                {
                     "@id": "bts:BiospecimenType"
                 },
                 {
@@ -3162,16 +3168,19 @@
                     "@id": "bts:SiteDataSource"
                 },
                 {
+                    "@id": "bts:CollectionMedia"
+                },
+                {
                     "@id": "bts:ProcessingLocation"
                 },
                 {
                     "@id": "bts:HistologyAssessmentBy"
                 },
                 {
-                    "@id": "bts:Histology"
+                    "@id": "bts:HistologyAssessmentMedium"
                 },
                 {
-                    "@id": "bts:AssessmentMedium"
+                    "@id": "bts:PreinvasiveMorphology"
                 },
                 {
                     "@id": "bts:TumorInfiltratingLymphocites"
@@ -3210,10 +3219,7 @@
                     "@id": "bts:PercentNormalCells"
                 },
                 {
-                    "@id": "bts:Percent"
-                },
-                {
-                    "@id": "bts:StromalCells"
+                    "@id": "bts:PercentStromalCells"
                 },
                 {
                     "@id": "bts:PercentTumorCells"
@@ -3226,15 +3232,6 @@
                 },
                 {
                     "@id": "bts:SlicingMethod"
-                },
-                {
-                    "@id": "bts:AntigenRetrieval"
-                },
-                {
-                    "@id": "bts:BiospecimenSlideLocation"
-                },
-                {
-                    "@id": "bts:StainingMarkers"
                 },
                 {
                     "@id": "bts:LysisBuffer"
@@ -26140,10 +26137,10 @@
                     "@id": "bts:FixationDuration"
                 },
                 {
-                    "@id": "bts:SlideType"
+                    "@id": "bts:SlideChargeType"
                 },
                 {
-                    "@id": "bts:SlideThicknessValue"
+                    "@id": "bts:SectionThicknessValue"
                 },
                 {
                     "@id": "bts:SectioningDaysfromIndex"
@@ -27004,10 +27001,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:SlideType",
+            "@id": "bts:SlideChargeType",
             "@type": "rdfs:Class",
             "rdfs:comment": "A description of the charge on the glass slide.",
-            "rdfs:label": "SlideType",
+            "rdfs:label": "SlideChargeType",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Biospecimen"
@@ -27033,15 +27030,15 @@
                     "@id": "bts:Other"
                 }
             ],
-            "sms:displayName": "Slide Type",
+            "sms:displayName": "Slide Charge Type",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
         {
-            "@id": "bts:SlideThicknessValue",
+            "@id": "bts:SectionThicknessValue",
             "@type": "rdfs:Class",
             "rdfs:comment": "Numeric value to describe the thickness of a slice to tissue taken from a biospecimen, measured in microns (um).",
-            "rdfs:label": "SlideThicknessValue",
+            "rdfs:label": "SectionThicknessValue",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Biospecimen"
@@ -27050,7 +27047,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Slide Thickness Value",
+            "sms:displayName": "Section Thickness Value",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
