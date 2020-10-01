@@ -3,7 +3,7 @@
 Path to the data model/schema that you want to load using the `SchemaExplorer` object:
 
 ```python
-PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
+PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
 ```
 
 Create an object of the SchemaExplorer() class:
@@ -66,7 +66,7 @@ Since the graph is very big, we will generate an svg viz. of it. Please allow so
 
 ```python
 gv_digraph.format = 'svg'
-gv_digraph.render('viz/HTAN-GV', view=True)
+gv_digraph.render(os.path.join(DATA_PATH, '', 'viz/HTAN-GV'), view=True)
 print("The svg visualization of the entire schema has been rendered.")
 ```
 

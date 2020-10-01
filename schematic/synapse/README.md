@@ -40,7 +40,7 @@ Once you have generated/filled out/validated a metadata manifest file, and want 
 
 ```python
 print("Testing association of entities with annotation from manifest...")
-manifest_syn_id = syn_store.associateMetadataWithFiles(CONFIG["synapse"]["manifest_filename"], "syn21984120")
+manifest_syn_id = syn_store.associateMetadataWithFiles(os.path.join('DATA_PATH', config_data["synapse"]["manifest_filename"]), "syn21984120")
 print(manifest_syn_id)
 ```
 
