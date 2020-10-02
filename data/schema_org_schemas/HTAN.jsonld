@@ -4549,6 +4549,9 @@
                     "@id": "bts:ScATAC-seqLibraryLayout"
                 },
                 {
+                    "@id": "bts:NucleusIdentifier"
+                },
+                {
                     "@id": "bts:NucleiBarcodeLength"
                 },
                 {
@@ -4561,13 +4564,28 @@
                     "@id": "bts:ScATAC-seqRead2"
                 },
                 {
-                    "@id": "bts:NucleusIdentifier"
-                },
-                {
                     "@id": "bts:LibraryConstructionMethod"
                 },
                 {
                     "@id": "bts:SequencingPlatform"
+                },
+                {
+                    "@id": "bts:ThresholdforMinimumPassingReads"
+                },
+                {
+                    "@id": "bts:TotalNumberofPassingNuclei"
+                },
+                {
+                    "@id": "bts:MedianFractionofReadsinPeaks-FRIP"
+                },
+                {
+                    "@id": "bts:MedianFractionofReadsinAnnotatedcis-DNAElements-FRIADE"
+                },
+                {
+                    "@id": "bts:MedianPassingReadPercentage"
+                },
+                {
+                    "@id": "bts:MedianPercentageofMitochondrialReadsperNucleus"
                 },
                 {
                     "@id": "bts:TechnicalReplicateGroup"
@@ -4788,7 +4806,7 @@
         {
             "@id": "bts:NucleiBarcodeLength",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Nuclei Barcode Read",
+            "rdfs:comment": "Nuclei Barcode Length",
             "rdfs:label": "NucleiBarcodeLength",
             "rdfs:subClassOf": [
                 {
@@ -4908,6 +4926,101 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Total Number of Passing Nuclei",
+            "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MedianFractionofReadsinPeaks-FRIP",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Median fraction of reads in peaks (FRIP)",
+            "rdfs:label": "MedianFractionofReadsinPeaks-FRIP",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ScATAC-seqLevel1"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Median Fraction of Reads in Peaks - FRIP",
+            "sms:required": "sms:true",
+            "sms:requiresDependency": [
+                {
+                    "@id": "bts:PeaksCallingSoftware"
+                }
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MedianFractionofReadsinAnnotatedcis-DNAElements-FRIADE",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Median fraction of reads in annotated cis-DNA elements (FRIADE)",
+            "rdfs:label": "MedianFractionofReadsinAnnotatedcis-DNAElements-FRIADE",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ScATAC-seqLevel1"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Median Fraction of Reads in Annotated cis-DNA Elements - FRIADE",
+            "sms:required": "sms:true",
+            "sms:requiresDependency": [
+                {
+                    "@id": "bts:PeaksCallingSoftware"
+                }
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MedianPassingReadPercentage",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Non-PCR duplicate nuclear genomic sequence reads not aligning to unanchored contigs out of total reads assigned to the nucleus barcode",
+            "rdfs:label": "MedianPassingReadPercentage",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ScATAC-seqLevel1"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Median Passing Read Percentage",
+            "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MedianPercentageofMitochondrialReadsperNucleus",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Contamination from mitochondrial sequences",
+            "rdfs:label": "MedianPercentageofMitochondrialReadsperNucleus",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ScATAC-seqLevel1"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Median Percentage of Mitochondrial Reads per Nucleus",
+            "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:PeaksCallingSoftware",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Generic name of peaks calling tool",
+            "rdfs:label": "PeaksCallingSoftware",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ScATAC-seqLevel1"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Peaks Calling Software",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
