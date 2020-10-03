@@ -1,5 +1,5 @@
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List
+from typing import Any, Dict, Optional, Text, List, Tuple
 
 import os
 
@@ -13,6 +13,7 @@ import pandas as pd
 import synapseclient
 
 from synapseclient import File, Folder, Table
+from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 import synapseutils
 
@@ -338,6 +339,20 @@ class SynapseStorage(object):
         return manifests
 
 
+    def get_synapse_table(self, synapse_id:str) -> Tuple[pd.DataFrame, CsvFileTable]:
+        """
+        Download synapse table as a pd dataframe; return table schema and etags as results too
+
+        Args:
+            synapse_id: synapse ID of the table to query
+        """
+
+        results = self.syn.tableQuery("SELECT * FROM %s" % synapse_id)
+        df = results.asDataFrame(rowIdAndVersionInIndex = False)
+
+        return df, results
+
+
     def associateMetadataWithFiles(self, metadataManifestPath: str, datasetId: str) -> str:
         """Associate metadata with files in a storage dataset already on Synapse. 
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -359,7 +374,7 @@ class SynapseStorage(object):
         # determine dataset name
         datasetEntity = self.syn.get(datasetId, downloadFile = False)
         datasetName = datasetEntity.name
-        datasetParentProject = datasetEntity.properties["parentId"]
+        datasetParentProject = self.storageFileviewTable[(self.storageFileviewTable["id"] == datasetId)]["projectId"].values[0]
 
         # read new manifest csv
         try:
@@ -369,6 +384,7 @@ class SynapseStorage(object):
 
         # check if there is an existing manifest
         existingManifest = self.getDatasetManifest(datasetId)
+
         existingTableId = None
 
         if existingManifest:
@@ -382,7 +398,7 @@ class SynapseStorage(object):
 
             # retrieve Synapse table associated with this manifest, so that it can be updated below
             existingTableId = self.syn.findEntityId(datasetName + "_table", datasetParentProject)
-            
+    
         # if this is a new manifest there could be no Synapse entities associated with the rows of this manifest
         # this may be due to data type (e.g. clinical data) being tabular 
         # and not requiring files; to utilize uniform interfaces downstream
@@ -430,15 +446,20 @@ class SynapseStorage(object):
 
         # create/update a table corresponding to this dataset in this dataset's parent project
 
-        if existingTableId:
-            # if table already exists, delete it and upload the new table
-            # TODO: do a proper Synapse table update
-            self.syn.delete(existingTableId)
+        if existingTableId: 
+            existing_table, existing_results = self.get_synapse_table(existingTableId)
+            
+            manifest = update_df(existing_table, manifest, 'entityId')
+
+            self.syn.store(Table(existingTableId, manifest, etag = existing_results.etag))
+            # remove system metadata from manifest
+            manifest.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
+            
+        else:  
+            # create table using latest manifest content
+            table = build_table(datasetName + "_table", datasetParentProject, manifest)
+            table = self.syn.store(table)
         
-        # create table using latest manifest content
-        table = build_table(datasetName + "_table", self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
-        table = self.syn.store(table)
-         
         # update the manifest file, so that it contains the relevant entity IDs
         manifest.to_csv(metadataManifestPath, index = False)
 
