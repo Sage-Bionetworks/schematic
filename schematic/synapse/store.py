@@ -197,13 +197,14 @@ class SynapseStorage(object):
         return sorted_dataset_list
 
 
-    def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None) -> List[str]:
+    def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None, fullpath:bool = True) -> List[str]:
         """Gets all files in a given dataset folder.
 
         Args:
             datasetId: synapse ID of a storage dataset.
             fileNames: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
             metadata manifests); if fileNames is not None, all files matching the names in the fileNames list are returned if present.
+            fullpath: if True return the full path as part of this filename; otherwise return just base filename
         
         Returns: a list of files; the list consists of tuples (fileId, fileName).
         
@@ -211,25 +212,31 @@ class SynapseStorage(object):
             ValueError: Dataset ID not found.
         """
 
-        # select all files within a given storage dataset (top level folder in a Synapse storage project)
-        filesTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "file") & (self.storageFileviewTable["parentId"] == datasetId)]
+        # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
+        walked_path = synapseutils.walk(self.syn, datasetId)
 
-        # return a list of tuples (fileId, fileName)
-        fileList = []
-        for row in filesTable[["id", "name"]].itertuples(index = False, name = None):
-            # if not row[1] == self.manifest and not fileNames:
-            if not "manifest" in row[1] and not fileNames:
-                # check if a metadata-manifest file has been passed in the list of filenames; assuming the manifest file has a specific filename, e.g. synapse_storage_manifest.csv; remove the manifest filename if so; (no need to add metadata to the metadata container); TODO: expose manifest filename as a configurable parameter and don't hard code.
-                fileList.append(row)
+        file_list = []
 
-            elif not fileNames == None and row[1] in fileNames:
-                # if fileNames is specified and file is in fileNames add it to the returned list
-                fileList.append(row)
+        # iterate over all results        
+        for dirpath, dirname, filenames in walked_path:
+            
+            # iterate over all files in a folder
+            for filename in filenames:
 
-        sorted_files_list = sorted(fileList, key=lambda tup: tup[0])
+                if (not "manifest" in filename[0] and not fileNames) or (not fileNames == None and filename[0] in fileNames):
+                    
+                    # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
+                    # except the manifest if no fileNames have been specified
+                
 
-        return sorted_files_list
-        
+                    if fullpath:
+                        # append directory path to filename
+                        filename  = (dirpath[0] + "/" + filename[0], filename[1])
+
+                    # add file name file id tuple, rearranged so that id is first and name follows
+                    file_list.append(filename[::-1])
+ 
+        return file_list
 
     def getDatasetManifest(self, datasetId: str) -> List[str]:
         """Gets the manifest associated with a given dataset.
