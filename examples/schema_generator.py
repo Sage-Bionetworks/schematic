@@ -1,9 +1,12 @@
 import os
 from schematic.schemas.generator import SchemaGenerator
 
-from schematic import CONFIG
+from definitions import DATA_PATH, CONFIG_PATH
+from schematic.utils.config_utils import load_yaml
 
-PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
+config_data = load_yaml(CONFIG_PATH)
+
+PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
 
 # create an object of SchemaGenerator() class
 schema_generator = SchemaGenerator(PATH_TO_JSONLD)

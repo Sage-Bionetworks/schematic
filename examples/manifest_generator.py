@@ -4,10 +4,13 @@ import os
 from schematic.manifest.generator import ManifestGenerator
 
 from schematic.utils.google_api_utils import download_creds_file
+from schematic.utils.config_utils import load_yaml
 
-from schematic import CONFIG
+from definitions import CONFIG_PATH, DATA_PATH
 
-PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
+config_data = load_yaml(CONFIG_PATH)
+
+PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
 
 # create an instance of ManifestGenerator class
 TEST_NODE = "FollowUp"
