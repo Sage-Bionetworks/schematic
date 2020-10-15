@@ -28,7 +28,7 @@ class ManifestGenerator(object):
         """
 
         # make a call to the build_credentials() function
-        services_creds = build_service_account_creds()
+        services_creds = build_credentials()
 
         # google service for Sheet API
         self.sheet_service = services_creds["sheet_service"]
