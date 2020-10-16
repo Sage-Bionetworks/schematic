@@ -3377,6 +3377,9 @@
                     "@id": "bts:CollectionMedia"
                 },
                 {
+                    "@id": "bts:MountingMedium"
+                },
+                {
                     "@id": "bts:ProcessingLocation"
                 },
                 {
@@ -8572,7 +8575,7 @@
         {
             "@id": "bts:TimepointLabel",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Label to identify the time point at which the biospecimen was obtained. NO PHI/PII INFORMATION IS ALLOWED.",
+            "rdfs:comment": "Label to identify the time point at which the biospecimen was obtained. E.g. Baseline, End of Treatment, Overall Survival, Final. NO PHI/PII INFORMATION IS ALLOWED.",
             "rdfs:label": "TimepointLabel",
             "rdfs:subClassOf": [
                 {
@@ -8582,20 +8585,6 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "schema:rangeIncludes": [
-                {
-                    "@id": "bts:Baseline"
-                },
-                {
-                    "@id": "bts:EndofTreatment"
-                },
-                {
-                    "@id": "bts:Overallsurvival"
-                },
-                {
-                    "@id": "bts:Final"
-                }
-            ],
             "sms:displayName": "Timepoint Label",
             "sms:required": "sms:true",
             "sms:validationRules": []
