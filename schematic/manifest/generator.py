@@ -573,7 +573,7 @@ class ManifestGenerator(object):
 
         return manifest_url
 
-    def get_manifest(self, dataset_id: str, sheet_url: bool):
+    def get_manifest(self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None):
         """Gets manifest for a given dataset on Synapse.
 
         Args:
@@ -589,55 +589,62 @@ class ManifestGenerator(object):
 
         syn_store = SynapseStorage(syn=syn)
 
-        # get manifest file associated with given dataset
-        syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
-
         # determine path to the user-specified manifests folder where the manifest should be downloaded to
         manifests_folder_path = os.path.join(DATA_PATH, config_data["synapse"]["manifest_folder"])
 
-        # Case 1: manifest exists in the given dataset and URL is to be returned
-        if syn_id_and_path and sheet_url:
+        if dataset_id:
+            # get manifest file associated with given dataset
+            syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
 
-            # get synapse ID manifest associated with dataset
-            manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
+            # Case 1: manifest exists in the given dataset and URL is to be returned
+            if syn_id_and_path and sheet_url:
 
-            # get URL of an empty manifest file created based on schema component
-            empty_manifest_url = self.get_empty_manifest()
+                # get synapse ID manifest associated with dataset
+                manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
 
-            # populate empty manifest with content from downloaded/existing manifest
-            pop_manifest_url = self.populate_manifest_spreadsheet(manifest_data.path, empty_manifest_url)
+                # get URL of an empty manifest file created based on schema component
+                empty_manifest_url = self.get_empty_manifest()
 
-            return pop_manifest_url
+                # populate empty manifest with content from downloaded/existing manifest
+                pop_manifest_url = self.populate_manifest_spreadsheet(manifest_data.path, empty_manifest_url)
 
-        # Case 2: manifest exists in the given dataset and dataframe is to be returned
-        elif syn_id_and_path and not sheet_url:
-            manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
+                return pop_manifest_url
 
-            # convert downloaded/existing manifest contents into dataframe
-            manifest_data_df = pd.read_csv(manifest_data.path)
+            # Case 2: manifest exists in the given dataset and dataframe is to be returned
+            elif syn_id_and_path and not sheet_url:
+                manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
 
-            return manifest_data_df
+                # convert downloaded/existing manifest contents into dataframe
+                manifest_data_df = pd.read_csv(manifest_data.path)
 
-        # Case 3: manifest does not exist in the given dataset and URL is to be returned
-        elif not syn_id_and_path and sheet_url:
-            empty_manifest_url = self.get_empty_manifest()
+                return manifest_data_df
 
-            return empty_manifest_url
+            # Case 3: manifest does not exist in the given dataset and URL is to be returned
+            elif not syn_id_and_path and sheet_url:
+                empty_manifest_url = self.get_empty_manifest()
 
-        # Case 4: manifest does not exist in the given dataset and dataframe is to be returned
-        elif not syn_id_and_path and not sheet_url:
-            empty_manifest_url = self.get_empty_manifest()
+                return empty_manifest_url
 
-            # authorize pygsheets to read from the given URL
-            gc = ps.authorize(custom_credentials=self.creds)
+            # Case 4: manifest does not exist in the given dataset and dataframe is to be returned
+            elif not syn_id_and_path and not sheet_url:
+                empty_manifest_url = self.get_empty_manifest()
 
-            sh = gc.open_by_url(empty_manifest_url)
-            wb = sh[0]
-            
-            # get column headers and read it into a dataframe
-            empty_manifest_data = wb.get_as_df(hasHeader=True)
+                # authorize pygsheets to read from the given URL
+                gc = ps.authorize(custom_credentials=self.creds)
 
-            return empty_manifest_data
+                sh = gc.open_by_url(empty_manifest_url)
+                wb = sh[0]
+                
+                # get column headers and read it into a dataframe
+                empty_manifest_data = wb.get_as_df(hasHeader=True)
+
+                return empty_manifest_data
+
+        # Default case when no arguments are provided to the get_manifest() method
+        if json_schema:
+            return self.get_empty_manifest(json_schema=json_schema)
+
+        return self.get_empty_manifest()
 
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
