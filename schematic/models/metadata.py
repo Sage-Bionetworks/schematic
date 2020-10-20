@@ -131,9 +131,9 @@ class MetadataModel(object):
             return
 
         if jsonSchema:
-            return mg.get_empty_manifest(jsonSchema)
+            return mg.get_manifest(jsonSchema)
 
-        return mg.get_empty_manifest()
+        return mg.get_manifest()
 
 
     def get_component_requirements(self, source_component: str) -> List[str]:
@@ -214,7 +214,7 @@ class MetadataModel(object):
         """
         mg = ManifestGenerator(title, self.inputMModelLocation, rootNode)
         
-        emptyManifestURL = mg.get_empty_manifest()
+        emptyManifestURL = mg.get_manifest()
 
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
 
