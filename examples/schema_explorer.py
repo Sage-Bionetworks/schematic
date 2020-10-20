@@ -13,6 +13,7 @@ args = parser.parse_args()
 # Load configuration
 config_data = CONFIG.load_config(args.config)
 
+# path to schema.org/JSON-LD schema ass specified in `config.yml`
 PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of the SchemaExplorer() class
@@ -50,7 +51,7 @@ gv_digraph = schema_explorer.full_schema_graph()
 
 # since the graph is very big, we will generate an svg viz. of it
 gv_digraph.format = 'svg'
-# gv_digraph.render('data/viz/HTAN-GV', view=True)
+gv_digraph.render('data/viz/HTAN-GV', view=True)
 print("The svg visualization of the entire schema has been rendered.")
 
 # graph visualization of a sub-schema
