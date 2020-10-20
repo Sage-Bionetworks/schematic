@@ -1,12 +1,19 @@
 import os
+import argparse
+
 from schematic.schemas.generator import SchemaGenerator
+from schematic import CONFIG
 
-from definitions import DATA_PATH, CONFIG_PATH
-from schematic.utils.config_utils import load_yaml
+# Create command-line argument parser
+parser = argparse.ArgumentParser()
+parser.add_argument("--config", "-c", help="Configuration YAML file.")
+args = parser.parse_args()
 
-config_data = load_yaml(CONFIG_PATH)
+# Load configuration
+config_data = CONFIG.load_config(args.config)
 
-PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
+# path to schema.org/JSON-LD schema ass specified in `config.yml`
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of SchemaGenerator() class
 schema_generator = SchemaGenerator(PATH_TO_JSONLD)
