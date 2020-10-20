@@ -2,7 +2,8 @@ import pandas as pd
 import networkx as nx
 import json
 import re
-
+import os
+import synapseclient
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
@@ -14,6 +15,8 @@ from typing import Any, Dict, Optional, Text, List
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
+from schematic.synapse.store import SynapseStorage
+from definitions import SYNAPSE_CONFIG
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.
@@ -128,9 +131,9 @@ class MetadataModel(object):
             return
 
         if jsonSchema:
-            return mg.get_manifest(jsonSchema)
+            return mg.get_empty_manifest(jsonSchema)
 
-        return mg.get_manifest()
+        return mg.get_empty_manifest()
 
 
     def get_component_requirements(self, source_component: str) -> List[str]:
@@ -156,7 +159,7 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(self, manifestPath: str, rootNode: str, jsonSchema: str = None) -> List[str]:     
-        """Check if provided annotations manifest dataframe satisfies all model requirements.
+        """Check if provided annotations/manifest dataframe satisfies all model requirements.
 
         Args:
             rootNode: a schema node label (i.e. term).
@@ -178,34 +181,13 @@ class MetadataModel(object):
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = pd.read_csv(manifestPath).fillna("")
 
-
-        """ 
-        check if each of the provided annotation columns has validation rule 'list'
-        if so, assume annotation for this column are comma separated list of multi-value annotations
-        convert multi-valued annotations to list
-        """
-        for col in manifest.columns:
-            
-            # remove trailing/leading whitespaces from manifest
-            manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-
-
-            # convert manifest values to string
-            # TODO: when validation handles annotation types as validation rules 
-            # would have to avoid converting everything to string
-            manifest[col] = manifest[col].astype(str)
-
-            # if the validation rule is set to list, convert items in the
-            # annotations manifest to a list and strip each value from leading/trailing spaces
-            if "list" in self.sg.get_node_validation_rules(col): 
-                manifest[col] = manifest[col].apply(lambda x: [s.strip() for s in str(x).split(",")])
-                print(manifest[col])
-
-        annotations = json.loads(manifest.to_json(orient='records'))
-        print(annotations) 
+        # remove whitespaces from manifest 
+        manifest_trimmed = manifest.apply(lambda x: x.str.strip() if x.dtype == "str" else x)
+        
+        annotations = json.loads(manifest_trimmed.to_json(orient='records'))
+         
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
-
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
                 errorRow = i + 2
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema" 
@@ -232,6 +214,48 @@ class MetadataModel(object):
         """
         mg = ManifestGenerator(title, self.inputMModelLocation, rootNode)
         
-        emptyManifestURL = mg.get_manifest()
+        emptyManifestURL = mg.get_empty_manifest()
 
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
+
+
+    def submit_metadata_manifest(self, manifest_path: str, dataset_id: str, validate_component: str, json_schema: str = None) -> bool:
+        """Wrap methods that are responsible for validation of manifests for a given component, and association of the 
+        same manifest file with a specified dataset.
+
+        Args:
+            manifest_path: Path to the manifest file, which contains the metadata.
+            dataset_id: Synapse ID of the dataset on Synapse containing the metadata manifest file.
+            validate_component: Component from the schema.org schema based on which the manifest template has been generated.
+
+        Returns:
+            True: If both validation and association were successful.
+            False: If the function could not successfully validate (and hence associate) the manifest file with the dataset.
+        """
+        # list of all the validation errors present in the manifest file
+        val_errors = []
+
+        # JSON schema need not be provided always, it is an optional argument
+        # if JSON schema is provided, then use it
+        if json_schema:
+            val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component, jsonSchema=json_schema)
+
+        # automatic JSON schema generation and validation with that JSON schema
+        val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component)
+
+        # create object of SynapseStorage() class to associate manifest file with dataset
+        syn = synapseclient.Synapse(configPath=SYNAPSE_CONFIG)
+        syn.login()
+
+        syn_store = SynapseStorage(syn=syn)
+
+        # if no validation errors are produced
+        if not val_errors:
+
+            # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id` 
+            syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
+            
+            return True
+
+        # return False if validation (and hence association) was not successful
+        return False
