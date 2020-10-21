@@ -1,15 +1,22 @@
-from schematic.schemas.explorer import SchemaExplorer
+#!/usr/bin/env python3
+
 import networkx as nx
 import os
-from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
-from graphviz import Digraph, Source
+import argparse
 
-from definitions import DATA_PATH, CONFIG_PATH
-from schematic.utils.config_utils import load_yaml
+from schematic.schemas.explorer import SchemaExplorer
+from schematic import CONFIG
 
-config_data = load_yaml(CONFIG_PATH)
+# Create command-line argument parser
+parser = argparse.ArgumentParser()
+parser.add_argument("--config", "-c", help="Configuration YAML file.")
+args = parser.parse_args()
 
-PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
+# Load configuration
+config_data = CONFIG.load_config(args.config)
+
+# path to schema.org/JSON-LD schema ass specified in `config.yml`
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of the SchemaExplorer() class
 schema_explorer = SchemaExplorer()
@@ -46,7 +53,7 @@ gv_digraph = schema_explorer.full_schema_graph()
 
 # since the graph is very big, we will generate an svg viz. of it
 gv_digraph.format = 'svg'
-gv_digraph.render(os.path.join(DATA_PATH, '', 'viz/HTAN-GV'), view=True)
+gv_digraph.render('data/viz/HTAN-GV', view=True)
 print("The svg visualization of the entire schema has been rendered.")
 
 # graph visualization of a sub-schema

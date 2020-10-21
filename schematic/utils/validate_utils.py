@@ -23,6 +23,6 @@ def validate_property_schema(schema):
 def validate_class_schema(schema):
     """Validate schema against SchemaORG class definition standard
     """
-    json_schema_path = os.path.join('validation_schemas', 'class_json_schema.json')
+    json_schema_path = os.path.join('data', 'validation_schemas', 'class_json_schema.json')
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)

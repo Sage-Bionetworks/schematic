@@ -7,21 +7,21 @@ definitions:
 
 synapse:
   master_fileview: 'syn20446927'
-  manifest_filename: 'manifests/synapse_storage_manifest.csv'
+  manifest_filename: 'data/manifests/synapse_storage_manifest.csv'
   api_creds: 'syn21088684'
 
 model:
   input:
-    location: 'schema_org_schemas/HTAN.jsonld'
+    location: 'data/schema_org_schemas/HTAN.jsonld'
     file_type: 'local'
-    log_location: 'json_schema_logs/json_schema_log.json'
+    log_location: 'data/json_schema_logs/json_schema_log.json'
   biothings:
-    location: 'schema_org_schemas/biothings.jsonld'
+    location: 'data/schema_org_schemas/biothings.jsonld'
   demo:
-    location: 'schema_org_schemas/HTAPP.jsonld'
+    location: 'data/schema_org_schemas/HTAPP.jsonld'
     file_type: 'local'
-    validation_file_location: 'validation_schemas/minimalHTAPPJSONSchema.json'
-    valid_manifest: 'manifests/HTAPP_manifest_valid.csv'
+    validation_file_location: 'data/validation_schemas/minimalHTAPPJSONSchema.json'
+    valid_manifest: 'data/manifests/HTAPP_manifest_valid.csv'
 
 style:
   google_manifest:
