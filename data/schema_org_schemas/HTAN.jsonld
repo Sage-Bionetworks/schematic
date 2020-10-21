@@ -4153,13 +4153,16 @@
                     "@id": "bts:HTANDataFileID"
                 },
                 {
-                    "@id": "bts:PsuedoAlignmentUsed"
+                    "@id": "bts:PseudoAlignmentUsed"
                 },
                 {
                     "@id": "bts:DataCategory"
                 },
                 {
                     "@id": "bts:ExpressionUnits"
+                },
+                {
+                    "@id": "bts:MatrixType"
                 },
                 {
                     "@id": "bts:FusionGeneDetected"
@@ -9941,7 +9944,9 @@
             ],
             "sms:displayName": "Fusion Gene Identity",
             "sms:required": "sms:false",
-            "sms:validationRules": []
+            "sms:validationRules": [
+                "list"
+            ]
         },
         {
             "@id": "bts:OtherFusionGene",
@@ -31385,23 +31390,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Targets No Coverage",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:PsuedoAlignmentUsed",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "PsuedoAlignmentUsed",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:BulkRNA-seqLevel3"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Psuedo Alignment Used",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
