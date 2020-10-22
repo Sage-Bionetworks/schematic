@@ -1,5 +1,5 @@
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List
+from typing import Any, Dict, Optional, Text, List, Tuple
 
 import os
 
@@ -13,6 +13,7 @@ import pandas as pd
 import synapseclient
 
 from synapseclient import File, Folder, Table
+from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 import synapseutils
 
@@ -196,13 +197,14 @@ class SynapseStorage(object):
         return sorted_dataset_list
 
 
-    def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None) -> List[str]:
+    def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None, fullpath:bool = True) -> List[str]:
         """Gets all files in a given dataset folder.
 
         Args:
             datasetId: synapse ID of a storage dataset.
             fileNames: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
             metadata manifests); if fileNames is not None, all files matching the names in the fileNames list are returned if present.
+            fullpath: if True return the full path as part of this filename; otherwise return just base filename
         
         Returns: a list of files; the list consists of tuples (fileId, fileName).
         
@@ -210,25 +212,31 @@ class SynapseStorage(object):
             ValueError: Dataset ID not found.
         """
 
-        # select all files within a given storage dataset (top level folder in a Synapse storage project)
-        filesTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "file") & (self.storageFileviewTable["parentId"] == datasetId)]
+        # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
+        walked_path = synapseutils.walk(self.syn, datasetId)
 
-        # return a list of tuples (fileId, fileName)
-        fileList = []
-        for row in filesTable[["id", "name"]].itertuples(index = False, name = None):
-            # if not row[1] == self.manifest and not fileNames:
-            if not "manifest" in row[1] and not fileNames:
-                # check if a metadata-manifest file has been passed in the list of filenames; assuming the manifest file has a specific filename, e.g. synapse_storage_manifest.csv; remove the manifest filename if so; (no need to add metadata to the metadata container); TODO: expose manifest filename as a configurable parameter and don't hard code.
-                fileList.append(row)
+        file_list = []
 
-            elif not fileNames == None and row[1] in fileNames:
-                # if fileNames is specified and file is in fileNames add it to the returned list
-                fileList.append(row)
+        # iterate over all results        
+        for dirpath, dirname, filenames in walked_path:
+            
+            # iterate over all files in a folder
+            for filename in filenames:
 
-        sorted_files_list = sorted(fileList, key=lambda tup: tup[0])
+                if (not "manifest" in filename[0] and not fileNames) or (not fileNames == None and filename[0] in fileNames):
+                    
+                    # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
+                    # except the manifest if no fileNames have been specified
+                
 
-        return sorted_files_list
-        
+                    if fullpath:
+                        # append directory path to filename
+                        filename  = (dirpath[0] + "/" + filename[0], filename[1])
+
+                    # add file name file id tuple, rearranged so that id is first and name follows
+                    file_list.append(filename[::-1])
+ 
+        return file_list
 
     def getDatasetManifest(self, datasetId: str) -> List[str]:
         """Gets the manifest associated with a given dataset.
@@ -338,6 +346,20 @@ class SynapseStorage(object):
         return manifests
 
 
+    def get_synapse_table(self, synapse_id:str) -> Tuple[pd.DataFrame, CsvFileTable]:
+        """
+        Download synapse table as a pd dataframe; return table schema and etags as results too
+
+        Args:
+            synapse_id: synapse ID of the table to query
+        """
+
+        results = self.syn.tableQuery("SELECT * FROM %s" % synapse_id)
+        df = results.asDataFrame(rowIdAndVersionInIndex = False)
+
+        return df, results
+
+
     def associateMetadataWithFiles(self, metadataManifestPath: str, datasetId: str) -> str:
         """Associate metadata with files in a storage dataset already on Synapse. 
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -359,7 +381,7 @@ class SynapseStorage(object):
         # determine dataset name
         datasetEntity = self.syn.get(datasetId, downloadFile = False)
         datasetName = datasetEntity.name
-        datasetParentProject = datasetEntity.properties["parentId"]
+        datasetParentProject = self.storageFileviewTable[(self.storageFileviewTable["id"] == datasetId)]["projectId"].values[0]
 
         # read new manifest csv
         try:
@@ -369,6 +391,7 @@ class SynapseStorage(object):
 
         # check if there is an existing manifest
         existingManifest = self.getDatasetManifest(datasetId)
+
         existingTableId = None
 
         if existingManifest:
@@ -382,7 +405,7 @@ class SynapseStorage(object):
 
             # retrieve Synapse table associated with this manifest, so that it can be updated below
             existingTableId = self.syn.findEntityId(datasetName + "_table", datasetParentProject)
-            
+    
         # if this is a new manifest there could be no Synapse entities associated with the rows of this manifest
         # this may be due to data type (e.g. clinical data) being tabular 
         # and not requiring files; to utilize uniform interfaces downstream
@@ -430,15 +453,20 @@ class SynapseStorage(object):
 
         # create/update a table corresponding to this dataset in this dataset's parent project
 
-        if existingTableId:
-            # if table already exists, delete it and upload the new table
-            # TODO: do a proper Synapse table update
-            self.syn.delete(existingTableId)
+        if existingTableId: 
+            existing_table, existing_results = self.get_synapse_table(existingTableId)
+            
+            manifest = update_df(existing_table, manifest, 'entityId')
+
+            self.syn.store(Table(existingTableId, manifest, etag = existing_results.etag))
+            # remove system metadata from manifest
+            manifest.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
+            
+        else:  
+            # create table using latest manifest content
+            table = build_table(datasetName + "_table", datasetParentProject, manifest)
+            table = self.syn.store(table)
         
-        # create table using latest manifest content
-        table = build_table(datasetName + "_table", self.syn.get(datasetId, downloadFile = False).properties["parentId"], manifest)
-        table = self.syn.store(table)
-         
         # update the manifest file, so that it contains the relevant entity IDs
         manifest.to_csv(metadataManifestPath, index = False)
 

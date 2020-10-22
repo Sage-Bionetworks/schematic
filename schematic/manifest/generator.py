@@ -153,6 +153,55 @@ class ManifestGenerator(object):
         return spreadsheet_id
 
 
+
+    def _get_cell_borders(self, cell_range):
+
+        #set border style request
+        color = {
+                    "red":226.0/255.0,
+                    "green":227.0/255.0,
+                    "blue":227.0/255.0,
+        }
+
+        border_style_req = {
+                  "updateBorders": {
+                    "range": cell_range, 
+                    "top": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color
+                    },
+                    "bottom": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "left": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "right": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "innerHorizontal": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "innerVertical": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    }
+                  }
+        }
+
+        return border_style_req
+
+
     def _set_permissions(self, fileId):
 
         def callback(request_id, response, exception):
@@ -442,9 +491,9 @@ class ManifestGenerator(object):
             if not req_vals:
                 continue
 
-            if len(req_vals) > 499:
-                print("WARNING: Value range > Google Sheet limit of 500. Truncating...")
-                req_vals = req_vals[:499]
+            if len(req_vals) > 256:
+                print("WARNING: Value range > Excel limit of 256. Truncating...")
+                req_vals = req_vals[:255]
 
 
             # generating sheet api request to populate a dropdown or a multi selection UI
@@ -572,7 +621,14 @@ class ManifestGenerator(object):
                 # check if dependency formatting rules have been added and update sheet if so
                 if dependency_formatting_body["requests"]:
                     requests_body["requests"].append(dependency_formatting_body["requests"])
-                
+
+        # setting cell borders
+        cell_range = {
+          "sheetId": 0,
+          "startRowIndex": 0,
+        }
+        requests_body["requests"].append(self._get_cell_borders(cell_range))
+
         execute_google_api_requests(self.sheet_service, requests_body, service_type = "batch_update", spreadsheet_id = spreadsheet_id)
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
