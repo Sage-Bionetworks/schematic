@@ -6,15 +6,21 @@ import argparse
 from schematic.schemas.generator import SchemaGenerator
 from schematic import CONFIG
 
+# Constants (to avoid magic numbers)
+FIRST = 0
+
 # Create command-line argument parser
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(allow_abbrev=False)
+parser.add_argument("schema_class", nargs=1, metavar="schema_class", help="Name of class from schema.")
+parser.add_argument("relationship", nargs=1, metavar="relationship_name", help="Name of relationship from schema.")
+parser.add_argument("component", nargs=1, metavar="component_name", help="Name of component from schema.")
+parser.add_argument("--schema_name", metavar="schema_name", help="Name of schema generated based on specified component.")
 parser.add_argument("--config", "-c", help="Configuration YAML file.")
 args = parser.parse_args()
 
 # Load configuration
 config_data = CONFIG.load_config(args.config)
 
-# path to schema.org/JSON-LD schema ass specified in `config.yml`
 PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of SchemaGenerator() class
@@ -26,8 +32,8 @@ else:
     print("object of class SchemaGenerator could not be created.")
 
 # get list of the out-edges from a node based on a specific relationship
-TEST_NODE = "Sequencing"
-TEST_REL = "parentOf"
+TEST_NODE = args.schema_class[FIRST]
+TEST_REL = args.relationship[FIRST]
 
 out_edges = schema_generator.get_edges_by_relationship(TEST_NODE, TEST_REL)
 
@@ -53,7 +59,7 @@ else:
     print("The class does not have descendants.")
 
 # get all components associated with a given component
-TEST_COMP = "Patient"
+TEST_COMP = args.component[FIRST]
 req_comps = schema_generator.get_component_requirements(TEST_COMP)
 
 if req_comps:
@@ -86,7 +92,11 @@ except KeyError:
     print("Please try a valid node name.")
 
 # gather dependencies and value-constraints for a particular node
-json_schema = schema_generator.get_json_schema_requirements(TEST_COMP, "Patient-Schema")
+if args.schema_name:
+    json_schema = schema_generator.get_json_schema_requirements(TEST_COMP, args.schema_name + "-Schema")
+else:
+    json_schema = schema_generator.get_json_schema_requirements(TEST_COMP, TEST_COMP + "-Schema")
+
 
 print("The JSON schema based on {} as source node is:".format(TEST_COMP))
 print(json_schema)

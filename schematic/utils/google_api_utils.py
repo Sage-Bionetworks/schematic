@@ -10,7 +10,6 @@ from google.oauth2 import service_account
 
 from schematic import CONFIG
 
-
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 
