@@ -2820,7 +2820,7 @@
         {
             "@id": "bts:HTANParentBiospecimenID",
             "@type": "rdfs:Class",
-            "rdfs:comment": "HTAN Biospecimen Identifier indicating the biospecimen(s) from which these files were derived; multiple parent biospecimen should be comma-separated",
+            "rdfs:comment": "HTAN Biospecimen Identifier (eg HTANx_yyy_zzz) indicating the biospecimen(s) from which these files were derived; multiple parent biospecimen should be comma-separated",
             "rdfs:label": "HTANParentBiospecimenID",
             "rdfs:subClassOf": [
                 {
