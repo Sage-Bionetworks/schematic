@@ -13,8 +13,8 @@ config_data = load_yaml(CONFIG_PATH)
 PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
 
 # create an instance of ManifestGenerator class
-TEST_NODE = "FamilyHistory"
-manifest_generator = ManifestGenerator(title="HTAN Manifest", path_to_json_ld=PATH_TO_JSONLD, root=TEST_NODE)
+TEST_NODE = "FollowUp"
+manifest_generator = ManifestGenerator(title="FollowUp Manifest", path_to_json_ld=PATH_TO_JSONLD, root=TEST_NODE)
 
 # make sure the 'credentials.json' file is downloaded and is present in the right path/location
 try:
@@ -23,4 +23,4 @@ except synapseclient.core.exceptions.SynapseHTTPError:
     print("Make sure the credentials set in the config file are correct.")
 
 # get manifest (csv) url
-print(manifest_generator.get_manifest(dataset_id="syn21973647", sheet_url=False))
+print(manifest_generator.get_manifest())
