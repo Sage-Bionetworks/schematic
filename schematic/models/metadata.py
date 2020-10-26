@@ -128,7 +128,7 @@ class MetadataModel(object):
             return
 
         if jsonSchema:
-            return mg.get_manifest(jsonSchema)
+            return mg.get_manifest(json_schema=jsonSchema)
 
         return mg.get_manifest()
 
@@ -178,34 +178,13 @@ class MetadataModel(object):
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = pd.read_csv(manifestPath).fillna("")
 
-
-        """ 
-        check if each of the provided annotation columns has validation rule 'list'
-        if so, assume annotation for this column are comma separated list of multi-value annotations
-        convert multi-valued annotations to list
-        """
-        for col in manifest.columns:
-            
-            # remove trailing/leading whitespaces from manifest
-            manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-
-
-            # convert manifest values to string
-            # TODO: when validation handles annotation types as validation rules 
-            # would have to avoid converting everything to string
-            manifest[col] = manifest[col].astype(str)
-
-            # if the validation rule is set to list, convert items in the
-            # annotations manifest to a list and strip each value from leading/trailing spaces
-            if "list" in self.sg.get_node_validation_rules(col): 
-                manifest[col] = manifest[col].apply(lambda x: [s.strip() for s in str(x).split(",")])
-                print(manifest[col])
-
-        annotations = json.loads(manifest.to_json(orient='records'))
-        print(annotations) 
+        # remove whitespaces from manifest 
+        manifest_trimmed = manifest.apply(lambda x: x.str.strip() if x.dtype == "str" else x)
+        
+        annotations = json.loads(manifest_trimmed.to_json(orient='records'))
+         
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
-
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
                 errorRow = i + 2
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema" 
