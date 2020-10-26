@@ -227,6 +227,7 @@ class SynapseStorage(object):
                     
                     # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
                     # except the manifest if no fileNames have been specified
+                    # TODO: refactor for clarity/maintainability
                 
 
                     if fullpath:
@@ -354,7 +355,7 @@ class SynapseStorage(object):
             synapse_id: synapse ID of the table to query
         """
 
-        results = self.syn.tableQuery("SELECT * FROM %s" % synapse_id)
+        results = self.syn.tableQuery("SELECT * FROM {}".format(synapse_id))
         df = results.asDataFrame(rowIdAndVersionInIndex = False)
 
         return df, results
