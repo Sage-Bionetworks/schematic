@@ -1,5 +1,6 @@
 import os
 
+
 # this is the project's root directory
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,6 +18,3 @@ DATA_PATH = os.path.join(ROOT_DIR, 'data', '')
 
 # path to service account credentials file
 SERVICE_ACCT_CREDS = os.path.join(ROOT_DIR, 'quickstart-1560359685924-198a7114b6b5.json')
-
-# path to .synapseConfig file
-SYNAPSE_CONFIG = os.path.join(ROOT_DIR, '.synapseConfig')

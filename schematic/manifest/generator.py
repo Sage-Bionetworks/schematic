@@ -2,17 +2,20 @@ from __future__ import print_function
 import pickle
 import os.path
 import collections
+
 import pandas as pd
-from typing import Any, Dict, Optional, Text
+
+from typing import Any, Dict, Optional, Text, List
+
 import pygsheets as ps
-import synapseclient
 
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.google_api_utils import build_credentials, build_service_account_creds, execute_google_api_requests
-from schematic.utils.config_utils import load_yaml
-from schematic.synapse.store import SynapseStorage
 
-from definitions import CONFIG_PATH, DATA_PATH, CREDS_PATH, TOKEN_PICKLE, SERVICE_ACCT_CREDS, SYNAPSE_CONFIG
+from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
+
+from schematic.utils.config_utils import load_yaml
+
+from definitions import CONFIG_PATH, DATA_PATH, CREDS_PATH, TOKEN_PICKLE
 
 config_data = load_yaml(CONFIG_PATH)
 
@@ -175,8 +178,27 @@ class ManifestGenerator(object):
         batch.execute()
 
 
-    def get_empty_manifest(self, json_schema = None):
-        # TODO: Refactor get_empty_manifest method
+    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]: 
+        """Get valid values for a manifest attribute based on the corresponding 
+        values of node's properties in JSONSchema
+        
+        Args:
+            prop: node properties - jsonschema dictionary 
+
+        Returns:
+            List of valid values
+        """
+
+        if "enum" in prop: 
+            return prop["enum"]
+        elif "items" in prop:
+            return prop["items"]["enum"]
+        else:
+            return []
+
+
+    def get_manifest(self, json_schema = None):
+        # TODO: Refactor get_manifest method
         # - abstract function for requirements gathering
         # - abstract google sheet API requests as functions
         # --- specifying row format
@@ -194,14 +216,12 @@ class ManifestGenerator(object):
 
         required_metadata_fields = {}
 
-        # gathering dependency requirements and corresponding allowed values constraints for root node
+        # gathering dependency requirements and corresponding allowed values constraints (i.e. valid values) for root node
         for req in json_schema["properties"].keys():
-            if not "enum" in json_schema["properties"][req]:
-                # if no valid/allowed values specified
-                json_schema["properties"][req]["enum"] = []
-            
-            required_metadata_fields[req] = json_schema["properties"][req]["enum"]
-
+            required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
+            # the following line may not be needed
+            json_schema["properties"][req]["enum"] = required_metadata_fields[req]
+                
 
         # gathering dependency requirements and allowed value constraints for conditional dependencies if any
         if "allOf" in json_schema: 
@@ -211,18 +231,14 @@ class ManifestGenerator(object):
                         if req in conditional_reqs["if"]["properties"]:
                             if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
-                                    if not "enum" in json_schema["properties"][req]:
-                                        # if no valid/allowed values specified
-                                        json_schema["properties"][req]["enum"] = []
-                                    required_metadata_fields[req] = json_schema["properties"][req]["enum"]
+                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
                                 else:
-                                    required_metadata_fields[req] = conditional_reqs["if"]["properties"][req]["enum"] if "enum" in conditional_reqs["if"]["properties"][req] else []                   
+                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(conditional_reqs["if"]["properties"][req])
+
                      for req in conditional_reqs["then"]["required"]: 
                          if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
-                                    required_metadata_fields[req] = json_schema["properties"][req]["enum"] if "enum" in json_schema["properties"][req] else []
-                                else:
-                                     required_metadata_fields[req] = []    
+                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])    
 
         # if additional metadata is provided append columns (if those do not exist already)
         if self.additional_metadata:
@@ -572,79 +588,6 @@ class ManifestGenerator(object):
         
 
         return manifest_url
-
-    def get_manifest(self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None):
-        """Gets manifest for a given dataset on Synapse.
-
-        Args:
-            dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
-            sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
-
-        Returns:
-            Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
-        """
-        # get manifest associated with dataset `dataset_id`
-        syn = synapseclient.Synapse(configPath=SYNAPSE_CONFIG)
-        syn.login()
-
-        syn_store = SynapseStorage(syn=syn)
-
-        # determine path to the user-specified manifests folder where the manifest should be downloaded to
-        manifests_folder_path = os.path.join(DATA_PATH, config_data["synapse"]["manifest_folder"])
-
-        if dataset_id:
-            # get manifest file associated with given dataset
-            syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
-
-            # Case 1: manifest exists in the given dataset and URL is to be returned
-            if syn_id_and_path and sheet_url:
-
-                # get synapse ID manifest associated with dataset
-                manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
-
-                # get URL of an empty manifest file created based on schema component
-                empty_manifest_url = self.get_empty_manifest()
-
-                # populate empty manifest with content from downloaded/existing manifest
-                pop_manifest_url = self.populate_manifest_spreadsheet(manifest_data.path, empty_manifest_url)
-
-                return pop_manifest_url
-
-            # Case 2: manifest exists in the given dataset and dataframe is to be returned
-            elif syn_id_and_path and not sheet_url:
-                manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
-
-                # convert downloaded/existing manifest contents into dataframe
-                manifest_data_df = pd.read_csv(manifest_data.path)
-
-                return manifest_data_df
-
-            # Case 3: manifest does not exist in the given dataset and URL is to be returned
-            elif not syn_id_and_path and sheet_url:
-                empty_manifest_url = self.get_empty_manifest()
-
-                return empty_manifest_url
-
-            # Case 4: manifest does not exist in the given dataset and dataframe is to be returned
-            elif not syn_id_and_path and not sheet_url:
-                empty_manifest_url = self.get_empty_manifest()
-
-                # authorize pygsheets to read from the given URL
-                gc = ps.authorize(custom_credentials=self.creds)
-
-                sh = gc.open_by_url(empty_manifest_url)
-                wb = sh[0]
-                
-                # get column headers and read it into a dataframe
-                empty_manifest_data = wb.get_as_df(hasHeader=True)
-
-                return empty_manifest_data
-
-        # Default case when no arguments are provided to the get_manifest() method
-        if json_schema:
-            return self.get_empty_manifest(json_schema=json_schema)
-
-        return self.get_empty_manifest()
 
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
