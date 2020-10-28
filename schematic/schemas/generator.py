@@ -39,6 +39,7 @@ class SchemaGenerator(object):
         Returns:
             None
         """
+
         # create an instance of SchemaExplorer
         self.se = SchemaExplorer()
         
@@ -62,7 +63,7 @@ class SchemaGenerator(object):
         """Get a list of out-edges of a node where the edges match a specifc type of relationship.
 
         i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf" (set of edges to children / sub-class nodes).
-        Note: possible edge relationships are -- parentOf, rangeValue, requiresDependency.
+        Note: possible edge relationships are -- parentOf, rangeValue, requiresDependency, requiresComponent.
 
         Args:
             node: the node whose edges we need to look at.
@@ -105,6 +106,31 @@ class SchemaGenerator(object):
         return sorted(list(nodes))
 
 
+    def get_subgraph_by_edge_type(self,
+                                  graph: nx.MultiDiGraph,
+                                  relationship:str) -> nx.DiGraph:
+        """Get a subgraph containing all edges of a given type (aka relationship).
+
+        Args:
+            graph: input multi digraph (aka hypergraph)
+            relationship: edge / link relationship type with possible values same as in above docs.
+        
+        Returns:
+            Directed graph on edges of a particular type (aka relationship)
+        """
+        
+        # prune the metadata model graph so as to include only those edges that match the relationship type
+        rel_edges = []
+        for (u, v, key, c) in graph.edges(data=True, keys=True):
+            if key == relationship:
+                rel_edges.append((u, v))
+        
+        relationship_subgraph = nx.DiGraph()
+        relationship_subgraph.add_edges_from(rel_edges)
+
+        return relationship_subgraph
+
+
     def get_descendants_by_edge_type(self,
                                     source_node: str,
                                     relationship: str,
@@ -139,14 +165,9 @@ class SchemaGenerator(object):
         descendants_subgraph = mm_graph.subgraph(subgraph_nodes)
 
         # prune the descendants subgraph so as to include only those edges that match the relationship type
-        rel_edges = []
-        for (u, v, key, c) in descendants_subgraph.edges(data=True, keys=True):
-            if key == relationship:
-                rel_edges.append((u, v))
 
-        relationship_subgraph = nx.DiGraph()
-        relationship_subgraph.add_edges_from(rel_edges)
-
+        relationship_subgraph = self.get_subgraph_by_edge_type(descendants_subgraph, relationship)
+        
         descendants = relationship_subgraph.nodes()
 
         if not descendants:
@@ -164,7 +185,7 @@ class SchemaGenerator(object):
             descendants = nx.topological_sort(relationship_subgraph.subgraph(descendants))
         elif connected:
             # get the nodes that are reachable from a given source node
-            # after the pruing process above some nodes in the root_descendants subgraph might have become disconnected and will be omitted
+            # after the pruning process above some nodes in the root_descendants subgraph might have become disconnected and will be omitted
             descendants = nx.descendants(relationship_subgraph, source_node)
             descendants.add(source_node)
         elif ordered:
@@ -172,12 +193,12 @@ class SchemaGenerator(object):
             # this requires the graph to be an acyclic graph
             descendants = nx.topological_sort(relationship_subgraph)
 
-        return sorted(list(descendants))
+        return list(descendants)
 
 
     def get_component_requirements(self,
                                   source_component: str) -> List[str]:
-        """Get all components that are associated with a given source component and are required by it.
+        """Get all components that are associated with a given source component and are required by it, sorted topologically
 
         Args:
             source_component: source component for which we need to find all required downstream components.
@@ -185,7 +206,7 @@ class SchemaGenerator(object):
         Returns:
             List of nodes that are descendants from the source component are are related to the source through a specific component relationship.
         """
-        req_components = self.get_descendants_by_edge_type(source_component, self.requires_component_relationship)
+        req_components = list(reversed(self.get_descendants_by_edge_type(source_component, self.requires_component_relationship, ordered = True)))
         
         return req_components
 
@@ -359,6 +380,7 @@ class SchemaGenerator(object):
         Returns:
             List of display names.
         """
+
         node_list_display_names = [mm_graph.nodes[node]["displayName"] for node in node_list]
 
         return node_list_display_names
