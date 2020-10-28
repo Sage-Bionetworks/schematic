@@ -11,97 +11,113 @@ def load_schema_into_networkx(schema):
         # TODO: clean up obsolete code 
         #if record["@type"] == "rdfs:Class":
             
-            # creation of nodes
-            # adding nodes to the graph
-            node = {}
-            for (k, value) in record.items():
-                if ":" in k:
-                    key = k.split(":")[1]
-                    node[key] = value
-                elif "@" in k:
-                    key = k[1:]
-                    node[key] = value
-                else:
-                    node[k] = value
+        # creation of nodes
+        # adding nodes to the graph
+        node = {}
+        for (k, value) in record.items():
+            if ":" in k:
+                key = k.split(":")[1]
+                node[key] = value
+            elif "@" in k:
+                key = k[1:]
+                node[key] = value
+            else:
+                node[k] = value
 
-            # creation of edges
-            # adding edges to the graph
-            if "rdfs:subClassOf" in record:
-                parents = record["rdfs:subClassOf"]
-                if type(parents) == list:
-                    for _parent in parents:
-                        n1 = extract_name_from_uri_or_curie(_parent["@id"])
-                        n2 = record["rdfs:label"]
-
-                        # do not allow self-loops
-                        if n1 != n2:
-                            G.add_edge(n1, n2, key="parentOf")
-                elif type(parents) == dict:
-                    n1 = extract_name_from_uri_or_curie(parents["@id"])
+        # creation of edges
+        # adding edges to the graph
+        if "rdfs:subClassOf" in record:
+            parents = record["rdfs:subClassOf"]
+            if type(parents) == list:
+                for _parent in parents:
+                    n1 = extract_name_from_uri_or_curie(_parent["@id"])
                     n2 = record["rdfs:label"]
 
                     # do not allow self-loops
                     if n1 != n2:
                         G.add_edge(n1, n2, key="parentOf")
+            elif type(parents) == dict:
+                n1 = extract_name_from_uri_or_curie(parents["@id"])
+                n2 = record["rdfs:label"]
 
-            # TODO: refactor: abstract adding relationship method
-            if "sms:requiresDependency" in record:
-                dependencies = record["sms:requiresDependency"]
-                if type(dependencies) == list:
-                    for _dep in dependencies:
-                        n1 = record["rdfs:label"]  
-                        n2 = extract_name_from_uri_or_curie(_dep["@id"]) 
-                        # do not allow self-loops
-                        if n1 != n2:
-                            G.add_edge(n1, n2, key="requiresDependency")
+                # do not allow self-loops
+                if n1 != n2:
+                    G.add_edge(n1, n2, key="parentOf")
 
-            if "sms:requiresComponent" in record:
-                components = record["sms:requiresComponent"]
-                if type(components) == list:
-                    for _comp in components:
-                        n1 = record["rdfs:label"]  
-                        n2 = extract_name_from_uri_or_curie(_comp["@id"]) 
-                        # do not allow self-loops
-                        if n1 != n2:
-                            G.add_edge(n1, n2, key="requiresComponent")
-
-            if "schema:rangeIncludes" in record:
-                range_nodes = record["schema:rangeIncludes"]
-                if type(range_nodes) == list:
-                    for _range_node in range_nodes:
-                        n1 = record["rdfs:label"]  
-                        n2 = extract_name_from_uri_or_curie(_range_node["@id"]) 
-                        # do not allow self-loops
-                        if n1 != n2:
-                            G.add_edge(n1, n2, key="rangeValue")
-                elif type(range_nodes) == dict:
+        # TODO: refactor: abstract adding relationship method
+        if "sms:requiresDependency" in record:
+            dependencies = record["sms:requiresDependency"]
+            if type(dependencies) == list:
+                for _dep in dependencies:
                     n1 = record["rdfs:label"]  
-                    n2 = extract_name_from_uri_or_curie(range_nodes["@id"]) 
+                    n2 = extract_name_from_uri_or_curie(_dep["@id"]) 
+                    # do not allow self-loops
+                    if n1 != n2:
+                        G.add_edge(n1, n2, key="requiresDependency")
+
+        if "sms:requiresComponent" in record:
+            components = record["sms:requiresComponent"]
+            if type(components) == list:
+                for _comp in components:
+                    n1 = record["rdfs:label"]  
+                    n2 = extract_name_from_uri_or_curie(_comp["@id"]) 
+                    # do not allow self-loops
+                    if n1 != n2:
+                        G.add_edge(n1, n2, key="requiresComponent")
+
+        if "schema:rangeIncludes" in record:
+            range_nodes = record["schema:rangeIncludes"]
+            if type(range_nodes) == list:
+                for _range_node in range_nodes:
+                    n1 = record["rdfs:label"]  
+                    n2 = extract_name_from_uri_or_curie(_range_node["@id"]) 
                     # do not allow self-loops
                     if n1 != n2:
                         G.add_edge(n1, n2, key="rangeValue")
-            
-            # check schema generator (JSON validation schema gen)
-            if "requiresChildAsValue" in node and node["requiresChildAsValue"]["@id"] == "sms:True":
-                node["requiresChildAsValue"] = True
-            
-            if "required" in node:
-                if "sms:true" == record["sms:required"]:
-                    node["required"] = True  
-                else:
-                    node["required"] = False
-
-            # not sure if this is required?
-            if "sms:validationRules" in record:
-                node["validationRules"] = record["sms:validationRules"]
+            elif type(range_nodes) == dict:
+                n1 = record["rdfs:label"]  
+                n2 = extract_name_from_uri_or_curie(range_nodes["@id"]) 
+                # do not allow self-loops
+                if n1 != n2:
+                    G.add_edge(n1, n2, key="rangeValue")
+ 
+        if "schema:domainIncludes" in record:
+            domain_nodes = record["schema:domainIncludes"]
+            if type(domain_nodes) == list:
+                for _domain_node in domain_nodes:
+                    n1 = extract_name_from_uri_or_curie(_domain_node["@id"])
+                    n2 = record["rdfs:label"]
+                    # do not allow self-loops
+                    if n1 != n2:
+                        G.add_edge(n1, n2, key="domainValue")
+            elif type(domain_nodes) == dict:
+                n1 = extract_name_from_uri_or_curie(domain_nodes["@id"])
+                n2 = record["rdfs:label"]
+                # do not allow self-loops
+                if n1 != n2:
+                    G.add_edge(n1, n2, key="domainValue")
+        
+        # check schema generator (JSON validation schema gen)
+        if "requiresChildAsValue" in node and node["requiresChildAsValue"]["@id"] == "sms:True":
+            node["requiresChildAsValue"] = True
+        
+        if "required" in node:
+            if "sms:true" == record["sms:required"]:
+                node["required"] = True  
             else:
-                node["validationRules"] = []
+                node["required"] = False
 
-            node['uri'] = record["@id"] 
-            node['description'] = record["rdfs:comment"]
-            G.add_node(record['rdfs:label'], **node)
-            #print(node)
-            #print(G.nodes())
+        # not sure if this is required?
+        if "sms:validationRules" in record:
+            node["validationRules"] = record["sms:validationRules"]
+        else:
+            node["validationRules"] = []
+
+        node['uri'] = record["@id"] 
+        node['description'] = record["rdfs:comment"]
+        G.add_node(record['rdfs:label'], **node)
+        #print(node)
+        #print(G.nodes())
 
     return G
 
