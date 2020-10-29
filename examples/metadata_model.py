@@ -16,7 +16,7 @@ FIRST = 0
 # Create command-line argument parser
 parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("title", type=str, nargs=1, metavar="TITLE", help="Title of generated manifest file.")
-parser.add_argument("component", type=str, nargs=1, metavar="COMPONENT", help="Component from the schema.org schema.")
+parser.add_argument("data_type", type=str, nargs=1, metavar="DATA TYPE", help="data type from the schema.org schema.")
 parser.add_argument("--config", "-c", help="Configuration YAML file.")
 args = parser.parse_args()
 
@@ -28,10 +28,10 @@ MM_LOC = CONFIG["model"]["input"]["location"]
 MM_TYPE = CONFIG["model"]["input"]["file_type"]
 
 # create instance of MetadataModel class
-metadata_model_htan = MetadataModel(MM_LOC, MM_TYPE)
+metadata_model = MetadataModel(MM_LOC, MM_TYPE)
 
-# TEST_COMP used for testing methods in `metadata.py`
-TEST_COMP = args.component[FIRST]
+# TEST_DATA_TYPE used for testing methods in `metadata.py`
+TEST_DATA_TYPE = args.data_type[FIRST]
 
 # testing manifest generation - manifest is generated based on a JSON schema parsed from schema.org schema, which generates a google spreadsheet.
 # To generate the sheet, the backend requires Google API credentials in a file credentials.json stored locally in the same directory as this file
@@ -47,7 +47,7 @@ print("*****************************************************")
 
 # testing manifest generation from a given root node without optionally provided JSON schema
 print("Testing manifest generation based on a provided schema.org schema..")
-manifest_url = metadata_model_htan.getModelManifest(title=args.title[FIRST], rootNode=TEST_COMP, filenames=["1.txt", "2.txt", "3.txt"])
+manifest_url = metadata_model.getModelManifest(title=args.title[FIRST], rootNode=TEST_DATA_TYPE, filenames=["1.txt", "2.txt", "3.txt"])
 print(manifest_url)
 
 print("*****************************************************")
@@ -56,16 +56,16 @@ print("*****************************************************")
 # without optionally/additionally provided JSON schema
 print("Testing metadata model-based validation..")
 
-MANIFEST_PATH = CONFIG["model"]["demo"]["valid_manifest"]
+MANIFEST_PATH = CONFIG["synapse"]["manifest_filename"]
 print("Testing validation with jsonSchema generation from schema.org schema..")
-annotation_errors = metadata_model_htan.validateModelManifest(MANIFEST_PATH, TEST_COMP)
+annotation_errors = metadata_model.validateModelManifest(MANIFEST_PATH, TEST_DATA_TYPE)
 print(annotation_errors)
 
 print("*****************************************************")
 
 # populate a manifest with content from an already existing/filled out manifest
 print("Testing metadata model-based manifest population..")
-pre_populated_manifest_url = metadata_model_htan.populateModelManifest("Test_" + TEST_COMP, MANIFEST_PATH, TEST_COMP)
+pre_populated_manifest_url = metadata_model.populateModelManifest("Test_" + TEST_DATA_TYPE, MANIFEST_PATH, TEST_DATA_TYPE)
 print(pre_populated_manifest_url)
 
 print("*****************************************************")
@@ -73,24 +73,24 @@ print("*****************************************************")
 # get all the nodes that are dependent on a given node based on a specific relationship type
 print("Testing metadata model-based object dependency generation..")
 print("Generating dependency graph and ordering dependencies..")
-dependencies = metadata_model_htan.getOrderedModelNodes(TEST_COMP, "requiresDependency")
+dependencies = metadata_model.getOrderedModelNodes(TEST_DATA_TYPE, "requiresDependency")
 print(dependencies)
 
-with open(TEST_COMP + "_dependencies.json", "w") as f:
+with open(TEST_DATA_TYPE + "_dependencies.json", "w") as f:
     json.dump(dependencies, f, indent = 3)
 
-print("Dependencies stored in: " + TEST_COMP + "_dependencies.json")
+print("Dependencies stored in: " + TEST_DATA_TYPE + "_dependencies.json")
 
 print("*****************************************************")
 
-# get all nodes that are dependent on a given component
-print("Testing metadata model-based component dependency generation..")
+# get all nodes that are dependent on a given data type
+print("Testing metadata model-based data type dependency generation..")
 print("Generating dependency graph and ordering dependencies..")
 
-dependencies = metadata_model_htan.getOrderedModelNodes(TEST_COMP, "requiresComponent")
+dependencies = metadata_model.getOrderedModelNodes(TEST_DATA_TYPE, "requiresComponent")
 print(dependencies)
 
-with open(TEST_COMP + "component_dependencies.json", "w") as f:
+with open(TEST_DATA_TYPE + "data_type_dependencies.json", "w") as f:
     json.dump(dependencies, f, indent = 3)
 
-print("component dependencies stored: " + TEST_COMP + "component_dependencies.json")
+print("data type dependencies stored: " + TEST_DATA_TYPE + "data_type_dependencies.json")

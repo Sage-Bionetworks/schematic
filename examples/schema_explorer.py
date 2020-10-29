@@ -12,7 +12,7 @@ FIRST = 0
 
 # Create command-line argument parser
 parser = argparse.ArgumentParser()
-parser.add_argument("schema_class", nargs=1, metavar="schema_class", help="Name of class from schema.")
+parser.add_argument("schema_class", nargs=1, metavar="SCHEMA CLASS", help="Name of class from schema.")
 parser.add_argument("--config", "-c", help="Configuration YAML file.")
 args = parser.parse_args()
 
@@ -56,14 +56,14 @@ gv_digraph = schema_explorer.full_schema_graph()
 
 # since the graph is very big, we will generate an svg viz. of it
 gv_digraph.format = 'svg'
-gv_digraph.render('viz/HTAN-GV', view=True)
+gv_digraph.render('data/gviz/HTAN-GV', view=True)
 print("The svg visualization of the entire schema has been rendered.")
 
 # graph visualization of a sub-schema
 seq_subgraph = schema_explorer.sub_schema_graph(TEST_CLASS, "up")
 
 seq_subgraph.format = 'svg'
-seq_subgraph.render('SUB-GV', view=True)
+seq_subgraph.render('data/gviz/SUB-GV', view=True)
 print("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
 
 # returns list of successors of a node

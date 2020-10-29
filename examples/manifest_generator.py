@@ -14,7 +14,7 @@ FIRST = 0
 # Create command-line argument parser
 parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("title", type=str, nargs=1, metavar="TITLE", help="Title of generated manifest file.")
-parser.add_argument("component", type=str, nargs=1, metavar="COMPONENT", help="Component from the schema.org schema.")
+parser.add_argument("data_type", type=str, nargs=1, metavar="DATA TYPE", help="data type from the schema.org schema.")
 parser.add_argument("--config", "-c", metavar="CONFIG", help="Configuration YAML file.")
 args = parser.parse_args()
 
@@ -31,7 +31,7 @@ except synapseclient.core.exceptions.SynapseHTTPError:
     print("Make sure the credentials set in the config file are correct.")
 
 # create an instance of ManifestGenerator class
-manifest_generator = ManifestGenerator(title=args.title[FIRST], path_to_json_ld=PATH_TO_JSONLD, root=args.component[FIRST])
+manifest_generator = ManifestGenerator(title=args.title[FIRST], path_to_json_ld=PATH_TO_JSONLD, root=args.data_type[FIRST])
 
 # get manifest (csv) url
 print(manifest_generator.get_manifest())

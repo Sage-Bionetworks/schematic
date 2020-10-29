@@ -15,7 +15,7 @@ FIRST = 0
 
 # Create command-line argument parser
 parser = argparse.ArgumentParser(allow_abbrev=False)
-parser.add_argument("schema_csv_list", nargs="+", metavar="schema_csv", help="Input CSV schema files.")
+parser.add_argument("schema_csv_list", nargs="+", metavar="CSV SCHEMA(S)", help="Input CSV schema file(s).")
 parser.add_argument("--output_jsonld", "-o", help="Output JSON-LD schema file.")
 parser.add_argument("--config", "-c", help="Configuration YAML file.")
 args = parser.parse_args()
