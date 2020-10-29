@@ -14,14 +14,10 @@ model:
   input:
     location: 'data/schema_org_schemas/HTAN.jsonld'
     file_type: 'local'
+    validation_schema: 'data/validation_schemas/HTAN_validation_schema_FamilyHistory.json'
     log_location: 'data/json_schema_logs/json_schema_log.json'
   biothings:
     location: 'data/schema_org_schemas/biothings.jsonld'
-  demo:
-    location: 'data/schema_org_schemas/HTAPP.jsonld'
-    file_type: 'local'
-    validation_file_location: 'data/validation_schemas/minimalHTAPPJSONSchema.json'
-    valid_manifest: 'data/manifests/HTAPP_manifest_valid.csv'
 
 style:
   google_manifest:
