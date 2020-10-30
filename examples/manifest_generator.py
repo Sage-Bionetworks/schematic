@@ -34,4 +34,4 @@ except synapseclient.core.exceptions.SynapseHTTPError:
 manifest_generator = ManifestGenerator(title=args.title[FIRST], path_to_json_ld=PATH_TO_JSONLD, root=args.data_type[FIRST])
 
 # get manifest (csv) url
-print(manifest_generator.get_manifest())
+print(manifest_generator.get_manifest(dataset_id="syn21973647", sheet_url=False))

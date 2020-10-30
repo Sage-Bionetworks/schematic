@@ -1,4 +1,4 @@
-# HTAN Data Ingress Pipeline
+# Schematic
 
 ## Usage
 
@@ -6,13 +6,13 @@
 
 Python 3 has built-in support for virtual environments (using `venv` module). Perform the following steps:
 
-_Note: It is assumed that you are running all the below commands from the main/root (`HTAN-data-pipeline`) directory._
-
-After cloning the git repository, navigate into the `HTAN-data-pipeline` directory and run the command as below:
+After cloning the git repository, navigate into the `schematic` directory and run the command as below:
 
 ```bash
 python[3] -m venv .venv
 ```
+
+_Note: It is assumed that you are running all the below commands from the main/root (`schematic`) directory._
 
 This creates a Python3 virtual environment (within the `root` folder/package), with its own site directories (isolated from the system site directories).
 
@@ -40,7 +40,7 @@ pip[3] list
 
 Now, your environment is ready to test the modules within the application.
 
-Once, you have finished testing the application within the virtual environment and want to deactivate it, simply run:
+Once you have finished testing the application within the virtual environment and want to deactivate it, simply run:
 
 ```bash
 deactivate
@@ -51,7 +51,7 @@ To run any of the example file(s), go to your root directory and execute/run pyt
 Let's say you want to run the `metadata_usage` example - then do this:
 
 ```bash
-python[3] schematic/models/examples/metadata_usage.py
+python[3] examples/metadata_usage.py
 ```
 
 ### Configure Synapse Credentials
@@ -85,12 +85,16 @@ _Note: You can get your Synapse API key by: **logging into Synapse > Settings > 
 
 ### Contribution
 
-Clone a copy of the repository here:
+Clone a copy of the repository by executing the command as below:
       
 ```bash
-git clone --single-branch --branch develop https://github.com/Sage-Bionetworks/HTAN-data-pipeline.git
+git clone --single-branch --branch develop https://github.com/Sage-Bionetworks/schematic.git
 ```
 
-Modify your files, add them to the staging area, use a descriptive commit message and push to the same branch as a pull request for review.
+1. Fork the repository.
+2. Clone the forked repository.
+3. Create a branch with a descriptive name that includes the name of the feature under development.
+4. Push your changes to that branch.
+5. PR into a branch that is developing the same feature on the `schematic` main repository.
 
-* Please consult [CONTRIBUTION.md](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/develop/CONTRIBUTION.md) for further reference.
+For further reference, please consult [CONTRIBUTION.md](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md).
