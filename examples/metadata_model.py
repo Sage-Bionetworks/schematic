@@ -15,8 +15,8 @@ FIRST = 0
 
 # Create command-line argument parser
 parser = argparse.ArgumentParser(allow_abbrev=False)
-parser.add_argument("title", type=str, nargs=1, metavar="TITLE", help="Title of generated manifest file.")
-parser.add_argument("data_type", type=str, nargs=1, metavar="DATA TYPE", help="data type from the schema.org schema.")
+parser.add_argument("title", nargs=1, metavar="TITLE", help="Title of generated manifest file.")
+parser.add_argument("data_type", nargs=1, metavar="DATA TYPE", help="data type from the schema.org schema.")
 parser.add_argument("--config", "-c", help="Configuration YAML file.")
 args = parser.parse_args()
 
