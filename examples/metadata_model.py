@@ -10,13 +10,10 @@ from schematic.models.metadata import MetadataModel
 from schematic.utils.google_api_utils import download_creds_file
 from schematic import CONFIG
 
-# Constants (to avoid magic numbers)
-FIRST = 0
-
 # Create command-line argument parser
 parser = argparse.ArgumentParser(allow_abbrev=False)
-parser.add_argument("title", nargs=1, metavar="TITLE", help="Title of generated manifest file.")
-parser.add_argument("data_type", nargs=1, metavar="DATA TYPE", help="data type from the schema.org schema.")
+parser.add_argument("title", metavar="TITLE", help="Title of generated manifest file.")
+parser.add_argument("data_type", metavar="DATA TYPE", help="data type from the schema.org schema.")
 parser.add_argument("--config", "-c", help="Configuration YAML file.")
 args = parser.parse_args()
 
@@ -31,7 +28,7 @@ MM_TYPE = CONFIG["model"]["input"]["file_type"]
 metadata_model = MetadataModel(MM_LOC, MM_TYPE)
 
 # TEST_DATA_TYPE used for testing methods in `metadata.py`
-TEST_DATA_TYPE = args.data_type[FIRST]
+TEST_DATA_TYPE = args.data_type
 
 # testing manifest generation - manifest is generated based on a JSON schema parsed from schema.org schema, which generates a google spreadsheet.
 # To generate the sheet, the backend requires Google API credentials in a file credentials.json stored locally in the same directory as this file
@@ -47,7 +44,7 @@ print("*****************************************************")
 
 # testing manifest generation from a given root node without optionally provided JSON schema
 print("Testing manifest generation based on a provided schema.org schema..")
-manifest_url = metadata_model.getModelManifest(title=args.title[FIRST], rootNode=TEST_DATA_TYPE, filenames=["1.txt", "2.txt", "3.txt"])
+manifest_url = metadata_model.getModelManifest(title=args.title, rootNode=TEST_DATA_TYPE, filenames=["1.txt", "2.txt", "3.txt"])
 print(manifest_url)
 
 print("*****************************************************")

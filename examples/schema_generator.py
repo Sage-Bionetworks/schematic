@@ -6,14 +6,11 @@ import argparse
 from schematic.schemas.generator import SchemaGenerator
 from schematic import CONFIG
 
-# Constants (to avoid magic numbers)
-FIRST = 0
-
 # Create command-line argument parser
 parser = argparse.ArgumentParser(allow_abbrev=False)
-parser.add_argument("schema_class", nargs=1, metavar="SCHEMA CLASS", help="Name of class from schema.")
-parser.add_argument("relationship", nargs=1, metavar="RELATIONSHIP NAME", help="Name of relationship from schema.")
-parser.add_argument("data_type", nargs=1, metavar="DATA TYPE NAME", help="Name of data type from schema.")
+parser.add_argument("schema_class", metavar="SCHEMA CLASS", help="Name of class from schema.")
+parser.add_argument("relationship", metavar="RELATIONSHIP NAME", help="Name of relationship from schema.")
+parser.add_argument("data_type", metavar="DATA TYPE NAME", help="Name of data type from schema.")
 parser.add_argument("--schema_name", metavar="SCHEMA NAME", help="Name of schema generated based on specified data_type.")
 parser.add_argument("--config", "-c", help="Configuration YAML file.")
 args = parser.parse_args()
@@ -32,8 +29,8 @@ else:
     print("object of class SchemaGenerator could not be created.")
 
 # get list of the out-edges from a node based on a specific relationship
-TEST_NODE = args.schema_class[FIRST]
-TEST_REL = args.relationship[FIRST]
+TEST_NODE = args.schema_class
+TEST_REL = args.relationship
 
 out_edges = schema_generator.get_edges_by_relationship(TEST_NODE, TEST_REL)
 
@@ -59,7 +56,7 @@ else:
     print("The class does not have descendants.")
 
 # get all data_types associated with a given data_type
-TEST_DATA_TYPE = args.data_type[FIRST]
+TEST_DATA_TYPE = args.data_type
 req_comps = schema_generator.get_component_requirements(TEST_DATA_TYPE)
 
 if req_comps:

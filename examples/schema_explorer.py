@@ -7,12 +7,9 @@ import networkx as nx
 from schematic.schemas.explorer import SchemaExplorer
 from schematic import CONFIG
 
-# Constants (to avoid magic numbers)
-FIRST = 0
-
 # Create command-line argument parser
 parser = argparse.ArgumentParser()
-parser.add_argument("schema_class", nargs=1, metavar="SCHEMA CLASS", help="Name of class from schema.")
+parser.add_argument("schema_class", metavar="SCHEMA CLASS", help="Name of class from schema.")
 parser.add_argument("--config", "-c", help="Configuration YAML file.")
 args = parser.parse_args()
 
@@ -43,7 +40,7 @@ else:
     print("object of class SchemaExplorer could not be retreived.")
 
 # check if a particular class is in the current HTAN JSON-LD schema (or any schema that has been loaded)
-TEST_CLASS = args.schema_class[FIRST]
+TEST_CLASS = args.schema_class
 is_or_not = schema_explorer.is_class_in_schema(TEST_CLASS)
 
 if is_or_not == True:
