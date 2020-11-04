@@ -596,7 +596,7 @@ class ManifestGenerator(object):
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
         # get manifest associated with dataset `dataset_id`
-        syn = synapseclient.Synapse(configPath=CONFIG.CONFIG_PATH)
+        syn = synapseclient.Synapse(configPath=CONFIG["definitions"]["synapse_config"])
         syn.login()
 
         syn_store = SynapseStorage(syn=syn)
