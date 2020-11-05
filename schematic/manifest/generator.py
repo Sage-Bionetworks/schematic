@@ -240,6 +240,7 @@ class ManifestGenerator(object):
                         "majorDimension":"COLUMNS",
                         "values":[values]
             }
+            
             target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
             valid_values = [
                             { 
@@ -247,7 +248,7 @@ class ManifestGenerator(object):
                             }
             ]
 
-            response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "RAW", body = body).execute()
+            response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "USER_ENTERED", body = body).execute()
 
 
         # setup validation data request body
