@@ -2854,7 +2854,7 @@
         {
             "@id": "bts:ClinicalDataTier2",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Center specific clinical data",
+            "rdfs:comment": "Cancer related clinical data",
             "rdfs:label": "ClinicalDataTier2",
             "rdfs:subClassOf": [
                 {
@@ -2952,10 +2952,7 @@
                     "@id": "bts:Secondhandsmokeexposureyears"
                 },
                 {
-                    "@id": "bts:Known"
-                },
-                {
-                    "@id": "bts:GeneticPredispositionMutation"
+                    "@id": "bts:KnownGeneticPredispositionMutation"
                 },
                 {
                     "@id": "bts:HereditaryCancerPredispositionSyndrome"
@@ -2979,10 +2976,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:LungCancer",
+            "@id": "bts:LungCancerTier3",
             "@type": "rdfs:Class",
             "rdfs:comment": "Lung cancer specific attributes in Clinical Data Tier 3",
-            "rdfs:label": "LungCancer",
+            "rdfs:label": "LungCancerTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -2991,7 +2988,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Lung Cancer",
+            "sms:displayName": "Lung Cancer Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3037,10 +3034,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:ColorectalCancer",
+            "@id": "bts:ColorectalCancerTier3",
             "@type": "rdfs:Class",
             "rdfs:comment": "Colorectal cancer specific attributes in Clinical Data Tier 3",
-            "rdfs:label": "ColorectalCancer",
+            "rdfs:label": "ColorectalCancerTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -3049,7 +3046,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Colorectal Cancer",
+            "sms:displayName": "Colorectal Cancer Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3128,10 +3125,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:BreastCancer",
+            "@id": "bts:BreastCancerTier3",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Breast cancer specific attributes in Clinical Data 3",
-            "rdfs:label": "BreastCancer",
+            "rdfs:comment": "Breast cancer specific attributes in Clinical Data Tier 3",
+            "rdfs:label": "BreastCancerTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -3140,7 +3137,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Breast Cancer",
+            "sms:displayName": "Breast Cancer Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3207,16 +3204,16 @@
                     "@id": "bts:BreastCarcinomaPRStatusPercentageValue"
                 },
                 {
-                    "@id": "bts:HER2neuBreastCarcinomaCopyNumberTotal"
+                    "@id": "bts:HER2BreastCarcinomaCopyNumberTotal"
                 },
                 {
                     "@id": "bts:BreastCarcinomaCentromere17CopyNumber"
                 },
                 {
-                    "@id": "bts:BreastCarcinomaHER2neuCentromere17CopynumberTotal"
+                    "@id": "bts:BreastCarcinomaHER2Centromere17CopynumberTotal"
                 },
                 {
-                    "@id": "bts:BreastCarcinomaHER2neuChromosome17Ratio"
+                    "@id": "bts:BreastCarcinomaHER2Chromosome17Ratio"
                 },
                 {
                     "@id": "bts:BreastCarcinomaSurgicalProcedureName"
@@ -3255,10 +3252,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:BrainCancer",
+            "@id": "bts:BrainCancerTier3",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Brain cancer specific attributes in Clinical Data 3",
-            "rdfs:label": "BrainCancer",
+            "rdfs:comment": "Brain cancer specific attributes in Clinical Data Tier 3",
+            "rdfs:label": "BrainCancerTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -3267,7 +3264,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Brain Cancer",
+            "sms:displayName": "Brain Cancer Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3307,10 +3304,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:AcuteLymphoblasticLeukemia",
+            "@id": "bts:AcuteLymphoblasticLeukemiaTier3",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Acute Lymphoblastic Leukemia attributes in Clinical Data 3",
-            "rdfs:label": "AcuteLymphoblasticLeukemia",
+            "rdfs:comment": "Acute Lymphoblastic Leukemia attributes in Clinical Data Tier 3",
+            "rdfs:label": "AcuteLymphoblasticLeukemiaTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -3319,7 +3316,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Acute Lymphoblastic Leukemia",
+            "sms:displayName": "Acute Lymphoblastic Leukemia Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3353,10 +3350,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:OvarianCancer",
+            "@id": "bts:OvarianCancerTier3",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Ovarian cancer specific attributes in Clinical Data 3",
-            "rdfs:label": "OvarianCancer",
+            "rdfs:comment": "Ovarian cancer specific attributes in Clinical Data Tier 3",
+            "rdfs:label": "OvarianCancerTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -3365,7 +3362,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Ovarian Cancer",
+            "sms:displayName": "Ovarian Cancer Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3396,10 +3393,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:ProstateCancer",
+            "@id": "bts:ProstateCancerTier3",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Prostate cancer specific attributes in Clinical Data 3",
-            "rdfs:label": "ProstateCancer",
+            "rdfs:comment": "Prostate cancer specific attributes in Clinical Data Tier 3",
+            "rdfs:label": "ProstateCancerTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -3408,7 +3405,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Prostate Cancer",
+            "sms:displayName": "Prostate Cancer Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3451,10 +3448,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:Sarcoma",
+            "@id": "bts:SarcomaTier3",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Sarcoma specific attributes in Clinical Data 3",
-            "rdfs:label": "Sarcoma",
+            "rdfs:comment": "Sarcoma specific attributes in Clinical Data Tier 3",
+            "rdfs:label": "SarcomaTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -3463,7 +3460,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Sarcoma",
+            "sms:displayName": "Sarcoma Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3494,10 +3491,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:PancreaticCancer",
+            "@id": "bts:PancreaticCancerTier3",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Pancreatic cancer specific attributes in Clinical Data 3",
-            "rdfs:label": "PancreaticCancer",
+            "rdfs:comment": "Pancreatic cancer specific attributes in Clinical Tier Data 3",
+            "rdfs:label": "PancreaticCancerTier3",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:Patient"
@@ -3506,7 +3503,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Pancreatic Cancer",
+            "sms:displayName": "Pancreatic Cancer Tier 3",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -3533,6 +3530,272 @@
                 {
                     "@id": "bts:PancreaticDuctFinalPathologyType"
                 }
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MelanomaTier3",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Melanoma specific attributes in Clinical Data Tier 3",
+            "rdfs:label": "MelanomaTier3",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Patient"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Melanoma Tier 3",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+                {
+                    "@id": "bts:Component"
+                },
+                {
+                    "@id": "bts:HTANParticipantID"
+                },
+                {
+                    "@id": "bts:TimepointLabel"
+                },
+                {
+                    "@id": "bts:StartDaysfromIndex"
+                },
+                {
+                    "@id": "bts:StopDaysfromIndex"
+                },
+                {
+                    "@id": "bts:CutaneousMelanomaTumorInfiltratingLymphocytes"
+                },
+                {
+                    "@id": "bts:CutaneousMelanomaTumorRegressionRange"
+                },
+                {
+                    "@id": "bts:MelanomaSpecimenClarkLevelValue"
+                },
+                {
+                    "@id": "bts:CutaneousMelanomaSurgicalMargins"
+                },
+                {
+                    "@id": "bts:MelanomaLesionSize"
+                },
+                {
+                    "@id": "bts:HistoryofAtypicalNevi"
+                },
+                {
+                    "@id": "bts:FitzpatrickSkinTone"
+                },
+                {
+                    "@id": "bts:HistoryofChronicUVExposure"
+                },
+                {
+                    "@id": "bts:HistoryofBlisteringSunburn"
+                },
+                {
+                    "@id": "bts:HistoryofTanningBedUse"
+                },
+                {
+                    "@id": "bts:ImmediateFamilyHistoryMelanoma"
+                },
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                },
+                {
+                    "@id": "bts:CutaneousMelanomaUlceration"
+                },
+                {
+                    "@id": "bts:CutaneousMelanomaAdditionalFindings"
+                }
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Melanoma",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Melanoma",
+            "rdfs:label": "Melanoma",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Melanoma",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:LungCancer",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Lung cancer",
+            "rdfs:label": "LungCancer",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Lung Cancer",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:ColorectalCancer",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Colorectal cancer",
+            "rdfs:label": "ColorectalCancer",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Colorectal Cancer",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:BreastCancer",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Breast cancer",
+            "rdfs:label": "BreastCancer",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Breast Cancer",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:PancreaticCancer",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Pancreatic cancer",
+            "rdfs:label": "PancreaticCancer",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Pancreatic Cancer",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:BrainCancer",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Brain cancer",
+            "rdfs:label": "BrainCancer",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Brain Cancer",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:AcuteLymphoblasticLeukemia",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Acute Lymphoblastic Leukemia",
+            "rdfs:label": "AcuteLymphoblasticLeukemia",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Acute Lymphoblastic Leukemia",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:OvarianCancer",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Ovarian cancer",
+            "rdfs:label": "OvarianCancer",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Ovarian Cancer",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Sarcoma",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Sarcoma",
+            "rdfs:label": "Sarcoma",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Sarcoma",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:ProstateCancer",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Prostate cancer",
+            "rdfs:label": "ProstateCancer",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Diagnosis"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Prostate Cancer",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
             ],
             "sms:validationRules": []
         },
@@ -3643,6 +3906,9 @@
                 },
                 {
                     "@id": "bts:SmokingExposure"
+                },
+                {
+                    "@id": "bts:AlcoholExposure"
                 },
                 {
                     "@id": "bts:AsbestosExposure"
@@ -12717,6 +12983,40 @@
             "sms:validationRules": []
         },
         {
+            "@id": "bts:StartDaysfromIndex",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Time interval from the date of birth (index date) to the date of start point of any event, represented as a calculated number of days.",
+            "rdfs:label": "StartDaysfromIndex",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Patient"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Start Days from Index",
+            "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:StopDaysfromIndex",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Time interval from the date of birth (index date) to the end date of the event, represented as a calculated number of days. Note:  If the event occurs over time, e.g. a Treatment the stop_days_from_index column should have values. If the event occurs at a time point, like a diagnosis or a lab test, the values for this column can be 'n/a'",
+            "rdfs:label": "StopDaysfromIndex",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Patient"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Stop Days from Index",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:Ethnicity",
             "@type": "rdfs:Class",
             "rdfs:comment": "An individual's self-described social and cultural grouping, specifically whether an individual describes themselves as Hispanic or Latino. The provided values are based on the categories defined by the U.S. Office of Management and Business and used by the U.S. Census Bureau.",
@@ -12740,7 +13040,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 },
                 {
                     "@id": "bts:Notallowedtocollect"
@@ -12777,7 +13077,7 @@
                     "@id": "bts:Unspecified"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Gender",
@@ -12820,7 +13120,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 },
                 {
                     "@id": "bts:Notallowedtocollect"
@@ -13428,7 +13728,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Relative with Cancer History",
@@ -21596,7 +21896,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Treatment or Therapy",
@@ -23274,10 +23574,10 @@
             },
             "schema:rangeIncludes": [
                 {
-                    "@id": "bts:Alive"
+                    "@id": "bts:VitalStatusAlive"
                 },
                 {
-                    "@id": "bts:Dead"
+                    "@id": "bts:VitalStatusDead"
                 },
                 {
                     "@id": "bts:Unknown"
@@ -24199,16 +24499,16 @@
             },
             "schema:rangeIncludes": [
                 {
-                    "@id": "bts:Mismatchrepairdeficiency"
+                    "@id": "bts:MismatchrepairdeficiencyMMRD"
                 },
                 {
-                    "@id": "bts:Mismatchrepairproficiency"
+                    "@id": "bts:MismatchrepairproficiencyMMPP"
                 },
                 {
-                    "@id": "bts:Microsatelliteinstabilityhigh"
+                    "@id": "bts:MicrosatelliteinstabilityhighMSIH"
                 },
                 {
-                    "@id": "bts:Microsatellitestable"
+                    "@id": "bts:MicrosatellitestableMSS"
                 },
                 {
                     "@id": "bts:Unknownorother"
@@ -31431,7 +31731,7 @@
         {
             "@id": "bts:AnaplasiaPresent",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Yes/no/unknown/not reported indicator used to describe whether anaplasia was present at the\ntime of diagnosis.",
+            "rdfs:comment": "Yes/no/unknown/Not Reported indicator used to describe whether anaplasia was present at the\ntime of diagnosis.",
             "rdfs:label": "AnaplasiaPresent",
             "rdfs:subClassOf": [
                 {
@@ -31668,7 +31968,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 },
                 {
                     "@id": "bts:NotAllowedToCollect"
@@ -32695,7 +32995,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Lung Tumor Location Anatomic Site",
@@ -32735,7 +33035,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Lung Tumor Lobe Bronchial Location",
@@ -34489,10 +34789,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:HER2neuBreastCarcinomaCopyNumberTotal",
+            "@id": "bts:HER2BreastCarcinomaCopyNumberTotal",
             "@type": "rdfs:Class",
             "rdfs:comment": "Result of HER2 Copy Number testing (in a participant with breast cancer), expressed as a range of values.",
-            "rdfs:label": "HER2neuBreastCarcinomaCopyNumberTotal",
+            "rdfs:label": "HER2BreastCarcinomaCopyNumberTotal",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:BreastCancer"
@@ -34501,7 +34801,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "HER2 neu Breast Carcinoma Copy Number Total",
+            "sms:displayName": "HER2 Breast Carcinoma Copy Number Total",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -34523,10 +34823,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:BreastCarcinomaHER2neuCentromere17CopynumberTotal",
+            "@id": "bts:BreastCarcinomaHER2Centromere17CopynumberTotal",
             "@type": "rdfs:Class",
             "rdfs:comment": "Number of Cells Counted for HER2 & Centromere 17 Copy Numbers in a participant with breast cancer",
-            "rdfs:label": "BreastCarcinomaHER2neuCentromere17CopynumberTotal",
+            "rdfs:label": "BreastCarcinomaHER2Centromere17CopynumberTotal",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:BreastCancer"
@@ -34535,15 +34835,15 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Breast Carcinoma HER2 neu Centromere17 Copynumber Total",
+            "sms:displayName": "Breast Carcinoma HER2 Centromere17 Copynumber Total",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
-            "@id": "bts:BreastCarcinomaHER2neuChromosome17Ratio",
+            "@id": "bts:BreastCarcinomaHER2Chromosome17Ratio",
             "@type": "rdfs:Class",
-            "rdfs:comment": "HER2/neu chromosome 17 ratio in participants with breast cancer",
-            "rdfs:label": "BreastCarcinomaHER2neuChromosome17Ratio",
+            "rdfs:comment": "HER2 chromosome 17 ratio in participants with breast cancer",
+            "rdfs:label": "BreastCarcinomaHER2Chromosome17Ratio",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:BreastCancer"
@@ -34552,7 +34852,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Breast Carcinoma HER2 neu Chromosome17 Ratio",
+            "sms:displayName": "Breast Carcinoma HER2 Chromosome17 Ratio",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -35501,7 +35801,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Location Extent Extraprostatic Extension",
@@ -35607,7 +35907,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Location Nature Positive Margins",
@@ -35644,7 +35944,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Seminal Vesicle Invasion",
@@ -35724,7 +36024,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Prostate Cancer Local Extent",
@@ -35764,7 +36064,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Additonal Findings Uninvolved Prostate",
@@ -35807,7 +36107,7 @@
                     "@id": "bts:Unknown"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Prostate Cancer Cytologic Morphologic Subtypes",
@@ -36062,10 +36362,532 @@
                     "@id": "bts:None"
                 },
                 {
-                    "@id": "bts:Notreported"
+                    "@id": "bts:NotReported"
                 }
             ],
             "sms:displayName": "Pancreatic Duct Final Pathology Type",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:CutaneousMelanomaTumorInfiltratingLymphocytes",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Description of degree of lymphocytic infiltration surrounding and disrupting tumor cells of the vertical growth phase in a cutaneous melanoma.",
+            "rdfs:label": "CutaneousMelanomaTumorInfiltratingLymphocytes",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Absent"
+                },
+                {
+                    "@id": "bts:Brisk"
+                },
+                {
+                    "@id": "bts:Nonbrisk"
+                },
+                {
+                    "@id": "bts:Unknown"
+                }
+            ],
+            "sms:displayName": "Cutaneous Melanoma Tumor Infiltrating Lymphocytes",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:CutaneousMelanomaTumorRegressionRange",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Description of the degree to which tumor cells are replaced by lymphocytic inflammation with or without dermal melanophages and fibrosis._Range; the difference between the lowest and highest numerical values.",
+            "rdfs:label": "CutaneousMelanomaTumorRegressionRange",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Absent"
+                },
+                {
+                    "@id": "bts:Presentinvolving75%ormore"
+                },
+                {
+                    "@id": "bts:Presentinvolvinglessthan75%"
+                },
+                {
+                    "@id": "bts:Unknown"
+                }
+            ],
+            "sms:displayName": "Cutaneous Melanoma Tumor Regression Range",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MelanomaSpecimenClarkLevelValue",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Definition of the Clark level or depth of involvement of a melanoma in the skin or a specimen.",
+            "rdfs:label": "MelanomaSpecimenClarkLevelValue",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:I"
+                },
+                {
+                    "@id": "bts:II"
+                },
+                {
+                    "@id": "bts:III"
+                },
+                {
+                    "@id": "bts:IV"
+                },
+                {
+                    "@id": "bts:V"
+                },
+                {
+                    "@id": "bts:NoSourceDocumentation"
+                },
+                {
+                    "@id": "bts:Unknown"
+                }
+            ],
+            "sms:displayName": "Melanoma Specimen Clark Level Value",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:CutaneousMelanomaSurgicalMargins",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Text term to indicate presence of tumor at resection margins",
+            "rdfs:label": "CutaneousMelanomaSurgicalMargins",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Positive"
+                },
+                {
+                    "@id": "bts:Negative"
+                },
+                {
+                    "@id": "bts:Unknown"
+                },
+                {
+                    "@id": "bts:NotReported"
+                }
+            ],
+            "sms:displayName": "Cutaneous Melanoma Surgical Margins",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MelanomaLesionSize",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Diameter of lesion determined on skin examination (pre-bx), in mm",
+            "rdfs:label": "MelanomaLesionSize",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Melanoma Lesion Size",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:HistoryofAtypicalNevi",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Patient has a history of atypical nevi",
+            "rdfs:label": "HistoryofAtypicalNevi",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Yes(morethan50)"
+                },
+                {
+                    "@id": "bts:Yes(lessthan50)"
+                },
+                {
+                    "@id": "bts:No"
+                },
+                {
+                    "@id": "bts:Unknown"
+                },
+                {
+                    "@id": "bts:NotReported"
+                }
+            ],
+            "sms:displayName": "History of Atypical Nevi",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:FitzpatrickSkinTone",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "The Fitzpatrick classification of skin phototype",
+            "rdfs:label": "FitzpatrickSkinTone",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:I"
+                },
+                {
+                    "@id": "bts:II"
+                },
+                {
+                    "@id": "bts:III"
+                },
+                {
+                    "@id": "bts:IV"
+                },
+                {
+                    "@id": "bts:V"
+                },
+                {
+                    "@id": "bts:VI"
+                },
+                {
+                    "@id": "bts:Unknown"
+                },
+                {
+                    "@id": "bts:NotReported"
+                }
+            ],
+            "sms:displayName": "Fitzpatrick Skin Tone",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:HistoryofChronicUVExposure",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "History of chronic UV exposure",
+            "rdfs:label": "HistoryofChronicUVExposure",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Outdooroccupational"
+                },
+                {
+                    "@id": "bts:Outdoorrecreational"
+                },
+                {
+                    "@id": "bts:Therapeutic"
+                },
+                {
+                    "@id": "bts:None"
+                },
+                {
+                    "@id": "bts:NotReported"
+                }
+            ],
+            "sms:displayName": "History of Chronic UV Exposure",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:HistoryofBlisteringSunburn",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Patient has history of blistering sunburn",
+            "rdfs:label": "HistoryofBlisteringSunburn",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Yes"
+                },
+                {
+                    "@id": "bts:No"
+                },
+                {
+                    "@id": "bts:Unknown"
+                },
+                {
+                    "@id": "bts:NotReported"
+                }
+            ],
+            "sms:displayName": "History of Blistering Sunburn",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:HistoryofTanningBedUse",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "History of tanning bed use of the patient",
+            "rdfs:label": "HistoryofTanningBedUse",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Never"
+                },
+                {
+                    "@id": "bts:Lessthan10times"
+                },
+                {
+                    "@id": "bts:10-50times"
+                },
+                {
+                    "@id": "bts:50-100times"
+                },
+                {
+                    "@id": "bts:Morethan100times"
+                },
+                {
+                    "@id": "bts:NotReported"
+                }
+            ],
+            "sms:displayName": "History of Tanning Bed Use",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:ImmediateFamilyHistoryMelanoma",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Text that describes the age at which the family member was diagnosed with melanoma skin cancer in relationship to their 50th birthday.",
+            "rdfs:label": "ImmediateFamilyHistoryMelanoma",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Beforeage50"
+                },
+                {
+                    "@id": "bts:Notbeforeage50"
+                },
+                {
+                    "@id": "bts:Unknown"
+                }
+            ],
+            "sms:displayName": "Immediate Family History Melanoma",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MelanomaBiopsyResectionSites",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Biopsy resection sites specific to melanoma (not covered in Tiers 1 and 2)",
+            "rdfs:label": "MelanomaBiopsyResectionSites",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Skinofscalp"
+                },
+                {
+                    "@id": "bts:Skinofeyelid"
+                },
+                {
+                    "@id": "bts:Skinofnose"
+                },
+                {
+                    "@id": "bts:Skinoflip"
+                },
+                {
+                    "@id": "bts:Skinofear"
+                },
+                {
+                    "@id": "bts:Skinofneck"
+                },
+                {
+                    "@id": "bts:Skinofotherpartsofface"
+                },
+                {
+                    "@id": "bts:Skinofchest"
+                },
+                {
+                    "@id": "bts:Skinofback"
+                },
+                {
+                    "@id": "bts:Skinofabdomen"
+                },
+                {
+                    "@id": "bts:Skinoftrunk-other"
+                },
+                {
+                    "@id": "bts:Skinofbreast"
+                },
+                {
+                    "@id": "bts:Skinofupperlimbandshoulder"
+                },
+                {
+                    "@id": "bts:Skinofpalm"
+                },
+                {
+                    "@id": "bts:Skinoflowerlimbandhip"
+                },
+                {
+                    "@id": "bts:Skinofsole"
+                },
+                {
+                    "@id": "bts:Skinofpenis"
+                },
+                {
+                    "@id": "bts:Skinofscrotum"
+                },
+                {
+                    "@id": "bts:Skinofvulva"
+                },
+                {
+                    "@id": "bts:Skinother"
+                },
+                {
+                    "@id": "bts:SkinNOS"
+                },
+                {
+                    "@id": "bts:NotReported"
+                }
+            ],
+            "sms:displayName": "Melanoma Biopsy Resection Sites",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:CutaneousMelanomaUlceration",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Description of extent of disruption to the surface of the skin caused by the cutaneous melanoma.",
+            "rdfs:label": "CutaneousMelanomaUlceration",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Absent"
+                },
+                {
+                    "@id": "bts:Present"
+                },
+                {
+                    "@id": "bts:Unknown"
+                },
+                {
+                    "@id": "bts:NotReported"
+                }
+            ],
+            "sms:displayName": "Cutaneous Melanoma Ulceration",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:CutaneousMelanomaAdditionalFindings",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Significant pathologic finding present in addition to the cutaneous melanoma.",
+            "rdfs:label": "CutaneousMelanomaAdditionalFindings",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Melanoma"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:ActinicKeratosis"
+                },
+                {
+                    "@id": "bts:NevusRemnant"
+                },
+                {
+                    "@id": "bts:SolarElastosis"
+                },
+                {
+                    "@id": "bts:FibrosingRegression"
+                },
+                {
+                    "@id": "bts:NestingMelanoma"
+                },
+                {
+                    "@id": "bts:PagetoidSpread"
+                },
+                {
+                    "@id": "bts:VascularProliferation"
+                },
+                {
+                    "@id": "bts:Other"
+                },
+                {
+                    "@id": "bts:Unknown"
+                },
+                {
+                    "@id": "bts:NotApplicable"
+                }
+            ],
+            "sms:displayName": "Cutaneous Melanoma Additional Findings",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -37443,74 +38265,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "cloupe",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:StartDaysfromIndex",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "StartDaysfromIndex",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ClinicalDataTier2"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Start Days from Index",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:StopDaysfromIndex",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "StopDaysfromIndex",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ClinicalDataTier2"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Stop Days from Index",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:Known",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "Known",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ClinicalDataTier2"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Known",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:GeneticPredispositionMutation",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "GeneticPredispositionMutation",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ClinicalDataTier2"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Genetic Predisposition Mutation",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -43907,23 +44661,6 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:Notreported",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "Notreported",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Ethnicity"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "not reported",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
             "@id": "bts:Notallowedtocollect",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -44719,23 +45456,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Lymphoma",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:Melanoma",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "Melanoma",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:RelationshipPrimaryDiagnosis"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Melanoma",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -79063,6 +79783,40 @@
             "sms:validationRules": []
         },
         {
+            "@id": "bts:VitalStatusAlive",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "VitalStatusAlive",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:FamilyMemberVitalStatusIndicator"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Vital Status Alive",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:VitalStatusDead",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "VitalStatusDead",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:FamilyMemberVitalStatusIndicator"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Vital Status Dead",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:Patientcurrentlyhassymptoms",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -81834,10 +82588,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:Mismatchrepairdeficiency",
+            "@id": "bts:MismatchrepairdeficiencyMMRD",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "Mismatchrepairdeficiency",
+            "rdfs:label": "MismatchrepairdeficiencyMMRD",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:MismatchRepairSystemStatus"
@@ -81846,15 +82600,15 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Mismatch repair deficiency",
+            "sms:displayName": "Mismatch repair deficiency MMRD",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
-            "@id": "bts:Mismatchrepairproficiency",
+            "@id": "bts:MismatchrepairproficiencyMMPP",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "Mismatchrepairproficiency",
+            "rdfs:label": "MismatchrepairproficiencyMMPP",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:MismatchRepairSystemStatus"
@@ -81863,15 +82617,15 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Mismatch repair proficiency",
+            "sms:displayName": "Mismatch repair proficiency MMPP",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
-            "@id": "bts:Microsatelliteinstabilityhigh",
+            "@id": "bts:MicrosatelliteinstabilityhighMSIH",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "Microsatelliteinstabilityhigh",
+            "rdfs:label": "MicrosatelliteinstabilityhighMSIH",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:MismatchRepairSystemStatus"
@@ -81880,15 +82634,15 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Microsatellite instability high",
+            "sms:displayName": "Microsatellite instability high MSIH",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
-            "@id": "bts:Microsatellitestable",
+            "@id": "bts:MicrosatellitestableMSS",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "Microsatellitestable",
+            "rdfs:label": "MicrosatellitestableMSS",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:MismatchRepairSystemStatus"
@@ -81897,7 +82651,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Microsatellite stable",
+            "sms:displayName": "Microsatellite stable MSS",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -105987,6 +106741,720 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Not Specified",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Brisk",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Brisk",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaTumorInfiltratingLymphocytes"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Brisk",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Nonbrisk",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Nonbrisk",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaTumorInfiltratingLymphocytes"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Nonbrisk",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Presentinvolving75%ormore",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Presentinvolving75%ormore",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaTumorRegressionRange"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Present involving 75% or more",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Presentinvolvinglessthan75%",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Presentinvolvinglessthan75%",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaTumorRegressionRange"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Present involving less than 75%",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:IV",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "IV",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaSpecimenClarkLevelValue"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "IV",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:V",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "V",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaSpecimenClarkLevelValue"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "V",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:NoSourceDocumentation",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "NoSourceDocumentation",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaSpecimenClarkLevelValue"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "No Source Documentation",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Yes(morethan50)",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Yes(morethan50)",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofAtypicalNevi"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Yes (more than 50)",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Yes(lessthan50)",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Yes(lessthan50)",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofAtypicalNevi"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Yes (less than 50)",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:VI",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "VI",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:FitzpatrickSkinTone"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "VI",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Outdooroccupational",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Outdooroccupational",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofChronicUVExposure"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Outdoor occupational",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Outdoorrecreational",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Outdoorrecreational",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofChronicUVExposure"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Outdoor recreational",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Therapeutic",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Therapeutic",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofChronicUVExposure"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Therapeutic",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Lessthan10times",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Lessthan10times",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofTanningBedUse"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Less than 10 times",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:10-50times",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "10-50times",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofTanningBedUse"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "10-50 times",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:50-100times",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "50-100times",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofTanningBedUse"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "50-100 times",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Morethan100times",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Morethan100times",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:HistoryofTanningBedUse"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "More than 100 times",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofscalp",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofscalp",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of scalp",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofeyelid",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofeyelid",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of eye lid",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofnose",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofnose",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of nose",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinoflip",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinoflip",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of lip",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofear",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofear",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of ear",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofneck",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofneck",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of neck",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofotherpartsofface",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofotherpartsofface",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of other parts of face",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofchest",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofchest",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of chest",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofback",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofback",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of back",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofabdomen",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofabdomen",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of abdomen",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinoftrunk-other",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinoftrunk-other",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of trunk-other",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofbreast",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofbreast",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of breast",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofpalm",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofpalm",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of palm",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofsole",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofsole",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of sole",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofpenis",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofpenis",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of penis",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofscrotum",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofscrotum",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of scrotum",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinofvulva",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinofvulva",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin of vulva",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Skinother",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Skinother",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MelanomaBiopsyResectionSites"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "skin other",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:ActinicKeratosis",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "ActinicKeratosis",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaAdditionalFindings"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Actinic Keratosis",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:NevusRemnant",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "NevusRemnant",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaAdditionalFindings"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Nevus Remnant",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:SolarElastosis",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "SolarElastosis",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaAdditionalFindings"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Solar Elastosis",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:FibrosingRegression",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "FibrosingRegression",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaAdditionalFindings"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Fibrosing Regression",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:NestingMelanoma",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "NestingMelanoma",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaAdditionalFindings"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Nesting Melanoma",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:PagetoidSpread",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "PagetoidSpread",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaAdditionalFindings"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Pagetoid Spread",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:VascularProliferation",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "VascularProliferation",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CutaneousMelanomaAdditionalFindings"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Vascular Proliferation",
             "sms:required": "sms:false",
             "sms:validationRules": []
         }
