@@ -10,11 +10,9 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic.utils.io_utils import load_json
 from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema
-from schematic.utils.config_utils import load_yaml
 
-from definitions import CONFIG_PATH, DATA_PATH
+from schematic import CONFIG
 
-config_data = load_yaml(CONFIG_PATH)
 
 class SchemaGenerator(object):
     def __init__(self,
@@ -26,7 +24,7 @@ class SchemaGenerator(object):
                 ) -> None:
         """Create / Initialize object of type SchemaGenerator().
 
-        Methods / utilities that are part of this module can be used to generate JSON validation schemas for different schema.org 
+        Methods / utilities that are part of this module can be used to generate JSON validation schemas for different schema.org
         specification models.
 
         Args:
@@ -42,7 +40,7 @@ class SchemaGenerator(object):
 
         # create an instance of SchemaExplorer
         self.se = SchemaExplorer()
-        
+
         if path_to_json_ld.rpartition('.')[-1] == "jsonld":
             # convert the JSON-LD data model to networkx object
             self.se.load_schema(path_to_json_ld)
@@ -55,7 +53,7 @@ class SchemaGenerator(object):
         self.requires_range = requires_range
         self.range_value_relationship = range_value_relationship
         self.requires_component_relationship = requires_component_relationship
-        
+
 
     def get_edges_by_relationship(self,
                                 node: str,
@@ -91,12 +89,12 @@ class SchemaGenerator(object):
         Args:
             node: the node whose edges we need to look at.
             relationship: the type of link(s) that the above node and its immediate neighbors share.
-        
+
         Returns:
             List of nodes that are adjacent to the given node.
         """
         nodes = set()
-        
+
         mm_graph = self.se.get_nx_schema()
 
         for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
@@ -146,7 +144,7 @@ class SchemaGenerator(object):
                        Default value is True.
             ordered: If True, the list of descendants will be topologically ordered.
                      If False, the list has no particular order (depends on the order in which the descendats were traversed in the subgraph).
-        
+
         Returns:
             List of nodes that are descendants from a particular node (sorted / unsorted)
         """
@@ -238,7 +236,7 @@ class SchemaGenerator(object):
         if display_names:
             # get display names of dependencies
             dependencies_display_names = []
-            
+
             for req in required_dependencies:
                 dependencies_display_names.append(mm_graph.nodes[req]["displayName"])
 
@@ -282,7 +280,7 @@ class SchemaGenerator(object):
     def get_node_label(self,
                       node_display_name: str) -> str:
         """Get the node label for a given display name.
-        
+
         Args:
             node_display_name: Display name of the node which you want to get the label for.
 
@@ -309,7 +307,7 @@ class SchemaGenerator(object):
 
     def get_node_definition(self,
                            node_display_name: str) -> str:
-        """Get the node definition, i.e., the "comment" associated with a given node display name. 
+        """Get the node definition, i.e., the "comment" associated with a given node display name.
 
         Args:
             node_display_name: Display name of the node which you want to get the label for.
@@ -323,13 +321,13 @@ class SchemaGenerator(object):
             return ""
 
         mm_graph = self.se.get_nx_schema()
-        node_definition = mm_graph.nodes[node_label]["comment"] 
-         
+        node_definition = mm_graph.nodes[node_label]["comment"]
+
         return node_definition
 
 
     def get_node_validation_rules(self, node_display_name: str) -> str:
-        """Get validation rules associated with a node,  
+        """Get validation rules associated with a node,
 
         Args:
             node_display_name: Display name of the node which you want to get the label for.
@@ -343,8 +341,8 @@ class SchemaGenerator(object):
             return []
 
         mm_graph = self.se.get_nx_schema()
-        node_validation_rules = mm_graph.nodes[node_label]["validationRules"] 
-         
+        node_validation_rules = mm_graph.nodes[node_label]["validationRules"]
+
         return node_validation_rules
 
 
@@ -430,12 +428,12 @@ class SchemaGenerator(object):
                                     node_name:{
                                         "type": "array",
                                         "items": {
-                                            "enum": node_range + [""] if blank else node_range 
+                                            "enum": node_range + [""] if blank else node_range
                                         },
                                         "maxItems": len(node_range)
                                     }
         }
-        
+
         return schema_node_range_array
 
 
@@ -473,15 +471,15 @@ class SchemaGenerator(object):
                                     source_node: str,
                                     schema_name: str) -> Dict:
         """Consolidated method that aims to gather dependencies and value constraints across terms / nodes in a schema.org schema and store them in a jsonschema /JSON Schema schema.
-        
+
         It does so for any given node in the schema.org schema (recursively) using the given node as starting point in the following manner:
         1) Find all the nodes / terms this node depends on (which are required as "additional metadata" given this node is "required").
         2) Find all the allowable metadata values / nodes that can be assigned to a particular node (if such a constraint is specified on the schema).
-        
+
         Args:
             source_node: Node from which we can start recursive dependancy traversal (as mentioned above).
             schema_name: Name assigned to JSON-LD schema (to uniquely identify it via URI when it is hosted on the Internet).
-        
+
         Returns:
             JSON Schema as a dictionary.
         """
@@ -497,7 +495,7 @@ class SchemaGenerator(object):
 
         # get graph corresponding to data model schema
         mm_graph = self.se.get_nx_schema()
-    
+
         nodes_to_process = []   # list of nodes to be checked for dependencies, starting with the source node
         processed_nodes = []    # keep of track of nodes whose dependencies have been processed
         reverse_dependencies = {}   # maintain a map between conditional nodes and their dependencies (reversed) -- {dependency : conditional_node}
@@ -507,11 +505,11 @@ class SchemaGenerator(object):
         root_dependencies = self.get_adjacent_nodes_by_relationship(source_node, self.requires_dependency_relationship)
 
         nodes_to_process += root_dependencies
-        
+
         process_node = nodes_to_process.pop(0)
 
         while process_node:
-            
+
             if not process_node in processed_nodes:
                 # node is being processed
                 node_is_processed = True
@@ -520,20 +518,20 @@ class SchemaGenerator(object):
 
                 # get node range display name
                 node_range_d = self.get_nodes_display_names(node_range, mm_graph)
-                
-                node_dependencies = self.get_adjacent_nodes_by_relationship(process_node, self.requires_dependency_relationship)
-                
-                # get process node display name
-                node_display_name = mm_graph.nodes[process_node]["displayName"]  
 
-                # updating map between node and node's valid values 
+                node_dependencies = self.get_adjacent_nodes_by_relationship(process_node, self.requires_dependency_relationship)
+
+                # get process node display name
+                node_display_name = mm_graph.nodes[process_node]["displayName"]
+
+                # updating map between node and node's valid values
                 for n in node_range_d:
                     if not n in range_domain_map:
                         range_domain_map[n] = []
                     range_domain_map[n].append(node_display_name)
 
                 # can this node be map to the empty set (if required no; if not required yes)
-                # TODO: change "required" to different term, required may be a bit misleading (i.e. is the node required in the schema) 
+                # TODO: change "required" to different term, required may be a bit misleading (i.e. is the node required in the schema)
                 node_required = self.is_required(process_node, mm_graph)
 
                 # get any additional validation rules associated with this node (e.g. can this node be mapped to a list of other nodes)
@@ -545,16 +543,16 @@ class SchemaGenerator(object):
                     if node_range:
                         # if process node has valid value range set it in schema properties
                         schema_valid_vals = self.get_range_schema(node_range_d, node_display_name, blank = True)
-                        
+
                         if node_validation_rules:
                             # if this node has extra validation rules process them
                             # TODO: abstract this into its own validation rule constructor/generator module/class
-                            
+
                             if "list" in node_validation_rules:
                                 # if this node can be mapped to a list of nodes
                                 # set its schema accordingly
                                 schema_valid_vals = self.get_array_schema(node_range_d, node_display_name, blank = True)
-            
+
                     else:
                         # otherwise, by default allow any values
                         schema_valid_vals = {node_display_name:{}}
@@ -564,7 +562,7 @@ class SchemaGenerator(object):
                     # set schema conditional dependencies
                     for node in reverse_dependencies[node_display_name]:
                         # set all of the conditional nodes that require this process node
-                        
+
                         # get node domain if any
                         # ow this node is a conditional requirement
                         if node in range_domain_map:
@@ -572,32 +570,32 @@ class SchemaGenerator(object):
                             conditional_properties = {}
 
                             for domain_node in domain_nodes:
-                            
+
                                 # set range of conditional node schema
                                 conditional_properties.update({"properties":{domain_node:{"enum":[node]}}, "required":[domain_node]})
 
                                 # given node conditional are satisfied, this process node (which is dependent on these conditionals) has to be set or not depending on whether it is required
-                                if node_range:    
+                                if node_range:
                                     dependency_properties = self.get_range_schema(node_range_d, node_display_name, blank = not node_required)
 
-                                    if node_validation_rules: 
+                                    if node_validation_rules:
                                         if "list" in node_validation_rules:
                                             #TODO: get_range_schema and get_range_schema have similar behavior - combine in one module
                                             dependency_properties = self.get_array_schema(node_range_d, node_display_name, blank = not node_required)
 
                                 else:
                                     if node_required:
-                                        dependency_properties = self.get_non_blank_schema(node_display_name)    
+                                        dependency_properties = self.get_non_blank_schema(node_display_name)
                                     else:
                                         dependency_properties = {node_display_name:{}}
                                 schema_conditional_dependencies = {
-                                        "if": conditional_properties, 
+                                        "if": conditional_properties,
                                         "then":{
                                             "properties":dependency_properties,
                                             "required":[node_display_name]
                                         }
                                 }
-                                    
+
                                 # update conditional-dependency rules in json schema
                                 json_schema["allOf"].append(schema_conditional_dependencies)
 
@@ -607,56 +605,56 @@ class SchemaGenerator(object):
                         if node_range:
                             schema_valid_vals = self.get_range_schema(node_range_d, node_display_name, blank = False)
 
-                            if node_validation_rules: 
+                            if node_validation_rules:
                                 if "list" in node_validation_rules:
                                     schema_valid_vals = self.get_array_schema(node_range_d, node_display_name, blank = False)
                         else:
                             schema_valid_vals = self.get_non_blank_schema(node_display_name)
-                        
+
                         json_schema["properties"].update(schema_valid_vals)
                         # add node to required fields
                         json_schema["required"] += [node_display_name]
 
                     elif process_node in root_dependencies:
                         # node doesn't have conditionals and is not required; it belongs in the schema only if it is in root's dependencies
-                        
+
                         if node_range:
                             schema_valid_vals = self.get_range_schema(node_range_d, node_display_name, blank = True)
-                            
-                            if node_validation_rules: 
+
+                            if node_validation_rules:
                                 if "list" in node_validation_rules:
                                     schema_valid_vals = self.get_array_schema(node_range_d, node_display_name, blank = True)
 
                         else:
                             schema_valid_vals = {node_display_name:{}}
-                        
+
                         json_schema["properties"].update(schema_valid_vals)
-                        
+
                     else:
                         # node doesn't have conditionals and it is not required and it is not a root dependency
                         # the node doesn't belong in the schema
                         # do not add to processed nodes since its conditional may be traversed at a later iteration (though unlikely for most schemas we consider)
                         node_is_processed = False
-                    
+
                 # add process node as a conditional to its dependencies
                 node_dependencies_d = self.get_nodes_display_names(node_dependencies, mm_graph)
 
                 for dep in node_dependencies_d:
                     if not dep in reverse_dependencies:
                         reverse_dependencies[dep] = []
-                    
+
                     reverse_dependencies[dep].append(node_display_name)
 
                 # add nodes found as dependencies and range of this processed node
                 # to the list of nodes to be processed
                 nodes_to_process += node_range
                 nodes_to_process += node_dependencies
-                
+
                 # if the node is processed add it to the processed nodes set
                 if node_is_processed:
                     processed_nodes.append(process_node)
 
-            # if the list of nodes to process is not empty 
+            # if the list of nodes to process is not empty
             # set the process node the next remaining node to process
             if nodes_to_process:
                 process_node = nodes_to_process.pop(0)
@@ -668,15 +666,15 @@ class SchemaGenerator(object):
 
         print("========================================================================================")
         print("JSON schema successfully generated from schema.org schema!")
-        
+
         # if no conditional dependencies were added we can't have an empty 'AllOf' block in the schema, so remove it
         if not json_schema["allOf"]:
             del json_schema["allOf"]
-        
-        json_schema_log_file = os.path.join(DATA_PATH, '', config_data["model"]["input"]["log_location"])
+
+        json_schema_log_file = CONFIG["model"]["input"]["log_location"]
         with open(json_schema_log_file, "w") as js_f:
             json.dump(json_schema, js_f, indent = 2)
-        
+
         print("JSON schema file log stored as {}".format(json_schema_log_file))
         print("========================================================================================")
 

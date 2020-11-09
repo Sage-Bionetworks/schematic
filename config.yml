@@ -1,35 +1,33 @@
----
-  synapse:
-    master_fileview: 'syn20446927'
-    manifest_folder: 'manifests'
-    manifest_filename: 'manifests/synapse_storage_manifest.csv'
-    api_creds: 'syn21088684'
+# Do not change the 'definitions' section unless you know what you're doing
+definitions:
+  synapse_config: ".synapseConfig"
+  creds_path: "credentials.json"
+  token_pickle: "token.pickle"
+  service_acct_creds: "quickstart-1560359685924-198a7114b6b5.json"
 
-  schema:
-    csv: 'csv/HTAN.csv'
-    name: 'HTAN'
+synapse:
+  master_fileview: 'syn20446927'
+  manifest_folder: 'manifests'
+  manifest_filename: 'data/manifests/synapse_storage_manifest.csv'
+  api_creds: 'syn21088684'
 
-  model:
-    input:
-      location: 'schema_org_schemas/HTAN.jsonld'
-      file_type: 'local'
-      log_location: 'json_schema_logs/json_schema_log.json'
-    biothings:
-      location: 'schema_org_schemas/biothings.jsonld'
-    demo:
-      location: 'schema_org_schemas/HTAPP.jsonld'
-      file_type: 'local'
-      validation_file_location: 'validation_schemas/minimalHTAPPJSONSchema.json'
-      valid_manifest: 'manifests/HTAPP_manifest_valid.csv'
+model:
+  input:
+    location: 'data/schema_org_schemas/HTAN.jsonld'
+    file_type: 'local'
+    validation_schema: 'data/validation_schemas/HTAN_validation_schema_FamilyHistory.json'
+    log_location: 'data/json_schema_logs/json_schema_log.json'
+  biothings:
+    location: 'data/schema_org_schemas/biothings.jsonld'
 
-  style:
-    google_manifest:
-      req_bg_color:
-        red: 0.9215
-        green: 0.9725
-        blue: 0.9803
-      opt_bg_color:
-        red: 1.0
-        green: 1.0
-        blue: 0.9019
-      master_template_id: '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU'
+style:
+  google_manifest:
+    req_bg_color:
+      red: 0.9215
+      green: 0.9725
+      blue: 0.9803
+    opt_bg_color:
+      red: 1.0
+      green: 1.0
+      blue: 0.9019
+    master_template_id: '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU'
