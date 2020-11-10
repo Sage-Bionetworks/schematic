@@ -16,7 +16,7 @@ Utility for converting csv file containing a data model definition schema (see s
 """
 
 # required headers for schema; may or may not abstract further; for now hardcode
-required_headers = set(["Attribute", "Description", "Valid Values", "DependsOn", "Required", "Parent", "Properties", "Requires Component", "Source", "Validation Rules"])
+required_headers = set(["Attribute", "Description", "Valid Values", "DependsOn", "Required", "Parent", "Properties", "DependsOn Component", "Source", "Validation Rules"])
 
 
 def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = None, requires_dependencies: list = None, requires_range: list  = None, requires_components: list = None, required:bool = None, validation_rules: list = None) -> dict:
@@ -183,11 +183,14 @@ def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
 
     if required_headers.issubset(set(list(schema_definition.columns))):
         return
-    elif "Requires" in list(schema_definition.columns):
+    elif (
+        "Requires" in list(schema_definition.columns) or
+        "Requires Component" in list(schema_definition.columns)
+    ):
         print(
-            "The input CSV schema file contains the 'Requires' column header. "
-            "To minimize confusion with 'Required', this column was renamed to "
-            "'DependsOn'. Please re-run with the new column name."
+            "The input CSV schema file contains the 'Requires' and/or the 'Requires "
+            "Component' column headers. These columns were renamed to 'DependsOn' and "
+            "'DependsOn Component', respectively. Switch to the new column names."
         )
     raise Exception()
 
@@ -544,8 +547,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
 
         # check if the attribute requires any components
-        if not pd.isnull(attribute["Requires Component"]):
-            component_dependencies = attribute["Requires Component"]
+        if not pd.isnull(attribute["DependsOn Component"]):
+            component_dependencies = attribute["DependsOn Component"]
         else:
             continue
 
