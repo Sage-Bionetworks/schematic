@@ -4940,6 +4940,9 @@
                     "@id": "bts:WorkflowLink"
                 },
                 {
+                    "@id": "bts:WorkflowVersion"
+                },
+                {
                     "@id": "bts:WorkflowStartDatetime"
                 },
                 {
