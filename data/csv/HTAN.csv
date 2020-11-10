@@ -1,4 +1,4 @@
-Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,Requires Component,Source,Validation Rules
+Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules
 Assay,"A planned process with the objective to produce information about the material entity that is the evaluant, by physically examining it or its proxies.[OBI_0000070]",,,,FALSE,,,http://purl.obolibrary.org/obo/OBI_0000070,
 Device,"A thing made or adapted for a particular purpose, especially a piece of mechanical or electronic equipment""",,,,FALSE,Assay,,https://w3id.org/biolink/vocab/Device,
 Sequencing,Module for next generation sequencing assays,,,,FALSE,Assay,,http://example.org/htan/Sequencing,
