@@ -101,3 +101,7 @@ class Loader(object):
         """
         ns, uri = self._resolve(url)
         return map(lambda x: url+'/'+x,resource_listdir(ns, uri))
+
+
+# call Loader() and pass `schematic`, which is the global package namespace
+LOADER = Loader('schematic', prefix='etc')

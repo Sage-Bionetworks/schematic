@@ -5,11 +5,7 @@ import pkg_resources
 from os import path, pathsep
 from errno import ENOENT
 
-from schematic import CONFIG
-from schematic.loader import Loader, InvalidResourceError
-
-# call Loader() and pass `schematic`, which is the global package namespace
-loader = Loader('schematic', prefix='etc')
+from schematic import CONFIG, LOADER
 
 def load_json(file_path):
     """Load json document from file path or url
@@ -39,7 +35,7 @@ def load_default():
     """Load biolink vocabulary
     """
     data_path = 'schema_org/biothings.jsonld'
-    biothings_path = loader.filename(data_path)
+    biothings_path = LOADER.filename(data_path)
 
     return load_json(biothings_path)
 
@@ -48,6 +44,6 @@ def load_schemaorg():
     """Load SchemOrg vocabulary
     """
     data_path = 'schema_org/all_layer.jsonld'
-    schemaorg_path = loader.filename(data_path)
+    schemaorg_path = LOADER.filename(data_path)
     
     return load_json(schemaorg_path)
