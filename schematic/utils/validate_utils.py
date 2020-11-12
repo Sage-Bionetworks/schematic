@@ -8,7 +8,7 @@ from schematic import CONFIG, LOADER
 def validate_schema(schema):
     """Validate schema against schema.org standard
     """
-    data_path = 'validation/schema.json'
+    data_path = 'validation_schemas/model.schema.json'
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)
@@ -17,7 +17,7 @@ def validate_schema(schema):
 def validate_property_schema(schema):
     """Validate schema against SchemaORG property definition standard
     """
-    data_path = 'validation/property_json_schema.json'
+    data_path = 'validation_schemas/property.schema.json'
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)
@@ -26,7 +26,7 @@ def validate_property_schema(schema):
 def validate_class_schema(schema):
     """Validate schema against SchemaORG class definition standard
     """
-    data_path = 'validation/class_json_schema.json'
+    data_path = 'validation_schemas/class.schema.json'
     json_schema_path = LOADER.filename(data_path)
     json_schema = load_json(json_schema_path)
     return validate(schema, json_schema)
