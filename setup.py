@@ -18,7 +18,7 @@ else:
 setup(
     name='schematic',
     version=version['__version__'],
-    description='Package for Data Ingress from HTAN Collaborators',
+    description='Package for Data Model and Data Ingress Management',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Milen Nikolov',
