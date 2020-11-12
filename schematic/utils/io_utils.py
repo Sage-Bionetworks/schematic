@@ -1,8 +1,11 @@
 import os
 import json
 import urllib.request
+import pkg_resources
+from os import path, pathsep
+from errno import ENOENT
 
-from schematic import CONFIG
+from schematic import CONFIG, LOADER
 
 def load_json(file_path):
     """Load json document from file path or url
@@ -31,12 +34,16 @@ def export_json(json_doc, file_path):
 def load_default():
     """Load biolink vocabulary
     """
-    biothings_path = os.path.join('data', 'schema_org_schemas', 'biothings.jsonld')
+    data_path = 'schema_org/biothings.jsonld'
+    biothings_path = LOADER.filename(data_path)
+
     return load_json(biothings_path)
 
 
 def load_schemaorg():
     """Load SchemOrg vocabulary
     """
-    schemaorg_path = os.path.join('data', 'schema_org_schemas', 'all_layer.jsonld')
+    data_path = 'schema_org/all_layer.jsonld'
+    schemaorg_path = LOADER.filename(data_path)
+    
     return load_json(schemaorg_path)

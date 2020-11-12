@@ -4,6 +4,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
+# macOS DS_Store files
+**/.DS_Store
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -140,3 +143,12 @@ dmypy.json
 .pytype/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+# Synapse configuration file
+.synapseConfig
+
+# Google services authorization credentials file
+credentials.json
+
+# token.pickle created after authorization
+token.pickle
