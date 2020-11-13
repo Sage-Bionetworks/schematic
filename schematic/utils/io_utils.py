@@ -1,9 +1,6 @@
 import os
 import json
 import urllib.request
-import pkg_resources
-from os import path, pathsep
-from errno import ENOENT
 
 from schematic import CONFIG, LOADER
 
