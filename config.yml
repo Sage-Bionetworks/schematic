@@ -17,8 +17,6 @@ model:
     file_type: 'local'
     validation_schema: 'data/validation_schemas/HTAN_validation_schema_FamilyHistory.json'
     log_location: 'data/json_schema_logs/json_schema_log.json'
-  biothings:
-    location: 'data/schema_org_schemas/biothings.jsonld'
 
 style:
   google_manifest:
