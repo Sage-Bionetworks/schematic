@@ -4,18 +4,14 @@ import sys
 
 from schematic.models.metadata import MetadataModel
 
-from schematic.utils.config_utils import load_yaml
-from definitions import ROOT_DIR, CONFIG_PATH, CREDS_PATH, DATA_PATH
+from schematic import CONFIG
 
-# load config data from yaml file into config_data dict
-config_data = load_yaml(CONFIG_PATH)
-
-if config_data is None:
+if CONFIG.DATA is None:
     sys.exit("Your config file may be empty.")
 
 # path to the JSON-LD schema that is stored "locally" in the app directory
-MM_LOC = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
-MM_TYPE = config_data["model"]["input"]["file_type"]
+MM_LOC = CONFIG["model"]["input"]["location"]
+MM_TYPE = CONFIG["model"]["input"]["file_type"]
 
 # create instance of MetadataModel class
 metadata_model_htan = MetadataModel(MM_LOC, MM_TYPE)
@@ -29,17 +25,21 @@ TEST_COMP = "FollowUp"
 # this credentials file is also stored on Synapse and can be retrieved given sufficient permissions to the Synapse project
 
 # Google API credentials file stored on Synapse
-API_CREDS = config_data["synapse"]["api_creds"]
+API_CREDS = CONFIG["synapse"]["api_creds"]
 
 # try downloading 'credentials.json' file (if not present already)
-if not os.path.exists(CREDS_PATH):
+if not os.path.exists(CONFIG.CREDS_PATH):
 
     print("Retrieving Google API credentials from Synapse..")
     import synapseclient
 
     syn = synapseclient.Synapse()
     syn.login()
-    syn.get(API_CREDS, downloadLocation = ROOT_DIR)
+    # Download in parent directory of CREDS_PATH to
+    # ensure same file system for os.rename()
+    creds_dir = os.path.dirname(CONFIG.CREDS_PATH)
+    creds_file = syn.get(API_CREDS, downloadLocation = creds_dir)
+    os.rename(creds_file.path, CONFIG.CREDS_PATH)
     print("Stored Google API credentials.")
 
 print("Google API credentials successfully located..")
@@ -55,13 +55,13 @@ print("Google API credentials successfully located..")
 
 # testing manifest generation with optionally provided JSON validation schema
 print("Testing manifest generation based on an additionally provided JSON schema..")
-HTAPP_VALIDATION_SCHEMA = os.path.join(DATA_PATH, config_data["model"]["demo"]["validation_file_location"])
+HTAPP_VALIDATION_SCHEMA = CONFIG["model"]["demo"]["validation_file_location"]
 
 with open(HTAPP_VALIDATION_SCHEMA, "r") as f:
     json_schema = json.load(f)
 
-HTAPP_SCHEMA = os.path.join(DATA_PATH, config_data["model"]["demo"]["location"])
-HTAPP_SCHEMA_TYPE = config_data["model"]["demo"]["file_type"]
+HTAPP_SCHEMA = CONFIG["model"]["demo"]["location"]
+HTAPP_SCHEMA_TYPE = CONFIG["model"]["demo"]["file_type"]
 
 metadata_model_htapp = MetadataModel(HTAPP_SCHEMA, HTAPP_SCHEMA_TYPE)
 manifest_url = metadata_model_htapp.getModelManifest(title="Example Manifest", rootNode="", jsonSchema=json_schema)
@@ -73,7 +73,7 @@ print(manifest_url)
 # without optionally/additionally provided JSON schema
 print("Testing metadata model-based validation..")
 
-MANIFEST_PATH = os.path.join(DATA_PATH, config_data["model"]["demo"]["valid_manifest"])
+MANIFEST_PATH = CONFIG["model"]["demo"]["valid_manifest"]
 print("Testing validation with jsonSchema generation from schema.org schema..")
 annotation_errors = metadata_model_htan.validateModelManifest(MANIFEST_PATH, TEST_COMP)
 print(annotation_errors)

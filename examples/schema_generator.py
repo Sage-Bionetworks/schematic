@@ -1,12 +1,24 @@
+#!/usr/bin/env python3
+
 import os
+import argparse
+
 from schematic.schemas.generator import SchemaGenerator
+from schematic import CONFIG
 
-from definitions import DATA_PATH, CONFIG_PATH
-from schematic.utils.config_utils import load_yaml
+# Create command-line argument parser
+parser = argparse.ArgumentParser(allow_abbrev=False)
+parser.add_argument("schema_class", metavar="SCHEMA CLASS", help="Name of class from schema.")
+parser.add_argument("relationship", metavar="RELATIONSHIP NAME", help="Name of relationship from schema.")
+parser.add_argument("data_type", metavar="DATA TYPE NAME", help="Name of data type from schema.")
+parser.add_argument("--schema_name", metavar="SCHEMA NAME", help="Name of schema generated based on specified data_type.")
+parser.add_argument("--config", "-c", help="Configuration YAML file.")
+args = parser.parse_args()
 
-config_data = load_yaml(CONFIG_PATH)
+# Load configuration
+config_data = CONFIG.load_config(args.config)
 
-PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of SchemaGenerator() class
 schema_generator = SchemaGenerator(PATH_TO_JSONLD)
@@ -17,8 +29,8 @@ else:
     print("object of class SchemaGenerator could not be created.")
 
 # get list of the out-edges from a node based on a specific relationship
-TEST_NODE = "Sequencing"
-TEST_REL = "parentOf"
+TEST_NODE = args.schema_class
+TEST_REL = args.relationship
 
 out_edges = schema_generator.get_edges_by_relationship(TEST_NODE, TEST_REL)
 
@@ -43,20 +55,20 @@ if desc_nodes:
 else:
     print("The class does not have descendants.")
 
-# get all components associated with a given component
-TEST_COMP = "Patient"
-req_comps = schema_generator.get_component_requirements(TEST_COMP)
+# get all data_types associated with a given data_type
+TEST_DATA_TYPE = args.data_type
+req_comps = schema_generator.get_component_requirements(TEST_DATA_TYPE)
 
 if req_comps:
-    print("The component(s) that are associated with a given component: {}".format(req_comps))
+    print("The data type(s) that are associated with a given data type: {}".format(req_comps))
 else:
-    print("There are no components associated with {}".format(TEST_COMP))
+    print("There are no data_types associated with {}".format(TEST_DATA_TYPE))
 
 # get immediate dependencies that are related to a given node
-node_deps = schema_generator.get_node_dependencies(TEST_COMP)
+node_deps = schema_generator.get_node_dependencies(TEST_DATA_TYPE)
 
 if node_deps:
-    print("The immediate dependencies of {} are: {}".format(TEST_COMP, node_deps))
+    print("The immediate dependencies of {} are: {}".format(TEST_DATA_TYPE, node_deps))
 else:
     print("The node has no immediate dependencies.")
 
@@ -77,7 +89,11 @@ except KeyError:
     print("Please try a valid node name.")
 
 # gather dependencies and value-constraints for a particular node
-json_schema = schema_generator.get_json_schema_requirements(TEST_COMP, "Patient-Schema")
+if args.schema_name:
+    json_schema = schema_generator.get_json_schema_requirements(TEST_DATA_TYPE, args.schema_name + "-Schema")
+else:
+    json_schema = schema_generator.get_json_schema_requirements(TEST_DATA_TYPE, TEST_DATA_TYPE + "-Schema")
 
-print("The JSON schema based on {} as source node is:".format(TEST_COMP))
+
+print("The JSON schema based on {} as source node is:".format(TEST_DATA_TYPE))
 print(json_schema)
