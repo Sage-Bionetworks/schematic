@@ -8,7 +8,7 @@ import pandas as pd
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.utils.csv_utils import create_schema_classes
-from schematic import CONFIG
+from schematic import CONFIG, LOADER
 
 # Constants (to avoid magic numbers)
 FIRST = 0
@@ -22,7 +22,7 @@ args = parser.parse_args()
 
 # Load configuration
 config_data = CONFIG.load_config(args.config)
-base_schema_path = CONFIG["model"]["biothings"]["location"]
+base_schema_path = LOADER.filename('data_models/biothings.model.jsonld')
 
 # instantiate schema explorer
 base_se = SchemaExplorer()
