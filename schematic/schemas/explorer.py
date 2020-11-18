@@ -484,7 +484,7 @@ class SchemaExplorer():
                         # if the "subClassOf" attribute already exists on the node, then remove all the "parentOf" in-edges
                         # associated with that node
                         if "subClassOf" in data:
-                            # remove formerly existant edges from the master schema/graph
+                            # remove formerly existent edges from the master schema/graph
                             for (u, v) in list(schema_graph_nx.in_edges([node])):
 
                                 # there are certain nodes which have "subClassOf" data in list format
@@ -497,7 +497,7 @@ class SchemaExplorer():
                                             try:
                                                 # we need to make sure to remove only edges that are tagged with the "parentOf" label
                                                 schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
-                                            except:
+                                            except TypeError:
                                                 pass
 
                                 # there are certain nodes which have "subClassOf" data in dict format
@@ -509,7 +509,7 @@ class SchemaExplorer():
 
                                             try:
                                                 schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
-                                            except:
+                                            except TypeError:
                                                 pass
 
                         # extract node names from replacement node and use it to add edges to the master schema/graph
@@ -553,7 +553,7 @@ class SchemaExplorer():
                                             
                                             try:
                                                 schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
-                                            except:
+                                            except TypeError:
                                                 pass
 
                                 # there are certain nodes which have "requiresDependency" data in dict format
@@ -565,7 +565,7 @@ class SchemaExplorer():
                                             
                                             try:
                                                 schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
-                                            except:
+                                            except TypeError:
                                                 pass
 
                             deps = replace_data["requiresDependency"]
@@ -602,7 +602,7 @@ class SchemaExplorer():
 
                                             try:
                                                 schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
-                                            except:
+                                            except TypeError:
                                                 pass
 
                                 elif type(data["requiresComponent"]) == dict:
@@ -613,7 +613,7 @@ class SchemaExplorer():
 
                                             try:
                                                 schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
-                                            except:
+                                            except TypeError:
                                                 pass
 
                         comps = replace_data["requiresComponent"]
@@ -647,7 +647,7 @@ class SchemaExplorer():
                                         if edge_repl == v:
                                             try:
                                                 schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
-                                            except:
+                                            except TypeError:
                                                 pass
 
                                 elif type(data["rangeIncludes"]) == dict:
@@ -657,7 +657,7 @@ class SchemaExplorer():
                                         if edge_repl == v:
                                             try:
                                                 schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
-                                            except:
+                                            except TypeError:
                                                 pass
 
                         range_inc = replace_data["rangeIncludes"]
