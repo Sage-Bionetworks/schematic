@@ -16,20 +16,20 @@ Utility for converting csv file containing a data model definition schema (see s
 """
 
 # required headers for schema; may or may not abstract further; for now hardcode
-required_headers = set(["Attribute", "Description", "Valid Values", "Requires", "Required", "Parent", "Properties", "Requires Component", "Source", "Validation Rules"])
+required_headers = set(["Attribute", "Description", "Valid Values", "DependsOn", "Required", "Parent", "Properties", "DependsOn Component", "Source", "Validation Rules"])
 
 
 def get_class(se: SchemaExplorer, class_display_name: str, description: str = None, subclass_of: list = None, requires_dependencies: list = None, requires_range: list  = None, requires_components: list = None, required:bool = None, validation_rules: list = None) -> dict:
-    
+
     """Constructs a new schema.org compliant class given a set of schema object attributes
 
     Args:
-       se: a schema explorer object allowing the traversal and modification of a schema graph        
+       se: a schema explorer object allowing the traversal and modification of a schema graph
        display_class_name: human readable label for the schema object/attribute: key characteristic X of the assay, related protocol, or downstream data that we want to record as metadata feature
        description: definition or a reference containing the definition of attribute X. Preferably provide a source ontology link or code in addition to the definition.
        subclass_of: *schema* label of this attribute/object's parent node in the schema
        requires_dependencies: important characteristics, if any, of attribute X that need to be recorded as metadata features given attribute X is specified. These characteristics are attributes themselves and need to pre-exist in the schema as such
-       requires_range: a set/range of values that this attribute can be assigned to. this domain is stored in the rangeIncludes property of this object. 
+       requires_range: a set/range of values that this attribute can be assigned to. this domain is stored in the rangeIncludes property of this object.
        requires_components: a set of associated components/categories that this object/entity requires for its full specification; each component is a high level ontology class in which entities/objects are categorized/componentized and it is an entity on its own that needs to exist in the schema.
        required: indicates if this attribute is required or optional in a schema
        validation_rules: a list of validation rules defined for this class (e.g. defining what is a valid object of this class)
@@ -67,18 +67,18 @@ def get_class(se: SchemaExplorer, class_display_name: str, description: str = No
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
         class_attributes.update(requirement)
 
-    # add optional attribute specifying the possible values this object can be set to; can be other objects, including primitives 
+    # add optional attribute specifying the possible values this object can be set to; can be other objects, including primitives
     if requires_range:
         value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + se.get_class_label_from_display_name(val)} for val in requires_range]}
         class_attributes.update(value_constraint)
 
-    # add optional attribute specifying validation patterns associated with this object (e.g. precise definition of the object range) 
+    # add optional attribute specifying validation patterns associated with this object (e.g. precise definition of the object range)
     if validation_rules:
         class_attributes.update({'sms:validationRules': validation_rules})
     else:
         class_attributes.update({'sms:validationRules': []})
 
-    # add optional attribute specifying the required components (i.e. high level ontology class in which entities/objects are categorized/componentized) 
+    # add optional attribute specifying the required components (i.e. high level ontology class in which entities/objects are categorized/componentized)
     # that are required for the specification of this object
     if requires_components:
         requirement = {'sms:requiresComponent':[{'@id':'bts:' + c} for c in requires_components]}
@@ -100,11 +100,11 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
     """Constructs a new schema.org compliant property of an existing schema.org object/class; note that the property itself is a schema.org object class.
 
     Args:
-        se: a schema explorer object allowing the traversal and modification of a schema graph        
+        se: a schema explorer object allowing the traversal and modification of a schema graph
         property_display_name: human readable label for the schema object/attribute: key characteristic X of the assay, related protocol, or downstream data that we want to record as metadata feature
         property_class_name: *schema* label of the class/object that this is a property of
        description: definition or a reference containing the definition of attribute X. Preferably provide a source ontology link or code in addition to the definition.
-       requires_range: what is the set/domain of values that this attribute can be assigned to; currently only used to specify primitive types. TODO: extend to reg exp patterns 
+       requires_range: what is the set/domain of values that this attribute can be assigned to; currently only used to specify primitive types. TODO: extend to reg exp patterns
        requires_dependencies: important characteristics, if any, of property X that need to be recorded as metadata features given property X is specified. These characteristics are attributes themselves and need to pre-exist in the schema as such
        validation_rules: a list of validation rules defined for this class (e.g. defining what is a valid object of this property)
 
@@ -125,12 +125,12 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
     if requires_range:
         value_constraint = {'schema:rangeIncludes':[{'@id':'bts:' + se.get_class_label_from_display_name(val)} for val in requires_range]}
         property_attributes.update(value_constraint)
-    
+
     if requires_dependencies:
         requirement = {'sms:requiresDependency':[{'@id':'bts:' + dep} for dep in requires_dependencies]}
         property_attributes.update(requirement)
 
-    # add optional attribute specifying validation patterns associated with this object (e.g. precise definition of the object range) 
+    # add optional attribute specifying validation patterns associated with this object (e.g. precise definition of the object range)
     if validation_rules:
         property_attributes.update({'sms:validationRules': validation_rules})
     else:
@@ -144,10 +144,10 @@ def get_property(se: SchemaExplorer, property_display_name: str, property_class_
 
     #'http://schema.org/domainIncludes':{'@id': 'bts:' + property_class_name},
     #'http://schema.org/rangeIncludes':{'@id': 'schema:' + allowed_values},
-    
+
     # ensure display name does not contain leading/trailing white spaces
     property_attributes.update({'sms:displayName':property_display_name.strip()})
-    
+
     return property_attributes
 
 
@@ -156,14 +156,14 @@ def attribute_exists(se: SchemaExplorer, attribute_label:str) -> bool:
     """Check if a given attribute exists already in schema
 
     Args:
-       se: a schema explorer object allowing the traversal and modification of a schema graph        
+       se: a schema explorer object allowing the traversal and modification of a schema graph
        attribute_label: a schema label for the attribute to check
 
     Returns:
        True/False indicating if attribute exists or not
     """
     schema_graph = se.get_nx_schema()
-    
+
     if attribute_label in schema_graph.nodes:
         return True
     return False
@@ -175,24 +175,34 @@ def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
 
     See schema definition guide for more details
     TODO: post and link schema definition guide
-       
-    Args: 
+
+    Args:
         schema_definition: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0
     Raises: Exception
     """
-    
+
     if required_headers.issubset(set(list(schema_definition.columns))):
         return
+    elif (
+        "Requires" in list(schema_definition.columns) or
+        "Requires Component" in list(schema_definition.columns)
+    ):
+        print(
+            "The input CSV schema file contains the 'Requires' and/or the 'Requires "
+            "Component' column headers. These columns were renamed to 'DependsOn' and "
+            "'DependsOn Component', respectively. Switch to the new column names."
+        )
     raise Exception()
 
 def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) -> SchemaExplorer:
-    
+
     """Creates classes for all attributes and adds them to the schema
     Args:
-        schema_extension: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0 
-        se: a schema explorer object allowing the traversal and modification of a schema graph        
+        schema_extension: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0
+        se: a schema explorer object allowing the traversal and modification of a schema graph
         base_schema_path: a path to a json-ld file containing an existing schema
-    Returns: 
+        
+    Returns:
         An updated schema explorer object
     """
 
@@ -200,7 +210,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         check_schema_definition(schema_extension)
         print("Schema definition csv ready for processing!")
     except:
-        print("Schema extension headers: ")     
+        print("Schema extension headers: ")
         print(set(list(schema_extension.columns)))
         print("do not match required schema headers: ")
         print(required_headers)
@@ -209,7 +219,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
     # get attributes from Attribute column
     attributes = schema_extension[list(required_headers)].to_dict("records")
-    
+
     # get all properties across all attributes from Properties column
     props = set(schema_extension[["Properties"]].dropna().values.flatten())
 
@@ -241,7 +251,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
         if not attribute["Attribute"] in all_properties:
             display_name = attribute["Attribute"]
-           
+
             subclass_of = None
             if not pd.isnull(attribute["Parent"]):
                 subclass_of = [parent for parent in attribute["Parent"].strip().split(",")]
@@ -251,7 +261,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                         subclass_of = subclass_of,
                                         required = required
             )
-            
+
             se.update_class(new_class)
 
             """
@@ -275,7 +285,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             # check if attribute doesn't already exist and add it
             if not attribute_exists(se, new_property["rdfs:label"]):
                 se.update_property(new_property)
-    
+
     print("=====================")
     print("Done adding attributes")
     print("=====================")
@@ -300,7 +310,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     range_values = property_info["range"] if "range" in property_info else None
                     requires_dependencies = property_info["dependencies"] if "dependencies" in property_info else None
                     required = property_info["required"] if "required" in property_info else None
-                                    
+
                     new_property = get_property(se, p,
                                                 property_info["domain"],
                                                 description = description,
@@ -309,12 +319,12 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                 required = required
                     )
                     se.edit_property(new_property)
-                else: 
+                else:
                     description = None
                     new_property = get_property(se, p,
                                                 attribute,
                                                 description = description
-                    ) 
+                    )
                     se.update_property(new_property)
 
     print("=====================")
@@ -359,7 +369,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                             print("ERROR: Listed valid value " + val + " for attribute " + attribute["Attribute"] + " must have a class parent!")
                             print("Could not add extension to schema!")
                             exit()
-                    
+
                     new_class = get_class(se, val,
                                         description = None,
                                         subclass_of = [parent]
@@ -367,7 +377,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     # check if attribute doesn't already exist and add it
                     if not attribute_exists(se, new_class["rdfs:label"]):
                         se.update_class(new_class)
-                                    
+
                 #update rangeIncludes of attribute
                 # if attribute is not a property, then assume it is a class
                 if not attribute["Attribute"] in all_properties:
@@ -380,8 +390,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                 requires_dependencies = class_info["dependencies"],\
                                                 requires_range = class_info["range"],
                                                 required = class_info["required"],
-                                                validation_rules = class_info["validation_rules"] 
-                    )                    
+                                                validation_rules = class_info["validation_rules"]
+                    )
                     se.edit_class(class_range_edit)
 
                 else:
@@ -397,8 +407,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                     validation_rules = property_info["validation_rules"]
                     )
                     se.edit_property(property_range_edit)
-                print(val + " added to value range.")            
-            
+                print(val + " added to value range.")
+
             print("<<< Done adding value range for " + attribute["Attribute"])
 
         # get validation rules for this attribute, if any are specified
@@ -421,13 +431,13 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                 requires_dependencies = class_info["dependencies"],\
                                                 requires_range = class_info["range"],
                                                 required = class_info["required"],
-                                                validation_rules = class_info["validation_rules"] 
+                                                validation_rules = class_info["validation_rules"]
                 )
                 se.edit_class(class_val_rule_edit)
             else:
             # the attribute is a property
                 property_info = se.explore_property(se.get_property_label_from_display_name(attribute["Attribute"]))
-                property_info["validation_rules"] = validation_rules  
+                property_info["validation_rules"] = validation_rules
                 property_val_rule_edit = get_property(se, attribute["Attribute"],
                                                    property_info["domain"],
                                                    description = property_info["description"],
@@ -440,7 +450,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
 
         # get dependencies for this attribute, if any are specified
-        requires_dependencies = attribute["Requires"]
+        requires_dependencies = attribute["DependsOn"]
         if not pd.isnull(requires_dependencies):
             print(">>> Adding dependencies for " + attribute["Attribute"])
 
@@ -449,13 +459,13 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 dep = dep.strip()
                 dep_is_property = dep in all_properties
                 dep_label = ""
-                # set dependency label based on kind of dependency: class or property 
+                # set dependency label based on kind of dependency: class or property
                 if dep_is_property:
-                    dep_label = se.get_property_label_from_display_name(dep) 
+                    dep_label = se.get_property_label_from_display_name(dep)
                 else:
                     dep_label = se.get_class_label_from_display_name(dep)
 
-              
+
                 # check if dependency is in attributes column; add it to the list if not
                 if not dep.strip() in list(schema_extension["Attribute"]):
                     # if dependency is a property create a new property; else create a new class
@@ -508,7 +518,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     class_dependencies_edit = get_class(se, attribute["Attribute"],
                                                 description = attribute["Description"],
                                                 subclass_of = [attribute["Parent"]],
-                                                requires_dependencies = class_info["dependencies"], 
+                                                requires_dependencies = class_info["dependencies"],
                                                 requires_range = class_info["range"],
                                                 required = class_info["required"],
                                                 validation_rules = class_info["validation_rules"]
@@ -535,9 +545,9 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
 
         # check if the attribute requires any components
-        if not pd.isnull(attribute["Requires Component"]):
-            component_dependencies = attribute["Requires Component"] 
-        else: 
+        if not pd.isnull(attribute["DependsOn Component"]):
+            component_dependencies = attribute["DependsOn Component"]
+        else:
             continue
 
         print(">>> Adding component dependencies for " + attribute["Attribute"])
@@ -552,19 +562,19 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 new_class = get_class(se, comp_dep,
                                       description = None
                 )
-                
+
                 # check if attribute doesn't already exist in schema.org schema and add it
                 # (component may not be in csv schema, but could be in the base schema we are extending)
                 if not attribute_exists(se, new_class["rdfs:label"]):
                     se.update_class(new_class)
-        
+
             #update this attribute requirements to include component
             class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
             class_info["component_dependencies"].append(se.get_class_label_from_display_name(comp_dep))
             class_component_dependencies_edit = get_class(se, attribute["Attribute"],
                                             description = class_info["description"],
                                             subclass_of = class_info["subClassOf"],
-                                            requires_dependencies = class_info["dependencies"], 
+                                            requires_dependencies = class_info["dependencies"],
                                             requires_range = class_info["range"],
                                             validation_rules = class_info["validation_rules"],
                                             requires_components = class_info["component_dependencies"]

@@ -2,31 +2,26 @@ from __future__ import print_function
 import pickle
 import os.path
 import collections
-
 import pandas as pd
-
 from typing import Any, Dict, Optional, Text, List
-
 import pygsheets as ps
+import synapseclient
 
 from schematic.schemas.generator import SchemaGenerator
-
 from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
+from schematic.synapse.store import SynapseStorage
 
-from schematic.utils.config_utils import load_yaml
+from schematic import CONFIG
 
-from definitions import CONFIG_PATH, DATA_PATH, CREDS_PATH, TOKEN_PICKLE
-
-config_data = load_yaml(CONFIG_PATH)
 
 class ManifestGenerator(object):
     def __init__(self,
                 title: str, # manifest sheet title
                 path_to_json_ld: str,   # JSON-LD file to be used for generating the manifest
                 root: str = None,
-                additional_metadata: Dict = None 
+                additional_metadata: Dict = None
                 ) -> None:
-    
+
         """TODO: read in a config file instead of hardcoding paths to credential files...
         """
 
@@ -91,21 +86,21 @@ class ManifestGenerator(object):
             ranges.append(col_range)
 
         return ranges
-            
+
 
     def _column_to_cond_format_eq_rule(self, column_idx:int, condition_argument:str, required:bool = False) -> dict:
-        """Given a column index and an equality argument (e.g. one of valid values for the given column fields), generate a conditional formatting rule based on a custom formula encoding the logic: 
+        """Given a column index and an equality argument (e.g. one of valid values for the given column fields), generate a conditional formatting rule based on a custom formula encoding the logic:
 
         'if a cell in column idx is equal to condition argument, then set specified formatting'
         """
-        
+
         col_letter = self._column_to_letter(column_idx)
 
         if not required:
-           bg_color = config_data["style"]["google_manifest"]["opt_bg_color"]
+           bg_color = CONFIG["style"]["google_manifest"]["opt_bg_color"]
         else:
-           bg_color = config_data["style"]["google_manifest"]["req_bg_color"]
-        
+           bg_color = CONFIG["style"]["google_manifest"]["req_bg_color"]
+
         boolean_rule =  {
                         "condition": {
                         "type": "CUSTOM_FORMULA",
@@ -116,13 +111,13 @@ class ManifestGenerator(object):
                                 ]
                         },
                         "format": {
-                            'backgroundColor': bg_color 
+                            'backgroundColor': bg_color
                         }
         }
-    
+
         return boolean_rule
 
-    
+
     def _gdrive_copy_file(self, origin_file_id, copy_title):
         """Copy an existing file.
 
@@ -138,12 +133,12 @@ class ManifestGenerator(object):
         # return new copy sheet ID
         return self.drive_service.files().copy(fileId = origin_file_id, body = copied_file).execute()["id"]
 
-    
+
     def _create_empty_manifest_spreadsheet(self, title):
-        if config_data["style"]["google_manifest"]["master_template_id"]:
+        if CONFIG["style"]["google_manifest"]["master_template_id"]:
 
             # if provided with a template manifest google sheet, use it
-            spreadsheet_id = self._gdrive_copy_file(config_data["style"]["google_manifest"]["master_template_id"], title)
+            spreadsheet_id = self._gdrive_copy_file(CONFIG["style"]["google_manifest"]["master_template_id"], title)
 
         else:
             # if no template, create an empty spreadsheet
@@ -163,7 +158,7 @@ class ManifestGenerator(object):
                 print ("Permission Id: %s" % response.get('id'))
 
         batch = self.drive_service.new_batch_http_request(callback = callback)
-       
+
         worldPermission = {
                             'type': 'anyone',
                             'role': 'writer'
@@ -178,18 +173,18 @@ class ManifestGenerator(object):
         batch.execute()
 
 
-    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]: 
-        """Get valid values for a manifest attribute based on the corresponding 
+    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]:
+        """Get valid values for a manifest attribute based on the corresponding
         values of node's properties in JSONSchema
-        
+
         Args:
-            prop: node properties - jsonschema dictionary 
+            prop: node properties - jsonschema dictionary
 
         Returns:
             List of valid values
         """
 
-        if "enum" in prop: 
+        if "enum" in prop:
             return prop["enum"]
         elif "items" in prop:
             return prop["items"]["enum"]
@@ -197,14 +192,14 @@ class ManifestGenerator(object):
             return []
 
 
-    def get_manifest(self, json_schema = None):
+    def get_empty_manifest(self, json_schema = None):
         # TODO: Refactor get_manifest method
         # - abstract function for requirements gathering
         # - abstract google sheet API requests as functions
         # --- specifying row format
         # --- setting valid values in dropdowns for columns/cells
         # --- setting notes/comments to cells
-      
+
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
 
         if not json_schema:
@@ -221,13 +216,13 @@ class ManifestGenerator(object):
             required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
             # the following line may not be needed
             json_schema["properties"][req]["enum"] = required_metadata_fields[req]
-                
+
 
         # gathering dependency requirements and allowed value constraints for conditional dependencies if any
-        if "allOf" in json_schema: 
-            for conditional_reqs in json_schema["allOf"]: 
+        if "allOf" in json_schema:
+            for conditional_reqs in json_schema["allOf"]:
                  if "required" in conditional_reqs["if"]:
-                     for req in conditional_reqs["if"]["required"]: 
+                     for req in conditional_reqs["if"]["required"]:
                         if req in conditional_reqs["if"]["properties"]:
                             if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
@@ -235,18 +230,18 @@ class ManifestGenerator(object):
                                 else:
                                     required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(conditional_reqs["if"]["properties"][req])
 
-                     for req in conditional_reqs["then"]["required"]: 
+                     for req in conditional_reqs["then"]["required"]:
                          if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
-                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])    
+                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
 
         # if additional metadata is provided append columns (if those do not exist already)
         if self.additional_metadata:
             for column in self.additional_metadata.keys():
                 if not column in required_metadata_fields:
                     required_metadata_fields[column] = []
-    
-        # if 'component' is in column set (see your input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry 
+
+        # if 'component' is in column set (see your input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry
         if 'Component' in required_metadata_fields.keys():
             # check if additional metadata has actually been instantiated in the constructor (it's optional)
             # if not, instantiate it
@@ -257,13 +252,13 @@ class ManifestGenerator(object):
 
         # adding columns to manifest sheet
         end_col = len(required_metadata_fields.keys())
-        end_col_letter = self._column_to_letter(end_col) 
+        end_col_letter = self._column_to_letter(end_col)
 
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
         ordered_metadata_fields = [list(required_metadata_fields.keys())]
 
         # order columns header (since they are generated based on a json schema, which is a dict)
-        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0]) 
+        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0])
         body = {
                 "values": ordered_metadata_fields
         }
@@ -290,7 +285,7 @@ class ManifestGenerator(object):
                               "foregroundColor": {
                                 "red": 0.0/255,
                                 "green": 0.0/255,
-                                "blue": 0.0/255 
+                                "blue": 0.0/255
                               },
                               "fontSize": 8,
                               "bold": True
@@ -316,7 +311,7 @@ class ManifestGenerator(object):
                                 "dimension": "COLUMNS",
                                 "startIndex": 0
                             }
-                        } 
+                        }
                     }
                 ]
         }
@@ -325,7 +320,7 @@ class ManifestGenerator(object):
 
         # adding additional metadata values if needed
         # adding value-constraints from data model as dropdowns
-        
+
         #store all requests to execute at once
         requests_body = {}
         requests_body["requests"] = []
@@ -334,21 +329,21 @@ class ManifestGenerator(object):
             #adding additional metadata if needed
             if self.additional_metadata and req in self.additional_metadata:
                 values = self.additional_metadata[req]
-                target_col_letter = self._column_to_letter(i) 
+                target_col_letter = self._column_to_letter(i)
                 body =  {
                             "majorDimension":"COLUMNS",
                             "values":[values]
-                }                
+                }
                 response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
 
 
             # adding description to headers
             # this is not executed if only JSON schema is defined
             # TODO: abstract better and document
-            
+
             # also formatting required columns
             if self.sg.se:
-                
+
                 # get node definition
                 note = self.sg.get_node_definition(req)
 
@@ -376,14 +371,14 @@ class ManifestGenerator(object):
                                 }
                             ]
                 }
-                
+
                 requests_body["requests"].append(notes_body["requests"])
 
 
             # get node validation rules if any
             validation_rules = self.sg.get_node_validation_rules(req)
 
-            # if 'list' in validation rules add a note with instructions on 
+            # if 'list' in validation rules add a note with instructions on
             # adding a list of multiple values
             # TODO: add validation and QC rules "compiler/generator" class elsewhere
             # for now have the list logic here
@@ -406,14 +401,14 @@ class ManifestGenerator(object):
                                 }
                             ]
                 }
-                
+
                 requests_body["requests"].append(notes_body["requests"])
-                
+
 
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
-                bg_color = config_data["style"]["google_manifest"]["req_bg_color"]
+                bg_color = CONFIG["style"]["google_manifest"]["req_bg_color"]
 
                 req_format_body = {
                         "requests":[
@@ -433,12 +428,12 @@ class ManifestGenerator(object):
                             }
                         ]
                 }
-                
+
                 requests_body["requests"].append(req_format_body["requests"])
 
             # adding value-constraints if any
             req_vals = [{"userEnteredValue":value} for value in values if value]
-            
+
             if not req_vals:
                 continue
 
@@ -448,17 +443,17 @@ class ManifestGenerator(object):
 
 
             # generating sheet api request to populate a dropdown or a multi selection UI
-            
+
             # by default assume no extra validation rules are needed and a dropdown is sufficient
             validation_type = "ONE_OF_LIST"
             strict = True
             custom_ui = True
             input_message = 'Choose one from dropdown'
-            valid_values = req_vals 
+            valid_values = req_vals
 
             if "list" in validation_rules:
-                # if list is in validation rule attempt to create a multi-value 
-                # selection UI, which requires explicit valid values range in 
+                # if list is in validation rule attempt to create a multi-value
+                # selection UI, which requires explicit valid values range in
                 # the spreadsheet; store valid values explicitly in Sheet2 of the workbook
                 # TODO: currently assumes a workbook template is used that contains Sheet2
                 # in general need to check if sheet2 exists and create it if not
@@ -466,7 +461,7 @@ class ManifestGenerator(object):
                 custom_ui = False
                 input_message = ""
                 validation_type = "ONE_OF_RANGE"
- 
+
                 # store valid values explicitly in workbook
                 target_col_letter = self._column_to_letter(i)
                 body =  {
@@ -475,7 +470,7 @@ class ManifestGenerator(object):
                 }
                 target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
                 valid_values = [
-                                { 
+                                {
                                     "userEnteredValue" : "=" + target_range
                                 }
                 ]
@@ -489,17 +484,17 @@ class ManifestGenerator(object):
                         'setDataValidation':{
                             'range':{
                                 'startRowIndex':1,
-                                'startColumnIndex':i, 
-                                'endColumnIndex':i+1, 
+                                'startColumnIndex':i,
+                                'endColumnIndex':i+1,
                             },
                             'rule':{
                                 'condition':{
-                                    'type':validation_type, 
+                                    'type':validation_type,
                                     'values': valid_values
                                 },
                                 'inputMessage' : input_message,
                                 'strict':strict,
-                                'showCustomUi': custom_ui 
+                                'showCustomUi': custom_ui
                             }
                         }
                     }
@@ -507,14 +502,14 @@ class ManifestGenerator(object):
             }
 
             requests_body["requests"].append(validation_body["requests"])
-            
-            # generate a conditional format rule for each required value (i.e. valid value) 
+
+            # generate a conditional format rule for each required value (i.e. valid value)
             # for this field (i.e. if this field is set to a valid value that may require additional
-            # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background) 
+            # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
             for req_val in req_vals:
                 # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
                 req_val = req_val["userEnteredValue"]
-              
+
                 req_val_node_label = self.sg.get_node_label(req_val)
                 if not req_val_node_label:
                     # if this node is not in the graph
@@ -533,13 +528,13 @@ class ManifestGenerator(object):
                     # if there are additional attribute dependencies find the corresponding
                     # fields that need to be filled in and construct conditional formatting rules
                     # indicating the dependencies need to be filled in
-                    
-                        
+
+
                     # set target ranges for this rule
                     # i.e. dependency attribute columns that will be formatted
 
                     # find dependency column indexes
-                    # note that dependencies values must be in index 
+                    # note that dependencies values must be in index
                     # TODO: catch value error that shouldn't happen
                     column_idxs = [ordered_metadata_fields[0].index(val_dep) for val_dep in val_dependencies]
 
@@ -548,16 +543,16 @@ class ManifestGenerator(object):
                     # go over valid value dependencies
                     for j,val_dep in enumerate(val_dependencies):
                         is_required = False
-                        
+
                         if self.sg.is_node_required(val_dep):
                             is_required = True
                         else:
                             is_required = False
-                        
+
                         # construct formatting rule
                         formatting_rule = self._column_to_cond_format_eq_rule(i, req_val, required = is_required)
 
-                        # construct conditional format rule 
+                        # construct conditional format rule
                         conditional_format_rule = {
                               "addConditionalFormatRule": {
                                 "rule": {
@@ -568,11 +563,11 @@ class ManifestGenerator(object):
                               }
                         }
                         dependency_formatting_body["requests"].append(conditional_format_rule)
-                  
+
                 # check if dependency formatting rules have been added and update sheet if so
                 if dependency_formatting_body["requests"]:
                     requests_body["requests"].append(dependency_formatting_body["requests"])
-                
+
         execute_google_api_requests(self.sheet_service, requests_body, service_type = "batch_update", spreadsheet_id = spreadsheet_id)
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
@@ -580,14 +575,88 @@ class ManifestGenerator(object):
 
         # generating spreadsheet URL
         manifest_url = "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
-     
+
         # print("========================================================================================================")
         # print("Manifest successfully generated from schema!")
         # print("URL: " + manifest_url)
         # print("========================================================================================================")
-        
+
 
         return manifest_url
+
+
+    def get_manifest(self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None):
+        """Gets manifest for a given dataset on Synapse.
+
+        Args:
+            dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
+            sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
+
+        Returns:
+            Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
+        """
+        # get manifest associated with dataset `dataset_id`
+        syn = synapseclient.Synapse(configPath=CONFIG["definitions"]["synapse_config"])
+        syn.login()
+
+        syn_store = SynapseStorage(syn=syn)
+
+        # determine path to the user-specified manifests folder where the manifest should be downloaded to
+        manifests_folder_path = CONFIG["synapse"]["manifest_folder"]
+
+        if dataset_id:
+            # get manifest file associated with given dataset
+            syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
+
+            # Case 1: manifest exists in the given dataset and URL is to be returned
+            if syn_id_and_path and sheet_url:
+
+                # get synapse ID manifest associated with dataset
+                manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
+
+                # get URL of an empty manifest file created based on schema component
+                empty_manifest_url = self.get_empty_manifest()
+
+                # populate empty manifest with content from downloaded/existing manifest
+                pop_manifest_url = self.populate_manifest_spreadsheet(manifest_data.path, empty_manifest_url)
+
+                return pop_manifest_url
+
+            # Case 2: manifest exists in the given dataset and dataframe is to be returned
+            elif syn_id_and_path and not sheet_url:
+                manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
+
+                # convert downloaded/existing manifest contents into dataframe
+                manifest_data_df = pd.read_csv(manifest_data.path)
+
+                return manifest_data_df
+
+            # Case 3: manifest does not exist in the given dataset and URL is to be returned
+            elif not syn_id_and_path and sheet_url:
+                empty_manifest_url = self.get_empty_manifest()
+
+                return empty_manifest_url
+
+            # Case 4: manifest does not exist in the given dataset and dataframe is to be returned
+            elif not syn_id_and_path and not sheet_url:
+                empty_manifest_url = self.get_empty_manifest()
+
+                # authorize pygsheets to read from the given URL
+                gc = ps.authorize(custom_credentials=self.creds)
+
+                sh = gc.open_by_url(empty_manifest_url)
+                wb = sh[0]
+                
+                # get column headers and read it into a dataframe
+                empty_manifest_data = wb.get_as_df(hasHeader=True)
+
+                return empty_manifest_data
+
+        # Default case when no arguments are provided to the get_manifest() method
+        if json_schema:
+            return self.get_empty_manifest(json_schema=json_schema)
+
+        return self.get_empty_manifest()
 
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
@@ -596,8 +665,8 @@ class ManifestGenerator(object):
         Args:
             existing_manifest_path: the location of the manifest containing metadata presently stored
             empty_manifest_url: the path to a manifest template to be prepopulated with existing's manifest metadata
-        """        
-        
+        """
+
         # read existing manifest
         manifest = pd.read_csv(existing_manifest_path).fillna("")
 
@@ -610,7 +679,7 @@ class ManifestGenerator(object):
         sh = gc.open_by_url(empty_manifest_url)
         wb = sh[0]
         wb.set_dataframe(manifest, (1,1))
-        
+
         # set permissions so that anyone with the link can edit
         sh.share("", role = "writer", type = "anyone")
 
@@ -620,7 +689,7 @@ class ManifestGenerator(object):
     def sort_manifest_fields(self, manifest_fields, order = "schema"):
         # order manifest fields alphabetically (base order)
         manifest_fields = sorted(manifest_fields)
-        
+
         if order == "alphabetical":
             # if the order is alphabetical ensure that filename is first, if present
             if "Filename" in manifest_fields:
