@@ -2,7 +2,7 @@ import pandas as pd
 import networkx as nx
 import json
 import re
-
+import synapseclient
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
@@ -14,6 +14,8 @@ from typing import Any, Dict, Optional, Text, List
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
+from schematic.synapse.store import SynapseStorage
+from schematic import CONFIG
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.
@@ -235,3 +237,45 @@ class MetadataModel(object):
         emptyManifestURL = mg.get_manifest()
 
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
+
+
+    def submit_metadata_manifest(self, manifest_path: str, dataset_id: str, validate_component: str, json_schema: str = None) -> bool:
+        """Wrap methods that are responsible for validation of manifests for a given component, and association of the 
+        same manifest file with a specified dataset.
+
+        Args:
+            manifest_path: Path to the manifest file, which contains the metadata.
+            dataset_id: Synapse ID of the dataset on Synapse containing the metadata manifest file.
+            validate_component: Component from the schema.org schema based on which the manifest template has been generated.
+
+        Returns:
+            True: If both validation and association were successful.
+            False: If the function could not successfully validate (and hence associate) the manifest file with the dataset.
+        """
+        # list of all the validation errors present in the manifest file
+        val_errors = []
+
+        # JSON schema need not be provided always, it is an optional argument
+        # if JSON schema is provided, then use it
+        if json_schema:
+            val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component, jsonSchema=json_schema)
+
+        # automatic JSON schema generation and validation with that JSON schema
+        val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component)
+
+        # create object of SynapseStorage() class to associate manifest file with dataset
+        syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+        syn.login()
+
+        syn_store = SynapseStorage(syn=syn)
+
+        # if no validation errors are produced
+        if not val_errors:
+
+            # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id` 
+            syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
+            
+            return True
+
+        # return False if validation (and hence association) was not successful
+        return False
