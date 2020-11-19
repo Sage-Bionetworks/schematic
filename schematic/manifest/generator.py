@@ -153,6 +153,55 @@ class ManifestGenerator(object):
         return spreadsheet_id
 
 
+
+    def _get_cell_borders(self, cell_range):
+
+        #set border style request
+        color = {
+                    "red":226.0/255.0,
+                    "green":227.0/255.0,
+                    "blue":227.0/255.0,
+        }
+
+        border_style_req = {
+                  "updateBorders": {
+                    "range": cell_range, 
+                    "top": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color
+                    },
+                    "bottom": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "left": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "right": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "innerHorizontal": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "innerVertical": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    }
+                  }
+        }
+
+        return border_style_req
+
+
     def _set_permissions(self, fileId):
 
         def callback(request_id, response, exception):
@@ -176,6 +225,57 @@ class ManifestGenerator(object):
                                         )
         )
         batch.execute()
+
+
+    def _get_column_data_validation_values(self, spreadsheet_id, valid_values, column_id, validation_type = "ONE_OF_LIST", strict = True, custom_ui = True, input_message = "Choose one from dropdown"):
+
+        # get valid values w/o google sheet header 
+        values = [valid_value["userEnteredValue"] for valid_value in valid_values]
+        
+        if validation_type == "ONE_OF_RANGE":
+    
+            # store valid values explicitly in workbook at the provided range to use as validation values 
+            target_col_letter = self._column_to_letter(column_id)
+            body =  {
+                        "majorDimension":"COLUMNS",
+                        "values":[values]
+            }
+            
+            target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
+            valid_values = [
+                            { 
+                                "userEnteredValue" : "=" + target_range
+                            }
+            ]
+
+            response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "USER_ENTERED", body = body).execute()
+
+
+        # setup validation data request body
+        validation_body =  {
+                  "requests": [
+                    {
+                    'setDataValidation':{
+                        'range':{
+                            'startRowIndex':1,
+                            'startColumnIndex':column_id, 
+                            'endColumnIndex':column_id+1, 
+                        },
+                        'rule':{
+                            'condition':{
+                                'type':validation_type, 
+                                'values': valid_values
+                            },
+                            'inputMessage' : input_message,
+                            'strict':strict,
+                            'showCustomUi': custom_ui 
+                        }
+                    }
+                }
+            ]
+        }
+
+        return validation_body
 
 
     def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]: 
@@ -256,18 +356,28 @@ class ManifestGenerator(object):
             self.additional_metadata['Component'] = [self.root]
 
         # adding columns to manifest sheet
-        end_col = len(required_metadata_fields.keys())
-        end_col_letter = self._column_to_letter(end_col) 
-
-        range = "Sheet1!A1:" + str(end_col_letter) + "1"
-        ordered_metadata_fields = [list(required_metadata_fields.keys())]
 
         # order columns header (since they are generated based on a json schema, which is a dict)
+        ordered_metadata_fields = [list(required_metadata_fields.keys())]
+
         ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0]) 
         body = {
                 "values": ordered_metadata_fields
         }
+
+        #determining columns range
+        end_col = len(required_metadata_fields.keys())
+        end_col_letter = self._column_to_letter(end_col) 
+
+        range = "Sheet1!A1:" + str(end_col_letter) + "1"
+
+        # adding columns
         self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
+
+        # adding columns to 2nd sheet that can be used for storing data validation ranges (this avoids limitations on number of dropdown items in excel and openoffice)
+        range = "Sheet2!A1:" + str(end_col_letter) + "1"
+        self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
+        
 
         # format column header row
         header_format_body = {
@@ -442,71 +552,32 @@ class ManifestGenerator(object):
             if not req_vals:
                 continue
 
-            if len(req_vals) > 499:
-                print("WARNING: Value range > Google Sheet limit of 500. Truncating...")
-                req_vals = req_vals[:499]
-
 
             # generating sheet api request to populate a dropdown or a multi selection UI
-            
-            # by default assume no extra validation rules are needed and a dropdown is sufficient
-            validation_type = "ONE_OF_LIST"
-            strict = True
-            custom_ui = True
-            input_message = 'Choose one from dropdown'
-            valid_values = req_vals 
+            if len(req_vals) > 10 and not "list" in validation_rules:
+                # if more than 10 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice 
+                # do not support other kinds of data validation for larger number of items (even if individual items are not that many
+                # excel has a total number of characters limit per dropdown...)
+                validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i, validation_type = "ONE_OF_RANGE")
 
-            if "list" in validation_rules:
+            elif "list" in validation_rules:
                 # if list is in validation rule attempt to create a multi-value 
                 # selection UI, which requires explicit valid values range in 
-                # the spreadsheet; store valid values explicitly in Sheet2 of the workbook
-                # TODO: currently assumes a workbook template is used that contains Sheet2
-                # in general need to check if sheet2 exists and create it if not
-                strict = False
-                custom_ui = False
-                input_message = ""
-                validation_type = "ONE_OF_RANGE"
- 
-                # store valid values explicitly in workbook
-                target_col_letter = self._column_to_letter(i)
-                body =  {
-                            "majorDimension":"COLUMNS",
-                            "values":[values]
-                }
-                target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
-                valid_values = [
-                                { 
-                                    "userEnteredValue" : "=" + target_range
-                                }
-                ]
+                # the spreadsheet
+                validation_body = self._get_column_data_validation_values(spreadsheet_id,
+                                                                          req_vals,
+                                                                          i,
+                                                                          strict = False,
+                                                                          custom_ui = False,
+                                                                          input_message = "",
+                                                                          validation_type = "ONE_OF_RANGE")
 
-                response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "RAW", body = body).execute()
-
-
-            validation_body =  {
-                      "requests": [
-                        {
-                        'setDataValidation':{
-                            'range':{
-                                'startRowIndex':1,
-                                'startColumnIndex':i, 
-                                'endColumnIndex':i+1, 
-                            },
-                            'rule':{
-                                'condition':{
-                                    'type':validation_type, 
-                                    'values': valid_values
-                                },
-                                'inputMessage' : input_message,
-                                'strict':strict,
-                                'showCustomUi': custom_ui 
-                            }
-                        }
-                    }
-                ]
-            }
+            else:
+                validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i)
+  
 
             requests_body["requests"].append(validation_body["requests"])
+
             
             # generate a conditional format rule for each required value (i.e. valid value) 
             # for this field (i.e. if this field is set to a valid value that may require additional
@@ -572,7 +643,14 @@ class ManifestGenerator(object):
                 # check if dependency formatting rules have been added and update sheet if so
                 if dependency_formatting_body["requests"]:
                     requests_body["requests"].append(dependency_formatting_body["requests"])
-                
+
+        # setting cell borders
+        cell_range = {
+          "sheetId": 0,
+          "startRowIndex": 0,
+        }
+        requests_body["requests"].append(self._get_cell_borders(cell_range))
+
         execute_google_api_requests(self.sheet_service, requests_body, service_type = "batch_update", spreadsheet_id = spreadsheet_id)
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
