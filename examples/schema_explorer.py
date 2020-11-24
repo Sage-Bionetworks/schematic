@@ -1,15 +1,22 @@
-from schematic.schemas.explorer import SchemaExplorer
-import networkx as nx
+#!/usr/bin/env python3
+
 import os
-from networkx.drawing.nx_agraph import graphviz_layout, to_agraph
-from graphviz import Digraph, Source
+import argparse
+import networkx as nx
 
-from definitions import DATA_PATH, CONFIG_PATH
-from schematic.utils.config_utils import load_yaml
+from schematic.schemas.explorer import SchemaExplorer
+from schematic import CONFIG
 
-config_data = load_yaml(CONFIG_PATH)
+# Create command-line argument parser
+parser = argparse.ArgumentParser()
+parser.add_argument("schema_class", metavar="SCHEMA CLASS", help="Name of class from schema.")
+parser.add_argument("--config", "-c", help="Configuration YAML file.")
+args = parser.parse_args()
 
-PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
+# Load Configuration
+config_data = CONFIG.load_config(args.config)
+
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # create an object of the SchemaExplorer() class
 schema_explorer = SchemaExplorer()
@@ -33,7 +40,7 @@ else:
     print("object of class SchemaExplorer could not be retreived.")
 
 # check if a particular class is in the current HTAN JSON-LD schema (or any schema that has been loaded)
-TEST_CLASS = 'Sequencing'
+TEST_CLASS = args.schema_class
 is_or_not = schema_explorer.is_class_in_schema(TEST_CLASS)
 
 if is_or_not == True:
@@ -46,14 +53,14 @@ gv_digraph = schema_explorer.full_schema_graph()
 
 # since the graph is very big, we will generate an svg viz. of it
 gv_digraph.format = 'svg'
-gv_digraph.render(os.path.join(DATA_PATH, '', 'viz/HTAN-GV'), view=True)
+gv_digraph.render('data/gviz/HTAN-GV', view=True)
 print("The svg visualization of the entire schema has been rendered.")
 
 # graph visualization of a sub-schema
 seq_subgraph = schema_explorer.sub_schema_graph(TEST_CLASS, "up")
 
 seq_subgraph.format = 'svg'
-seq_subgraph.render('SUB-GV', view=True)
+seq_subgraph.render('data/gviz/SUB-GV', view=True)
 print("The svg visualization of the sub-schema with {} as the source node has been rendered.".format(TEST_CLASS))
 
 # returns list of successors of a node
@@ -112,7 +119,7 @@ class_mod = {
                 "sms:required": "sms:false"
             }
 
-# make edits to TEST_CLASS based on the above template and pass it to edit_class() 
+# make edits to TEST_CLASS based on the above template and pass it to edit_class()
 schema_explorer.edit_class(class_info=class_mod)
 
 # verify that the comment associated with TEST_CLASS has indeed been changed

@@ -98,7 +98,6 @@ class SchemaExplorer():
     def find_class_specific_properties(self, schema_class):
         """Find properties specifically associated with a given class
         """
-        #print(schema_class)
         schema_uri = self.schema_nx.nodes[schema_class]["uri"]
         properties = []
         for record in self.schema["@graph"]:
@@ -441,8 +440,8 @@ class SchemaExplorer():
         return digraph
 
     # version of edit_class() method that directly acts on the networkx graph
-    def edit_class_nx(self, class_mod: dict) -> None:
-        node_to_replace = class_to_node(class_to_convert=class_mod)
+    def edit_schema_object_nx(self, schema_object: dict) -> None:
+        node_to_replace = class_to_node(class_to_convert=schema_object)
 
         # get the networkx graph associated with the SchemaExplorer object in its current state
         schema_graph_nx = self.get_nx_schema()
@@ -485,7 +484,7 @@ class SchemaExplorer():
                         # if the "subClassOf" attribute already exists on the node, then remove all the "parentOf" in-edges
                         # associated with that node
                         if "subClassOf" in data:
-                            # remove formerly existant edges from the master schema/graph
+                            # remove formerly existent edges from the master schema/graph
                             for (u, v) in list(schema_graph_nx.in_edges([node])):
 
                                 # there are certain nodes which have "subClassOf" data in list format
@@ -495,15 +494,23 @@ class SchemaExplorer():
 
                                         if edge_repl == u:
 
-                                            # we need to make sure to remove only edges that are tagged with the "parentOf" label
-                                            schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
+                                            try:
+                                                # we need to make sure to remove only edges that are tagged with the "parentOf" label
+                                                schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
+                                            except TypeError:
+                                                pass
+
                                 # there are certain nodes which have "subClassOf" data in dict format
                                 elif type(data["subClassOf"]) == dict:
                                     for k_id, v_curie in data["subClassOf"].items():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == u:
-                                            schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
+
+                                            try:
+                                                schema_graph_nx.remove_edges_from([(u, v, "parentOf")])
+                                            except TypeError:
+                                                pass
 
                         # extract node names from replacement node and use it to add edges to the master schema/graph
                         parents = replace_data["subClassOf"]
@@ -543,14 +550,23 @@ class SchemaExplorer():
                                         edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
+                                            
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
+                                            except TypeError:
+                                                pass
+
                                 # there are certain nodes which have "requiresDependency" data in dict format
                                 elif type(data["requiresDependency"]) == dict:
                                     for k_id, v_curie in data["requiresDependency"].items():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == u:
-                                            schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
+                                            
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
+                                            except TypeError:
+                                                pass
 
                             deps = replace_data["requiresDependency"]
                             if type(deps) == list:
@@ -583,13 +599,22 @@ class SchemaExplorer():
                                         edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
+
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
+                                            except TypeError:
+                                                pass
+
                                 elif type(data["requiresComponent"]) == dict:
                                     for k_id, v_curie in data["requiresComponent"].items():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
+
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "requiresComponent"])
+                                            except TypeError:
+                                                pass
 
                         comps = replace_data["requiresComponent"]
                         if type(comps) == list:
@@ -620,14 +645,21 @@ class SchemaExplorer():
                                         edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
+                                            except TypeError:
+                                                pass
+
                                 elif type(data["rangeIncludes"]) == dict:
                                     for k_id, v_curie in data["rangeIncludes"].items():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == v:
-                                            schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
-                                    
+                                            try:
+                                                schema_graph_nx.remove_edges_from([u, v, "rangeIncludes"])
+                                            except TypeError:
+                                                pass
+
                         range_inc = replace_data["rangeIncludes"]
                         if type(range_inc) == list:
                             for _rinc in range_inc:
@@ -649,46 +681,48 @@ class SchemaExplorer():
         # set the networkx schema graph to the the modified networkx schema
         self.schema_nx = schema_graph_nx
 
+        # print("Added node {} to the graph successfully.".format(schema_object["rdfs:label"]))
+
         # part of the code that replaces the modified class in the original JSON-LD schema (not in the data/ folder though)
         for i, schema_class in enumerate(self.schema["@graph"]):
-            if schema_class["rdfs:label"] == class_mod["rdfs:label"]:
-                validate_class_schema(class_mod)    # validate that the class to be modified follows the structure for any generic class (node)
+            if schema_class["rdfs:label"] == schema_object["rdfs:label"]:
+                # validate_class_schema(schema_object)    # validate that the class to be modified follows the structure for any generic class (node)
 
-                self.schema["@graph"][i] = class_mod
+                self.schema["@graph"][i] = schema_object
                 break
 
-
     # version of update_class() method that directly acts on the networkx graph 
-    def add_class_nx(self, class_add: dict, **kwargs: dict) -> None:
-        node = node_attrs_cleanup(class_add)
-
-        # get the networkx graph associated with the SchemaExplorer object in its current state
-        schema_graph_nx = self.get_nx_schema()
-
-        schema_graph_nx = relationship_edges(schema_graph_nx, class_add, **kwargs)
+    def add_schema_object_nx(self, schema_object: dict, **kwargs: dict) -> None:
+        node = node_attrs_cleanup(schema_object)
 
         if "required" in node:
-            if "sms:true" == class_add["sms:required"]:
+            if "sms:true" == schema_object["sms:required"]:
                 node["required"] = True  
             else:
                 node["required"] = False
 
-        # not sure if this is required?
-        if "sms:validationRules" in class_add:
-            node["validationRules"] = class_add["sms:validationRules"]
+        if "sms:validationRules" in schema_object:
+            node["validationRules"] = schema_object["sms:validationRules"]
         else:
             node["validationRules"] = []
 
+        node['uri'] = schema_object["@id"]
+        node['description'] = schema_object["rdfs:comment"]        
+
+        # get the networkx graph associated with the SchemaExplorer object in its current state
+        schema_graph_nx = self.get_nx_schema()
+
         # add node to graph
-        schema_graph_nx.add_node(class_add["rdfs:label"], **node)
+        schema_graph_nx.add_node(schema_object["rdfs:label"], **node)
+
+        schema_graph_nx = relationship_edges(schema_graph_nx, schema_object, **kwargs)
 
         # set the networkx schema graph to the the modified networkx schema
         self.schema_nx = schema_graph_nx
 
-        # part of the code that replaces the modified class in the original JSON-LD schema (not in the data/ folder though)
-        for i, schema_class in enumerate(self.schema["@graph"]):
-            if schema_class["rdfs:label"] == class_add["rdfs:label"]:
-                validate_class_schema(class_add)    # validate that the class to be modified follows the structure for any generic class (node)
+        # print("Edited node {} successfully.".format(schema_object["rdfs:label"]))
 
-                self.schema["@graph"][i] = class_add
-                break
+        # update the JSON-LD schema after modifying the networkx graph
+        # validate_class_schema(schema_object)
+        self.schema["@graph"].append(schema_object)
+        # validate_schema(self.schema)

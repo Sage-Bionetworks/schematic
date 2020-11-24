@@ -6,22 +6,17 @@ import pandas as pd
 from schematic.schemas.explorer import SchemaExplorer
 
 from schematic.utils.csv_utils import create_schema_classes
-from schematic.utils.config_utils import load_yaml
 
-from definitions import CONFIG_PATH, DATA_PATH
-
-config_data = load_yaml(CONFIG_PATH)
+from schematic import CONFIG
 
 # path to base schema
-base_schema_path = os.path.join(DATA_PATH, '', config_data["model"]["biothings"]["location"])
+base_schema_path = CONFIG["model"]["biothings"]["location"]
 
 # schema name (used to name schema json-ld file as well)
 output_schema_name = "example"
 
 # schema extension definition csv files
-schema_extensions_csv = [
-                        os.path.join(DATA_PATH, '', 'csv/example.csv')
-                        ]
+schema_extensions_csv = ['csv/example.csv']
 
 # instantiate schema explorer
 base_se = SchemaExplorer()

@@ -128,7 +128,7 @@ class MetadataModel(object):
             return
 
         if jsonSchema:
-            return mg.get_manifest(jsonSchema)
+            return mg.get_manifest(json_schema=jsonSchema)
 
         return mg.get_manifest()
 

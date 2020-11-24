@@ -4,16 +4,10 @@ import os
 
 from schematic.synapse.store import SynapseStorage
 
-from schematic.utils.config_utils import load_yaml
-
-from definitions import ROOT_DIR, CONFIG_PATH, DATA_PATH
-
-config_data = load_yaml(CONFIG_PATH)
-
-PATH_TO_SYN_CONF = os.path.join(ROOT_DIR, '.synapseConfig')
+from schematic import CONFIG
 
 # create an instance of synapseclient.Synapse() and login
-syn = synapseclient.Synapse(configPath=PATH_TO_SYN_CONF)
+syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
 
 try:
     syn.login()
@@ -47,7 +41,7 @@ print(files_df)
 
 # testing the association of entities with annotation(s) from manifest
 # synapse ID of "HTAN_CenterA_FamilyHistory" dataset and associating with it a validated manifest
-MANIFEST_LOC = os.path.join(DATA_PATH, '', config_data["synapse"]["manifest_filename"])
+MANIFEST_LOC = CONFIG["synapse"]["manifest_filename"]
 print("Testing association of entities with annotation from manifest...")
 manifest_syn_id = syn_store.associateMetadataWithFiles(MANIFEST_LOC, "syn21984120")
 print(manifest_syn_id)

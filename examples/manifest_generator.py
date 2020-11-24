@@ -1,20 +1,25 @@
-import synapseclient
+#!/usr/bin/env python3
+
 import os
+import argparse
+import synapseclient
 
 from schematic.manifest.generator import ManifestGenerator
-
 from schematic.utils.google_api_utils import download_creds_file
-from schematic.utils.config_utils import load_yaml
+from schematic import CONFIG
 
-from definitions import CONFIG_PATH, DATA_PATH
+# Create command-line argument parser
+parser = argparse.ArgumentParser(allow_abbrev=False)
+parser.add_argument("title", metavar="TITLE", help="Title of generated manifest file.")
+parser.add_argument("data_type", metavar="DATA TYPE", help="data type from the schema.org schema.")
+parser.add_argument("--config", "-c", metavar="CONFIG", help="Configuration YAML file.")
+args = parser.parse_args()
 
-config_data = load_yaml(CONFIG_PATH)
+# Load configuration
+config_data = CONFIG.load_config(args.config)
 
-PATH_TO_JSONLD = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
-
-# create an instance of ManifestGenerator class
-TEST_NODE = "FollowUp"
-manifest_generator = ManifestGenerator(title="FollowUp Manifest", path_to_json_ld=PATH_TO_JSONLD, root=TEST_NODE)
+# path to schema.org/JSON-LD schema as specified in `config.yml`
+PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
 
 # make sure the 'credentials.json' file is downloaded and is present in the right path/location
 try:
@@ -22,5 +27,8 @@ try:
 except synapseclient.core.exceptions.SynapseHTTPError:
     print("Make sure the credentials set in the config file are correct.")
 
+# create an instance of ManifestGenerator class
+manifest_generator = ManifestGenerator(title=args.title, path_to_json_ld=PATH_TO_JSONLD, root=args.data_type)
+
 # get manifest (csv) url
-print(manifest_generator.get_manifest())
+print(manifest_generator.get_manifest(dataset_id="syn21973647", sheet_url=False))
