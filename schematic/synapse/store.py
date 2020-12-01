@@ -12,7 +12,7 @@ import pandas as pd
 # Python client for Synapse
 import synapseclient
 
-from synapseclient import File, Folder, Table
+from synapseclient import File, Folder, Table, Column
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 import synapseutils
@@ -347,8 +347,7 @@ class SynapseStorage(object):
 
 
     def get_synapse_table(self, synapse_id:str) -> Tuple[pd.DataFrame, CsvFileTable]:
-        """
-        Download synapse table as a pd dataframe; return table schema and etags as results too
+        """Download synapse table as a pd dataframe; return table schema and etags as results too
 
         Args:
             synapse_id: synapse ID of the table to query
@@ -359,8 +358,43 @@ class SynapseStorage(object):
 
         return df, results
 
+    
+    def update_table_schema(self, exisiting_syn_id: str, col_mapper: Dict[str, Tuple[str, str]]=None) -> Dict:
+        """Update Synapse table schema/column structure based on `column mapper` argument.
 
-    def associateMetadataWithFiles(self, metadataManifestPath: str, datasetId: str) -> str:
+        Args:
+            exisiting_syn_id: Synapse ID of the project with the metadata manifest file.
+            col_mapper: General structure of the dictionary is as follows -- {OLD_COLUMN_NAME: {NEW_COLUMN_NAME, COLUMN_TYPE}}
+
+        Returns:
+            Dictionary with the schema as returned by synapseclient.
+        """
+        # get schema using a synapse id
+        table_schema = self.syn.get(exisiting_syn_id)
+
+        if col_mapper is not None:
+            # retrieve columms associated with existing table schema
+            cols = self.syn.getTableColumns(table_schema)
+            
+            # loop through dictionary for every 'old_key' in the existing column mapper
+            for old_key, (new_key, col_type) in col_mapper.items():
+                for col in cols:
+                    if col.name == old_key:
+
+                        # remove old column from the table if it exists
+                        table_schema.removeColumn(col)
+
+                # rename old column with new column name
+                new_col = self.syn.store(Column(name=new_key, columnType=col_type))
+                table_schema.addColumn(new_col)
+            
+            # restructure table schema with new columns
+            table_schema = self.syn.store(table_schema)
+        
+        return table_schema
+
+
+    def associateMetadataWithFiles(self, metadataManifestPath: str, datasetId: str, **kwargs) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
 
@@ -451,12 +485,22 @@ class SynapseStorage(object):
             self.syn.set_annotations(annos)
             #self.syn.set_annotations(metadataSyn) #-- deprecated code
 
+        if kwargs is not None:
+            # retrieve the value(s) set for the `col_mapper` key
+            col_mapping = kwargs.get('col_mapper')
+
+            # if there are any changes that need to be made to the Synapse table, update_table_schema() will take care of it
+            self.update_table_schema(existingTableId, col_mapping)
+        else:
+            col_mapping = None
+
         # create/update a table corresponding to this dataset in this dataset's parent project
 
-        if existingTableId: 
+        if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
-            
-            manifest = update_df(existing_table, manifest, 'entityId')
+            # existing_table = existing_table.rename(columns={'HTAN Patient ID': 'HTAN Participant ID'})
+
+            manifest = update_df(existing_table, manifest, 'entityId', col_mapper=col_mapping)
 
             self.syn.store(Table(existingTableId, manifest, etag = existing_results.etag))
             # remove system metadata from manifest
