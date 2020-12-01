@@ -23,19 +23,28 @@ def normalize_table(df: pd.DataFrame, primary_key:str) -> pd.DataFrame:
         return df
 
 
-def update_df(existing_df: pd.DataFrame, new_df: pd.DataFrame, idx_key: str) -> pd.DataFrame:
-    """ Updates an existing data frame with the entries of another dataframe on a given primary index.
+def update_df(existing_df: pd.DataFrame, new_df: pd.DataFrame, idx_key: str, **kwargs) -> pd.DataFrame:
+    """Updates an existing data frame with the entries of another dataframe on a given primary index.
 
     Args: 
         existing_df : data frame to be updated
         new_df: data frame to update with
         idx_key: name of primary index column
 
-    Returns: an updated data frame if the index column is present in both the existing and new data frames; ow returns the existing data frame w/o changes; the column set of the existing data frame are not updated (i.e. schema is preserved)
+    Returns:
+        An updated data frame if the index column is present in both the existing and new data frames; ow returns the existing data frame w/o changes; the column set of the existing data frame are not updated (i.e. schema is preserved)
     """
 
     if not (idx_key in existing_df.columns and idx_key in new_df):
         return existing_df
+
+    if kwargs is not None:
+        # retrieve the value(s) set for the `col_mapper` key
+        col_mapping = kwargs.get('col_mapper')
+
+        # use column names from column mapper
+        for old_key, (new_key, data_type) in col_mapping.items():
+            existing_df = existing_df.rename(columns={old_key: new_key})
 
     # merge the two data frames keeping all the resulting data in new and existing columns
     updated_df = pd.merge(existing_df, new_df, how = "outer", on = idx_key, suffixes = ("_existing", "_new"))
