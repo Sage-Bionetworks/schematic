@@ -854,7 +854,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
             # print(val + "validation rules added")
 
         # get dependencies for this attribute, if any are specified
-        requires_dependencies = attribute["Requires"]
+        requires_dependencies = attribute["DependsOn"]
         if not pd.isnull(requires_dependencies):
 
             for dep in requires_dependencies.strip().split(","):
@@ -945,8 +945,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
             #TODO check for cycles in attribute dependencies schema subgraph
 
         # check if the attribute requires any components
-        if not pd.isnull(attribute["Requires Component"]):
-            component_dependencies = attribute["Requires Component"] 
+        if not pd.isnull(attribute["DependsOn Component"]):
+            component_dependencies = attribute["DependsOn Component"] 
         else: 
             continue
 

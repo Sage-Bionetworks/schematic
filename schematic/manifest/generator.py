@@ -675,16 +675,18 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
-        # get manifest associated with dataset `dataset_id`
-        syn = synapseclient.Synapse(configPath=CONFIG["definitions"]["synapse_config"])
-        syn.login()
-
-        syn_store = SynapseStorage(syn=syn)
-
-        # determine path to the user-specified manifests folder where the manifest should be downloaded to
-        manifests_folder_path = CONFIG["synapse"]["manifest_folder"]
 
         if dataset_id:
+
+            # get manifest associated with dataset `dataset_id`
+            syn = synapseclient.Synapse(configPath=CONFIG["definitions"]["synapse_config"])
+            syn.login()
+
+            syn_store = SynapseStorage(syn=syn)
+
+            # determine path to the user-specified manifests folder where the manifest should be downloaded to
+            manifests_folder_path = CONFIG["synapse"]["manifest_folder"]
+
             # get manifest file associated with given dataset
             syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
 
