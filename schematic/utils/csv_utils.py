@@ -201,7 +201,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         schema_extension: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0
         se: a schema explorer object allowing the traversal and modification of a schema graph
         base_schema_path: a path to a json-ld file containing an existing schema
-        
+
     Returns:
         An updated schema explorer object
     """
@@ -597,10 +597,10 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer) -> SchemaExplorer:
     """Creates classes for all attributes and adds them to the schema.
     Args:
-        schema_extension: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0 
-        se: a schema explorer object allowing the traversal and modification of a schema graph        
+        schema_extension: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0
+        se: a schema explorer object allowing the traversal and modification of a schema graph
         base_schema_path: a path to a json-ld file containing an existing schema
-    Returns: 
+    Returns:
         An updated schema explorer object
     """
 
@@ -608,13 +608,13 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
         check_schema_definition(schema_extension)
         print("Schema definition csv ready for processing!")
     except:
-        print("Schema extension headers: ")     
+        print("Schema extension headers: ")
         print(set(list(schema_extension.columns)))
         print("do not match required schema headers: ")
         print(required_headers)
         print("ERROR: could not add extension to schema!")
         exit()
-    
+
     rel_dict = {
         "rdfs:subClassOf": {
             "parentOf": "in"
@@ -635,7 +635,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
 
     # get attributes from Attribute column
     attributes = schema_extension[list(required_headers)].to_dict("records")
-    
+
     # get all properties across all attributes from Properties column
     props = set(schema_extension[["Properties"]].dropna().values.flatten())
 
@@ -666,7 +666,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
 
         if not attribute["Attribute"] in all_properties:
             display_name = attribute["Attribute"]
-           
+
             subclass_of = None
             if not pd.isnull(attribute["Parent"]):
                 subclass_of = [parent for parent in attribute["Parent"].strip().split(",")]
@@ -676,7 +676,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                         subclass_of = subclass_of,
                                         required = required
             )
-            
+
             se.add_schema_object_nx(new_class, **rel_dict)
 
             """
@@ -700,7 +700,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
             # check if attribute doesn't already exist and add it
             if not attribute_exists(se, new_property["rdfs:label"]):
                 se.add_schema_object_nx(new_property, **rel_dict)
-    
+
     print("Done adding attributes")
     print("====================================================================================")
 
@@ -723,7 +723,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                     range_values = property_info["range"] if "range" in property_info else None
                     requires_dependencies = property_info["dependencies"] if "dependencies" in property_info else None
                     required = property_info["required"] if "required" in property_info else None
-                                    
+
                     new_property = get_property(se, p,
                                                 property_info["domain"],
                                                 description = description,
@@ -732,7 +732,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                 required = required
                     )
                     se.edit_schema_object_nx(new_property)
-                else: 
+                else:
                     description = None
                     new_property = get_property(se, p,
                                                 attribute,
@@ -778,7 +778,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                             print("ERROR: Listed valid value " + val + " for attribute " + attribute["Attribute"] + " must have a class parent!")
                             print("Could not add extension to schema!")
                             exit()
-                    
+
                     new_class = get_class(se, val,
                                         description = None,
                                         subclass_of = [parent]
@@ -786,7 +786,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                     # check if attribute doesn't already exist and add it
                     if not attribute_exists(se, new_class["rdfs:label"]):
                         se.add_schema_object_nx(new_class, **rel_dict)
-                                    
+
                 #update rangeIncludes of attribute
                 # if attribute is not a property, then assume it is a class
                 if not attribute["Attribute"] in all_properties:
@@ -798,7 +798,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                 requires_dependencies = class_info["dependencies"],\
                                                 requires_range = class_info["range"],
                                                 required = class_info["required"],
-                                                validation_rules = class_info["validation_rules"] 
+                                                validation_rules = class_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(class_range_edit)
 
@@ -820,7 +820,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
         # get validation rules for this attribute, if any are specified
         validation_rules = attribute["Validation Rules"]
         if not pd.isnull(validation_rules):
-            
+
             # TODO: make validation rules delimiter configurable parameter
             validation_rules = [val_rule.strip() for val_rule in validation_rules.strip().split("::")]
 
@@ -835,13 +835,13 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                 requires_dependencies = class_info["dependencies"],\
                                                 requires_range = class_info["range"],
                                                 required = class_info["required"],
-                                                validation_rules = class_info["validation_rules"] 
+                                                validation_rules = class_info["validation_rules"]
                 )
                 se.edit_schema_object_nx(class_val_rule_edit)
             else:
             # the attribute is a property
                 property_info = se.explore_property(se.get_property_label_from_display_name(attribute["Attribute"]))
-                property_info["validation_rules"] = validation_rules  
+                property_info["validation_rules"] = validation_rules
                 property_val_rule_edit = get_property(se, attribute["Attribute"],
                                                    property_info["domain"],
                                                    description = property_info["description"],
@@ -854,7 +854,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
             # print(val + "validation rules added")
 
         # get dependencies for this attribute, if any are specified
-        requires_dependencies = attribute["Requires"]
+        requires_dependencies = attribute["DependsOn"]
         if not pd.isnull(requires_dependencies):
 
             for dep in requires_dependencies.strip().split(","):
@@ -862,13 +862,13 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                 dep = dep.strip()
                 dep_is_property = dep in all_properties
                 dep_label = ""
-                # set dependency label based on kind of dependency: class or property 
+                # set dependency label based on kind of dependency: class or property
                 if dep_is_property:
-                    dep_label = se.get_property_label_from_display_name(dep) 
+                    dep_label = se.get_property_label_from_display_name(dep)
                 else:
                     dep_label = se.get_class_label_from_display_name(dep)
 
-              
+
                 # check if dependency is in attributes column; add it to the list if not
                 if not dep.strip() in list(schema_extension["Attribute"]):
                     # if dependency is a property create a new property; else create a new class
@@ -921,7 +921,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                     class_dependencies_edit = get_class(se, attribute["Attribute"],
                                                 description = attribute["Description"],
                                                 subclass_of = [attribute["Parent"]],
-                                                requires_dependencies = class_info["dependencies"], 
+                                                requires_dependencies = class_info["dependencies"],
                                                 requires_range = class_info["range"],
                                                 required = class_info["required"],
                                                 validation_rules = class_info["validation_rules"]
@@ -945,9 +945,9 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
             #TODO check for cycles in attribute dependencies schema subgraph
 
         # check if the attribute requires any components
-        if not pd.isnull(attribute["Requires Component"]):
-            component_dependencies = attribute["Requires Component"] 
-        else: 
+        if not pd.isnull(attribute["DependsOn Component"]):
+            component_dependencies = attribute["DependsOn Component"]
+        else:
             continue
 
         # iterate over potentially multiple dependency components
@@ -960,19 +960,19 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                 new_class = get_class(se, comp_dep,
                                       description = None
                 )
-                
+
                 # check if attribute doesn't already exist in schema.org schema and add it
                 # (component may not be in csv schema, but could be in the base schema we are extending)
                 if not attribute_exists(se, new_class["rdfs:label"]):
                     se.add_schema_object_nx(new_class, **rel_dict)
-        
+
             #update this attribute requirements to include component
             class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
             class_info["component_dependencies"].append(se.get_class_label_from_display_name(comp_dep))
             class_component_dependencies_edit = get_class(se, attribute["Attribute"],
                                             description = class_info["description"],
                                             subclass_of = class_info["subClassOf"],
-                                            requires_dependencies = class_info["dependencies"], 
+                                            requires_dependencies = class_info["dependencies"],
                                             requires_range = class_info["range"],
                                             validation_rules = class_info["validation_rules"],
                                             requires_components = class_info["component_dependencies"]
