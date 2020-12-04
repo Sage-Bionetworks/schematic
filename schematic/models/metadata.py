@@ -201,10 +201,8 @@ class MetadataModel(object):
             # annotations manifest to a list and strip each value from leading/trailing spaces
             if "list" in self.sg.get_node_validation_rules(col): 
                 manifest[col] = manifest[col].apply(lambda x: [s.strip() for s in str(x).split(",")])
-                print(manifest[col])
 
         annotations = json.loads(manifest.to_json(orient='records'))
-        print(annotations) 
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
 
@@ -239,7 +237,7 @@ class MetadataModel(object):
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
 
 
-    def submit_metadata_manifest(self, manifest_path: str, dataset_id: str, validate_component: str, json_schema: str = None) -> bool:
+    def submit_metadata_manifest(self, manifest_path: str, dataset_id: str, validate_component: str = None, json_schema: str = None) -> bool:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the 
         same manifest file with a specified dataset.
 
@@ -251,31 +249,62 @@ class MetadataModel(object):
         Returns:
             True: If both validation and association were successful.
             False: If the function could not successfully validate (and hence associate) the manifest file with the dataset.
+
+        Exceptions:
+            ValueError: When validate_component is provided, but it cannot be found in the schema.
+            NameError: When validate_component is not provided, but json_schema is.
         """
-        # list of all the validation errors present in the manifest file
-        val_errors = []
-
-        # JSON schema need not be provided always, it is an optional argument
-        # if JSON schema is provided, then use it
-        if json_schema:
-            val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component, jsonSchema=json_schema)
-
-        # automatic JSON schema generation and validation with that JSON schema
-        val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component)
-
         # create object of SynapseStorage() class to associate manifest file with dataset
         syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
         syn.login()
 
         syn_store = SynapseStorage(syn=syn)
 
-        # if no validation errors are produced
-        if not val_errors:
+        # check if user wants to perform validation or not
+        if validate_component is not None:
 
-            # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id` 
-            syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
-            
-            return True
+            try:
+                # check if the component ("class" in schema) passed as argument is valid (present in schema) or not
+                self.sg.se.is_class_in_schema(validate_component)
+            except:
+                # a KeyError exception is raised when validate_component fails in the try-block above
+                # here, we are suppressing the KeyError exception and replacing it with a more
+                # descriptive ValueError exception
+                raise ValueError("The component {} could not be found "
+                                 "in the schema.".format(validate_component))
 
-        # return False if validation (and hence association) was not successful
-        return False
+            # list of all the validation errors present in the manifest file
+            val_errors = []
+
+            # JSON schema need not be provided always, it is an optional argument
+            # if JSON schema is provided, then use it
+            if json_schema:
+                val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component, jsonSchema=json_schema)
+            else:
+                # automatic JSON schema generation and validation with that JSON schema
+                val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component)
+
+            # if there are no errors in validation process
+            if not val_errors:
+                
+                # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id` 
+                syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
+
+                print("No validation errors resulted during association.")
+                return True
+            else:
+                print(val_errors)
+                return False
+
+        # handle the case-scenario when only `json_schema` argument is provided but not `validate_component`
+        if validate_component is None and json_schema is not None:
+            raise NameError("For `json_schema argument to be accepted, the "
+                            "`validate_component` argument must be specified too.")
+
+        # no need to perform validation, just submit/associate the metadata manifest file
+        syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
+
+        print("Validation was not performed on manifest file before association.")
+        
+        return True
+        
