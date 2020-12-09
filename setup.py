@@ -30,9 +30,12 @@ setup(
         'networkx>=2.4', 'rdflib==4.2.2', 'tabletext==0.1', 'graphviz==0.8.4',
         'jsonschema==3.2.0', 'fastjsonschema==2.14.4', 'orderedset==2.0.1',
         'google-api-python-client==1.7.9', 'google-auth-httplib2==0.0.3', 'google-auth-oauthlib==0.4.0', 
-        'pandas', 'pygsheets>=2.0.1', 'inflection==0.3.1', 'synapseclient==2.1.0', 'setuptools>=41.2.0',
-        'pyyaml==5.3.1'
+        'pandas', 'pygsheets>=2.0.1', 'inflection==0.3.1', 'synapseclient==2.2.0', 'setuptools>=41.2.0',
+        'pyyaml==5.3.1', 'click>=7.1.2'
     ],
+    entry_points={
+        'console_scripts': 'schematic = schematic.__main__:main'
+    },
     include_package_data = True,
     package_data={
         'schematic': ['etc/*']
