@@ -60,9 +60,12 @@ class SchemaGenerator(object):
         else:
 
             # Confirm that given SchemaExplorer instance is valid
-            assert getattr(schema_explorer, "schema_nx") is not None, (
-                "SchemaExplorer instance given to `schema_explorer` "
-                "does not have a `schema_nx` attribute."
+            assert (
+                getattr(schema_explorer, "schema") is not None
+                and getattr(schema_explorer, "schema_nx") is not None
+            ), (
+                "SchemaExplorer instance given to `schema_explorer` argument "
+                "does not have both the `schema` and `schema_nx` attributes."
             )
 
             # User given instance of SchemaExplorer
