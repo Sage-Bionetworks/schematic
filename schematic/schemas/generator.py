@@ -16,7 +16,8 @@ from schematic import CONFIG
 
 class SchemaGenerator(object):
     def __init__(self,
-                path_to_json_ld: str,
+                path_to_json_ld: str = None,
+                schema_explorer: SchemaExplorer = None,
                 requires_dependency_relationship: str = "requiresDependency",  # optional parameter(s) with default value
                 requires_range: str = "rangeIncludes",
                 range_value_relationship: str = "rangeValue",
@@ -29,6 +30,7 @@ class SchemaGenerator(object):
 
         Args:
             path_to_json_ld: Path to the JSON-LD file that is representing the schema.org data model that we want to validate.
+            schema_explorer: SchemaExplorer instance containing the schema.org data model that we want to validate.
             requires_dependency_relationship: Edge relationship between two nodes indicating that they are dependent on each other.
             requires_range: A node propertly indicating that a term can assume a value equal to any of the terms that are in the current term's range.
             range_value_relationship: Edge relationship that indicates a term / node that another node depends on, is part of the other node's range.
@@ -38,15 +40,36 @@ class SchemaGenerator(object):
             None
         """
 
-        # create an instance of SchemaExplorer
-        self.se = SchemaExplorer()
+        if schema_explorer is None:
 
-        if path_to_json_ld.rpartition('.')[-1] == "jsonld":
+            assert path_to_json_ld is not None, (
+                "You must provide either `path_to_json_ld` or `schema_explorer`."
+            )
+
+            assert path_to_json_ld.rpartition('.')[-1] == "jsonld", (
+                "Please make sure the 'path_to_json_ld' parameter "
+                "is pointing to a valid JSON-LD file."
+            )
+
+            # create an instance of SchemaExplorer
+            self.se = SchemaExplorer()
+
             # convert the JSON-LD data model to networkx object
             self.se.load_schema(path_to_json_ld)
+
         else:
-            print("Please make sure the 'path_to_json_ld' parameter is pointing to a valid JSON-LD file.")
-            return
+
+            # Confirm that given SchemaExplorer instance is valid
+            assert (
+                getattr(schema_explorer, "schema") is not None
+                and getattr(schema_explorer, "schema_nx") is not None
+            ), (
+                "SchemaExplorer instance given to `schema_explorer` argument "
+                "does not have both the `schema` and `schema_nx` attributes."
+            )
+
+            # User given instance of SchemaExplorer
+            self.se = schema_explorer
 
         # custom value(s) of following relationship attributes are passed during initialization
         self.requires_dependency_relationship = requires_dependency_relationship
@@ -112,17 +135,17 @@ class SchemaGenerator(object):
         Args:
             graph: input multi digraph (aka hypergraph)
             relationship: edge / link relationship type with possible values same as in above docs.
-        
+
         Returns:
             Directed graph on edges of a particular type (aka relationship)
         """
-        
+
         # prune the metadata model graph so as to include only those edges that match the relationship type
         rel_edges = []
         for (u, v, key, c) in graph.edges(data=True, keys=True):
             if key == relationship:
                 rel_edges.append((u, v))
-        
+
         relationship_subgraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
 
@@ -165,7 +188,7 @@ class SchemaGenerator(object):
         # prune the descendants subgraph so as to include only those edges that match the relationship type
 
         relationship_subgraph = self.get_subgraph_by_edge_type(descendants_subgraph, relationship)
-        
+
         descendants = relationship_subgraph.nodes()
 
         if not descendants:
@@ -205,7 +228,7 @@ class SchemaGenerator(object):
             List of nodes that are descendants from the source component are are related to the source through a specific component relationship.
         """
         req_components = list(reversed(self.get_descendants_by_edge_type(source_component, self.requires_component_relationship, ordered = True)))
-        
+
         return req_components
 
 
