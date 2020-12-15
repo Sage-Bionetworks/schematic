@@ -11,11 +11,15 @@ synapse:
   manifest_filename: 'data/manifests/synapse_storage_manifest.csv'
   api_creds: 'syn21088684'
 
+manifest:
+  title: 'Patient_Manifest'
+  data_type: 'Patient'
+
 model:
   input:
-    location: 'data/schema_org_schemas/HTAN.jsonld'
+    location: 'data/schema_org_schemas/example.jsonld'
     file_type: 'local'
-    validation_schema: 'data/validation_schemas/HTAN_validation_schema_FamilyHistory.json'
+    validation_schema: 'data/validation_schemas/example_validation_schema.json'
     log_location: 'data/json_schema_logs/json_schema_log.json'
 
 style:
