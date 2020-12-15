@@ -13121,7 +13121,7 @@
         {
             "@id": "bts:CountryofResidence",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Country of Residence",
+            "rdfs:comment": "Country of Residence at time of enrollment",
             "rdfs:label": "CountryofResidence",
             "rdfs:subClassOf": [
                 {
