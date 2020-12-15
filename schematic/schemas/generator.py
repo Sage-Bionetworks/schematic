@@ -57,50 +57,25 @@ class SchemaGenerator(object):
     def get_edges_by_relationship(self,
                                 node: str,
                                 relationship: str) -> List[str]:
-        """Get a list of out-edges of a node where the edges match a specifc type of relationship.
-
-        i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf" (set of edges to children / sub-class nodes).
-        Note: possible edge relationships are -- parentOf, rangeValue, requiresDependency.
-
-        Args:
-            node: the node whose edges we need to look at.
-            relationship: the type of link(s) that the above node and its immediate neighbors share.
-
-        Returns:
-            List of edges that are connected to the node.
         """
-        edges = []
+            See class definition in SchemaExplorer
+            TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
+        """
 
-        mm_graph = self.se.get_nx_schema()
-
-        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
-            if key == relationship:
-                edges.append((u, v))
-
-        return sorted(edges)
+        return self.se.get_edges_by_relationship(node, relationship)
 
 
     def get_adjacent_nodes_by_relationship(self,
                                           node: str,
                                           relationship: str) -> List[str]:
-        """Get a list of nodes that is / are adjacent to a given node, based on a relationship type.
 
-        Args:
-            node: the node whose edges we need to look at.
-            relationship: the type of link(s) that the above node and its immediate neighbors share.
-
-        Returns:
-            List of nodes that are adjacent to the given node.
         """
-        nodes = set()
+            See class definition in SchemaExplorer
+            TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
+        """
+        
+        return self.se.get_adjacent_nodes_by_relationship(node, relationship)
 
-        mm_graph = self.se.get_nx_schema()
-
-        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
-            if key == relationship:
-                nodes.add(v)
-
-        return sorted(list(nodes))
 
 
     def get_descendants_by_edge_type(self,
@@ -108,69 +83,14 @@ class SchemaGenerator(object):
                                     relationship: str,
                                     connected: bool = True,
                                     ordered: bool = False) -> List[str]:
-        """Get all nodes that are descendants of a given source node, based on a specific type of edge / relationship type.
-
-        Args:
-            source_node: The node whose descendants need to be retreived.
-            relationship: Edge / link relationship type with possible values same as in above docs.
-            connected: If True, we need to ensure that all descendant nodes are reachable from the source node, i.e., they are part of the same connected component.
-                       If False, the descendants could be in multiple connected components.
-                       Default value is True.
-            ordered: If True, the list of descendants will be topologically ordered.
-                     If False, the list has no particular order (depends on the order in which the descendats were traversed in the subgraph).
-
-        Returns:
-            List of nodes that are descendants from a particular node (sorted / unsorted)
+        
         """
-        mm_graph = self.se.get_nx_schema()
+            See class definition in SchemaExplorer
+            TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
+        """
+        
+        return self.se.get_descendants_by_edge_type(source_node, relationship, connected, ordered)
 
-        # if mm_graph.has_node(source_node):
-            # get all nodes that are reachable from a specified root /source node in the data model
-
-        root_descendants = nx.descendants(mm_graph, source_node)
-        # else:
-            # print("The specified source node could not be found im the Networkx graph.")
-            # return []
-
-        subgraph_nodes = list(root_descendants)
-        subgraph_nodes.append(source_node)
-        descendants_subgraph = mm_graph.subgraph(subgraph_nodes)
-
-        # prune the descendants subgraph so as to include only those edges that match the relationship type
-        rel_edges = []
-        for (u, v, key, c) in descendants_subgraph.edges(data=True, keys=True):
-            if key == relationship:
-                rel_edges.append((u, v))
-
-        relationship_subgraph = nx.DiGraph()
-        relationship_subgraph.add_edges_from(rel_edges)
-
-        descendants = relationship_subgraph.nodes()
-
-        if not descendants:
-            # return empty list if there are no nodes that are reachable from the source node based on this relationship type
-            return []
-
-        if connected and ordered:
-            # get the set of reachable nodes from the source node
-            descendants = nx.descendants(relationship_subgraph, source_node)
-            descendants.add(source_node)
-
-            # normally, the descendants from a node are unordered (peculiarity of nx descendants call)
-            # form the subgraph on descendants and order it topologically
-            # this assumes an acyclic subgraph
-            descendants = nx.topological_sort(relationship_subgraph.subgraph(descendants))
-        elif connected:
-            # get the nodes that are reachable from a given source node
-            # after the pruing process above some nodes in the root_descendants subgraph might have become disconnected and will be omitted
-            descendants = nx.descendants(relationship_subgraph, source_node)
-            descendants.add(source_node)
-        elif ordered:
-            # sort the nodes topologically
-            # this requires the graph to be an acyclic graph
-            descendants = nx.topological_sort(relationship_subgraph)
-
-        return sorted(list(descendants))
 
 
     def get_component_requirements(self,

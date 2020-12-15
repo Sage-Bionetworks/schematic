@@ -815,7 +815,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                     validation_rules = property_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(property_range_edit)
-                # print(val + " added to value range")
+                print(val + " added to value range")
 
         # get validation rules for this attribute, if any are specified
         validation_rules = attribute["Validation Rules"]
@@ -851,7 +851,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                    validation_rules = property_info["validation_rules"]
                 )
                 se.edit_schema_object_nx(property_val_rule_edit)
-            # print(val + "validation rules added")
+            print(val + "validation rules added")
 
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["DependsOn"]
@@ -940,7 +940,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                         validation_rules = property_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(property_dependencies_edit)
-                # print(dep + " added to dependencies")
+                print(dep + " added to dependencies")
 
             #TODO check for cycles in attribute dependencies schema subgraph
 
@@ -978,7 +978,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                             requires_components = class_info["component_dependencies"]
             )
             se.edit_schema_object_nx(class_component_dependencies_edit)
-        # print(comp_dep + " added to dependencies")
+        print(comp_dep + " added to dependencies")
 
 
         #TODO check for cycles in component dependencies schema subgraph

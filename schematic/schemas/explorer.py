@@ -2,6 +2,8 @@ import os
 import string
 import json
 
+from typing import Any, Dict, Optional, Text, List
+
 import tabletext
 from rdflib import Graph, Namespace, plugin, query
 import inflection
@@ -46,6 +48,127 @@ class SchemaExplorer():
     def get_nx_schema(self):
         return self.schema_nx
 
+
+    def get_edges_by_relationship(self,
+                                class_label: str,
+                                relationship: str) -> List[str]:
+        """Get a list of out-edges of a node where the edges match a specifc type of relationship.
+
+        i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf" (set of edges to children / sub-class nodes).
+        Note: possible edge relationships are -- parentOf, rangeValue, requiresDependency.
+
+        Args:
+            node: the node whose edges we need to look at.
+            relationship: the type of link(s) that the above node and its immediate neighbors share.
+
+        Returns:
+            List of edges that are connected to the node.
+        """
+        edges = []
+
+        mm_graph = self.get_nx_schema()
+
+        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
+            if key == relationship:
+                edges.append((u, v))
+
+        return edges
+
+
+    def get_descendants_by_edge_type(self,
+                                    source_node: str,
+                                    relationship: str,
+                                    connected: bool = True,
+                                    ordered: bool = False) -> List[str]:
+        """Get all nodes that are descendants of a given source node, based on a specific type of edge / relationship type.
+
+        Args:
+            source_node: The node whose descendants need to be retreived.
+            relationship: Edge / link relationship type with possible values same as in above docs.
+            connected: If True, we need to ensure that all descendant nodes are reachable from the source node, i.e., they are part of the same connected component.
+                       If False, the descendants could be in multiple connected components.
+                       Default value is True.
+            ordered: If True, the list of descendants will be topologically ordered.
+                     If False, the list has no particular order (depends on the order in which the descendats were traversed in the subgraph).
+
+        Returns:
+            List of nodes that are descendants from a particular node (sorted / unsorted)
+        """
+        mm_graph = self.get_nx_schema()
+
+        # if mm_graph.has_node(source_node):
+            # get all nodes that are reachable from a specified root /source node in the data model
+
+        root_descendants = nx.descendants(mm_graph, source_node)
+        # else:
+            # print("The specified source node could not be found im the Networkx graph.")
+            # return []
+
+        subgraph_nodes = list(root_descendants)
+        subgraph_nodes.append(source_node)
+        descendants_subgraph = mm_graph.subgraph(subgraph_nodes)
+
+        # prune the descendants subgraph so as to include only those edges that match the relationship type
+        rel_edges = []
+        for (u, v, key, c) in descendants_subgraph.edges(data=True, keys=True):
+            if key == relationship:
+                rel_edges.append((u, v))
+
+        relationship_subgraph = nx.DiGraph()
+        relationship_subgraph.add_edges_from(rel_edges)
+
+        descendants = relationship_subgraph.nodes()
+
+        if not descendants:
+            # return empty list if there are no nodes that are reachable from the source node based on this relationship type
+            return []
+
+        if connected and ordered:
+            # get the set of reachable nodes from the source node
+            descendants = nx.descendants(relationship_subgraph, source_node)
+            descendants.add(source_node)
+
+            # normally, the descendants from a node are unordered (peculiarity of nx descendants call)
+            # form the subgraph on descendants and order it topologically
+            # this assumes an acyclic subgraph
+            descendants = nx.topological_sort(relationship_subgraph.subgraph(descendants))
+        elif connected:
+            # get the nodes that are reachable from a given source node
+            # after the pruning process above some nodes in the root_descendants subgraph might have become disconnected and will be omitted
+            descendants = nx.descendants(relationship_subgraph, source_node)
+            descendants.add(source_node)
+        elif ordered:
+            # sort the nodes topologically
+            # this requires the graph to be an acyclic graph
+            descendants = nx.topological_sort(relationship_subgraph)
+
+        return list(descendants)
+
+
+
+    def get_adjacent_nodes_by_relationship(self,
+                                          node: str,
+                                          relationship: str) -> List[str]:
+        """Get a list of nodes that is / are adjacent to a given node, based on a relationship type.
+
+        Args:
+            node: the node whose edges we need to look at.
+            relationship: the type of link(s) that the above node and its immediate neighbors share.
+
+        Returns:
+            List of nodes that are adjacent to the given node.
+        """
+        nodes = set()
+
+        mm_graph = self.get_nx_schema()
+
+        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
+            if key == relationship:
+                nodes.add(v)
+
+        return list(nodes)
+
+
     def is_class_in_schema(self, class_label):
         if self.schema_nx.nodes[class_label]:
             return True
@@ -77,8 +200,6 @@ class SchemaExplorer():
                     edges.append((_path[i], _path[i + 1]))
             return visualize(edges, size=size)
 
-    def find_children_classes(self, schema_class):
-        return list(self.schema_nx.successors(schema_class))
 
     def find_parent_classes(self, schema_class):
         """Find all parents of the class
@@ -161,33 +282,36 @@ class SchemaExplorer():
                 usages.append(usage)
         return usages
 
+
     def find_child_classes(self, schema_class):
         """Find schema classes that inherit from the given class
         """
         return unlist(list(self.schema_nx.successors(schema_class)))
 
+
+    def find_adjacent_child_classes(self, schema_class):
+
+        return self.get_adjacent_nodes_by_relationship(schema_class, 'parentOf')
+
+
     def explore_class(self, schema_class):
         """Find details about a specific schema class
         """
-        subclasses = []
+        parents = []
         if  "subClassOf" in self.schema_nx.nodes[schema_class]:
-            # the below if/else block exists to solve the inconsitencies in the spec of "subClassOf" in the HTAN schema
-            # a few classes are specified as lists and a few as simple dicts
             schema_node_val = self.schema_nx.nodes[schema_class]["subClassOf"]
 
-            subclass_list = []
+            parents_list = []
             if isinstance(schema_node_val, dict):
-                subclass_list.append(self.schema_nx.nodes[schema_class]["subClassOf"])
+                parents_list.append(self.schema_nx.nodes[schema_class]["subClassOf"])
             else:
-                subclass_list = schema_node_val
+                parents_list = schema_node_val
             
-            for subclass in subclass_list:
-                subclasses.append(extract_name_from_uri_or_curie(subclass["@id"]))
+            for parent in parents_list:
+                parents.append(extract_name_from_uri_or_curie(parent["@id"]))
         
         requires_range = []
         if  "rangeIncludes" in self.schema_nx.nodes[schema_class]:
-            # the below if/else block exists to solve the inconsitencies in the spec of "rangeIncludes" in the HTAN schema
-            # a few classes are specified as lists and a few as simple dicts
             schema_node_val = self.schema_nx.nodes[schema_class]["rangeIncludes"]
 
             if isinstance(schema_node_val, dict):
@@ -201,8 +325,6 @@ class SchemaExplorer():
 
         requires_dependencies = []
         if  "requiresDependency" in self.schema_nx.nodes[schema_class]:
-            # the below if/else block exists to solve the inconsitencies in the spec of "requiresDependency" in the HTAN schema
-            # a few classes are specified as lists and a few as simple dicts
             schema_node_val = self.schema_nx.nodes[schema_class]["requiresDependency"]
 
             if isinstance(schema_node_val, dict):
@@ -216,8 +338,6 @@ class SchemaExplorer():
 
         requires_components = []
         if  "requiresComponent" in self.schema_nx.nodes[schema_class]:
-            # the below if/else block exists to solve the inconsitencies in the spec of "requiresComponent" in the HTAN schema
-            # a few classes are specified as lists and a few as simple dicts
             schema_node_val = self.schema_nx.nodes[schema_class]["requiresComponent"]
 
             if isinstance(schema_node_val, dict):
@@ -239,18 +359,21 @@ class SchemaExplorer():
 
         # TODO: make class_info keys here the same as keys in schema graph nodes(e.g. schema_class above); note that downstream code using explore_class would have to be updated as well (e.g. csv_2_schemaorg)
       
-        class_info = {'properties': self.find_all_class_properties(schema_class),
+        class_info = {
+                      'properties': self.find_class_specific_properties(schema_class),
                       'description': self.schema_nx.nodes[schema_class]['description'],
                       'uri': curie2uri(self.schema_nx.nodes[schema_class]["uri"], namespaces),
-                      'usage': self.find_class_usages(schema_class),
-                      'child_classes': self.find_child_classes(schema_class),
-                      'subClassOf': subclasses, 
+                      #'usage': self.find_class_usages(schema_class),
+                      'usage':'NA',
+                      'child_classes': self.find_adjacent_child_classes(schema_class),
+                      'subClassOf': parents, 
                       'range': requires_range,
                       'dependencies': requires_dependencies,
                       'validation_rules': validation_rules,
                       'required': required,
                       'component_dependencies': requires_components,
-                      'parent_classes': self.find_parent_classes(schema_class)
+                      'parent_classes': parents
+                      #'parent_classes': self.find_parent_classes(schema_class)
         }
 
         if "displayName" in self.schema_nx.nodes[schema_class]:
