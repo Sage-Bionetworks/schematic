@@ -3702,10 +3702,10 @@
                     "@id": "bts:VitalStatus"
                 },
                 {
-                    "@id": "bts:CountryofResidence"
+                    "@id": "bts:DaystoBirth"
                 },
                 {
-                    "@id": "bts:DaystoBirth"
+                    "@id": "bts:CountryofResidence"
                 },
                 {
                     "@id": "bts:AgeIsObfuscated"
@@ -4718,6 +4718,9 @@
                     "@id": "bts:LibraryConstructionMethod"
                 },
                 {
+                    "@id": "bts:ReadIndicator"
+                },
+                {
                     "@id": "bts:Read1"
                 },
                 {
@@ -4793,7 +4796,7 @@
                     "@id": "bts:fileFormat"
                 },
                 {
-                    "@id": "bts:HTANParentBiospecimenID"
+                    "@id": "bts:HTANParentDataFileID"
                 },
                 {
                     "@id": "bts:HTANDataFileID"
@@ -4868,7 +4871,7 @@
                     "@id": "bts:fileFormat"
                 },
                 {
-                    "@id": "bts:HTANParentBiospecimenID"
+                    "@id": "bts:HTANParentDataFileID"
                 },
                 {
                     "@id": "bts:HTANDataFileID"
@@ -4943,7 +4946,7 @@
                     "@id": "bts:fileFormat"
                 },
                 {
-                    "@id": "bts:HTANParentBiospecimenID"
+                    "@id": "bts:HTANParentDataFileID"
                 },
                 {
                     "@id": "bts:HTANDataFileID"
@@ -5007,6 +5010,9 @@
                 },
                 {
                     "@id": "bts:LibraryLayout"
+                },
+                {
+                    "@id": "bts:ReadIndicator"
                 },
                 {
                     "@id": "bts:NucleicAcidSource"
@@ -5183,7 +5189,7 @@
                     "@id": "bts:fileFormat"
                 },
                 {
-                    "@id": "bts:HTANParentBiospecimenID"
+                    "@id": "bts:HTANParentDataFileID"
                 },
                 {
                     "@id": "bts:HTANDataFileID"
@@ -5297,7 +5303,7 @@
                     "@id": "bts:fileFormat"
                 },
                 {
-                    "@id": "bts:HTANParentBiospecimenID"
+                    "@id": "bts:HTANParentDataFileID"
                 },
                 {
                     "@id": "bts:HTANDataFileID"
@@ -5364,6 +5370,9 @@
                 },
                 {
                     "@id": "bts:LibraryLayout"
+                },
+                {
+                    "@id": "bts:ReadIndicator"
                 },
                 {
                     "@id": "bts:LibrarySelectionMethod"
@@ -5465,7 +5474,7 @@
                     "@id": "bts:fileFormat"
                 },
                 {
-                    "@id": "bts:HTANParentBiospecimenID"
+                    "@id": "bts:HTANParentDataFileID"
                 },
                 {
                     "@id": "bts:HTANDataFileID"
@@ -5624,7 +5633,7 @@
                     "@id": "bts:fileFormat"
                 },
                 {
-                    "@id": "bts:HTANParentBiospecimenID"
+                    "@id": "bts:HTANParentDataFileID"
                 },
                 {
                     "@id": "bts:HTANDataFileID"
@@ -7757,6 +7766,31 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Peaks Calling Software",
+            "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:ReadIndicator",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Indicate if this is Read 1 or Read 2",
+            "rdfs:label": "ReadIndicator",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Sequencing"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:R1"
+                },
+                {
+                    "@id": "bts:R2"
+                }
+            ],
+            "sms:displayName": "Read Indicator",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -13121,7 +13155,7 @@
         {
             "@id": "bts:CountryofResidence",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Country of Residence at time of enrollment",
+            "rdfs:comment": "Country of Residence at enrollment",
             "rdfs:label": "CountryofResidence",
             "rdfs:subClassOf": [
                 {
@@ -41078,6 +41112,40 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Sample Index and DNA Insert",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:R1",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "R1",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ReadIndicator"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "R1",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:R2",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "R2",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ReadIndicator"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "R2",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -106800,40 +106868,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "R0",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:R1",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "R1",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ResidualDisease"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "R1",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:R2",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "R2",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:ResidualDisease"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "R2",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
