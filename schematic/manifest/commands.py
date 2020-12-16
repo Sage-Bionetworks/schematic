@@ -2,6 +2,7 @@
 
 import click
 from schematic.manifest.generator import ManifestGenerator
+from schematic.utils.cli_utils import fill_in_from_config
 from schematic import CONFIG
 
 CONTEXT_SETTINGS = dict(help_option_names=['--help', '-h'])  # help options
@@ -36,36 +37,25 @@ def get_manifest(title, data_type, path_to_json_ld,
 
     # optional parameters that need to be passed to ManifestGenerator()
     # can be read from config.yml as well
-    if title is None:
-        TITLE = CONFIG["manifest"]["title"]
-        click.echo("TITLE argument is being read from config file.")
-    else:
-        TITLE = title
-
-    if data_type is None:
-        DATA_TYPE = CONFIG["manifest"]["data_type"]
-        click.echo("TITLE argument is being read from config file.")
-    else:
-        DATA_TYPE = data_type
-
-    if path_to_json_ld is None:
-        click.echo("PATH_TO_JSON_LD argument is being read from config file.")
-        PATH_TO_JSON_LD = CONFIG["model"]["input"]["location"]
-    else:
-        PATH_TO_JSON_LD = path_to_json_ld
-
-    if json_schema is None:
-        click.echo("JSON_SCHEMA argument is being read from config file.")
-        JSON_SCHEMA = CONFIG["model"]["input"]["validation_schema"]
-    else:
-        JSON_SCHEMA = json_schema
+    title = fill_in_from_config(
+        "title", title, CONFIG, ("manifest", "title")
+    )
+    data_type = fill_in_from_config(
+        "data_type", data_type, CONFIG, ("manifest", "data_type")
+    )
+    path_to_json_ld = fill_in_from_config(
+        "path_to_json_ld", path_to_json_ld, CONFIG, ("model", "input", "location")
+    )
+    json_schema = fill_in_from_config(
+        "json_schema", json_schema, CONFIG, ("model", "input", "validation_schema")
+    )
 
     # create object of type ManifestGenerator
-    manifest_generator = ManifestGenerator(title=TITLE, 
-                                           path_to_json_ld=PATH_TO_JSON_LD, 
-                                           root=DATA_TYPE)
+    manifest_generator = ManifestGenerator(title=title,
+                                           path_to_json_ld=path_to_json_ld,
+                                           root=data_type)
         
     # call get_manifest() on manifest_generator
     click.echo(manifest_generator.get_manifest(dataset_id=dataset_id, 
                                                sheet_url=sheet_url, 
-                                               json_schema=JSON_SCHEMA))
+                                               json_schema=json_schema))
