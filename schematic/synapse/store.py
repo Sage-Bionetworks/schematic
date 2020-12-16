@@ -392,8 +392,6 @@ class SynapseStorage(object):
         # check if there is an existing manifest
         existingManifest = self.getDatasetManifest(datasetId)
 
-        existingTableId = None
-
         if existingManifest:
 
             # update the existing manifest, so that existing entities get updated metadata and new entities are preserved;
@@ -402,9 +400,6 @@ class SynapseStorage(object):
             # (it is ok if the entities ID in the new manifest are blank)
             manifest['entityId'].fillna('', inplace = True)
             manifest = update_df(manifest, existingManifest, "entityId")
-
-            # retrieve Synapse table associated with this manifest, so that it can be updated below
-            existingTableId = self.syn.findEntityId(datasetName + "_table", datasetParentProject)
     
         # if this is a new manifest there could be no Synapse entities associated with the rows of this manifest
         # this may be due to data type (e.g. clinical data) being tabular
@@ -450,22 +445,6 @@ class SynapseStorage(object):
 
             self.syn.set_annotations(annos)
             #self.syn.set_annotations(metadataSyn) #-- deprecated code
-
-        # create/update a table corresponding to this dataset in this dataset's parent project
-
-        if existingTableId: 
-            existing_table, existing_results = self.get_synapse_table(existingTableId)
-            
-            manifest = update_df(existing_table, manifest, 'entityId')
-
-            self.syn.store(Table(existingTableId, manifest, etag = existing_results.etag))
-            # remove system metadata from manifest
-            manifest.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
-            
-        else:  
-            # create table using latest manifest content
-            table = build_table(datasetName + "_table", datasetParentProject, manifest)
-            table = self.syn.store(table)
         
         # update the manifest file, so that it contains the relevant entity IDs
         manifest.to_csv(metadataManifestPath, index = False)
