@@ -12362,6 +12362,9 @@
                     "@id": "bts:OtherShippingEnvironment"
                 },
                 {
+                    "@id": "bts:NotShipped"
+                },
+                {
                     "@id": "bts:SpecimenatRoomTemperature"
                 }
             ],
@@ -12911,7 +12914,7 @@
         {
             "@id": "bts:StartDaysfromIndex",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Time interval from the date of birth (index date) to the date of start point of any event, represented as a calculated number of days.",
+            "rdfs:comment": "Number of days from the date of birth (index date) to the date of an event (e.g. exposure to environmental factor, treatment start, etc.). If not applicable please enter 'Not Applicable'",
             "rdfs:label": "StartDaysfromIndex",
             "rdfs:subClassOf": [
                 {
@@ -12928,7 +12931,7 @@
         {
             "@id": "bts:StopDaysfromIndex",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Time interval from the date of birth (index date) to the end date of the event, represented as a calculated number of days. Note:  If the event occurs over time, e.g. a Treatment the stop_days_from_index column should have values. If the event occurs at a time point, like a diagnosis or a lab test, the values for this column can be 'n/a'",
+            "rdfs:comment": "Number of days from the date of birth (index date) to the end date of the event (e.g. exposure to environmental factor, treatment start, etc.). Note: if the event occurs at a single time point, e.g. a diagnosis or a lab test, the values for this column is 'Not Applicable'",
             "rdfs:label": "StopDaysfromIndex",
             "rdfs:subClassOf": [
                 {
@@ -46110,6 +46113,23 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Ice Pack",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:NotShipped",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "NotShipped",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ShippingConditionType"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Not Shipped",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
