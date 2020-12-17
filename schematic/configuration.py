@@ -40,6 +40,14 @@ class Configuration(object):
         return self.DATA[key]
 
 
+    def get(self, key, default):
+        try:
+            value = self[key]
+        except AttributeError or KeyError:
+            value = default
+        return value
+
+
     @staticmethod
     def load_yaml(file_path: str) -> dict:
         with open(file_path, 'r') as stream:

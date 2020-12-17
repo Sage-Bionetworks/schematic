@@ -2,7 +2,7 @@ import logging
 import pytest
 
 from schematic.utils import general
-from schematic.utils import config_utils
+from schematic.utils import cli_utils
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -35,28 +35,50 @@ class TestGeneral:
         assert test_list == mock_list
 
 
-class TestConfigUtils:
+class TestCliUtils:
 
-    def test_load_yaml_valid(self, tmpdir):
-        mock_contents = """
-        section:
-            key: value
-        """
-        mock_file = tmpdir.join('mock.yml')
-        mock_file.write(mock_contents)
-        mock_object = {'section': {'key': 'value'}}
+    def test_query_dict(self):
 
-        test_object = config_utils.load_yaml(str(mock_file))
-        assert test_object == mock_object
+        mock_dict = {"k1": {"k2": {"k3": "foobar"}}}
+        mock_keys_valid = ["k1", "k2", "k3"]
+        mock_keys_invalid = ["k1", "k2", "k4"]
+
+        test_result_valid = cli_utils.query_dict(mock_dict, mock_keys_valid)
+        test_result_invalid = cli_utils.query_dict(mock_dict, mock_keys_invalid)
+
+        assert test_result_valid == "foobar"
+        assert test_result_invalid is None
 
 
-    def test_load_yaml_invalid(self, tmpdir):
-        mock_contents = """
-        section:
-            key: bad-value:
-        """
-        mock_file = tmpdir.join('mock.yml')
-        mock_file.write(mock_contents)
+    def test_fill_in_from_config(self):
 
-        test_object = config_utils.load_yaml(str(mock_file))
-        assert test_object is None
+        jsonld = "/path/to/one"
+        jsonld_none = None
+
+        mock_config = {"model": {"path": "/path/to/two"}}
+        mock_keys = ["model", "path"]
+        mock_keys_invalid = ["model", "file"]
+
+        result1 = cli_utils.fill_in_from_config(
+            "jsonld", jsonld, None, mock_keys
+        )
+        result2 = cli_utils.fill_in_from_config(
+            "jsonld", jsonld, mock_config, mock_keys
+        )
+        result3 = cli_utils.fill_in_from_config(
+            "jsonld_none", jsonld_none, mock_config, mock_keys
+        )
+
+        assert result1 == "/path/to/one"
+        assert result2 == "/path/to/one"
+        assert result3 == "/path/to/two"
+
+        with pytest.raises(AssertionError):
+            cli_utils.fill_in_from_config(
+                "jsonld_none", jsonld_none, None, mock_keys
+            )
+
+        with pytest.raises(AssertionError):
+            cli_utils.fill_in_from_config(
+                "jsonld_none", jsonld_none, mock_config, mock_keys_invalid
+            )
