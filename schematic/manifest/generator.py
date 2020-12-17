@@ -193,7 +193,7 @@ class ManifestGenerator(object):
             return []
 
 
-    def get_empty_manifest(self, json_schema_file = None):
+    def get_empty_manifest(self, json_schema_filepath = None):
         # TODO: Refactor get_manifest method
         # - abstract function for requirements gathering
         # - abstract google sheet API requests as functions
@@ -203,14 +203,14 @@ class ManifestGenerator(object):
 
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
 
-        if not json_schema_file:
+        if not json_schema_filepath:
             # if no json schema is provided; there must be
             # schema explorer defined for schema.org schema
             # o.w. this will throw an error
             # TODO: catch error
             json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
         else:
-            with open(json_schema_file) as jsonfile:
+            with open(json_schema_filepath) as jsonfile:
                 json_schema = json.load(jsonfile)
             
         required_metadata_fields = {}
@@ -658,7 +658,7 @@ class ManifestGenerator(object):
 
         # Default case when no arguments are provided to the get_manifest() method
         if json_schema:
-            return self.get_empty_manifest(json_schema_file=json_schema)
+            return self.get_empty_manifest(json_schema_filepath=json_schema)
 
         return self.get_empty_manifest()
 
