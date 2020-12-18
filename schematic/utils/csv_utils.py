@@ -344,8 +344,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         # get values in range for this attribute, if any are specified
         range_values = attribute["Valid Values"]
         if not pd.isnull(range_values):
-            print("
-               Adding value range for " + attribute["Attribute"])
+            print("Adding value range for " + attribute["Attribute"])
 
             # prepare the range values list and split based on appropriate delimiter
             # if the string "range_values" starts with double quotes, then extract all "valid values" within double quotes
