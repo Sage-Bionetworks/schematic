@@ -353,7 +353,7 @@ class SynapseStorage(object):
         Args:
             synapse_id: synapse ID of the table to query
         """
-
+        
         results = self.syn.tableQuery("SELECT * FROM {}".format(synapse_id))
         df = results.asDataFrame(rowIdAndVersionInIndex = False)
 

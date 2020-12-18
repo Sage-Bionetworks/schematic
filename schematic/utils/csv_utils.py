@@ -344,7 +344,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         # get values in range for this attribute, if any are specified
         range_values = attribute["Valid Values"]
         if not pd.isnull(range_values):
-            print(">>> Adding value range for " + attribute["Attribute"])
+            print("Adding value range for " + attribute["Attribute"])
 
             # prepare the range values list and split based on appropriate delimiter
             # if the string "range_values" starts with double quotes, then extract all "valid values" within double quotes
@@ -815,7 +815,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                     validation_rules = property_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(property_range_edit)
-                # print(val + " added to value range")
+                print(val + " added to value range")
 
         # get validation rules for this attribute, if any are specified
         validation_rules = attribute["Validation Rules"]
@@ -851,7 +851,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                    validation_rules = property_info["validation_rules"]
                 )
                 se.edit_schema_object_nx(property_val_rule_edit)
-            # print(val + "validation rules added")
+            print(val + "validation rules added")
 
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["DependsOn"]
@@ -940,13 +940,13 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                         validation_rules = property_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(property_dependencies_edit)
-                # print(dep + " added to dependencies")
+                print(dep + " added to dependencies")
 
             #TODO check for cycles in attribute dependencies schema subgraph
 
         # check if the attribute requires any components
         if not pd.isnull(attribute["DependsOn Component"]):
-            component_dependencies = attribute["DependsOn Component"]
+            component_dependencies = attribute["DependsOn Component"] 
         else:
             continue
 
@@ -978,7 +978,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                             requires_components = class_info["component_dependencies"]
             )
             se.edit_schema_object_nx(class_component_dependencies_edit)
-        # print(comp_dep + " added to dependencies")
+        print(comp_dep + " added to dependencies")
 
 
         #TODO check for cycles in component dependencies schema subgraph
