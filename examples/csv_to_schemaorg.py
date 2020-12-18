@@ -36,8 +36,8 @@ base_se.load_schema(base_schema_path)
 for schema_extension_csv in args.schema_csv_list:
     schema_extension = pd.read_csv(schema_extension_csv)
 
-    base_se = create_schema_classes(schema_extension, base_se)
-    #base_se = create_nx_schema_objects(schema_extension, base_se)
+    # base_se = create_schema_classes(schema_extension, base_se)
+    base_se = create_nx_schema_objects(schema_extension, base_se)
 
 # Default to outputting the JSON-LD alongside the first input CSV
 if args.output_jsonld is None:
