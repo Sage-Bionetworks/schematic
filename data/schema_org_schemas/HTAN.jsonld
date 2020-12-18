@@ -6474,6 +6474,9 @@
                 },
                 {
                     "@id": "bts:MIBI"
+                },
+                {
+                    "@id": "bts:MERFISH"
                 }
             ],
             "sms:displayName": "Imaging Assay Type",
@@ -7772,7 +7775,7 @@
         {
             "@id": "bts:ReadIndicator",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Indicate if this is Read 1 or Read 2",
+            "rdfs:comment": "Indicate if this is Read 1 (R1) or Read 2 (R2)",
             "rdfs:label": "ReadIndicator",
             "rdfs:subClassOf": [
                 {
@@ -12359,13 +12362,13 @@
                     "@id": "bts:LiquidNitrogen"
                 },
                 {
+                    "@id": "bts:SpecimenatRoomTemperature"
+                },
+                {
                     "@id": "bts:OtherShippingEnvironment"
                 },
                 {
                     "@id": "bts:NotShipped"
-                },
-                {
-                    "@id": "bts:SpecimenatRoomTemperature"
                 }
             ],
             "sms:displayName": "Shipping Condition Type",
@@ -40422,6 +40425,23 @@
             "sms:validationRules": []
         },
         {
+            "@id": "bts:MERFISH",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "MERFISH",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ImagingAssayType"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "MERFISH",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:Cm",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -46117,10 +46137,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:NotShipped",
+            "@id": "bts:SpecimenatRoomTemperature",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "NotShipped",
+            "rdfs:label": "SpecimenatRoomTemperature",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:ShippingConditionType"
@@ -46129,7 +46149,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Not Shipped",
+            "sms:displayName": "Specimen at Room Temperature",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -46151,10 +46171,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:SpecimenatRoomTemperature",
+            "@id": "bts:NotShipped",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "SpecimenatRoomTemperature",
+            "rdfs:label": "NotShipped",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:ShippingConditionType"
@@ -46163,7 +46183,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Specimen at Room Temperature",
+            "sms:displayName": "Not Shipped",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
