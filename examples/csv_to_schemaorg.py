@@ -7,8 +7,7 @@ import argparse
 import pandas as pd
 
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.utils.csv_utils import create_schema_classes
-from schematic.utils.csv_utils import create_nx_schema_objects
+from schematic.utils.csv_utils import create_schema_classes, create_nx_schema_objects
 from schematic import CONFIG, LOADER
 
 # Constants (to avoid magic numbers)
