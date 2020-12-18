@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import warnings
 import click
 
 from schematic.manifest.generator import ManifestGenerator
