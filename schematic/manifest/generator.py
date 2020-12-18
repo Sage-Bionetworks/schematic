@@ -6,6 +6,7 @@ import pandas as pd
 from typing import Any, Dict, Optional, Text, List
 import pygsheets as ps
 import synapseclient
+import json
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
@@ -291,7 +292,7 @@ class ManifestGenerator(object):
             return []
 
 
-    def get_empty_manifest(self, json_schema = None):
+    def get_empty_manifest(self, json_schema_filepath = None):
         # TODO: Refactor get_manifest method
         # - abstract function for requirements gathering
         # - abstract google sheet API requests as functions
@@ -301,13 +302,16 @@ class ManifestGenerator(object):
 
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
 
-        if not json_schema:
+        if not json_schema_filepath:
             # if no json schema is provided; there must be
             # schema explorer defined for schema.org schema
             # o.w. this will throw an error
             # TODO: catch error
             json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
-
+        else:
+            with open(json_schema_filepath) as jsonfile:
+                json_schema = json.load(jsonfile)
+            
         required_metadata_fields = {}
 
         # gathering dependency requirements and corresponding allowed values constraints (i.e. valid values) for root node
@@ -736,7 +740,7 @@ class ManifestGenerator(object):
 
         # Default case when no arguments are provided to the get_manifest() method
         if json_schema:
-            return self.get_empty_manifest(json_schema=json_schema)
+            return self.get_empty_manifest(json_schema_filepath=json_schema)
 
         return self.get_empty_manifest()
 
