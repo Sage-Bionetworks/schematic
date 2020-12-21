@@ -32,7 +32,6 @@ class SynapseStorage(object):
     """
 
     def __init__(self,
-                syn: synapseclient = None,
                 token: str = None # optional parameter retreived from browser cookie
                 ) -> None:
 
@@ -51,9 +50,7 @@ class SynapseStorage(object):
             ValueError: when Admin fileview cannot be found (describe further).
 
         Typical usage example:
-            syn_store = SynapseStorage(syn=syn)
-
-            where 'syn' is an object of type synapseclient.
+            syn_store = SynapseStorage()
         """
 
         # login using a token
@@ -65,12 +62,10 @@ class SynapseStorage(object):
             except synapseclient.core.exceptions.SynapseHTTPError:
                 print("Please enter a valid session token.")
                 return
-        elif syn: # if no token, assume a logged in synapseclient instance has been provided
-            if isinstance(syn, synapseclient.Synapse):
-                self.syn = syn
-            else:
-                print("Please make sure 'syn' argument is of type synapseclient.Synapse().")
-                return
+
+        # login using synapse credentials provided by user in .synapseConfig (default) file
+        self.syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+        self.syn.login()
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
