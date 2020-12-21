@@ -62,10 +62,10 @@ class SynapseStorage(object):
             except synapseclient.core.exceptions.SynapseHTTPError:
                 print("Please enter a valid session token.")
                 return
-
-        # login using synapse credentials provided by user in .synapseConfig (default) file
-        self.syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
-        self.syn.login()
+        else:
+            # login using synapse credentials provided by user in .synapseConfig (default) file
+            self.syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+            self.syn.login()
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
