@@ -685,9 +685,6 @@ class ManifestGenerator(object):
 
             syn_store = SynapseStorage()
 
-            # determine path to the user-specified manifests folder where the manifest should be downloaded to
-            manifests_folder_path = CONFIG["synapse"]["manifest_folder"]
-
             # get manifest file associated with given dataset
             syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
 
@@ -695,7 +692,7 @@ class ManifestGenerator(object):
             if syn_id_and_path and sheet_url:
 
                 # get synapse ID manifest associated with dataset
-                manifest_data = syn_store.syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
+                manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
 
                 # get URL of an empty manifest file created based on schema component
                 empty_manifest_url = self.get_empty_manifest()
@@ -707,7 +704,7 @@ class ManifestGenerator(object):
 
             # Case 2: manifest exists in the given dataset and dataframe is to be returned
             elif syn_id_and_path and not sheet_url:
-                manifest_data = syn_store.syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
+                manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
 
                 # convert downloaded/existing manifest contents into dataframe
                 manifest_data_df = pd.read_csv(manifest_data.path)

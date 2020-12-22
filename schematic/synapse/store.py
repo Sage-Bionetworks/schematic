@@ -233,13 +233,17 @@ class SynapseStorage(object):
         return file_list
 
 
-    def getDatasetManifest(self, datasetId: str) -> List[str]:
+    def getDatasetManifest(self, datasetId: str, downloadFile: bool = False) -> List[str]:
         """Gets the manifest associated with a given dataset.
 
         Args:
             datasetId: synapse ID of a storage dataset.
+            downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
 
-        Returns: a tuple of manifest file ID and manifest name -- (fileId, fileName); returns empty list if no manifest is found.
+        Returns: 
+            A tuple of manifest file ID and manifest name -- (fileId, fileName); returns empty list if no manifest is found.
+            (or)
+            synapseclient.entity.File: A new Synapse Entity object of the appropriate type.
         """
 
         # get a list of files containing the manifest for this dataset (if any)
@@ -248,6 +252,15 @@ class SynapseStorage(object):
         if not manifest:
             return []
         else:
+            # if the downloadFile option is set to True
+            if downloadFile:
+                # retreive data in (synID, /dataset/path/) format
+                syn_id_and_path = manifest[0]
+
+                # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+                manifest_data = self.syn.get(syn_id_and_path[0], downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
+                return manifest_data
+            
             return manifest[0] # extract manifest tuple from list
 
 
