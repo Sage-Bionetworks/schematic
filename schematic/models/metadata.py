@@ -15,7 +15,6 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
 from schematic.synapse.store import SynapseStorage
-from schematic import CONFIG
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.
@@ -237,28 +236,20 @@ class MetadataModel(object):
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
 
 
-    def submit_metadata_manifest(self, manifest_path: str, dataset_id: str, validate_component: str = None, json_schema: str = None) -> bool:
+    def submit_metadata_manifest(self, manifest_path: str, dataset_id: str, validate_component: str = None) -> bool:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the 
         same manifest file with a specified dataset.
-
         Args:
             manifest_path: Path to the manifest file, which contains the metadata.
             dataset_id: Synapse ID of the dataset on Synapse containing the metadata manifest file.
             validate_component: Component from the schema.org schema based on which the manifest template has been generated.
-
         Returns:
             True: If both validation and association were successful.
-            False: If the function could not successfully validate (and hence associate) the manifest file with the dataset.
-
         Exceptions:
             ValueError: When validate_component is provided, but it cannot be found in the schema.
-            NameError: When validate_component is not provided, but json_schema is.
+            ValidationError: If validation against data model was not successful.
         """
-        # create object of SynapseStorage() class to associate manifest file with dataset
-        syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
-        syn.login()
-
-        syn_store = SynapseStorage(syn=syn)
+        syn_store = SynapseStorage()
 
         # check if user wants to perform validation or not
         if validate_component is not None:
@@ -273,16 +264,8 @@ class MetadataModel(object):
                 raise ValueError("The component {} could not be found "
                                  "in the schema.".format(validate_component))
 
-            # list of all the validation errors present in the manifest file
-            val_errors = []
-
-            # JSON schema need not be provided always, it is an optional argument
-            # if JSON schema is provided, then use it
-            if json_schema:
-                val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component, jsonSchema=json_schema)
-            else:
-                # automatic JSON schema generation and validation with that JSON schema
-                val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component)
+            # automatic JSON schema generation and validation with that JSON schema
+            val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component)
 
             # if there are no errors in validation process
             if not val_errors:
@@ -294,12 +277,7 @@ class MetadataModel(object):
                 return True
             else:
                 print(val_errors)
-                return False
-
-        # handle the case-scenario when only `json_schema` argument is provided but not `validate_component`
-        if validate_component is None and json_schema is not None:
-            raise NameError("For `json_schema argument to be accepted, the "
-                            "`validate_component` argument must be specified too.")
+                raise ValidationError("Manifest could not be validated under provided data model.")
 
         # no need to perform validation, just submit/associate the metadata manifest file
         syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
