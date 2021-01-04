@@ -1,8 +1,6 @@
 import pandas as pd
 import networkx as nx
 import json
-import re
-import synapseclient
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
