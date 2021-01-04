@@ -1,8 +1,6 @@
 import pandas as pd
 import networkx as nx
 import json
-import re
-
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
@@ -14,6 +12,7 @@ from typing import Any, Dict, Optional, Text, List
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
+from schematic.synapse.store import SynapseStorage
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.
@@ -199,10 +198,8 @@ class MetadataModel(object):
             # annotations manifest to a list and strip each value from leading/trailing spaces
             if "list" in self.sg.get_node_validation_rules(col): 
                 manifest[col] = manifest[col].apply(lambda x: [s.strip() for s in str(x).split(",")])
-                print(manifest[col])
 
         annotations = json.loads(manifest.to_json(orient='records'))
-        print(annotations) 
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
 
@@ -235,3 +232,55 @@ class MetadataModel(object):
         emptyManifestURL = mg.get_manifest()
 
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
+
+
+    def submit_metadata_manifest(self, manifest_path: str, dataset_id: str, validate_component: str = None) -> bool:
+        """Wrap methods that are responsible for validation of manifests for a given component, and association of the 
+        same manifest file with a specified dataset.
+        Args:
+            manifest_path: Path to the manifest file, which contains the metadata.
+            dataset_id: Synapse ID of the dataset on Synapse containing the metadata manifest file.
+            validate_component: Component from the schema.org schema based on which the manifest template has been generated.
+        Returns:
+            True: If both validation and association were successful.
+        Exceptions:
+            ValueError: When validate_component is provided, but it cannot be found in the schema.
+            ValidationError: If validation against data model was not successful.
+        """
+        syn_store = SynapseStorage()
+
+        # check if user wants to perform validation or not
+        if validate_component is not None:
+
+            try:
+                # check if the component ("class" in schema) passed as argument is valid (present in schema) or not
+                self.sg.se.is_class_in_schema(validate_component)
+            except:
+                # a KeyError exception is raised when validate_component fails in the try-block above
+                # here, we are suppressing the KeyError exception and replacing it with a more
+                # descriptive ValueError exception
+                raise ValueError("The component {} could not be found "
+                                 "in the schema.".format(validate_component))
+
+            # automatic JSON schema generation and validation with that JSON schema
+            val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component)
+
+            # if there are no errors in validation process
+            if not val_errors:
+                
+                # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id` 
+                syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
+
+                print("No validation errors resulted during association.")
+                return True
+            else:
+                print(val_errors)
+                raise ValidationError("Manifest could not be validated under provided data model.")
+
+        # no need to perform validation, just submit/associate the metadata manifest file
+        syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
+
+        print("Validation was not performed on manifest file before association.")
+        
+        return True
+        
