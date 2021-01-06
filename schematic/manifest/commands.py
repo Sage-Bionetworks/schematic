@@ -22,7 +22,7 @@ def manifest(): # use as `schematic manifest ...`
 @manifest.command('get', short_help='Prepares the manifest URL based on provided schema.')
 # define the optional arguments
 @click.option('-t', '--title', help='Title of generated manifest file.')
-@click.option('-d', '--data_type', help='Data type/component from JSON-LD schema to be used for manifest generation.')
+@click.option('-dt', '--data_type', help='Data type/component from JSON-LD schema to be used for manifest generation.')
 @click.option('-p', '--jsonld', help='Path to JSON-LD schema.')
 @click.option('-d', '--dataset_id', help='SynID of existing dataset on Synapse.')
 @click.option('-s', '--sheet_url', type=bool, help='Enable/disable URL generation.')
@@ -39,16 +39,16 @@ def get_manifest(title, data_type, jsonld,
     # optional parameters that need to be passed to ManifestGenerator()
     # can be read from config.yml as well
     title = fill_in_from_config(
-        "title", title, ("manifest", "title")
+        "title", ("manifest", "title"), title
     )
     data_type = fill_in_from_config(
-        "data_type", data_type, ("manifest", "data_type")
+        "data_type", ("manifest", "data_type"), data_type
     )
     jsonld = fill_in_from_config(
-        "jsonld", jsonld, ("model", "input", "location")
+        "jsonld", ("model", "input", "location"), jsonld
     )
     json_schema = fill_in_from_config(
-        "json_schema", json_schema, ("model", "input", "validation_schema")
+        "json_schema", ("model", "input", "validation_schema"), json_schema
     )
     # create object of type ManifestGenerator
     manifest_generator = ManifestGenerator(title=title,
