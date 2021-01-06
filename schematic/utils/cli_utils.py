@@ -39,17 +39,17 @@ def query_dict(
 
 def fill_in_from_config(
     arg_name: str,
-    arg_value: Any,
-    config_keys: Sequence[Any]
+    config_keys: Sequence[Any],
+    arg_value: Any = None
 ) -> Any:
     """Fill in a missing value from a configuration object.
 
     Args:
         arg_name: Name of the argument. Used for logging.
-        arg_value: Value of the argument provided at the
-            command line.
         config_keys: List of keys used to access a nested
             value in `config` corresponding to `arg_name`.
+        arg_value: Value of the argument provided at the
+            command line.
 
     Returns:
         The argument value, either from the calling context
