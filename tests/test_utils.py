@@ -50,7 +50,7 @@ class TestCliUtils:
         assert test_result_invalid is None
 
 
-    def test_fill_in_from_config(self):
+    def test_fill_in_from_config(self, mocker):
 
         jsonld = "/path/to/one"
         jsonld_none = None
@@ -58,15 +58,17 @@ class TestCliUtils:
         mock_config = {"model": {"path": "/path/to/two"}}
         mock_keys = ["model", "path"]
         mock_keys_invalid = ["model", "file"]
+        
+        mocker.patch("schematic.CONFIG.DATA", mock_config)
 
         result1 = cli_utils.fill_in_from_config(
-            "jsonld", jsonld, None, mock_keys
+            "jsonld", mock_keys, jsonld
         )
         result2 = cli_utils.fill_in_from_config(
-            "jsonld", jsonld, mock_config, mock_keys
+            "jsonld", mock_keys, jsonld
         )
         result3 = cli_utils.fill_in_from_config(
-            "jsonld_none", jsonld_none, mock_config, mock_keys
+            "jsonld_none", mock_keys, jsonld_none
         )
 
         assert result1 == "/path/to/one"
@@ -75,10 +77,5 @@ class TestCliUtils:
 
         with pytest.raises(AssertionError):
             cli_utils.fill_in_from_config(
-                "jsonld_none", jsonld_none, None, mock_keys
-            )
-
-        with pytest.raises(AssertionError):
-            cli_utils.fill_in_from_config(
-                "jsonld_none", jsonld_none, mock_config, mock_keys_invalid
+                "jsonld_none", mock_keys_invalid, jsonld_none
             )
