@@ -110,7 +110,7 @@ SizeY,Size of image: Y dimension (in pixels). Integer >= 1,,,,TRUE,Imaging Level
 SizeZ,Size of image: Z dimension (in pixels). Integer >= 1,,,,TRUE,Imaging Level 2,,,
 PixelType,"Data type for each pixel value. E.g. ""uint16""","int8, int16, int32, uint8, uint16, uint32, float, double, bit",,,TRUE,Imaging Level 2,,,
 Nucleic Acid Source,The source of the input nucleic molecule,"Single Cell, Bulk Whole Cell, Single Nucleus, Bulk Nuclei",,,TRUE,Sequencing,,http://example.org/htan/NucleicAcidSource,
-Single Cell Isolation Method,"The method by which cells are isolated into individual reaction containers at a single cell resolution (e.g. wells, micro-droplets)","Microfluidics Chip, Droplets, FACS, Plates, 10x",,,TRUE,scRNA-seq Level 1,,,
+Single Cell Isolation Method,"The method by which cells are isolated into individual reaction containers at a single cell resolution (e.g. wells, micro-droplets)","Microfluidics Chip, Droplets, FACS, Plates, 10x, Nuclei Isolation",,,TRUE,scRNA-seq Level 1,,,
 Dissociation Method,The tissue dissociation method used for scRNASeq or scATAC-seq assays,"gentleMACS, Dounce, Enzymatic Digestion, Not Applicable",,,TRUE,scRNA-seq Level 1,,,
 Library Layout,Sequencing read type,"Paired End, Single Read",,,TRUE,Sequencing,,,
 Nucleus Identifier,Unique nuclei barcode; added at transposition step. Determines which nucleus the reads originated from,Nuclei Barcode,,,TRUE,scATAC-seq Level 1,,,
