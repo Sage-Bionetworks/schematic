@@ -13,6 +13,7 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
 from schematic.synapse.store import SynapseStorage
+from schematic.utils.df_utils import trim_commas_df
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.
@@ -175,19 +176,16 @@ class MetadataModel(object):
         errors = []
  
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
-        manifest = pd.read_csv(manifestPath).fillna("")
-
-
-        """ 
-        check if each of the provided annotation columns has validation rule 'list'
-        if so, assume annotation for this column are comma separated list of multi-value annotations
-        convert multi-valued annotations to list
-        """
+        manifest = pd.read_csv(manifestPath)    # read manifest csv file as is from manifest path
+        manifest = trim_commas_df(manifest).fillna("")  # apply cleaning logic as part of pre-processing step
+ 
+        # check if each of the provided annotation columns has validation rule 'list'
+        # if so, assume annotation for this column are comma separated list of multi-value annotations
+        # convert multi-valued annotations to list
         for col in manifest.columns:
             
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-
 
             # convert manifest values to string
             # TODO: when validation handles annotation types as validation rules 
@@ -283,4 +281,3 @@ class MetadataModel(object):
         print("Validation was not performed on manifest file before association.")
         
         return True
-        
