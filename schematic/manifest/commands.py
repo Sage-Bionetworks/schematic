@@ -3,7 +3,7 @@
 import click
 
 from schematic.manifest.generator import ManifestGenerator
-from schematic.utils.cli_utils import fill_in_from_config
+from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic import CONFIG
 
 CONTEXT_SETTINGS = dict(help_option_names=['--help', '-h'])  # help options
@@ -39,17 +39,18 @@ def get_manifest(title, data_type, jsonld,
     # optional parameters that need to be passed to ManifestGenerator()
     # can be read from config.yml as well
     title = fill_in_from_config(
-        "title", ("manifest", "title"), title
+        "title", title, ("manifest", "title")
     )
     data_type = fill_in_from_config(
-        "data_type", ("manifest", "data_type"), data_type
+        "data_type", data_type, ("manifest", "data_type")
     )
     jsonld = fill_in_from_config(
-        "jsonld", ("model", "input", "location"), jsonld
+        "jsonld", jsonld, ("model", "input", "location")
     )
     json_schema = fill_in_from_config(
-        "json_schema", ("model", "input", "validation_schema"), json_schema
+        "json_schema", json_schema, ("model", "input", "validation_schema")
     )
+
     # create object of type ManifestGenerator
     manifest_generator = ManifestGenerator(title=title,
                                            path_to_json_ld=jsonld,

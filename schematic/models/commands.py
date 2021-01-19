@@ -7,7 +7,7 @@ import sys
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import fill_in_from_config
+from schematic.utils.cli_utils import query_dict, fill_in_from_config
 from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
@@ -44,13 +44,9 @@ def submit_manifest(ctx, manifest_path, dataset_id, validate_component):
     """
     Running CLI with manifest validation (optional) and submission options.
     """
-    jsonld = fill_in_from_config(
-        "jsonld", ("model", "input", "location")
-    )
+    jsonld = query_dict(CONFIG.DATA, ("model", "input", "location"))
 
-    model_file_type = fill_in_from_config(
-        "model_file_type", ("model", "input", "file_type")
-    )
+    model_file_type = query_dict(CONFIG.DATA, ("model", "input", "file_type"))
 
     metadata_model = MetadataModel(inputMModelLocation=jsonld, 
                                    inputMModelLocationType=model_file_type)
@@ -67,4 +63,3 @@ def submit_manifest(ctx, manifest_path, dataset_id, validate_component):
         logger.error(f"Component '{validate_component}' is not present in '{jsonld}', or is invalid.")
     except ValidationError:
         logger.error(f"Validation errors resulted while validating with '{validate_component}'.")
-
