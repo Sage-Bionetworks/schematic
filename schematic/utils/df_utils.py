@@ -57,3 +57,14 @@ def update_df(existing_df: pd.DataFrame, new_df: pd.DataFrame, idx_key: str) -> 
     updated_df = updated_df[existing_df.columns]
 
     return updated_df
+
+
+def trim_commas_df(df: pd.DataFrame):
+    """Removes empty columns and empty rows from pandas dataframe (manifest data).
+    Args:
+        df: pandas dataframe with data from manifest file.
+    Returns:
+        df: cleaned-up pandas dataframe.
+    """
+    return df.dropna(how='all', axis=1) \
+             .dropna(how='all', axis=0) 
