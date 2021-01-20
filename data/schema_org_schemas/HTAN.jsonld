@@ -7403,6 +7403,9 @@
                 },
                 {
                     "@id": "bts:10x"
+                },
+                {
+                    "@id": "bts:NucleiIsolation"
                 }
             ],
             "sms:displayName": "Single Cell Isolation Method",
@@ -40999,6 +41002,23 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "10x",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:NucleiIsolation",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "NucleiIsolation",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:SingleCellIsolationMethod"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Nuclei Isolation",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
