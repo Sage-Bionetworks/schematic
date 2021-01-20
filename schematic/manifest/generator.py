@@ -554,7 +554,7 @@ class ManifestGenerator(object):
 
 
             # generating sheet api request to populate a dropdown or a multi selection UI
-            if len(req_vals) > 10 and not "list" in validation_rules:
+            if len(req_vals) > 0 and not "list" in validation_rules:
                 # if more than 10 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice 
                 # do not support other kinds of data validation for larger number of items (even if individual items are not that many
                 # excel has a total number of characters limit per dropdown...)
