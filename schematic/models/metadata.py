@@ -14,6 +14,7 @@ from typing import Any, Dict, Optional, Text, List
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.df_utils import trim_commas_df
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.
@@ -174,9 +175,10 @@ class MetadataModel(object):
             jsonSchema = self.sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
          
         errors = []
- 
-        # get annotations from manifest (array of json annotations corresponding to manifest rows)
-        manifest = pd.read_csv(manifestPath).fillna("")
+        
+        manifest = pd.read_csv(manifestPath)    # read manifest csv file as is from manifest path
+
+        manifest = trim_commas_df(manifest).fillna("")  # apply cleaning logic as part of pre-processing step
 
 
         """ 
