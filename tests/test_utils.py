@@ -62,13 +62,13 @@ class TestCliUtils:
         mocker.patch("schematic.CONFIG.DATA", mock_config)
 
         result1 = cli_utils.fill_in_from_config(
-            "jsonld", mock_keys, jsonld
+            "jsonld", jsonld, mock_keys
         )
         result2 = cli_utils.fill_in_from_config(
-            "jsonld", mock_keys, jsonld
+            "jsonld", jsonld, mock_keys
         )
         result3 = cli_utils.fill_in_from_config(
-            "jsonld_none", mock_keys, jsonld_none
+            "jsonld_none", jsonld_none, mock_keys
         )
 
         assert result1 == "/path/to/one"
@@ -77,5 +77,5 @@ class TestCliUtils:
 
         with pytest.raises(AssertionError):
             cli_utils.fill_in_from_config(
-                "jsonld_none", mock_keys_invalid, jsonld_none
+                "jsonld_none", jsonld_none, mock_keys_invalid
             )
