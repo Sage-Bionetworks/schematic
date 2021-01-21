@@ -15,9 +15,11 @@ class MissingConfigValueError(Exception):
             self.message = message
         else:
             config_keys_str = ' > '.join(config_keys)
-            self.message = "The configuration value corresponding to the argument " + \
-                           f"({config_keys_str}) doesn't exist. " + \
-                           "Please provide a value in the configuration file."
+            self.message = (
+                "The configuration value corresponding to the argument "
+                f"({config_keys_str}) doesn't exist. "
+                "Please provide a value in the configuration file."
+            )
         super().__init__(self.message)
 
     def __str__(self):
