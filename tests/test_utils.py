@@ -3,6 +3,7 @@ import pytest
 
 from schematic.utils import general
 from schematic.utils import cli_utils
+from schematic.exceptions import MissingConfigValueError, MissingConfigAndArgumentValueError
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -50,6 +51,20 @@ class TestCliUtils:
         assert test_result_invalid is None
 
 
+    def test_get_from_config(self):
+
+        mock_dict = {"k1": {"k2": {"k3": "foobar"}}}
+        mock_keys_valid = ["k1", "k2", "k3"]
+        mock_keys_invalid = ["k1", "k2", "k4"]
+
+        test_result_valid = cli_utils.get_from_config(mock_dict, mock_keys_valid)
+        
+        assert test_result_valid == "foobar"
+
+        with pytest.raises(MissingConfigValueError):
+            cli_utils.get_from_config(mock_dict, mock_keys_invalid)
+                        
+
     def test_fill_in_from_config(self, mocker):
 
         jsonld = "/path/to/one"
@@ -75,7 +90,7 @@ class TestCliUtils:
         assert result2 == "/path/to/one"
         assert result3 == "/path/to/two"
 
-        with pytest.raises(AssertionError):
+        with pytest.raises(MissingConfigAndArgumentValueError):
             cli_utils.fill_in_from_config(
                 "jsonld_none", jsonld_none, mock_keys_invalid
             )

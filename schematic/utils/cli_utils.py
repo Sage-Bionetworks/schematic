@@ -35,8 +35,29 @@ def query_dict(
             return None
         return dictionary.get(key)
 
+    return reduce(extract, keys, dictionary)
+
+
+def get_from_config(
+    dictionary: Mapping[Any, Any], keys: Sequence[Any]
+) -> Union[Any, None]:
+    """Access a nested configuration value from a yaml
+    configuration file.
+
+    Args:
+        dictionary: A dictionary containing anything.
+        keys: A sequence of values corresponding to keys
+            in `dictionary`.
+
+    Returns:
+        The nested value corresponding to the given series.
+
+    Raises:
+        MissingConfigValueError: When configuration value not
+            found in config.yml file for given key.
+    """
     # get configuration value from config file
-    config_value = reduce(extract, keys, dictionary)
+    config_value = query_dict(dictionary, keys)
 
     # if configuration value not present then raise Exception
     if config_value is None:
@@ -49,8 +70,8 @@ def query_dict(
         f"'{config_value}' is being read from the config file."
     )
 
-    return reduce(extract, keys, dictionary)
-
+    return config_value
+    
 
 def fill_in_from_config(
     arg_name: str,
@@ -79,10 +100,10 @@ def fill_in_from_config(
     if arg_value is not None:
         return arg_value
 
-    # raise Exception if both configuration value not present
+    # raise Exception if both, configuration value not present
     # in config file and CLI argument value is missing
     try:
-        config_value = query_dict(CONFIG.DATA, config_keys)
+        config_value = get_from_config(CONFIG.DATA, config_keys)
     except MissingConfigValueError:
         raise MissingConfigAndArgumentValueError(arg_name, config_keys)
 
