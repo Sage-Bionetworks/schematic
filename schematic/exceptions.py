@@ -43,10 +43,12 @@ class MissingConfigAndArgumentValueError(Exception):
             self.message = message
         else:
             config_keys_str = ' > '.join(config_keys)
-            self.message = f"The value corresponding to the CLI argument '--{arg_name}'" + \
-                           " doesn't exist. " \
-                           "Please provide a value for either the CLI argument or " \
-                           f"({config_keys_str}) in the configuration file."
+            self.message = (
+                f"The value corresponding to the CLI argument '--{arg_name}'"
+                " doesn't exist. "
+                "Please provide a value for either the CLI argument or "
+                f"({config_keys_str}) in the configuration file."
+            )
         super().__init__(self.message)
 
     def __str__(self):
