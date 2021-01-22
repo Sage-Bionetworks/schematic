@@ -449,6 +449,11 @@ class SchemaGenerator(object):
 
         root_dependencies = self.get_adjacent_nodes_by_relationship(source_node, self.requires_dependency_relationship)
 
+        # if root_dependencies is empty it means that a class with name 'source_node' exists
+        # in the schema, but it is not a valid component
+        if not root_dependencies:
+            raise ValueError(f"'{source_node}' is not a valid component in the schema.")
+
         nodes_to_process += root_dependencies
 
         process_node = nodes_to_process.pop(0)

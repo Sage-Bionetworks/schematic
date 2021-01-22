@@ -3,7 +3,7 @@
 import click
 
 from schematic.manifest.generator import ManifestGenerator
-from schematic.utils.cli_utils import fill_in_from_config
+from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic import CONFIG
 
 CONTEXT_SETTINGS = dict(help_option_names=['--help', '-h'])  # help options
@@ -22,7 +22,7 @@ def manifest(): # use as `schematic manifest ...`
 @manifest.command('get', short_help='Prepares the manifest URL based on provided schema.')
 # define the optional arguments
 @click.option('-t', '--title', help='Title of generated manifest file.')
-@click.option('-d', '--data_type', help='Data type/component from JSON-LD schema to be used for manifest generation.')
+@click.option('-dt', '--data_type', help='Data type/component from JSON-LD schema to be used for manifest generation.')
 @click.option('-p', '--jsonld', help='Path to JSON-LD schema.')
 @click.option('-d', '--dataset_id', help='SynID of existing dataset on Synapse.')
 @click.option('-s', '--sheet_url', type=bool, help='Enable/disable URL generation.')
@@ -50,6 +50,7 @@ def get_manifest(title, data_type, jsonld,
     json_schema = fill_in_from_config(
         "json_schema", json_schema, ("model", "input", "validation_schema")
     )
+
     # create object of type ManifestGenerator
     manifest_generator = ManifestGenerator(title=title,
                                            path_to_json_ld=jsonld,
