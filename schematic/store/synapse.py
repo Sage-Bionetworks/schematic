@@ -19,11 +19,12 @@ import synapseutils
 
 from schematic.utils.df_utils import update_df
 from schematic.schemas.explorer import SchemaExplorer
+from schematic.store.base import BaseStorage
 
 from schematic import CONFIG
 
 
-class SynapseStorage(object):
+class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
 
     Provides utilities to list files in a specific project; update files annotations, create fileviews, etc.
@@ -198,7 +199,7 @@ class SynapseStorage(object):
             fileNames: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
             metadata manifests); if fileNames is not None, all files matching the names in the fileNames list are returned if present.
             fullpath: if True return the full path as part of this filename; otherwise return just base filename
-        
+
         Returns: a list of files; the list consists of tuples (fileId, fileName).
 
         Raises:
@@ -210,18 +211,18 @@ class SynapseStorage(object):
 
         file_list = []
 
-        # iterate over all results        
+        # iterate over all results
         for dirpath, dirname, filenames in walked_path:
-            
+
             # iterate over all files in a folder
             for filename in filenames:
 
                 if (not "manifest" in filename[0] and not fileNames) or (not fileNames == None and filename[0] in fileNames):
-                    
+
                     # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
                     # except the manifest if no fileNames have been specified
                     # TODO: refactor for clarity/maintainability
-                
+
 
                     if fullpath:
                         # append directory path to filename
@@ -229,7 +230,7 @@ class SynapseStorage(object):
 
                     # add file name file id tuple, rearranged so that id is first and name follows
                     file_list.append(filename[::-1])
- 
+
         return file_list
 
 
@@ -240,7 +241,7 @@ class SynapseStorage(object):
             datasetId: synapse ID of a storage dataset.
             downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
 
-        Returns: 
+        Returns:
             A tuple of manifest file ID and manifest name -- (fileId, fileName); returns empty list if no manifest is found.
             (or)
             synapseclient.entity.File: A new Synapse Entity object of the appropriate type.
@@ -260,7 +261,7 @@ class SynapseStorage(object):
                 # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
                 manifest_data = self.syn.get(syn_id_and_path[0], downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
                 return manifest_data
-            
+
             return manifest[0] # extract manifest tuple from list
 
 
@@ -361,7 +362,7 @@ class SynapseStorage(object):
         Args:
             synapse_id: synapse ID of the table to query
         """
-        
+
         results = self.syn.tableQuery("SELECT * FROM {}".format(synapse_id))
         df = results.asDataFrame(rowIdAndVersionInIndex = False)
 
@@ -408,7 +409,7 @@ class SynapseStorage(object):
             # (it is ok if the entities ID in the new manifest are blank)
             manifest['entityId'].fillna('', inplace = True)
             manifest = update_df(manifest, existingManifest, "entityId")
-    
+
         # if this is a new manifest there could be no Synapse entities associated with the rows of this manifest
         # this may be due to data type (e.g. clinical data) being tabular
         # and not requiring files; to utilize uniform interfaces downstream
@@ -453,7 +454,7 @@ class SynapseStorage(object):
 
             self.syn.set_annotations(annos)
             #self.syn.set_annotations(metadataSyn) #-- deprecated code
-        
+
         # update the manifest file, so that it contains the relevant entity IDs
         manifest.to_csv(metadataManifestPath, index = False)
 

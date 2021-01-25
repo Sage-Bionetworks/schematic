@@ -10,7 +10,7 @@ import json
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
-from schematic.synapse.store import SynapseStorage
+from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
 
@@ -161,7 +161,7 @@ class ManifestGenerator(object):
 
         border_style_req = {
                   "updateBorders": {
-                    "range": cell_range, 
+                    "range": cell_range,
                     "top": {
                       "style": "SOLID",
                       "width": 2,
@@ -170,27 +170,27 @@ class ManifestGenerator(object):
                     "bottom": {
                       "style": "SOLID",
                       "width": 2,
-                      "color": color 
+                      "color": color
                     },
                     "left": {
                       "style": "SOLID",
                       "width": 2,
-                      "color": color 
+                      "color": color
                     },
                     "right": {
                       "style": "SOLID",
                       "width": 2,
-                      "color": color 
+                      "color": color
                     },
                     "innerHorizontal": {
                       "style": "SOLID",
                       "width": 2,
-                      "color": color 
+                      "color": color
                     },
                     "innerVertical": {
                       "style": "SOLID",
                       "width": 2,
-                      "color": color 
+                      "color": color
                     }
                   }
         }
@@ -225,12 +225,12 @@ class ManifestGenerator(object):
 
     def _get_column_data_validation_values(self, spreadsheet_id, valid_values, column_id, validation_type = "ONE_OF_LIST", strict = True, custom_ui = True, input_message = "Choose one from dropdown"):
 
-        # get valid values w/o google sheet header 
+        # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
-        
+
         if validation_type == "ONE_OF_RANGE":
-    
-            # store valid values explicitly in workbook at the provided range to use as validation values 
+
+            # store valid values explicitly in workbook at the provided range to use as validation values
             target_col_letter = self._column_to_letter(column_id)
             body =  {
                         "majorDimension":"COLUMNS",
@@ -238,7 +238,7 @@ class ManifestGenerator(object):
             }
             target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
             valid_values = [
-                            { 
+                            {
                                 "userEnteredValue" : "=" + target_range
                             }
             ]
@@ -253,17 +253,17 @@ class ManifestGenerator(object):
                     'setDataValidation':{
                         'range':{
                             'startRowIndex':1,
-                            'startColumnIndex':column_id, 
-                            'endColumnIndex':column_id+1, 
+                            'startColumnIndex':column_id,
+                            'endColumnIndex':column_id+1,
                         },
                         'rule':{
                             'condition':{
-                                'type':validation_type, 
+                                'type':validation_type,
                                 'values': valid_values
                             },
                             'inputMessage' : input_message,
                             'strict':strict,
-                            'showCustomUi': custom_ui 
+                            'showCustomUi': custom_ui
                         }
                     }
                 }
@@ -273,8 +273,8 @@ class ManifestGenerator(object):
         return validation_body
 
 
-    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]: 
-        """Get valid values for a manifest attribute based on the corresponding 
+    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]:
+        """Get valid values for a manifest attribute based on the corresponding
         values of node's properties in JSONSchema
 
         Args:
@@ -311,7 +311,7 @@ class ManifestGenerator(object):
         else:
             with open(json_schema_filepath) as jsonfile:
                 json_schema = json.load(jsonfile)
-            
+
         required_metadata_fields = {}
 
         # gathering dependency requirements and corresponding allowed values constraints (i.e. valid values) for root node
@@ -360,15 +360,15 @@ class ManifestGenerator(object):
         # order columns header (since they are generated based on a json schema, which is a dict)
         ordered_metadata_fields = [list(required_metadata_fields.keys())]
 
-        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0]) 
-        
+        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0])
+
         body = {
                 "values": ordered_metadata_fields
         }
 
         #determining columns range
         end_col = len(required_metadata_fields.keys())
-        end_col_letter = self._column_to_letter(end_col) 
+        end_col_letter = self._column_to_letter(end_col)
 
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
 
@@ -378,7 +378,7 @@ class ManifestGenerator(object):
         # adding columns to 2nd sheet that can be used for storing data validation ranges (this avoids limitations on number of dropdown items in excel and openoffice)
         range = "Sheet2!A1:" + str(end_col_letter) + "1"
         self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
-        
+
 
         # format column header row
         header_format_body = {
@@ -556,14 +556,14 @@ class ManifestGenerator(object):
 
             # generating sheet api request to populate a dropdown or a multi selection UI
             if len(req_vals) > 10 and not "list" in validation_rules:
-                # if more than 10 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice 
+                # if more than 10 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice
                 # do not support other kinds of data validation for larger number of items (even if individual items are not that many
                 # excel has a total number of characters limit per dropdown...)
                 validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i, validation_type = "ONE_OF_RANGE")
 
             elif "list" in validation_rules:
-                # if list is in validation rule attempt to create a multi-value 
-                # selection UI, which requires explicit valid values range in 
+                # if list is in validation rule attempt to create a multi-value
+                # selection UI, which requires explicit valid values range in
                 # the spreadsheet
                 validation_body = self._get_column_data_validation_values(spreadsheet_id,
                                                                           req_vals,
@@ -575,12 +575,12 @@ class ManifestGenerator(object):
 
             else:
                 validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i)
-  
+
 
             requests_body["requests"].append(validation_body["requests"])
 
-            
-            # generate a conditional format rule for each required value (i.e. valid value) 
+
+            # generate a conditional format rule for each required value (i.e. valid value)
             # for this field (i.e. if this field is set to a valid value that may require additional
             # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
             for req_val in req_vals:
@@ -726,7 +726,7 @@ class ManifestGenerator(object):
 
                 sh = gc.open_by_url(empty_manifest_url)
                 wb = sh[0]
-                
+
                 # get column headers and read it into a dataframe
                 empty_manifest_data = wb.get_as_df(hasHeader=True)
 
