@@ -35,11 +35,13 @@ jobs:
     #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest tests/ --cov=schematic --cov-report=html
-    - name: Upload pytest test results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest-results-${{ matrix.python-version }}
-        path: htmlcov
-      # Use always() to always run this step to publish test results when there are test failures
-      if: ${{ always() }}
+        pytest tests/ --cov=schematic
+    #   run: |
+    #     pytest tests/ --cov=schematic --cov-report=html
+    # - name: Upload pytest test results
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: pytest-results-${{ matrix.python-version }}
+    #     path: htmlcov
+    #   # Use always() to always run this step to publish test results when there are test failures
+    #   if: ${{ always() }}
