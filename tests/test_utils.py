@@ -1,9 +1,13 @@
 import logging
 import pytest
+import json
+import os
 
 from schematic.utils import general
 from schematic.utils import cli_utils
+from schematic.utils import io_utils
 from schematic.exceptions import MissingConfigValueError, MissingConfigAndArgumentValueError
+from schematic import LOADER
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -94,3 +98,94 @@ class TestCliUtils:
             cli_utils.fill_in_from_config(
                 "jsonld_none", jsonld_none, mock_keys_invalid
             )
+
+
+class FakeResponse:
+    status: int
+    data: bytes
+
+    def __init__(self, *, data: bytes):
+        self.data = data
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+    def read(self):
+        self.status = 200 if self.data is not None else 404
+        return self.data
+
+    def close(self):
+        pass
+
+
+class TestIOUtils:
+
+    def test_json_load(self, tmpdir, mocker):
+
+        json_file = tmpdir.join("example.json")
+        json_file.write_text(json.dumps([
+            {'k1': 'v1'},
+            {'k2': 'v2'}
+        ]), encoding="utf-8")
+
+        with open(json_file, encoding='utf-8') as f:
+            expected = json.load(f)
+
+        result = io_utils.load_json(str(json_file))
+
+        assert result == expected
+
+        mock_urlopen = mocker.patch("urllib.request.urlopen",
+                                    return_value = FakeResponse(data=json.dumps([
+                                        {'k1': 'v1'}, 
+                                        {'k2': 'v2'}]
+                                    ))
+                                    )
+        
+        res = io_utils.load_json("http://example.com")
+        assert res == [
+            {'k1': 'v1'},
+            {'k2': 'v2'}
+        ]
+
+        assert mock_urlopen.call_count == 1
+
+    
+    def test_export_json(self, tmpdir):
+
+        json_str = json.dumps([
+            {'k1': 'v1'},
+            {'k2': 'v2'}
+        ])
+
+        export_file = tmpdir.join("export_json_expected.json")
+        io_utils.export_json(json_str, export_file)
+
+        with open(export_file, encoding='utf-8') as f:
+            expected = json.load(f)
+
+        assert expected == json_str
+
+
+    def test_load_schema(self, tmpdir, mocker):
+
+        jsonld_file = tmpdir.join("example_schema.jsonld")
+        jsonld_str = {
+            '@context': {'k': 'v'},
+            '@graph': [
+                {'k1': 'v1'},
+                {'k2': 'v2'}
+        ]}
+        jsonld_file.write_text(json.dumps(jsonld_str), encoding="utf-8")
+
+        mocker.patch("schematic.LOADER.filename",
+                    return_value=os.path.normpath(jsonld_file))
+
+        expected_default = io_utils.load_default()
+        expected_schemaorg = io_utils.load_schemaorg()
+
+        assert expected_default == jsonld_str
+        assert expected_schemaorg == jsonld_str
