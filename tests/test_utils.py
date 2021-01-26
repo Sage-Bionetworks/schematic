@@ -123,7 +123,7 @@ class FakeResponse:
 
 class TestIOUtils:
 
-    def test_json_load(self, tmpdir, mocker):
+    def test_json_load(self, tmpdir):
 
         json_file = tmpdir.join("example.json")
         json_file.write_text(json.dumps([
@@ -134,9 +134,12 @@ class TestIOUtils:
         with open(json_file, encoding='utf-8') as f:
             expected = json.load(f)
 
-        result = io_utils.load_json(str(json_file))
+        local_result = io_utils.load_json(str(json_file))
 
-        assert result == expected
+        assert local_result == expected
+
+    
+    def test_json_load_online(self, mocker):
 
         mock_urlopen = mocker.patch("urllib.request.urlopen",
                                     return_value = FakeResponse(data=json.dumps([
@@ -145,8 +148,8 @@ class TestIOUtils:
                                     ))
                                     )
         
-        res = io_utils.load_json("http://example.com")
-        assert res == [
+        url_result = io_utils.load_json("http://example.com")
+        assert url_result == [
             {'k1': 'v1'},
             {'k2': 'v2'}
         ]
@@ -170,22 +173,61 @@ class TestIOUtils:
         assert expected == json_str
 
 
-    def test_load_schema(self, tmpdir, mocker):
-
-        jsonld_file = tmpdir.join("example_schema.jsonld")
-        jsonld_str = {
-            '@context': {'k': 'v'},
-            '@graph': [
-                {'k1': 'v1'},
-                {'k2': 'v2'}
-        ]}
-        jsonld_file.write_text(json.dumps(jsonld_str), encoding="utf-8")
+    def test_load_default(self, mocker):
+        
+        biothings_schema_path = "tests/data/etc/data_models/biothings.model.jsonld"
 
         mocker.patch("schematic.LOADER.filename",
-                    return_value=os.path.normpath(jsonld_file))
+                    return_value=os.path.normpath(biothings_schema_path))
 
-        expected_default = io_utils.load_default()
-        expected_schemaorg = io_utils.load_schemaorg()
+        biothings_schema = io_utils.load_default()
 
-        assert expected_default == jsonld_str
-        assert expected_schemaorg == jsonld_str
+        expected_ctx_keys = ['bts', 'rdf', 'rdfs', 'schema', 'xsd']
+        actual_ctx_keys = list(biothings_schema["@context"].keys())
+        assert expected_ctx_keys == actual_ctx_keys
+
+        expected_no_of_keys = 146
+        actual_no_of_keys = len(biothings_schema["@graph"])
+        assert expected_no_of_keys == actual_no_of_keys
+
+
+    def test_load_schema_org(self, mocker):
+        
+        schema_org_schema_path = "tests/data/etc/data_models/schema_org.model.jsonld"
+
+        mocker.patch("schematic.LOADER.filename",
+                    return_value=os.path.normpath(schema_org_schema_path))
+
+        schema_org_schema = io_utils.load_schemaorg()
+
+        expected_ctx_keys = ['rdf', 'rdfs', 'xsd']
+        actual_ctx_keys = list(schema_org_schema["@context"].keys())
+        assert expected_ctx_keys == actual_ctx_keys
+
+        expected_no_of_graphs = 6
+        actual_no_of_graphs = len(schema_org_schema["@graph"])
+        assert expected_no_of_graphs == actual_no_of_graphs
+
+        expected_no_of_keys_G1 = 1621
+        actual_no_of_keys_G1 = len(schema_org_schema["@graph"][0]["@graph"])
+        assert expected_no_of_keys_G1 == actual_no_of_keys_G1
+
+        expected_no_of_keys_G2 = 405
+        actual_no_of_keys_G2 = len(schema_org_schema["@graph"][1]["@graph"])
+        assert expected_no_of_keys_G2 == actual_no_of_keys_G2
+
+        expected_no_of_keys_G3 = 7
+        actual_no_of_keys_G3 = len(schema_org_schema["@graph"][2]["@graph"])
+        assert expected_no_of_keys_G3 == actual_no_of_keys_G3
+
+        expected_no_of_keys_G4 = 223
+        actual_no_of_keys_G4 = len(schema_org_schema["@graph"][3]["@graph"])
+        assert expected_no_of_keys_G4 == actual_no_of_keys_G4
+
+        expected_no_of_keys_G5 = 31
+        actual_no_of_keys_G5 = len(schema_org_schema["@graph"][4]["@graph"])
+        assert expected_no_of_keys_G5 == actual_no_of_keys_G5
+
+        expected_no_of_keys_G6 = 27
+        actual_no_of_keys_G6 = len(schema_org_schema["@graph"][5]["@graph"])
+        assert expected_no_of_keys_G6 == actual_no_of_keys_G6
