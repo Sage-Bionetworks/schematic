@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "schematic"
+version = "0.1.11"
+description = "Package for data model and data ingress management"
+license = "MIT"
+authors = [
+    "Milen Nikolov <milen.nikolov@sagebase.org>",
+    "Sujay Patil <sujay.patil@sagebase.org>"
+]
+
+readme = "README.md"
+
+homepage = "https://github.com/Sage-Bionetworks/schematic"
+repository = "https://github.com/Sage-Bionetworks/schematic"
+documentation = "https://github.com/Sage-Bionetworks/schematic"
+
+keywords = ["schema", "metadata", "validation", "schema.org", "data model"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+packages = [
+    { include = "schematic" }
+]
+
+include = [
+    "schematic",
+    "config.yml"
+]
+
+
+[tool.poetry.scripts]
+schematic = "schematic.__main__:main"
+
+
+[tool.poetry.dependencies]
+python = "^3.7.1"
+
+click = "^7.1.2"
+click-log = "^0.3.2"
+fastjsonschema = "^2.14.5"
+google-api-python-client = "^1.12.8"
+google-auth-httplib2 = "^0.0.4"
+google-auth-oauthlib = "^0.4.2"
+graphviz = "^0.16"
+importlib-metadata = {version = "^1.6.0", python = "<3.8"}
+inflection = "^0.5.1"
+jsonschema = "^3.2.0"
+networkx = "^2.5"
+orderedset = "^2.0.3"
+pandas = "^1.2.1"
+pygsheets = "^2.0.4"
+PyYAML = "^5.4.1"
+rdflib = "^5.0.0"
+synapseclient = "^2.2.2"
+tabletext = "^0.1"
+
+
+[tool.poetry.dev-dependencies]
+coverage = "^5.3.1"
+pluggy = "^0.13.1"
+pytest = "^6.2.2"
+pytest-cov = "^2.11.1"
+pytest-mock = "^3.5.1"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--verbose --cov-report=term --cov-report=html:htmlcov --cov=schematic/"
+testpaths = [
+    "tests"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning"
+]
