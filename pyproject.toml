@@ -58,6 +58,7 @@ PyYAML = "^5.4.1"
 rdflib = "^5.0.0"
 synapseclient = "^2.2.2"
 tabletext = "^0.1"
+oauth2client = "<4.0.0"
 
 
 [tool.poetry.dev-dependencies]
