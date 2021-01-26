@@ -145,7 +145,7 @@ class TestIOUtils:
                                     return_value = FakeResponse(data=json.dumps([
                                         {'k1': 'v1'}, 
                                         {'k2': 'v2'}]
-                                    ))
+                                    ).encode('utf-8'))
                                     )
         
         url_result = io_utils.load_json("http://example.com")

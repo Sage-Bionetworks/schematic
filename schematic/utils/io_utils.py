@@ -11,7 +11,7 @@ def load_json(file_path):
     """
     if file_path.startswith("http"):
         with urllib.request.urlopen(file_path) as url:
-            data = json.loads(url.read())
+            data = json.loads(url.read().decode('utf-8'))
             return data
     # handle file path
     else:
