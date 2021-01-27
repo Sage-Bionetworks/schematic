@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 def normalize_table(df: pd.DataFrame, primary_key:str) -> pd.DataFrame:
     
