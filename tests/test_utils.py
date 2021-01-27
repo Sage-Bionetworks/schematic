@@ -173,13 +173,8 @@ class TestIOUtils:
         assert expected == json_str
 
 
-    def test_load_default(self, mocker):
+    def test_load_default(self):
         
-        biothings_schema_path = "tests/data/etc/data_models/biothings.model.jsonld"
-
-        mocker.patch("schematic.LOADER.filename",
-                    return_value=os.path.normpath(biothings_schema_path))
-
         biothings_schema = io_utils.load_default()
 
         expected_ctx_keys = ['bts', 'rdf', 'rdfs', 'schema', 'xsd']
@@ -191,13 +186,8 @@ class TestIOUtils:
         assert expected_no_of_keys == actual_no_of_keys
 
 
-    def test_load_schema_org(self, mocker):
+    def test_load_schema_org(self):
         
-        schema_org_schema_path = "tests/data/etc/data_models/schema_org.model.jsonld"
-
-        mocker.patch("schematic.LOADER.filename",
-                    return_value=os.path.normpath(schema_org_schema_path))
-
         schema_org_schema = io_utils.load_schemaorg()
 
         expected_ctx_keys = ['rdf', 'rdfs', 'xsd']
