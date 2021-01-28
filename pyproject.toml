@@ -15,6 +15,7 @@ homepage = "https://github.com/Sage-Bionetworks/schematic"
 repository = "https://github.com/Sage-Bionetworks/schematic"
 documentation = "https://github.com/Sage-Bionetworks/schematic"
 
+# Additional keywords: annotation, knowledge graph, ontology, data ingress
 keywords = ["schema", "metadata", "validation", "data model", "linked data"]
 
 classifiers = [
@@ -46,14 +47,12 @@ inflection = "^0.5.1"
 jsonschema = "^3.2.0"
 networkx = "^2.5"
 oauth2client = "<4.0.0"  # Specified because of bug in version ^4.0.0
-orderedset = "^2.0.3"
 pandas = "^1.2.1"
 pygsheets = "^2.0.4"
 PyYAML = "^5.4.1"
 rdflib = "^5.0.0"
 setuptools = "^52.0.0"
 synapseclient = "^2.2.2"
-tabletext = "^0.1"
 
 
 [tool.poetry.dev-dependencies]

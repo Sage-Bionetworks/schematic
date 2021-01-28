@@ -1,7 +1,6 @@
 import os
 import json
 import networkx as nx
-from orderedset import OrderedSet
 
 from typing import Any, Dict, Optional, Text, List
 
@@ -97,7 +96,7 @@ class SchemaGenerator(object):
             See class definition in SchemaExplorer
             TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
         """
-        
+
         return self.se.get_adjacent_nodes_by_relationship(node, relationship)
 
 
@@ -129,12 +128,12 @@ class SchemaGenerator(object):
                                     relationship: str,
                                     connected: bool = True,
                                     ordered: bool = False) -> List[str]:
-        
+
         """
             See class definition in SchemaExplorer
             TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
         """
-        
+
         return self.se.get_descendants_by_edge_type(source_node, relationship, connected, ordered)
 
 
