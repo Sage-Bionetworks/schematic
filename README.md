@@ -1,5 +1,6 @@
 # Schematic
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![GitHub stars](https://img.shields.io/github/stars/Sage-Bionetworks/schematic)](https://github.com/Sage-Bionetworks/schematic/stargazers) [![GitHub forks](https://img.shields.io/github/forks/Sage-Bionetworks/schematic)](https://github.com/Sage-Bionetworks/schematic/network)
+
 
 ## Introduction
 
@@ -19,7 +20,7 @@ Make sure you are a registered user on [`synapse.org`](https://www.synapse.org/)
 
 ## Package Setup
 
-## Clone Project Repository
+### Clone Project Repository
 
 Since the package isn't available on [`PyPI`](https://pypi.org/) yet, to setup the package you need to `clone` the project repoository from GitHub by running the following command:
 
