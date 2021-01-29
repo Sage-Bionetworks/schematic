@@ -469,3 +469,11 @@ class SynapseStorage(BaseStorage):
         manifestSynapseFileId = self.syn.store(manifestSynapseFile).id
 
         return manifestSynapseFileId
+
+
+    def getDataAnnotations(self, datasetId: str):
+        # Step 1: Get all files in given dataset
+        # Step 2: Get annotations for each file from Step 1 (separate function?)
+        # Step 3: Create data frame from list of annotations
+        # Step 4: Generate annotations CSV file in tempfile (separate function?)
+        pass
