@@ -7,14 +7,6 @@ class Configuration(object):
     def __init__(self):
         # path to config.yml file
         self.CONFIG_PATH = None
-        # path to credentials.json file
-        self.CREDS_PATH = None
-        # path to token.pickle file
-        self.TOKEN_PICKLE = None
-        # path to service account credentials file
-        self.SERVICE_ACCT_CREDS = None
-        # path to synapse config file
-        self.SYNAPSE_CONFIG_PATH = None
         # entire configuration data
         self.DATA = None
 
@@ -93,20 +85,33 @@ class Configuration(object):
         config_path = os.path.expanduser(config_path)
         config_path = os.path.abspath(config_path)
         self.DATA = self.load_yaml(config_path)
-        # Update module-level configuration constants
         self.CONFIG_PATH = config_path
-        self.CREDS_PATH = self.DATA["definitions"]["creds_path"]
-        self.TOKEN_PICKLE = self.DATA["definitions"]["token_pickle"]
-        self.SERVICE_ACCT_CREDS = self.DATA["definitions"]["service_acct_creds"]
-        self.SYNAPSE_CONFIG_PATH = self.DATA["definitions"]["synapse_config"]
-        # Normalize all file paths as absolute file paths
-        self.CONFIG_PATH = self.normalize_path(self.CONFIG_PATH)
-        self.CREDS_PATH = self.normalize_path(self.CREDS_PATH)
-        self.TOKEN_PICKLE = self.normalize_path(self.TOKEN_PICKLE)
-        self.SERVICE_ACCT_CREDS = self.normalize_path(self.SERVICE_ACCT_CREDS)
-        self.SYNAPSE_CONFIG_PATH = self.normalize_path(self.SYNAPSE_CONFIG_PATH)
         # Return self.DATA as a side-effect
         return self.DATA
+
+    @property
+    def CREDS_PATH(self):
+        self.CREDS_PATH = self.DATA["definitions"]["creds_path"]
+        self.CREDS_PATH = self.normalize_path(self.CREDS_PATH)
+        return self.CREDS_PATH
+
+    @property
+    def TOKEN_PICKLE(self):
+        self.TOKEN_PICKLE = self.DATA["definitions"]["token_pickle"]
+        self.TOKEN_PICKLE = self.normalize_path(self.TOKEN_PICKLE)
+        return self.TOKEN_PICKLE
+
+    @property
+    def SERVICE_ACCT_CREDS(self):
+        self.SERVICE_ACCT_CREDS = self.DATA["definitions"]["service_acct_creds"]
+        self.SERVICE_ACCT_CREDS = self.normalize_path(self.SERVICE_ACCT_CREDS)
+        return self.SERVICE_ACCT_CREDS
+
+    @property
+    def SYNAPSE_CONFIG_PATH(self):
+        self.SYNAPSE_CONFIG_PATH = self.DATA["definitions"]["synapse_config"]
+        self.SYNAPSE_CONFIG_PATH = self.normalize_path(self.SYNAPSE_CONFIG_PATH)
+        return self.SYNAPSE_CONFIG_PATH
 
 
 CONFIG = Configuration()
