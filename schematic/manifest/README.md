@@ -1,24 +1,27 @@
-## Usage of method(s) in `schematic.manifest.generator` module
+## Manifest Generation CLI Usage
 
-An important method in the `manifest.generator` module is the `get_manifest()` method which takes care of generating the manifest link, based on the underlying `JSON-LD schema` (in this case, `HTAN.jsonld`) and an optionally provided `JSON schema`.
+The following command is a generic call to the programmatic interface for manifest generation:
 
-First, we need to make sure the google API credentials file (which is required to interact with google services, in this case google docs), is present in the root folder:
+`$ poetry run schematic manifest get --config /path/to/config.yml --title <Manifest_Title> --data_type <Data_Model_Component> --jsonld /path/to/data_model.jsonld --dataset_id <Synapse_Dataset_ID> --sheet_url <URL_or_DF> --json_schema /path/to/json_validation_schema.json`
 
-```python
-try:
-    download_creds_file()
-except synapseclient.core.exceptions.SynapseHTTPError:
-    print("Make sure the credentials set in the config file are correct.")
-```
+### Options Description
 
-Create an object of `ManifestGenerator`, and feed the path to the master schema (JSON-LD). In addition, also change the name of the root node (component) based on the custom template type of your choice:
+There are various optional arguments that can be passed to the `schematic manifest get` interface.
 
-```python
-PATH_TO_JSONLD = CONFIG["model"]["input"]["location"]
+`--config / -c`: Specify the path to the `config.yml` using this option. This is a required argument.
 
-# create an instance of ManifestGenerator class
-TEST_NODE = "FollowUp"
-manifest_generator = ManifestGenerator(title="Demo Manifest", path_to_json_ld=PATH_TO_JSONLD, root=TEST_NODE)
-```
+`--title / -t`: Specify the title of the manifest that will be created at the end of the run. You can either explicitly pass the title of the manifest here or provide it in the `config.yml` file as a value for the `(manifest > title)` key.
 
-_Note: Not providing any value for the `root` argument will produce a general manifest file (not specific to any component)._
+`--data_type / -dt`: Specify the component (data type) from the data model that is to be used for generating the metadata manifest file. You can either explicitly pass the data type here or provide it in the `config.yml` file as a value for the `(manifest > data_type)` key.
+
+`--dataset_id / -d`: Specify the synID of a dataset folder on [`synapse.org`](https://www.synapse.org/). If there is an exisiting manifest already present in that folder, then it will be pulled with the existing annotations for further annotation/modification. 
+
+`--sheet_url / -s`: Takes `True` or `False` as argument values. If `True` then it will produce a Googlesheets URL/link to the metadata manifest file. If `False`, then it will produce a pandas dataframe for the same.
+
+`--json_schema / -j`: Specify the path to the JSON Validation Schema for this argument. You can either explicitly pass the `.json` file here or provide it in the `config.yml` file as a value for the `(model > input > validation_schema)` key.
+
+### Run Shell Script
+
+Run the `.sh` script in the `examples` folder by executing this statement at the command line:
+
+`$ bash /path/to/manifest_generation.sh`

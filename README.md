@@ -1,7 +1,6 @@
 # Schematic
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![GitHub stars](https://img.shields.io/github/stars/Sage-Bionetworks/schematic)](https://github.com/Sage-Bionetworks/schematic/stargazers) [![GitHub forks](https://img.shields.io/github/forks/Sage-Bionetworks/schematic)](https://github.com/Sage-Bionetworks/schematic/network)
 
-
 ## Introduction
 
 SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, data ingress ecosystem, that is meant to streamline the process of metadata annotation and validation for various data contributors.
@@ -76,6 +75,34 @@ There are two main configuration files that need to be edited – `config.yml` a
 
 First, open the `.synapseConfig` file in the editor of your choice and edit the `username` and `apikey` attributes under the `[authentication]` section.
 
+<details>
+  <summary>Description of `config.yml` attributes</summary>
+  
+    definitions:
+        synapse_config: "Path to .synapseConfig file"
+        creds_path: "Path to credentials.json file"
+        token_pickle: "Path to token.pickle file"
+        service_acct_creds: "Path to service_account_creds.json file"
+
+    synapse:
+        master_fileview: "Fileview of project with datasets on Synapse"
+        manifest_folder: "Path to folder where the manifest file should be downloaded to"
+        manifest_filename: "Name of the manifest file in the Synapse project"
+        api_creds: "syn23643259"
+
+    manifest:
+        title: "Name metadata manifest file"
+        data_type: "Component or Data Type to be used for validation"
+
+    model:
+        input:
+            location: "Path to data model JSON-LD file"
+            file_type: "local"  # only this type is supported at the moment
+            validation_schema: "Path to JSON Validation Schema JSON file"
+            log_location: "Folder where auto-generated JSON Validation Schemas can be logged to"
+        
+</details>
+
 Note: You can get your Synapse API key by: _logging into Synapse_ > _Settings_ > _Synapse API Key_ > _Show API Key_.
 
 ### Command Line Interface
@@ -90,11 +117,15 @@ To generate a metadata manifest template based on a data type that is present in
 $ poetry run schematic manifest get --config /path/to/config.yml
 ```
 
+Refer to the [README.md](https://github.com/Sage-Bionetworks/schematic/tree/develop/schematic/manifest) in the sub-package for more details.
+
 #### Metadata Manifest Validation and Submission
 
 ```bash
 $ poetry run schematic model --config /path/to/config.yml submit --manifest_path /path/to/manifest.csv --dataset_id dataset_synapse_id
 ```
+
+Refer to the [README.md](https://github.com/Sage-Bionetworks/schematic/tree/develop/schematic/models) in the sub-package for more details.
 
 Note: To view a full list of all the arguments that can be supplied to the command line interfaces, add a `--help` option at the end of each of the commands.
 
