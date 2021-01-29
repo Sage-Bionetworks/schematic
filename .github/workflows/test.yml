@@ -75,6 +75,8 @@ jobs:
       #              run test suite   
       #----------------------------------------------
       - name: Run tests
+        env:
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
         run: |
           source .venv/bin/activate
           pytest
