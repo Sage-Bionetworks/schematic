@@ -33,7 +33,8 @@ class SynapseStorage(BaseStorage):
     """
 
     def __init__(self,
-                token: str = None # optional parameter retreived from browser cookie
+                token: str = None, # optional parameter retreived from browser cookie
+                access_token: str = None,
                 ) -> None:
 
         """Initializes a SynapseStorage object.
@@ -41,6 +42,7 @@ class SynapseStorage(BaseStorage):
         Args:
             syn: an object of type synapseclient.
             token: optional token parameter (typically a 'str') as found in browser cookie upon login to synapse.
+            access_token: optional access token (personal or oauth)
 
             TODO: move away from specific project setup and work with an interface that Synapse specifies (e.g. based on schemas).
 
@@ -63,6 +65,9 @@ class SynapseStorage(BaseStorage):
             except synapseclient.core.exceptions.SynapseHTTPError:
                 print("Please enter a valid session token.")
                 return
+        elif access_token:
+            self.syn = synapseclient.Synapse()
+            self.syn.default_headers["Authorization"] = f"Bearer {access_token}"
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
             self.syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
