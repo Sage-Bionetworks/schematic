@@ -1,0 +1,3 @@
+synapse:
+  master_fileview: "syn23643253"
+  manifest_filename: "data/manifests/synapse_storage_manifest.csv"
