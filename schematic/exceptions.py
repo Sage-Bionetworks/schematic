@@ -53,3 +53,28 @@ class MissingConfigAndArgumentValueError(Exception):
 
     def __str__(self):
         return f"{self.message}"
+
+
+class AccessCredentialsError(Exception):
+    """Exception raised when provided access credentials cannot be resolved.
+    
+    Args:
+        project: Platform/project (e.g., synID of a project)
+        message: custom/pre-defined error message to be returned.
+
+    Returns:
+        message.
+    """
+
+    def __init__(self, project: str, message: str = None) -> str:
+        if message is not None:
+            self.message = message
+        else:
+            self.message = (
+                f"Your access to '{project}'' could not be resolved. "
+                "Please check your credentials and try again."
+            )
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f"{self.message}"
