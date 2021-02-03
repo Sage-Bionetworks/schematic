@@ -11,15 +11,16 @@ class MissingConfigValueError(Exception):
         message.
     """
     def __init__(self, config_keys: Sequence[Any], message: str = None) -> str:
-        if message is not None:
+        config_keys_str = ' > '.join(config_keys)
+        self.message = (
+            "The configuration value corresponding to the argument "
+            f"({config_keys_str}) doesn't exist. "
+            "Please provide a value in the configuration file."
+        )
+
+        if message:
             self.message = message
-        else:
-            config_keys_str = ' > '.join(config_keys)
-            self.message = (
-                "The configuration value corresponding to the argument "
-                f"({config_keys_str}) doesn't exist. "
-                "Please provide a value in the configuration file."
-            )
+
         super().__init__(self.message)
 
     def __str__(self):
@@ -39,16 +40,17 @@ class MissingConfigAndArgumentValueError(Exception):
     """
     def __init__(self, arg_name: str, 
                 config_keys: Sequence[Any], message: str = None) -> str:
-        if message is not None:
+        config_keys_str = ' > '.join(config_keys)
+        self.message = (
+            f"The value corresponding to the CLI argument '--{arg_name}'"
+            " doesn't exist. "
+            "Please provide a value for either the CLI argument or "
+            f"({config_keys_str}) in the configuration file."
+        )
+
+        if message:
             self.message = message
-        else:
-            config_keys_str = ' > '.join(config_keys)
-            self.message = (
-                f"The value corresponding to the CLI argument '--{arg_name}'"
-                " doesn't exist. "
-                "Please provide a value for either the CLI argument or "
-                f"({config_keys_str}) in the configuration file."
-            )
+            
         super().__init__(self.message)
 
     def __str__(self):
@@ -67,13 +69,14 @@ class AccessCredentialsError(Exception):
     """
 
     def __init__(self, project: str, message: str = None) -> str:
-        if message is not None:
+        self.message = (
+            f"Your access to '{project}'' could not be resolved. "
+            "Please check your credentials and try again."
+        )
+
+        if message:
             self.message = message
-        else:
-            self.message = (
-                f"Your access to '{project}'' could not be resolved. "
-                "Please check your credentials and try again."
-            )
+            
         super().__init__(self.message)
 
     def __str__(self):
