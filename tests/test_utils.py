@@ -11,6 +11,9 @@ from schematic.utils import general
 from schematic.utils import cli_utils
 from schematic.utils import io_utils
 from schematic.utils import df_utils
+from schematic.utils import validate_utils
+
+from schematic.schemas.explorer import SchemaExplorer
 from schematic.exceptions import MissingConfigValueError, MissingConfigAndArgumentValueError
 from schematic import LOADER
 
@@ -255,3 +258,52 @@ class TestDfUtils:
         trimmed_df = df_utils.trim_commas_df(df_with_nans)
 
         assert_frame_equal(trimmed_df, local_manifest)
+
+
+class TestValidateUtils:
+
+    def test_validate_schema(self, schema_explorer):
+
+        se_obj = schema_explorer("tests/data/schema_org_schemas/example.jsonld")
+
+        expected = validate_utils.validate_schema(se_obj.schema)
+        
+        actual = None
+
+        assert expected == actual
+
+    
+    def test_validate_class_schema(self, schema_explorer):
+        
+        se_obj = schema_explorer("tests/data/schema_org_schemas/example.jsonld")
+        
+        mock_class = se_obj.generate_class_template()
+        mock_class["@id"] = "bts:MockClass"
+        mock_class["@type"] = "rdfs:Class"
+        mock_class["@rdfs:comment"] = "This is a mock class"
+        mock_class["@rdfs:label"] = "MockClass"
+        mock_class["rdfs:subClassOf"]["@id"] = "bts:Patient"
+
+        expected = validate_utils.validate_class_schema(mock_class)
+
+        actual = None
+
+        assert expected == actual
+
+
+    def test_validate_property_schema(self, schema_explorer):
+
+        se_obj = schema_explorer("tests/data/schema_org_schemas/example.jsonld")
+        
+        mock_class = se_obj.generate_property_template()
+        mock_class["@id"] = "bts:MockProperty"
+        mock_class["@type"] = "rdf:Property"
+        mock_class["@rdfs:comment"] = "This is a mock Patient class"
+        mock_class["@rdfs:label"] = "MockProperty"
+        mock_class["schema:domainIncludes"]["@id"] = "bts:Patient"
+
+        expected = validate_utils.validate_property_schema(mock_class)
+
+        actual = None
+
+        assert expected == actual
