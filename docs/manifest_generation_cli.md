@@ -2,7 +2,7 @@
 
 The following command is a generic call to the programmatic interface for manifest generation:
 
-`$ poetry run schematic manifest get --config /path/to/config.yml --title <Manifest_Title> --data_type <Data_Model_Component> --jsonld /path/to/data_model.jsonld --dataset_id <Synapse_Dataset_ID> --sheet_url <URL_or_DF> --json_schema /path/to/json_validation_schema.json`
+```$ schematic manifest get --config /path/to/config.yml --title <Manifest_Title> --data_type <Data_Model_Component> --jsonld /path/to/data_model.jsonld --dataset_id <Synapse_Dataset_ID> --sheet_url <True_or_False> --json_schema /path/to/json_validation_schema.json```
 
 ### Options Description
 
@@ -20,8 +20,6 @@ There are various optional arguments that can be passed to the `schematic manife
 
 `--json_schema / -j`: Specify the path to the JSON Validation Schema for this argument. You can either explicitly pass the `.json` file here or provide it in the `config.yml` file as a value for the `(model > input > validation_schema)` key.
 
-### Run Shell Script
+### Run Example Command
 
-Run the `.sh` script in the `examples` folder by executing this statement at the command line:
-
-`$ bash /path/to/manifest_generation.sh`
+```$ schematic manifest get --config /path/to/config.yml```

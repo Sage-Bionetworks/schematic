@@ -73,7 +73,7 @@ When you are using the Google credentials in the `credentials.json` file for aut
 
 There are two main configuration files that need to be edited – `config.yml` and `.synapseConfig`.
 
-First, open the `.synapseConfig` file in the editor of your choice and edit the `username` and `apikey` attributes under the `[authentication]` section.
+First, open the `[.synapseConfig](https://github.com/Sage-Bionetworks/schematic/blob/main/.synapseConfig)` file in the editor of your choice and edit the `username` and `apikey` attributes under the `[authentication]` section.
 
 <details>
   <summary>Description of `config.yml` attributes</summary>
@@ -114,18 +114,16 @@ The two main CLI utilities that are distributed as part of the package are:
 To generate a metadata manifest template based on a data type that is present in your data model:
 
 ```bash
-$ poetry run schematic manifest get --config /path/to/config.yml
+$ schematic manifest get --config /path/to/config.yml
 ```
-
-Refer to the [README.md](https://github.com/Sage-Bionetworks/schematic/tree/develop/schematic/manifest) in the sub-package for more details.
 
 #### Metadata Manifest Validation and Submission
 
 ```bash
-$ poetry run schematic model --config /path/to/config.yml submit --manifest_path /path/to/manifest.csv --dataset_id dataset_synapse_id
+$ schematic model --config /path/to/config.yml submit --manifest_path /path/to/manifest.csv --dataset_id dataset_synapse_id
 ```
 
-Refer to the [README.md](https://github.com/Sage-Bionetworks/schematic/tree/develop/schematic/models) in the sub-package for more details.
+Refer to the [docs](https://github.com/Sage-Bionetworks/schematic/tree/develop/docs) for more details.
 
 Note: To view a full list of all the arguments that can be supplied to the command line interfaces, add a `--help` option at the end of each of the commands.
 

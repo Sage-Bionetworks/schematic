@@ -16,8 +16,6 @@ There are various optional arguments that can be passed to the `schematic model 
 
 `--validate_component / -vc`: The component or data type from the data model which you can use to validate the data filled in your manifest template.
 
-### Run Shell Script
+### Run Example Command
 
-Once you have generated the example `Patient` manifest by running the `manifest_generation.sh` script and filled it out per the vaalidation rules, you can run the `.sh` script in the `examples` folder here to vaidate (optionally) and submit the metadata manifest file.
-
-`$ bash /path/to/manifest_validation_submission.sh`
+```$ schematic model --config config.yml submit --manifest_path /path/to/patient_manifest.csv --dataset_id syn23643254 --validate_component Patient```
