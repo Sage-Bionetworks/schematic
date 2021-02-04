@@ -73,7 +73,7 @@ When you are using the Google credentials in the `credentials.json` file for aut
 
 There are two main configuration files that need to be edited – `config.yml` and `.synapseConfig`.
 
-First, open the `[.synapseConfig](https://github.com/Sage-Bionetworks/schematic/blob/main/.synapseConfig)` file in the editor of your choice and edit the `username` and `apikey` attributes under the `[authentication]` section.
+First, open the [`.synapseConfig`](https://github.com/Sage-Bionetworks/schematic/blob/main/.synapseConfig) file in the editor of your choice and edit the `username` and `apikey` attributes under the `[authentication]` section.
 
 <details>
   <summary>Description of `config.yml` attributes</summary>
