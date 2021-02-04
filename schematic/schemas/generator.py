@@ -1,7 +1,6 @@
 import os
 import json
 import networkx as nx
-from orderedset import OrderedSet
 
 from typing import Any, Dict, Optional, Text, List
 
@@ -16,7 +15,8 @@ from schematic import CONFIG
 
 class SchemaGenerator(object):
     def __init__(self,
-                path_to_json_ld: str,
+                path_to_json_ld: str = None,
+                schema_explorer: SchemaExplorer = None,
                 requires_dependency_relationship: str = "requiresDependency",  # optional parameter(s) with default value
                 requires_range: str = "rangeIncludes",
                 range_value_relationship: str = "rangeValue",
@@ -29,6 +29,7 @@ class SchemaGenerator(object):
 
         Args:
             path_to_json_ld: Path to the JSON-LD file that is representing the schema.org data model that we want to validate.
+            schema_explorer: SchemaExplorer instance containing the schema.org data model that we want to validate.
             requires_dependency_relationship: Edge relationship between two nodes indicating that they are dependent on each other.
             requires_range: A node propertly indicating that a term can assume a value equal to any of the terms that are in the current term's range.
             range_value_relationship: Edge relationship that indicates a term / node that another node depends on, is part of the other node's range.
@@ -38,15 +39,36 @@ class SchemaGenerator(object):
             None
         """
 
-        # create an instance of SchemaExplorer
-        self.se = SchemaExplorer()
+        if schema_explorer is None:
 
-        if path_to_json_ld.rpartition('.')[-1] == "jsonld":
+            assert path_to_json_ld is not None, (
+                "You must provide either `path_to_json_ld` or `schema_explorer`."
+            )
+
+            assert path_to_json_ld.rpartition('.')[-1] == "jsonld", (
+                "Please make sure the 'path_to_json_ld' parameter "
+                "is pointing to a valid JSON-LD file."
+            )
+
+            # create an instance of SchemaExplorer
+            self.se = SchemaExplorer()
+
             # convert the JSON-LD data model to networkx object
             self.se.load_schema(path_to_json_ld)
+
         else:
-            print("Please make sure the 'path_to_json_ld' parameter is pointing to a valid JSON-LD file.")
-            return
+
+            # Confirm that given SchemaExplorer instance is valid
+            assert (
+                getattr(schema_explorer, "schema") is not None
+                and getattr(schema_explorer, "schema_nx") is not None
+            ), (
+                "SchemaExplorer instance given to `schema_explorer` argument "
+                "does not have both the `schema` and `schema_nx` attributes."
+            )
+
+            # User given instance of SchemaExplorer
+            self.se = schema_explorer
 
         # custom value(s) of following relationship attributes are passed during initialization
         self.requires_dependency_relationship = requires_dependency_relationship
@@ -58,50 +80,24 @@ class SchemaGenerator(object):
     def get_edges_by_relationship(self,
                                 node: str,
                                 relationship: str) -> List[str]:
-        """Get a list of out-edges of a node where the edges match a specifc type of relationship.
-
-        i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf" (set of edges to children / sub-class nodes).
-        Note: possible edge relationships are -- parentOf, rangeValue, requiresDependency, requiresComponent.
-
-        Args:
-            node: the node whose edges we need to look at.
-            relationship: the type of link(s) that the above node and its immediate neighbors share.
-
-        Returns:
-            List of edges that are connected to the node.
         """
-        edges = []
+            See class definition in SchemaExplorer
+            TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
+        """
 
-        mm_graph = self.se.get_nx_schema()
-
-        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
-            if key == relationship:
-                edges.append((u, v))
-
-        return sorted(edges)
+        return self.se.get_edges_by_relationship(node, relationship)
 
 
     def get_adjacent_nodes_by_relationship(self,
                                           node: str,
                                           relationship: str) -> List[str]:
-        """Get a list of nodes that is / are adjacent to a given node, based on a relationship type.
 
-        Args:
-            node: the node whose edges we need to look at.
-            relationship: the type of link(s) that the above node and its immediate neighbors share.
-
-        Returns:
-            List of nodes that are adjacent to the given node.
         """
-        nodes = set()
+            See class definition in SchemaExplorer
+            TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
+        """
 
-        mm_graph = self.se.get_nx_schema()
-
-        for (u, v, key, c) in mm_graph.out_edges(node, data=True, keys=True):
-            if key == relationship:
-                nodes.add(v)
-
-        return sorted(list(nodes))
+        return self.se.get_adjacent_nodes_by_relationship(node, relationship)
 
 
     def get_subgraph_by_edge_type(self,
@@ -112,21 +108,19 @@ class SchemaGenerator(object):
         Args:
             graph: input multi digraph (aka hypergraph)
             relationship: edge / link relationship type with possible values same as in above docs.
-        
+
         Returns:
             Directed graph on edges of a particular type (aka relationship)
         """
-        
+
         # prune the metadata model graph so as to include only those edges that match the relationship type
         rel_edges = []
         for (u, v, key, c) in graph.edges(data=True, keys=True):
             if key == relationship:
                 rel_edges.append((u, v))
-        
+
         relationship_subgraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
-
-        return relationship_subgraph
 
 
     def get_descendants_by_edge_type(self,
@@ -134,69 +128,19 @@ class SchemaGenerator(object):
                                     relationship: str,
                                     connected: bool = True,
                                     ordered: bool = False) -> List[str]:
-        """Get all nodes that are descendants of a given source node, based on a specific type of edge / relationship type.
 
-        Args:
-            source_node: The node whose descendants need to be retreived.
-            relationship: Edge / link relationship type with possible values same as in above docs.
-            connected: If True, we need to ensure that all descendant nodes are reachable from the source node, i.e., they are part of the same connected component.
-                       If False, the descendants could be in multiple connected components.
-                       Default value is True.
-            ordered: If True, the list of descendants will be topologically ordered.
-                     If False, the list has no particular order (depends on the order in which the descendats were traversed in the subgraph).
-
-        Returns:
-            List of nodes that are descendants from a particular node (sorted / unsorted)
         """
-        mm_graph = self.se.get_nx_schema()
+            See class definition in SchemaExplorer
+            TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
+        """
 
-        # if mm_graph.has_node(source_node):
-            # get all nodes that are reachable from a specified root /source node in the data model
+        return self.se.get_descendants_by_edge_type(source_node, relationship, connected, ordered)
 
-        root_descendants = nx.descendants(mm_graph, source_node)
-        # else:
-            # print("The specified source node could not be found im the Networkx graph.")
-            # return []
-
-        subgraph_nodes = list(root_descendants)
-        subgraph_nodes.append(source_node)
-        descendants_subgraph = mm_graph.subgraph(subgraph_nodes)
-
-        # prune the descendants subgraph so as to include only those edges that match the relationship type
-
-        relationship_subgraph = self.get_subgraph_by_edge_type(descendants_subgraph, relationship)
-        
-        descendants = relationship_subgraph.nodes()
-
-        if not descendants:
-            # return empty list if there are no nodes that are reachable from the source node based on this relationship type
-            return []
-
-        if connected and ordered:
-            # get the set of reachable nodes from the source node
-            descendants = nx.descendants(relationship_subgraph, source_node)
-            descendants.add(source_node)
-
-            # normally, the descendants from a node are unordered (peculiarity of nx descendants call)
-            # form the subgraph on descendants and order it topologically
-            # this assumes an acyclic subgraph
-            descendants = nx.topological_sort(relationship_subgraph.subgraph(descendants))
-        elif connected:
-            # get the nodes that are reachable from a given source node
-            # after the pruning process above some nodes in the root_descendants subgraph might have become disconnected and will be omitted
-            descendants = nx.descendants(relationship_subgraph, source_node)
-            descendants.add(source_node)
-        elif ordered:
-            # sort the nodes topologically
-            # this requires the graph to be an acyclic graph
-            descendants = nx.topological_sort(relationship_subgraph)
-
-        return list(descendants)
 
 
     def get_component_requirements(self,
                                   source_component: str) -> List[str]:
-        """Get all components that are associated with a given source component and are required by it, sorted topologically
+        """Get all components that are associated with a given source component and are required by it.
 
         Args:
             source_component: source component for which we need to find all required downstream components.
@@ -204,8 +148,9 @@ class SchemaGenerator(object):
         Returns:
             List of nodes that are descendants from the source component are are related to the source through a specific component relationship.
         """
+
         req_components = list(reversed(self.get_descendants_by_edge_type(source_component, self.requires_component_relationship, ordered = True)))
-        
+
         return req_components
 
 
@@ -378,7 +323,6 @@ class SchemaGenerator(object):
         Returns:
             List of display names.
         """
-
         node_list_display_names = [mm_graph.nodes[node]["displayName"] for node in node_list]
 
         return node_list_display_names
@@ -503,6 +447,11 @@ class SchemaGenerator(object):
                                 # the domain node is very likely the parentof ("parentOf" relationship) of the range node
 
         root_dependencies = self.get_adjacent_nodes_by_relationship(source_node, self.requires_dependency_relationship)
+
+        # if root_dependencies is empty it means that a class with name 'source_node' exists
+        # in the schema, but it is not a valid component
+        if not root_dependencies:
+            raise ValueError(f"'{source_node}' is not a valid component in the schema.")
 
         nodes_to_process += root_dependencies
 

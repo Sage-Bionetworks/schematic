@@ -6,6 +6,7 @@ import pandas as pd
 from typing import Any, Dict, Optional, Text, List
 import pygsheets as ps
 import synapseclient
+import json
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
@@ -148,6 +149,55 @@ class ManifestGenerator(object):
         return spreadsheet_id
 
 
+
+    def _get_cell_borders(self, cell_range):
+
+        #set border style request
+        color = {
+                    "red":226.0/255.0,
+                    "green":227.0/255.0,
+                    "blue":227.0/255.0,
+        }
+
+        border_style_req = {
+                  "updateBorders": {
+                    "range": cell_range, 
+                    "top": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color
+                    },
+                    "bottom": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "left": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "right": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "innerHorizontal": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    },
+                    "innerVertical": {
+                      "style": "SOLID",
+                      "width": 2,
+                      "color": color 
+                    }
+                  }
+        }
+
+        return border_style_req
+
+
     def _set_permissions(self, fileId):
 
         def callback(request_id, response, exception):
@@ -173,8 +223,58 @@ class ManifestGenerator(object):
         batch.execute()
 
 
-    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]:
-        """Get valid values for a manifest attribute based on the corresponding
+    def _get_column_data_validation_values(self, spreadsheet_id, valid_values, column_id, validation_type = "ONE_OF_LIST", strict = True, custom_ui = True, input_message = "Choose one from dropdown"):
+
+        # get valid values w/o google sheet header 
+        values = [valid_value["userEnteredValue"] for valid_value in valid_values]
+        
+        if validation_type == "ONE_OF_RANGE":
+    
+            # store valid values explicitly in workbook at the provided range to use as validation values 
+            target_col_letter = self._column_to_letter(column_id)
+            body =  {
+                        "majorDimension":"COLUMNS",
+                        "values":[values]
+            }
+            target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
+            valid_values = [
+                            { 
+                                "userEnteredValue" : "=" + target_range
+                            }
+            ]
+
+            response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "RAW", body = body).execute()
+
+
+        # setup validation data request body
+        validation_body =  {
+                  "requests": [
+                    {
+                    'setDataValidation':{
+                        'range':{
+                            'startRowIndex':1,
+                            'startColumnIndex':column_id, 
+                            'endColumnIndex':column_id+1, 
+                        },
+                        'rule':{
+                            'condition':{
+                                'type':validation_type, 
+                                'values': valid_values
+                            },
+                            'inputMessage' : input_message,
+                            'strict':strict,
+                            'showCustomUi': custom_ui 
+                        }
+                    }
+                }
+            ]
+        }
+
+        return validation_body
+
+
+    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]: 
+        """Get valid values for a manifest attribute based on the corresponding 
         values of node's properties in JSONSchema
 
         Args:
@@ -192,7 +292,7 @@ class ManifestGenerator(object):
             return []
 
 
-    def get_empty_manifest(self, json_schema = None):
+    def get_empty_manifest(self, json_schema_filepath = None):
         # TODO: Refactor get_manifest method
         # - abstract function for requirements gathering
         # - abstract google sheet API requests as functions
@@ -202,13 +302,16 @@ class ManifestGenerator(object):
 
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
 
-        if not json_schema:
+        if not json_schema_filepath:
             # if no json schema is provided; there must be
             # schema explorer defined for schema.org schema
             # o.w. this will throw an error
             # TODO: catch error
             json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
-
+        else:
+            with open(json_schema_filepath) as jsonfile:
+                json_schema = json.load(jsonfile)
+            
         required_metadata_fields = {}
 
         # gathering dependency requirements and corresponding allowed values constraints (i.e. valid values) for root node
@@ -254,15 +357,28 @@ class ManifestGenerator(object):
         end_col = len(required_metadata_fields.keys())
         end_col_letter = self._column_to_letter(end_col)
 
-        range = "Sheet1!A1:" + str(end_col_letter) + "1"
+        # order columns header (since they are generated based on a json schema, which is a dict)
         ordered_metadata_fields = [list(required_metadata_fields.keys())]
 
-        # order columns header (since they are generated based on a json schema, which is a dict)
-        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0])
+        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0]) 
+        
         body = {
                 "values": ordered_metadata_fields
         }
+
+        #determining columns range
+        end_col = len(required_metadata_fields.keys())
+        end_col_letter = self._column_to_letter(end_col) 
+
+        range = "Sheet1!A1:" + str(end_col_letter) + "1"
+
+        # adding columns
         self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
+
+        # adding columns to 2nd sheet that can be used for storing data validation ranges (this avoids limitations on number of dropdown items in excel and openoffice)
+        range = "Sheet2!A1:" + str(end_col_letter) + "1"
+        self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
+        
 
         # format column header row
         header_format_body = {
@@ -437,73 +553,34 @@ class ManifestGenerator(object):
             if not req_vals:
                 continue
 
-            if len(req_vals) > 499:
-                print("WARNING: Value range > Google Sheet limit of 500. Truncating...")
-                req_vals = req_vals[:499]
-
 
             # generating sheet api request to populate a dropdown or a multi selection UI
+            if len(req_vals) > 10 and not "list" in validation_rules:
+                # if more than 10 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice 
+                # do not support other kinds of data validation for larger number of items (even if individual items are not that many
+                # excel has a total number of characters limit per dropdown...)
+                validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i, validation_type = "ONE_OF_RANGE")
 
-            # by default assume no extra validation rules are needed and a dropdown is sufficient
-            validation_type = "ONE_OF_LIST"
-            strict = True
-            custom_ui = True
-            input_message = 'Choose one from dropdown'
-            valid_values = req_vals
+            elif "list" in validation_rules:
+                # if list is in validation rule attempt to create a multi-value 
+                # selection UI, which requires explicit valid values range in 
+                # the spreadsheet
+                validation_body = self._get_column_data_validation_values(spreadsheet_id,
+                                                                          req_vals,
+                                                                          i,
+                                                                          strict = False,
+                                                                          custom_ui = False,
+                                                                          input_message = "",
+                                                                          validation_type = "ONE_OF_RANGE")
 
-            if "list" in validation_rules:
-                # if list is in validation rule attempt to create a multi-value
-                # selection UI, which requires explicit valid values range in
-                # the spreadsheet; store valid values explicitly in Sheet2 of the workbook
-                # TODO: currently assumes a workbook template is used that contains Sheet2
-                # in general need to check if sheet2 exists and create it if not
-                strict = False
-                custom_ui = False
-                input_message = ""
-                validation_type = "ONE_OF_RANGE"
-
-                # store valid values explicitly in workbook
-                target_col_letter = self._column_to_letter(i)
-                body =  {
-                            "majorDimension":"COLUMNS",
-                            "values":[values]
-                }
-                target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
-                valid_values = [
-                                {
-                                    "userEnteredValue" : "=" + target_range
-                                }
-                ]
-
-                response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "RAW", body = body).execute()
-
-
-            validation_body =  {
-                      "requests": [
-                        {
-                        'setDataValidation':{
-                            'range':{
-                                'startRowIndex':1,
-                                'startColumnIndex':i,
-                                'endColumnIndex':i+1,
-                            },
-                            'rule':{
-                                'condition':{
-                                    'type':validation_type,
-                                    'values': valid_values
-                                },
-                                'inputMessage' : input_message,
-                                'strict':strict,
-                                'showCustomUi': custom_ui
-                            }
-                        }
-                    }
-                ]
-            }
+            else:
+                validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i)
+  
 
             requests_body["requests"].append(validation_body["requests"])
 
-            # generate a conditional format rule for each required value (i.e. valid value)
+            
+            # generate a conditional format rule for each required value (i.e. valid value) 
             # for this field (i.e. if this field is set to a valid value that may require additional
             # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
             for req_val in req_vals:
@@ -568,6 +645,13 @@ class ManifestGenerator(object):
                 if dependency_formatting_body["requests"]:
                     requests_body["requests"].append(dependency_formatting_body["requests"])
 
+        # setting cell borders
+        cell_range = {
+          "sheetId": 0,
+          "startRowIndex": 0,
+        }
+        requests_body["requests"].append(self._get_cell_borders(cell_range))
+
         execute_google_api_requests(self.sheet_service, requests_body, service_type = "batch_update", spreadsheet_id = spreadsheet_id)
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
@@ -595,16 +679,12 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
+
         # get manifest associated with dataset `dataset_id`
-        syn = synapseclient.Synapse(configPath=CONFIG["definitions"]["synapse_config"])
-        syn.login()
-
-        syn_store = SynapseStorage(syn=syn)
-
-        # determine path to the user-specified manifests folder where the manifest should be downloaded to
-        manifests_folder_path = CONFIG["synapse"]["manifest_folder"]
-
         if dataset_id:
+
+            syn_store = SynapseStorage()
+
             # get manifest file associated with given dataset
             syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
 
@@ -612,7 +692,7 @@ class ManifestGenerator(object):
             if syn_id_and_path and sheet_url:
 
                 # get synapse ID manifest associated with dataset
-                manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
+                manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
 
                 # get URL of an empty manifest file created based on schema component
                 empty_manifest_url = self.get_empty_manifest()
@@ -624,7 +704,7 @@ class ManifestGenerator(object):
 
             # Case 2: manifest exists in the given dataset and dataframe is to be returned
             elif syn_id_and_path and not sheet_url:
-                manifest_data = syn.get(syn_id_and_path[0], downloadLocation=manifests_folder_path, ifcollision="overwrite.local")
+                manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
 
                 # convert downloaded/existing manifest contents into dataframe
                 manifest_data_df = pd.read_csv(manifest_data.path)
@@ -654,7 +734,7 @@ class ManifestGenerator(object):
 
         # Default case when no arguments are provided to the get_manifest() method
         if json_schema:
-            return self.get_empty_manifest(json_schema=json_schema)
+            return self.get_empty_manifest(json_schema_filepath=json_schema)
 
         return self.get_empty_manifest()
 

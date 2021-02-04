@@ -1,26 +1,24 @@
-# allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List, Tuple
-
+from typing import Any, Dict, Optional, Text, List, Tuple   # allows specifying explicit variable types
 import os
+import uuid # used to generate unique names for entities
+import logging
+import sys
 
-# used to generate unique names for entities
-import uuid
-
-# manipulation of dataframes
-import pandas as pd
-
-# Python client for Synapse
-import synapseclient
+import pandas as pd # manipulation of dataframes
+import synapseclient    # Python client for Synapse
+import synapseutils
 
 from synapseclient import File, Folder, Table
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
-import synapseutils
+from synapseclient.core.exceptions import SynapseHTTPError
 
 from schematic.utils.df_utils import update_df
 from schematic.schemas.explorer import SchemaExplorer
-
+from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 from schematic import CONFIG
+
+logger = logging.getLogger(__name__)
 
 
 class SynapseStorage(object):
@@ -32,7 +30,6 @@ class SynapseStorage(object):
     """
 
     def __init__(self,
-                syn: synapseclient = None,
                 token: str = None # optional parameter retreived from browser cookie
                 ) -> None:
 
@@ -51,9 +48,7 @@ class SynapseStorage(object):
             ValueError: when Admin fileview cannot be found (describe further).
 
         Typical usage example:
-            syn_store = SynapseStorage(syn=syn)
-
-            where 'syn' is an object of type synapseclient.
+            syn_store = SynapseStorage()
         """
 
         # login using a token
@@ -61,16 +56,13 @@ class SynapseStorage(object):
             self.syn = synapseclient.Synapse()
 
             try:
-                self.syn.login(sessionToken = token)
+                self.syn.login(sessionToken = token, silent = True)
             except synapseclient.core.exceptions.SynapseHTTPError:
-                print("Please enter a valid session token.")
-                return
-        elif syn: # if no token, assume a logged in synapseclient instance has been provided
-            if isinstance(syn, synapseclient.Synapse):
-                self.syn = syn
-            else:
-                print("Please make sure 'syn' argument is of type synapseclient.Synapse().")
-                return
+                raise ValueError("Please make sure you are logged into synapse.org.")
+        else:
+            # login using synapse credentials provided by user in .synapseConfig (default) file
+            self.syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+            self.syn.login(silent = True)
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
@@ -79,14 +71,17 @@ class SynapseStorage(object):
             self.storageFileviewTable = self.syn.tableQuery("SELECT * FROM " + self.storageFileview).asDataFrame()
 
             self.manifest = CONFIG["synapse"]["manifest_filename"]
-        except KeyError as key_exc:
-            print("Missing value(s) for the {} key(s) in the config file.".format(key_exc))
+        except KeyError:
+            logger.error("Synapse ID of the master fileview is missing.")
+            raise MissingConfigValueError(("synapse", "master_fileview"))
         except AttributeError:
-            print("'storageFileview' attribute does not have a value.")
-        except synapseclient.core.exceptions.SynapseHTTPError:
-            print("Check if you have ACCESS to project: {}.".format(self.storageFileview))
+            raise AttributeError("storageFileview attribute has not been set.")
+        except SynapseHTTPError:
+            logger.error(f"Access to the project {self.storageFileview} was unresolved.")
+            raise AccessCredentialsError(self.storageFileview)
         except ValueError:
-            print("Administrative Fileview {} not found.".format(self.storageFileview))
+            logger.error("Synapse ID of the administrative fileview is missing.")
+            raise MissingConfigValueError(("synapse", "master_fileview"))
 
 
     def getPaginatedRestResults(self, currentUserId : str) -> Dict[str, str]:
@@ -120,10 +115,7 @@ class SynapseStorage(object):
         """
 
         # get the set of all storage Synapse project accessible for this pipeline
-        if hasattr(self, 'storageFileviewTable'):
-            storageProjects = self.storageFileviewTable["projectId"].unique()
-        else:
-            print("'storageFileviewTable' attribute value is missing.")
+        storageProjects = self.storageFileviewTable["projectId"].unique()
 
         # get the set of storage Synapse project accessible for this user
 
@@ -160,9 +152,7 @@ class SynapseStorage(object):
 
         Returns:
             A list of datasets within the given storage project; the list consists of tuples (datasetId, datasetName).
-
-        Raises:
-            ValueError: Project ID not found.
+            None: If the projectId cannot be found on Synapse.
         """
 
         # select all folders and fetch their names from within the storage project;
@@ -184,11 +174,8 @@ class SynapseStorage(object):
         datasetList = []
         folderProperties = ["id", "name"]
         for folder in list(foldersTable[folderProperties].itertuples(index = False, name = None)):
-            try:
-                if self.syn.get(folder[0], downloadFile = False).properties["parentId"] == projectId or areDatasets:
-                    datasetList.append(folder)
-            except ValueError:
-                print("The project id {} was not found.".format(projectId))
+            if self.syn.get(folder[0], downloadFile = False).properties["parentId"] == projectId or areDatasets:
+                datasetList.append(folder)
 
         sorted_dataset_list = sorted(datasetList, key=lambda tup: tup[0])
 
@@ -238,13 +225,17 @@ class SynapseStorage(object):
         return file_list
 
 
-    def getDatasetManifest(self, datasetId: str) -> List[str]:
+    def getDatasetManifest(self, datasetId: str, downloadFile: bool = False) -> List[str]:
         """Gets the manifest associated with a given dataset.
 
         Args:
             datasetId: synapse ID of a storage dataset.
+            downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
 
-        Returns: a tuple of manifest file ID and manifest name -- (fileId, fileName); returns empty list if no manifest is found.
+        Returns: 
+            A tuple of manifest file ID and manifest name -- (fileId, fileName); returns empty list if no manifest is found.
+            (or)
+            synapseclient.entity.File: A new Synapse Entity object of the appropriate type.
         """
 
         # get a list of files containing the manifest for this dataset (if any)
@@ -253,6 +244,15 @@ class SynapseStorage(object):
         if not manifest:
             return []
         else:
+            # if the downloadFile option is set to True
+            if downloadFile:
+                # retreive data in (synID, /dataset/path/) format
+                syn_id_and_path = manifest[0]
+
+                # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+                manifest_data = self.syn.get(syn_id_and_path[0], downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
+                return manifest_data
+            
             return manifest[0] # extract manifest tuple from list
 
 
@@ -269,8 +269,9 @@ class SynapseStorage(object):
         manifest_id_name = self.getDatasetManifest(datasetId)
         if not manifest_id_name:
             # no manifest exists yet: abort
-            print("No manifest found in storage dataset " + datasetId + "! Abort.")
-            return ""
+            logger.error(f"No manifest file not found im dataset folder.")
+            raise FileNotFoundError(f"Manifest file {CONFIG['synapse']['manifest_filename']} "
+                                    f"cannot be found in {datasetId} dataset folder.")
 
         manifest_id = manifest_id_name[0]
         manifest_filepath = self.syn.get(manifest_id).path
@@ -353,7 +354,7 @@ class SynapseStorage(object):
         Args:
             synapse_id: synapse ID of the table to query
         """
-
+        
         results = self.syn.tableQuery("SELECT * FROM {}".format(synapse_id))
         df = results.asDataFrame(rowIdAndVersionInIndex = False)
 
@@ -369,13 +370,13 @@ class SynapseStorage(object):
             The manifest should include a column entityId containing synapse IDs of files/entities to be associated with metadata, if that is applicable to the dataset type.
             Some datasets, e.g. clinical data, do not contain file id's, but data is stored in a table: one row per item.
             In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file.
-
             datasetId: synapse ID of folder containing the dataset
 
-        Returns: synapse Id of the uploaded manifest.
+        Returns:
+            Synapse Id of the uploaded manifest.
 
-        Raises: TODO
-            FileNotFoundException: Manifest file does not exist at provided path.
+        Raises:
+            FileNotFoundError: Manifest file does not exist at provided path.
         """
 
         # determine dataset name
@@ -386,13 +387,12 @@ class SynapseStorage(object):
         # read new manifest csv
         try:
             manifest = pd.read_csv(metadataManifestPath)
-        except FileNotFoundError:
-            print("No mainfest file was found at this path: {}.".format(metadataManifestPath))
+        except FileNotFoundError as err:
+            logger.error("Check local manifest file path/location.")
+            raise FileNotFoundError(f"No manifest file was found at this path: {metadataManifestPath}") from err
 
         # check if there is an existing manifest
         existingManifest = self.getDatasetManifest(datasetId)
-
-        existingTableId = None
 
         if existingManifest:
 
@@ -402,9 +402,6 @@ class SynapseStorage(object):
             # (it is ok if the entities ID in the new manifest are blank)
             manifest['entityId'].fillna('', inplace = True)
             manifest = update_df(manifest, existingManifest, "entityId")
-
-            # retrieve Synapse table associated with this manifest, so that it can be updated below
-            existingTableId = self.syn.findEntityId(datasetName + "_table", datasetParentProject)
     
         # if this is a new manifest there could be no Synapse entities associated with the rows of this manifest
         # this may be due to data type (e.g. clinical data) being tabular
@@ -450,28 +447,13 @@ class SynapseStorage(object):
 
             self.syn.set_annotations(annos)
             #self.syn.set_annotations(metadataSyn) #-- deprecated code
-
-        # create/update a table corresponding to this dataset in this dataset's parent project
-
-        if existingTableId: 
-            existing_table, existing_results = self.get_synapse_table(existingTableId)
-            
-            manifest = update_df(existing_table, manifest, 'entityId')
-
-            self.syn.store(Table(existingTableId, manifest, etag = existing_results.etag))
-            # remove system metadata from manifest
-            manifest.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
-            
-        else:  
-            # create table using latest manifest content
-            table = build_table(datasetName + "_table", datasetParentProject, manifest)
-            table = self.syn.store(table)
         
         # update the manifest file, so that it contains the relevant entity IDs
         manifest.to_csv(metadataManifestPath, index = False)
 
         # store manifest to Synapse
         manifestSynapseFile = File(metadataManifestPath, description = "Manifest for dataset " + datasetId, parent = datasetId)
+        logger.info("Associated manifest file with dataset on Synapse.")
 
         manifestSynapseFileId = self.syn.store(manifestSynapseFile).id
 
