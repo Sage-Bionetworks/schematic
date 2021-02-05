@@ -37,8 +37,8 @@ def mock_creds():
 # was required because fixture functions cannot take arguments.
 class Helpers:
     @staticmethod
-    def get_data_file(path):
-        return os.path.join(DATA_DIR, path)
+    def get_data_file(path, *paths):
+        return os.path.join(DATA_DIR, path, *paths)
 
 
 @pytest.fixture
