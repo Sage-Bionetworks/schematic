@@ -186,10 +186,7 @@ class SynapseStorage(object):
         datasetList = []
         folderProperties = ["id", "name"]
         for folder in list(foldersTable[folderProperties].itertuples(index = False, name = None)):
-            try:
-                datasetList.append(folder)
-            except ValueError:
-                print("The project id {} was not found.".format(projectId))
+            datasetList.append(folder)
 
         sorted_dataset_list = sorted(datasetList, key=lambda tup: tup[0])
 
