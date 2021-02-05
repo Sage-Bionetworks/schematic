@@ -91,27 +91,27 @@ class Configuration(object):
 
     @property
     def CREDS_PATH(self):
-        self.CREDS_PATH = self.DATA["definitions"]["creds_path"]
-        self.CREDS_PATH = self.normalize_path(self.CREDS_PATH)
-        return self.CREDS_PATH
+        self._CREDS_PATH = self.DATA["definitions"]["creds_path"]
+        self._CREDS_PATH = self.normalize_path(self._CREDS_PATH)
+        return self._CREDS_PATH
 
     @property
     def TOKEN_PICKLE(self):
-        self.TOKEN_PICKLE = self.DATA["definitions"]["token_pickle"]
-        self.TOKEN_PICKLE = self.normalize_path(self.TOKEN_PICKLE)
-        return self.TOKEN_PICKLE
+        self._TOKEN_PICKLE = self.DATA["definitions"]["token_pickle"]
+        self._TOKEN_PICKLE = self.normalize_path(self._TOKEN_PICKLE)
+        return self._TOKEN_PICKLE
 
     @property
     def SERVICE_ACCT_CREDS(self):
-        self.SERVICE_ACCT_CREDS = self.DATA["definitions"]["service_acct_creds"]
-        self.SERVICE_ACCT_CREDS = self.normalize_path(self.SERVICE_ACCT_CREDS)
-        return self.SERVICE_ACCT_CREDS
+        self._SERVICE_ACCT_CREDS = self.DATA["definitions"]["service_acct_creds"]
+        self._SERVICE_ACCT_CREDS = self.normalize_path(self._SERVICE_ACCT_CREDS)
+        return self._SERVICE_ACCT_CREDS
 
     @property
     def SYNAPSE_CONFIG_PATH(self):
-        self.SYNAPSE_CONFIG_PATH = self.DATA["definitions"]["synapse_config"]
-        self.SYNAPSE_CONFIG_PATH = self.normalize_path(self.SYNAPSE_CONFIG_PATH)
-        return self.SYNAPSE_CONFIG_PATH
+        self._SYNAPSE_CONFIG_PATH = self.DATA["definitions"]["synapse_config"]
+        self._SYNAPSE_CONFIG_PATH = self.normalize_path(self._SYNAPSE_CONFIG_PATH)
+        return self._SYNAPSE_CONFIG_PATH
 
 
 CONFIG = Configuration()
