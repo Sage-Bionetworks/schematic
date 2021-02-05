@@ -29,3 +29,22 @@ def mock_creds():
         'creds': 'mock_creds'
     }
     yield mock_creds
+
+
+# This class serves as a container for helper functions that can be
+# passed to individual tests using the `helpers` fixture. This approach
+# was required because fixture functions cannot take arguments.
+class Helpers:
+    @staticmethod
+    def get_data_file(path):
+        return os.path.join(DATA_DIR, path)
+
+
+@pytest.fixture
+def helpers():
+    return Helpers
+
+
+@pytest.fixture
+def config():
+    return CONFIG
