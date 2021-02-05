@@ -65,6 +65,7 @@ class TestManifestGenerator:
         pd.testing.assert_frame_equal(expected_df, actual_df)
 
 
+    @pytest.mark.google_credentials_needed
     def test_get_manifest_empty(self, manifest_generator, config):
         manifest_df = manifest_generator.get_manifest(
             dataset_id="syn24226514",
@@ -79,6 +80,7 @@ class TestManifestGenerator:
         assert manifest_df.shape[1] == 20  # Number of columns
 
 
+    @pytest.mark.google_credentials_needed
     def test_get_manifest_empty_use_annotations(self, manifest_generator, config):
         manifest_df = manifest_generator.get_manifest(
             dataset_id="syn24226514",
