@@ -37,8 +37,8 @@ def mock_creds():
 # was required because fixture functions cannot take arguments.
 class Helpers:
     @staticmethod
-    def get_data_file(path):
-        return os.path.join(DATA_DIR, path)
+    def get_data_file(path, *paths):
+        return os.path.join(DATA_DIR, path, *paths)
 
 
 @pytest.fixture
@@ -52,7 +52,7 @@ def config():
 
 
 @pytest.fixture()
-def synapse_manifest():
+def synapse_manifest(helpers):
     get_data_file = helpers.get_data_file
     manifest_path = get_data_file("mock_manifests", "synapse_manifest.csv")
     manifest_df = pd.read_csv(manifest_path)
@@ -60,7 +60,7 @@ def synapse_manifest():
 
 
 @pytest.fixture()
-def local_manifest():
+def local_manifest(helpers):
     get_data_file = helpers.get_data_file
     manifest_path = get_data_file("mock_manifests", "local_manifest.csv")
     manifest_df = pd.read_csv(manifest_path)
