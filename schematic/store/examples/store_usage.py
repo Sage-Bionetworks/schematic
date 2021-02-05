@@ -1,20 +1,10 @@
-#!/usr/bin/env python3
-
-import os
-import argparse
-import pandas as pd
 import synapseclient
+import pandas as pd
+import os
 
 from schematic.store.synapse import SynapseStorage
+
 from schematic import CONFIG
-
-# Create command-line argument parser
-parser = argparse.ArgumentParser()
-parser.add_argument("--config", "-c", help="Configuration YAML file.")
-args = parser.parse_args()
-
-# Load configuration
-config_data = CONFIG.load_config(args.config)
 
 # create an instance of synapseclient.Synapse() and login
 syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)

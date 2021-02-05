@@ -12,7 +12,7 @@ from typing import Any, Dict, Optional, Text, List
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
-from schematic.synapse.store import SynapseStorage
+from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import trim_commas_df
 
 class MetadataModel(object):
