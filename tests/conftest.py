@@ -52,7 +52,7 @@ def config():
 
 
 @pytest.fixture()
-def synapse_manifest():
+def synapse_manifest(helpers):
     get_data_file = helpers.get_data_file
     manifest_path = get_data_file("mock_manifests", "synapse_manifest.csv")
     manifest_df = pd.read_csv(manifest_path)
@@ -60,7 +60,7 @@ def synapse_manifest():
 
 
 @pytest.fixture()
-def local_manifest():
+def local_manifest(helpers):
     get_data_file = helpers.get_data_file
     manifest_path = get_data_file("mock_manifests", "local_manifest.csv")
     manifest_df = pd.read_csv(manifest_path)
