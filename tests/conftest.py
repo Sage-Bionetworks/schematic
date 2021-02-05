@@ -1,6 +1,7 @@
 import os
 import logging
 import pytest
+import pandas as pd
 
 from schematic.configuration import CONFIG
 
@@ -48,3 +49,19 @@ def helpers():
 @pytest.fixture
 def config():
     return CONFIG
+
+
+@pytest.fixture()
+def synapse_manifest():
+    get_data_file = helpers.get_data_file
+    manifest_path = get_data_file("mock_manifests", "synapse_manifest.csv")
+    manifest_df = pd.read_csv(manifest_path)
+    return manifest_df
+
+
+@pytest.fixture()
+def local_manifest():
+    get_data_file = helpers.get_data_file
+    manifest_path = get_data_file("mock_manifests", "local_manifest.csv")
+    manifest_df = pd.read_csv(manifest_path)
+    return manifest_df

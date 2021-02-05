@@ -43,7 +43,7 @@ def update_df(existing_df: pd.DataFrame, new_df: pd.DataFrame, idx_key: str) -> 
     # filter to keep only updated values across all columns in the schema
     for col in existing_df.columns:
         if col != idx_key and col != 'ROW_ID' and col != 'ROW_VERSION':
-            existing_col = col + "_existing"
+            # existing_col = col + "_existing"
             new_col = col + "_new"
 
             updated_df[col] = updated_df[new_col]
@@ -60,7 +60,7 @@ def update_df(existing_df: pd.DataFrame, new_df: pd.DataFrame, idx_key: str) -> 
 
 
 def trim_commas_df(df: pd.DataFrame):
-    """Removes empty columns and empty rows from pandas dataframe (manifest data).
+    """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
 
     Args:
         df: pandas dataframe with data from manifest file.
@@ -68,5 +68,9 @@ def trim_commas_df(df: pd.DataFrame):
     Returns:
         df: cleaned-up pandas dataframe.
     """
-    return df.dropna(how='all', axis=1) \
-             .dropna(how='all', axis=0)
+    # remove all columns which have substring "Unnamed" in them
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+
+    # remove all completely empty rows
+    df = df.dropna(how='all', axis=0)
+    return df
