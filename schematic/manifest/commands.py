@@ -25,7 +25,8 @@ def manifest(): # use as `schematic manifest ...`
 @click.option('-dt', '--data_type', help='Data type/component from JSON-LD schema to be used for manifest generation.')
 @click.option('-p', '--jsonld', help='Path to JSON-LD schema.')
 @click.option('-d', '--dataset_id', help='SynID of existing dataset on Synapse.')
-@click.option('-s', '--sheet_url', type=bool, help='Enable/disable URL generation.')
+@click.option('-s', '--sheet_url', is_flag=True, help='Enable/disable URL generation.')
+@click.option('-a', '--use_annotations', is_flag=True, help='Include existing annotations.')
 @click.option('-j', '--json_schema', help='Path to JSON Schema (validation schema).')
 @click.option('-c', '--config', help='Path to schematic configuration file.', required=True)
 def get_manifest(title, data_type, jsonld, 
