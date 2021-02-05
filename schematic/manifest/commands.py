@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import click
+import pandas as pd
 
 from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict
@@ -29,9 +30,8 @@ def manifest(): # use as `schematic manifest ...`
 @click.option('-a', '--use_annotations', is_flag=True, help='Include existing annotations.')
 @click.option('-j', '--json_schema', help='Path to JSON Schema (validation schema).')
 @click.option('-c', '--config', help='Path to schematic configuration file.', required=True)
-def get_manifest(title, data_type, jsonld, 
-                 dataset_id, sheet_url, json_schema, 
-                 config):
+def get_manifest(title, data_type, jsonld, dataset_id, sheet_url,
+                 use_annotations, json_schema, config):
     """
     Running CLI with manifest generation options.
     """
@@ -56,10 +56,11 @@ def get_manifest(title, data_type, jsonld,
     manifest_generator = ManifestGenerator(title=title,
                                            path_to_json_ld=jsonld,
                                            root=data_type)
-        
+
     # call get_manifest() on manifest_generator
     result = manifest_generator.get_manifest(dataset_id=dataset_id,
-                                               sheet_url=sheet_url, 
+                                             sheet_url=sheet_url,
+                                             use_annotations=use_annotations,
                                              json_schema=json_schema)
 
     if sheet_url:

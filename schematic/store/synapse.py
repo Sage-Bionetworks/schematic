@@ -1,6 +1,6 @@
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List, Tuple
-
+from collections import OrderedDict
 import os
 
 # used to generate unique names for entities
@@ -15,6 +15,7 @@ import synapseclient
 from synapseclient import File, Folder, Table
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
+from synapseclient.annotations import from_synapse_annotations
 import synapseutils
 
 from schematic.utils.df_utils import update_df
@@ -55,6 +56,10 @@ class SynapseStorage(BaseStorage):
         Typical usage example:
             syn_store = SynapseStorage()
         """
+
+        # If no token is provided, try retrieving access token from environment
+        if not token and not access_token:
+            access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
         if token:
@@ -196,7 +201,7 @@ class SynapseStorage(BaseStorage):
         return sorted_dataset_list
 
 
-    def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None, fullpath:bool = True) -> List[str]:
+    def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None, fullpath:bool = True) -> List[Tuple[str, str]]:
         """Gets all files in a given dataset folder.
 
         Args:
@@ -471,9 +476,56 @@ class SynapseStorage(BaseStorage):
         return manifestSynapseFileId
 
 
-    def getDataAnnotations(self, datasetId: str):
+    def getFileAnnotations(self, fileId: str) -> dict:
+        """Generate dictionary of annotations for the given Synapse file.
+
+        Synapse returns all custom annotations as lists since they
+        can contain multiple values. In all cases, the values will
+        be converted into strings and concatenated with ", ".
+
+        Args:
+            fileId (str): Synapse ID for dataset file.
+
+        Returns:
+            dict: Annotations as comma-separated strings.
+        """
+        # Retrieve Synapse annotations using _getRawAnnotations()
+        # to get etag, which isn't provided by get_annotations()
+        syn_annotations = self.syn._getRawAnnotations(fileId)
+
+        # Convert all values into comma-separated lists of strings
+        annotations_unordered = from_synapse_annotations(syn_annotations)
+        annotations = OrderedDict()
+        for key, vals in annotations_unordered.items():
+            annotations[key] = ", ".join(str(v) for v in vals)
+
+        # Add the file entity ID and eTag, which weren't lists
+        assert fileId == syn_annotations["id"], (
+            "For some reason, the Synapse ID in the response doesn't match"
+            "the Synapse ID sent in the request (via synapseclient)."
+        )
+        annotations["entityId"] = fileId
+        annotations["eTag"] = syn_annotations["etag"]
+
+        return annotations
+
+
+    def getDatasetAnnotations(self, datasetId: str) -> pd.DataFrame:
+        """Generate table for annotations across all files in given dataset.
+
+        Args:
+            datasetId (str): Synapse ID for dataset folder.
+
+        Returns:
+            pd.DataFrame: Table of annotations.
+        """
         # Step 1: Get all files in given dataset
-        # Step 2: Get annotations for each file from Step 1 (separate function?)
+        dataset_files = self.getFilesInStorageDataset(datasetId)
+
+        # Step 2: Get annotations for each file from Step 1
+        annotations_list = [self.getFileAnnotations(i) for i, _ in dataset_files]
+
         # Step 3: Create data frame from list of annotations
-        # Step 4: Generate annotations CSV file in tempfile (separate function?)
-        pass
+        table = pd.DataFrame.from_records(annotations_list)
+
+        return table

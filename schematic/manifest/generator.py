@@ -1,11 +1,11 @@
-from __future__ import print_function
-import pickle
-import os.path
-import collections
+import os
+import logging
+from typing import Dict, List
+from collections import OrderedDict
+from tempfile import NamedTemporaryFile
+
 import pandas as pd
-from typing import Any, Dict, Optional, Text, List
 import pygsheets as ps
-import synapseclient
 import json
 
 from schematic.schemas.generator import SchemaGenerator
@@ -13,6 +13,10 @@ from schematic.utils.google_api_utils import build_credentials, execute_google_a
 from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
+
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class ManifestGenerator(object):
@@ -665,20 +669,128 @@ class ManifestGenerator(object):
         # print("URL: " + manifest_url)
         # print("========================================================================================================")
 
-
         return manifest_url
 
 
-    def get_manifest(self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None):
+    def set_dataframe_by_url(
+        self, manifest_url: str, manifest_df: pd.DataFrame
+    ) -> ps.Spreadsheet:
+        """Update Google Sheets using given pandas DataFrame.
+
+        Args:
+            manifest_url (str): Google Sheets URL.
+            manifest_df (pd.DataFrame): Data frame to "upload".
+
+        Returns:
+            ps.gspread.models.Spreadsheet: A Google Sheet object.
+        """
+        # authorize pygsheets to read from the given URL
+        gc = ps.authorize(custom_credentials = self.creds)
+
+        # open google sheets and extract first sheet
+        sh = gc.open_by_url(manifest_url)
+        wb = sh[0]
+
+        # update spreadsheet with given manifest starting at top-left cell
+        wb.set_dataframe(manifest_df, (1,1))
+
+        # set permissions so that anyone with the link can edit
+        sh.share("", role = "writer", type = "anyone")
+
+        return sh
+
+
+    def get_dataframe_by_url(self, manifest_url: str) -> pd.DataFrame:
+        """Retrieve pandas DataFrame from table in Google Sheets.
+
+        Args:
+            manifest_url (str): Google Sheets URL.
+
+        Return:
+            pd.DataFrame: Data frame corresponding to table in given URL.
+        """
+
+        # authorize pygsheets to read from the given URL
+        gc = ps.authorize(custom_credentials=self.creds)
+
+        # open google sheets and extract first sheet
+        sh = gc.open_by_url(manifest_url)
+        wb = sh[0]
+
+        # get column headers and read it into a dataframe
+        manifest_df = wb.get_as_df(hasHeader=True).drop(columns="")
+
+        return manifest_df
+
+
+    @staticmethod
+    def update_manifest(
+        manifest_df: pd.DataFrame, updates_df: pd.DataFrame
+    ) -> pd.DataFrame:
+        """Update a manifest using another data frame with Synapse IDs.
+
+        The input `manifest_df` is copied to avoid changing the input.
+
+        Both input data frames must have an `entityId` column. Any rows
+        in `updates_df` corresponding to entities that don't appear in
+        `manifest_df` are silently dropped. Similarly, any columns in
+        `updates_df` that don't appear in `manifest_df` are not added.
+
+        IMPORTANT: This function is currently designed to handle empty
+        manifests because it will not raise an error or warning if any
+        overwriting of existing values takes place.
+
+        TODO: Handle conflicts/overwriting more elegantly. See:
+        https://github.com/Sage-Bionetworks/schematic/issues/312#issuecomment-725750931
+
+        Args:
+            manifest_df (pd.DataFrame): Manifest data frame. Must
+            include `entityId` column.
+            updates_df (pd.DataFrame): Data frame with updates. Must
+            include `entityId` column. This data frame doesn't need
+            to include all of the column names from `manifest_df`.
+
+        Returns:
+            pd.DataFrame: [description]
+        """
+        # Confirm that entityId is present in both data frames
+        assert "entityId" in manifest_df, "`manifest_df` lacks `entityId` column."
+        assert "entityId" in updates_df, "`updates_df` lacks `entityId` column."
+
+        # Set `inplace=False` to copy input data frames and avoid side-effects
+        manifest_df_idx = manifest_df.set_index("entityId", inplace=False)
+        updates_df_idx = updates_df.set_index("entityId", inplace=False)
+
+        # Update manifest data frame and reset index
+        manifest_df_idx.update(updates_df_idx, overwrite=True)
+
+        # Undo index and ensure original column order
+        manifest_df_idx.reset_index(inplace=True)
+        manifest_df_idx = manifest_df_idx[manifest_df.columns]
+
+        return manifest_df_idx
+
+
+    def get_manifest(self, dataset_id: str = None, sheet_url: bool = None,
+                     json_schema: str = None, use_annotations: bool = True):
         """Gets manifest for a given dataset on Synapse.
 
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
             sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
+            use_annotations: Whether to include existing Synapse annotations
+                for the dataset files in the manifest.
 
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
+
+        # Notify user about when `use_annotations` is used
+        if use_annotations:
+            logger.warning(
+                "The `use_annotations` argument is currently only supported "
+                "when there is no manifest file for the dataset in question."
+            )
 
         # get manifest associated with dataset `dataset_id`
         if dataset_id:
@@ -711,26 +823,54 @@ class ManifestGenerator(object):
 
                 return manifest_data_df
 
-            # Case 3: manifest does not exist in the given dataset and URL is to be returned
-            elif not syn_id_and_path and sheet_url:
-                empty_manifest_url = self.get_empty_manifest()
+            # Case 3: manifest does not exist in the given dataset (URL or not)
+            elif not syn_id_and_path:
 
-                return empty_manifest_url
+                # Get data frame of existing annotations to bootstrap empty manifest
+                annotations = syn_store.getDatasetAnnotations(dataset_id)
+                # Missing values are filled in with empty strings for Google Sheets
+                annotations = annotations.fillna("")
 
-            # Case 4: manifest does not exist in the given dataset and dataframe is to be returned
-            elif not syn_id_and_path and not sheet_url:
-                empty_manifest_url = self.get_empty_manifest()
+                # Map labels to display names to match manifest columns
+                # Get list of attribute nodes from data model
+                model_nodes = self.sg.se.get_nx_schema().nodes
+                # Subset annotations to those appearing as a label in the model
+                labels = filter(lambda x: x in model_nodes, annotations.columns)
+                # Genearte a dictionary mapping labels to display names
+                label_map = {l: model_nodes[l]["displayName"] for l in labels}
+                # Using the above dictionary to rename columns in question
+                annotations.rename(columns=label_map, inplace=True)
 
-                # authorize pygsheets to read from the given URL
-                gc = ps.authorize(custom_credentials=self.creds)
+                # Update `additional_metadata` and generate manifest
+                # Annotations clashing with manifest attributes are skipped
+                # Search for `additional_metadata` in `self.get_empty_manifest`
+                annotations_dict_raw = annotations.to_dict(into=OrderedDict)
+                annotations_dict = OrderedDict(
+                    (k, list(v.values())) for k, v in annotations_dict_raw.items()
+                )
 
-                sh = gc.open_by_url(empty_manifest_url)
-                wb = sh[0]
+                # Remove custom annotations if
+                if not use_annotations:
+                    minimum_annotations = ["entityId", "eTag"]
+                    annotations_dict = {
+                        k: annotations_dict[k] for k in minimum_annotations
+                    }
 
-                # get column headers and read it into a dataframe
-                empty_manifest_data = wb.get_as_df(hasHeader=True)
+                # Needs to happen before get_empty_manifest() gets called
+                self.additional_metadata = annotations_dict
 
-                return empty_manifest_data
+                manifest_url = self.get_empty_manifest()
+                manifest_df = self.get_dataframe_by_url(manifest_url)
+
+                # Populate empty manifest with annotations
+                if use_annotations:
+                    manifest_df = self.update_manifest(manifest_df, annotations)
+
+                if sheet_url:
+                    manifest_sh = self.set_dataframe_by_url(manifest_url, manifest_df)
+                    return manifest_sh.url
+                else:
+                    return manifest_df
 
         # Default case when no arguments are provided to the get_manifest() method
         if json_schema:
@@ -755,15 +895,9 @@ class ManifestGenerator(object):
         manifest_fields = self.sort_manifest_fields(manifest_fields)
         manifest = manifest[manifest_fields]
 
-        gc = ps.authorize(custom_credentials = self.creds)
-        sh = gc.open_by_url(empty_manifest_url)
-        wb = sh[0]
-        wb.set_dataframe(manifest, (1,1))
+        manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
 
-        # set permissions so that anyone with the link can edit
-        sh.share("", role = "writer", type = "anyone")
-
-        return sh.url
+        return manifest_sh.url
 
 
     def sort_manifest_fields(self, manifest_fields, order = "schema"):
@@ -775,7 +909,6 @@ class ManifestGenerator(object):
             if "Filename" in manifest_fields:
                 manifest_fields.remove("Filename")
                 manifest_fields.insert(0, "Filename")
-
 
         # order manifest fields based on schema (schema.org)
         if order == "schema":
