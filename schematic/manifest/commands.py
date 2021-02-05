@@ -58,6 +58,13 @@ def get_manifest(title, data_type, jsonld,
                                            root=data_type)
         
     # call get_manifest() on manifest_generator
-    click.echo(manifest_generator.get_manifest(dataset_id=dataset_id, 
+    result = manifest_generator.get_manifest(dataset_id=dataset_id,
                                                sheet_url=sheet_url, 
-                                               json_schema=json_schema))
+                                             json_schema=json_schema)
+
+    if sheet_url:
+        click.echo(result)
+    elif isinstance(result, pd.DataFrame):
+        click.echo()
+        click.echo(result.to_csv(index=False))
+    return result
