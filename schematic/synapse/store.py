@@ -174,7 +174,7 @@ class SynapseStorage(object):
             foldersTable = self.storageFileviewTable[(self.storageFileviewTable["contentType"] == "dataset") & (self.storageFileviewTable["projectId"] == projectId)]
             areDatasets = True
         else:
-            foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["projectId"] == projectId)]
+            foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["parentId"] == projectId)]
 
         # get an array of tuples (folderId, folderName)
         # some folders are part of datasets; others contain datasets
@@ -186,11 +186,7 @@ class SynapseStorage(object):
         datasetList = []
         folderProperties = ["id", "name"]
         for folder in list(foldersTable[folderProperties].itertuples(index = False, name = None)):
-            try:
-                if self.syn.get(folder[0], downloadFile = False).properties["parentId"] == projectId or areDatasets:
-                    datasetList.append(folder)
-            except ValueError:
-                print("The project id {} was not found.".format(projectId))
+            datasetList.append(folder)
 
         sorted_dataset_list = sorted(datasetList, key=lambda tup: tup[0])
 
