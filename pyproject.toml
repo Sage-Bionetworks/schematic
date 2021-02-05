@@ -71,7 +71,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --cov-report=term --cov-report=html:htmlcov --cov=schematic/"
+addopts = "--verbose"
 testpaths = [
     "tests"
 ]
