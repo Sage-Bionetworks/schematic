@@ -366,7 +366,7 @@ class SynapseStorage(object):
             Some datasets, e.g. clinical data, do not contain file id's, but data is stored in a table: one row per item. 
             In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file. 
             datasetId: synapse ID of folder containing the dataset
-            useSchemaLabel: Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
+            useSchemaLabel: Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
 
             
         Returns: synapse Id of the uploaded manifest.
