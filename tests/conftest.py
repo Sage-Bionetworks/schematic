@@ -27,8 +27,18 @@ CONFIG.load_config(CONFIG_PATH)
 # was required because fixture functions cannot take arguments.
 class Helpers:
     @staticmethod
-    def get_data_file(path, *paths):
+    def get_data_path(path, *paths):
         return os.path.join(DATA_DIR, path, *paths)
+
+    @staticmethod
+    def get_data_file(path, *paths, **kwargs):
+        fullpath = os.path.join(DATA_DIR, path, *paths)
+        return open(fullpath, **kwargs)
+
+    @staticmethod
+    def get_data_frame(path, *paths, **kwargs):
+        fullpath = os.path.join(DATA_DIR, path, *paths)
+        return pd.read_csv(fullpath, **kwargs)
 
 
 @pytest.fixture
@@ -43,15 +53,9 @@ def config():
 
 @pytest.fixture()
 def synapse_manifest(helpers):
-    get_data_file = helpers.get_data_file
-    manifest_path = get_data_file("mock_manifests", "synapse_manifest.csv")
-    manifest_df = pd.read_csv(manifest_path)
-    return manifest_df
+    return helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
 
 
 @pytest.fixture()
 def local_manifest(helpers):
-    get_data_file = helpers.get_data_file
-    manifest_path = get_data_file("mock_manifests", "local_manifest.csv")
-    manifest_df = pd.read_csv(manifest_path)
-    return manifest_df
+    return helpers.get_data_frame("mock_manifests", "local_manifest.csv")
