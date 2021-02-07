@@ -53,15 +53,19 @@ def get_manifest(title, data_type, jsonld, dataset_id, sheet_url,
     )
 
     # create object of type ManifestGenerator
-    manifest_generator = ManifestGenerator(title=title,
-                                           path_to_json_ld=jsonld,
-                                           root=data_type)
+    manifest_generator = ManifestGenerator(
+        title=title,
+        path_to_json_ld=jsonld,
+        root=data_type,
+        use_annotations=use_annotations,
+    )
 
     # call get_manifest() on manifest_generator
-    result = manifest_generator.get_manifest(dataset_id=dataset_id,
-                                             sheet_url=sheet_url,
-                                             use_annotations=use_annotations,
-                                             json_schema=json_schema)
+    result = manifest_generator.get_manifest(
+        dataset_id=dataset_id,
+        sheet_url=sheet_url,
+        json_schema=json_schema,
+    )
 
     if sheet_url:
         click.echo(result)

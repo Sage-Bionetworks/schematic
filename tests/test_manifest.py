@@ -14,34 +14,65 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture()
-def manifest_generator(helpers):
-    # Retrieve the `get_data_file` helper function
-    get_data_file = helpers.get_data_file
+def mock_creds():
+    mock_creds = {
+        'sheet_service': 'mock_sheet_service',
+        'drive_service': 'mock_drive_service',
+        'creds': 'mock_creds'
+    }
+    yield mock_creds
+
+
+@pytest.fixture(params=[True, False], ids=["use_annotations", "skip_annotations"])
+def manifest_generator(helpers, request):
+
+    # Rename request param for readability
+    use_annotations = request.param
 
     manifest_generator = ManifestGenerator(
         title="Patient_Manifest",
-        path_to_json_ld=get_data_file("simple.model.jsonld"),
-        root="Patient"
+        path_to_json_ld=helpers.get_data_path("simple.model.jsonld"),
+        root="Patient",
+        use_annotations=use_annotations,
     )
 
-    return manifest_generator
+    yield manifest_generator, use_annotations
+
+
+@pytest.fixture(params=[True, False], ids=["sheet_url", "data_frame"])
+def manifest(config, manifest_generator, request):
+
+    # Rename request param for readability
+    sheet_url = request.param
+
+    # See parameterization of the `manifest_generator` fixture
+    generator, use_annotations = manifest_generator
+
+    manifest = generator.get_manifest(
+        dataset_id="syn24226514",
+        json_schema=config["model"]["input"]["validation_schema"],
+        sheet_url=sheet_url
+    )
+
+    yield manifest, use_annotations, sheet_url
 
 
 class TestManifestGenerator:
 
-    # def test__init(self, monkeypatch, mock_creds):
-    #     monkeypatch.setattr("schematic.manifest.generator.build_credentials",
-    #                         lambda: mock_creds)
+    def test_init(self, monkeypatch, mock_creds, helpers):
 
-    #     generator = ManifestGenerator(
-    #         title="mock_title",
-    #         path_to_json_ld="mock_path"
-    #     )
+        monkeypatch.setattr("schematic.manifest.generator.build_credentials",
+                            lambda: mock_creds)
 
-    #     assert type(generator.title) is str
-    #     assert generator.sheet_service == mock_creds["sheet_service"]
-    #     assert generator.root is None
-    #     assert type(generator.sg) is SchemaGenerator
+        generator = ManifestGenerator(
+            title="mock_title",
+            path_to_json_ld=helpers.get_data_path("simple.model.jsonld")
+        )
+
+        assert type(generator.title) is str
+        assert generator.sheet_service == mock_creds["sheet_service"]
+        assert generator.root is None
+        assert type(generator.sg) is SchemaGenerator
 
 
     def test_update_manifest(self):
@@ -66,30 +97,28 @@ class TestManifestGenerator:
 
 
     @pytest.mark.google_credentials_needed
-    def test_get_manifest_empty(self, manifest_generator, config):
-        manifest_df = manifest_generator.get_manifest(
-            dataset_id="syn24226514",
-            use_annotations=False,
-            json_schema=config["model"]["input"]["validation_schema"]
-        )
-        assert "eTag" in manifest_df
-        assert "Year of Birth" in manifest_df
-        assert "confidence" not in manifest_df
-        assert manifest_df["Year of Birth"].tolist() == ["", "", ""]
-        assert manifest_df.shape[0] == 3  # Number of rows
-        assert manifest_df.shape[1] == 20  # Number of columns
+    def test_get_manifest_first_time(self, manifest):
 
+        # See parameterization of the `manifest_generator` fixture
+        output, use_annotations, sheet_url = manifest
 
-    @pytest.mark.google_credentials_needed
-    def test_get_manifest_empty_use_annotations(self, manifest_generator, config):
-        manifest_df = manifest_generator.get_manifest(
-            dataset_id="syn24226514",
-            use_annotations=True,
-            json_schema=config["model"]["input"]["validation_schema"]
-        )
-        assert "eTag" in manifest_df
-        assert "Year of Birth" in manifest_df
-        assert "confidence" in manifest_df
-        assert manifest_df["Year of Birth"].tolist() == ["1980", "", ""]
-        assert manifest_df.shape[0] == 3  # Number of rows
-        assert manifest_df.shape[1] == 24  # Number of columns
+        if sheet_url:
+            assert isinstance(output, str)
+            assert output.startswith("https://docs.google.com/spreadsheets/")
+            print(output)
+            return
+
+        # Beyond this point, the output is assumed to be a data frame
+        assert "Year of Birth" in output
+
+        if use_annotations:
+            assert output.shape[1] == 24  # Number of columns
+            assert output.shape[0] == 3  # Number of rows
+            assert "eTag" in output
+            assert "confidence" in output
+            assert output["Year of Birth"].tolist() == ["1980", "", ""]
+        else:
+            assert output.shape[1] == 18  # Number of columns
+            assert output.shape[0] == 1  # Number of rows
+            assert "confidence" not in output
+            assert output["Year of Birth"].tolist() == [""]

@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
@@ -24,7 +24,8 @@ class ManifestGenerator(object):
                 title: str, # manifest sheet title
                 path_to_json_ld: str,   # JSON-LD file to be used for generating the manifest
                 root: str = None,
-                additional_metadata: Dict = None
+                additional_metadata: Dict = None,
+                use_annotations: bool = False,
                 ) -> None:
 
         """TODO: read in a config file instead of hardcoding paths to credential files...
@@ -47,6 +48,16 @@ class ManifestGenerator(object):
 
         # manifest title
         self.title = title
+
+        # Whether to use existing annotations during manifest generation
+        self.use_annotations = use_annotations
+
+        # Warn about limited feature support for `use_annotations`
+        if self.use_annotations:
+            logger.warning(
+                "The `use_annotations` option is currently only supported "
+                "when there is no manifest file for the dataset in question."
+            )
 
         # SchemaGenerator() object
         self.sg = SchemaGenerator(path_to_json_ld)
@@ -682,7 +693,7 @@ class ManifestGenerator(object):
             manifest_df (pd.DataFrame): Data frame to "upload".
 
         Returns:
-            ps.gspread.models.Spreadsheet: A Google Sheet object.
+            ps.Spreadsheet: A Google Sheet object.
         """
         # authorize pygsheets to read from the given URL
         gc = ps.authorize(custom_credentials = self.creds)
@@ -751,7 +762,7 @@ class ManifestGenerator(object):
             to include all of the column names from `manifest_df`.
 
         Returns:
-            pd.DataFrame: [description]
+            pd.DataFrame: Updated `manifest_df` data frame.
         """
         # Confirm that entityId is present in both data frames
         assert "entityId" in manifest_df, "`manifest_df` lacks `entityId` column."
@@ -771,112 +782,128 @@ class ManifestGenerator(object):
         return manifest_df_idx
 
 
+    def map_annotation_names_to_display_names(
+            self, annotations: pd.DataFrame
+        ) -> pd.DataFrame:
+        """Update columns names to use display names for consistency.
+
+        Args:
+            annotations (pd.DataFrame): Annotations table.
+
+        Returns:
+            pd.DataFrame: Annotations table with updated column headers.
+        """
+        # Get list of attribute nodes from data model
+        model_nodes = self.sg.se.get_nx_schema().nodes
+
+        # Subset annotations to those appearing as a label in the model
+        labels = filter(lambda x: x in model_nodes, annotations.columns)
+
+        # Generate a dictionary mapping labels to display names
+        label_map = {l: model_nodes[l]["displayName"] for l in labels}
+
+        # Use the above dictionary to rename columns in question
+        return annotations.rename(columns=label_map)
+
+
+    def get_manifest_with_annotations(
+            self,
+            annotations: pd.DataFrame
+        ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
+        """Generate manifest, optionally with annotations (if requested).
+
+        Args:
+            annotations (pd.DataFrame): Annotations table (can be empty).
+        """
+
+        # Map annotation labels to display names to match manifest columns
+        annotations = self.map_annotation_names_to_display_names(annotations)
+
+        # Convert annotations table into dictionary, but maintain order
+        annotations_dict_raw = annotations.to_dict(into=OrderedDict)
+        annotations_dict = OrderedDict(
+            (k, list(v.values())) for k, v in annotations_dict_raw.items()
+        )
+
+        # Needs to happen before get_empty_manifest() gets called
+        self.additional_metadata = annotations_dict
+
+        # Generate empty manifest using `additional_metadata`
+        manifest_url = self.get_empty_manifest()
+        manifest_df = self.get_dataframe_by_url(manifest_url)
+
+        # Annotations clashing with manifest attributes are skipped
+        # during empty manifest generation. For more info, search
+        # for `additional_metadata` in `self.get_empty_manifest`.
+        # Hence, the shared columns need to be updated separately.
+        if self.use_annotations:
+            # This approach assumes that `self.update_manifest` returns
+            # a data frame whose columns are in the same order
+            manifest_df = self.update_manifest(manifest_df, annotations)
+            manifest_sh = self.set_dataframe_by_url(manifest_url, manifest_df)
+            manifest_url = manifest_sh.url
+
+        return manifest_url, manifest_df
+
+
     def get_manifest(self, dataset_id: str = None, sheet_url: bool = None,
-                     json_schema: str = None, use_annotations: bool = True):
+                     json_schema: str = None):
         """Gets manifest for a given dataset on Synapse.
 
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
             sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
-            use_annotations: Whether to include existing Synapse annotations
-                for the dataset files in the manifest.
 
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
 
-        # Notify user about when `use_annotations` is used
-        if use_annotations:
-            logger.warning(
-                "The `use_annotations` argument is currently only supported "
-                "when there is no manifest file for the dataset in question."
-            )
-
-        # get manifest associated with dataset `dataset_id`
-        if dataset_id:
-
-            syn_store = SynapseStorage()
-
-            # get manifest file associated with given dataset
-            syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
-
-            # Case 1: manifest exists in the given dataset and URL is to be returned
-            if syn_id_and_path and sheet_url:
-
-                # get synapse ID manifest associated with dataset
-                manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
-
-                # get URL of an empty manifest file created based on schema component
-                empty_manifest_url = self.get_empty_manifest()
-
-                # populate empty manifest with content from downloaded/existing manifest
-                pop_manifest_url = self.populate_manifest_spreadsheet(manifest_data.path, empty_manifest_url)
-
-                return pop_manifest_url
-
-            # Case 2: manifest exists in the given dataset and dataframe is to be returned
-            elif syn_id_and_path and not sheet_url:
-                manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
-
-                # convert downloaded/existing manifest contents into dataframe
-                manifest_data_df = pd.read_csv(manifest_data.path)
-
-                return manifest_data_df
-
-            # Case 3: manifest does not exist in the given dataset (URL or not)
-            elif not syn_id_and_path:
-
-                # Get data frame of existing annotations to bootstrap empty manifest
-                annotations = syn_store.getDatasetAnnotations(dataset_id)
-                # Missing values are filled in with empty strings for Google Sheets
-                annotations = annotations.fillna("")
-
-                # Map labels to display names to match manifest columns
-                # Get list of attribute nodes from data model
-                model_nodes = self.sg.se.get_nx_schema().nodes
-                # Subset annotations to those appearing as a label in the model
-                labels = filter(lambda x: x in model_nodes, annotations.columns)
-                # Genearte a dictionary mapping labels to display names
-                label_map = {l: model_nodes[l]["displayName"] for l in labels}
-                # Using the above dictionary to rename columns in question
-                annotations.rename(columns=label_map, inplace=True)
-
-                # Update `additional_metadata` and generate manifest
-                # Annotations clashing with manifest attributes are skipped
-                # Search for `additional_metadata` in `self.get_empty_manifest`
-                annotations_dict_raw = annotations.to_dict(into=OrderedDict)
-                annotations_dict = OrderedDict(
-                    (k, list(v.values())) for k, v in annotations_dict_raw.items()
-                )
-
-                # Remove custom annotations if
-                if not use_annotations:
-                    minimum_annotations = ["entityId", "eTag"]
-                    annotations_dict = {
-                        k: annotations_dict[k] for k in minimum_annotations
-                    }
-
-                # Needs to happen before get_empty_manifest() gets called
-                self.additional_metadata = annotations_dict
-
-                manifest_url = self.get_empty_manifest()
-                manifest_df = self.get_dataframe_by_url(manifest_url)
-
-                # Populate empty manifest with annotations
-                if use_annotations:
-                    manifest_df = self.update_manifest(manifest_df, annotations)
-
-                if sheet_url:
-                    manifest_sh = self.set_dataframe_by_url(manifest_url, manifest_df)
-                    return manifest_sh.url
-                else:
-                    return manifest_df
-
-        # Default case when no arguments are provided to the get_manifest() method
-        if json_schema:
+        # Handle case when no dataset ID is provided
+        if not dataset_id:
             return self.get_empty_manifest(json_schema_filepath=json_schema)
 
-        return self.get_empty_manifest()
+        # Otherwise, create manifest using the given dataset
+        syn_store = SynapseStorage()
+
+        # Get manifest file associated with given dataset (if applicable)
+        syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
+
+        # Populate empty template with existing manifest
+        if syn_id_and_path:
+
+            # get synapse ID manifest associated with dataset
+            manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
+
+            # If the sheet URL isn't requested, simply return a pandas DataFrame
+            if not sheet_url:
+                return pd.read_csv(manifest_data.path)
+
+            # get URL of an empty manifest file created based on schema component
+            empty_manifest_url = self.get_empty_manifest()
+
+            # populate empty manifest with content from downloaded/existing manifest
+            pop_manifest_url = self.populate_manifest_spreadsheet(manifest_data.path, empty_manifest_url)
+
+            return pop_manifest_url
+
+        # Generate empty template and optionally fill in with annotations
+        else:
+
+            # Get data frame of existing annotations to bootstrap empty manifest
+            # Avoiding the retrieval of annotations by default due to slowness
+            annotations = pd.DataFrame()
+            if self.use_annotations:
+                annotations = syn_store.getDatasetAnnotations(dataset_id)
+
+            # Update `additional_metadata` and generate manifest
+            manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
+
+            if sheet_url:
+                return manifest_url
+            else:
+                return manifest_df
+
+        # This point is unreachable based on the above if-else conditionals
 
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
@@ -895,6 +922,8 @@ class ManifestGenerator(object):
         manifest_fields = self.sort_manifest_fields(manifest_fields)
         manifest = manifest[manifest_fields]
 
+        # TODO: Handle scenario when existing manifest does not match new
+        #       manifest template due to changes in the data model
         manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
 
         return manifest_sh.url

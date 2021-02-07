@@ -22,16 +22,6 @@ CONFIG_PATH = os.path.join(DATA_DIR, "test_config.yml")
 CONFIG.load_config(CONFIG_PATH)
 
 
-@pytest.fixture()
-def mock_creds():
-    mock_creds = {
-        'sheet_service': 'mock_sheet_service',
-        'drive_service': 'mock_drive_service',
-        'creds': 'mock_creds'
-    }
-    yield mock_creds
-
-
 # This class serves as a container for helper functions that can be
 # passed to individual tests using the `helpers` fixture. This approach
 # was required because fixture functions cannot take arguments.
