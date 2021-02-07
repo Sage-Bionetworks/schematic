@@ -511,11 +511,13 @@ class SynapseStorage(BaseStorage):
         return annotations
 
 
-    def getDatasetAnnotations(self, datasetId: str) -> pd.DataFrame:
+    def getDatasetAnnotations(self, datasetId: str, fill_na: bool=True) -> pd.DataFrame:
         """Generate table for annotations across all files in given dataset.
 
         Args:
             datasetId (str): Synapse ID for dataset folder.
+            fill_na (bool): Whether to replace missing values
+                with blank strings.
 
         Returns:
             pd.DataFrame: Table of annotations.
@@ -528,5 +530,9 @@ class SynapseStorage(BaseStorage):
 
         # Step 3: Create data frame from list of annotations
         table = pd.DataFrame.from_records(annotations_list)
+
+        # Missing values are filled in with empty strings for Google Sheets
+        if fill_na:
+            table.fillna("", inplace=True)
 
         return table

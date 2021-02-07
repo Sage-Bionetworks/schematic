@@ -74,7 +74,7 @@ class TestSynapseStorage:
             },{
                 "entityId": "syn24226532",
             }
-        ])
+        ]).fillna("")
         actual_df = synapse_store.getDatasetAnnotations("syn24226514")
 
         # For simplicity, just checking if eTag is present since
