@@ -179,6 +179,14 @@ class MetadataModel(object):
         manifest = pd.read_csv(manifestPath)    # read manifest csv file as is from manifest path
         manifest = trim_commas_df(manifest).fillna("")  # apply cleaning logic as part of pre-processing step
  
+        # handler for mismatched components/data types
+        # throw TypeError if the value(s) in the "Component" column differ from the selected template type
+        if ('Component' in manifest.columns) and (
+            (len(manifest['Component'].unique()) > 1) or (manifest['Component'].unique()[0] != rootNode)
+            ):
+            raise TypeError(f"The 'Component' column value(s) {manifest['Component'].unique()} do not match the "
+                            f"selected template type '{rootNode}'.")
+
         # check if each of the provided annotation columns has validation rule 'list'
         # if so, assume annotation for this column are comma separated list of multi-value annotations
         # convert multi-valued annotations to list
