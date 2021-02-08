@@ -1,6 +1,8 @@
+import json
+import logging
+
 import pandas as pd
 import networkx as nx
-import json
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
@@ -184,8 +186,24 @@ class MetadataModel(object):
         if ('Component' in manifest.columns) and (
             (len(manifest['Component'].unique()) > 1) or (manifest['Component'].unique()[0] != rootNode)
             ):
-            raise TypeError(f"The 'Component' column value(s) {manifest['Component'].unique()} do not match the "
-                            f"selected template type '{rootNode}'.")
+            logging.error(f"The 'Component' column value(s) {manifest['Component'].unique()} do not match the "
+                          f"selected template type '{rootNode}'.")
+            
+            # row indexes for all rows where 'Component' is rootNode
+            row_idxs = manifest.index[manifest['Component'] != rootNode].tolist()
+            # column index value for the 'Component' column
+            col_idx = manifest.columns.get_loc('Component')
+            # Series with index and 'Component' values from manifest
+            mismatched_ser = manifest.iloc[row_idxs, col_idx]
+            for index, component in mismatched_ser.items():
+                errors.append([
+                    index + 2,
+                    'Component',
+                    'Component value(s) does not match selected template type',
+                    component
+                ])
+                
+            return errors
 
         # check if each of the provided annotation columns has validation rule 'list'
         # if so, assume annotation for this column are comma separated list of multi-value annotations
@@ -289,3 +307,8 @@ class MetadataModel(object):
         print("Validation was not performed on manifest file before association.")
         
         return True
+
+if __name__ == "__main__":
+    metadata_model = MetadataModel("./data/schema_org_schemas/HTAN.jsonld", "local")
+    res = metadata_model.validateModelManifest("./data/manifests/synapse_storage_manifest_followup.csv", "FollowUp")
+    print(res)
