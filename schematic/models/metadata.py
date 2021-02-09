@@ -1,8 +1,8 @@
+import json
+import logging
+
 import pandas as pd
 import networkx as nx
-import json
-import re
-
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
@@ -14,6 +14,7 @@ from typing import Any, Dict, Optional, Text, List
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
+from schematic.synapse.store import SynapseStorage
 from schematic.utils.df_utils import trim_commas_df
 
 class MetadataModel(object):
@@ -179,6 +180,33 @@ class MetadataModel(object):
         manifest = pd.read_csv(manifestPath)    # read manifest csv file as is from manifest path
 
         manifest = trim_commas_df(manifest).fillna("")  # apply cleaning logic as part of pre-processing step
+
+        # handler for mismatched components/data types
+        # throw TypeError if the value(s) in the "Component" column differ from the selected template type
+        if ('Component' in manifest.columns) and (
+            (len(manifest['Component'].unique()) > 1) or (manifest['Component'].unique()[0] != rootNode)
+            ):
+            logging.error(f"The 'Component' column value(s) {manifest['Component'].unique()} do not match the "
+                          f"selected template type '{rootNode}'.")
+            
+            # row indexes for all rows where 'Component' is rootNode
+            row_idxs = manifest.index[manifest['Component'] != rootNode].tolist()
+            # column index value for the 'Component' column
+            col_idx = manifest.columns.get_loc('Component')
+            # Series with index and 'Component' values from manifest
+            mismatched_ser = manifest.iloc[row_idxs, col_idx]
+            for index, component in mismatched_ser.items():
+                errors.append([
+                    index + 2,
+                    'Component',
+                    f"Component value provided is: '{component}', whereas the Template Type is: '{rootNode}'",
+
+                    # tuple of the component in the manifest and selected template type
+                    # check: R/Reticulate cannnot handle dicts? So returning tuple
+                    (component, rootNode)
+                ])
+                
+            return errors
 
 
         """ 
