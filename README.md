@@ -114,7 +114,7 @@ The two main CLI utilities that are distributed as part of the package are:
 To generate a metadata manifest template based on a data type that is present in your data model:
 
 ```bash
-$ schematic manifest get --config /path/to/config.yml
+$ schematic manifest --config /path/to/config.yml get
 ```
 
 #### Metadata Manifest Validation and Submission
