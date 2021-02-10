@@ -59,6 +59,17 @@ Download a copy of the `credentials.json` file stored on Synapse by running the 
 $ synapse get syn21088684
 ```
 
+The `credentials.json` file is required when you are using `[OAuth2](https://developers.google.com/identity/protocols/oauth2)` to authenticate with the Google APIs.
+
+Steps involved in the `OAuth2` [authorization flow](https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18):
+
+- The app (i.e., _schematic_) looks for a `token.pickle` file first. It is a file that is created when you have authorized your account to access Google APIs for the first time. If the file already exists, then it get the credentials from it, meaning you do not have to allow access several times.
+- If the `token.pickle` file does not exist, the app will load the credentials for you from the `credentials.json` file and create a `token.pickle` in your project root directory when you access any of the schematic services (e.g., through the Command Line Interface) and the authorization flow completes for the first time. For this:
+  - A URL will be prompted to you when you access a _schematic_ CLI utility. Copy the URL from the console and open it in your browser.
+  - If you are not already logged into your Google account, you will be prompted to log in. If you are logged into multiple Google accounts, you will be asked to select one account to use for the authorization.
+  - You might see a "Google hasn’t verified this app" warning from Chrome on your browser. To resolve this, click on "Advanced" and then "Quickstart (unsafe)". Select a Google account and authorize the _Quickstart_ script to access Google Drive/Sheets under your account.
+
+
 Alternatively, you can also download the `schematic_service_account_creds.json` file, which uses the service account mode of authentication (_for Google services_). To download this file, run the following:
 
 ```bash
@@ -67,7 +78,6 @@ $ synapse get syn24214983
 
 Note: The service account mode of authentication is still being tested and certain functionalities (for our app) which leverage Google Apps Script API are [not fully compatible with this mode](https://developers.google.com/apps-script/api/concepts). So we recommend you follow the first command in this section.
 
-When you are using the Google credentials in the `credentials.json` file for authentication, you will be prompted to download a `token.pickle` file when you access `schematic` services (via the command line) for the first time. It will download the `token.pickle` file to the project root by default. There are configurable keys/attributes for both of these files in the `config.yml` file.
 
 ### Fill in Configuration File(s)
 
