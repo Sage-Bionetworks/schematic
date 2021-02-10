@@ -475,7 +475,7 @@ class SynapseStorage(BaseStorage):
         return manifestSynapseFileId
 
 
-    def getFileAnnotations(self, fileId: str) -> dict:
+    def getFileAnnotations(self, fileId: str) -> Dict[str, str]:
         """Generate dictionary of annotations for the given Synapse file.
 
         Synapse returns all custom annotations as lists since they
