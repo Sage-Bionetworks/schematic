@@ -1,12 +1,10 @@
 import logging
 import pytest
-from click.testing import CliRunner
 
 import numpy as np
 import pandas as pd
 
 from schematic.manifest.generator import ManifestGenerator
-from schematic.manifest.commands import get_manifest
 from schematic.schemas.generator import SchemaGenerator
 
 logging.basicConfig(level=logging.DEBUG)

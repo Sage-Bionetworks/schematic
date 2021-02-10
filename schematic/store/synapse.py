@@ -1,19 +1,17 @@
 import os
 import uuid # used to generate unique names for entities
 import logging
-import sys
 
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List, Tuple
+from typing import Dict, List, Tuple
 from collections import OrderedDict
 
-import pandas as pd # manipulation of dataframes
-import synapseclient    # Python client for Synapse
+import pandas as pd
+import synapseclient
 import synapseutils
 
-from synapseclient import File, Folder, Table
+from synapseclient import File, Folder
 from synapseclient.table import CsvFileTable
-from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
 import synapseutils
 
