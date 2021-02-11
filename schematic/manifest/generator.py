@@ -1,18 +1,23 @@
 from __future__ import print_function
+
 import pickle
 import os.path
+import json
 import collections
-import pandas as pd
+import logging
+
 from typing import Any, Dict, Optional, Text, List
+
+import pandas as pd
 import pygsheets as ps
 import synapseclient
-import json
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
 from schematic.synapse.store import SynapseStorage
-
 from schematic import CONFIG
+
+logger = logging.getLogger(__name__)
 
 
 class ManifestGenerator(object):
@@ -203,9 +208,9 @@ class ManifestGenerator(object):
         def callback(request_id, response, exception):
             if exception:
                 # Handle error
-                print(exception)
+                logger.exception(exception)
             else:
-                print ("Permission Id: %s" % response.get('id'))
+                logger.info(f"Permission Id: {response.get('id')}")
 
         batch = self.drive_service.new_batch_http_request(callback = callback)
 
@@ -786,7 +791,8 @@ class ManifestGenerator(object):
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(manifest_fields, key = lambda x: dependencies_display_names.index(x) if x in dependencies_display_names else len(manifest_fields) -1)
             else:
-                print("No schema provided! Cannot order based on schema without a specified schema and a schema root attribute.")
+                logger.error("No schema provided. Cannot order based on schema without "
+                            "specified data model and a data model root node.")
 
         # always have entityId as last columnn, if present
         if "entityId" in manifest_fields:
