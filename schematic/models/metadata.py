@@ -14,7 +14,7 @@ from typing import Any, Dict, Optional, Text, List
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
-from schematic.synapse.store import SynapseStorage
+from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import trim_commas_df
 
 logger = logging.getLogger(__name__)
@@ -307,9 +307,3 @@ class MetadataModel(object):
         logger.debug("Optional validation was not performed on manifest before association.")
         
         return True
-
-if __name__ == "__main__":
-    metadata_model = MetadataModel("./data/schema_org_schemas/HTAN.jsonld", "local")
-    # res = metadata_model.validateModelManifest("./data/manifests/synapse_storage_manifest_followup.csv", "FollowUp")
-    res = metadata_model.getModelManifest("Random", "FollowUp")
-    print(res)

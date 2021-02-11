@@ -59,6 +59,9 @@ synapseclient = "^2.2.2"
 pytest = "^6.2.2"
 pytest-cov = "^2.11.1"
 pytest-mock = "^3.5.1"
+flake8 = "^3.8.4"
+black = {version = "^20.8b1", allow-prereleases = true}
+python-dotenv = "^0.15.0"
 
 
 [build-system]
@@ -68,7 +71,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --cov-report=term --cov-report=html:htmlcov --cov=schematic/"
+addopts = "--verbose"
 testpaths = [
     "tests"
 ]
