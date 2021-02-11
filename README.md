@@ -59,7 +59,7 @@ Download a copy of the `credentials.json` file stored on Synapse by running the 
 $ synapse get syn21088684
 ```
 
-The `credentials.json` file is required when you are using `[OAuth2](https://developers.google.com/identity/protocols/oauth2)` to authenticate with the Google APIs.
+The `credentials.json` file is required when you are using [`OAuth2`](https://developers.google.com/identity/protocols/oauth2) to authenticate with the Google APIs.
 
 Steps involved in the `OAuth2` [authorization flow](https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18):
 
