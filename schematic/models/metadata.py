@@ -310,8 +310,3 @@ class MetadataModel(object):
         print("Validation was not performed on manifest file before association.")
         
         return True
-
-if __name__ == "__main__":
-    metadata_model = MetadataModel("./data/schema_org_schemas/HTAN.jsonld", "local")
-    res = metadata_model.validateModelManifest("./data/manifests/synapse_storage_manifest_followup.csv", "FollowUp")
-    print(res)
