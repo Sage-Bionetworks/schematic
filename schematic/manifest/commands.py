@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import logging
+
 import click
 import pandas as pd
 
@@ -7,7 +9,11 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic import CONFIG
 
+logger = logging.getLogger(__name__)
+
+
 CONTEXT_SETTINGS = dict(help_option_names=['--help', '-h'])  # help options
+
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -27,11 +33,14 @@ def manifest(): # use as `schematic manifest ...`
 @click.option('-p', '--jsonld', help='Path to JSON-LD schema.')
 @click.option('-d', '--dataset_id', help='SynID of existing dataset on Synapse.')
 @click.option('-s', '--sheet_url', is_flag=True, help='Enable/disable URL generation.')
-@click.option('-a', '--use_annotations', is_flag=True, help='Include existing annotations.')
+@click.option('-o', '--output_csv', help='Where to store CSV manifest template.')
+@click.option('-a', '--use_annotations', is_flag=True, help=(
+    'Prepopulate template with existing annotations associated with dataset files.'
+))
 @click.option('-j', '--json_schema', help='Path to JSON Schema (validation schema).')
 @click.option('-c', '--config', help='Path to schematic configuration file.', required=True)
 def get_manifest(title, data_type, jsonld, dataset_id, sheet_url,
-                 use_annotations, json_schema, config):
+                 output_csv, use_annotations, json_schema, config):
     """
     Running CLI with manifest generation options.
     """
@@ -39,17 +48,20 @@ def get_manifest(title, data_type, jsonld, dataset_id, sheet_url,
 
     # optional parameters that need to be passed to ManifestGenerator()
     # can be read from config.yml as well
-    title = fill_in_from_config(
-        "title", title, ("manifest", "title")
-    )
     data_type = fill_in_from_config(
         "data_type", data_type, ("manifest", "data_type")
     )
     jsonld = fill_in_from_config(
         "jsonld", jsonld, ("model", "input", "location")
     )
+    title = fill_in_from_config(
+        "title", title, ("manifest", "title"), allow_none=True
+    )
     json_schema = fill_in_from_config(
-        "json_schema", json_schema, ("model", "input", "validation_schema")
+        "json_schema",
+        json_schema,
+        ("model", "input", "validation_schema"),
+        allow_none=True
     )
 
     # create object of type ManifestGenerator
@@ -68,8 +80,11 @@ def get_manifest(title, data_type, jsonld, dataset_id, sheet_url,
     )
 
     if sheet_url:
+        logger.info("Find the manifest template using this Google Sheet URL:")
         click.echo(result)
     elif isinstance(result, pd.DataFrame):
-        click.echo()
-        click.echo(result.to_csv(index=False))
+        logger.info(
+            f"Find the manifest template using this CSV file path: {output_csv}"
+        )
+        result.to_csv(output_csv, index=False)
     return result

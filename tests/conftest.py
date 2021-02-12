@@ -43,19 +43,19 @@ class Helpers:
 
 @pytest.fixture
 def helpers():
-    return Helpers
+    yield Helpers
 
 
 @pytest.fixture
 def config():
-    return CONFIG
+    yield CONFIG
 
 
 @pytest.fixture()
 def synapse_manifest(helpers):
-    return helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
+    yield helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
 
 
 @pytest.fixture()
 def local_manifest(helpers):
-    return helpers.get_data_frame("mock_manifests", "local_manifest.csv")
+    yield helpers.get_data_frame("mock_manifests", "local_manifest.csv")

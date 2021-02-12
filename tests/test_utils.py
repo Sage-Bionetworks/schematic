@@ -67,12 +67,12 @@ class TestCliUtils:
         mock_keys_invalid = ["k1", "k2", "k4"]
 
         test_result_valid = cli_utils.get_from_config(mock_dict, mock_keys_valid)
-        
+
         assert test_result_valid == "foobar"
 
         with pytest.raises(MissingConfigValueError):
             cli_utils.get_from_config(mock_dict, mock_keys_invalid)
-                        
+
 
     def test_fill_in_from_config(self, mocker):
 
@@ -82,7 +82,7 @@ class TestCliUtils:
         mock_config = {"model": {"path": "/path/to/two"}}
         mock_keys = ["model", "path"]
         mock_keys_invalid = ["model", "file"]
-        
+
         mocker.patch("schematic.CONFIG.DATA", mock_config)
 
         result1 = cli_utils.fill_in_from_config(
@@ -143,16 +143,16 @@ class TestIOUtils:
 
         assert local_result == expected
 
-    
+
     def test_json_load_online(self, mocker):
 
         mock_urlopen = mocker.patch("urllib.request.urlopen",
                                     return_value = FakeResponse(data=json.dumps([
-                                        {'k1': 'v1'}, 
+                                        {'k1': 'v1'},
                                         {'k2': 'v2'}]
                                     ).encode('utf-8'))
                                     )
-        
+
         url_result = io_utils.load_json("http://example.com")
         assert url_result == [
             {'k1': 'v1'},
@@ -161,7 +161,7 @@ class TestIOUtils:
 
         assert mock_urlopen.call_count == 1
 
-    
+
     def test_export_json(self, tmpdir):
 
         json_str = json.dumps([
@@ -179,7 +179,7 @@ class TestIOUtils:
 
 
     def test_load_default(self):
-        
+
         biothings_schema = io_utils.load_default()
 
         expected_ctx_keys = ['bts', 'rdf', 'rdfs', 'schema', 'xsd']
@@ -192,7 +192,7 @@ class TestIOUtils:
 
 
     def test_load_schema_org(self):
-        
+
         schema_org_schema = io_utils.load_schemaorg()
 
         expected_ctx_keys = ['rdf', 'rdfs', 'xsd']
@@ -236,17 +236,16 @@ class TestDfUtils:
 
         assert_frame_equal(col_pres_res, synapse_manifest)
 
-    
+
     def test_update_df_col_absent(self, synapse_manifest, local_manifest):
 
-        col_abs_res = df_utils.update_df(local_manifest, synapse_manifest, "Col_Not_In_Dfs")
-
-        assert_frame_equal(col_abs_res, local_manifest)
+        with pytest.raises(AssertionError):
+            df_utils.update_df(local_manifest, synapse_manifest, "Col_Not_In_Dfs")
 
 
     def test_trim_commas_df(self, local_manifest):
 
-        nan_row = pd.DataFrame([[np.nan] * len(local_manifest.columns)], 
+        nan_row = pd.DataFrame([[np.nan] * len(local_manifest.columns)],
                                 columns=local_manifest.columns)
 
         df_with_nans = local_manifest.append(nan_row, ignore_index=True)
@@ -255,3 +254,24 @@ class TestDfUtils:
         trimmed_df = df_utils.trim_commas_df(df_with_nans)
 
         assert_frame_equal(trimmed_df, local_manifest)
+
+
+    def test_update_dataframe(self):
+        input_df = pd.DataFrame({
+            "numCol": [1, 2],
+            "entityId": ["syn01", "syn02"],
+            "strCol": ["foo", "bar"]
+        }, columns=["numCol", "entityId", "strCol"])
+        updates_df = pd.DataFrame({
+            "strCol": ["___", np.nan],
+            "numCol": [np.nan, 4],
+            "entityId": ["syn01", "syn02"]
+        }, columns=["strCol", "numCol", "entityId"])
+        expected_df = pd.DataFrame({
+            "numCol": [1, float(4)],
+            "entityId": ["syn01", "syn02"],
+            "strCol": ["___", "bar"]
+        }, columns=["numCol", "entityId", "strCol"])
+
+        actual_df = df_utils.update_df(input_df, updates_df, "entityId")
+        pd.testing.assert_frame_equal(expected_df, actual_df)

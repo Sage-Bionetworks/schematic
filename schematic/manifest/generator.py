@@ -10,6 +10,7 @@ import json
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
+from schematic.utils.df_utils import update_df
 from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
@@ -21,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 class ManifestGenerator(object):
     def __init__(self,
-                title: str, # manifest sheet title
                 path_to_json_ld: str,   # JSON-LD file to be used for generating the manifest
+                title: str = None, # manifest sheet title
                 root: str = None,
                 additional_metadata: Dict = None,
                 use_annotations: bool = False,
@@ -48,6 +49,8 @@ class ManifestGenerator(object):
 
         # manifest title
         self.title = title
+        if self.title is None:
+            self.title = f"{self.root} - Manifest"
 
         # Whether to use existing annotations during manifest generation
         self.use_annotations = use_annotations
@@ -113,9 +116,17 @@ class ManifestGenerator(object):
         col_letter = self._column_to_letter(column_idx)
 
         if not required:
-           bg_color = CONFIG["style"]["google_manifest"]["opt_bg_color"]
+           bg_color = CONFIG["style"]["google_manifest"].get("opt_bg_color", {
+                "red": 1.0,
+                "green": 1.0,
+                "blue": 0.9019,
+           })
         else:
-           bg_color = CONFIG["style"]["google_manifest"]["req_bg_color"]
+           bg_color = CONFIG["style"]["google_manifest"].get("req_bg_color", {
+                "red": 0.9215,
+                "green": 0.9725,
+                "blue": 0.9803,
+           })
 
         boolean_rule =  {
                         "condition": {
@@ -539,7 +550,11 @@ class ManifestGenerator(object):
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
-                bg_color = CONFIG["style"]["google_manifest"]["req_bg_color"]
+                bg_color = CONFIG["style"]["google_manifest"].get("req_bg_color", {
+                    "red": 0.9215,
+                    "green": 0.9725,
+                    "blue": 0.9803,
+                })
 
                 req_format_body = {
                         "requests":[
@@ -734,54 +749,6 @@ class ManifestGenerator(object):
         return manifest_df
 
 
-    @staticmethod
-    def update_manifest(
-        manifest_df: pd.DataFrame, updates_df: pd.DataFrame
-    ) -> pd.DataFrame:
-        """Update a manifest using another data frame with Synapse IDs.
-
-        The input `manifest_df` is copied to avoid changing the input.
-
-        Both input data frames must have an `entityId` column. Any rows
-        in `updates_df` corresponding to entities that don't appear in
-        `manifest_df` are silently dropped. Similarly, any columns in
-        `updates_df` that don't appear in `manifest_df` are not added.
-
-        IMPORTANT: This function is currently designed to handle empty
-        manifests because it will not raise an error or warning if any
-        overwriting of existing values takes place.
-
-        TODO: Handle conflicts/overwriting more elegantly. See:
-        https://github.com/Sage-Bionetworks/schematic/issues/312#issuecomment-725750931
-
-        Args:
-            manifest_df (pd.DataFrame): Manifest data frame. Must
-            include `entityId` column.
-            updates_df (pd.DataFrame): Data frame with updates. Must
-            include `entityId` column. This data frame doesn't need
-            to include all of the column names from `manifest_df`.
-
-        Returns:
-            pd.DataFrame: Updated `manifest_df` data frame.
-        """
-        # Confirm that entityId is present in both data frames
-        assert "entityId" in manifest_df, "`manifest_df` lacks `entityId` column."
-        assert "entityId" in updates_df, "`updates_df` lacks `entityId` column."
-
-        # Set `inplace=False` to copy input data frames and avoid side-effects
-        manifest_df_idx = manifest_df.set_index("entityId", inplace=False)
-        updates_df_idx = updates_df.set_index("entityId", inplace=False)
-
-        # Update manifest data frame and reset index
-        manifest_df_idx.update(updates_df_idx, overwrite=True)
-
-        # Undo index and ensure original column order
-        manifest_df_idx.reset_index(inplace=True)
-        manifest_df_idx = manifest_df_idx[manifest_df.columns]
-
-        return manifest_df_idx
-
-
     def map_annotation_names_to_display_names(
             self, annotations: pd.DataFrame
         ) -> pd.DataFrame:
@@ -814,6 +781,10 @@ class ManifestGenerator(object):
 
         Args:
             annotations (pd.DataFrame): Annotations table (can be empty).
+
+        Returns:
+            Tuple[ps.Spreadsheet, pd.DataFrame]: Both the Google Sheet
+            URL and the corresponding data frame is returned.
         """
 
         # Map annotation labels to display names to match manifest columns
@@ -837,9 +808,9 @@ class ManifestGenerator(object):
         # for `additional_metadata` in `self.get_empty_manifest`.
         # Hence, the shared columns need to be updated separately.
         if self.use_annotations:
-            # This approach assumes that `self.update_manifest` returns
+            # This approach assumes that `update_df` returns
             # a data frame whose columns are in the same order
-            manifest_df = self.update_manifest(manifest_df, annotations)
+            manifest_df = update_df(manifest_df, annotations)
             manifest_sh = self.set_dataframe_by_url(manifest_url, manifest_df)
             manifest_url = manifest_sh.url
 
@@ -870,6 +841,9 @@ class ManifestGenerator(object):
 
         # Populate empty template with existing manifest
         if syn_id_and_path:
+
+            # TODO: Update or remove the warning in self.__init__() if
+            # you change the behavior here based on self.use_annotations
 
             # get synapse ID manifest associated with dataset
             manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
