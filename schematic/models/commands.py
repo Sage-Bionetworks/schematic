@@ -7,7 +7,8 @@ import sys
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config
+from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict
+from schematic.help import model_commands
 from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['--help', '-h'])  # help options
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click_log.simple_verbosity_option(logger)
-@click.option('-c', '--config', envvar='SCHEMATIC_CONFIG', help='Path to schematic configuration file.')
+@click.option('-c', '--config', envvar='SCHEMATIC_CONFIG', help=query_dict(model_commands, ("model", "config")))
 @click.pass_context
 def model(ctx, config): # use as `schematic model ...`
     """
@@ -34,11 +35,11 @@ def model(ctx, config): # use as `schematic model ...`
 
 
 # prototype based on submit_metadata_manifest()
-@model.command('submit', short_help='Validation (optional) and submission of manifest files.')
+@model.command('submit', short_help=query_dict(model_commands, ("model", "submit", "short_help")))
 @click_log.simple_verbosity_option(logger)
-@click.option('-mp', '--manifest_path', help='Path to the user-populated manifest file.', required=True)
-@click.option('-d', '--dataset_id', help='SynID of existing dataset on Synapse.', required=True)
-@click.option('-vc', '--validate_component', help='Component to be used for validation', default=None)
+@click.option('-mp', '--manifest_path', help=query_dict(model_commands, ("model", "submit", "manifest_path")))
+@click.option('-d', '--dataset_id', help=query_dict(model_commands, ("model", "submit", "dataset_id")))
+@click.option('-vc', '--validate_component', help=query_dict(model_commands, ("model", "submit", "validate_component")))
 @click.pass_obj
 def submit_manifest(ctx, manifest_path, dataset_id, validate_component):
     """
