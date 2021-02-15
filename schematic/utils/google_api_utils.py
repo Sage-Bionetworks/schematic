@@ -1,14 +1,18 @@
 import os
 import synapseclient
 import pickle
+import logging
+
 import pygsheets as ps
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
-
 from schematic import CONFIG
+
+logger = logging.getLogger(__name__)
+
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
@@ -62,7 +66,7 @@ def build_service_account_creds():
 def download_creds_file():
     if not os.path.exists(CONFIG.CREDS_PATH):
 
-        print("Retrieving Google API credentials from Synapse...")
+        logging.info("Retrieving Google API credentials from Synapse...")
         # synapse ID of the 'credentials.json' file, which we need in
         # order to establish communication with gAPIs/services
         API_CREDS = CONFIG["synapse"]["api_creds"]
@@ -73,7 +77,7 @@ def download_creds_file():
         creds_dir = os.path.dirname(CONFIG.CREDS_PATH)
         creds_file = syn.get(API_CREDS, downloadLocation = creds_dir)
         os.rename(creds_file.path, CONFIG.CREDS_PATH)
-        print("Downloaded Google API credentials file.")
+        logging.info("Downloaded Google API credentials file.")
 
 def execute_google_api_requests(service, requests_body, **kwargs):
     """

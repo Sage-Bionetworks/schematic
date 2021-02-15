@@ -1,6 +1,8 @@
+import json
+import logging
+
 import pandas as pd
 import networkx as nx
-import json
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
 # allows specifying explicit variable types
@@ -12,8 +14,11 @@ from typing import Any, Dict, Optional, Text, List
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
-from schematic.synapse.store import SynapseStorage
+from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import trim_commas_df
+
+logger = logging.getLogger(__name__)
+
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.
@@ -40,20 +45,21 @@ class MetadataModel(object):
         # extract extension of 'inputMModelLocation'
         # ensure that it is necessarily pointing to a '.jsonld' file
         if inputMModelLocation.rpartition('.')[-1] == "jsonld":
+            logger.debug(f"Initializing SchemaGenerator object from {inputMModelLocation} schema.")
             self.inputMModelLocation = inputMModelLocation
 
             self.sg = SchemaGenerator(inputMModelLocation)
         else:
-            print("Can't create object of SchemaGenerator class. Please make sure the 'inputMModelLocation' argument is pointing to a JSON-LD file.")
-            return
+            logger.debug(f"{inputMModelLocation} is not a .jsonld file.")
+            raise TypeError(f"Please make sure {inputMModelLocation} is a .jsonld file.")
 
         # check if the type of MModel file is "local"
         # currently, the application only supports reading from local JSON-LD files
         if inputMModelLocationType == "local":
             self.inputMModelLocationType = inputMModelLocationType
         else:
-            print("Please make sure to use a local JSON-LD file. 'InputMModelLocationType' must be 'local'.")
-            return
+            logger.debug(f"{inputMModelLocationType} is not 'local'.")
+            raise ValueError(f"The type '{inputMModelLocationType}' is currently not supported.")
 
     # business logic: expose metadata model "views" depending on "controller" logic
     # (somewhat analogous to Model View Controller pattern for GUI/web applications)
@@ -118,14 +124,7 @@ class MetadataModel(object):
         if filenames:
             additionalMetadata["Filename"] = filenames
 
-        try:
-            mg = ManifestGenerator(title, self.inputMModelLocation, rootNode, additionalMetadata)
-        except ValueError:
-            print("rootNode not found in metadata model.")
-            return
-        except:
-            print("There was a problem retrieving the manifest.")
-            return
+        mg = ManifestGenerator(title, self.inputMModelLocation, rootNode, additionalMetadata)
 
         if jsonSchema:
             return mg.get_manifest(json_schema=jsonSchema)
@@ -179,6 +178,33 @@ class MetadataModel(object):
         manifest = pd.read_csv(manifestPath)    # read manifest csv file as is from manifest path
         manifest = trim_commas_df(manifest).fillna("")  # apply cleaning logic as part of pre-processing step
  
+        # handler for mismatched components/data types
+        # throw TypeError if the value(s) in the "Component" column differ from the selected template type
+        if ('Component' in manifest.columns) and (
+            (len(manifest['Component'].unique()) > 1) or (manifest['Component'].unique()[0] != rootNode)
+            ):
+            logging.error(f"The 'Component' column value(s) {manifest['Component'].unique()} do not match the "
+                          f"selected template type '{rootNode}'.")
+            
+            # row indexes for all rows where 'Component' is rootNode
+            row_idxs = manifest.index[manifest['Component'] != rootNode].tolist()
+            # column index value for the 'Component' column
+            col_idx = manifest.columns.get_loc('Component')
+            # Series with index and 'Component' values from manifest
+            mismatched_ser = manifest.iloc[row_idxs, col_idx]
+            for index, component in mismatched_ser.items():
+                errors.append([
+                    index + 2,
+                    'Component',
+                    f"Component value provided is: '{component}', whereas the Template Type is: '{rootNode}'",
+
+                    # tuple of the component in the manifest and selected template type
+                    # check: R/Reticulate cannnot handle dicts? So returning tuple
+                    (component, rootNode)
+                ])
+                
+            return errors
+
         # check if each of the provided annotation columns has validation rule 'list'
         # if so, assume annotation for this column are comma separated list of multi-value annotations
         # convert multi-valued annotations to list
@@ -269,15 +295,15 @@ class MetadataModel(object):
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id` 
                 syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
 
-                print("No validation errors resulted during association.")
+                logger.info(f"No validation errors occured during validation.")
                 return True
             else:
-                print(val_errors)
+                logger.error(f"Manifest validation failed due to: {val_errors}")
                 raise ValidationError("Manifest could not be validated under provided data model.")
 
         # no need to perform validation, just submit/associate the metadata manifest file
         syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
 
-        print("Validation was not performed on manifest file before association.")
+        logger.debug("Optional validation was not performed on manifest before association.")
         
         return True

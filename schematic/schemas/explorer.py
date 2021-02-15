@@ -1,12 +1,14 @@
 import os
 import string
 import json
+import logging
 
 from typing import Any, Dict, Optional, Text, List
 
-from rdflib import Graph, Namespace, plugin, query
 import inflection
 import networkx as nx
+
+from rdflib import Graph, Namespace, plugin, query
 from networkx.algorithms.cycles import find_cycle
 from networkx.readwrite import json_graph
 
@@ -17,10 +19,12 @@ from schematic.utils.schema_utils import load_schema_into_networkx, node_attrs_c
 from schematic.utils.general import dict2list, unlist
 from schematic.utils.viz_utils import visualize
 from schematic.utils.validate_utils import validate_class_schema, validate_property_schema, validate_schema
-
 from schematic.schemas.curie import uri2curie, curie2uri
 
 namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+
+logger = logging.getLogger(__name__)
+
 
 class SchemaExplorer():
     """Class for exploring schema
@@ -512,7 +516,7 @@ class SchemaExplorer():
 
         # TODO: do we actually need to validate the entire schema if a class is just edited and the class passes validation?
         #validate_schema(self.schema)
-        print("Edited the class {} successfully!".format(class_info["rdfs:label"]))
+        logger.info(f"""Edited the class {class_info["rdfs:label"]} successfully.""")
         self.schema_nx = load_schema_into_networkx(self.schema)
 
     def update_class(self, class_info):
@@ -522,7 +526,7 @@ class SchemaExplorer():
         validate_class_schema(class_info)
         self.schema["@graph"].append(class_info)
         validate_schema(self.schema)
-        print("Updated the class {} successfully!".format(class_info["rdfs:label"]))
+        logger.info(f"""Updated the class {class_info["rdfs:label"]} successfully.""")
         self.schema_nx = load_schema_into_networkx(self.schema)
 
     def edit_property(self, property_info):
@@ -537,7 +541,7 @@ class SchemaExplorer():
                 break
 
         validate_schema(self.schema)
-        print("Edited the property {} successfully!".format(property_info["rdfs:label"]))
+        logger.info(f"""Edited the property {property_info["rdfs:label"]} successfully.""")
         self.schema_nx = load_schema_into_networkx(self.schema)
 
     def update_property(self, property_info):
@@ -546,7 +550,7 @@ class SchemaExplorer():
         validate_property_schema(property_info)
         self.schema["@graph"].append(property_info)
         validate_schema(self.schema)
-        print("Updated the property {} successfully!".format(property_info["rdfs:label"]))
+        logger.info(f"""Updated the property {property_info["rdfs:label"]} successfully.""")
 
     def get_digraph_by_edge_type(self, edge_type):
 
