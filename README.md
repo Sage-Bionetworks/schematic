@@ -1,7 +1,7 @@
-# 1. Schematic
+# Schematic
 [![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![GitHub stars](https://img.shields.io/github/stars/Sage-Bionetworks/schematic)](https://github.com/Sage-Bionetworks/schematic/stargazers) [![GitHub forks](https://img.shields.io/github/forks/Sage-Bionetworks/schematic)](https://github.com/Sage-Bionetworks/schematic/network)
 
-- [1. Schematic](#1-schematic)
+- [Schematic](#schematic)
   - [1.1. Introduction](#11-introduction)
   - [1.2. Installation Requirements and Pre-requisites](#12-installation-requirements-and-pre-requisites)
   - [1.3. Package Setup Instructions](#13-package-setup-instructions)
