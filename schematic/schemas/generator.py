@@ -7,7 +7,6 @@ import networkx as nx
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.utils.io_utils import load_json
-from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema
 from schematic import CONFIG
@@ -41,17 +40,13 @@ class SchemaGenerator(object):
             None
         """
 
-        self.jsonld_path = path_to_json_ld
-
         if schema_explorer is None:
 
-            assert self.jsonld_path is not None, (
+            assert path_to_json_ld is not None, (
                 "You must provide either `path_to_json_ld` or `schema_explorer`."
             )
 
-            self.jsonld_path_root, jsonld_ext = os.path.splitext(self.jsonld_path)
-
-            assert jsonld_ext == ".jsonld", (
+            assert path_to_json_ld.rpartition('.')[-1] == "jsonld", (
                 "Please make sure the 'path_to_json_ld' parameter "
                 "is pointing to a valid JSON-LD file."
             )
@@ -60,7 +55,7 @@ class SchemaGenerator(object):
             self.se = SchemaExplorer()
 
             # convert the JSON-LD data model to networkx object
-            self.se.load_schema(self.jsonld_path)
+            self.se.load_schema(path_to_json_ld)
 
         else:
 
@@ -627,26 +622,9 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
 
-        # Check if config value is provided; otherwise, set to None
-        json_schema_log_file = query_dict(CONFIG.DATA, ("model", "input", "log_location"))
-
-        # If no config value and SchemaGenerator was initialized with
-        # a JSON-LD path, construct
-        if json_schema_log_file is None and self.jsonld_path is not None:
-            prefix = self.jsonld_path_root
-            prefix_root, prefix_ext = os.path.splitext(prefix)
-            if prefix_ext == ".model":
-                prefix = prefix_root
-            json_schema_log_file = f"{prefix}.{source_node}.schema.json"
-
-        if json_schema_log_file is None:
-            print(
-                "The JSON schema file can be inspected by setting the following "
-                "nested key in the configuration: model > input > log_location."
-            )
-        else:
-            with open(json_schema_log_file, "w") as js_f:
-                json.dump(json_schema, js_f, indent = 2)
+        json_schema_log_file = CONFIG["model"]["input"]["log_location"]
+        with open(json_schema_log_file, "w") as js_f:
+            json.dump(json_schema, js_f, indent = 2)
 
         logger.info("JSON schema file log stored as {}".format(json_schema_log_file))
 

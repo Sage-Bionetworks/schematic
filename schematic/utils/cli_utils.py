@@ -64,20 +64,19 @@ def get_from_config(
         raise MissingConfigValueError(keys)
 
     config_keys_str = ' > '.join(keys)
-
+    
     logger.info(
         f"The ({config_keys_str}) argument with value "
         f"'{config_value}' is being read from the config file."
     )
 
     return config_value
-
+    
 
 def fill_in_from_config(
     arg_name: str,
     arg_value: Any,
     config_keys: Sequence[Any],
-    allow_none: bool=False
 ) -> Any:
     """Fill in a missing value from a configuration object.
 
@@ -87,9 +86,6 @@ def fill_in_from_config(
             value in `config` corresponding to `arg_name`.
         arg_value: Value of the argument provided at the
             command line.
-        allow_none: Return None if argument value and
-            configuration value are both None (rather
-            than raising an error).
 
     Returns:
         The argument value, either from the calling context
@@ -109,8 +105,6 @@ def fill_in_from_config(
     try:
         config_value = get_from_config(CONFIG.DATA, config_keys)
     except MissingConfigValueError:
-        if allow_none:
-            return None
         raise MissingConfigAndArgumentValueError(arg_name, config_keys)
 
     # Make sure argument value and

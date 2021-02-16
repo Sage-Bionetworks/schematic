@@ -152,6 +152,3 @@ credentials.json
 
 # token.pickle created after authorization
 token.pickle
-
-# Personal clean-up script
-clean.sh

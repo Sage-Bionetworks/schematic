@@ -5,7 +5,7 @@ import argparse
 import pandas as pd
 import synapseclient
 
-from schematic.store.synapse import SynapseStorage
+from schematic.synapse.store import SynapseStorage
 from schematic import CONFIG
 
 # Create command-line argument parser

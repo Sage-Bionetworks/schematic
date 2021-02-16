@@ -2,7 +2,7 @@ import synapseclient
 import pandas as pd
 import os
 
-from schematic.store.synapse import SynapseStorage
+from schematic.synapse.store import SynapseStorage
 
 from schematic import CONFIG
 

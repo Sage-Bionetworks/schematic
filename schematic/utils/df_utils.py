@@ -6,14 +6,14 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 def normalize_table(df: pd.DataFrame, primary_key:str) -> pd.DataFrame:
-
+    
     """
     Function to normalize a table (e.g. dedup)
     Args:
         df: data frame to normalize
         primary_key: primary key on which to perform dedup
 
-    Returns: a dedupped dataframe
+    Returns: a dedupped dataframe   
     """
 
     try:
@@ -28,52 +28,40 @@ def normalize_table(df: pd.DataFrame, primary_key:str) -> pd.DataFrame:
         return df
 
 
-def update_df(
-        input_df: pd.DataFrame, updates_df: pd.DataFrame, index_col: str="entityId"
-    ) -> pd.DataFrame:
-        """Update a manifest using another data frame with Synapse IDs.
+def update_df(existing_df: pd.DataFrame, new_df: pd.DataFrame, idx_key: str) -> pd.DataFrame:
+    """ Updates an existing data frame with the entries of another dataframe on a given primary index.
 
-        The input `input_df` is copied to avoid changing the input.
+    Args: 
+        existing_df : data frame to be updated
+        new_df: data frame to update with
+        idx_key: name of primary index column
 
-        Both input data frames must have an `entityId` column. Any rows
-        in `updates_df` corresponding to entities that don't appear in
-        `input_df` are silently dropped. Similarly, any columns in
-        `updates_df` that don't appear in `input_df` are not added.
+    Returns: an updated data frame if the index column is present in both the existing and new data frames; ow returns the existing data frame w/o changes; the column set of the existing data frame are not updated (i.e. schema is preserved)
+    """
 
-        IMPORTANT: This function is currently designed to handle empty
-        manifests because it will not raise an error or warning if any
-        overwriting of existing values takes place.
+    if not (idx_key in existing_df.columns and idx_key in new_df):
+        return existing_df
 
-        TODO: Handle conflicts/overwriting more elegantly. See:
-        https://github.com/Sage-Bionetworks/schematic/issues/312#issuecomment-725750931
+    # merge the two data frames keeping all the resulting data in new and existing columns
+    updated_df = pd.merge(existing_df, new_df, how = "outer", on = idx_key, suffixes = ("_existing", "_new"))
 
-        Args:
-            input_df (pd.DataFrame): Manifest data frame. Must
-            include the `index_col` column.
-            updates_df (pd.DataFrame): Data frame with updates. Must
-            include the `index_col` column. This data frame doesn't
-            need to include all of the column names from `input_df`.
-            index_col (str): Column to index the data frames on.
+    # filter to keep only updated values across all columns in the schema
+    for col in existing_df.columns:
+        if col != idx_key and col != 'ROW_ID' and col != 'ROW_VERSION':
+            # existing_col = col + "_existing"
+            new_col = col + "_new"
 
-        Returns:
-            pd.DataFrame: Updated `input_df` data frame.
-        """
-        # Confirm that entityId is present in both data frames
-        assert index_col in input_df, f"`input_df` lacks `{index_col}` column."
-        assert index_col in updates_df, f"`updates_df` lacks `{index_col}` column."
+            updated_df[col] = updated_df[new_col]
 
-        # Set `inplace=False` to copy input data frames and avoid side-effects
-        input_df_idx = input_df.set_index(index_col, inplace=False)
-        updates_df_idx = updates_df.set_index(index_col, inplace=False)
+            ###if updating using line below as an alternative to the current line only updates existing cells if the new cells are not null  
+            #updated_df[col] = updated_df[existing_col].where(updated_df[new_col].isnull(), updated_df[new_col])
 
-        # Update manifest data frame and reset index
-        input_df_idx.update(updates_df_idx, overwrite=True)
 
-        # Undo index and ensure original column order
-        input_df_idx.reset_index(inplace=True)
-        input_df_idx = input_df_idx[input_df.columns]
+            
+    # remove unnecessary columns and keep existing schema
+    updated_df = updated_df[existing_df.columns]
 
-        return input_df_idx
+    return updated_df
 
 
 def trim_commas_df(df: pd.DataFrame):
