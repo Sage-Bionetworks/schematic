@@ -75,9 +75,12 @@ jobs:
       #              run test suite   
       #----------------------------------------------
       - name: Run tests
-        run: |
-          source .venv/bin/activate
-          pytest
+        env:
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+        run: >
+          source .venv/bin/activate; 
+          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+          -m "not google_credentials_needed"
     
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2

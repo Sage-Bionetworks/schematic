@@ -1,27 +1,32 @@
-from typing import Any, Dict, Optional, Text, List, Tuple   # allows specifying explicit variable types
 import os
 import uuid # used to generate unique names for entities
 import logging
-import sys
 
-import pandas as pd # manipulation of dataframes
-import synapseclient    # Python client for Synapse
+# allows specifying explicit variable types
+from typing import Dict, List, Tuple
+from collections import OrderedDict
+
+import pandas as pd
+import synapseclient
 import synapseutils
 
-from synapseclient import File, Folder, Table
+from synapseclient import File, Folder
 from synapseclient.table import CsvFileTable
-from synapseclient.table import build_table
-from synapseclient.core.exceptions import SynapseHTTPError
+from synapseclient.annotations import from_synapse_annotations
+import synapseutils
 
 from schematic.utils.df_utils import update_df
 from schematic.schemas.explorer import SchemaExplorer
+from schematic.store.base import BaseStorage
+from synapseclient.core.exceptions import SynapseHTTPError
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
+
 from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 
 
-class SynapseStorage(object):
+class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
 
     Provides utilities to list files in a specific project; update files annotations, create fileviews, etc.
@@ -30,7 +35,8 @@ class SynapseStorage(object):
     """
 
     def __init__(self,
-                token: str = None # optional parameter retreived from browser cookie
+                token: str = None, # optional parameter retreived from browser cookie
+                access_token: str = None,
                 ) -> None:
 
         """Initializes a SynapseStorage object.
@@ -38,6 +44,7 @@ class SynapseStorage(object):
         Args:
             syn: an object of type synapseclient.
             token: optional token parameter (typically a 'str') as found in browser cookie upon login to synapse.
+            access_token: optional access token (personal or oauth)
 
             TODO: move away from specific project setup and work with an interface that Synapse specifies (e.g. based on schemas).
 
@@ -51,6 +58,10 @@ class SynapseStorage(object):
             syn_store = SynapseStorage()
         """
 
+        # If no token is provided, try retrieving access token from environment
+        if not token and not access_token:
+            access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+
         # login using a token
         if token:
             self.syn = synapseclient.Synapse()
@@ -59,6 +70,10 @@ class SynapseStorage(object):
                 self.syn.login(sessionToken = token, silent = True)
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("Please make sure you are logged into synapse.org.")
+                return
+        elif access_token:
+            self.syn = synapseclient.Synapse()
+            self.syn.default_headers["Authorization"] = f"Bearer {access_token}"
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
             self.syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
@@ -182,7 +197,7 @@ class SynapseStorage(object):
         return sorted_dataset_list
 
 
-    def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None, fullpath:bool = True) -> List[str]:
+    def getFilesInStorageDataset(self, datasetId: str, fileNames: List = None, fullpath:bool = True) -> List[Tuple[str, str]]:
         """Gets all files in a given dataset folder.
 
         Args:
@@ -190,7 +205,7 @@ class SynapseStorage(object):
             fileNames: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
             metadata manifests); if fileNames is not None, all files matching the names in the fileNames list are returned if present.
             fullpath: if True return the full path as part of this filename; otherwise return just base filename
-        
+
         Returns: a list of files; the list consists of tuples (fileId, fileName).
 
         Raises:
@@ -202,18 +217,18 @@ class SynapseStorage(object):
 
         file_list = []
 
-        # iterate over all results        
+        # iterate over all results
         for dirpath, dirname, filenames in walked_path:
-            
+
             # iterate over all files in a folder
             for filename in filenames:
 
                 if (not "manifest" in filename[0] and not fileNames) or (not fileNames == None and filename[0] in fileNames):
-                    
+
                     # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
                     # except the manifest if no fileNames have been specified
                     # TODO: refactor for clarity/maintainability
-                
+
 
                     if fullpath:
                         # append directory path to filename
@@ -221,7 +236,7 @@ class SynapseStorage(object):
 
                     # add file name file id tuple, rearranged so that id is first and name follows
                     file_list.append(filename[::-1])
- 
+
         return file_list
 
 
@@ -232,7 +247,7 @@ class SynapseStorage(object):
             datasetId: synapse ID of a storage dataset.
             downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
 
-        Returns: 
+        Returns:
             A tuple of manifest file ID and manifest name -- (fileId, fileName); returns empty list if no manifest is found.
             (or)
             synapseclient.entity.File: A new Synapse Entity object of the appropriate type.
@@ -252,7 +267,7 @@ class SynapseStorage(object):
                 # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
                 manifest_data = self.syn.get(syn_id_and_path[0], downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
                 return manifest_data
-            
+
             return manifest[0] # extract manifest tuple from list
 
 
@@ -354,7 +369,7 @@ class SynapseStorage(object):
         Args:
             synapse_id: synapse ID of the table to query
         """
-        
+
         results = self.syn.tableQuery("SELECT * FROM {}".format(synapse_id))
         df = results.asDataFrame(rowIdAndVersionInIndex = False)
 
@@ -402,7 +417,7 @@ class SynapseStorage(object):
             # (it is ok if the entities ID in the new manifest are blank)
             manifest['entityId'].fillna('', inplace = True)
             manifest = update_df(manifest, existingManifest, "entityId")
-    
+
         # if this is a new manifest there could be no Synapse entities associated with the rows of this manifest
         # this may be due to data type (e.g. clinical data) being tabular
         # and not requiring files; to utilize uniform interfaces downstream
@@ -447,7 +462,7 @@ class SynapseStorage(object):
 
             self.syn.set_annotations(annos)
             #self.syn.set_annotations(metadataSyn) #-- deprecated code
-        
+
         # update the manifest file, so that it contains the relevant entity IDs
         manifest.to_csv(metadataManifestPath, index = False)
 
@@ -458,3 +473,64 @@ class SynapseStorage(object):
         manifestSynapseFileId = self.syn.store(manifestSynapseFile).id
 
         return manifestSynapseFileId
+
+
+    def getFileAnnotations(self, fileId: str) -> Dict[str, str]:
+        """Generate dictionary of annotations for the given Synapse file.
+
+        Synapse returns all custom annotations as lists since they
+        can contain multiple values. In all cases, the values will
+        be converted into strings and concatenated with ", ".
+
+        Args:
+            fileId (str): Synapse ID for dataset file.
+
+        Returns:
+            dict: Annotations as comma-separated strings.
+        """
+        # Retrieve Synapse annotations using _getRawAnnotations()
+        # to get etag, which isn't provided by get_annotations()
+        syn_annotations = self.syn._getRawAnnotations(fileId)
+
+        # Convert all values into comma-separated lists of strings
+        annotations_unordered = from_synapse_annotations(syn_annotations)
+        annotations = OrderedDict()
+        for key, vals in annotations_unordered.items():
+            annotations[key] = ", ".join(str(v) for v in vals)
+
+        # Add the file entity ID and eTag, which weren't lists
+        assert fileId == syn_annotations["id"], (
+            "For some reason, the Synapse ID in the response doesn't match"
+            "the Synapse ID sent in the request (via synapseclient)."
+        )
+        annotations["entityId"] = fileId
+        annotations["eTag"] = syn_annotations["etag"]
+
+        return annotations
+
+
+    def getDatasetAnnotations(self, datasetId: str, fill_na: bool=True) -> pd.DataFrame:
+        """Generate table for annotations across all files in given dataset.
+
+        Args:
+            datasetId (str): Synapse ID for dataset folder.
+            fill_na (bool): Whether to replace missing values
+                with blank strings.
+
+        Returns:
+            pd.DataFrame: Table of annotations.
+        """
+        # Step 1: Get all files in given dataset
+        dataset_files = self.getFilesInStorageDataset(datasetId)
+
+        # Step 2: Get annotations for each file from Step 1
+        annotations_list = [self.getFileAnnotations(i) for i, _ in dataset_files]
+
+        # Step 3: Create data frame from list of annotations
+        table = pd.DataFrame.from_records(annotations_list)
+
+        # Missing values are filled in with empty strings for Google Sheets
+        if fill_na:
+            table.fillna("", inplace=True)
+
+        return table
