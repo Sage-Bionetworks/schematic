@@ -1,17 +1,18 @@
 import os
 import json
-import networkx as nx
-
+import logging
 from typing import Any, Dict, Optional, Text, List
 
-from schematic.schemas.explorer import SchemaExplorer
+import networkx as nx
 
+from schematic.schemas.explorer import SchemaExplorer
 from schematic.utils.io_utils import load_json
 from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema
-
 from schematic import CONFIG
+
+logger = logging.getLogger(__name__)
 
 
 class SchemaGenerator(object):
@@ -212,8 +213,10 @@ class SchemaGenerator(object):
             # get node range in the order defined in schema for given node
             required_range = self.se.explore_class(node_label)["range"]
         except KeyError:
-            print("The given source node cannot be found in the graph. Please try a different node label.")
-            return []
+            logger.error(f"The provided source node {node_label} does not exist in the graph. "
+                        "Please use a different node.")
+            raise ValueError(f"The source node {node_label} provided does not "
+                            "exist in the graph.")
 
         if display_names:
             # get the display name(s) of all dependencies
@@ -618,8 +621,7 @@ class SchemaGenerator(object):
                 break
 
 
-        print("========================================================================================")
-        print("JSON schema successfully generated from schema.org schema!")
+        logger.info("JSON schema successfully generated from schema.org schema!")
 
         # if no conditional dependencies were added we can't have an empty 'AllOf' block in the schema, so remove it
         if not json_schema["allOf"]:
@@ -646,7 +648,6 @@ class SchemaGenerator(object):
             with open(json_schema_log_file, "w") as js_f:
                 json.dump(json_schema, js_f, indent = 2)
 
-            print("JSON schema file log stored as {}".format(json_schema_log_file))
-            print("========================================================================================")
+        logger.info("JSON schema file log stored as {}".format(json_schema_log_file))
 
         return json_schema
