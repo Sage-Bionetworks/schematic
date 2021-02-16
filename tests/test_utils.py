@@ -280,7 +280,7 @@ class TestDfUtils:
         pd.testing.assert_frame_equal(expected_df, actual_df)
         
 
- class TestValidateUtils:
+class TestValidateUtils:
 
     def test_validate_schema(self, schema_explorer):
 
