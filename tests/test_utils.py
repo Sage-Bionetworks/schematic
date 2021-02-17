@@ -1,9 +1,10 @@
 import logging
-import pytest
 import json
 import os
+
 import pandas as pd
 import numpy as np
+import pytest
 
 from pandas.testing import assert_frame_equal
 
@@ -11,6 +12,7 @@ from schematic.utils import general
 from schematic.utils import cli_utils
 from schematic.utils import io_utils
 from schematic.utils import df_utils
+from schematic.utils import validate_utils
 from schematic.exceptions import MissingConfigValueError, MissingConfigAndArgumentValueError
 from schematic import LOADER
 
@@ -230,20 +232,30 @@ class TestIOUtils:
 
 class TestDfUtils:
 
-    def test_update_df_col_present(self, synapse_manifest, local_manifest):
+    def test_update_df_col_present(self, helpers):
+
+        synapse_manifest = helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
+
+        local_manifest = helpers.get_data_frame("mock_manifests", "local_manifest.csv")
 
         col_pres_res = df_utils.update_df(local_manifest, synapse_manifest, "entityId")
 
         assert_frame_equal(col_pres_res, synapse_manifest)
 
 
-    def test_update_df_col_absent(self, synapse_manifest, local_manifest):
+    def test_update_df_col_absent(self, helpers):
+
+        synapse_manifest = helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
+
+        local_manifest = helpers.get_data_frame("mock_manifests", "local_manifest.csv")
 
         with pytest.raises(AssertionError):
             df_utils.update_df(local_manifest, synapse_manifest, "Col_Not_In_Dfs")
 
 
-    def test_trim_commas_df(self, local_manifest):
+    def test_trim_commas_df(self, helpers):
+        
+        local_manifest = helpers.get_data_frame("mock_manifests", "local_manifest.csv")
 
         nan_row = pd.DataFrame([[np.nan] * len(local_manifest.columns)],
                                 columns=local_manifest.columns)
@@ -275,3 +287,46 @@ class TestDfUtils:
 
         actual_df = df_utils.update_df(input_df, updates_df, "entityId")
         pd.testing.assert_frame_equal(expected_df, actual_df)
+
+
+class TestValidateUtils:
+
+    def test_validate_schema(self, helpers):
+
+        se_obj = helpers.get_schema_explorer("simple.model.jsonld")
+
+        actual = validate_utils.validate_schema(se_obj.schema)
+        
+        assert actual is None
+
+    
+    def test_validate_class_schema(self, helpers):
+        
+        se_obj = helpers.get_schema_explorer("simple.model.jsonld")
+        
+        mock_class = se_obj.generate_class_template()
+        mock_class["@id"] = "bts:MockClass"
+        mock_class["@type"] = "rdfs:Class"
+        mock_class["@rdfs:comment"] = "This is a mock class"
+        mock_class["@rdfs:label"] = "MockClass"
+        mock_class["rdfs:subClassOf"]["@id"] = "bts:Patient"
+
+        actual = validate_utils.validate_class_schema(mock_class)
+
+        assert actual is None
+
+
+    def test_validate_property_schema(self, helpers):
+
+        se_obj = helpers.get_schema_explorer("simple.model.jsonld")
+        
+        mock_class = se_obj.generate_property_template()
+        mock_class["@id"] = "bts:MockProperty"
+        mock_class["@type"] = "rdf:Property"
+        mock_class["@rdfs:comment"] = "This is a mock Patient class"
+        mock_class["@rdfs:label"] = "MockProperty"
+        mock_class["schema:domainIncludes"]["@id"] = "bts:Patient"
+
+        actual = validate_utils.validate_property_schema(mock_class)
+
+        assert actual is None
