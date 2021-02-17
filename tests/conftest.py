@@ -22,16 +22,6 @@ CONFIG_PATH = os.path.join(DATA_DIR, "test_config.yml")
 CONFIG.load_config(CONFIG_PATH)
 
 
-@pytest.fixture()
-def mock_creds():
-    mock_creds = {
-        'sheet_service': 'mock_sheet_service',
-        'drive_service': 'mock_drive_service',
-        'creds': 'mock_creds'
-    }
-    yield mock_creds
-
-
 # This class serves as a container for helper functions that can be
 # passed to individual tests using the `helpers` fixture. This approach
 # was required because fixture functions cannot take arguments.
@@ -53,19 +43,19 @@ class Helpers:
 
 @pytest.fixture
 def helpers():
-    return Helpers
+    yield Helpers
 
 
 @pytest.fixture
 def config():
-    return CONFIG
+    yield CONFIG
 
 
 @pytest.fixture()
 def synapse_manifest(helpers):
-    return helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
+    yield helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
 
 
 @pytest.fixture()
 def local_manifest(helpers):
-    return helpers.get_data_frame("mock_manifests", "local_manifest.csv")
+    yield helpers.get_data_frame("mock_manifests", "local_manifest.csv")
