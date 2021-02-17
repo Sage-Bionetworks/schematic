@@ -42,11 +42,11 @@ class Helpers:
         return pd.read_csv(fullpath, **kwargs)
 
     @staticmethod
-    def get_schema_explorer(path, *paths):
-        fullpath = Helpers.get_data_path(path, *paths)
-        
-        if fullpath is None:
+    def get_schema_explorer(path=None, *paths):
+        if path is None:
             return SchemaExplorer()
+            
+        fullpath = Helpers.get_data_path(path, *paths)
             
         se = SchemaExplorer()
         se.load_schema(fullpath)
