@@ -214,8 +214,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
     except:
         logger.debug(f"Schema extension headers: {set(list(schema_extension.columns))} "
                     f"do not match required schema headers: {required_headers}")
-        logger.error("The extension could not be added to the schema.")
-        exit()
+        raise ValueError("The extension could not be added to the schema.")
 
     # get attributes from Attribute column
     attributes = schema_extension[list(required_headers)].to_dict("records")
@@ -239,9 +238,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             for p in props:
                 prop_2_class[p.strip()] = record["Attribute"]
 
-    logger.info("=====================")
     logger.info("Adding attributes")
-    logger.info("=====================")
     for attribute in attributes:
 
         required = None
@@ -286,15 +283,11 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             if not attribute_exists(se, new_property["rdfs:label"]):
                 se.update_property(new_property)
 
-    logger.info("=====================")
     logger.info("Done adding attributes")
-    logger.info("=====================")
 
     #TODO check if schema already contains property - may require property context in csv schema definition
 
-    logger.info("=====================")
     logger.info("Adding and editing properties")
-    logger.info("=====================")
 
     for prop in properties:
         if not pd.isnull(prop["Properties"]): # a class may have or not have properties
@@ -327,15 +320,11 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     )
                     se.update_property(new_property)
 
-    logger.info("=====================")
     logger.info("Done adding properties")
-    logger.info("=====================")
 
     # set range values and dependency requirements for each attribute
     # if not already added, add each attribute in required values and dependencies to the schema extension
-    logger.info("=====================")
     logger.info("Editing attributes and properties to add requirements and value ranges")
-    logger.info("=====================")
 
     for attribute in attributes:
 
@@ -366,9 +355,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     # this attribute is a property, set the parent to the domain class of this attribute
                         parent = se.get_class_by_property(attribute["Attribute"])
                         if not parent:
-                            logger.error(f"""Listed valid value: {val}, for attribute: {attribute["Attribute"]} """
-                                        "must have a class parent. The extension could not be added to the schema.")
-                            exit()
+                            raise ValueError(f"Listed valid value: {val}, for attribute: {attribute['Attribute']} "
+                                              "must have a class parent. The extension could not be added to the schema.")
 
                     new_class = get_class(se, val,
                                         description = None,
@@ -477,9 +465,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                         # this attribute is a property, set the parent to the domain class of this attribute
                             parent = se.get_class_by_property(attribute["Attribute"])
                             if not parent:
-                                logger.error(f"""Listed required dependency: {dep}, for attribute: {attribute["Attribute"]} """
-                                            "must have a class parent. The extension could not be added to the schema.")
-                                exit()
+                                raise ValueError(f"Listed required dependency: {dep}, for attribute: {attribute['Attribute']} "
+                                                  "must have a class parent. The extension could not be added to the schema.")
 
                         new_class = get_class(se, dep,
                                               description = None,
@@ -497,9 +484,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                         # this attribute is a property, set the domain of this property to the domain class of the attribute
                             domain_attribute = se.get_class_by_property(attribute["Attribute"])
                             if not domain_attribute:
-                                logger.error(f"Listed required dependency: {dep}, must have a class parent. "
-                                            "The extension could not be added to the schema.")
-                                exit()
+                                raise ValueError(f"Listed required dependency: {dep}, must have a class parent. "
+                                                  "The extension could not be added to the schema.")
 
                         description = None
                         new_property = get_property(se, dep,
@@ -587,9 +573,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         logger.info("<<< Done adding component dependencies for " + attribute["Attribute"])
 
 
-    logger.info("=====================")
     logger.info("Done adding requirements and value ranges to attributes")
-    logger.info("=====================")
 
 
     return se
@@ -610,8 +594,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
     except:
         logger.debug(f"Schema extension headers: {set(list(schema_extension.columns))} "
                     f"do not match required schema headers: {required_headers}")
-        logger.error("The extension could not be added to the schema.")
-        exit()
+        raise ValueError("The extension could not be added to the schema.")
 
     rel_dict = {
         "rdfs:subClassOf": {
@@ -654,7 +637,6 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                 prop_2_class[p.strip()] = record["Attribute"]
 
     logger.info("Adding attributes")
-    logger.info("====================================================================================")
     for attribute in attributes:
 
         required = None
@@ -700,12 +682,10 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                 se.add_schema_object_nx(new_property, **rel_dict)
 
     logger.info("Done adding attributes")
-    logger.info("====================================================================================")
 
     #TODO check if schema already contains property - may require property context in csv schema definition
 
     logger.info("Adding and editing properties")
-    logger.info("====================================================================================")
 
     for prop in properties:
         if not pd.isnull(prop["Properties"]): # a class may have or not have properties
@@ -739,7 +719,6 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                     se.add_schema_object_nx(new_property, **rel_dict)
 
     logger.info("Done adding properties")
-    logger.info("====================================================================================")
 
     # # set range values and dependency requirements for each attribute
     # # if not already added, add each attribute in required values and dependencies to the schema extension
@@ -773,9 +752,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                     # this attribute is a property, set the parent to the domain class of this attribute
                         parent = se.get_class_by_property(attribute["Attribute"])
                         if not parent:
-                            logger.error(f"""Listed valid value: {val}, for attribute: {attribute["Attribute"]} """
-                                        "must have a class parent. The extension could not be added to the schema.")
-                            exit()
+                            raise ValueError(f"Listed valid value: {val}, for attribute: {attribute['Attribute']} "
+                                              "must have a class parent. The extension could not be added to the schema.")
 
                     new_class = get_class(se, val,
                                         description = None,
@@ -878,9 +856,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                         # this attribute is a property, set the parent to the domain class of this attribute
                             parent = se.get_class_by_property(attribute["Attribute"])
                             if not parent:
-                                logger.error(f"""Listed required dependency: {dep}, for attribute: {attribute["Attribute"]} """
-                                            "must have a class parent. The extension could not be added to the schema.")
-                                exit()
+                                raise ValueError(f"Listed required dependency: {dep}, for attribute: {attribute['Attribute']} "
+                                                  "must have a class parent. The extension could not be added to the schema.")
 
                         new_class = get_class(se, dep,
                                               description = None,
@@ -898,9 +875,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                         # this attribute is a property, set the domain of this property to the domain class of the attribute
                             domain_attribute = se.get_class_by_property(attribute["Attribute"])
                             if not domain_attribute:
-                                logger.error(f"Listed required dependency: {dep}, must have a class parent. "
-                                            "The extension could not be added to the schema.")
-                                exit()
+                                raise ValueError(f"Listed required dependency: {dep}, must have a class parent. "
+                                                  "The extension could not be added to the schema.")
 
                         description = None
                         new_property = get_property(se, dep,
@@ -982,6 +958,5 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
         #TODO check for cycles in component dependencies schema subgraph
 
     logger.info("Done adding requirements and value ranges to attributes")
-    logger.info("====================================================================================")
 
     return se

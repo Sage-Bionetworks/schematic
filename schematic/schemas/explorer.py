@@ -516,7 +516,7 @@ class SchemaExplorer():
 
         # TODO: do we actually need to validate the entire schema if a class is just edited and the class passes validation?
         #validate_schema(self.schema)
-        logger.info(f"""Edited the class {class_info["rdfs:label"]} successfully.""")
+        logger.info(f"Edited the class {class_info['rdfs:label']} successfully.")
         self.schema_nx = load_schema_into_networkx(self.schema)
 
     def update_class(self, class_info):
@@ -526,7 +526,7 @@ class SchemaExplorer():
         validate_class_schema(class_info)
         self.schema["@graph"].append(class_info)
         validate_schema(self.schema)
-        logger.info(f"""Updated the class {class_info["rdfs:label"]} successfully.""")
+        logger.info(f"Updated the class {class_info['rdfs:label']} successfully.")
         self.schema_nx = load_schema_into_networkx(self.schema)
 
     def edit_property(self, property_info):
@@ -541,7 +541,7 @@ class SchemaExplorer():
                 break
 
         validate_schema(self.schema)
-        logger.info(f"""Edited the property {property_info["rdfs:label"]} successfully.""")
+        logger.info(f"Edited the property {property_info['rdfs:label']} successfully.")
         self.schema_nx = load_schema_into_networkx(self.schema)
 
     def update_property(self, property_info):
@@ -550,7 +550,7 @@ class SchemaExplorer():
         validate_property_schema(property_info)
         self.schema["@graph"].append(property_info)
         validate_schema(self.schema)
-        logger.info(f"""Updated the property {property_info["rdfs:label"]} successfully.""")
+        logger.info(f"Updated the property {property_info['rdfs:label']} successfully.")
 
     def get_digraph_by_edge_type(self, edge_type):
 

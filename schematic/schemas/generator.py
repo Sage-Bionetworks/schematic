@@ -208,10 +208,8 @@ class SchemaGenerator(object):
             # get node range in the order defined in schema for given node
             required_range = self.se.explore_class(node_label)["range"]
         except KeyError:
-            logger.error(f"The provided source node {node_label} does not exist in the graph. "
-                        "Please use a different node.")
-            raise ValueError(f"The source node {node_label} provided does not "
-                            "exist in the graph.")
+            raise ValueError(f"The source node {node_label} does not exist in the graph. "
+                            "Please use a different node.")
 
         if display_names:
             # get the display name(s) of all dependencies
@@ -616,7 +614,6 @@ class SchemaGenerator(object):
                 break
 
 
-        logger.info("========================================================================================")
         logger.info("JSON schema successfully generated from schema.org schema!")
 
         # if no conditional dependencies were added we can't have an empty 'AllOf' block in the schema, so remove it
@@ -627,7 +624,6 @@ class SchemaGenerator(object):
         with open(json_schema_log_file, "w") as js_f:
             json.dump(json_schema, js_f, indent = 2)
 
-        logger.info("JSON schema file log stored as {}".format(json_schema_log_file))
-        logger.info("========================================================================================")
+        logger.info(f"JSON schema file log stored as {json_schema_log_file}")
 
         return json_schema
