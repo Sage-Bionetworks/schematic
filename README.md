@@ -35,11 +35,9 @@ It is recommended that you install the `poetry` dependency manager if you are a 
 - [`poetry`](https://github.com/python-poetry/poetry)
 
 
-**Important**: Make sure you are a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have all the right permissions to download credentials files in the following steps.
+**Important**: Make sure you are a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have all the right permissions to download credentials files in the following steps. Contact your DCC liaison to request for permission to access the credentials files.
 
 ## 1.3. Package Setup Instructions
-
-For `schematic` Contributors and DCC Admins
 
 ### 1.3.1. Clone Project Repository
 
@@ -51,59 +49,39 @@ git clone --single-branch --branch develop https://github.com/Sage-Bionetworks/s
 
 ### 1.3.2. Virtual Environment Setup
 
-If you are a DCC Admin:
-
-You can explicitly create a virtual environment by running the following command:
-
 ```python
-python -m venv .venv
+python -m venv .venv  # create a virtual environment
 ```
-
-To activate the `venv` virtual environment and also retreive the path to your virtual environment, run:
 
 ```bash
-$ source $(poetry env info --path)/bin/activate
+source .venv/bin/activate # activate the `venv` virtual environment
 ```
-
-If you are a `schematic` package contributor you don't need to create a `venv` virtual environment, `poetry` will create a virtual environment by default, which you can use.
 
 ### 1.3.3. Install Dependencies
 
-If you are a DCC Admin:
-
 After cloning the `schematic` project from GitHub and setting up your virtual environment:
-- Change directory to the `schematic` package:  `cd schematic`
-- Switch to the development (`develop`) branch of the package: `git checkout develop`
-- Use [`poetry`](https://python-poetry.org/docs/cli/#build) to build the source and wheel archives: `poetry build`
-
-This will create a folder called `dist` in your root directory which contains the `.tar.gz` and `.whl` bundle files.
-- Install wheel file: `pip install dist/schematicpy-0.1.11-py3-none-any.whl`
-
-If you are a `schematic` contributor:
-
-Running the following command reads the `pyproject.toml` file from the current project, resolves the dependencies and install them:
-
 ```bash
-poetry install
+cd schematic  # change directory to schematic
+git checkout develop  # switch to develop branch of schematic 
+poetry build # build source and wheel archives
+pip install dist/schematicpy-0.1.11-py3-none-any.whl  # install wheel file
 ```
 
 ### 1.3.4. Obtain Credentials File(s)
 
-Download a copy of the `credentials.json` file stored on Synapse by running the following command:
-
 ```bash
-$ synapse get syn21088684
+synapse get syn21088684 # download copy of credentials.json file
 ```
 
 The `credentials.json` file is required when you are using [`OAuth2`](https://developers.google.com/identity/protocols/oauth2) to authenticate with the Google APIs.
 
 For details about the steps involved in the `OAuth2` [authorization flow](https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18), refer to the `Credentials` section in the `docs/details` document.
 
-Alternatively, you can also download the `schematic_service_account_creds.json` file, which uses the service account mode of authentication (_for Google services_). To download this file, run the following:
-
 ```bash
-$ synapse get syn24214983
+synapse get syn24214983 # download copy of schematic_service_account_creds.json file
 ```
+
+Use the `schematic_service_account_creds.json` file for the service account mode of authentication (_for Google services/APIs_).
 
 Note: The `Selection Options` dropdown which allows the user to select multiple values in a cell during manifest annotation [does not work](https://developers.google.com/apps-script/api/concepts) with the service account mode of authentication.
 
@@ -145,20 +123,18 @@ Note: You can get your Synapse API key by: _logging into Synapse_ > _Settings_ >
 
 ### 1.3.6. Command Line Interface
 
-The two main CLI utilities that are distributed as part of the package are:
-
 #### 1.3.6.1. Metadata Manifest Generation
 
 To generate a metadata manifest template based on a data type that is present in your data model:
 
 ```bash
-$ schematic manifest --config /path/to/config.yml get
+schematic manifest --config /path/to/config.yml get
 ```
 
 #### 1.3.6.2. Metadata Manifest Validation and Submission
 
 ```bash
-$ schematic model --config /path/to/config.yml submit --manifest_path /path/to/manifest.csv --dataset_id dataset_synapse_id
+schematic model --config /path/to/config.yml submit --manifest_path /path/to/manifest.csv --dataset_id dataset_synapse_id
 ```
 
 Refer to the [docs](https://github.com/Sage-Bionetworks/schematic/tree/develop/docs) for more details.
@@ -167,7 +143,7 @@ Note: To view a full list of all the arguments that can be supplied to the comma
 
 ## 1.4. Contributing
 
-Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md).
+Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md). To start contributing to the package, you can refer to the getting started section in our contributing guide.
 
 ## 1.5. Contributors
 

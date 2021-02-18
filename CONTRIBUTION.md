@@ -7,10 +7,21 @@ Please note we have a code of conduct, please follow it in all your interactions
 
 ## Getting started
 
+### General Contribution Instructions
+
 1. Fork the repository.
 2. Clone the forked repository.
 3. Push all your changes to the dev branch of the forked repository.
 4. Create pull requests to the origin repository.
+
+### Setup Project for Development and Testing
+
+1. Follow the package setup instructions on the main README till the "Clone Project Repository" step.
+2. If you are a `schematic` package contributor you don't need to create a `venv` virtual environment, `poetry` will create a virtual environment by default, which you can use.
+3. Running the following command reads the `pyproject.toml` file from the current project, resolves the dependencies and installs them: `poetry install`
+4. Obtain credentials file(s) by following same instructions as in the main README.
+5. Fill in configuration file(s) in the same way as specified in the main README.
+6. To run any of the CLI utilities shown in the main README, prefix the commands with `poetry run`.
 
 ## Pull Request Process
 
