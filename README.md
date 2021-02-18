@@ -75,7 +75,7 @@ synapse get syn21088684 # download copy of credentials.json file
 
 The `credentials.json` file is required when you are using [`OAuth2`](https://developers.google.com/identity/protocols/oauth2) to authenticate with the Google APIs.
 
-For details about the steps involved in the `OAuth2` [authorization flow](https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18), refer to the `Credentials` section in the `docs/details` document.
+For details about the steps involved in the `OAuth2` [authorization flow](https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18), refer to the `Credentials` section in the [`docs/details`](https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/details.md#credentials) document.
 
 ```bash
 synapse get syn24214983 # download copy of schematic_service_account_creds.json file
@@ -89,7 +89,7 @@ Note: The `Selection Options` dropdown which allows the user to select multiple 
 
 There are two main configuration files that need to be edited – [`config.yml`](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml) and [`.synapseConfig`](https://github.com/Sage-Bionetworks/synapsePythonClient/blob/master/synapseclient/.synapseConfig).
 
-Download a copy of the `.synapseConfig` file, open the file in the editor of your choice and edit the `username` and `apikey` attributes under the `[authentication]` section.
+Download a copy of the `.synapseConfig` file, open the file in the editor of your choice and edit the [`username`](https://github.com/Sage-Bionetworks/synapsePythonClient/blob/master/synapseclient/.synapseConfig#L8) and [`apikey`](https://github.com/Sage-Bionetworks/synapsePythonClient/blob/master/synapseclient/.synapseConfig#L9) attributes under the [`[authentication]`](https://github.com/Sage-Bionetworks/synapsePythonClient/blob/master/synapseclient/.synapseConfig#L7) section.
 
 <details>
   <summary>Description of config.yml attributes</summary>
@@ -128,13 +128,13 @@ Note: You can get your Synapse API key by: _logging into Synapse_ > _Settings_ >
 To generate a metadata manifest template based on a data type that is present in your data model:
 
 ```bash
-schematic manifest --config /path/to/config.yml get
+schematic manifest --config ~/path/to/config.yml get
 ```
 
 #### 1.3.6.2. Metadata Manifest Validation and Submission
 
 ```bash
-schematic model --config /path/to/config.yml submit --manifest_path /path/to/manifest.csv --dataset_id dataset_synapse_id
+schematic model --config ~/path/to/config.yml submit --manifest_path ~/path/to/manifest.csv --dataset_id dataset_synapse_id
 ```
 
 Refer to the [docs](https://github.com/Sage-Bionetworks/schematic/tree/develop/docs) for more details.
@@ -143,7 +143,7 @@ Note: To view a full list of all the arguments that can be supplied to the comma
 
 ## 1.4. Contributing
 
-Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md). To start contributing to the package, you can refer to the getting started section in our contributing guide.
+Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md). To start contributing to the package, you can refer to the [Getting Started](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md#getting-started) section in our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md).
 
 ## 1.5. Contributors
 
