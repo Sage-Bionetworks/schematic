@@ -47,10 +47,12 @@ def manifest(ctx, config): # use as `schematic manifest ...`
 @click.option('-p', '--jsonld', help=query_dict(manifest_commands, ("manifest", "get", "jsonld")))
 @click.option('-d', '--dataset_id', help=query_dict(manifest_commands, ("manifest", "get", "dataset_id")))
 @click.option('-s', '--sheet_url', type=bool, help=query_dict(manifest_commands, ("manifest", "get", "sheet_url")))
+@click.option('-o', '--output_csv', help=query_dict(manifest_commands, ("manifest", "get", "output_csv")))
+@click.option('-a', '--use_annotations', is_flag=True, help=query_dict(manifest_commands, ("manifest", "get", "use_annotations")))
 @click.option('-j', '--json_schema', help=query_dict(manifest_commands, ("manifest", "get", "json_schema")))
 @click.pass_obj
-def get_manifest(ctx, title, data_type, jsonld, 
-                 dataset_id, sheet_url, json_schema):
+def get_manifest(ctx, title, data_type, jsonld, dataset_id, sheet_url,
+                 output_csv, use_annotations, json_schema):
     """
     Running CLI with manifest generation options.
     """

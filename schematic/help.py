@@ -5,7 +5,7 @@ manifest_commands = {
     "manifest": {
         "config": (
             "Specify the path to the `config.yml` using this option. This is a required argument."
-        ),
+            ),
         "get": {
             "short_help":(
                 "Specify the path to the `config.yml` using this option. "
@@ -33,11 +33,18 @@ manifest_commands = {
                 "Takes `True` or `False` as argument values. If `True` then it will produce a Googlesheets URL/link "
                 "to the metadata manifest file. If `False`, then it will produce a pandas dataframe for the same."
                 ),
+            "output_csv": (
+                "Path to where the CSV manifest template should be stored."
+                ),
+            "use_annotations": (
+                "Takes `True` or `False` as argument values. If `True` then it will prepopulate template with existing annotations "
+                "associated with dataset files. If `False` it will skip populating template with Synapse annotations."
+                ),
             "json_schema": (
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
-            ),
+                )
         }
     }
 }
@@ -48,23 +55,23 @@ model_commands = {
     "model": {
         "config": (
             "Specify the path to the `config.yml` using this option. This is a required argument."
-        ),
+            ),
         "submit": {
             "short_help": (
                 "Validation (optional) and submission of manifest files."
-            ),
+                ),
             "manifest_path": (
                 "Specify the path to the metadata manifest file that you want to submit to a dataset on Synapse. "
                 "This is a required argument."
-            ),
+                ),
             "dataset_id": (
                 "Specify the synID of the dataset folder on Synapse to which you intend to submit "
                 "the metadata manifest file. This is a required argument."
-            ),
+                ),
             "validate_component": (
                 "The component or data type from the data model which you can use to validate the "
                 "data filled in your manifest template."
-            )
+                )
         }
     }
 }
