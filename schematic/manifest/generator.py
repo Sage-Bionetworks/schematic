@@ -208,7 +208,7 @@ class ManifestGenerator(object):
         def callback(request_id, response, exception):
             if exception:
                 # Handle error
-                logger.exception(exception)
+                logger.error(exception)
             else:
                 logger.info(f"Permission Id: {response.get('id')}")
 
@@ -791,8 +791,7 @@ class ManifestGenerator(object):
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(manifest_fields, key = lambda x: dependencies_display_names.index(x) if x in dependencies_display_names else len(manifest_fields) -1)
             else:
-                logger.error("No schema provided. Cannot order based on schema without "
-                            "specified data model and a data model root node.")
+                raise ValueError(f"Provide valid data model path and valid component from data model.")
 
         # always have entityId as last columnn, if present
         if "entityId" in manifest_fields:
