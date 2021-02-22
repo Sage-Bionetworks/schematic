@@ -2080,14 +2080,6 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "schema:rangeIncludes": [
-                {
-                    "@id": "bts:Patient"
-                },
-                {
-                    "@id": "bts:ScRNA-seqAssay"
-                }
-            ],
             "sms:displayName": "Component",
             "sms:required": "sms:true",
             "sms:validationRules": []

@@ -23,6 +23,8 @@ from schematic.schemas.curie import uri2curie, curie2uri
 
 namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
 
+
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
