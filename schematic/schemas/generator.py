@@ -1,13 +1,13 @@
 import os
 import json
 import networkx as nx
-from orderedset import OrderedSet
 
 from typing import Any, Dict, Optional, Text, List
 
 from schematic.schemas.explorer import SchemaExplorer
 
 from schematic.utils.io_utils import load_json
+from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema
 
@@ -40,13 +40,17 @@ class SchemaGenerator(object):
             None
         """
 
+        self.jsonld_path = path_to_json_ld
+
         if schema_explorer is None:
 
-            assert path_to_json_ld is not None, (
+            assert self.jsonld_path is not None, (
                 "You must provide either `path_to_json_ld` or `schema_explorer`."
             )
 
-            assert path_to_json_ld.rpartition('.')[-1] == "jsonld", (
+            self.jsonld_path_root, jsonld_ext = os.path.splitext(self.jsonld_path)
+
+            assert jsonld_ext == ".jsonld", (
                 "Please make sure the 'path_to_json_ld' parameter "
                 "is pointing to a valid JSON-LD file."
             )
@@ -55,7 +59,7 @@ class SchemaGenerator(object):
             self.se = SchemaExplorer()
 
             # convert the JSON-LD data model to networkx object
-            self.se.load_schema(path_to_json_ld)
+            self.se.load_schema(self.jsonld_path)
 
         else:
 
@@ -97,7 +101,7 @@ class SchemaGenerator(object):
             See class definition in SchemaExplorer
             TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
         """
-        
+
         return self.se.get_adjacent_nodes_by_relationship(node, relationship)
 
 
@@ -129,12 +133,12 @@ class SchemaGenerator(object):
                                     relationship: str,
                                     connected: bool = True,
                                     ordered: bool = False) -> List[str]:
-        
+
         """
             See class definition in SchemaExplorer
             TODO: possibly remove this wrapper and refactor downstream code to call from SchemaExplorer
         """
-        
+
         return self.se.get_descendants_by_edge_type(source_node, relationship, connected, ordered)
 
 
@@ -449,6 +453,11 @@ class SchemaGenerator(object):
 
         root_dependencies = self.get_adjacent_nodes_by_relationship(source_node, self.requires_dependency_relationship)
 
+        # if root_dependencies is empty it means that a class with name 'source_node' exists
+        # in the schema, but it is not a valid component
+        if not root_dependencies:
+            raise ValueError(f"'{source_node}' is not a valid component in the schema.")
+
         nodes_to_process += root_dependencies
 
         process_node = nodes_to_process.pop(0)
@@ -616,11 +625,28 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
 
-        json_schema_log_file = CONFIG["model"]["input"]["log_location"]
-        with open(json_schema_log_file, "w") as js_f:
-            json.dump(json_schema, js_f, indent = 2)
+        # Check if config value is provided; otherwise, set to None
+        json_schema_log_file = query_dict(CONFIG.DATA, ("model", "input", "log_location"))
 
-        print("JSON schema file log stored as {}".format(json_schema_log_file))
-        print("========================================================================================")
+        # If no config value and SchemaGenerator was initialized with
+        # a JSON-LD path, construct
+        if json_schema_log_file is None and self.jsonld_path is not None:
+            prefix = self.jsonld_path_root
+            prefix_root, prefix_ext = os.path.splitext(prefix)
+            if prefix_ext == ".model":
+                prefix = prefix_root
+            json_schema_log_file = f"{prefix}.{source_node}.schema.json"
+
+        if json_schema_log_file is None:
+            print(
+                "The JSON schema file can be inspected by setting the following "
+                "nested key in the configuration: model > input > log_location."
+            )
+        else:
+            with open(json_schema_log_file, "w") as js_f:
+                json.dump(json_schema, js_f, indent = 2)
+
+            print("JSON schema file log stored as {}".format(json_schema_log_file))
+            print("========================================================================================")
 
         return json_schema

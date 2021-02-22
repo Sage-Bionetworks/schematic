@@ -4,7 +4,6 @@ import json
 
 from typing import Any, Dict, Optional, Text, List
 
-import tabletext
 from rdflib import Graph, Namespace, plugin, query
 import inflection
 import networkx as nx
@@ -206,10 +205,10 @@ class SchemaExplorer():
         """
 
         digraph = self.get_digraph_by_edge_type("parentOf")
-        
+
         root_node = list(nx.topological_sort(digraph))[0]
         # root_node = list(nx.topological_sort(self.schema_nx))[0]
-        
+
         paths = nx.all_simple_paths(self.schema_nx,
                                     source=root_node,
                                     target=schema_class)
@@ -260,7 +259,7 @@ class SchemaExplorer():
                                     property_info['description'],
                                     record['class']])
 
-            print(tabletext.to_text(content))
+            # TODO: Log content
 
     def find_class_usages(self, schema_class):
         """Find where a given class is used as a value of a property
@@ -306,10 +305,10 @@ class SchemaExplorer():
                 parents_list.append(self.schema_nx.nodes[schema_class]["subClassOf"])
             else:
                 parents_list = schema_node_val
-            
+
             for parent in parents_list:
                 parents.append(extract_name_from_uri_or_curie(parent["@id"]))
-        
+
         requires_range = []
         if  "rangeIncludes" in self.schema_nx.nodes[schema_class]:
             schema_node_val = self.schema_nx.nodes[schema_class]["rangeIncludes"]
@@ -332,9 +331,9 @@ class SchemaExplorer():
                 subclass_list.append(self.schema_nx.nodes[schema_class]["requiresDependency"])
             else:
                 subclass_list = schema_node_val
-                
+
             for dep_class in subclass_list:
-                requires_dependencies.append(extract_name_from_uri_or_curie(dep_class["@id"])) 
+                requires_dependencies.append(extract_name_from_uri_or_curie(dep_class["@id"]))
 
         requires_components = []
         if  "requiresComponent" in self.schema_nx.nodes[schema_class]:
@@ -347,7 +346,7 @@ class SchemaExplorer():
                 subclass_list = schema_node_val
 
             for comp_dep_class in subclass_list:
-                requires_components.append(extract_name_from_uri_or_curie(comp_dep_class["@id"])) 
+                requires_components.append(extract_name_from_uri_or_curie(comp_dep_class["@id"]))
 
         required = False
         if "required" in self.schema_nx.nodes[schema_class]:
@@ -358,7 +357,7 @@ class SchemaExplorer():
             validation_rules = self.schema_nx.nodes[schema_class]["validationRules"]
 
         # TODO: make class_info keys here the same as keys in schema graph nodes(e.g. schema_class above); note that downstream code using explore_class would have to be updated as well (e.g. csv_2_schemaorg)
-      
+
         class_info = {
                       'properties': self.find_class_specific_properties(schema_class),
                       'description': self.schema_nx.nodes[schema_class]['description'],
@@ -366,7 +365,7 @@ class SchemaExplorer():
                       #'usage': self.find_class_usages(schema_class),
                       'usage':'NA',
                       'child_classes': self.find_adjacent_child_classes(schema_class),
-                      'subClassOf': parents, 
+                      'subClassOf': parents,
                       'range': requires_range,
                       'dependencies': requires_dependencies,
                       'validation_rules': validation_rules,
@@ -380,17 +379,17 @@ class SchemaExplorer():
             class_info['displayName'] = self.schema_nx.nodes[schema_class]['displayName']
 
         return class_info
-    
+
 
     def get_property_label_from_display_name(self, display_name):
         """Convert a given display name string into a proper property label string
         """
-        ''' 
+        '''
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
         label = label[:1].lower() + label[1:] if label else ''
         '''
         display_name = display_name.translate({ord(c): None for c in string.whitespace})
-        
+
         label = inflection.camelize(display_name.strip(), uppercase_first_letter=False)
         return label
 
@@ -412,7 +411,7 @@ class SchemaExplorer():
                 if record["rdfs:label"] == schema_property:
                     p_domain = dict2list(record["schema:domainIncludes"])
                     return unlist([self.uri2label(schema_class["@id"]) for schema_class in p_domain])
-        
+
         return None
 
     def uri2label(self, uri):
@@ -437,17 +436,17 @@ class SchemaExplorer():
                         property_info["range"] = [self.uri2label(record["@id"]) for record in p_range]
                     else:
                         property_info["range"] = []
-   
+
                     if "sms:required" in record:
                         if "sms:true" == record["sms:required"]:
-                            property_info["required"] = True  
-                        else: 
-                            property_info["required"] = False 
+                            property_info["required"] = True
+                        else:
+                            property_info["required"] = False
 
                     validation_rules = []
                     if "sms:validationRules" in record:
                         property_info["validation_rules"] = record["sms:validationRules"]
-                            
+
 
                     if  "sms:requiresDependency" in record:
                         p_dependencies = dict2list(record["sms:requiresDependency"])
@@ -459,9 +458,9 @@ class SchemaExplorer():
                         property_info['displayName'] = record['sms:displayName']
 
                     break
-        
+
         #check if properties are added multiple times
-        
+
         return property_info
 
     def generate_class_template(self):
@@ -503,7 +502,7 @@ class SchemaExplorer():
 
     def edit_class(self, class_info):
         """Edit an existing class into schema
-        """ 
+        """
         for i, schema_class in enumerate(self.schema["@graph"]):
             if schema_class["rdfs:label"] == class_info["rdfs:label"]:
                 validate_class_schema(class_info)   # why are we doing this in a loop?
@@ -525,7 +524,7 @@ class SchemaExplorer():
         validate_schema(self.schema)
         print("Updated the class {} successfully!".format(class_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
-        
+
     def edit_property(self, property_info):
         """Edit an existing property into schema
         """
@@ -533,10 +532,10 @@ class SchemaExplorer():
             if schema_property["rdfs:label"] == property_info["rdfs:label"]:
                 validate_property_schema(property_info)
                 self.schema["@graph"][i] = property_info
-               
+
                 #TODO: check if properties are added/edited multiple times (e.g. look at explore_property)
                 break
-        
+
         validate_schema(self.schema)
         print("Edited the property {} successfully!".format(property_info["rdfs:label"]))
         self.schema_nx = load_schema_into_networkx(self.schema)
@@ -551,7 +550,7 @@ class SchemaExplorer():
 
     def get_digraph_by_edge_type(self, edge_type):
 
-        multi_digraph = self.schema_nx   
+        multi_digraph = self.schema_nx
 
         digraph = nx.DiGraph()
         for (u, v, key, c) in multi_digraph.edges(data=True, keys=True):
@@ -568,7 +567,7 @@ class SchemaExplorer():
 
         # get the networkx graph associated with the SchemaExplorer object in its current state
         schema_graph_nx = self.get_nx_schema()
-    
+
         # outer loop to loop over all the nodes in the graph constructed from master schema
         for node, data in schema_graph_nx.nodes(data=True):
 
@@ -580,7 +579,7 @@ class SchemaExplorer():
 
                     # for the "comment", "required", "displayName", "validationRules" fields/keys it's okay to do a direct replacement
                     # without having to worry about adding/removing any associated edges
-                    
+
                     # ques. is it more expensive to do a checking operation (diff b/w fields) or a replace operation?
 
                     if "comment" in data and "comment" in replace_data: # replace contents of "comment" from replacement node
@@ -665,7 +664,7 @@ class SchemaExplorer():
                         # if the "requiresDependency" attribute already exists on the node, then remove all the "requiresDependency" in-edges
                         # associated with that node
                         if "requiresDependency" in data:
-                        
+
                             for (u, v) in list(schema_graph_nx.out_edges([node])):
                                 # there are certain nodes which have "requiresDependency" data in list format
                                 if type(data["requiresDependency"]) == list:
@@ -673,7 +672,7 @@ class SchemaExplorer():
                                         edge_repl = extract_name_from_uri_or_curie(_edges_to_replace["@id"])
 
                                         if edge_repl == v:
-                                            
+
                                             try:
                                                 schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
                                             except TypeError:
@@ -685,7 +684,7 @@ class SchemaExplorer():
                                         edge_repl = extract_name_from_uri_or_curie(v_curie)
 
                                         if edge_repl == u:
-                                            
+
                                             try:
                                                 schema_graph_nx.remove_edges_from([u, v, "requiresDependency"])
                                             except TypeError:
@@ -759,7 +758,7 @@ class SchemaExplorer():
 
                     # "rangeIncludes" key related edge manipulation
                     if "rangeIncludes" in replace_data:
-                        
+
                         if "rangeIncludes" in data:
                             for (u, v) in list(schema_graph_nx.out_edges([node])):
                                 # there are certain nodes which have "rangeIncludes" data in list format
@@ -814,13 +813,13 @@ class SchemaExplorer():
                 self.schema["@graph"][i] = schema_object
                 break
 
-    # version of update_class() method that directly acts on the networkx graph 
+    # version of update_class() method that directly acts on the networkx graph
     def add_schema_object_nx(self, schema_object: dict, **kwargs: dict) -> None:
         node = node_attrs_cleanup(schema_object)
 
         if "required" in node:
             if "sms:true" == schema_object["sms:required"]:
-                node["required"] = True  
+                node["required"] = True
             else:
                 node["required"] = False
 
@@ -830,7 +829,7 @@ class SchemaExplorer():
             node["validationRules"] = []
 
         node['uri'] = schema_object["@id"]
-        node['description'] = schema_object["rdfs:comment"]        
+        node['description'] = schema_object["rdfs:comment"]
 
         # get the networkx graph associated with the SchemaExplorer object in its current state
         schema_graph_nx = self.get_nx_schema()
