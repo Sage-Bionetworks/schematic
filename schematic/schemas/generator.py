@@ -12,6 +12,8 @@ from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema
 from schematic import CONFIG
 
+
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
