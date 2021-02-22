@@ -3,7 +3,6 @@ import logging
 import pytest
 
 import pandas as pd
-from dotenv import load_dotenv
 
 from schematic.store import BaseStorage
 from schematic.store import SynapseStorage
@@ -11,9 +10,6 @@ from schematic.store import SynapseStorage
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-
-load_dotenv()
 
 
 @pytest.fixture
