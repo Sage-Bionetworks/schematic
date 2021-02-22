@@ -8,6 +8,8 @@ import pytest
 
 from pandas.testing import assert_frame_equal
 
+from schematic.schemas.explorer import SchemaExplorer
+from schematic.utils import csv_utils
 from schematic.utils import general
 from schematic.utils import cli_utils
 from schematic.utils import io_utils
@@ -254,7 +256,7 @@ class TestDfUtils:
 
 
     def test_trim_commas_df(self, helpers):
-        
+
         local_manifest = helpers.get_data_frame("mock_manifests", "local_manifest.csv")
 
         nan_row = pd.DataFrame([[np.nan] * len(local_manifest.columns)],
@@ -293,17 +295,17 @@ class TestValidateUtils:
 
     def test_validate_schema(self, helpers):
 
-        se_obj = helpers.get_schema_explorer("simple.model.jsonld")
+        se_obj = helpers.get_schema_explorer("example.model.jsonld")
 
         actual = validate_utils.validate_schema(se_obj.schema)
-        
+
         assert actual is None
 
-    
+
     def test_validate_class_schema(self, helpers):
-        
-        se_obj = helpers.get_schema_explorer("simple.model.jsonld")
-        
+
+        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+
         mock_class = se_obj.generate_class_template()
         mock_class["@id"] = "bts:MockClass"
         mock_class["@type"] = "rdfs:Class"
@@ -318,8 +320,8 @@ class TestValidateUtils:
 
     def test_validate_property_schema(self, helpers):
 
-        se_obj = helpers.get_schema_explorer("simple.model.jsonld")
-        
+        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+
         mock_class = se_obj.generate_property_template()
         mock_class["@id"] = "bts:MockProperty"
         mock_class["@type"] = "rdf:Property"
@@ -330,3 +332,36 @@ class TestValidateUtils:
         actual = validate_utils.validate_property_schema(mock_class)
 
         assert actual is None
+
+
+class TestCsvUtils:
+
+    def test_csv_to_schemaorg(self, helpers, tmp_path):
+        """Test the CSV-to-JSON-LD conversion.
+
+        This test also ensures that the CSV and JSON-LD
+        files for the example data model stay in sync.
+        """
+
+        # instantiate schema explorer
+        base_se = SchemaExplorer()
+
+        # load base schema (BioThings)
+        biothings_path = LOADER.filename("data_models/biothings.model.jsonld")
+        base_se.load_schema(biothings_path)
+
+        csv_path = helpers.get_data_path("example.model.csv")
+        schema_extension = pd.read_csv(csv_path)
+
+        # base_se = create_schema_classes(schema_extension, base_se)
+        base_se = csv_utils.create_nx_schema_objects(schema_extension, base_se)
+
+        # saving updated schema.org schema
+        actual_jsonld_path = tmp_path / "example.from_csv.model.jsonld"
+        base_se.export_schema(actual_jsonld_path)
+
+        # Compare both JSON-LD files
+        expected_jsonld_path = helpers.get_data_path("example.model.jsonld")
+        expected_jsonld = open(expected_jsonld_path).read()
+        actual_jsonld = open(actual_jsonld_path).read()
+        assert expected_jsonld == actual_jsonld
