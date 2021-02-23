@@ -61,3 +61,8 @@ def helpers():
 @pytest.fixture
 def config():
     yield CONFIG
+
+    
+@pytest.fixture
+def config_path():
+    yield CONFIG_PATH
