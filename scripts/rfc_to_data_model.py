@@ -89,6 +89,7 @@ def rfc_to_data_model(schema_csv, base_schema, output_jsonld, config):
                     
     # saving updated schema.org schema
     base_se.export_schema(output_jsonld)
+    click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
 
 
 if __name__ == "__main__":
