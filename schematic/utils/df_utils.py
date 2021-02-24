@@ -1,5 +1,9 @@
-import numpy as np
+import logging
+
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 def normalize_table(df: pd.DataFrame, primary_key:str) -> pd.DataFrame:
 
@@ -20,7 +24,8 @@ def normalize_table(df: pd.DataFrame, primary_key:str) -> pd.DataFrame:
         return df_norm
     except KeyError:
         # if the primary key is not in the df; then return the same df w/o changes
-        print("Specified primary key is not in table schema. Proceeding without table changes.")
+        logger.error("Specified primary key is not in table schema. Proceeding without table changes.")
+
         return df
 
 
