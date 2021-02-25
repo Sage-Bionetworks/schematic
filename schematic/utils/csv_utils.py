@@ -212,9 +212,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         check_schema_definition(schema_extension)
         logger.debug("Schema definition csv ready for processing!")
     except:
-        logger.exception(f"Schema extension headers: {set(list(schema_extension.columns))} "
+        raise ValueError(f"Schema extension headers: {set(list(schema_extension.columns))} "
                          f"do not match required schema headers: {required_headers}")
-        raise ValueError("The extension could not be added to the schema.")
 
     # get attributes from Attribute column
     attributes = schema_extension[list(required_headers)].to_dict("records")
@@ -592,9 +591,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
         check_schema_definition(schema_extension)
         logger.debug("Schema definition csv ready for processing!")
     except:
-        logger.exception(f"Schema extension headers: {set(list(schema_extension.columns))} "
-                    f"do not match required schema headers: {required_headers}")
-        raise ValueError("The extension could not be added to the schema.")
+        raise ValueError(f"Schema extension headers: {set(list(schema_extension.columns))} "
+                         f"do not match required schema headers: {required_headers}")
 
     rel_dict = {
         "rdfs:subClassOf": {
