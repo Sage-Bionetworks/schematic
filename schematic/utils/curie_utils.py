@@ -14,6 +14,7 @@ def extract_name_from_uri_or_curie(item):
     else:
         raise ValueError("Error extracting name from URI or Curie.")
 
+
 def expand_curie_to_uri(curie, context_info):
     """Expand curie to uri based on the context given
 

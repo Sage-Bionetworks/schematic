@@ -3,6 +3,7 @@ import logging
 import pytest
 import pandas as pd
 
+from schematic.schemas.explorer import SchemaExplorer
 from schematic.configuration import CONFIG
 
 
@@ -40,6 +41,17 @@ class Helpers:
         fullpath = os.path.join(DATA_DIR, path, *paths)
         return pd.read_csv(fullpath, **kwargs)
 
+    @staticmethod
+    def get_schema_explorer(path=None, *paths):
+        if path is None:
+            return SchemaExplorer()
+            
+        fullpath = Helpers.get_data_path(path, *paths)
+            
+        se = SchemaExplorer()
+        se.load_schema(fullpath)
+        return se
+            
 
 @pytest.fixture
 def helpers():
@@ -49,13 +61,3 @@ def helpers():
 @pytest.fixture
 def config():
     yield CONFIG
-
-
-@pytest.fixture()
-def synapse_manifest(helpers):
-    yield helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
-
-
-@pytest.fixture()
-def local_manifest(helpers):
-    yield helpers.get_data_frame("mock_manifests", "local_manifest.csv")

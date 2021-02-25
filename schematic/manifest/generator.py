@@ -744,7 +744,11 @@ class ManifestGenerator(object):
         wb = sh[0]
 
         # get column headers and read it into a dataframe
-        manifest_df = wb.get_as_df(hasHeader=True).drop(columns="")
+        manifest_df = wb.get_as_df(hasHeader=True)
+
+        # An empty column is sometimes included
+        if "" in manifest_df:
+            manifest_df.drop(columns=[""], inplace=True)
 
         return manifest_df
 

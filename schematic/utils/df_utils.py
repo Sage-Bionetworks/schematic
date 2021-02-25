@@ -26,6 +26,7 @@ def normalize_table(df: pd.DataFrame, primary_key:str) -> pd.DataFrame:
     except KeyError:
         # if the primary key is not in the df; then return the same df w/o changes
         logger.warning("Specified primary key is not in table schema. Proceeding without table changes.")
+
         return df
 
 

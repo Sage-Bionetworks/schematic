@@ -12,6 +12,8 @@ from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema
 from schematic import CONFIG
 
+logger = logging.getLogger(__name__)
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -640,9 +642,9 @@ class SchemaGenerator(object):
             json_schema_log_file = f"{prefix}.{source_node}.schema.json"
 
         if json_schema_log_file is None:
-            print(
+            logger.info(
                 "The JSON schema file can be inspected by setting the following "
-                "nested key in the configuration: model > input > log_location."
+                "nested key in the configuration: (model > input > log_location)."
             )
         else:
             with open(json_schema_log_file, "w") as js_f:

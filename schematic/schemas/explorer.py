@@ -518,6 +518,7 @@ class SchemaExplorer():
 
         # TODO: do we actually need to validate the entire schema if a class is just edited and the class passes validation?
         #validate_schema(self.schema)
+        
         logger.info(f"Edited the class {class_info['rdfs:label']} successfully.")
         self.schema_nx = load_schema_into_networkx(self.schema)
 
