@@ -190,12 +190,11 @@ def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
         "Requires" in list(schema_definition.columns) or
         "Requires Component" in list(schema_definition.columns)
     ):
-        logger.error(
-            "The input CSV schema file contains the 'Requires' and/or the 'Requires "
-            "Component' column headers. These columns were renamed to 'DependsOn' and "
-            "'DependsOn Component', respectively. Switch to the new column names."
-        )
-    raise Exception()
+        raise ValueError(
+                        "The input CSV schema file contains the 'Requires' and/or the 'Requires "
+                        "Component' column headers. These columns were renamed to 'DependsOn' and "
+                        "'DependsOn Component', respectively. Switch to the new column names."
+                    )
 
 def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) -> SchemaExplorer:
 
