@@ -5,7 +5,7 @@ from schematic.loader import LOADER
 
 logging.basicConfig(format=('%(levelname)s: [%(asctime)s] %(name)s'
                             ' - %(message)s'),
-                    level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
+                    level=logging.WARNING, datefmt='%Y-%m-%d %H:%M:%S')
 
 
 # Suppress INFO-level logging from some dependencies
