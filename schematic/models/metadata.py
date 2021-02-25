@@ -17,6 +17,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import trim_commas_df
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,7 +51,6 @@ class MetadataModel(object):
 
             self.sg = SchemaGenerator(inputMModelLocation)
         else:
-            logger.debug(f"{inputMModelLocation} is not a .jsonld file.")
             raise TypeError(f"Please make sure {inputMModelLocation} is a .jsonld file.")
 
         # check if the type of MModel file is "local"
@@ -58,7 +58,6 @@ class MetadataModel(object):
         if inputMModelLocationType == "local":
             self.inputMModelLocationType = inputMModelLocationType
         else:
-            logger.debug(f"{inputMModelLocationType} is not 'local'.")
             raise ValueError(f"The type '{inputMModelLocationType}' is currently not supported.")
 
     # business logic: expose metadata model "views" depending on "controller" logic
@@ -298,8 +297,8 @@ class MetadataModel(object):
                 logger.info(f"No validation errors occured during validation.")
                 return True
             else:
-                logger.error(f"Manifest validation failed due to: {val_errors}")
-                raise ValidationError("Manifest could not be validated under provided data model.")
+                raise ValidationError("Manifest could not be validated under provided data model. "
+                                      f"Validation failed with the following errors: {val_errors}")
 
         # no need to perform validation, just submit/associate the metadata manifest file
         syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)

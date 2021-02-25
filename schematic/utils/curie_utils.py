@@ -12,7 +12,8 @@ def extract_name_from_uri_or_curie(item):
     elif len(item.split("//")[-1].split('/')) > 1:
         return item.split("//")[-1].split('/')[-1]
     else:
-        logger.error("Error extracting name from URI or Curie.")
+        raise ValueError("Error extracting name from URI or Curie.")
+
 
 def expand_curie_to_uri(curie, context_info):
     """Expand curie to uri based on the context given

@@ -10,6 +10,7 @@ import numpy as np
 
 from schematic.schemas.explorer import SchemaExplorer
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -189,12 +190,11 @@ def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
         "Requires" in list(schema_definition.columns) or
         "Requires Component" in list(schema_definition.columns)
     ):
-        logger.error(
-            "The input CSV schema file contains the 'Requires' and/or the 'Requires "
-            "Component' column headers. These columns were renamed to 'DependsOn' and "
-            "'DependsOn Component', respectively. Switch to the new column names."
-        )
-    raise Exception()
+        raise ValueError(
+                        "The input CSV schema file contains the 'Requires' and/or the 'Requires "
+                        "Component' column headers. These columns were renamed to 'DependsOn' and "
+                        "'DependsOn Component', respectively. Switch to the new column names."
+                    )
 
 def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) -> SchemaExplorer:
 
@@ -210,12 +210,10 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
     try:
         check_schema_definition(schema_extension)
-        logger.info("Schema definition csv ready for processing!")
+        logger.debug("Schema definition csv ready for processing!")
     except:
-        logger.debug(f"Schema extension headers: {set(list(schema_extension.columns))} "
-                    f"do not match required schema headers: {required_headers}")
-        logger.error("The extension could not be added to the schema.")
-        exit()
+        raise ValueError(f"Schema extension headers: {set(list(schema_extension.columns))} "
+                         f"do not match required schema headers: {required_headers}")
 
     # get attributes from Attribute column
     attributes = schema_extension[list(required_headers)].to_dict("records")
@@ -239,9 +237,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             for p in props:
                 prop_2_class[p.strip()] = record["Attribute"]
 
-    logger.info("=====================")
-    logger.info("Adding attributes")
-    logger.info("=====================")
+    logger.debug("Adding attributes")
     for attribute in attributes:
 
         required = None
@@ -286,15 +282,11 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             if not attribute_exists(se, new_property["rdfs:label"]):
                 se.update_property(new_property)
 
-    logger.info("=====================")
-    logger.info("Done adding attributes")
-    logger.info("=====================")
+    logger.debug("Done adding attributes")
 
     #TODO check if schema already contains property - may require property context in csv schema definition
 
-    logger.info("=====================")
-    logger.info("Adding and editing properties")
-    logger.info("=====================")
+    logger.debug("Adding and editing properties")
 
     for prop in properties:
         if not pd.isnull(prop["Properties"]): # a class may have or not have properties
@@ -327,15 +319,11 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     )
                     se.update_property(new_property)
 
-    logger.info("=====================")
-    logger.info("Done adding properties")
-    logger.info("=====================")
+    logger.debug("Done adding properties")
 
     # set range values and dependency requirements for each attribute
     # if not already added, add each attribute in required values and dependencies to the schema extension
-    logger.info("=====================")
-    logger.info("Editing attributes and properties to add requirements and value ranges")
-    logger.info("=====================")
+    logger.debug("Editing attributes and properties to add requirements and value ranges")
 
     for attribute in attributes:
 
@@ -344,7 +332,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         # get values in range for this attribute, if any are specified
         range_values = attribute["Valid Values"]
         if not pd.isnull(range_values):
-            logger.info("Adding value range for " + attribute["Attribute"])
+            logger.debug("Adding value range for " + attribute["Attribute"])
 
             # prepare the range values list and split based on appropriate delimiter
             # if the string "range_values" starts with double quotes, then extract all "valid values" within double quotes
@@ -366,9 +354,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                     # this attribute is a property, set the parent to the domain class of this attribute
                         parent = se.get_class_by_property(attribute["Attribute"])
                         if not parent:
-                            logger.error(f"""Listed valid value: {val}, for attribute: {attribute["Attribute"]} """
-                                        "must have a class parent. The extension could not be added to the schema.")
-                            exit()
+                            raise ValueError(f"Listed valid value: {val}, for attribute: {attribute['Attribute']} "
+                                              "must have a class parent. The extension could not be added to the schema.")
 
                     new_class = get_class(se, val,
                                         description = None,
@@ -381,7 +368,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                 #update rangeIncludes of attribute
                 # if attribute is not a property, then assume it is a class
                 if not attribute["Attribute"] in all_properties:
-                    logger.info(attribute["Attribute"])
+                    logger.debug(attribute["Attribute"])
                     class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
                     class_info["range"].append(se.get_class_label_from_display_name(val))
                     class_range_edit = get_class(se, attribute["Attribute"],
@@ -407,14 +394,14 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                     validation_rules = property_info["validation_rules"]
                     )
                     se.edit_property(property_range_edit)
-                logger.info(val + " added to value range.")
+                logger.debug(val + " added to value range.")
 
-            logger.info("<<< Done adding value range for " + attribute["Attribute"])
+            logger.debug("<<< Done adding value range for " + attribute["Attribute"])
 
         # get validation rules for this attribute, if any are specified
         validation_rules = attribute["Validation Rules"]
         if not pd.isnull(validation_rules):
-            logger.info(">>> Adding validation rules for " + attribute["Attribute"])
+            logger.debug(">>> Adding validation rules for " + attribute["Attribute"])
 
             # TODO: make validation rules delimiter configurable parameter
             validation_rules = [val_rule.strip() for val_rule in validation_rules.strip().split("::")]
@@ -422,7 +409,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             #update validation rules of attribute
             # if attribute is not a property, then assume it is a class
             if not attribute["Attribute"] in all_properties:
-                logger.info(attribute["Attribute"])
+                logger.debug(attribute["Attribute"])
                 class_info = se.explore_class(se.get_class_label_from_display_name(attribute["Attribute"]))
                 class_info["validation_rules"] = validation_rules
                 class_val_rule_edit = get_class(se, attribute["Attribute"],
@@ -452,7 +439,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["DependsOn"]
         if not pd.isnull(requires_dependencies):
-            logger.info(">>> Adding dependencies for " + attribute["Attribute"])
+            logger.debug(">>> Adding dependencies for " + attribute["Attribute"])
 
             for dep in requires_dependencies.strip().split(","):
                 # check if dependency is a property or not
@@ -477,9 +464,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                         # this attribute is a property, set the parent to the domain class of this attribute
                             parent = se.get_class_by_property(attribute["Attribute"])
                             if not parent:
-                                logger.error(f"""Listed required dependency: {dep}, for attribute: {attribute["Attribute"]} """
-                                            "must have a class parent. The extension could not be added to the schema.")
-                                exit()
+                                raise ValueError(f"Listed required dependency: {dep}, for attribute: {attribute['Attribute']} "
+                                                  "must have a class parent. The extension could not be added to the schema.")
 
                         new_class = get_class(se, dep,
                                               description = None,
@@ -497,9 +483,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                         # this attribute is a property, set the domain of this property to the domain class of the attribute
                             domain_attribute = se.get_class_by_property(attribute["Attribute"])
                             if not domain_attribute:
-                                logger.error(f"Listed required dependency: {dep}, must have a class parent. "
-                                            "The extension could not be added to the schema.")
-                                exit()
+                                raise ValueError(f"Listed required dependency: {dep}, must have a class parent. "
+                                                  "The extension could not be added to the schema.")
 
                         description = None
                         new_property = get_property(se, dep,
@@ -537,11 +522,12 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
                                                         validation_rules = property_info["validation_rules"]
                     )
                     se.edit_property(property_dependencies_edit)
-                logger.info(dep + " added to dependencies.")
+
+                logger.debug(dep + " added to dependencies.")
 
             #TODO check for cycles in attribute dependencies schema subgraph
 
-            logger.info("<<< Done adding dependencies for " + attribute["Attribute"])
+            logger.debug("<<< Done adding dependencies for " + attribute["Attribute"])
 
 
         # check if the attribute requires any components
@@ -549,8 +535,8 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             component_dependencies = attribute["DependsOn Component"]
         else:
             continue
-
-        logger.info(">>> Adding component dependencies for " + attribute["Attribute"])
+            
+        logger.debug(">>> Adding component dependencies for " + attribute["Attribute"])
 
         # iterate over potentially multiple dependency components
         for comp_dep in component_dependencies.strip().split(","):
@@ -583,14 +569,11 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
 
         #TODO check for cycles in component dependencies schema subgraph
+        
+        logger.debug("<<< Done adding component dependencies for " + attribute["Attribute"])
 
-        logger.info("<<< Done adding component dependencies for " + attribute["Attribute"])
 
-
-    logger.info("=====================")
     logger.info("Done adding requirements and value ranges to attributes")
-    logger.info("=====================")
-
 
     return se
 
@@ -606,12 +589,10 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
 
     try:
         check_schema_definition(schema_extension)
-        logger.info("Schema definition csv ready for processing!")
+        logger.debug("Schema definition csv ready for processing!")
     except:
-        logger.debug(f"Schema extension headers: {set(list(schema_extension.columns))} "
-                    f"do not match required schema headers: {required_headers}")
-        logger.error("The extension could not be added to the schema.")
-        exit()
+        raise ValueError(f"Schema extension headers: {set(list(schema_extension.columns))} "
+                         f"do not match required schema headers: {required_headers}")
 
     rel_dict = {
         "rdfs:subClassOf": {
@@ -653,8 +634,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
             for p in props:
                 prop_2_class[p.strip()] = record["Attribute"]
 
-    logger.info("Adding attributes")
-    logger.info("====================================================================================")
+    logger.debug("Adding attributes")
     for attribute in attributes:
 
         required = None
@@ -699,13 +679,11 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
             if not attribute_exists(se, new_property["rdfs:label"]):
                 se.add_schema_object_nx(new_property, **rel_dict)
 
-    logger.info("Done adding attributes")
-    logger.info("====================================================================================")
+    logger.debug("Done adding attributes")
 
     #TODO check if schema already contains property - may require property context in csv schema definition
 
-    logger.info("Adding and editing properties")
-    logger.info("====================================================================================")
+    logger.debug("Adding and editing properties")
 
     for prop in properties:
         if not pd.isnull(prop["Properties"]): # a class may have or not have properties
@@ -737,9 +715,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                 description = description
                     )
                     se.add_schema_object_nx(new_property, **rel_dict)
-
-    logger.info("Done adding properties")
-    logger.info("====================================================================================")
+                    
+    logger.debug("Done adding properties")
 
     # # set range values and dependency requirements for each attribute
     # # if not already added, add each attribute in required values and dependencies to the schema extension
@@ -773,9 +750,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                     # this attribute is a property, set the parent to the domain class of this attribute
                         parent = se.get_class_by_property(attribute["Attribute"])
                         if not parent:
-                            logger.error(f"""Listed valid value: {val}, for attribute: {attribute["Attribute"]} """
-                                        "must have a class parent. The extension could not be added to the schema.")
-                            exit()
+                            raise ValueError(f"Listed valid value: {val}, for attribute: {attribute['Attribute']} "
+                                              "must have a class parent. The extension could not be added to the schema.")
 
                     new_class = get_class(se, val,
                                         description = None,
@@ -813,7 +789,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                     validation_rules = property_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(property_range_edit)
-                logger.info(val + " added to value range")
+                    
+                logger.debug(val + " added to value range")
 
         # get validation rules for this attribute, if any are specified
         validation_rules = attribute["Validation Rules"]
@@ -849,7 +826,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                    validation_rules = property_info["validation_rules"]
                 )
                 se.edit_schema_object_nx(property_val_rule_edit)
-            logger.info(val + "validation rules added")
+                
+            logger.debug(val + "validation rules added")
 
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["DependsOn"]
@@ -878,9 +856,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                         # this attribute is a property, set the parent to the domain class of this attribute
                             parent = se.get_class_by_property(attribute["Attribute"])
                             if not parent:
-                                logger.error(f"""Listed required dependency: {dep}, for attribute: {attribute["Attribute"]} """
-                                            "must have a class parent. The extension could not be added to the schema.")
-                                exit()
+                                raise ValueError(f"Listed required dependency: {dep}, for attribute: {attribute['Attribute']} "
+                                                  "must have a class parent. The extension could not be added to the schema."
 
                         new_class = get_class(se, dep,
                                               description = None,
@@ -898,9 +875,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                         # this attribute is a property, set the domain of this property to the domain class of the attribute
                             domain_attribute = se.get_class_by_property(attribute["Attribute"])
                             if not domain_attribute:
-                                logger.error(f"Listed required dependency: {dep}, must have a class parent. "
-                                            "The extension could not be added to the schema.")
-                                exit()
+                                raise ValueError(f"Listed required dependency: {dep}, must have a class parent. "
+                                                  "The extension could not be added to the schema.")
 
                         description = None
                         new_property = get_property(se, dep,
@@ -938,7 +914,8 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                         validation_rules = property_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(property_dependencies_edit)
-                logger.info(dep + " added to dependencies")
+                                                 
+                logger.debug(dep + " added to dependencies")
 
             #TODO check for cycles in attribute dependencies schema subgraph
 
@@ -976,12 +953,12 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                             requires_components = class_info["component_dependencies"]
             )
             se.edit_schema_object_nx(class_component_dependencies_edit)
-        logger.info(comp_dep + " added to dependencies")
+                                                 
+        logger.debug(comp_dep + " added to dependencies")
 
 
         #TODO check for cycles in component dependencies schema subgraph
 
     logger.info("Done adding requirements and value ranges to attributes")
-    logger.info("====================================================================================")
 
     return se
