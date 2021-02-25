@@ -18,7 +18,6 @@ from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import trim_commas_df
 
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

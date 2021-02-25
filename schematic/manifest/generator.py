@@ -15,8 +15,6 @@ from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
 
-
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 

@@ -15,10 +15,6 @@ from schematic import CONFIG
 logger = logging.getLogger(__name__)
 
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
 class SchemaGenerator(object):
     def __init__(self,
                 path_to_json_ld: str = None,
