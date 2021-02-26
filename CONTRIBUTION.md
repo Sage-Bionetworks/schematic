@@ -16,7 +16,7 @@ Please note we have a code of conduct, please follow it in all your interactions
 
 ### Setup Project for Development and Testing
 
-1. Follow the package setup instructions on the main README till the "[Clone Project Repository](https://github.com/Sage-Bionetworks/schematic/tree/develop#131-clone-project-repository)" step.
+1. Follow the package setup instructions on the main README till the [`Clone Project Repository`](README.m#131-clone-project-repository) step.
 2. If you are a `schematic` package contributor you don't need to create a `venv` virtual environment, `poetry` will create a virtual environment by default, which you can use.
 3. Running the following command reads the [`pyproject.toml`](https://github.com/Sage-Bionetworks/schematic/blob/develop/pyproject.toml) file from the current project, resolves the dependencies and installs them: `poetry install`
 4. Obtain credentials file(s) by following same instructions as in the [`1.3.4. Obtain Credentials File(s)`](README.md#134-obtain-credentials-files) section.
