@@ -19,9 +19,9 @@ Please note we have a code of conduct, please follow it in all your interactions
 1. Follow the package setup instructions on the main README till the "[Clone Project Repository](https://github.com/Sage-Bionetworks/schematic/tree/develop#131-clone-project-repository)" step.
 2. If you are a `schematic` package contributor you don't need to create a `venv` virtual environment, `poetry` will create a virtual environment by default, which you can use.
 3. Running the following command reads the [`pyproject.toml`](https://github.com/Sage-Bionetworks/schematic/blob/develop/pyproject.toml) file from the current project, resolves the dependencies and installs them: `poetry install`
-4. Obtain credentials file(s) by following same instructions as in the [main README](https://github.com/Sage-Bionetworks/schematic/tree/develop).
-5. Fill in configuration file(s) in the same way as specified in the [main README](https://github.com/Sage-Bionetworks/schematic/tree/develop).
-6. To run any of the CLI utilities shown in the [main README](https://github.com/Sage-Bionetworks/schematic/tree/develop), prefix the commands with `poetry run`.
+4. Obtain credentials file(s) by following same instructions as in the [`1.3.4. Obtain Credentials File(s)`](README.md#134-obtain-credentials-files) section.
+5. Fill in configuration file(s) in the same way as specified in the [`1.3.5. Fill in Configuration File(s)`](README.md#135-fill-in-configuration-files).
+6. To run any of the CLI utilities shown in the [`1.3.6. Command Line Interface`](README.md#136-command-line-interface), prefix the commands with `poetry run`.
 
 ## Pull Request Process
 
