@@ -390,9 +390,9 @@ class SynapseStorage(BaseStorage):
         """
 
         # determine dataset name
-        datasetEntity = self.syn.get(datasetId, downloadFile = False)
-        datasetName = datasetEntity.name
-        datasetParentProject = self.storageFileviewTable[(self.storageFileviewTable["id"] == datasetId)]["projectId"].values[0]
+        # datasetEntity = self.syn.get(datasetId, downloadFile = False)
+        # datasetName = datasetEntity.name
+        # datasetParentProject = self.storageFileviewTable[(self.storageFileviewTable["id"] == datasetId)]["projectId"].values[0]
 
         # read new manifest csv
         try:
