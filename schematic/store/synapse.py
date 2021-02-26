@@ -70,7 +70,6 @@ class SynapseStorage(BaseStorage):
                 self.syn.login(sessionToken = token, silent = True)
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("Please make sure you are logged into synapse.org.")
-                return
         elif access_token:
             self.syn = synapseclient.Synapse()
             self.syn.default_headers["Authorization"] = f"Bearer {access_token}"
