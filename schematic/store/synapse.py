@@ -86,15 +86,12 @@ class SynapseStorage(BaseStorage):
 
             self.manifest = CONFIG["synapse"]["manifest_filename"]
         except KeyError:
-            logger.error("Synapse ID of the master fileview is missing.")
             raise MissingConfigValueError(("synapse", "master_fileview"))
         except AttributeError:
             raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
-            logger.error(f"Access to the project {self.storageFileview} was unresolved.")
             raise AccessCredentialsError(self.storageFileview)
         except ValueError:
-            logger.error("Synapse ID of the administrative fileview is missing.")
             raise MissingConfigValueError(("synapse", "master_fileview"))
 
 
@@ -283,7 +280,6 @@ class SynapseStorage(BaseStorage):
         manifest_id_name = self.getDatasetManifest(datasetId)
         if not manifest_id_name:
             # no manifest exists yet: abort
-            logger.error(f"No manifest file not found im dataset folder.")
             raise FileNotFoundError(f"Manifest file {CONFIG['synapse']['manifest_filename']} "
                                     f"cannot be found in {datasetId} dataset folder.")
 
@@ -402,7 +398,6 @@ class SynapseStorage(BaseStorage):
         try:
             manifest = pd.read_csv(metadataManifestPath)
         except FileNotFoundError as err:
-            logger.error("Check local manifest file path/location.")
             raise FileNotFoundError(f"No manifest file was found at this path: {metadataManifestPath}") from err
 
         # check if there is an existing manifest
