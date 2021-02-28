@@ -9,7 +9,6 @@ from functools import reduce
 from schematic import CONFIG
 from schematic.exceptions import MissingConfigValueError, MissingConfigAndArgumentValueError
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
