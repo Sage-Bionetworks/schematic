@@ -35,7 +35,7 @@ class SynapseStorage(BaseStorage):
     """
 
     def __init__(self,
-                token: str = None, # optional parameter retreived from browser cookie
+                token: str = None, # optional parameter retrieved from browser cookie
                 access_token: str = None,
                 ) -> None:
 
@@ -251,25 +251,32 @@ class SynapseStorage(BaseStorage):
         Returns:
             A tuple of manifest file ID and manifest name -- (fileId, fileName); returns empty list if no manifest is found.
             (or)
-            synapseclient.entity.File: A new Synapse Entity object of the appropriate type.
+            synapseclient.entity.File: A new Synapse Entity object of the appropriate type, if downloadFile is set to True
         """
 
         # get a list of files containing the manifest for this dataset (if any)
-        manifest = self.getFilesInStorageDataset(datasetId, fileNames = [os.path.basename(self.manifest)])
+        #manifest = self.getFilesInStorageDataset(datasetId, fileNames = [os.path.basename(self.manifest)])
+        all_files = self.storageFileviewTable
 
-        if not manifest:
+        manifest = all_files[(all_files["name"] == os.path.basename(self.manifest)) & (all_files["parentId"] == datasetId)] 
+        manifest = manifest[['id', 'name']]
+        
+        if manifest.empty:
             return []
         else:
             # if the downloadFile option is set to True
             if downloadFile:
-                # retreive data in (synID, /dataset/path/) format
-                syn_id_and_path = manifest[0]
+                # retrieve data from synapse
+                manifest_syn_id = manifest['id'][0]
 
                 # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                manifest_data = self.syn.get(syn_id_and_path[0], downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
+                manifest_data = self.syn.get(manifest_syn_id, downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
+
+                print(CONFIG["synapse"]["manifest_folder"])
+
                 return manifest_data
 
-            return manifest[0] # extract manifest tuple from list
+            return list(manifest.to_records(index=False))[0] # extract manifest tuple from list
 
 
     def updateDatasetManifestFiles(self, datasetId: str) -> str:
@@ -343,11 +350,14 @@ class SynapseStorage(BaseStorage):
         """
 
         projects = self.getStorageProjects()
+        
+        print(projects)
 
         manifests = []
         for projectId, projectName in projects:
 
             datasets = self.getStorageDatasetsInProject(projectId)
+            print(datasets)
 
             for (datasetId, datasetName) in datasets:
 
@@ -358,6 +368,7 @@ class SynapseStorage(BaseStorage):
                             (datasetId, datasetName),
                             self.getDatasetManifest(datasetId)
                 )
+                print(manifest)
                 manifests.append(manifest)
 
         return manifests
