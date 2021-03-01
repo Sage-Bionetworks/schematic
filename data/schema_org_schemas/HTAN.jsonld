@@ -2729,6 +2729,18 @@
                 },
                 {
                     "@id": "bts:Cloupe"
+                },
+                {
+                    "@id": "bts:Am"
+                },
+                {
+                    "@id": "bts:Cell"
+                },
+                {
+                    "@id": "bts:Mpg"
+                },
+                {
+                    "@id": "bts:M"
                 }
             ],
             "sms:displayName": "File Format",
@@ -2738,7 +2750,7 @@
         {
             "@id": "bts:Checksum",
             "@type": "rdfs:Class",
-            "rdfs:comment": "MD5 checksum of the fasta file",
+            "rdfs:comment": "MD5 checksum of the BAM file",
             "rdfs:label": "Checksum",
             "rdfs:subClassOf": [
                 {
@@ -9993,7 +10005,7 @@
         {
             "@id": "bts:AppliedHardTrimming",
             "@type": "rdfs:Class",
-            "rdfs:comment": "Yes - Applied Hard Trimming, No",
+            "rdfs:comment": "TBD",
             "rdfs:label": "AppliedHardTrimming",
             "rdfs:subClassOf": [
                 {
@@ -10003,6 +10015,14 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Yes-AppliedHardTrimming"
+                },
+                {
+                    "@id": "bts:No"
+                }
+            ],
             "sms:displayName": "Applied Hard Trimming",
             "sms:required": "sms:true",
             "sms:validationRules": []
@@ -12348,7 +12368,7 @@
                     "@id": "bts:Frozeninvaporphase"
                 },
                 {
-                    "@id": "bts:Raraffinblock"
+                    "@id": "bts:Paraffinblock"
                 },
                 {
                     "@id": "bts:RNAlaterat4C"
@@ -29687,6 +29707,9 @@
                     "@id": "bts:GangliogliomaNOS"
                 },
                 {
+                    "@id": "bts:Familialadenomatouspolyposis"
+                },
+                {
                     "@id": "bts:Gastrincelltumor"
                 },
                 {
@@ -40129,6 +40152,57 @@
             "sms:validationRules": []
         },
         {
+            "@id": "bts:Am",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Am",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:File"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "am",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Mpg",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Mpg",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:File"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "mpg",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:M",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "M",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:File"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "m",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:BarrettsEsophagusGobletCellsPresent",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -46079,10 +46153,10 @@
             "sms:validationRules": []
         },
         {
-            "@id": "bts:Raraffinblock",
+            "@id": "bts:Paraffinblock",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "Raraffinblock",
+            "rdfs:label": "Paraffinblock",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:StorageMethod"
@@ -46091,7 +46165,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Raraffin block",
+            "sms:displayName": "Paraffin block",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -94712,23 +94786,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "L2",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:M",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "M",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:INRGStage"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "M",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
