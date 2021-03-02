@@ -2734,7 +2734,7 @@
                     "@id": "bts:Am"
                 },
                 {
-                    "@id": "bts:Cell"
+                    "@id": "bts:Cellam"
                 },
                 {
                     "@id": "bts:Mpg"
@@ -40165,6 +40165,23 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "am",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Cellam",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Cellam",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:File"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "cell am",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
