@@ -10,6 +10,5 @@ logging.basicConfig(format=('%(levelname)s: [%(asctime)s] %(name)s'
 
 # Suppress INFO-level logging from some dependencies
 logging.getLogger('keyring').setLevel(logging.ERROR)
-logging.getLogger('rdflib').setLevel(logging.ERROR)
 
 logger = logging.getLogger('schematic')
