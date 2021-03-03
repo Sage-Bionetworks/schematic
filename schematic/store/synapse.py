@@ -1,24 +1,29 @@
 import os
 import uuid # used to generate unique names for entities
+import json
+import atexit
 import logging
 
 # allows specifying explicit variable types
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Sequence
 from collections import OrderedDict
 
+import numpy as np
 import pandas as pd
 import synapseclient
 import synapseutils
 
-from synapseclient import File, Folder
+from synapseclient import (
+    Synapse, File, Folder, EntityViewSchema, EntityViewType, Column
+)
 from synapseclient.table import CsvFileTable
 from synapseclient.annotations import from_synapse_annotations
+from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError
 import synapseutils
 
 from schematic.utils.df_utils import update_df
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.base import BaseStorage
-from synapseclient.core.exceptions import SynapseHTTPError
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
@@ -70,7 +75,6 @@ class SynapseStorage(BaseStorage):
                 self.syn.login(sessionToken = token, silent = True)
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("Please make sure you are logged into synapse.org.")
-                return
         elif access_token:
             self.syn = synapseclient.Synapse()
             self.syn.default_headers["Authorization"] = f"Bearer {access_token}"
@@ -397,7 +401,7 @@ class SynapseStorage(BaseStorage):
         # determine dataset name
         datasetEntity = self.syn.get(datasetId, downloadFile = False)
         datasetName = datasetEntity.name
-        datasetParentProject = self.storageFileviewTable[(self.storageFileviewTable["id"] == datasetId)]["projectId"].values[0]
+        datasetParentProject = self.getDatasetProject(datasetId)
 
         # read new manifest csv
         try:
@@ -496,7 +500,10 @@ class SynapseStorage(BaseStorage):
         annotations_unordered = from_synapse_annotations(syn_annotations)
         annotations = OrderedDict()
         for key, vals in annotations_unordered.items():
-            annotations[key] = ", ".join(str(v) for v in vals)
+            if isinstance(vals, list) and len(vals) == 1:
+                annotations[key] = str(vals[0])
+            else:
+                annotations[key] = ", ".join(str(v) for v in vals)
 
         # Add the file entity ID and eTag, which weren't lists
         assert fileId == syn_annotations["id"], (
@@ -509,28 +516,259 @@ class SynapseStorage(BaseStorage):
         return annotations
 
 
-    def getDatasetAnnotations(self, datasetId: str, fill_na: bool=True) -> pd.DataFrame:
+    def getDatasetAnnotations(
+        self,
+        datasetId: str,
+        fill_na: bool=True,
+        force_batch: bool=False
+    ) -> pd.DataFrame:
         """Generate table for annotations across all files in given dataset.
 
         Args:
             datasetId (str): Synapse ID for dataset folder.
-            fill_na (bool): Whether to replace missing values
-                with blank strings.
+            fill_na (bool): Whether to replace missing values with
+                blank strings.
+            force_batch (bool): Whether to force the function to use
+                the batch mode, which uses a file view to retrieve
+                annotations for a given dataset. Default to False
+                unless there are more than 50 files in the dataset.
 
         Returns:
             pd.DataFrame: Table of annotations.
         """
         # Step 1: Get all files in given dataset
         dataset_files = self.getFilesInStorageDataset(datasetId)
+        dataset_ids = [i for i, _ in dataset_files]
 
         # Step 2: Get annotations for each file from Step 1
-        annotations_list = [self.getFileAnnotations(i) for i, _ in dataset_files]
+        try_batch = len(dataset_files) >= 50 or force_batch
+        if try_batch:
+            try:
+                table = self.getDatasetAnnotationsBatch(datasetId, dataset_ids)
+            except (SynapseAuthenticationError, SynapseHTTPError):
+                # Default to the slower non-batch method
+                try_batch = False
 
-        # Step 3: Create data frame from list of annotations
-        table = pd.DataFrame.from_records(annotations_list)
+        if not try_batch:
+            records = [self.getFileAnnotations(i) for i in dataset_ids]
+            table = pd.DataFrame.from_records(records)
 
         # Missing values are filled in with empty strings for Google Sheets
         if fill_na:
             table.fillna("", inplace=True)
 
+        return table.astype(str)
+
+
+    def getDatasetProject(self, datasetId: str) -> str:
+        """Get parent project for a given dataset ID.
+
+        Args:
+            datasetId (str): Synapse entity ID (folder or project).
+
+        Raises:
+            ValueError: Raised if Synapse ID cannot be retrieved
+            by the user or if it doesn't appear in the file view.
+
+        Returns:
+            str: The Synapse ID for the parent project.
+        """
+        # Subset main file view
+        dataset_index = self.storageFileviewTable["id"] == datasetId
+        dataset_row = self.storageFileviewTable[dataset_index]
+
+        # Return `projectId` for given row if only one found
+        if len(dataset_row) == 1:
+            dataset_project = dataset_row["projectId"].values[0]
+            return dataset_project
+
+        # Otherwise, check if already project itself
+        try:
+            syn_object = self.syn.get(datasetId)
+            if syn_object.properties["concreteType"].endswith("Project"):
+                return datasetId
+        except SynapseHTTPError:
+            raise ValueError(
+                f"The given dataset ({datasetId}) isn't accessible with this "
+                "user. This might be caused by a typo in the dataset Synapse ID."
+            )
+
+        # If not, then assume dataset not in file view
+        raise ValueError(
+            f"The given dataset ({datasetId}) doesn't appear in the "
+            f"configured file view ({self.storageFileview}). This might "
+            "mean that the file view's scope needs to be updated."
+        )
+
+
+    def getDatasetAnnotationsBatch(
+        self,
+        datasetId: str,
+        dataset_ids: Sequence[str]=None
+    ) -> pd.DataFrame:
+        """Generate table for annotations across all files in given dataset.
+
+        This function uses a temporary file view to generate a table
+        instead of iteratively querying for individual entity annotations.
+        This function is expected to run much faster than
+        `self.getDatasetAnnotationsBatch` on large datasets.
+
+        Args:
+            datasetId (str): Synapse ID for dataset folder.
+
+        Returns:
+            pd.DataFrame: Table of annotations.
+        """
+        # Create data frame from annotations file view
+        with DatasetFileView(datasetId, self.syn) as fileview:
+            table = fileview.query()
+
+        if dataset_ids:
+            table = table.loc[table.index.intersection(dataset_ids)]
+
+        table = table.reset_index(drop=True)
+
         return table
+
+
+class DatasetFileView:
+    """Helper class to create temporary dataset file views.
+
+    This class can be used in conjunction with a 'with' statement.
+    This will ensure that the file view is deleted automatically.
+
+    See SynapseStorage.getDatasetAnnotationsBatch for example usage.
+    """
+
+    def __init__(
+        self,
+        datasetId: str,
+        synapse: Synapse,
+        parentId: str=None
+    ) -> None:
+        """Create a file view scoped to a dataset folder.
+
+        Args:
+            datasetId (str): Synapse ID for a dataset folder/project.
+            synapse (Synapse): Used for Synapse requests.
+            parentId (str, optional): Synapse ID specifying where to
+                store the file view. Defaults to datasetId.
+        """
+
+        self.datasetId = datasetId
+        self.synapse = synapse
+
+        # TODO: Allow a DCC admin to configure a "universal parent"
+        #       Such as a Synapse project writeable by everyone.
+        self.parentId = datasetId if parentId is None else parentId
+
+        # TODO: Create local sharing setting to hide from everyone else
+        view_schema = EntityViewSchema(
+            name=f"schematic annotation file view for {self.datasetId}",
+            parent=self.parentId,
+            scopes=self.datasetId,
+            includeEntityTypes=[EntityViewType.FILE, EntityViewType.FOLDER],
+            addDefaultViewColumns=False,
+            addAnnotationColumns=True
+        )
+
+        # TODO: Handle failure due to insufficient permissions by
+        #       creating a temporary new project to store view
+        self.view_schema = self.synapse.store(view_schema)
+
+        # These are filled in after calling `self.query()`
+        self.results = None
+        self.table = None
+
+        # Ensure deletion of the file view (last resort)
+        atexit.register(self.delete)
+
+
+    def __enter__(self):
+        """Return file view when entering 'with' statement."""
+        return self
+
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Delete file view when exiting 'with' statement."""
+        self.delete()
+
+
+    def delete(self):
+        """Delete the file view on Synapse without deleting local table."""
+        if self.view_schema is not None:
+            self.synapse.delete(self.view_schema)
+            self.view_schema = None
+
+
+    def query(self, tidy=True, force=False):
+        """Retrieve file view as a data frame (raw format sans index)."""
+        if self.table is None or force:
+            fileview_id = self.view_schema["id"]
+            self.results = self.synapse.tableQuery(f"select * from {fileview_id}")
+            self.table = self.results.asDataFrame(rowIdAndVersionInIndex=False)
+        if tidy:
+            self.tidy_table()
+        return self.table
+
+
+    def tidy_table(self):
+        """Convert raw file view data frame into more usable format."""
+        assert self.table is not None, "Must call `self.query()` first."
+        self._fix_default_columns()
+        self._fix_list_columns()
+        self._fix_int_columns()
+        return self.table
+
+
+    def _fix_default_columns(self):
+        """Rename default columns to match schematic expectations."""
+
+        # Drop ROW_VERSION column if present
+        if "ROW_VERSION" in self.table:
+            del self.table["ROW_VERSION"]
+
+        # Rename id column to entityId and set as data frame index
+        if "ROW_ID" in self.table:
+            self.table["entityId"] = "syn" + self.table["ROW_ID"].astype(str)
+            self.table = self.table.set_index("entityId", drop=False)
+            del self.table["ROW_ID"]
+
+        # Rename ROW_ETAG column to eTag and place at end of data frame
+        if "ROW_ETAG" in self.table:
+            row_etags = self.table.pop("ROW_ETAG")
+            self.table.insert(len(self.table.columns), "eTag", row_etags)
+
+        return self.table
+
+
+    def _get_columns_of_type(self, types):
+        """Helper function to get list of columns of a given type(s)."""
+        matching_columns = []
+        for header in self.results.headers:
+            if header.columnType in types:
+                matching_columns.append(header.name)
+        return matching_columns
+
+
+    def _fix_list_columns(self):
+        """Fix formatting of list-columns."""
+        list_types = {'STRING_LIST', 'INTEGER_LIST', 'BOOLEAN_LIST'}
+        list_columns = self._get_columns_of_type(list_types)
+        for col in list_columns:
+            # Fill NA values with empty lists for json.loads to work
+            self.table[col].fillna("[]", inplace=True)
+            self.table[col] = self.table[col].apply(json.loads)
+            self.table[col] = self.table[col].apply(lambda x: ", ".join(x))
+        return self.table
+
+
+    def _fix_int_columns(self):
+        """Ensure that integer-columns are actually integers."""
+        int_columns = self._get_columns_of_type({"INTEGER"})
+        for col in int_columns:
+            # Coercing to string because NaN is a floating point value
+            # and cannot exist alongside integers in a column
+            to_int_fn = lambda x: "" if np.isnan(x) else str(int(x))
+            self.table[col] = self.table[col].apply(to_int_fn)
+        return self.table
