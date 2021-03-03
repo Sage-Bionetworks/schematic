@@ -78,3 +78,9 @@ testpaths = [
 filterwarnings = [
     "ignore::DeprecationWarning"
 ]
+markers = [
+    """\
+    google_credentials_needed: marks tests requiring \
+    Google credentials (skipped on GitHub CI)\
+    """,
+]
