@@ -143,7 +143,7 @@ Note: To view a full list of all the arguments that can be supplied to the comma
 
 ## 1.4. Contributing
 
-Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md). To start contributing to the package, you can refer to the [Getting Started](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md#getting-started) section in our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md).
+Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](CONTRIBUTION.md). To start contributing to the package, you can refer to the [Getting Started](CONTRIBUTION.md#getting-started) section in our [contributing guide](CONTRIBUTION.md).
 
 ## 1.5. Contributors
 

@@ -857,7 +857,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                             parent = se.get_class_by_property(attribute["Attribute"])
                             if not parent:
                                 raise ValueError(f"Listed required dependency: {dep}, for attribute: {attribute['Attribute']} "
-                                                  "must have a class parent. The extension could not be added to the schema."
+                                                  "must have a class parent. The extension could not be added to the schema.")
 
                         new_class = get_class(se, dep,
                                               description = None,
