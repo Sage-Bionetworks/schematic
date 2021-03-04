@@ -495,10 +495,16 @@ class SynapseStorage(BaseStorage):
         """
 
         # Get entity metadata, including annotations
-        entity = self.syn.get(fileId, downloadFile=False)
-        is_file = entity.concreteType.endswith(".FileEntity")
-        is_folder = entity.concreteType.endswith(".Folder")
-        annotations_raw = entity.annotations
+        try:
+            entity = self.syn.get(fileId, downloadFile=False)
+            is_file = entity.concreteType.endswith(".FileEntity")
+            is_folder = entity.concreteType.endswith(".Folder")
+            annotations_raw = entity.annotations
+        except SynapseHTTPError:
+            # If an error occurs with retrieving entity, skip it
+            # This could be caused by a temporary file view that
+            # was deleted since its ID was retrieved
+            is_file, is_folder = False, False
 
         # Skip anything that isn't a file or folder
         if not (is_file or is_folder):
