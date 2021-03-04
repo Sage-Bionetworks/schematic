@@ -166,7 +166,7 @@ class TestDatasetFileView:
         assert author_row.any()
         assert "author" in table
         author_value = table.loc[author_row, "author"].values[0]
-        assert author_value == '["bruno", "milen", "sujay"]'
+        assert author_value == ["bruno", "milen", "sujay"]
 
         # Check for untidy integer-columns
         assert "YearofBirth" in table
