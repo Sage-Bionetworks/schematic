@@ -44,7 +44,7 @@ class TestSynapseStorage:
     def test_getFileAnnotations(self, synapse_store):
         expected_dict = {
             "author": "bruno, milen, sujay",
-            "impact": "42.9, 13.2",
+            "impact": "42.9",
             "confidence": "high",
             "YearofBirth": "1980",
             "entityId": "syn24226530",
@@ -63,7 +63,7 @@ class TestSynapseStorage:
         expected_df = pd.DataFrame.from_records([
             {
                 "author": "bruno, milen, sujay",
-                "impact": "42.9, 13.2",
+                "impact": "42.9",
                 "confidence": "high",
                 "YearofBirth": "1980",
                 "entityId": "syn24226530",
