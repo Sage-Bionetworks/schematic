@@ -115,7 +115,7 @@ Download a copy of the `.synapseConfig` file, open the file in the editor of you
             location: "Path to data model JSON-LD file"
             file_type: "local"  # only this type is supported at the moment
             validation_schema: "Path to JSON Validation Schema JSON file"
-            log_location: "Folder where auto-generated JSON Validation Schemas can be logged to"
+            log_location: "Path to a .json file (e.g. json_schema_log.json) where auto-generated JSON Validation information can be logged to"
         
 </details>
 
