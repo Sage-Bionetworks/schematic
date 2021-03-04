@@ -671,7 +671,8 @@ class DatasetFileView:
             self.name = f"schematic annotation file view for {self.datasetId}"
 
         if self.is_temporary:
-            self.name += " " + secrets.token_urlsafe(5)
+            uid = secrets.token_urlsafe(5)
+            self.name = f"{self.name} - UID {uid}"
 
         # TODO: Allow a DCC admin to configure a "universal parent"
         #       Such as a Synapse project writeable by everyone.
