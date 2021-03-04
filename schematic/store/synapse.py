@@ -493,26 +493,33 @@ class SynapseStorage(BaseStorage):
         Returns:
             dict: Annotations as comma-separated strings.
         """
-        # Retrieve Synapse annotations using _getRawAnnotations()
-        # to get etag, which isn't provided by get_annotations()
-        syn_annotations = self.syn._getRawAnnotations(fileId)
 
-        # Convert all values into comma-separated lists of strings
-        annotations_unordered = from_synapse_annotations(syn_annotations)
-        annotations = OrderedDict()
-        for key, vals in annotations_unordered.items():
+        # Get entity metadata, including annotations
+        entity = self.syn.get(fileId, downloadFile=False)
+        is_file = entity.concreteType.endswith(".FileEntity")
+        is_folder = entity.concreteType.endswith(".Folder")
+        annotations_raw = entity.annotations
+
+        # Skip anything that isn't a file or folder
+        if not (is_file or is_folder):
+            return None
+
+        # Extract annotations from their lists and stringify. For example:
+        # {'YearofBirth': [1980], 'author': ['bruno', 'milen', 'sujay']}
+        annotations = dict()
+        for key, vals in annotations_raw.items():
             if isinstance(vals, list) and len(vals) == 1:
                 annotations[key] = str(vals[0])
             else:
                 annotations[key] = ", ".join(str(v) for v in vals)
 
         # Add the file entity ID and eTag, which weren't lists
-        assert fileId == syn_annotations["id"], (
+        assert fileId == entity.id, (
             "For some reason, the Synapse ID in the response doesn't match"
             "the Synapse ID sent in the request (via synapseclient)."
         )
         annotations["entityId"] = fileId
-        annotations["eTag"] = syn_annotations["etag"]
+        annotations["eTag"] = entity.etag
 
         return annotations
 
@@ -537,11 +544,13 @@ class SynapseStorage(BaseStorage):
         Returns:
             pd.DataFrame: Table of annotations.
         """
-        # Step 1: Get all files in given dataset
+        # Get all files in given dataset
         dataset_files = self.getFilesInStorageDataset(datasetId)
         dataset_file_ids = [i for i, _ in dataset_files]
 
-        # Step 2: Get annotations for each file from Step 1
+        # Get annotations for each file from Step 1
+
+        # Batch mode
         try_batch = len(dataset_files) >= 50 or force_batch
         if try_batch:
             try:
@@ -550,14 +559,18 @@ class SynapseStorage(BaseStorage):
                 # Default to the slower non-batch method
                 try_batch = False
 
+        # Non-batch mode
         if not try_batch:
             records = [self.getFileAnnotations(i) for i in dataset_file_ids]
+            # Remove any annotations for non-file/folders (stored as None)
+            records = filter(None, records)
             table = pd.DataFrame.from_records(records)
 
         # Missing values are filled in with empty strings for Google Sheets
         if fill_na:
             table.fillna("", inplace=True)
 
+        # Force all values as strings
         return table.astype(str)
 
 
