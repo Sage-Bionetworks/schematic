@@ -3,6 +3,7 @@ import uuid # used to generate unique names for entities
 import json
 import atexit
 import logging
+import secrets
 
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence
@@ -538,19 +539,19 @@ class SynapseStorage(BaseStorage):
         """
         # Step 1: Get all files in given dataset
         dataset_files = self.getFilesInStorageDataset(datasetId)
-        dataset_ids = [i for i, _ in dataset_files]
+        dataset_file_ids = [i for i, _ in dataset_files]
 
         # Step 2: Get annotations for each file from Step 1
         try_batch = len(dataset_files) >= 50 or force_batch
         if try_batch:
             try:
-                table = self.getDatasetAnnotationsBatch(datasetId, dataset_ids)
+                table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
             except (SynapseAuthenticationError, SynapseHTTPError):
                 # Default to the slower non-batch method
                 try_batch = False
 
         if not try_batch:
-            records = [self.getFileAnnotations(i) for i in dataset_ids]
+            records = [self.getFileAnnotations(i) for i in dataset_file_ids]
             table = pd.DataFrame.from_records(records)
 
         # Missing values are filled in with empty strings for Google Sheets
@@ -604,7 +605,7 @@ class SynapseStorage(BaseStorage):
     def getDatasetAnnotationsBatch(
         self,
         datasetId: str,
-        dataset_ids: Sequence[str]=None
+        dataset_file_ids: Sequence[str]=None
     ) -> pd.DataFrame:
         """Generate table for annotations across all files in given dataset.
 
@@ -615,6 +616,8 @@ class SynapseStorage(BaseStorage):
 
         Args:
             datasetId (str): Synapse ID for dataset folder.
+            dataset_file_ids (Sequence[str]): List of Synapse IDs
+                for dataset files/folders used to subset the table.
 
         Returns:
             pd.DataFrame: Table of annotations.
@@ -623,8 +626,8 @@ class SynapseStorage(BaseStorage):
         with DatasetFileView(datasetId, self.syn) as fileview:
             table = fileview.query()
 
-        if dataset_ids:
-            table = table.loc[table.index.intersection(dataset_ids)]
+        if dataset_file_ids:
+            table = table.loc[table.index.intersection(dataset_file_ids)]
 
         table = table.reset_index(drop=True)
 
@@ -644,6 +647,8 @@ class DatasetFileView:
         self,
         datasetId: str,
         synapse: Synapse,
+        name: str=None,
+        temporary: bool=True,
         parentId: str=None
     ) -> None:
         """Create a file view scoped to a dataset folder.
@@ -651,12 +656,22 @@ class DatasetFileView:
         Args:
             datasetId (str): Synapse ID for a dataset folder/project.
             synapse (Synapse): Used for Synapse requests.
+            name (str): Name of the file view (temporary or not).
+            temporary (bool): Whether to delete the file view on exit
+                of either a 'with' statement or Python entirely.
             parentId (str, optional): Synapse ID specifying where to
                 store the file view. Defaults to datasetId.
         """
 
         self.datasetId = datasetId
         self.synapse = synapse
+        self.is_temporary = temporary
+
+        if name is None:
+            self.name = f"schematic annotation file view for {self.datasetId}"
+
+        if self.is_temporary:
+            self.name += " " + secrets.token_urlsafe(5)
 
         # TODO: Allow a DCC admin to configure a "universal parent"
         #       Such as a Synapse project writeable by everyone.
@@ -664,7 +679,7 @@ class DatasetFileView:
 
         # TODO: Create local sharing setting to hide from everyone else
         view_schema = EntityViewSchema(
-            name=f"schematic annotation file view for {self.datasetId}",
+            name=self.name,
             parent=self.parentId,
             scopes=self.datasetId,
             includeEntityTypes=[EntityViewType.FILE, EntityViewType.FOLDER],
@@ -681,7 +696,8 @@ class DatasetFileView:
         self.table = None
 
         # Ensure deletion of the file view (last resort)
-        atexit.register(self.delete)
+        if self.is_temporary:
+            atexit.register(self.delete)
 
 
     def __enter__(self):
@@ -691,7 +707,8 @@ class DatasetFileView:
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Delete file view when exiting 'with' statement."""
-        self.delete()
+        if self.is_temporary:
+            self.delete()
 
 
     def delete(self):
@@ -756,9 +773,6 @@ class DatasetFileView:
         list_types = {'STRING_LIST', 'INTEGER_LIST', 'BOOLEAN_LIST'}
         list_columns = self._get_columns_of_type(list_types)
         for col in list_columns:
-            # Fill NA values with empty lists for json.loads to work
-            self.table[col].fillna("[]", inplace=True)
-            self.table[col] = self.table[col].apply(json.loads)
             self.table[col] = self.table[col].apply(lambda x: ", ".join(x))
         return self.table
 
