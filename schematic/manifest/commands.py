@@ -46,7 +46,7 @@ def manifest(ctx, config): # use as `schematic manifest ...`
 @click.option('-dt', '--data_type', help=query_dict(manifest_commands, ("manifest", "get", "data_type")))
 @click.option('-p', '--jsonld', help=query_dict(manifest_commands, ("manifest", "get", "jsonld")))
 @click.option('-d', '--dataset_id', help=query_dict(manifest_commands, ("manifest", "get", "dataset_id")))
-@click.option('-s', '--sheet_url', type=bool, help=query_dict(manifest_commands, ("manifest", "get", "sheet_url")))
+@click.option('-s', '--sheet_url', is_flag=True, help=query_dict(manifest_commands, ("manifest", "get", "sheet_url")))
 @click.option('-o', '--output_csv', help=query_dict(manifest_commands, ("manifest", "get", "output_csv")))
 @click.option('-a', '--use_annotations', is_flag=True, help=query_dict(manifest_commands, ("manifest", "get", "use_annotations")))
 @click.option('-j', '--json_schema', help=query_dict(manifest_commands, ("manifest", "get", "json_schema")))
@@ -96,5 +96,8 @@ def get_manifest(ctx, title, data_type, jsonld, dataset_id, sheet_url,
         logger.info(
             f"Find the manifest template using this CSV file path: {output_csv}"
         )
-        result.to_csv(output_csv, index=False)
+        if output_csv is None:
+            click.echo(result.to_csv(index=False))
+        else:
+            result.to_csv(output_csv, index=False)
     return result
