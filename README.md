@@ -115,7 +115,7 @@ Download a copy of the `.synapseConfig` file, open the file in the editor of you
             location: "Path to data model JSON-LD file"
             file_type: "local"  # only this type is supported at the moment
             validation_schema: "Path to JSON Validation Schema JSON file"
-            log_location: "Folder where auto-generated JSON Validation Schemas can be logged to"
+            log_location: "Path to a .json file (e.g. json_schema_log.json) where auto-generated JSON Validation information can be logged to"
         
 </details>
 
@@ -143,7 +143,7 @@ Note: To view a full list of all the arguments that can be supplied to the comma
 
 ## 1.4. Contributing
 
-Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md). To start contributing to the package, you can refer to the [Getting Started](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md#getting-started) section in our [contributing guide](https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md).
+Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](CONTRIBUTION.md). To start contributing to the package, you can refer to the [Getting Started](CONTRIBUTION.md#getting-started) section in our [contributing guide](CONTRIBUTION.md).
 
 ## 1.5. Contributors
 
