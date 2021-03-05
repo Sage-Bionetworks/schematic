@@ -2101,6 +2101,9 @@
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
+                    "@id": "bts:Component"
+                },
+                {
                     "@id": "bts:PatientID"
                 },
                 {
@@ -2117,9 +2120,6 @@
                 },
                 {
                     "@id": "bts:TreatmentIntent"
-                },
-                {
-                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
@@ -2146,6 +2146,9 @@
             ],
             "sms:requiresDependency": [
                 {
+                    "@id": "bts:Component"
+                },
+                {
                     "@id": "bts:filename"
                 },
                 {
@@ -2171,9 +2174,6 @@
                 },
                 {
                     "@id": "bts:TotalNumberofInputCells"
-                },
-                {
-                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
