@@ -76,8 +76,8 @@ def get_manifest(ctx, title, data_type, jsonld, dataset_id, sheet_url,
 
     # create object of type ManifestGenerator
     manifest_generator = ManifestGenerator(
-        title=title,
         path_to_json_ld=jsonld,
+        title=title,
         root=data_type,
         use_annotations=use_annotations,
     )
