@@ -552,25 +552,38 @@ class SynapseStorage(BaseStorage):
         """
         # Get all files in given dataset
         dataset_files = self.getFilesInStorageDataset(datasetId)
-        dataset_file_ids = [i for i, _ in dataset_files]
+        dataset_files_map = dict(dataset_files)
+        dataset_file_ids, _ = list(zip(*dataset_files))
 
         # Get annotations for each file from Step 1
-
         # Batch mode
         try_batch = len(dataset_files) >= 50 or force_batch
         if try_batch:
             try:
+                logger.info("Trying batch mode for retrieving Synapse annotations")
                 table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
             except (SynapseAuthenticationError, SynapseHTTPError):
                 # Default to the slower non-batch method
+                logger.info("Batch mode failed (probably due to permission error)")
                 try_batch = False
 
         # Non-batch mode
         if not try_batch:
+            logger.info("Using slower (non-batch) sequential mode")
             records = [self.getFileAnnotations(i) for i in dataset_file_ids]
             # Remove any annotations for non-file/folders (stored as None)
             records = filter(None, records)
             table = pd.DataFrame.from_records(records)
+
+        # Add filenames for the files that "survived" annotation retrieval
+        filenames = [dataset_files_map[i] for i in table["entityId"]]
+        table.insert(0, "Filename", filenames)
+
+        # Ensure that entityId and eTag are at the end
+        entity_ids = table.pop("entityId")
+        etags = table.pop("eTag")
+        table.insert(len(table.columns), "entityId", entity_ids)
+        table.insert(len(table.columns), "eTag", etags)
 
         # Missing values are filled in with empty strings for Google Sheets
         if fill_na:

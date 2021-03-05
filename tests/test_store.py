@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 
-DATASET_ID = "syn24226514"
+DATASET_ID = "syn25057021"
 
 
 @pytest.fixture
@@ -74,9 +74,10 @@ class TestSynapseStorage:
             "impact": "42.9",
             "confidence": "high",
             "YearofBirth": "1980",
-            "entityId": "syn24226530",
+            "entityId": "syn25057024",
+            "fileFormat": "txt",
         }
-        actual_dict = synapse_store.getFileAnnotations("syn24226530")
+        actual_dict = synapse_store.getFileAnnotations("syn25057024")
 
         # For simplicity, just checking if eTag is present since
         # it changes anytime the files on Synapse change
@@ -90,17 +91,23 @@ class TestSynapseStorage:
     def test_getDatasetAnnotations(self, synapse_store, force_batch):
         expected_df = pd.DataFrame.from_records([
             {
+                "Filename": "TestDataset-Annotations-v2/Sample_A.txt",
                 "author": "bruno, milen, sujay",
                 "impact": "42.9",
                 "confidence": "high",
                 "YearofBirth": "1980",
-                "entityId": "syn24226530",
+                "entityId": "syn25057024",
+                "fileFormat": "txt",
             },{
+                "Filename": "TestDataset-Annotations-v2/Sample_B.txt",
                 "confidence": "low",
                 "date": "2020-02-01",
-                "entityId": "syn24226531",
+                "entityId": "syn25057028",
+                "fileFormat": "csv",
             },{
-                "entityId": "syn24226532",
+                "Filename": "TestDataset-Annotations-v2/Sample_C.txt",
+                "entityId": "syn25057031",
+                "fileFormat": "fastq",
             }
         ]).fillna("")
         actual_df = synapse_store.getDatasetAnnotations(
@@ -162,7 +169,7 @@ class TestDatasetFileView:
         assert "ROW_ETAG" in table
 
         # Check for untidy list-columns
-        author_row = table["ROW_ID"] == 24226530
+        author_row = table["ROW_ID"] == 25057024
         assert author_row.any()
         assert "author" in table
         author_value = table.loc[author_row, "author"].values[0]
@@ -190,7 +197,7 @@ class TestDatasetFileView:
         assert table.index.name == "entityId"
 
         # Check for untidy list-columns
-        selected_row = table["entityId"] == "syn24226530"
+        selected_row = table["entityId"] == "syn25057024"
         assert selected_row.any()
         assert "author" in table
         author_value = table.loc[selected_row, "author"].values[0]
