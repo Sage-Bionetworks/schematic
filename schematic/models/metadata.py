@@ -123,7 +123,7 @@ class MetadataModel(object):
         if filenames:
             additionalMetadata["Filename"] = filenames
 
-        mg = ManifestGenerator(title, self.inputMModelLocation, rootNode, additionalMetadata)
+        mg = ManifestGenerator(self.inputMModelLocation, title, rootNode, additionalMetadata)
 
         if jsonSchema:
             return mg.get_manifest(json_schema=jsonSchema)
