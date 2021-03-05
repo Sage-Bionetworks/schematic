@@ -535,7 +535,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
             component_dependencies = attribute["DependsOn Component"]
         else:
             continue
-            
+
         logger.debug(">>> Adding component dependencies for " + attribute["Attribute"])
 
         # iterate over potentially multiple dependency components
@@ -569,7 +569,7 @@ def create_schema_classes(schema_extension: pd.DataFrame, se: SchemaExplorer) ->
 
 
         #TODO check for cycles in component dependencies schema subgraph
-        
+
         logger.debug("<<< Done adding component dependencies for " + attribute["Attribute"])
 
 
@@ -715,7 +715,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                 description = description
                     )
                     se.add_schema_object_nx(new_property, **rel_dict)
-                    
+
     logger.debug("Done adding properties")
 
     # # set range values and dependency requirements for each attribute
@@ -789,7 +789,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                     validation_rules = property_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(property_range_edit)
-                    
+
                 logger.debug(val + " added to value range")
 
         # get validation rules for this attribute, if any are specified
@@ -826,7 +826,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                    validation_rules = property_info["validation_rules"]
                 )
                 se.edit_schema_object_nx(property_val_rule_edit)
-                
+
             logger.debug(val + "validation rules added")
 
         # get dependencies for this attribute, if any are specified
@@ -857,7 +857,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                             parent = se.get_class_by_property(attribute["Attribute"])
                             if not parent:
                                 raise ValueError(f"Listed required dependency: {dep}, for attribute: {attribute['Attribute']} "
-                                                  "must have a class parent. The extension could not be added to the schema."
+                                                  "must have a class parent. The extension could not be added to the schema.")
 
                         new_class = get_class(se, dep,
                                               description = None,
@@ -914,14 +914,14 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                                         validation_rules = property_info["validation_rules"]
                     )
                     se.edit_schema_object_nx(property_dependencies_edit)
-                                                 
+
                 logger.debug(dep + " added to dependencies")
 
             #TODO check for cycles in attribute dependencies schema subgraph
 
         # check if the attribute requires any components
         if not pd.isnull(attribute["DependsOn Component"]):
-            component_dependencies = attribute["DependsOn Component"] 
+            component_dependencies = attribute["DependsOn Component"]
         else:
             continue
 
@@ -953,7 +953,7 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
                                             requires_components = class_info["component_dependencies"]
             )
             se.edit_schema_object_nx(class_component_dependencies_edit)
-                                                 
+
         logger.debug(comp_dep + " added to dependencies")
 
 
