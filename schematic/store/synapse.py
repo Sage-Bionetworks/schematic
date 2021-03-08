@@ -255,9 +255,7 @@ class SynapseStorage(BaseStorage):
         """
 
         # get a list of files containing the manifest for this dataset (if any)
-        #manifest = self.getFilesInStorageDataset(datasetId, fileNames = [os.path.basename(self.manifest)])
         all_files = self.storageFileviewTable
-
         manifest = all_files[(all_files["name"] == os.path.basename(self.manifest)) & (all_files["parentId"] == datasetId)] 
         manifest = manifest[['id', 'name']]
         
@@ -271,8 +269,6 @@ class SynapseStorage(BaseStorage):
 
                 # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
                 manifest_data = self.syn.get(manifest_syn_id, downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
-
-                print(CONFIG["synapse"]["manifest_folder"])
 
                 return manifest_data
 
@@ -347,17 +343,15 @@ class SynapseStorage(BaseStorage):
                     ]
 
         TODO: return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
+        TODO: use fileview instead of iterating through projects and datasets
         """
 
         projects = self.getStorageProjects()
         
-        print(projects)
-
         manifests = []
         for projectId, projectName in projects:
 
             datasets = self.getStorageDatasetsInProject(projectId)
-            print(datasets)
 
             for (datasetId, datasetName) in datasets:
 
@@ -368,7 +362,7 @@ class SynapseStorage(BaseStorage):
                             (datasetId, datasetName),
                             self.getDatasetManifest(datasetId)
                 )
-                print(manifest)
+                
                 manifests.append(manifest)
 
         return manifests
