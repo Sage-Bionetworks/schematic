@@ -177,7 +177,6 @@ class SynapseStorage(BaseStorage):
             foldersTable = self.storageFileviewTable[(self.storageFileviewTable["contentType"] == "dataset") & (self.storageFileviewTable["projectId"] == projectId)]
             areDatasets = True
         else:
-            #foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["projectId"] == projectId)]
             foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["parentId"] == projectId)]
 
         # get an array of tuples (folderId, folderName)
