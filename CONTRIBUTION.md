@@ -33,6 +33,15 @@ Please note we have a code of conduct, please follow it in all your interactions
    do not have permission to do that, you may request the second reviewer to merge it for you.
 4. When merging into dev into master follow release procedures (TODO: releas process to be determined)
 
+## Updating Synapse Test Resources
+
+1. Duplicate the entity being updated (or folder if applicable).
+2. Edit the duplicates (_e.g._ annotations, contents, name).
+3. Update the test suite in your branch to use these duplicates, including the expected values in the test assertions. 
+4. Open a PR as per the usual process (see above). 
+5. Once the PR is merged, leave the original copies on Synapse to maintain support for feature branches that were forked from `develop` before your update. 
+   - If the old copies are problematic and need to be removed immediately (_e.g._ contain sensitive data), proceed with the deletion and alert the other contributors that they need to merge the latest `develop` branch into their feature branches for their tests to work. 
+
 ## Code style
 
 * Please consult this code style guide prior contributing code to the project:
