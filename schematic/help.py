@@ -80,9 +80,6 @@ model_commands = {
 # `schematic schema` related sub-commands description
 schema_commands = {
     "schema": {
-        "config": (
-            "Specify the path to the `config.yml` using this option. This is a required argument."
-            ),
         "convert": {
             "short_help": (
                 "Convert specification from CSV (based on RFC) to JSON-LD data model."

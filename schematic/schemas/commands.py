@@ -9,7 +9,6 @@ import re
 from schematic.schemas.df_parser import _convert_rfc_to_data_model
 from schematic.utils.cli_utils import query_dict
 from schematic.help import schema_commands
-from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -18,26 +17,16 @@ CONTEXT_SETTINGS = dict(help_option_names=['--help', '-h'])  # help options
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
-@click_log.simple_verbosity_option(logger)
-@click.option('-c', '--config', type=click.Path(exists=True), 
-              envvar='SCHEMATIC_CONFIG', help=query_dict(schema_commands, ("schema", "config")))
-@click.pass_context
-def schema(ctx, config): # use as `schematic model ...`
+def schema(): # use as `schematic model ...`
     """
-    Sub-commands for Metadata Model related utilities/methods.
+    Sub-commands for Schema related utilities/methods.
     """
-    try:
-        logger.debug(f"Loading config file contents in '{config}'")
-        ctx.obj = CONFIG.load_config(config)
-    except ValueError as e:
-        logger.error("'--config' not provided or environment variable not set.")
-        logger.exception(e)
-        sys.exit(1)
+    pass
 
 
 # prototype based on submit_metadata_manifest()
 @schema.command('convert', options_metavar="<options>", 
-                short_help=query_dict(schema_commands, ("schema", "config")))
+                short_help=query_dict(schema_commands, ("schema", "convert", "short_help")))
 @click_log.simple_verbosity_option(logger)
 @click.argument("schema_csv", type=click.Path(exists=True), 
                 metavar="<RFC_CSV>", 
@@ -48,8 +37,7 @@ def schema(ctx, config): # use as `schematic model ...`
 @click.option("--output_jsonld", "-o", type=click.Path(exists=True), 
               metavar="<OUTPUT_PATH>", 
               help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")))
-@click.pass_obj
-def submit_manifest(ctx, schema_csv, base_schema, output_jsonld):
+def submit_manifest(schema_csv, base_schema, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to 
     data model in JSON-LD format.
