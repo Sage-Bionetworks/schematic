@@ -23,7 +23,7 @@ manifest_commands = {
                 ),
             "jsonld": (
                 "Specify the path to the JSON-LD data model (schema) using this option. You can either explicitly pass the "
-                "schema here or provide a valie for the `(model > input > location)` key."
+                "schema here or provide a value for the `(model > input > location)` key."
                 ),
             "dataset_id": (
                 "Specify the synID of a dataset folder on Synapse. If there is an exisiting manifest already present "
@@ -72,6 +72,27 @@ model_commands = {
                 "The component or data type from the data model which you can use to validate the "
                 "data filled in your manifest template."
                 )
+        }
+    }
+}
+
+
+# `schematic schema` related sub-commands description
+schema_commands = {
+    "schema": {
+        "config": (
+            "Specify the path to the `config.yml` using this option. This is a required argument."
+            ),
+        "convert": {
+            "short_help": (
+                "Convert specification from CSV (based on RFC) to JSON-LD data model."
+            ),
+            "base_schema": (
+                "Path to base data model. BioThings data model is loaded by default."
+            ),
+            "output_jsonld": (
+                "Path to where the generated JSON-LD file needs to be outputted."
+            )
         }
     }
 }

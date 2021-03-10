@@ -1,6 +1,8 @@
 import os
 import string
 import re
+import io
+import requests
 import logging
 
 from typing import Any, Dict, Optional, Text    # allows specifying explicit variable types
@@ -9,6 +11,7 @@ import pandas as pd
 import numpy as np
 
 from schematic.schemas.explorer import SchemaExplorer
+from schematic import LOADER
 
 
 logger = logging.getLogger(__name__)
@@ -962,3 +965,49 @@ def create_nx_schema_objects(schema_extension: pd.DataFrame, se: SchemaExplorer)
     logger.info("Done adding requirements and value ranges to attributes")
 
     return se
+
+
+def _get_base_schema_path(base_schema: str = None) -> str:
+    """Evaluate path to base schema.
+
+    Args:
+        base_schema: Path to base data model. BioThings data model is loaded by default.
+
+    Returns:
+        base_schema_path: Path to base schema based on provided argument.
+    """
+    biothings_schema_path = LOADER.filename('data_models/biothings.model.jsonld')
+    base_schema_path = biothings_schema_path if base_schema is None else base_schema
+    
+    return base_schema_path
+
+
+def _convert_rfc_to_data_model(schema_csv: str, 
+                               base_schema: str = None) -> SchemaExplorer:
+    """Convert provided RFC spec. in CSV format to data model in JSON-LD format.
+
+    Args:
+        schema_csv: Path to CSV file containing data to be translated to 
+                    JSON-LD data model. Can be path to local CSV or URL.
+
+    Returns:
+        base_se: SchemaExplorer object which has updated properties 
+                 (base_se.schema and base_se.schema_nx).
+    """
+    # create data model from provided RFC
+    rfc_df = pd.read_csv(schema_csv)
+
+    # instantiate schema explorer
+    base_se = SchemaExplorer()
+
+    # determine base schema path
+    base_schema_path = _get_base_schema_path(base_schema)
+
+    # load base schema (BioThings)
+    base_se.load_schema(base_schema_path)
+
+    # call parser code that converts a dataframe of the RFC
+    # specs. into a JSON-LD data model
+    base_se = create_nx_schema_objects(rfc_df, base_se)
+    
+    return base_se
