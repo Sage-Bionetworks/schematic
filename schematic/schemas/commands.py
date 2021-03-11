@@ -37,7 +37,7 @@ def schema(): # use as `schematic model ...`
 @click.option("--output_jsonld", "-o", type=click.Path(exists=True), 
               metavar="<OUTPUT_PATH>", 
               help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")))
-def convert_rfc_to_data_model(schema_csv, base_schema, output_jsonld):
+def convert(schema_csv, base_schema, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to 
     data model in JSON-LD format.
