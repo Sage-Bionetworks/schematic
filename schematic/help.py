@@ -93,3 +93,21 @@ schema_commands = {
         }
     }
 }
+
+
+# `schematic init` command description
+init_command = {
+    "init": {
+        "short_help": (
+            "Initialize mode of authentication for schematic."
+        ),
+        "auth": (
+            "Specify the mode of authentication you want to use. You can use one of "
+            "either 'token' or 'service_account'. The default mode of authentication "
+            "is 'token' which uses OAuth."
+        ),
+        "config": (
+            "Specify the path to the `config.yml` using this option. This is a required argument."
+        )
+    }
+}
