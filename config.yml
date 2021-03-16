@@ -3,13 +3,14 @@ definitions:
   synapse_config: ".synapseConfig"
   creds_path: "credentials.json"
   token_pickle: "token.pickle"
-  service_acct_creds: "quickstart-1560359685924-198a7114b6b5.json"
+  service_acct_creds: "schematic_service_account_creds.json"
 
 synapse:
-  master_fileview: 'syn23643253'
+  master_fileview: 'syn20446927'
   manifest_folder: 'manifests'
   manifest_filename: 'data/manifests/synapse_storage_manifest.csv'
-  api_creds: 'syn23643259'
+  token_creds: 'syn23643259'
+  service_acct_creds: 'syn24214983'
 
 manifest:
   title: 'Patient_Manifest'
