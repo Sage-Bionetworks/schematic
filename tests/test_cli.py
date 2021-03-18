@@ -18,11 +18,11 @@ class SchemaCli:
 
     def test_schema_convert_cli(self, runner, config_path, helpers):
 
-        rfc_csv_path = helpers.get_data_path("simple.model.csv")
+        data_model_csv_path = helpers.get_data_path("simple.model.csv")
 
         result = runner.invoke(schema, 
                                ["--config", config_path, 
-                               "convert", rfc_csv_path])
+                               "convert", data_model_csv_path])
 
         assert result.exit_code == 0
 
