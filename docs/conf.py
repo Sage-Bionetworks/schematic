@@ -12,17 +12,23 @@
 #
 import os
 import sys
+from utils import _parse_toml
+import pathlib
+
 sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
+toml_file_path = pathlib.Path('../pyproject.toml')
 
-project = 'Schematic'
-copyright = '2021, Sujay Patil'
-author = 'Sujay Patil'
+toml_metadata = _parse_toml(toml_file_path)
+project = toml_metadata['name']
+copyright = '2021, Sage Bionetworks'
+
+author = toml_metadata['authors']
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.0'
+release = toml_metadata['version']
 
 
 # -- General configuration ---------------------------------------------------
