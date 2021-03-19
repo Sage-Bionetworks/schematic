@@ -102,8 +102,8 @@ init_command = {
             "Initialize mode of authentication for schematic."
         ),
         "auth": (
-            "Specify the mode of authentication you want to use. You can use one of "
-            "either 'token' or 'service_account'. The default mode of authentication "
+            "Specify the mode of authentication you want to use for Google accounts. "
+            "You can use one of either 'token' or 'service_account'. The default mode of authentication "
             "is 'token' which uses OAuth."
         ),
         "config": (
