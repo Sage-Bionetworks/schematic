@@ -82,7 +82,7 @@ schema_commands = {
     "schema": {
         "convert": {
             "short_help": (
-                "Convert specification from CSV (based on RFC) to JSON-LD data model."
+                "Convert specification from CSV data model to JSON-LD data model."
             ),
             "base_schema": (
                 "Path to base data model. BioThings data model is loaded by default."

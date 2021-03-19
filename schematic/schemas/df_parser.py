@@ -982,9 +982,9 @@ def _get_base_schema_path(base_schema: str = None) -> str:
     return base_schema_path
 
 
-def _convert_rfc_to_data_model(schema_csv: str, 
+def _convert_csv_to_data_model(schema_csv: str, 
                                base_schema: str = None) -> SchemaExplorer:
-    """Convert provided RFC spec. in CSV format to data model in JSON-LD format.
+    """Convert provided CSV spec. in CSV format to data model in JSON-LD format.
 
     Args:
         schema_csv: Path to CSV file containing data to be translated to 

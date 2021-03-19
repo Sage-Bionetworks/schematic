@@ -6,7 +6,7 @@ import logging
 import sys
 import re
 
-from schematic.schemas.df_parser import _convert_rfc_to_data_model
+from schematic.schemas.df_parser import _convert_csv_to_data_model
 from schematic.utils.cli_utils import query_dict
 from schematic.help import schema_commands
 
@@ -29,7 +29,7 @@ def schema(): # use as `schematic model ...`
                 short_help=query_dict(schema_commands, ("schema", "convert", "short_help")))
 @click_log.simple_verbosity_option(logger)
 @click.argument("schema_csv", type=click.Path(exists=True), 
-                metavar="<RFC_CSV>", 
+                metavar="<DATA_MODEL_CSV>", 
                 nargs=1)
 @click.option("--base_schema", "-b", type=click.Path(exists=True), 
               metavar="<JSON-LD_SCHEMA>", 
@@ -43,7 +43,7 @@ def convert(schema_csv, base_schema, output_jsonld):
     data model in JSON-LD format.
     """
     # convert RFC to Data Model
-    base_se = _convert_rfc_to_data_model(schema_csv, base_schema)
+    base_se = _convert_csv_to_data_model(schema_csv, base_schema)
 
     # output JSON-LD file alongside CSV file by default
     if output_jsonld is None:
