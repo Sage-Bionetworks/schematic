@@ -25,7 +25,7 @@ class TestSchemaCli:
         output_path = helpers.get_data_path("simple.model.jsonld")
 
         result = runner.invoke(schema,
-                               ["convert", rfc_csv_path,
+                               ["convert", data_model_csv_path,
                                 "--output_jsonld", output_path])
 
         assert result.exit_code == 0
