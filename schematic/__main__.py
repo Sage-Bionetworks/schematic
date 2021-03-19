@@ -6,6 +6,7 @@ import click_log
 
 from schematic.manifest.commands import manifest as manifest_cli    # get manifest commands
 from schematic.models.commands import model as model_cli    # submit manifest commands
+from schematic.schemas.commands import schema as schema_cli # schema conversion commands
 
 logger = logging.getLogger()
 click_log.basic_config(logger)
@@ -26,6 +27,7 @@ def main():
 
 main.add_command(manifest_cli) # add manifest commands
 main.add_command(model_cli) # add model commands
+main.add_command(schema_cli) # add schema commands
 
 
 if __name__ == '__main__':
