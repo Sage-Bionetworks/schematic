@@ -72,6 +72,25 @@ model_commands = {
                 "The component or data type from the data model which you can use to validate the "
                 "data filled in your manifest template."
                 )
+        },
+        "validate": {
+            "short_help": (
+                "Validation of manifest files."
+            ),
+            "manifest_path": (
+                "Specify the path to the metadata manifest file that you want to submit to a dataset on Synapse. "
+                "This is a required argument."
+            ),
+            "data_type": (
+                "Specify the component (data type) from the data model that is to be used "
+                "for validating the metadata manifest file. You can either explicitly pass the data type here or provide "
+                "it in the `config.yml` file as a value for the `(manifest > data_type)` key."
+            ),
+            "json_schema": (
+                "Specify the path to the JSON Validation Schema for this argument. "
+                "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
+                "as a value for the `(model > input > validation_schema)` key."
+            )
         }
     }
 }
