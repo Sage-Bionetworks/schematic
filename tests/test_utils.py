@@ -9,7 +9,7 @@ import pytest
 from pandas.testing import assert_frame_equal
 
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.utils import csv_utils
+from schematic.schemas import df_parser
 from schematic.utils import general
 from schematic.utils import cli_utils
 from schematic.utils import io_utils
@@ -342,19 +342,9 @@ class TestCsvUtils:
         This test also ensures that the CSV and JSON-LD
         files for the example data model stay in sync.
         """
-
-        # instantiate schema explorer
-        base_se = SchemaExplorer()
-
-        # load base schema (BioThings)
-        biothings_path = LOADER.filename("data_models/biothings.model.jsonld")
-        base_se.load_schema(biothings_path)
-
         csv_path = helpers.get_data_path("example.model.csv")
-        schema_extension = pd.read_csv(csv_path)
 
-        # base_se = create_schema_classes(schema_extension, base_se)
-        base_se = csv_utils.create_nx_schema_objects(schema_extension, base_se)
+        base_se = df_parser._convert_csv_to_data_model(csv_path)
 
         # saving updated schema.org schema
         actual_jsonld_path = tmp_path / "example.from_csv.model.jsonld"
