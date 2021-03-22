@@ -70,7 +70,6 @@ class SynapseStorage(BaseStorage):
                 self.syn.login(sessionToken = token, silent = True)
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("Please make sure you are logged into synapse.org.")
-                return
         elif access_token:
             self.syn = synapseclient.Synapse()
             self.syn.default_headers["Authorization"] = f"Bearer {access_token}"
@@ -87,15 +86,12 @@ class SynapseStorage(BaseStorage):
 
             self.manifest = CONFIG["synapse"]["manifest_filename"]
         except KeyError:
-            logger.error("Synapse ID of the master fileview is missing.")
             raise MissingConfigValueError(("synapse", "master_fileview"))
         except AttributeError:
             raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
-            logger.error(f"Access to the project {self.storageFileview} was unresolved.")
             raise AccessCredentialsError(self.storageFileview)
         except ValueError:
-            logger.error("Synapse ID of the administrative fileview is missing.")
             raise MissingConfigValueError(("synapse", "master_fileview"))
 
 
@@ -284,7 +280,6 @@ class SynapseStorage(BaseStorage):
         manifest_id_name = self.getDatasetManifest(datasetId)
         if not manifest_id_name:
             # no manifest exists yet: abort
-            logger.error(f"No manifest file not found im dataset folder.")
             raise FileNotFoundError(f"Manifest file {CONFIG['synapse']['manifest_filename']} "
                                     f"cannot be found in {datasetId} dataset folder.")
 
@@ -395,15 +390,14 @@ class SynapseStorage(BaseStorage):
         """
 
         # determine dataset name
-        datasetEntity = self.syn.get(datasetId, downloadFile = False)
-        datasetName = datasetEntity.name
-        datasetParentProject = self.storageFileviewTable[(self.storageFileviewTable["id"] == datasetId)]["projectId"].values[0]
+        # datasetEntity = self.syn.get(datasetId, downloadFile = False)
+        # datasetName = datasetEntity.name
+        # datasetParentProject = self.storageFileviewTable[(self.storageFileviewTable["id"] == datasetId)]["projectId"].values[0]
 
         # read new manifest csv
         try:
             manifest = pd.read_csv(metadataManifestPath)
         except FileNotFoundError as err:
-            logger.error("Check local manifest file path/location.")
             raise FileNotFoundError(f"No manifest file was found at this path: {metadataManifestPath}") from err
 
         # check if there is an existing manifest
@@ -488,23 +482,39 @@ class SynapseStorage(BaseStorage):
         Returns:
             dict: Annotations as comma-separated strings.
         """
-        # Retrieve Synapse annotations using _getRawAnnotations()
-        # to get etag, which isn't provided by get_annotations()
-        syn_annotations = self.syn._getRawAnnotations(fileId)
 
-        # Convert all values into comma-separated lists of strings
-        annotations_unordered = from_synapse_annotations(syn_annotations)
-        annotations = OrderedDict()
-        for key, vals in annotations_unordered.items():
-            annotations[key] = ", ".join(str(v) for v in vals)
+        # Get entity metadata, including annotations
+        try:
+            entity = self.syn.get(fileId, downloadFile=False)
+            is_file = entity.concreteType.endswith(".FileEntity")
+            is_folder = entity.concreteType.endswith(".Folder")
+            annotations_raw = entity.annotations
+        except SynapseHTTPError:
+            # If an error occurs with retrieving entity, skip it
+            # This could be caused by a temporary file view that
+            # was deleted since its ID was retrieved
+            is_file, is_folder = False, False
+
+        # Skip anything that isn't a file or folder
+        if not (is_file or is_folder):
+            return None
+
+        # Extract annotations from their lists and stringify. For example:
+        # {'YearofBirth': [1980], 'author': ['bruno', 'milen', 'sujay']}
+        annotations = dict()
+        for key, vals in annotations_raw.items():
+            if isinstance(vals, list) and len(vals) == 1:
+                annotations[key] = str(vals[0])
+            else:
+                annotations[key] = ", ".join(str(v) for v in vals)
 
         # Add the file entity ID and eTag, which weren't lists
-        assert fileId == syn_annotations["id"], (
+        assert fileId == entity.id, (
             "For some reason, the Synapse ID in the response doesn't match"
             "the Synapse ID sent in the request (via synapseclient)."
         )
         annotations["entityId"] = fileId
-        annotations["eTag"] = syn_annotations["etag"]
+        annotations["eTag"] = entity.etag
 
         return annotations
 
@@ -526,7 +536,10 @@ class SynapseStorage(BaseStorage):
         # Step 2: Get annotations for each file from Step 1
         annotations_list = [self.getFileAnnotations(i) for i, _ in dataset_files]
 
-        # Step 3: Create data frame from list of annotations
+        # Step 3: Remove any annotations for non-file/folders
+        annotations_list = filter(None, annotations_list)
+
+        # Step 4: Create data frame from list of annotations
         table = pd.DataFrame.from_records(annotations_list)
 
         # Missing values are filled in with empty strings for Google Sheets

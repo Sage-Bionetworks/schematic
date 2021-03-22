@@ -7,10 +7,21 @@ Please note we have a code of conduct, please follow it in all your interactions
 
 ## Getting started
 
+### General Contribution Instructions
+
 1. Fork the repository.
 2. Clone the forked repository.
 3. Push all your changes to the dev branch of the forked repository.
 4. Create pull requests to the origin repository.
+
+### Setup Project for Development and Testing
+
+1. Follow the package setup instructions on the main README till the [`Clone Project Repository`](README.m#131-clone-project-repository) step.
+2. If you are a `schematic` package contributor you don't need to create a `venv` virtual environment, `poetry` will create a virtual environment by default, which you can use.
+3. Running the following command reads the [`pyproject.toml`](https://github.com/Sage-Bionetworks/schematic/blob/develop/pyproject.toml) file from the current project, resolves the dependencies and installs them: `poetry install`
+4. Obtain credentials file(s) by following same instructions as in the [`1.3.4. Obtain Credentials File(s)`](README.md#134-obtain-credentials-files) section.
+5. Fill in configuration file(s) in the same way as specified in the [`1.3.5. Fill in Configuration File(s)`](README.md#135-fill-in-configuration-files).
+6. To run any of the CLI utilities shown in the [`1.3.6. Command Line Interface`](README.md#136-command-line-interface), prefix the commands with `poetry run`.
 
 ## Pull Request Process
 
@@ -21,6 +32,15 @@ Please note we have a code of conduct, please follow it in all your interactions
 3. You may merge the Pull Request in once you have the sign-off of at least one other developer, or if you 
    do not have permission to do that, you may request the second reviewer to merge it for you.
 4. When merging into dev into master follow release procedures (TODO: releas process to be determined)
+
+## Updating Synapse Test Resources
+
+1. Duplicate the entity being updated (or folder if applicable).
+2. Edit the duplicates (_e.g._ annotations, contents, name).
+3. Update the test suite in your branch to use these duplicates, including the expected values in the test assertions. 
+4. Open a PR as per the usual process (see above). 
+5. Once the PR is merged, leave the original copies on Synapse to maintain support for feature branches that were forked from `develop` before your update. 
+   - If the old copies are problematic and need to be removed immediately (_e.g._ contain sensitive data), proceed with the deletion and alert the other contributors that they need to merge the latest `develop` branch into their feature branches for their tests to work. 
 
 ## Code style
 
