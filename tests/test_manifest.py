@@ -26,7 +26,7 @@ def manifest_generator(helpers, request):
     use_annotations = request.param
 
     manifest_generator = ManifestGenerator(
-        path_to_json_ld=helpers.get_data_path("simple.model.jsonld"),
+        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
         root="Patient",
         use_annotations=use_annotations,
     )
@@ -35,7 +35,7 @@ def manifest_generator(helpers, request):
 
     # Clean-up
     try:
-        os.remove(helpers.get_data_path("simple.Patient.schema.json"))
+        os.remove(helpers.get_data_path("example.Patient.schema.json"))
     except FileNotFoundError:
         pass
 
@@ -67,7 +67,7 @@ class TestManifestGenerator:
 
         generator = ManifestGenerator(
             title="mock_title",
-            path_to_json_ld=helpers.get_data_path("simple.model.jsonld")
+            path_to_json_ld=helpers.get_data_path("example.model.jsonld")
         )
 
         assert type(generator.title) is str
@@ -92,13 +92,13 @@ class TestManifestGenerator:
         assert "Year of Birth" in output
 
         if use_annotations:
-            assert output.shape[1] == 15  # Number of columns
+            assert output.shape[1] == 12  # Number of columns
             assert output.shape[0] == 3  # Number of rows
             assert "eTag" in output
             assert "confidence" in output
             assert output["Year of Birth"].tolist() == ["1980", "", ""]
         else:
-            assert output.shape[1] == 9  # Number of columns
-            assert output.shape[0] == 1  # Number of rows
+            assert output.shape[1] == 6  # Number of columns
+            assert output.shape[0] == 0  # Number of rows
             assert "confidence" not in output
-            assert output["Year of Birth"].tolist() == [""]
+            assert output["Year of Birth"].tolist() == []

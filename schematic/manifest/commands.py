@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import logging
 
 import click
@@ -93,8 +94,16 @@ def get_manifest(ctx, title, data_type, jsonld, dataset_id, sheet_url,
         logger.info("Find the manifest template using this Google Sheet URL:")
         click.echo(result)
     elif isinstance(result, pd.DataFrame):
+        if output_csv is None:
+            prefix, _ = os.path.splitext(jsonld)
+            prefix_root, prefix_ext = os.path.splitext(prefix)
+            if prefix_ext == ".model":
+                prefix = prefix_root
+            output_csv = f"{prefix}.{data_type}.manifest.csv"
+
         logger.info(
             f"Find the manifest template using this CSV file path: {output_csv}"
         )
         result.to_csv(output_csv, index=False)
+
     return result

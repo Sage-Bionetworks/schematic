@@ -1,10 +1,15 @@
 import os
 import logging
+
 import pytest
 import pandas as pd
+from dotenv import load_dotenv, find_dotenv
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.configuration import CONFIG
+
+
+load_dotenv()
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -45,13 +50,13 @@ class Helpers:
     def get_schema_explorer(path=None, *paths):
         if path is None:
             return SchemaExplorer()
-            
+
         fullpath = Helpers.get_data_path(path, *paths)
-            
+
         se = SchemaExplorer()
         se.load_schema(fullpath)
         return se
-            
+
 
 @pytest.fixture
 def helpers():
