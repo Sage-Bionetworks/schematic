@@ -20,9 +20,9 @@ class TestSchemaCli:
 
     def test_schema_convert_cli(self, runner, config_path, helpers):
 
-        data_model_csv_path = helpers.get_data_path("simple.model.csv")
+        data_model_csv_path = helpers.get_data_path("example.model.csv")
 
-        output_path = helpers.get_data_path("simple.model.jsonld")
+        output_path = helpers.get_data_path("example.model.jsonld")
 
         result = runner.invoke(schema,
                                ["convert", data_model_csv_path,
