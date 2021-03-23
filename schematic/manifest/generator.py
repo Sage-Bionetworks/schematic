@@ -15,8 +15,6 @@ from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
 
-
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -229,9 +227,9 @@ class ManifestGenerator(object):
         def callback(request_id, response, exception):
             if exception:
                 # Handle error
-                print(exception)
+                logger.error(exception)
             else:
-                print ("Permission Id: %s" % response.get('id'))
+                logger.info(f"Permission Id: {response.get('id')}")
 
         batch = self.drive_service.new_batch_http_request(callback = callback)
 
@@ -744,7 +742,11 @@ class ManifestGenerator(object):
         wb = sh[0]
 
         # get column headers and read it into a dataframe
-        manifest_df = wb.get_as_df(hasHeader=True).drop(columns="")
+        manifest_df = wb.get_as_df(hasHeader=True)
+
+        # An empty column is sometimes included
+        if "" in manifest_df:
+            manifest_df.drop(columns=[""], inplace=True)
 
         return manifest_df
 
@@ -922,7 +924,7 @@ class ManifestGenerator(object):
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(manifest_fields, key = lambda x: dependencies_display_names.index(x) if x in dependencies_display_names else len(manifest_fields) -1)
             else:
-                print("No schema provided! Cannot order based on schema without a specified schema and a schema root attribute.")
+                raise ValueError(f"Provide valid data model path and valid component from data model.")
 
         # always have entityId as last columnn, if present
         if "entityId" in manifest_fields:
