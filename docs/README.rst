@@ -80,7 +80,7 @@ virtual environment:
 
 .. code:: bash
 
-    synapse get syn21088684 # download copy of credentials.json file
+    schematic init --config ~/path/to/config.yml --auth [token|serivce_account] 
 
 The ``credentials.json`` file is required when you are using
 `OAuth2 <https://developers.google.com/identity/protocols/oauth2>`__
@@ -91,10 +91,6 @@ flow <https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils
 refer to the ``Credentials`` section in the
 `docs/details <https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/details.md#credentials>`__
 document.
-
-.. code:: bash
-
-    synapse get syn24214983 # download copy of schematic_service_account_creds.json file
 
 Use the ``schematic_service_account_creds.json`` file for the service
 account mode of authentication (*for Google services/APIs*).
@@ -155,7 +151,17 @@ Note: You can get your Synapse API key by: *logging into Synapse* >
 1.3.6. Command Line Interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1.3.6.1. Metadata Manifest Generation
+1.3.6.1. Schematic Initialization
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Initialize `schematic` for use with the `init` command by selecting the 
+mode of authentication of your choice:
+
+.. code:: bash
+
+    schematic init --config ~/path/to/config.yml
+
+1.3.6.2. Metadata Manifest Generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To generate a metadata manifest template based on a data type that is
@@ -165,8 +171,20 @@ present in your data model:
 
     schematic manifest --config ~/path/to/config.yml get
 
-1.3.6.2. Metadata Manifest Validation and Submission
+1.3.6.3. Metadata Manifest Validation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To simply validate the data filled in the manifest generated from the 
+above step:
+
+.. code:: bash
+
+    schematic model --config validate --manifest_path ~/path/to/manifest.csv
+
+1.3.6.4. Metadata Manifest Validation and Submission
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To submit (and optionally validate) your filled metadata manifest file:
 
 .. code:: bash
 
