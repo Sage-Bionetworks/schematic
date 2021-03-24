@@ -106,7 +106,7 @@ the service account mode of authentication.
 There are two main configuration files that need to be edited –
 `config.yml <https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml>`__
 and
-`.synapseConfig <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/master/synapseclient/.synapseConfig>`__.
+`.synapseConfig <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig>`__.
 
 Download a copy of the ``.synapseConfig`` file, open the file in the
 editor of your choice and edit the
