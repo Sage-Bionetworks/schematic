@@ -47,7 +47,7 @@ def manifest(ctx, config): # use as `schematic manifest ...`
 @click.option('-dt', '--data_type', help=query_dict(manifest_commands, ("manifest", "get", "data_type")))
 @click.option('-p', '--jsonld', help=query_dict(manifest_commands, ("manifest", "get", "jsonld")))
 @click.option('-d', '--dataset_id', help=query_dict(manifest_commands, ("manifest", "get", "dataset_id")))
-@click.option('-s', '--sheet_url', type=bool, help=query_dict(manifest_commands, ("manifest", "get", "sheet_url")))
+@click.option('-s', '--sheet_url', is_flag=True, help=query_dict(manifest_commands, ("manifest", "get", "sheet_url")))
 @click.option('-o', '--output_csv', help=query_dict(manifest_commands, ("manifest", "get", "output_csv")))
 @click.option('-a', '--use_annotations', is_flag=True, help=query_dict(manifest_commands, ("manifest", "get", "use_annotations")))
 @click.option('-j', '--json_schema', help=query_dict(manifest_commands, ("manifest", "get", "json_schema")))
