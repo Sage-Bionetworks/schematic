@@ -28,8 +28,8 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 * [Clone Project Repository](https://sage-schematic.readthedocs.io/en/develop/README.html#clone-project-repository)
 * [Virtual Environment Setup](https://sage-schematic.readthedocs.io/en/develop/README.html#virtual-environment-setup)
 * [Install Dependencies](https://sage-schematic.readthedocs.io/en/develop/README.html#install-dependencies)
-* [Obtain Credentials File(s)](https://sage-schematic.readthedocs.io/en/develop/README.html#obtain-credentials-file-s)
 * [Fill in Configuration File(s)](https://sage-schematic.readthedocs.io/en/develop/README.html#fill-in-configuration-file-s)
+* [Obtain Credentials File(s)](https://sage-schematic.readthedocs.io/en/develop/README.html#obtain-credentials-file-s)
 
 
 ## Command Line Interface
