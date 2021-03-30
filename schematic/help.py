@@ -30,8 +30,8 @@ manifest_commands = {
                 "in that folder, then it will be pulled with the existing annotations for further annotation/modification. "
                 ),
             "sheet_url": (
-                "Takes `True` or `False` as argument values. If `True` then it will produce a Googlesheets URL/link "
-                "to the metadata manifest file. If `False`, then it will produce a pandas dataframe for the same."
+                "This is a boolean flag. If flag is provided when command line utility is executed, result will be a link/URL "
+                "to the metadata manifest file. If not it will produce a pandas dataframe for the same."
                 ),
             "output_csv": (
                 "Path to where the CSV manifest template should be stored."
@@ -39,6 +39,10 @@ manifest_commands = {
             "use_annotations": (
                 "Takes `True` or `False` as argument values. If `True` then it will prepopulate template with existing annotations "
                 "associated with dataset files. If `False` it will skip populating template with Synapse annotations."
+                ),
+            "oauth": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, OAuth will be used to "
+                "authenticate your Google credentials. If not service account mode of authentication will be used."
                 ),
             "json_schema": (
                 "Specify the path to the JSON Validation Schema for this argument. "
