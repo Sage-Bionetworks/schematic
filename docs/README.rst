@@ -1,7 +1,7 @@
 Schematic
 =========
 
-1.1. Introduction
+1. Introduction
 -----------------
 
 SCHEMATIC is an acronym for *Schema Engine for Manifest Ingress and
@@ -10,7 +10,7 @@ schema-based, data ingress ecosystem, that is meant to streamline the
 process of metadata annotation and validation for various data
 contributors.
 
-1.2. Installation Requirements and Pre-requisites
+2. Installation Requirements and Pre-requisites
 -------------------------------------------------
 
 Following are the tools or packages that you will need to set up
@@ -37,10 +37,10 @@ right permissions to download credentials files in the following steps.
 Contact your DCC liaison to request for permission to access the
 credentials files.
 
-1.3. Package Setup Instructions
+3. Package Setup Instructions
 -------------------------------
 
-1.3.1. Clone Project Repository
+3.1. Clone Project Repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Since the package isn't available on `PyPI <https://pypi.org/>`__
@@ -51,7 +51,7 @@ from GitHub by running the following command:
 
     git clone --single-branch --branch develop `https://github.com/Sage-Bionetworks/schematic.git`
 
-1.3.2. Virtual Environment Setup
+3.2. Virtual Environment Setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
@@ -62,7 +62,7 @@ from GitHub by running the following command:
 
     source .venv/bin/activate # activate the `venv` virtual environment
 
-1.3.3. Install Dependencies
+3.3. Install Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After cloning the ``schematic`` project from GitHub and setting up your
@@ -75,32 +75,7 @@ virtual environment:
     poetry build # build source and wheel archives
     pip install dist/schematicpy-0.1.11-py3-none-any.whl  # install wheel file
 
-1.3.4. Obtain Credentials File(s)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code:: bash
-
-    schematic init --config ~/path/to/config.yml --auth [token|serivce_account] 
-
-The ``credentials.json`` file is required when you are using
-`OAuth2 <https://developers.google.com/identity/protocols/oauth2>`__
-to authenticate with the Google APIs.
-
-For details about the steps involved in the `OAuth2 authorization
-flow <https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18>`__,
-refer to the ``Credentials`` section in the
-`docs/details <https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/details.md#credentials>`__
-document.
-
-Use the ``schematic_service_account_creds.json`` file for the service
-account mode of authentication (*for Google services/APIs*).
-
-Note: The ``Selection Options`` dropdown which allows the user to select
-multiple values in a cell during manifest annotation `does not
-work <https://developers.google.com/apps-script/api/concepts>`__ with
-the service account mode of authentication.
-
-1.3.5. Fill in Configuration File(s)
+3.4. Fill in Configuration File(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are two main configuration files that need to be edited –
@@ -148,10 +123,35 @@ section.
 Note: You can get your Synapse API key by: *logging into Synapse* >
 *Settings* > *Synapse API Key* > *Show API Key*.
 
-1.3.6. Command Line Interface
+3.5. Obtain Credentials File(s)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: bash
+
+    schematic init --config ~/path/to/config.yml --auth [token|serivce_account] 
+
+The ``credentials.json`` file is required when you are using
+`OAuth2 <https://developers.google.com/identity/protocols/oauth2>`__
+to authenticate with the Google APIs.
+
+For details about the steps involved in the `OAuth2 authorization
+flow <https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18>`__,
+refer to the ``Credentials`` section in the
+`docs/details <https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/details.md#credentials>`__
+document.
+
+Use the ``schematic_service_account_creds.json`` file for the service
+account mode of authentication (*for Google services/APIs*).
+
+Note: The ``Selection Options`` dropdown which allows the user to select
+multiple values in a cell during manifest annotation `does not
+work <https://developers.google.com/apps-script/api/concepts>`__ with
+the service account mode of authentication.
+
+4. Command Line Interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1.3.6.1. Schematic Initialization
+4.1. Schematic Initialization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Initialize `schematic` for use with the `init` command by selecting the 
@@ -161,7 +161,7 @@ mode of authentication of your choice:
 
     schematic init --config ~/path/to/config.yml
 
-1.3.6.2. Metadata Manifest Generation
+4.2. Metadata Manifest Generation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To generate a metadata manifest template based on a data type that is
@@ -171,7 +171,7 @@ present in your data model:
 
     schematic manifest --config ~/path/to/config.yml get
 
-1.3.6.3. Metadata Manifest Validation
+4.3. Metadata Manifest Validation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To simply validate the data filled in the manifest generated from the 
@@ -181,7 +181,7 @@ above step:
 
     schematic model --config validate --manifest_path ~/path/to/manifest.csv
 
-1.3.6.4. Metadata Manifest Validation and Submission
+4.4. Metadata Manifest Validation and Submission
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To submit (and optionally validate) your filled metadata manifest file:
@@ -198,7 +198,7 @@ Note: To view a full list of all the arguments that can be supplied to
 the command line interfaces, add a ``--help`` option at the end of each
 of the commands.
 
-1.4. Contributing
+5. Contributing
 -----------------
 
 Interested in contributing? Awesome! We follow the typical `GitHub
@@ -211,7 +211,7 @@ Started <https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION
 section in our `contributing
 guide <https://github.com/Sage-Bionetworks/schematic/blob/develop/CONTRIBUTION.md>`__.
 
-1.5. Contributors
+6. Contributors
 -----------------
 
 Active contributors and maintainers:
