@@ -149,10 +149,10 @@ work <https://developers.google.com/apps-script/api/concepts>`__ with
 the service account mode of authentication.
 
 4. Command Line Interface
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 4.1. Schematic Initialization
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------
 
 Initialize `schematic` for use with the `init` command by selecting the 
 mode of authentication of your choice:
@@ -162,7 +162,7 @@ mode of authentication of your choice:
     schematic init --config ~/path/to/config.yml
 
 4.2. Metadata Manifest Generation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 To generate a metadata manifest template based on a data type that is
 present in your data model:
@@ -172,7 +172,7 @@ present in your data model:
     schematic manifest --config ~/path/to/config.yml get
 
 4.3. Metadata Manifest Validation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------
 
 To simply validate the data filled in the manifest generated from the 
 above step:
@@ -182,7 +182,7 @@ above step:
     schematic model --config validate --manifest_path ~/path/to/manifest.csv
 
 4.4. Metadata Manifest Validation and Submission
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------
 
 To submit (and optionally validate) your filled metadata manifest file:
 
