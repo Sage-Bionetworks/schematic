@@ -467,21 +467,44 @@ class ManifestGenerator(object):
         # adding additional metadata values if needed
         # adding value-constraints from data model as dropdowns
 
+
+        # fix for issue #410
+        # batch google API request to create metadata template
+        data = []
+
+        for i, req in enumerate(ordered_metadata_fields[0]):
+            values = required_metadata_fields[req]
+
+            if self.additional_metadata and req in self.additional_metadata:
+                values = self.additional_metadata[req]
+                target_col_letter = self._column_to_letter(i)
+
+                range_vals = target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
+
+                data.append({
+                    "range": range_vals,
+                    "majorDimension": "COLUMNS",
+                    "values": [values]
+                })
+        
+        batch_update_values_request_body = {
+            # How the input data should be interpreted.
+            "valueInputOption": "RAW",
+
+            # The new values to apply to the spreadsheet.
+            "data": data
+        }
+
+        response = self.sheet_service.spreadsheets().values().batchUpdate(spreadsheetId=spreadsheet_id, 
+                                                                          body=batch_update_values_request_body).execute()
+        
+        # end of fix for issue #410
+
         #store all requests to execute at once
         requests_body = {}
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
             values = required_metadata_fields[req]
-            #adding additional metadata if needed
-            if self.additional_metadata and req in self.additional_metadata:
-                values = self.additional_metadata[req]
-                target_col_letter = self._column_to_letter(i)
-                body =  {
-                            "majorDimension":"COLUMNS",
-                            "values":[values]
-                }
-                response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_col_letter + '2:' + target_col_letter + str(len(values) + 1), valueInputOption = "RAW", body = body).execute()
-
 
             # adding description to headers
             # this is not executed if only JSON schema is defined
@@ -589,8 +612,8 @@ class ManifestGenerator(object):
 
 
             # generating sheet api request to populate a dropdown or a multi selection UI
-            if len(req_vals) > 10 and not "list" in validation_rules:
-                # if more than 10 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice
+            if len(req_vals) > 0 and not "list" in validation_rules:
+                # if more than 0 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice
                 # do not support other kinds of data validation for larger number of items (even if individual items are not that many
                 # excel has a total number of characters limit per dropdown...)
                 validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i, validation_type = "ONE_OF_RANGE")
