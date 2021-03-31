@@ -80,7 +80,7 @@ def download_creds_file(auth: str = "token") -> None:
         raise ValueError(f"'{auth}' is not a valid authentication method. Please "
                           "enter one of 'token' or 'service_account'.")
 
-    syn = synapseclient.Synapse()
+    syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
     syn.login(silent=True)
 
     if auth == "token":

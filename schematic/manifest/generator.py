@@ -9,7 +9,7 @@ import pygsheets as ps
 import json
 
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests
+from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests, build_service_account_creds
 from schematic.utils.df_utils import update_df
 from schematic.store.synapse import SynapseStorage
 
@@ -24,14 +24,20 @@ class ManifestGenerator(object):
                 title: str = None, # manifest sheet title
                 root: str = None,
                 additional_metadata: Dict = None,
+                oauth: bool = True,
                 use_annotations: bool = False,
                 ) -> None:
 
         """TODO: read in a config file instead of hardcoding paths to credential files...
         """
 
-        # make a call to the build_credentials() function
-        services_creds = build_credentials()
+        if oauth:
+            # if user wants to use OAuth for Google authentication
+            # use credentials.json and create token.pickle file
+            services_creds = build_credentials()
+        else:
+            # if not oauth then use service account credentials
+            services_creds = build_service_account_creds()
 
         # google service for Sheet API
         self.sheet_service = services_creds["sheet_service"]
