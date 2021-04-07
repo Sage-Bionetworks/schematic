@@ -643,6 +643,7 @@ class SchemaGenerator(object):
                 "nested key in the configuration: (model > input > log_location)."
             )
         else:
+            os.makedirs(os.path.dirname(json_schema_log_file), exist_ok=True)
             with open(json_schema_log_file, "w") as js_f:
                 json.dump(json_schema, js_f, indent = 2)
 
