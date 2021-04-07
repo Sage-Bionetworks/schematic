@@ -4,9 +4,9 @@ version = "0.1.11"
 description = "Package for data model and data ingress management"
 authors = [
     "Milen Nikolov <milen.nikolov@sagebase.org>",
-    "Sujay Patil <sujay.patil@sagebase.org>",
+    "Sujay Patil <sujay.patil@sagebase.org>",
     "Bruno Grande <bruno.grande@sagebase.org>",
-    "Xengie Doan <xengie.doan@sagebase.org>"
+    "Xengie Doan <xengie.doan@sagebase.org>"
 ]
 
 readme = "README.md"
@@ -53,6 +53,7 @@ PyYAML = "^5.4.1"
 rdflib = "^5.0.0"
 setuptools = "^52.0.0"
 synapseclient = "^2.3.0"
+toml = "^0.10.2"
 
 
 [tool.poetry.dev-dependencies]

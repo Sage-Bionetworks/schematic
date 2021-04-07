@@ -156,3 +156,6 @@ token.pickle
 
 # Personal clean-up script
 clean.sh
+
+# direnv file
+.envrc
