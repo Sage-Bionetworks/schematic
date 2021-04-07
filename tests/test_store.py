@@ -1,13 +1,10 @@
 import os
-import copy
 import math
 import logging
 import pytest
 
 import pandas as pd
-from dotenv import load_dotenv
 from synapseclient import EntityViewSchema
-from synapseclient.core.exceptions import SynapseHTTPError
 
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView
@@ -15,9 +12,6 @@ from schematic.store.synapse import SynapseStorage, DatasetFileView
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-
-load_dotenv()
 
 
 DATASET_ID = "syn25057021"

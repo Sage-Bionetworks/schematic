@@ -41,7 +41,7 @@ class SynapseStorage(BaseStorage):
     """
 
     def __init__(self,
-                token: str = None, # optional parameter retreived from browser cookie
+                token: str = None, # optional parameter retrieved from browser cookie
                 access_token: str = None,
                 ) -> None:
 
@@ -92,15 +92,12 @@ class SynapseStorage(BaseStorage):
 
             self.manifest = CONFIG["synapse"]["manifest_filename"]
         except KeyError:
-            logger.error("Synapse ID of the master fileview is missing.")
             raise MissingConfigValueError(("synapse", "master_fileview"))
         except AttributeError:
             raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
-            logger.error(f"Access to the project {self.storageFileview} was unresolved.")
             raise AccessCredentialsError(self.storageFileview)
         except ValueError:
-            logger.error("Synapse ID of the administrative fileview is missing.")
             raise MissingConfigValueError(("synapse", "master_fileview"))
 
 
@@ -182,7 +179,7 @@ class SynapseStorage(BaseStorage):
             foldersTable = self.storageFileviewTable[(self.storageFileviewTable["contentType"] == "dataset") & (self.storageFileviewTable["projectId"] == projectId)]
             areDatasets = True
         else:
-            foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["projectId"] == projectId)]
+            foldersTable = self.storageFileviewTable[(self.storageFileviewTable["type"] == "folder") & (self.storageFileviewTable["parentId"] == projectId)]
 
         # get an array of tuples (folderId, folderName)
         # some folders are part of datasets; others contain datasets
@@ -194,8 +191,7 @@ class SynapseStorage(BaseStorage):
         datasetList = []
         folderProperties = ["id", "name"]
         for folder in list(foldersTable[folderProperties].itertuples(index = False, name = None)):
-            if self.syn.get(folder[0], downloadFile = False).properties["parentId"] == projectId or areDatasets:
-                datasetList.append(folder)
+            datasetList.append(folder)
 
         sorted_dataset_list = sorted(datasetList, key=lambda tup: tup[0])
 
@@ -255,25 +251,28 @@ class SynapseStorage(BaseStorage):
         Returns:
             A tuple of manifest file ID and manifest name -- (fileId, fileName); returns empty list if no manifest is found.
             (or)
-            synapseclient.entity.File: A new Synapse Entity object of the appropriate type.
+            synapseclient.entity.File: A new Synapse Entity object of the appropriate type, if downloadFile is set to True
         """
 
         # get a list of files containing the manifest for this dataset (if any)
-        manifest = self.getFilesInStorageDataset(datasetId, fileNames = [os.path.basename(self.manifest)])
+        all_files = self.storageFileviewTable
+        manifest = all_files[(all_files["name"] == os.path.basename(self.manifest)) & (all_files["parentId"] == datasetId)]
+        manifest = manifest[['id', 'name']]
 
-        if not manifest:
+        if manifest.empty:
             return []
         else:
             # if the downloadFile option is set to True
             if downloadFile:
-                # retreive data in (synID, /dataset/path/) format
-                syn_id_and_path = manifest[0]
+                # retrieve data from synapse
+                manifest_syn_id = manifest['id'][0]
 
                 # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                manifest_data = self.syn.get(syn_id_and_path[0], downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
+                manifest_data = self.syn.get(manifest_syn_id, downloadLocation=CONFIG["synapse"]["manifest_folder"], ifcollision="overwrite.local")
+
                 return manifest_data
 
-            return manifest[0] # extract manifest tuple from list
+            return list(manifest.to_records(index=False))[0] # extract manifest tuple from list
 
 
     def updateDatasetManifestFiles(self, datasetId: str) -> str:
@@ -289,7 +288,6 @@ class SynapseStorage(BaseStorage):
         manifest_id_name = self.getDatasetManifest(datasetId)
         if not manifest_id_name:
             # no manifest exists yet: abort
-            logger.error(f"No manifest file not found im dataset folder.")
             raise FileNotFoundError(f"Manifest file {CONFIG['synapse']['manifest_filename']} "
                                     f"cannot be found in {datasetId} dataset folder.")
 
@@ -344,6 +342,7 @@ class SynapseStorage(BaseStorage):
                     ]
 
         TODO: return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
+        TODO: use fileview instead of iterating through projects and datasets
         """
 
         projects = self.getStorageProjects()
@@ -362,6 +361,7 @@ class SynapseStorage(BaseStorage):
                             (datasetId, datasetName),
                             self.getDatasetManifest(datasetId)
                 )
+
                 manifests.append(manifest)
 
         return manifests
@@ -400,15 +400,14 @@ class SynapseStorage(BaseStorage):
         """
 
         # determine dataset name
-        datasetEntity = self.syn.get(datasetId, downloadFile = False)
-        datasetName = datasetEntity.name
-        datasetParentProject = self.getDatasetProject(datasetId)
+        # datasetEntity = self.syn.get(datasetId, downloadFile = False)
+        # datasetName = datasetEntity.name
+        # datasetParentProject = self.getDatasetProject(datasetId)
 
         # read new manifest csv
         try:
             manifest = pd.read_csv(metadataManifestPath)
         except FileNotFoundError as err:
-            logger.error("Check local manifest file path/location.")
             raise FileNotFoundError(f"No manifest file was found at this path: {metadataManifestPath}") from err
 
         # check if there is an existing manifest
@@ -563,6 +562,10 @@ class SynapseStorage(BaseStorage):
                 logger.info("Trying batch mode for retrieving Synapse annotations")
                 table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
             except (SynapseAuthenticationError, SynapseHTTPError):
+                logger.info(
+                    f"Unable to create a temporary file view bound to {datasetId}. "
+                    "Defaulting to slower iterative retrieval of annotations."
+                )
                 # Default to the slower non-batch method
                 logger.info("Batch mode failed (probably due to permission error)")
                 try_batch = False

@@ -123,7 +123,10 @@ class MetadataModel(object):
         if filenames:
             additionalMetadata["Filename"] = filenames
 
-        mg = ManifestGenerator(title, self.inputMModelLocation, rootNode, additionalMetadata)
+        mg = ManifestGenerator(path_to_json_ld=self.inputMModelLocation, 
+                               title=title, 
+                               root=rootNode, 
+                               additional_metadata=additionalMetadata)
 
         if jsonSchema:
             return mg.get_manifest(json_schema=jsonSchema)
@@ -250,7 +253,9 @@ class MetadataModel(object):
         Raises:
             ValueError: rootNode not found in metadata model.
         """
-        mg = ManifestGenerator(title, self.inputMModelLocation, rootNode)
+        mg = ManifestGenerator(path_to_json_ld=self.inputMModelLocation, 
+                               title=title, 
+                               root=rootNode)
 
         emptyManifestURL = mg.get_manifest()
 

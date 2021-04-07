@@ -5,10 +5,13 @@ import logging
 
 import pygsheets as ps
 
+from typing import Dict, Any
+
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
 from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
@@ -17,9 +20,9 @@ logger = logging.getLogger(__name__)
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
 
+
 # it will create 'token.pickle' based on credentials.json
-# TODO: replace by pygsheets calls?
-def build_credentials() -> dict:
+def generate_token() -> Credentials:
     creds = None
     # The file token.pickle stores the user's access and refresh tokens,
     # and is created automatically when the authorization flow completes for the first time.
@@ -38,6 +41,13 @@ def build_credentials() -> dict:
         with open(CONFIG.TOKEN_PICKLE, 'wb') as token:
             pickle.dump(creds, token)
 
+    return creds
+
+
+# TODO: replace by pygsheets calls?
+def build_credentials() -> Dict[str, Any]:
+    creds = generate_token()
+
     # get a Google Sheet API service
     sheet_service = build('sheets', 'v4', credentials=creds)
     # get a Google Drive API service
@@ -49,7 +59,8 @@ def build_credentials() -> dict:
         'creds': creds
     }
 
-def build_service_account_creds():
+
+def build_service_account_creds() -> Dict[str, Any]:
     credentials = service_account.Credentials.from_service_account_file(CONFIG.SERVICE_ACCT_CREDS, scopes=SCOPES)
 
     # get a Google Sheet API service
@@ -63,21 +74,50 @@ def build_service_account_creds():
         'creds': credentials
     }
 
-def download_creds_file():
-    if not os.path.exists(CONFIG.CREDS_PATH):
 
-        logging.info("Retrieving Google API credentials from Synapse...")
-        # synapse ID of the 'credentials.json' file, which we need in
-        # order to establish communication with gAPIs/services
-        API_CREDS = CONFIG["synapse"]["api_creds"]
-        syn = synapseclient.Synapse()
-        syn.login()
-        # Download in parent directory of CREDS_PATH to
-        # ensure same file system for os.rename()
-        creds_dir = os.path.dirname(CONFIG.CREDS_PATH)
-        creds_file = syn.get(API_CREDS, downloadLocation = creds_dir)
-        os.rename(creds_file.path, CONFIG.CREDS_PATH)
-        logging.info("Downloaded Google API credentials file.")
+def download_creds_file(auth: str = "token") -> None:
+    if auth is None:
+        raise ValueError(f"'{auth}' is not a valid authentication method. Please "
+                          "enter one of 'token' or 'service_account'.")
+
+    syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+    syn.login(silent=True)
+
+    if auth == "token":
+        if not os.path.exists(CONFIG.CREDS_PATH):
+            # synapse ID of the 'credentials.json' file
+            API_CREDS = CONFIG["synapse"]["token_creds"]
+
+            # Download in parent directory of CREDS_PATH to
+            # ensure same file system for os.rename()
+            creds_dir = os.path.dirname(CONFIG.CREDS_PATH)
+
+            creds_file = syn.get(API_CREDS, downloadLocation = creds_dir)
+            os.rename(creds_file.path, CONFIG.CREDS_PATH)
+
+            logger.info("The credentials file has been downloaded "
+                       f"to '{CONFIG.CREDS_PATH}'")
+                       
+    elif auth == "service_account":
+        if not os.path.exists(CONFIG.SERVICE_ACCT_CREDS):
+            # synapse ID of the 'schematic_service_account_creds.json' file
+            API_CREDS = CONFIG["synapse"]["service_acct_creds"]
+
+            # Download in parent directory of SERVICE_ACCT_CREDS to
+            # ensure same file system for os.rename()
+            creds_dir = os.path.dirname(CONFIG.SERVICE_ACCT_CREDS)
+
+            creds_file = syn.get(API_CREDS, downloadLocation = creds_dir)
+            os.rename(creds_file.path, CONFIG.SERVICE_ACCT_CREDS)
+
+            logger.info("The credentials file has been downloaded "
+                       f"to '{CONFIG.SERVICE_ACCT_CREDS}'")
+    
+    else:
+        logger.warning(f"The mode of authentication you selected '{auth}' is "
+                        "not supported. Please use one of either 'token' or "
+                        "'service_account'.")
+
 
 def execute_google_api_requests(service, requests_body, **kwargs):
     """

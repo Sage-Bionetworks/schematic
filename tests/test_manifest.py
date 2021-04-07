@@ -45,8 +45,7 @@ def manifest_generator(helpers, request):
 
     # Clean-up
     try:
-        os.remove(helpers.get_data_path("simple.Patient.schema.json"))
-        os.remove(helpers.get_data_path("simple.ScRNA-seqAssay.schema.json"))
+        os.remove(helpers.get_data_path(f"simple.{data_type}.schema.json"))
     except FileNotFoundError:
         pass
 
@@ -78,7 +77,7 @@ class TestManifestGenerator:
 
         generator = ManifestGenerator(
             title="mock_title",
-            path_to_json_ld=helpers.get_data_path("simple.model.jsonld")
+            path_to_json_ld=helpers.get_data_path("example.model.jsonld")
         )
 
         assert type(generator.title) is str
