@@ -52,7 +52,7 @@ pygsheets = "^2.0.4"
 PyYAML = "^5.4.1"
 rdflib = "^5.0.0"
 setuptools = "^52.0.0"
-synapseclient = "^2.3.0"
+synapseclient = "<2.3.0"  # Until Data Curator App supports OAuth tokens
 toml = "^0.10.2"
 
 
