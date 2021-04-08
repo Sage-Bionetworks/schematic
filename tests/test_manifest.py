@@ -22,13 +22,13 @@ def mock_creds():
 @pytest.fixture(params=[
     (True, "Patient"),
     (False, "Patient"),
-    (True, "ScRNA-seqAssay"),
-    (False, "ScRNA-seqAssay"),
+    (True, "BulkRNA-seqAssay"),
+    (False, "BulkRNA-seqAssay"),
 ], ids=[
     "use_annotations-Patient",
     "skip_annotations-Patient",
-    "use_annotations-scRNAseqAssay",
-    "skip_annotations-scRNAseqAssay",
+    "use_annotations-BulkRNAseqAssay",
+    "skip_annotations-BulkRNAseqAssay",
 ])
 def manifest_generator(helpers, request):
 
@@ -36,7 +36,7 @@ def manifest_generator(helpers, request):
     use_annotations, data_type = request.param
 
     manifest_generator = ManifestGenerator(
-        path_to_json_ld=helpers.get_data_path("simple.model.jsonld"),
+        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
         root=data_type,
         use_annotations=use_annotations,
     )
@@ -45,7 +45,7 @@ def manifest_generator(helpers, request):
 
     # Clean-up
     try:
-        os.remove(helpers.get_data_path(f"simple.{data_type}.schema.json"))
+        os.remove(helpers.get_data_path(f"example.{data_type}.schema.json"))
     except FileNotFoundError:
         pass
 
@@ -101,7 +101,7 @@ class TestManifestGenerator:
         # Beyond this point, the output is assumed to be a data frame
 
         # Update expectations based on whether the data type is file-based
-        is_file_based = data_type in ["ScRNA-seqAssay"]
+        is_file_based = data_type in ["BulkRNA-seqAssay"]
 
         assert "Component" in output
         assert is_file_based == ("eTag" in output)
@@ -109,11 +109,11 @@ class TestManifestGenerator:
         assert (is_file_based and use_annotations) == ("confidence" in output)
 
         # Data type-specific columns
-        assert (data_type == "Patient") == ("Vital Status" in output)
-        assert (data_type == "ScRNA-seqAssay") == ("File Format" in output)
+        assert (data_type == "Patient") == ("Diagnosis" in output)
+        assert (data_type == "BulkRNA-seqAssay") == ("File Format" in output)
 
         # The rest of the tests have to do with a file-based data type
-        if data_type != "ScRNA-seqAssay":
+        if data_type != "BulkRNA-seqAssay":
             assert output.shape[0] == 1   # Number of rows
             return
 
@@ -129,13 +129,13 @@ class TestManifestGenerator:
         # Test dimensions of data frame
         assert output.shape[0] == 3   # Number of rows
         if use_annotations:
-            assert output.shape[1] == 17  # Number of columns
+            assert output.shape[1] == 13  # Number of columns
             assert output.shape[0] == 3  # Number of rows
             assert "eTag" in output
             assert "confidence" in output
             assert output["Year of Birth"].tolist() == ["1980", "", ""]
         else:
-            assert output.shape[1] == 12  # Number of columns
+            assert output.shape[1] == 8  # Number of columns
 
         # An annotation merged with an attribute from the data model
         if use_annotations:

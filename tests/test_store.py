@@ -69,7 +69,7 @@ class TestSynapseStorage:
             "confidence": "high",
             "YearofBirth": "1980",
             "entityId": "syn25057024",
-            "fileFormat": "txt",
+            "FileFormat": "txt",
         }
         actual_dict = synapse_store.getFileAnnotations("syn25057024")
 
@@ -89,16 +89,16 @@ class TestSynapseStorage:
                 "author": "bruno, milen, sujay",
                 "impact": "42.9",
                 "confidence": "high",
-                "fileFormat": "txt",
+                "FileFormat": "txt",
                 "YearofBirth": "1980",
             },{
                 "Filename": "TestDataset-Annotations-v2/Sample_B.txt",
                 "confidence": "low",
-                "fileFormat": "csv",
+                "FileFormat": "csv",
                 "date": "2020-02-01",
             },{
                 "Filename": "TestDataset-Annotations-v2/Sample_C.txt",
-                "fileFormat": "fastq",
+                "FileFormat": "fastq",
             }
         ]).fillna("")
         actual_df = synapse_store.getDatasetAnnotations(

@@ -1989,79 +1989,19 @@
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
-                    "@id": "bts:Component"
+                    "@id": "bts:PatientID"
                 },
                 {
-                    "@id": "bts:PatientID"
+                    "@id": "bts:Sex"
                 },
                 {
                     "@id": "bts:YearofBirth"
                 },
                 {
-                    "@id": "bts:VitalStatus"
+                    "@id": "bts:Diagnosis"
                 },
-                {
-                    "@id": "bts:TreatmentType"
-                },
-                {
-                    "@id": "bts:TreatmentOutcome"
-                },
-                {
-                    "@id": "bts:TreatmentIntent"
-                }
-            ],
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:ScRNA-seqAssay",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "A component for a single-cell RNA-seq assay.",
-            "rdfs:label": "ScRNA-seqAssay",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Sequencing"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "scRNA-seq Assay",
-            "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:Biospecimen"
-                }
-            ],
-            "sms:requiresDependency": [
                 {
                     "@id": "bts:Component"
-                },
-                {
-                    "@id": "bts:filename"
-                },
-                {
-                    "@id": "bts:fileFormat"
-                },
-                {
-                    "@id": "bts:sampleID"
-                },
-                {
-                    "@id": "bts:NucleicAcidSource"
-                },
-                {
-                    "@id": "bts:SingleCellIsolationMethod"
-                },
-                {
-                    "@id": "bts:LibraryPreparationDate"
-                },
-                {
-                    "@id": "bts:LibraryConstructionMethod"
-                },
-                {
-                    "@id": "bts:SequencingPlatform"
-                },
-                {
-                    "@id": "bts:TotalNumberofInputCells"
                 }
             ],
             "sms:validationRules": []
@@ -2272,6 +2212,9 @@
                 },
                 {
                     "@id": "bts:TissueStatus"
+                },
+                {
+                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
@@ -2342,6 +2285,9 @@
                 },
                 {
                     "@id": "bts:FileFormat"
+                },
+                {
+                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
@@ -2509,6 +2455,23 @@
             },
             "sms:displayName": "Genome FASTA",
             "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Component",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Component",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Patient"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Component",
+            "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
