@@ -137,7 +137,7 @@ to authenticate with the Google APIs.
 For details about the steps involved in the `OAuth2 authorization
 flow <https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18>`__,
 refer to the ``Credentials`` section in the
-`docs/details <https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/details.md#credentials>`__
+`docs/md/details <https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/md/details.md#credentials>`__
 document.
 
 Use the ``schematic_service_account_creds.json`` file for the service
