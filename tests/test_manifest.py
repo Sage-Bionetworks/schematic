@@ -50,7 +50,7 @@ def manifest(manifest_generator, request):
     generator, use_annotations = manifest_generator
 
     manifest = generator.get_manifest(
-        dataset_id="syn24226514",
+        dataset_id="syn25057021",
         sheet_url=sheet_url
     )
 
@@ -92,7 +92,7 @@ class TestManifestGenerator:
         assert "Year of Birth" in output
 
         if use_annotations:
-            assert output.shape[1] == 12  # Number of columns
+            assert output.shape[1] == 13  # Number of columns
             assert output.shape[0] == 3  # Number of rows
             assert "eTag" in output
             assert "confidence" in output

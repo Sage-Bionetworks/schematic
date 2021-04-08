@@ -52,7 +52,7 @@ pygsheets = "^2.0.4"
 PyYAML = "^5.4.1"
 rdflib = "^5.0.0"
 setuptools = "^52.0.0"
-synapseclient = "2.2.2"
+synapseclient = "~2.3"  # ~ (not ^) until Data Curator App supports OAuth tokens
 toml = "^0.10.2"
 
 
@@ -78,4 +78,10 @@ testpaths = [
 ]
 filterwarnings = [
     "ignore::DeprecationWarning"
+]
+markers = [
+    """\
+    google_credentials_needed: marks tests requiring \
+    Google credentials (skipped on GitHub CI)\
+    """,
 ]

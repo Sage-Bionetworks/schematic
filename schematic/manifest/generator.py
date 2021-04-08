@@ -486,7 +486,7 @@ class ManifestGenerator(object):
                     "majorDimension": "COLUMNS",
                     "values": [values]
                 })
-        
+
         batch_update_values_request_body = {
             # How the input data should be interpreted.
             "valueInputOption": "RAW",
@@ -495,9 +495,9 @@ class ManifestGenerator(object):
             "data": data
         }
 
-        response = self.sheet_service.spreadsheets().values().batchUpdate(spreadsheetId=spreadsheet_id, 
+        response = self.sheet_service.spreadsheets().values().batchUpdate(spreadsheetId=spreadsheet_id,
                                                                           body=batch_update_values_request_body).execute()
-        
+
         # end of fix for issue #410
 
         #store all requests to execute at once

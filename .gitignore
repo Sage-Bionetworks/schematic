@@ -115,6 +115,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.envrc
 env/
 venv/
 ENV/
@@ -149,6 +150,7 @@ dmypy.json
 
 # Google services authorization credentials file
 credentials.json
+schematic_service_account_creds.json
 
 # token.pickle created after authorization
 token.pickle
@@ -158,3 +160,6 @@ clean.sh
 
 # direnv file
 .envrc
+
+# Intermediate files
+data/json_schema_logs/json_schema_log.json
