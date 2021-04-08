@@ -130,6 +130,10 @@ class TestManifestGenerator:
         assert output.shape[0] == 3   # Number of rows
         if use_annotations:
             assert output.shape[1] == 17  # Number of columns
+            assert output.shape[0] == 3  # Number of rows
+            assert "eTag" in output
+            assert "confidence" in output
+            assert output["Year of Birth"].tolist() == ["1980", "", ""]
         else:
             assert output.shape[1] == 12  # Number of columns
 

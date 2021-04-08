@@ -89,18 +89,15 @@ class TestSynapseStorage:
                 "author": "bruno, milen, sujay",
                 "impact": "42.9",
                 "confidence": "high",
-                "YearofBirth": "1980",
-                "entityId": "syn25057024",
                 "fileFormat": "txt",
+                "YearofBirth": "1980",
             },{
                 "Filename": "TestDataset-Annotations-v2/Sample_B.txt",
                 "confidence": "low",
-                "date": "2020-02-01",
-                "entityId": "syn25057028",
                 "fileFormat": "csv",
+                "date": "2020-02-01",
             },{
                 "Filename": "TestDataset-Annotations-v2/Sample_C.txt",
-                "entityId": "syn25057031",
                 "fileFormat": "fastq",
             }
         ]).fillna("")
@@ -108,10 +105,11 @@ class TestSynapseStorage:
             DATASET_ID, force_batch=force_batch
         )
 
-        # For simplicity, just checking if eTag is present since
-        # it changes anytime the files on Synapse change
+        # For simplicity, just checking if eTag and entityId are present
+        # since they change anytime the files on Synapse change
         assert "eTag" in actual_df
-        actual_df.drop(columns="eTag", inplace=True)
+        assert "entityId" in actual_df
+        actual_df.drop(columns=["eTag", "entityId"], inplace=True)
 
         pd.testing.assert_frame_equal(expected_df, actual_df, check_like=True)
 
