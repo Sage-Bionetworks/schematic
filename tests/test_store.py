@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-DATASET_ID = "syn24226514"
+DATASET_ID = "syn25057021"
 
 
 @pytest.fixture
@@ -87,24 +87,25 @@ class TestSynapseStorage:
                 "author": "bruno, milen, sujay",
                 "impact": "42.9",
                 "confidence": "high",
+                "fileFormat": "txt",
                 "YearofBirth": "1980",
-                "entityId": "syn24226530",
             },{
                 "confidence": "low",
+                "fileFormat": "csv",
                 "date": "2020-02-01",
-                "entityId": "syn24226531",
             },{
-                "entityId": "syn24226532",
+                "fileFormat": "fastq",
             }
         ]).fillna("")
         actual_df = synapse_store.getDatasetAnnotations(
             DATASET_ID, force_batch=force_batch
         )
 
-        # For simplicity, just checking if eTag is present since
-        # it changes anytime the files on Synapse change
+        # For simplicity, just checking if eTag and entityId are present
+        # since they change anytime the files on Synapse change
         assert "eTag" in actual_df
-        actual_df.drop(columns="eTag", inplace=True)
+        assert "entityId" in actual_df
+        actual_df.drop(columns=["eTag", "entityId"], inplace=True)
 
         pd.testing.assert_frame_equal(expected_df, actual_df, check_like=True)
 
@@ -156,7 +157,7 @@ class TestDatasetFileView:
         assert "ROW_ETAG" in table
 
         # Check for untidy list-columns
-        author_row = table["ROW_ID"] == 24226530
+        author_row = table["ROW_ID"] == 25057024
         assert author_row.any()
         assert "author" in table
         author_value = table.loc[author_row, "author"].values[0]
@@ -184,7 +185,7 @@ class TestDatasetFileView:
         assert table.index.name == "entityId"
 
         # Check for untidy list-columns
-        selected_row = table["entityId"] == "syn24226530"
+        selected_row = table["entityId"] == "syn25057024"
         assert selected_row.any()
         assert "author" in table
         author_value = table.loc[selected_row, "author"].values[0]
