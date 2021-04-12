@@ -95,6 +95,7 @@ def get_manifest(ctx, title, data_type, jsonld, dataset_id, sheet_url,
     if sheet_url:
         logger.info("Find the manifest template using this Google Sheet URL:")
         click.echo(result)
+
     elif isinstance(result, pd.DataFrame):
         if output_csv is None:
             prefix, _ = os.path.splitext(jsonld)
@@ -106,6 +107,7 @@ def get_manifest(ctx, title, data_type, jsonld, dataset_id, sheet_url,
         logger.info(
             f"Find the manifest template using this CSV file path: {output_csv}"
         )
+
         result.to_csv(output_csv, index=False)
 
     return result

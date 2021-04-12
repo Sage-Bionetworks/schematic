@@ -72,6 +72,12 @@ class ManifestGenerator(object):
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
 
+        # Determine whether current data type is file-based
+        is_file_based = False
+        if self.root:
+            is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
+        self.is_file_based = is_file_based
+
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet
@@ -838,7 +844,7 @@ class ManifestGenerator(object):
         # during empty manifest generation. For more info, search
         # for `additional_metadata` in `self.get_empty_manifest`.
         # Hence, the shared columns need to be updated separately.
-        if self.use_annotations:
+        if self.is_file_based and self.use_annotations:
             # This approach assumes that `update_df` returns
             # a data frame whose columns are in the same order
             manifest_df = update_df(manifest_df, annotations)
@@ -894,11 +900,15 @@ class ManifestGenerator(object):
         # Generate empty template and optionally fill in with annotations
         else:
 
-            # Get data frame of existing annotations to bootstrap empty manifest
-            # Avoiding the retrieval of annotations by default due to slowness
+            # Using getDatasetAnnotations() to retrieve file names and subset
+            # entities to files and folders (ignoring tables/views)
             annotations = pd.DataFrame()
-            if self.use_annotations:
+            if self.is_file_based:
                 annotations = syn_store.getDatasetAnnotations(dataset_id)
+
+            # Subset columns if no interested in user-defined annotations
+            if self.is_file_based and not self.use_annotations:
+                annotations = annotations[["Filename", "eTag", "entityId"]]
 
             # Update `additional_metadata` and generate manifest
             manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
@@ -907,8 +917,6 @@ class ManifestGenerator(object):
                 return manifest_url
             else:
                 return manifest_df
-
-        # This point is unreachable based on the above if-else conditionals
 
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):

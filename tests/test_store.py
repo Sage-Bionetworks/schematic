@@ -68,9 +68,10 @@ class TestSynapseStorage:
             "impact": "42.9",
             "confidence": "high",
             "YearofBirth": "1980",
-            "entityId": "syn24226530",
+            "entityId": "syn25057024",
+            "FileFormat": "txt",
         }
-        actual_dict = synapse_store.getFileAnnotations("syn24226530")
+        actual_dict = synapse_store.getFileAnnotations("syn25057024")
 
         # For simplicity, just checking if eTag is present since
         # it changes anytime the files on Synapse change
@@ -84,17 +85,20 @@ class TestSynapseStorage:
     def test_getDatasetAnnotations(self, synapse_store, force_batch):
         expected_df = pd.DataFrame.from_records([
             {
+                "Filename": "TestDataset-Annotations-v2/Sample_A.txt",
                 "author": "bruno, milen, sujay",
                 "impact": "42.9",
                 "confidence": "high",
-                "fileFormat": "txt",
+                "FileFormat": "txt",
                 "YearofBirth": "1980",
             },{
+                "Filename": "TestDataset-Annotations-v2/Sample_B.txt",
                 "confidence": "low",
-                "fileFormat": "csv",
+                "FileFormat": "csv",
                 "date": "2020-02-01",
             },{
-                "fileFormat": "fastq",
+                "Filename": "TestDataset-Annotations-v2/Sample_C.txt",
+                "FileFormat": "fastq",
             }
         ]).fillna("")
         actual_df = synapse_store.getDatasetAnnotations(

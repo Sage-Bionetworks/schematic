@@ -1999,6 +1999,9 @@
                 },
                 {
                     "@id": "bts:Diagnosis"
+                },
+                {
+                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
@@ -2209,6 +2212,9 @@
                 },
                 {
                     "@id": "bts:TissueStatus"
+                },
+                {
+                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
@@ -2279,6 +2285,9 @@
                 },
                 {
                     "@id": "bts:FileFormat"
+                },
+                {
+                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
@@ -2446,6 +2455,23 @@
             },
             "sms:displayName": "Genome FASTA",
             "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Component",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Component",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Patient"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Component",
+            "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
