@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
     Provides utilities to list files in a specific project; update files annotations, create fileviews, etc.
+
     TODO: Need to define the interface and rename and/or refactor some of the methods below.
     """
     def __init__(
@@ -96,10 +97,13 @@ class SynapseStorage(BaseStorage):
         except ValueError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
 
+
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
+
         Args:
             currentUserId: synapse id for the user whose projects we want to get.
+        
         Returns:
             A dictionary with a next page token and the results.
         """
@@ -120,8 +124,10 @@ class SynapseStorage(BaseStorage):
 
         return all_results
 
+
     def getStorageProjects(self) -> List[str]:
         """Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
+        
         Returns:
             A list of storage projects the current user has access to; the list consists of tuples (projectId, projectName).
         """
@@ -158,10 +164,13 @@ class SynapseStorage(BaseStorage):
 
         return sorted_projects_list
 
+
     def getStorageDatasetsInProject(self, projectId: str) -> List[str]:
         """Gets all datasets in folder under a given storage project that the current user has access to.
+        
         Args:
             projectId: synapse ID of a storage project.
+        
         Returns:
             A list of datasets within the given storage project; the list consists of tuples (datasetId, datasetName).
             None: If the projectId cannot be found on Synapse.
@@ -197,18 +206,23 @@ class SynapseStorage(BaseStorage):
 
         return sorted_dataset_list
 
+
     def getFilesInStorageDataset(
             self,
             datasetId: str,
             fileNames: List = None,
             fullpath: bool = True) -> List[Tuple[str, str]]:
         """Gets all files in a given dataset folder.
+
         Args:
             datasetId: synapse ID of a storage dataset.
             fileNames: get a list of files with particular names; defaults to None in which case all dataset files are returned (except bookkeeping files, e.g.
             metadata manifests); if fileNames is not None, all files matching the names in the fileNames list are returned if present.
             fullpath: if True return the full path as part of this filename; otherwise return just base filename
-        Returns: a list of files; the list consists of tuples (fileId, fileName).
+
+        Returns: 
+            A list of files; the list consists of tuples (fileId, fileName).
+            
         Raises:
             ValueError: Dataset ID not found.
         """
@@ -241,6 +255,7 @@ class SynapseStorage(BaseStorage):
                     file_list.append(filename[::-1])
 
         return file_list
+
 
     def getDatasetManifest(self,
                            datasetId: str,
@@ -287,13 +302,15 @@ class SynapseStorage(BaseStorage):
 
             return manifest_syn_id
 
+
     def updateDatasetManifestFiles(self, datasetId: str) -> str:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 
         Args:
             datasetId: synapse ID of a storage dataset.
 
-        Returns: synapse ID of updated manifest.
+        Returns:
+            Synapse ID of updated manifest.
         """
 
         # get existing manifest Synapse ID
@@ -338,10 +355,11 @@ class SynapseStorage(BaseStorage):
 
         return manifest_id
 
+
     def getAllManifests(self) -> List[str]:
         """Gets all metadata manifest files across all datasets in projects a user has access to.
 
-        Returns: a list of projects, datasets per project and metadata manifest Synapse ID for each dataset
+        Returns: A list of projects, datasets per project and metadata manifest Synapse ID for each dataset
                  as a list of tuples, one for each manifest:
                     [
                         (
@@ -352,9 +370,9 @@ class SynapseStorage(BaseStorage):
                         ...
                     ]
 
-        TODO: return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
-        TODO: use fileview instead of iterating through projects and datasets
-        TODO: getDatasetManifest() return type has changed to return only manifest synapse ID. Fetch 
+        TODO: Return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
+        TODO: Use fileview instead of iterating through projects and datasets
+        TODO: GetDatasetManifest() return type has changed to return only manifest synapse ID. Fetch 
               manifestName from config.yml and create tuple
         """
 
@@ -376,10 +394,11 @@ class SynapseStorage(BaseStorage):
 
         return manifests
 
+
     def get_synapse_table(
             self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
-        """
-        Download synapse table as a pd dataframe; return table schema and etags as results too
+        """Download synapse table as a pd dataframe; return table schema and etags as results too
+        
         Args:
             synapse_id: synapse ID of the table to query
         """
@@ -388,6 +407,7 @@ class SynapseStorage(BaseStorage):
         df = results.asDataFrame(rowIdAndVersionInIndex=False)
 
         return df, results
+
 
     def associateMetadataWithFiles(self, metadataManifestPath: str,
                                    datasetId: str) -> str:
@@ -487,13 +507,16 @@ class SynapseStorage(BaseStorage):
 
         return manifestSynapseFileId
 
+
     def getFileAnnotations(self, fileId: str) -> Dict[str, str]:
         """Generate dictionary of annotations for the given Synapse file.
         Synapse returns all custom annotations as lists since they
         can contain multiple values. In all cases, the values will
         be converted into strings and concatenated with ", ".
+        
         Args:
             fileId (str): Synapse ID for dataset file.
+        
         Returns:
             dict: Annotations as comma-separated strings.
         """
@@ -532,11 +555,13 @@ class SynapseStorage(BaseStorage):
 
         return annotations
 
+
     def getDatasetAnnotations(self,
                               datasetId: str,
                               fill_na: bool = True,
                               force_batch: bool = False) -> pd.DataFrame:
         """Generate table for annotations across all files in given dataset.
+        
         Args:
             datasetId (str): Synapse ID for dataset folder.
             fill_na (bool): Whether to replace missing values with
@@ -545,6 +570,7 @@ class SynapseStorage(BaseStorage):
                 the batch mode, which uses a file view to retrieve
                 annotations for a given dataset. Default to False
                 unless there are more than 50 files in the dataset.
+        
         Returns:
             pd.DataFrame: Table of annotations.
         """
@@ -596,13 +622,17 @@ class SynapseStorage(BaseStorage):
         # Force all values as strings
         return table.astype(str)
 
+
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
+        
         Args:
             datasetId (str): Synapse entity ID (folder or project).
+        
         Raises:
             ValueError: Raised if Synapse ID cannot be retrieved
             by the user or if it doesn't appear in the file view.
+        
         Returns:
             str: The Synapse ID for the parent project.
         """
@@ -632,6 +662,7 @@ class SynapseStorage(BaseStorage):
             f"configured file view ({self.storageFileview}). This might "
             "mean that the file view's scope needs to be updated.")
 
+
     def getDatasetAnnotationsBatch(
             self,
             datasetId: str,
@@ -641,10 +672,12 @@ class SynapseStorage(BaseStorage):
         instead of iteratively querying for individual entity annotations.
         This function is expected to run much faster than
         `self.getDatasetAnnotationsBatch` on large datasets.
+        
         Args:
             datasetId (str): Synapse ID for dataset folder.
             dataset_file_ids (Sequence[str]): List of Synapse IDs
                 for dataset files/folders used to subset the table.
+        
         Returns:
             pd.DataFrame: Table of annotations.
         """
@@ -673,6 +706,7 @@ class DatasetFileView:
                  temporary: bool = True,
                  parentId: str = None) -> None:
         """Create a file view scoped to a dataset folder.
+        
         Args:
             datasetId (str): Synapse ID for a dataset folder/project.
             synapse (Synapse): Used for Synapse requests.
@@ -718,22 +752,26 @@ class DatasetFileView:
         # Ensure deletion of the file view (last resort)
         if self.is_temporary:
             atexit.register(self.delete)
-
+            
+            
     def __enter__(self):
         """Return file view when entering 'with' statement."""
         return self
-
+        
+        
     def __exit__(self, exc_type, exc_value, traceback):
         """Delete file view when exiting 'with' statement."""
         if self.is_temporary:
             self.delete()
-
+            
+            
     def delete(self):
         """Delete the file view on Synapse without deleting local table."""
         if self.view_schema is not None:
             self.synapse.delete(self.view_schema)
             self.view_schema = None
-
+            
+    
     def query(self, tidy=True, force=False):
         """Retrieve file view as a data frame (raw format sans index)."""
         if self.table is None or force:
@@ -744,7 +782,8 @@ class DatasetFileView:
         if tidy:
             self.tidy_table()
         return self.table
-
+        
+    
     def tidy_table(self):
         """Convert raw file view data frame into more usable format."""
         assert self.table is not None, "Must call `self.query()` first."
@@ -752,7 +791,8 @@ class DatasetFileView:
         self._fix_list_columns()
         self._fix_int_columns()
         return self.table
-
+        
+    
     def _fix_default_columns(self):
         """Rename default columns to match schematic expectations."""
 
@@ -772,7 +812,8 @@ class DatasetFileView:
             self.table.insert(len(self.table.columns), "eTag", row_etags)
 
         return self.table
-
+        
+        
     def _get_columns_of_type(self, types):
         """Helper function to get list of columns of a given type(s)."""
         matching_columns = []
@@ -780,7 +821,8 @@ class DatasetFileView:
             if header.columnType in types:
                 matching_columns.append(header.name)
         return matching_columns
-
+        
+        
     def _fix_list_columns(self):
         """Fix formatting of list-columns."""
         list_types = {'STRING_LIST', 'INTEGER_LIST', 'BOOLEAN_LIST'}
@@ -788,7 +830,8 @@ class DatasetFileView:
         for col in list_columns:
             self.table[col] = self.table[col].apply(lambda x: ", ".join(x))
         return self.table
-
+        
+        
     def _fix_int_columns(self):
         """Ensure that integer-columns are actually integers."""
         int_columns = self._get_columns_of_type({"INTEGER"})
