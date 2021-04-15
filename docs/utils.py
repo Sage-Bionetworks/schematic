@@ -10,9 +10,9 @@ import toml
 def _extract_author_names(authors_list: List[str]) -> str:
     """
     Parse out only names from 'name <email>' list.
-    
+
     Args:
-        authors_list: List of authors in 'name <email>' 
+        authors_list: List of authors in 'name <email>'
         format.
 
     Returns:
@@ -25,11 +25,11 @@ def _extract_author_names(authors_list: List[str]) -> str:
 
         # extract name of each author by removing
         # <email> portion from each list item
-        name = re.sub(r' \<[^)]*\>', '', author)
+        name = re.sub(r" \<[^)]*\>", "", author)
         author_names.append(name)
 
     # create comma separated string from list of authors
-    author_names_csv = ', '.join(map(str, author_names))
+    author_names_csv = ", ".join(map(str, author_names))
     return author_names_csv
 
 
@@ -49,13 +49,12 @@ def _parse_toml(pyproject_path: Path) -> Dict[str, str]:
     pyproject_data = toml.loads(pyproject_text)
 
     # read in [tool.poetry] section from pyproject.toml file
-    poetry_data = pyproject_data['tool']['poetry']
+    poetry_data = pyproject_data["tool"]["poetry"]
 
     setup_metadata = {
-        'name': poetry_data['name'],
-        'version': poetry_data['version'],
-        'authors': _extract_author_names(poetry_data['authors'])
+        "name": poetry_data["name"],
+        "version": poetry_data["version"],
+        "authors": _extract_author_names(poetry_data["authors"]),
     }
 
     return setup_metadata
-    

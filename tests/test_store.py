@@ -46,9 +46,7 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     yield table
 
 
-
 class TestBaseStorage:
-
     def test_init(self):
 
         with pytest.raises(NotImplementedError):
@@ -56,11 +54,9 @@ class TestBaseStorage:
 
 
 class TestSynapseStorage:
-
     def test_init(self, synapse_store):
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
-
 
     def test_getFileAnnotations(self, synapse_store):
         expected_dict = {
@@ -80,27 +76,30 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
-
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, synapse_store, force_batch):
-        expected_df = pd.DataFrame.from_records([
-            {
-                "Filename": "TestDataset-Annotations-v2/Sample_A.txt",
-                "author": "bruno, milen, sujay",
-                "impact": "42.9",
-                "confidence": "high",
-                "FileFormat": "txt",
-                "YearofBirth": "1980",
-            },{
-                "Filename": "TestDataset-Annotations-v2/Sample_B.txt",
-                "confidence": "low",
-                "FileFormat": "csv",
-                "date": "2020-02-01",
-            },{
-                "Filename": "TestDataset-Annotations-v2/Sample_C.txt",
-                "FileFormat": "fastq",
-            }
-        ]).fillna("")
+        expected_df = pd.DataFrame.from_records(
+            [
+                {
+                    "Filename": "TestDataset-Annotations-v2/Sample_A.txt",
+                    "author": "bruno, milen, sujay",
+                    "impact": "42.9",
+                    "confidence": "high",
+                    "FileFormat": "txt",
+                    "YearofBirth": "1980",
+                },
+                {
+                    "Filename": "TestDataset-Annotations-v2/Sample_B.txt",
+                    "confidence": "low",
+                    "FileFormat": "csv",
+                    "date": "2020-02-01",
+                },
+                {
+                    "Filename": "TestDataset-Annotations-v2/Sample_C.txt",
+                    "FileFormat": "fastq",
+                },
+            ]
+        ).fillna("")
         actual_df = synapse_store.getDatasetAnnotations(
             DATASET_ID, force_batch=force_batch
         )
@@ -112,7 +111,6 @@ class TestSynapseStorage:
         actual_df.drop(columns=["eTag", "entityId"], inplace=True)
 
         pd.testing.assert_frame_equal(expected_df, actual_df, check_like=True)
-
 
     def test_getDatasetProject(self, synapse_store):
 
@@ -127,14 +125,12 @@ class TestSynapseStorage:
 
 
 class TestDatasetFileView:
-
     def test_init(self, dataset_fileview, synapse_store):
 
         assert dataset_fileview.datasetId == DATASET_ID
         assert dataset_fileview.synapse is synapse_store.syn
         assert dataset_fileview.parentId == DATASET_ID
         assert isinstance(dataset_fileview.view_schema, EntityViewSchema)
-
 
     def test_enter_exit(self, synapse_store):
 
@@ -145,7 +141,6 @@ class TestDatasetFileView:
 
         # Outside the 'with' statement, the file view should be unavailable
         assert fileview.view_schema is None
-
 
     def test_query(self, dataset_fileview_table):
 
@@ -172,7 +167,6 @@ class TestDatasetFileView:
         year_value = table.loc[author_row, "YearofBirth"].values[0]
         assert isinstance(year_value, float)
         assert math.isclose(year_value, 1980.0)
-
 
     def test_tidy_table(self, dataset_fileview_table_tidy):
 

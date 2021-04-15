@@ -4,13 +4,14 @@ import json
 from schematic.utils.curie_utils import extract_name_from_uri_or_curie
 from schematic.utils.validate_utils import validate_class_schema
 
+
 def load_schema_into_networkx(schema):
     G = nx.MultiDiGraph()
     for record in schema["@graph"]:
-       
-        # TODO: clean up obsolete code 
-        #if record["@type"] == "rdfs:Class":
-            
+
+        # TODO: clean up obsolete code
+        # if record["@type"] == "rdfs:Class":
+
         # creation of nodes
         # adding nodes to the graph
         node = {}
@@ -49,8 +50,8 @@ def load_schema_into_networkx(schema):
             dependencies = record["sms:requiresDependency"]
             if type(dependencies) == list:
                 for _dep in dependencies:
-                    n1 = record["rdfs:label"]  
-                    n2 = extract_name_from_uri_or_curie(_dep["@id"]) 
+                    n1 = record["rdfs:label"]
+                    n2 = extract_name_from_uri_or_curie(_dep["@id"])
                     # do not allow self-loops
                     if n1 != n2:
                         G.add_edge(n1, n2, key="requiresDependency")
@@ -59,8 +60,8 @@ def load_schema_into_networkx(schema):
             components = record["sms:requiresComponent"]
             if type(components) == list:
                 for _comp in components:
-                    n1 = record["rdfs:label"]  
-                    n2 = extract_name_from_uri_or_curie(_comp["@id"]) 
+                    n1 = record["rdfs:label"]
+                    n2 = extract_name_from_uri_or_curie(_comp["@id"])
                     # do not allow self-loops
                     if n1 != n2:
                         G.add_edge(n1, n2, key="requiresComponent")
@@ -69,18 +70,18 @@ def load_schema_into_networkx(schema):
             range_nodes = record["schema:rangeIncludes"]
             if type(range_nodes) == list:
                 for _range_node in range_nodes:
-                    n1 = record["rdfs:label"]  
-                    n2 = extract_name_from_uri_or_curie(_range_node["@id"]) 
+                    n1 = record["rdfs:label"]
+                    n2 = extract_name_from_uri_or_curie(_range_node["@id"])
                     # do not allow self-loops
                     if n1 != n2:
                         G.add_edge(n1, n2, key="rangeValue")
             elif type(range_nodes) == dict:
-                n1 = record["rdfs:label"]  
-                n2 = extract_name_from_uri_or_curie(range_nodes["@id"]) 
+                n1 = record["rdfs:label"]
+                n2 = extract_name_from_uri_or_curie(range_nodes["@id"])
                 # do not allow self-loops
                 if n1 != n2:
                     G.add_edge(n1, n2, key="rangeValue")
- 
+
         if "schema:domainIncludes" in record:
             domain_nodes = record["schema:domainIncludes"]
             if type(domain_nodes) == list:
@@ -96,14 +97,17 @@ def load_schema_into_networkx(schema):
                 # do not allow self-loops
                 if n1 != n2:
                     G.add_edge(n1, n2, key="domainValue")
-        
+
         # check schema generator (JSON validation schema gen)
-        if "requiresChildAsValue" in node and node["requiresChildAsValue"]["@id"] == "sms:True":
+        if (
+            "requiresChildAsValue" in node
+            and node["requiresChildAsValue"]["@id"] == "sms:True"
+        ):
             node["requiresChildAsValue"] = True
-        
+
         if "required" in node:
             if "sms:true" == record["sms:required"]:
-                node["required"] = True  
+                node["required"] = True
             else:
                 node["required"] = False
 
@@ -113,13 +117,14 @@ def load_schema_into_networkx(schema):
         else:
             node["validationRules"] = []
 
-        node['uri'] = record["@id"] 
-        node['description'] = record["rdfs:comment"]
-        G.add_node(record['rdfs:label'], **node)
-        #print(node)
-        #print(G.nodes())
+        node["uri"] = record["@id"]
+        node["description"] = record["rdfs:comment"]
+        G.add_node(record["rdfs:label"], **node)
+        # print(node)
+        # print(G.nodes())
 
     return G
+
 
 def node_attrs_cleanup(class_add_mod: dict) -> dict:
     # clean map that will be inputted into the node/graph
@@ -136,7 +141,10 @@ def node_attrs_cleanup(class_add_mod: dict) -> dict:
 
     return node
 
-def relationship_edges(schema_graph_nx: nx.MultiDiGraph, class_add_mod: dict, **kwargs) -> nx.MultiDiGraph:
+
+def relationship_edges(
+    schema_graph_nx: nx.MultiDiGraph, class_add_mod: dict, **kwargs
+) -> nx.MultiDiGraph:
     """
     Notes:
     =====
@@ -195,12 +203,13 @@ def relationship_edges(schema_graph_nx: nx.MultiDiGraph, class_add_mod: dict, **
 
     return schema_graph_nx
 
+
 def class_to_node(class_to_convert: dict) -> nx.Graph:
     G = nx.Graph()
 
-    node = {}   # node to be added the above graph and returned
+    node = {}  # node to be added the above graph and returned
     for (k, v) in class_to_convert.items():
-        if ":" in k:    # if ":" is present in key
+        if ":" in k:  # if ":" is present in key
             key = k.split(":")[1]
             node[key] = v
         elif "@" in k:  # if "@" is present in key
@@ -220,21 +229,27 @@ def class_to_node(class_to_convert: dict) -> nx.Graph:
     else:
         node["validationRules"] = []
 
-    node["uri"] = class_to_convert["@id"]   # add separate "uri" key
-    node["description"] = class_to_convert["rdfs:comment"] # separately store "comment" as "description"
+    node["uri"] = class_to_convert["@id"]  # add separate "uri" key
+    node["description"] = class_to_convert[
+        "rdfs:comment"
+    ]  # separately store "comment" as "description"
     G.add_node(class_to_convert["rdfs:label"], **node)
 
     return G
+
 
 def replace_node_in_schema(schema: nx.MultiDiGraph, class_add_mod: dict) -> None:
     # part of the code that replaces the modified class in the original JSON-LD schema (not in the data/ folder though)
     for i, schema_class in enumerate(schema["@graph"]):
         if schema_class["rdfs:label"] == class_add_mod["rdfs:label"]:
-            validate_class_schema(class_add_mod)    # validate that the class to be modified follows the structure for any generic class (node)
+            validate_class_schema(
+                class_add_mod
+            )  # validate that the class to be modified follows the structure for any generic class (node)
 
             schema["@graph"][i] = class_add_mod
             break
 
+
 def export_schema(schema, file_path):
-    with open(file_path, 'w') as f:
-        json.dump(schema, f, sort_keys = True, indent = 4, ensure_ascii = False)
+    with open(file_path, "w") as f:
+        json.dump(schema, f, sort_keys=True, indent=4, ensure_ascii=False)
