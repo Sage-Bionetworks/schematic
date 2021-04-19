@@ -31,27 +31,16 @@ App <https://github.com/Sage-Bionetworks/data_curator/>`__.
 
 -  `poetry <https://github.com/python-poetry/poetry>`__
 
-**Important**: Make sure you are a registered and certified user on
+**Note**: Make sure you are a registered and certified user on
 `synapse.org <https://www.synapse.org/>`__, and also have all the
 right permissions to download credentials files in the following steps.
 Contact your DCC liaison to request for permission to access the
 credentials files.
 
-3. Package Setup Instructions
--------------------------------
+3. Package Installation and Setup
+-------------------------------------
 
-3.1. Clone Project Repository
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Since the package isn't available on `PyPI <https://pypi.org/>`__
-yet, to setup the package you need to ``clone`` the project repoository
-from GitHub by running the following command:
-
-.. code:: bash
-
-    git clone --single-branch --branch develop `https://github.com/Sage-Bionetworks/schematic.git`
-
-3.2. Virtual Environment Setup
+3.1. Virtual Environment Setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
@@ -62,20 +51,14 @@ from GitHub by running the following command:
 
     source .venv/bin/activate # activate the `venv` virtual environment
 
-3.3. Install Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-After cloning the ``schematic`` project from GitHub and setting up your
-virtual environment:
+3.2. Installing
+~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
-    cd schematic  # change directory to schematic
-    git checkout develop  # switch to develop branch of schematic 
-    poetry build # build source and wheel archives
-    pip install dist/schematicpy-0.1.11-py3-none-any.whl  # install wheel file
+    pip install -U schematicpy  # install and upgrade package
 
-3.4. Fill in Configuration File(s)
+3.3. Fill in Configuration File(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are two main configuration files that need to be edited –
@@ -85,11 +68,11 @@ and
 
 Download a copy of the ``.synapseConfig`` file, open the file in the
 editor of your choice and edit the
-`username <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/master/synapseclient/.synapseConfig#L8>`__
+`username <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig#L8>`__
 and
-`apikey <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/master/synapseclient/.synapseConfig#L9>`__
+`apikey <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig#L9>`__
 attributes under the
-`[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/master/synapseclient/.synapseConfig#L7>`__
+`[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig#L7>`__
 section.
 
  Description of config.yml attributes
@@ -97,34 +80,35 @@ section.
 ::
 
     definitions:
-        synapse_config: "Path to .synapseConfig file"
-        creds_path: "Path to credentials.json file"
-        token_pickle: "Path to token.pickle file"
-        service_acct_creds: "Path to service_account_creds.json file"
+        synapse_config: # path to .synapseConfig file
+        creds_path: # path to credentials.json file
+        token_pickle: # path to token.pickle file (auto-generated)
+        service_acct_creds: # path to service_account_creds.json file
 
     synapse:
-        master_fileview: "Fileview of project with datasets on Synapse"
-        manifest_folder: "Path to folder where the manifest file should be downloaded to"
-        manifest_filename: "Name of the manifest file in the Synapse project"
-        api_creds: "syn23643259"
+        master_fileview: # fileview of project with datasets on Synapse
+        manifest_folder: # path to folder where the manifest file should be downloaded to"
+        manifest_filename: # name of the manifest file in the project dataset
+        token_creds: "syn23643259"
+        service_acct_creds: "syn25171627"
 
     manifest:
-        title: "Name metadata manifest file"
-        data_type: "Component or Data Type to be used for validation"
+        title: # title of metadata manifest file
+        data_type: # component or data type from the data model
 
     model:
         input:
-            location: "Path to data model JSON-LD file"
-            file_type: "local"  # only this type is supported at the moment
-            validation_schema: "Path to JSON Validation Schema JSON file"
-            log_location: "Folder where auto-generated JSON Validation Schemas can be logged to"
+            location: # path to JSON-LD data model
+            file_type: # only type "local" is supported currently
+            validation_schema: # path to custom JSON Validation Schema JSON file
+            log_location: # folder where auto-generated JSON Validation Schemas can be logged
         
 
 Note: You can get your Synapse API key by: *logging into Synapse* >
 *Settings* > *Synapse API Key* > *Show API Key*.
 
-3.5. Obtain Credentials File(s)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3.4. Obtain Google Credentials File(s)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
@@ -189,10 +173,6 @@ To submit (and optionally validate) your filled metadata manifest file:
 .. code:: bash
 
     schematic model --config ~/path/to/config.yml submit --manifest_path ~/path/to/manifest.csv --dataset_id dataset_synapse_id
-
-Refer to the
-`docs <https://github.com/Sage-Bionetworks/schematic/tree/develop/docs>`__
-for more details.
 
 Note: To view a full list of all the arguments that can be supplied to
 the command line interfaces, add a ``--help`` option at the end of each
