@@ -38,20 +38,20 @@ Use the [`init`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.
 schematic init --config ~/path/to/config.yml 
 ```
 
-### Metadata Manifest Validation
-
-Use the [`manifest validate`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-model-validate) command to validate metadata manifest files.
-
-```python
-schematic manifest --config ~/path/to/config.yml validate
-```
-
 ### Metadata Manifest Generation
 
 Use the [`manifest get`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-manifest-get) command to generate metadata manifest files based on a data type from your data model.
 
 ```python
 schematic manifest --config ~/path/to/config.yml get
+```
+
+### Metadata Manifest Validation
+
+Use the [`manifest validate`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-model-validate) command to validate metadata manifest files.
+
+```python
+schematic manifest --config ~/path/to/config.yml validate
 ```
 
 ### Metadata Manifest Validation and Submission
