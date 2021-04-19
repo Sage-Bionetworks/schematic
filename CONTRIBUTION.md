@@ -16,12 +16,26 @@ Please note we have a code of conduct, please follow it in all your interactions
 
 ### Setup Project for Development and Testing
 
-1. Follow the package setup instructions on the main README till the [`Clone Project Repository`](README.m#131-clone-project-repository) step.
-2. If you are a `schematic` package contributor you don't need to create a `venv` virtual environment, `poetry` will create a virtual environment by default, which you can use.
-3. Running the following command reads the [`pyproject.toml`](https://github.com/Sage-Bionetworks/schematic/blob/develop/pyproject.toml) file from the current project, resolves the dependencies and installs them: `poetry install`
-4. Obtain credentials file(s) by following same instructions as in the [`1.3.4. Obtain Credentials File(s)`](README.md#134-obtain-credentials-files) section.
-5. Fill in configuration file(s) in the same way as specified in the [`1.3.5. Fill in Configuration File(s)`](README.md#135-fill-in-configuration-files).
-6. To run any of the CLI utilities shown in the [`1.3.6. Command Line Interface`](README.md#136-command-line-interface), prefix the commands with `poetry run`.
+All the sections referenced here are from the [documentation](https://sage-schematic.readthedocs.io/en/develop/index.html) on ReadTheDocs.
+
+1. Make sure you have all the packages and tools required as specified in the [`Installation Requirements and Pre-requisites`](https://sage-schematic.readthedocs.io/en/develop/README.html#installation-requirements-and-pre-requisites) section.
+2. Clone the `schematic` package repository from GitHub onto your local machine by running the following command: `git clone --single-branch --branch develop https://github.com/Sage-Bionetworks/schematic.git`
+3. Create and activate a virtual environment as described in the [`Virtual Environment Setup`](https://sage-schematic.readthedocs.io/en/develop/README.html#virtual-environment-setup) section of the documentation.
+4. Run the following commands to build schematic and install the package along with all of its dependencies:
+```python
+cd schematic  # change directory to schematic
+git checkout develop  # switch to develop branch of schematic
+poetry build # build source and wheel archives
+pip install dist/schematicpy-0.1.11-py3-none-any.whl  # install wheel file
+```
+5. Fetch the appropriate Google credentials files (OAuth credentials file or service account credentials files) by running the command as shown in the `Obtain Google Credentials File(s)` section of the documentation.
+6. Obtain and fill in the `config.yml` file and the `.synapseConfig` file as well as described in the `Fill in Configuration File(s)` part of the documentation.
+7. Run any of the CLI utilities specified in the [`CLI reference`](https://sage-schematic.readthedocs.io/en/develop/README.html#command-line-interface).
+8. You can also import `schematicpy` like any other Python package and use the library of methods provided by the package as follows: 
+```python
+import schematic  # import schematicpy as a module
+from schematic import <method-name> # import method from schematic module
+```
 
 ## Pull Request Process
 
