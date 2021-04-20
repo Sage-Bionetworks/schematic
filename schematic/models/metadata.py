@@ -105,13 +105,14 @@ class MetadataModel(object):
         return ordered_nodes
 
 
-    def getModelManifest(self, title: str, rootNode: str, jsonSchema: str = None, filenames: list = None) -> str:
+    def getModelManifest(self, title: str, rootNode: str, jsonSchema: str = None, filenames: list = None, useAnnotations: bool = False) -> str:
         """Gets data from the annotations manifest file.
 
         TBD: Does this method belong here or in manifest generator?
 
         Args:
             rootNode: a schema node label (i.e. term).
+            useAnnotations: whether to populate manifest with current file annotations (True) or not (False, default).
 
         Returns:
             A manifest URI (assume Google doc for now).
@@ -126,7 +127,8 @@ class MetadataModel(object):
         mg = ManifestGenerator(path_to_json_ld=self.inputMModelLocation, 
                                title=title, 
                                root=rootNode, 
-                               additional_metadata=additionalMetadata)
+                               additional_metadata=additionalMetadata,
+                               use_annotations=useAnnotations)
 
         if jsonSchema:
             return mg.get_manifest(json_schema=jsonSchema)
