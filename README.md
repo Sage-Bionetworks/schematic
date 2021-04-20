@@ -3,7 +3,7 @@
 
 ## Introduction
 
-SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, data ingress ecosystem, that is meant to streamline the process of metadata annotation and validation for various data contributors.
+SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, data ingress ecosystem, that is meant to streamline the process of dataset annotation, metadata validation and submission to an asset store for various data contributors.
 
 ## Installation Requirements and Pre-requisites
 
@@ -15,16 +15,14 @@ Note: You need to be a registered and certified user on [`synapse.org`](https://
 
 Create and activate a virtual environment within which you can install the package:
 
-```python
+```
 python -m venv .venv
 source .venv/bin/activate
 ```
 
 Install and update the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
-```python
-pip install -U schematicpy
-```
+`pip install -U schematicpy`
 
 ## Package Usage Instructions
 
