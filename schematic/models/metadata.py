@@ -130,14 +130,14 @@ class MetadataModel(object):
                                additional_metadata=additionalMetadata,
                                use_annotations=useAnnotations)
 
+        if datasetId and jsonSchema:
+            return mg.get_manifest(dataset_id=datasetId, json_schema=jsonSchema)
+        
         if jsonSchema:
             return mg.get_manifest(json_schema=jsonSchema)
 
         if datasetId:
             return mg.get_manifest(dataset_id=datasetId)
-
-        if datasetId and jsonSchema:
-            return mg.get_manifest(dataset_id=datasetId, json_schema=jsonSchema)
 
         return mg.get_manifest()
 
