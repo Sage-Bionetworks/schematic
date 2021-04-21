@@ -5,4 +5,4 @@ ignore =
         E203,
         # line break before binary operator
         W503
-max-line-length = 88    # black default
+max-line-length = 88
