@@ -20,7 +20,7 @@ All the sections referenced here are from the [documentation](https://sage-schem
 
 1. Make sure you have all the packages and tools required as specified in the [`Installation Requirements and Pre-requisites`](https://sage-schematic.readthedocs.io/en/develop/README.html#installation-requirements-and-pre-requisites) section.
 2. Clone the `schematic` package repository from GitHub onto your local machine by running the following command: `git clone --single-branch --branch develop https://github.com/Sage-Bionetworks/schematic.git`
-3. Create and activate a virtual environment as described in the [`Virtual Environment Setup`](https://sage-schematic.readthedocs.io/en/develop/README.html#virtual-environment-setup) section of the documentation.
+3. [Create and activate](https://sage-schematic.readthedocs.io/en/develop/README.html#virtual-environment-setup) a virtual environment.
 4. Run the following commands to build schematic and install the package along with all of its dependencies:
 ```python
 cd schematic  # change directory to schematic
