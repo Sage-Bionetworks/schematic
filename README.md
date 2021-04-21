@@ -26,40 +26,28 @@ Install and update the package using [pip](https://pip.pypa.io/en/stable/quickst
 pip install -U schematicpy
 ```
 
-## Package Usage Instructions
+## Command Line Client Usage
 
-The package is bundled with a Command Line client.
-
-### Schematic Initialization
-
-Use the [`init`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-init) command to initialize the mode of authentication. This command must be run once before using any of the other CLI commands.
+### Initialization
 
 ```
-schematic init --config ~/path/to/config.yml
+schematic init --config ~/path/to/config.yml    # initialize mode of authentication
 ```
 
-### Metadata Manifest Generation
-
-Use the [`manifest get`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-manifest-get) command to generate metadata manifest files based on a data type from your data model.
+### Manifest
 
 ```
-schematic manifest --config ~/path/to/config.yml get
+schematic manifest --config ~/path/to/config.yml get    # generate manifest based on data type
 ```
 
-### Metadata Manifest Validation
-
-Use the [`manifest validate`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-model-validate) command to validate metadata manifest files.
-
 ```
-schematic manifest --config ~/path/to/config.yml validate
+schematic manifest --config ~/path/to/config.yml validate   # validate manifest
 ```
 
-### Metadata Manifest Validation and Submission
-
-Use the [`model submit`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-model-submit) command to submit (and optionally validate) metadata manifest files.
+### Model
 
 ```
-schematic model --config ~/path/to/config.yml submit
+schematic model --config ~/path/to/config.yml submit    # validate and submit manifest
 ```
 
 ## Contributing
