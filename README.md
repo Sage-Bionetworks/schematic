@@ -23,7 +23,7 @@ source .venv/bin/activate
 Install and update the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
 ```
-pip install -U schematicpy
+python -m pip install schematicpy
 ```
 
 ## Command Line Client Usage
