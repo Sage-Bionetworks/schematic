@@ -80,32 +80,31 @@ section.
 ::
 
     definitions:
-        synapse_config: # path to .synapseConfig file
-        creds_path: # path to credentials.json file
-        token_pickle: # path to token.pickle file (auto-generated)
-        service_acct_creds: # path to service_account_creds.json file
+        synapse_config: "~/path/to/.synapseConfig"
+        creds_path: "~/path/to/credentials.json"
+        token_pickle: "~/path/to/token.pickle"
+        service_acct_creds: "~/path/to/service_account_creds.json"
 
     synapse:
-        master_fileview: # fileview of project with datasets on Synapse
-        manifest_folder: # path to folder where the manifest file should be downloaded to"
-        manifest_filename: # name of the manifest file in the project dataset
-        token_creds: "syn23643259"
-        service_acct_creds: "syn25171627"
+        master_fileview: "syn23643253" # fileview of project with datasets on Synapse
+        manifest_folder: "~/path/to/manifest_folder/" # manifests will be downloaded to this folder
+        manifest_filename: "filename.ext" # name of the manifest file in the project dataset
+        token_creds: "syn23643259" # synapse ID of credentials.json file
+        service_acct_creds: "syn25171627" # synapse ID of service_account_creds.json file
 
     manifest:
-        title: # title of metadata manifest file
-        data_type: # component or data type from the data model
+        title: "Patient Manifest " # title of metadata manifest file
+        data_type: "Patient" # component or data type from the data model
 
     model:
         input:
-            location: # path to JSON-LD data model
-            file_type: # only type "local" is supported currently
-            validation_schema: # path to custom JSON Validation Schema JSON file
-            log_location: # folder where auto-generated JSON Validation Schemas can be logged
+            location: "data/schema_org_schemas/example.jsonld" # path to JSON-LD data model
+            file_type: "local" # only type "local" is supported currently
+            validation_schema: "~/path/to/validation_schema.json" # path to custom JSON Validation Schema JSON file
+            log_location: "~/path/to/log_folder/" # auto-generated JSON Validation Schemas can be logged
         
 
-Note: You can get your Synapse API key by: *logging into Synapse* >
-*Settings* > *Synapse API Key* > *Show API Key*.
+Note: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
 3.4. Obtain Google Credentials File(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
