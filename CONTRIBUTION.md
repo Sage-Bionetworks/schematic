@@ -22,12 +22,11 @@ All the sections referenced here are from the [documentation](https://sage-schem
 2. Clone the `schematic` package repository from GitHub onto your local machine by running the following command: `git clone --single-branch --branch develop https://github.com/Sage-Bionetworks/schematic.git`
 3. [Create and activate](https://sage-schematic.readthedocs.io/en/develop/README.html#virtual-environment-setup) a virtual environment.
 4. Run the following commands to build schematic and install the package along with all of its dependencies:
-```python
-cd schematic  # change directory to schematic
-git checkout develop  # switch to develop branch of schematic
-poetry build # build source and wheel archives
-pip install dist/schematicpy-0.1.11-py3-none-any.whl  # install wheel file
-```
+   ```python
+   cd schematic  # change directory to schematic
+   git checkout develop  # switch to develop branch of schematic
+   poetry build # build source and wheel archives
+   pip install dist/schematicpy-0.1.11-py3-none-any.whl  # install wheel file
 5. Fetch the appropriate Google credentials files (OAuth credentials file or service account credentials files) by running the command as shown in the `Obtain Google Credentials File(s)` section of the documentation.
 6. Obtain and fill in the `config.yml` file and the `.synapseConfig` file as well as described in the `Fill in Configuration File(s)` part of the documentation.
 7. Run any of the CLI utilities specified in the [`CLI reference`](https://sage-schematic.readthedocs.io/en/develop/README.html#command-line-interface).
