@@ -748,6 +748,7 @@ class ManifestGenerator(object):
 
         # open google sheets and extract first sheet
         sh = gc.open_by_url(manifest_url)
+        sh.default_parse = False
         wb = sh[0]
 
         # update spreadsheet with given manifest starting at top-left cell
