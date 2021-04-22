@@ -751,7 +751,7 @@ class ManifestGenerator(object):
         wb = sh[0]
 
         # update spreadsheet with given manifest starting at top-left cell
-        wb.set_dataframe(manifest_df, (1,1))
+        wb.set_dataframe(manifest_df, (1,1), escape_formulae=True)
 
         # set permissions so that anyone with the link can edit
         sh.share("", role = "writer", type = "anyone")
