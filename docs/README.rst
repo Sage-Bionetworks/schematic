@@ -59,7 +59,7 @@ credentials files.
 
 .. code:: bash
 
-    pip install -U schematicpy  # install and upgrade package
+    python -m pip install schematicpy  # install and upgrade package
 
 3.3. Fill in Configuration File(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
