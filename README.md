@@ -1,48 +1,54 @@
 # Schematic
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop)
-
-
-- [Schematic](#schematic)
-  - [Introduction](#introduction)
-  - [Installation Requirements and Pre-requisites](#installation-requirements-and-pre-requisites)
-  - [Package Setup Instructions](#package-setup-instructions)
-  - [Command Line Interface](#command-line-interface)
-  - [Contributing](#contributing)
-  - [Contributors](#contributors)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop) [![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
 
 ## Introduction
 
-SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, data ingress ecosystem, that is meant to streamline the process of metadata annotation and validation for various data contributors.
+SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, data ingress ecosystem, that is meant to streamline the process of dataset annotation, metadata validation and submission to an asset store for various data contributors.
 
 ## Installation Requirements and Pre-requisites
 
 * Python 3.7.1 or higher
-* [`pyenv`](https://github.com/pyenv/pyenv)
-* [`poetry`](https://github.com/python-poetry/poetry)
 
+Note: You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have the right permissions to download the Google credentials files from Synapse.
 
-**Important**: You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have the right permissions to download the Google credentials files from Synapse.
+## Installing
 
-## Package Setup Instructions
+Create and activate a virtual environment within which you can install the package:
 
-* [Clone Project Repository](https://sage-schematic.readthedocs.io/en/develop/README.html#clone-project-repository)
-* [Virtual Environment Setup](https://sage-schematic.readthedocs.io/en/develop/README.html#virtual-environment-setup)
-* [Install Dependencies](https://sage-schematic.readthedocs.io/en/develop/README.html#install-dependencies)
-* [Fill in Configuration File(s)](https://sage-schematic.readthedocs.io/en/develop/README.html#fill-in-configuration-file-s)
-* [Obtain Credentials File(s)](https://sage-schematic.readthedocs.io/en/develop/README.html#obtain-credentials-file-s)
+```
+python -m venv .venv
+source .venv/bin/activate
+```
 
+Install and update the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
-## Command Line Interface
+```
+python -m pip install schematicpy
+```
 
-* [Schematic Initialization](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-init) (_initialize mode of authentication_)
+## Command Line Client Usage
 
-* [Metadata Manifest Validation](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-model-validate) (_validate metadata manifest (.csv) files_)
+### Initialization
 
-* [Metadata Manifest Generation](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-manifest-get) (_generate metadata manifest (.csv) files_)
+```
+schematic init --config ~/path/to/config.yml    # initialize mode of authentication
+```
 
-* [Metadata Manifest Validation and Submission](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-model-submit) (_submission and optional validation of metadata manifest (.csv) files_)
+### Manifest
 
-Refer to the [docs](https://github.com/Sage-Bionetworks/schematic/tree/develop/docs/md/details.md) for more details.
+```
+schematic manifest --config ~/path/to/config.yml get    # generate manifest based on data type
+```
+
+```
+schematic manifest --config ~/path/to/config.yml validate   # validate manifest
+```
+
+### Model
+
+```
+schematic model --config ~/path/to/config.yml submit    # validate and submit manifest
+```
 
 ## Contributing
 
