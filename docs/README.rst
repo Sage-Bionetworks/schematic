@@ -29,6 +29,9 @@ you are a current (or potential) ``schematic`` contributor or a DCC
 admin managing installations of the `Data Curator
 App <https://github.com/Sage-Bionetworks/data_curator/>`__.
 
+Note: If you're experiencing issues with `pyenv <https://github.com/pyenv/pyenv>`__
+on ``macOS``, you can consider using `miniconda <https://docs.conda.io/en/latest/miniconda.html>`__.
+
 -  `poetry <https://github.com/python-poetry/poetry>`__
 
 **Note**: Make sure you are a registered and certified user on
