@@ -25,11 +25,12 @@ Please note we have a code of conduct, please follow it in all your interactions
    git checkout develop  # switch to develop branch of schematic
    poetry build # build source and wheel archives
    pip install dist/schematicpy-0.1.11-py3-none-any.whl  # install wheel file
+   ```
 5. [Obtain](https://sage-schematic.readthedocs.io/en/develop/README.html#obtain-google-credentials-file-s) appropriate Google credentials file(s).
 6. [Obtain and Fill in](https://sage-schematic.readthedocs.io/en/develop/README.html#fill-in-configuration-file-s) the `config.yml` file and the `.synapseConfig` file as well as described in the `Fill in Configuration File(s)` part of the documentation.
-8. [Import](https://docs.python.org/3/reference/simple_stmts.html#the-import-statement) `schematicpy` to leverage its functions directly as follows: 
-   ```python
-   from schematic import <sub-package>.<method-name> # import method from schematic core module
+7. [Run](https://docs.pytest.org/en/stable/usage.html) the test suite.
+
+Note: To ensure that all tests run successfully, contact your DCC liason and request to be added to the `schematic-dev` [team](https://www.synapse.org/#!Team:3419888) on Synapse.
 
 ## Pull Request Process
 
