@@ -16,12 +16,21 @@ Please note we have a code of conduct, please follow it in all your interactions
 
 ### Setup Project for Development and Testing
 
-1. Follow the package setup instructions on the main README till the [`Clone Project Repository`](README.m#131-clone-project-repository) step.
-2. If you are a `schematic` package contributor you don't need to create a `venv` virtual environment, `poetry` will create a virtual environment by default, which you can use.
-3. Running the following command reads the [`pyproject.toml`](https://github.com/Sage-Bionetworks/schematic/blob/develop/pyproject.toml) file from the current project, resolves the dependencies and installs them: `poetry install`
-4. Obtain credentials file(s) by following same instructions as in the [`1.3.4. Obtain Credentials File(s)`](README.md#134-obtain-credentials-files) section.
-5. Fill in configuration file(s) in the same way as specified in the [`1.3.5. Fill in Configuration File(s)`](README.md#135-fill-in-configuration-files).
-6. To run any of the CLI utilities shown in the [`1.3.6. Command Line Interface`](README.md#136-command-line-interface), prefix the commands with `poetry run`.
+1. Install [package dependencies](https://sage-schematic.readthedocs.io/en/develop/README.html#installation-requirements-and-pre-requisites).
+2. Clone the `schematic` package repository: `git clone https://github.com/Sage-Bionetworks/schematic.git`
+3. [Create and activate](https://sage-schematic.readthedocs.io/en/develop/README.html#virtual-environment-setup) a virtual environment.
+4. Run the following commands to build schematic and install the package along with all of its dependencies:
+   ```python
+   cd schematic  # change directory to schematic
+   git checkout develop  # switch to develop branch of schematic
+   poetry build # build source and wheel archives
+   pip install dist/schematicpy-0.1.11-py3-none-any.whl  # install wheel file
+   ```
+5. [Obtain](https://sage-schematic.readthedocs.io/en/develop/README.html#obtain-google-credentials-file-s) appropriate Google credentials file(s).
+6. [Obtain and Fill in](https://sage-schematic.readthedocs.io/en/develop/README.html#fill-in-configuration-file-s) the `config.yml` file and the `.synapseConfig` file as well as described in the `Fill in Configuration File(s)` part of the documentation.
+7. [Run](https://docs.pytest.org/en/stable/usage.html) the test suite.
+
+Note: To ensure that all tests run successfully, contact your DCC liason and request to be added to the `schematic-dev` [team](https://www.synapse.org/#!Team:3419888) on Synapse.
 
 ## Pull Request Process
 
@@ -48,78 +57,3 @@ Please note we have a code of conduct, please follow it in all your interactions
 http://google.github.io/styleguide/pyguide.html
 
 * Be consistent and follow existing code conventions and spirit.
-
-## Code of Conduct
-
-### Our Pledge
-
-In the interest of fostering an open and welcoming environment, we as
-contributors and maintainers pledge to making participation in our project and
-our community a harassment-free experience for everyone, regardless of age, body
-size, disability, ethnicity, gender identity and expression, level of experience,
-nationality, personal appearance, race, religion, or sexual identity and
-orientation.
-
-### Our Standards
-
-Examples of behavior that contributes to creating a positive environment
-include:
-
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
-
-Examples of unacceptable behavior by participants include:
-
-* The use of sexualized language or imagery and unwelcome sexual attention or
-advances
-* Trolling, insulting/derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or electronic
-  address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-  professional setting
-
-### Our Responsibilities
-
-Project maintainers are responsible for clarifying the standards of acceptable
-behavior and are expected to take appropriate and fair corrective action in
-response to any instances of unacceptable behavior.
-
-Project maintainers have the right and responsibility to remove, edit, or
-reject comments, commits, code, wiki edits, issues, and other contributions
-that are not aligned to this Code of Conduct, or to ban temporarily or
-permanently any contributor for other behaviors that they deem inappropriate,
-threatening, offensive, or harmful.
-
-### Scope
-
-This Code of Conduct applies both within project spaces and in public spaces
-when an individual is representing the project or its community. Examples of
-representing a project or community include using an official project e-mail
-address, posting via an official social media account, or acting as an appointed
-representative at an online or offline event. Representation of a project may be
-further defined and clarified by project maintainers.
-
-### Enforcement
-
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at [INSERT EMAIL ADDRESS]. All
-complaints will be reviewed and investigated and will result in a response that
-is deemed necessary and appropriate to the circumstances. The project team is
-obligated to maintain confidentiality with regard to the reporter of an incident.
-Further details of specific enforcement policies may be posted separately.
-
-Project maintainers who do not follow or enforce the Code of Conduct in good
-faith may face temporary or permanent repercussions as determined by other
-members of the project's leadership.
-
-### Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4,
-available at [http://contributor-covenant.org/version/1/4][version]
-
-[homepage]: http://contributor-covenant.org
-[version]: http://contributor-covenant.org/version/1/4/
