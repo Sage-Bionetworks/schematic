@@ -748,11 +748,13 @@ class ManifestGenerator(object):
 
         # open google sheets and extract first sheet
         sh = gc.open_by_url(manifest_url)
-        sh.default_parse = False
         wb = sh[0]
 
+        # The following line sets `valueInputOption = "RAW"` in pygsheets
+        sh.default_parse = False
+
         # update spreadsheet with given manifest starting at top-left cell
-        wb.set_dataframe(manifest_df, (1,1), escape_formulae=True)
+        wb.set_dataframe(manifest_df, (1,1))
 
         # set permissions so that anyone with the link can edit
         sh.share("", role = "writer", type = "anyone")
