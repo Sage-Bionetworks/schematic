@@ -1,9 +1,9 @@
 # Schematic
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop)[![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop) [![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
 
 ## Introduction
 
-SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, data ingress ecosystem, that is meant to streamline the process of metadata annotation and validation for various data contributors.
+SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, data ingress ecosystem, that is meant to streamline the process of dataset annotation, metadata validation and submission to an asset store for various data contributors.
 
 ## Installation Requirements and Pre-requisites
 
@@ -15,51 +15,39 @@ Note: You need to be a registered and certified user on [`synapse.org`](https://
 
 Create and activate a virtual environment within which you can install the package:
 
-```python
+```
 python -m venv .venv
 source .venv/bin/activate
 ```
 
 Install and update the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
-```python
-pip install -U schematicpy
+```
+python -m pip install schematicpy
 ```
 
-## Package Usage Instructions
+## Command Line Client Usage
 
-The package is bundled with a Command Line client.
+### Initialization
 
-### Schematic Initialization
-
-Use the [`init`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-init) command to initialize the mode of authentication. This command must be run once before using any of the other CLI commands.
-
-```python
-schematic init --config ~/path/to/config.yml 
+```
+schematic init --config ~/path/to/config.yml    # initialize mode of authentication
 ```
 
-### Metadata Manifest Generation
+### Manifest
 
-Use the [`manifest get`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-manifest-get) command to generate metadata manifest files based on a data type from your data model.
-
-```python
-schematic manifest --config ~/path/to/config.yml get
+```
+schematic manifest --config ~/path/to/config.yml get    # generate manifest based on data type
 ```
 
-### Metadata Manifest Validation
-
-Use the [`manifest validate`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-model-validate) command to validate metadata manifest files.
-
-```python
-schematic manifest --config ~/path/to/config.yml validate
+```
+schematic manifest --config ~/path/to/config.yml validate   # validate manifest
 ```
 
-### Metadata Manifest Validation and Submission
+### Model
 
-Use the [`model submit`](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html#schematic-model-submit) command to submit (and optionally validate) metadata manifest files.
-
-```python
-schematic model --config ~/path/to/config.yml submit
+```
+schematic model --config ~/path/to/config.yml submit    # validate and submit manifest
 ```
 
 ## Contributing
