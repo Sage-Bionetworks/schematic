@@ -773,6 +773,9 @@ class ManifestGenerator(object):
         sh = gc.open_by_url(manifest_url)
         wb = sh[0]
 
+        # The following line sets `valueInputOption = "RAW"` in pygsheets
+        sh.default_parse = False
+
         # update spreadsheet with given manifest starting at top-left cell
         wb.set_dataframe(manifest_df, (1, 1))
 
