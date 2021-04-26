@@ -84,7 +84,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "use_annotations")),
 )
 @click.option(
-    "-a",
+    "-oa",
     "--oauth",
     is_flag=True,
     help=query_dict(manifest_commands, ("manifest", "get", "oauth")),
