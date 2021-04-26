@@ -97,7 +97,7 @@ class Curie(object):
         self.uri = unicode(unquote(uri), "utf-8")
         self.curie = copy(self.uri)
         for ns in self.namespaces:
-            self.curie = uri.replace(u"" + self.namespaces["%s" % ns], u"%s:" % ns)
+            self.curie = uri.replace("" + self.namespaces["%s" % ns], "%s:" % ns)
 
     def __str__(self):
         return self.__unicode__()
@@ -136,12 +136,12 @@ def uri2curie(uri, namespaces):
 
     #  result = unicode(uri)
     for ns in namespaces:
-        ns_raw = u"%s" % namespaces["%s" % ns]
+        ns_raw = "%s" % namespaces["%s" % ns]
         if ns_raw == "http://www.w3.org/2002/07/owl#uri":
             ns_raw = "http://www.w3.org/2002/07/owl#"
-        result = result.replace(ns_raw, u"%s:" % ns)
+        result = result.replace(ns_raw, "%s:" % ns)
 
-    result = result.replace(u"http://www.w3.org/2002/07/owl#", "owl:")
+    result = result.replace("http://www.w3.org/2002/07/owl#", "owl:")
     return result
 
 
@@ -153,7 +153,7 @@ def curie2uri(curie, namespaces):
     """
     result = unicode(curie)
     for ns in namespaces:
-        result = result.replace(u"%s:" % ns, u"" + namespaces["%s" % ns])
+        result = result.replace("%s:" % ns, "" + namespaces["%s" % ns])
     return URIRef(result)
 
 
