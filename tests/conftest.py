@@ -71,4 +71,3 @@ def config():
 @pytest.fixture
 def config_path():
     yield CONFIG_PATH
-    

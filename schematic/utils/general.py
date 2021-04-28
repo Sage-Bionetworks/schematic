@@ -1,9 +1,9 @@
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text
 
+
 def find_duplicates(_list):
-    """Find duplicate items in a list
-    """
+    """Find duplicate items in a list"""
     return set([x for x in _list if _list.count(x) > 1])
 
 

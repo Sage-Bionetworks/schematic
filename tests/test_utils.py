@@ -15,7 +15,10 @@ from schematic.utils import cli_utils
 from schematic.utils import io_utils
 from schematic.utils import df_utils
 from schematic.utils import validate_utils
-from schematic.exceptions import MissingConfigValueError, MissingConfigAndArgumentValueError
+from schematic.exceptions import (
+    MissingConfigValueError,
+    MissingConfigAndArgumentValueError,
+)
 from schematic import LOADER
 
 logging.basicConfig(level=logging.DEBUG)
@@ -23,19 +26,18 @@ logger = logging.getLogger(__name__)
 
 
 class TestGeneral:
-
     def test_find_duplicates(self):
 
-        mock_list = ['foo', 'bar', 'foo']
-        mock_dups = {'foo'}
+        mock_list = ["foo", "bar", "foo"]
+        mock_dups = {"foo"}
 
         test_dups = general.find_duplicates(mock_list)
         assert test_dups == mock_dups
 
     def test_dict2list_with_dict(self):
 
-        mock_dict = {'foo': 'bar'}
-        mock_list = [{'foo': 'bar'}]
+        mock_dict = {"foo": "bar"}
+        mock_list = [{"foo": "bar"}]
 
         test_list = general.dict2list(mock_dict)
         assert test_list == mock_list
@@ -43,14 +45,13 @@ class TestGeneral:
     def test_dict2list_with_list(self):
 
         # mock_dict = {'foo': 'bar'}
-        mock_list = [{'foo': 'bar'}]
+        mock_list = [{"foo": "bar"}]
 
         test_list = general.dict2list(mock_list)
         assert test_list == mock_list
 
 
 class TestCliUtils:
-
     def test_query_dict(self):
 
         mock_dict = {"k1": {"k2": {"k3": "foobar"}}}
@@ -62,7 +63,6 @@ class TestCliUtils:
 
         assert test_result_valid == "foobar"
         assert test_result_invalid is None
-
 
     def test_get_from_config(self):
 
@@ -77,7 +77,6 @@ class TestCliUtils:
         with pytest.raises(MissingConfigValueError):
             cli_utils.get_from_config(mock_dict, mock_keys_invalid)
 
-
     def test_fill_in_from_config(self, mocker):
 
         jsonld = "/path/to/one"
@@ -89,24 +88,16 @@ class TestCliUtils:
 
         mocker.patch("schematic.CONFIG.DATA", mock_config)
 
-        result1 = cli_utils.fill_in_from_config(
-            "jsonld", jsonld, mock_keys
-        )
-        result2 = cli_utils.fill_in_from_config(
-            "jsonld", jsonld, mock_keys
-        )
-        result3 = cli_utils.fill_in_from_config(
-            "jsonld_none", jsonld_none, mock_keys
-        )
+        result1 = cli_utils.fill_in_from_config("jsonld", jsonld, mock_keys)
+        result2 = cli_utils.fill_in_from_config("jsonld", jsonld, mock_keys)
+        result3 = cli_utils.fill_in_from_config("jsonld_none", jsonld_none, mock_keys)
 
         assert result1 == "/path/to/one"
         assert result2 == "/path/to/one"
         assert result3 == "/path/to/two"
 
         with pytest.raises(MissingConfigAndArgumentValueError):
-            cli_utils.fill_in_from_config(
-                "jsonld_none", jsonld_none, mock_keys_invalid
-            )
+            cli_utils.fill_in_from_config("jsonld_none", jsonld_none, mock_keys_invalid)
 
 
 class FakeResponse:
@@ -131,62 +122,49 @@ class FakeResponse:
 
 
 class TestIOUtils:
-
     def test_json_load(self, tmpdir):
 
         json_file = tmpdir.join("example.json")
-        json_file.write_text(json.dumps([
-            {'k1': 'v1'},
-            {'k2': 'v2'}
-        ]), encoding="utf-8")
+        json_file.write_text(json.dumps([{"k1": "v1"}, {"k2": "v2"}]), encoding="utf-8")
 
-        with open(json_file, encoding='utf-8') as f:
+        with open(json_file, encoding="utf-8") as f:
             expected = json.load(f)
 
         local_result = io_utils.load_json(str(json_file))
 
         assert local_result == expected
 
-
     def test_json_load_online(self, mocker):
 
-        mock_urlopen = mocker.patch("urllib.request.urlopen",
-                                    return_value = FakeResponse(data=json.dumps([
-                                        {'k1': 'v1'},
-                                        {'k2': 'v2'}]
-                                    ).encode('utf-8'))
-                                    )
+        mock_urlopen = mocker.patch(
+            "urllib.request.urlopen",
+            return_value=FakeResponse(
+                data=json.dumps([{"k1": "v1"}, {"k2": "v2"}]).encode("utf-8")
+            ),
+        )
 
         url_result = io_utils.load_json("http://example.com")
-        assert url_result == [
-            {'k1': 'v1'},
-            {'k2': 'v2'}
-        ]
+        assert url_result == [{"k1": "v1"}, {"k2": "v2"}]
 
         assert mock_urlopen.call_count == 1
 
-
     def test_export_json(self, tmpdir):
 
-        json_str = json.dumps([
-            {'k1': 'v1'},
-            {'k2': 'v2'}
-        ])
+        json_str = json.dumps([{"k1": "v1"}, {"k2": "v2"}])
 
         export_file = tmpdir.join("export_json_expected.json")
         io_utils.export_json(json_str, export_file)
 
-        with open(export_file, encoding='utf-8') as f:
+        with open(export_file, encoding="utf-8") as f:
             expected = json.load(f)
 
         assert expected == json_str
-
 
     def test_load_default(self):
 
         biothings_schema = io_utils.load_default()
 
-        expected_ctx_keys = ['bts', 'rdf', 'rdfs', 'schema', 'xsd']
+        expected_ctx_keys = ["bts", "rdf", "rdfs", "schema", "xsd"]
         actual_ctx_keys = list(biothings_schema["@context"].keys())
         assert expected_ctx_keys == actual_ctx_keys
 
@@ -194,12 +172,11 @@ class TestIOUtils:
         actual_no_of_keys = len(biothings_schema["@graph"])
         assert expected_no_of_keys == actual_no_of_keys
 
-
     def test_load_schema_org(self):
 
         schema_org_schema = io_utils.load_schemaorg()
 
-        expected_ctx_keys = ['rdf', 'rdfs', 'xsd']
+        expected_ctx_keys = ["rdf", "rdfs", "xsd"]
         actual_ctx_keys = list(schema_org_schema["@context"].keys())
         assert expected_ctx_keys == actual_ctx_keys
 
@@ -233,10 +210,11 @@ class TestIOUtils:
 
 
 class TestDfUtils:
-
     def test_update_df_col_present(self, helpers):
 
-        synapse_manifest = helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
+        synapse_manifest = helpers.get_data_frame(
+            "mock_manifests", "synapse_manifest.csv"
+        )
 
         local_manifest = helpers.get_data_frame("mock_manifests", "local_manifest.csv")
 
@@ -244,23 +222,24 @@ class TestDfUtils:
 
         assert_frame_equal(col_pres_res, synapse_manifest)
 
-
     def test_update_df_col_absent(self, helpers):
 
-        synapse_manifest = helpers.get_data_frame("mock_manifests", "synapse_manifest.csv")
+        synapse_manifest = helpers.get_data_frame(
+            "mock_manifests", "synapse_manifest.csv"
+        )
 
         local_manifest = helpers.get_data_frame("mock_manifests", "local_manifest.csv")
 
         with pytest.raises(AssertionError):
             df_utils.update_df(local_manifest, synapse_manifest, "Col_Not_In_Dfs")
 
-
     def test_trim_commas_df(self, helpers):
 
         local_manifest = helpers.get_data_frame("mock_manifests", "local_manifest.csv")
 
-        nan_row = pd.DataFrame([[np.nan] * len(local_manifest.columns)],
-                                columns=local_manifest.columns)
+        nan_row = pd.DataFrame(
+            [[np.nan] * len(local_manifest.columns)], columns=local_manifest.columns
+        )
 
         df_with_nans = local_manifest.append(nan_row, ignore_index=True)
 
@@ -269,30 +248,37 @@ class TestDfUtils:
 
         assert_frame_equal(trimmed_df, local_manifest)
 
-
     def test_update_dataframe(self):
-        input_df = pd.DataFrame({
-            "numCol": [1, 2],
-            "entityId": ["syn01", "syn02"],
-            "strCol": ["foo", "bar"]
-        }, columns=["numCol", "entityId", "strCol"])
-        updates_df = pd.DataFrame({
-            "strCol": ["___", np.nan],
-            "numCol": [np.nan, 4],
-            "entityId": ["syn01", "syn02"]
-        }, columns=["strCol", "numCol", "entityId"])
-        expected_df = pd.DataFrame({
-            "numCol": [1, float(4)],
-            "entityId": ["syn01", "syn02"],
-            "strCol": ["___", "bar"]
-        }, columns=["numCol", "entityId", "strCol"])
+        input_df = pd.DataFrame(
+            {
+                "numCol": [1, 2],
+                "entityId": ["syn01", "syn02"],
+                "strCol": ["foo", "bar"],
+            },
+            columns=["numCol", "entityId", "strCol"],
+        )
+        updates_df = pd.DataFrame(
+            {
+                "strCol": ["___", np.nan],
+                "numCol": [np.nan, 4],
+                "entityId": ["syn01", "syn02"],
+            },
+            columns=["strCol", "numCol", "entityId"],
+        )
+        expected_df = pd.DataFrame(
+            {
+                "numCol": [1, float(4)],
+                "entityId": ["syn01", "syn02"],
+                "strCol": ["___", "bar"],
+            },
+            columns=["numCol", "entityId", "strCol"],
+        )
 
         actual_df = df_utils.update_df(input_df, updates_df, "entityId")
         pd.testing.assert_frame_equal(expected_df, actual_df)
 
 
 class TestValidateUtils:
-
     def test_validate_schema(self, helpers):
 
         se_obj = helpers.get_schema_explorer("example.model.jsonld")
@@ -300,7 +286,6 @@ class TestValidateUtils:
         actual = validate_utils.validate_schema(se_obj.schema)
 
         assert actual is None
-
 
     def test_validate_class_schema(self, helpers):
 
@@ -316,7 +301,6 @@ class TestValidateUtils:
         actual = validate_utils.validate_class_schema(mock_class)
 
         assert actual is None
-
 
     def test_validate_property_schema(self, helpers):
 
@@ -335,7 +319,6 @@ class TestValidateUtils:
 
 
 class TestCsvUtils:
-
     def test_csv_to_schemaorg(self, helpers, tmp_path):
         """Test the CSV-to-JSON-LD conversion.
 
