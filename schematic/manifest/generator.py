@@ -9,7 +9,11 @@ import pygsheets as ps
 import json
 
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.google_api_utils import build_credentials, execute_google_api_requests, build_service_account_creds
+from schematic.utils.google_api_utils import (
+    build_credentials,
+    execute_google_api_requests,
+    build_service_account_creds,
+)
 from schematic.utils.df_utils import update_df
 from schematic.store.synapse import SynapseStorage
 
@@ -19,17 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 class ManifestGenerator(object):
-    def __init__(self,
-                path_to_json_ld: str,   # JSON-LD file to be used for generating the manifest
-                title: str = None, # manifest sheet title
-                root: str = None,
-                additional_metadata: Dict = None,
-                oauth: bool = True,
-                use_annotations: bool = False,
-                ) -> None:
+    def __init__(
+        self,
+        path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
+        title: str = None,  # manifest sheet title
+        root: str = None,
+        additional_metadata: Dict = None,
+        oauth: bool = True,
+        use_annotations: bool = False,
+    ) -> None:
 
-        """TODO: read in a config file instead of hardcoding paths to credential files...
-        """
+        """TODO: read in a config file instead of hardcoding paths to credential files..."""
 
         if oauth:
             # if user wants to use OAuth for Google authentication
@@ -78,10 +82,8 @@ class ManifestGenerator(object):
             is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
         self.is_file_based = is_file_based
 
-
     def _attribute_to_letter(self, attribute, manifest_fields):
-        """Map attribute to column letter in a google sheet
-        """
+        """Map attribute to column letter in a google sheet"""
 
         # find index of attribute in manifest field
         column_idx = manifest_fields.index(attribute)
@@ -89,35 +91,32 @@ class ManifestGenerator(object):
         # return the google sheet letter representation of the column index
         return self._column_to_letter(column_idx)
 
-
     def _column_to_letter(self, column):
-         """Find google sheet letter representation of a column index integer
-         """
-         character = chr(ord('A') + column % 26)
-         remainder = column // 26
-         if column >= 26:
-            return self._column_to_letter(remainder-1) + character
-         else:
+        """Find google sheet letter representation of a column index integer"""
+        character = chr(ord("A") + column % 26)
+        remainder = column // 26
+        if column >= 26:
+            return self._column_to_letter(remainder - 1) + character
+        else:
             return character
 
-
     def _columns_to_sheet_ranges(self, column_idxs):
-        """map a set of column indexes to a set of Google sheet API ranges: each range includes exactly one column
-        """
+        """map a set of column indexes to a set of Google sheet API ranges: each range includes exactly one column"""
         ranges = []
 
         for column_idx in column_idxs:
             col_range = {
-                        "startColumnIndex": column_idx,
-                        "endColumnIndex": column_idx + 1
+                "startColumnIndex": column_idx,
+                "endColumnIndex": column_idx + 1,
             }
 
             ranges.append(col_range)
 
         return ranges
 
-
-    def _column_to_cond_format_eq_rule(self, column_idx:int, condition_argument:str, required:bool = False) -> dict:
+    def _column_to_cond_format_eq_rule(
+        self, column_idx: int, condition_argument: str, required: bool = False
+    ) -> dict:
         """Given a column index and an equality argument (e.g. one of valid values for the given column fields), generate a conditional formatting rule based on a custom formula encoding the logic:
 
         'if a cell in column idx is equal to condition argument, then set specified formatting'
@@ -126,34 +125,41 @@ class ManifestGenerator(object):
         col_letter = self._column_to_letter(column_idx)
 
         if not required:
-           bg_color = CONFIG["style"]["google_manifest"].get("opt_bg_color", {
-                "red": 1.0,
-                "green": 1.0,
-                "blue": 0.9019,
-           })
+            bg_color = CONFIG["style"]["google_manifest"].get(
+                "opt_bg_color",
+                {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 0.9019,
+                },
+            )
         else:
-           bg_color = CONFIG["style"]["google_manifest"].get("req_bg_color", {
-                "red": 0.9215,
-                "green": 0.9725,
-                "blue": 0.9803,
-           })
+            bg_color = CONFIG["style"]["google_manifest"].get(
+                "req_bg_color",
+                {
+                    "red": 0.9215,
+                    "green": 0.9725,
+                    "blue": 0.9803,
+                },
+            )
 
-        boolean_rule =  {
-                        "condition": {
-                        "type": "CUSTOM_FORMULA",
-                        "values": [
-                                    {
-                                        "userEnteredValue": '=$' + col_letter + '1 = "' + condition_argument + '"'
-                                    }
-                                ]
-                        },
-                        "format": {
-                            'backgroundColor': bg_color
-                        }
+        boolean_rule = {
+            "condition": {
+                "type": "CUSTOM_FORMULA",
+                "values": [
+                    {
+                        "userEnteredValue": "=$"
+                        + col_letter
+                        + '1 = "'
+                        + condition_argument
+                        + '"'
+                    }
+                ],
+            },
+            "format": {"backgroundColor": bg_color},
         }
 
         return boolean_rule
-
 
     def _gdrive_copy_file(self, origin_file_id, copy_title):
         """Copy an existing file.
@@ -165,77 +171,58 @@ class ManifestGenerator(object):
         Returns:
             The copied file if successful, None otherwise.
         """
-        copied_file = {'name': copy_title}
+        copied_file = {"name": copy_title}
 
         # return new copy sheet ID
-        return self.drive_service.files().copy(fileId = origin_file_id, body = copied_file).execute()["id"]
-
+        return (
+            self.drive_service.files()
+            .copy(fileId=origin_file_id, body=copied_file)
+            .execute()["id"]
+        )
 
     def _create_empty_manifest_spreadsheet(self, title):
         if CONFIG["style"]["google_manifest"]["master_template_id"]:
 
             # if provided with a template manifest google sheet, use it
-            spreadsheet_id = self._gdrive_copy_file(CONFIG["style"]["google_manifest"]["master_template_id"], title)
+            spreadsheet_id = self._gdrive_copy_file(
+                CONFIG["style"]["google_manifest"]["master_template_id"], title
+            )
 
         else:
             # if no template, create an empty spreadsheet
-            spreadsheet = self.sheet_service.spreadsheets().create(body=spreadsheet, fields='spreadsheetId').execute()
-            spreadsheet_id = spreadsheet.get('spreadsheetId')
+            spreadsheet = (
+                self.sheet_service.spreadsheets()
+                .create(body=spreadsheet, fields="spreadsheetId")
+                .execute()
+            )
+            spreadsheet_id = spreadsheet.get("spreadsheetId")
 
         return spreadsheet_id
 
-
-
     def _get_cell_borders(self, cell_range):
 
-        #set border style request
+        # set border style request
         color = {
-                    "red":226.0/255.0,
-                    "green":227.0/255.0,
-                    "blue":227.0/255.0,
+            "red": 226.0 / 255.0,
+            "green": 227.0 / 255.0,
+            "blue": 227.0 / 255.0,
         }
 
         border_style_req = {
-                  "updateBorders": {
-                    "range": cell_range,
-                    "top": {
-                      "style": "SOLID",
-                      "width": 2,
-                      "color": color
-                    },
-                    "bottom": {
-                      "style": "SOLID",
-                      "width": 2,
-                      "color": color
-                    },
-                    "left": {
-                      "style": "SOLID",
-                      "width": 2,
-                      "color": color
-                    },
-                    "right": {
-                      "style": "SOLID",
-                      "width": 2,
-                      "color": color
-                    },
-                    "innerHorizontal": {
-                      "style": "SOLID",
-                      "width": 2,
-                      "color": color
-                    },
-                    "innerVertical": {
-                      "style": "SOLID",
-                      "width": 2,
-                      "color": color
-                    }
-                  }
+            "updateBorders": {
+                "range": cell_range,
+                "top": {"style": "SOLID", "width": 2, "color": color},
+                "bottom": {"style": "SOLID", "width": 2, "color": color},
+                "left": {"style": "SOLID", "width": 2, "color": color},
+                "right": {"style": "SOLID", "width": 2, "color": color},
+                "innerHorizontal": {"style": "SOLID", "width": 2, "color": color},
+                "innerVertical": {"style": "SOLID", "width": 2, "color": color},
+            }
         }
 
         return border_style_req
 
-
     def _set_permissions(self, fileId):
-
         def callback(request_id, response, exception):
             if exception:
                 # Handle error
@@ -243,23 +230,29 @@ class ManifestGenerator(object):
             else:
                 logger.info(f"Permission Id: {response.get('id')}")
 
-        batch = self.drive_service.new_batch_http_request(callback = callback)
+        batch = self.drive_service.new_batch_http_request(callback=callback)
 
-        worldPermission = {
-                            'type': 'anyone',
-                            'role': 'writer'
-        }
+        worldPermission = {"type": "anyone", "role": "writer"}
 
-        batch.add(self.drive_service.permissions().create(
-                                        fileId = fileId,
-                                        body = worldPermission,
-                                        fields = 'id',
-                                        )
+        batch.add(
+            self.drive_service.permissions().create(
+                fileId=fileId,
+                body=worldPermission,
+                fields="id",
+            )
         )
         batch.execute()
 
-
-    def _get_column_data_validation_values(self, spreadsheet_id, valid_values, column_id, validation_type = "ONE_OF_LIST", strict = True, custom_ui = True, input_message = "Choose one from dropdown"):
+    def _get_column_data_validation_values(
+        self,
+        spreadsheet_id,
+        valid_values,
+        column_id,
+        validation_type="ONE_OF_LIST",
+        strict=True,
+        custom_ui=True,
+        input_message="Choose one from dropdown",
+    ):
 
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
@@ -268,39 +261,47 @@ class ManifestGenerator(object):
 
             # store valid values explicitly in workbook at the provided range to use as validation values
             target_col_letter = self._column_to_letter(column_id)
-            body =  {
-                        "majorDimension":"COLUMNS",
-                        "values":[values]
-            }
-            target_range = 'Sheet2!' + target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
-            valid_values = [
-                            {
-                                "userEnteredValue" : "=" + target_range
-                            }
-            ]
+            body = {"majorDimension": "COLUMNS", "values": [values]}
+            target_range = (
+                "Sheet2!"
+                + target_col_letter
+                + "2:"
+                + target_col_letter
+                + str(len(values) + 1)
+            )
+            valid_values = [{"userEnteredValue": "=" + target_range}]
 
-            response = self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range = target_range, valueInputOption = "RAW", body = body).execute()
-
+            response = (
+                self.sheet_service.spreadsheets()
+                .values()
+                .update(
+                    spreadsheetId=spreadsheet_id,
+                    range=target_range,
+                    valueInputOption="RAW",
+                    body=body,
+                )
+                .execute()
+            )
 
         # setup validation data request body
-        validation_body =  {
-                  "requests": [
-                    {
-                    'setDataValidation':{
-                        'range':{
-                            'startRowIndex':1,
-                            'startColumnIndex':column_id,
-                            'endColumnIndex':column_id+1,
+        validation_body = {
+            "requests": [
+                {
+                    "setDataValidation": {
+                        "range": {
+                            "startRowIndex": 1,
+                            "startColumnIndex": column_id,
+                            "endColumnIndex": column_id + 1,
                         },
-                        'rule':{
-                            'condition':{
-                                'type':validation_type,
-                                'values': valid_values
+                        "rule": {
+                            "condition": {
+                                "type": validation_type,
+                                "values": valid_values,
                             },
-                            'inputMessage' : input_message,
-                            'strict':strict,
-                            'showCustomUi': custom_ui
-                        }
+                            "inputMessage": input_message,
+                            "strict": strict,
+                            "showCustomUi": custom_ui,
+                        },
                     }
                 }
             ]
@@ -308,8 +309,7 @@ class ManifestGenerator(object):
 
         return validation_body
 
-
-    def _get_valid_values_from_jsonschema_property(self, prop:dict) -> List[str]:
+    def _get_valid_values_from_jsonschema_property(self, prop: dict) -> List[str]:
         """Get valid values for a manifest attribute based on the corresponding
         values of node's properties in JSONSchema
 
@@ -327,8 +327,7 @@ class ManifestGenerator(object):
         else:
             return []
 
-
-    def get_empty_manifest(self, json_schema_filepath = None):
+    def get_empty_manifest(self, json_schema_filepath=None):
         # TODO: Refactor get_manifest method
         # - abstract function for requirements gathering
         # - abstract google sheet API requests as functions
@@ -352,27 +351,42 @@ class ManifestGenerator(object):
 
         # gathering dependency requirements and corresponding allowed values constraints (i.e. valid values) for root node
         for req in json_schema["properties"].keys():
-            required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
+            required_metadata_fields[
+                req
+            ] = self._get_valid_values_from_jsonschema_property(
+                json_schema["properties"][req]
+            )
             # the following line may not be needed
             json_schema["properties"][req]["enum"] = required_metadata_fields[req]
-
 
         # gathering dependency requirements and allowed value constraints for conditional dependencies if any
         if "allOf" in json_schema:
             for conditional_reqs in json_schema["allOf"]:
-                 if "required" in conditional_reqs["if"]:
-                     for req in conditional_reqs["if"]["required"]:
+                if "required" in conditional_reqs["if"]:
+                    for req in conditional_reqs["if"]["required"]:
                         if req in conditional_reqs["if"]["properties"]:
                             if not req in required_metadata_fields:
                                 if req in json_schema["properties"]:
-                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
+                                    required_metadata_fields[
+                                        req
+                                    ] = self._get_valid_values_from_jsonschema_property(
+                                        json_schema["properties"][req]
+                                    )
                                 else:
-                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(conditional_reqs["if"]["properties"][req])
+                                    required_metadata_fields[
+                                        req
+                                    ] = self._get_valid_values_from_jsonschema_property(
+                                        conditional_reqs["if"]["properties"][req]
+                                    )
 
-                     for req in conditional_reqs["then"]["required"]:
-                         if not req in required_metadata_fields:
-                                if req in json_schema["properties"]:
-                                    required_metadata_fields[req] = self._get_valid_values_from_jsonschema_property(json_schema["properties"][req])
+                    for req in conditional_reqs["then"]["required"]:
+                        if not req in required_metadata_fields:
+                            if req in json_schema["properties"]:
+                                required_metadata_fields[
+                                    req
+                                ] = self._get_valid_values_from_jsonschema_property(
+                                    json_schema["properties"][req]
+                                )
 
         # if additional metadata is provided append columns (if those do not exist already)
         if self.additional_metadata:
@@ -381,13 +395,13 @@ class ManifestGenerator(object):
                     required_metadata_fields[column] = []
 
         # if 'component' is in column set (see your input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry
-        if 'Component' in required_metadata_fields.keys():
+        if "Component" in required_metadata_fields.keys():
             # check if additional metadata has actually been instantiated in the constructor (it's optional)
             # if not, instantiate it
             if not self.additional_metadata:
                 self.additional_metadata = {}
 
-            self.additional_metadata['Component'] = [self.root]
+            self.additional_metadata["Component"] = [self.root]
 
         # adding columns to manifest sheet
         end_col = len(required_metadata_fields.keys())
@@ -396,83 +410,79 @@ class ManifestGenerator(object):
         # order columns header (since they are generated based on a json schema, which is a dict)
         ordered_metadata_fields = [list(required_metadata_fields.keys())]
 
-        ordered_metadata_fields[0] = self.sort_manifest_fields(ordered_metadata_fields[0])
+        ordered_metadata_fields[0] = self.sort_manifest_fields(
+            ordered_metadata_fields[0]
+        )
 
-        body = {
-                "values": ordered_metadata_fields
-        }
+        body = {"values": ordered_metadata_fields}
 
-        #determining columns range
+        # determining columns range
         end_col = len(required_metadata_fields.keys())
         end_col_letter = self._column_to_letter(end_col)
 
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
 
         # adding columns
-        self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
+        self.sheet_service.spreadsheets().values().update(
+            spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body
+        ).execute()
 
         # adding columns to 2nd sheet that can be used for storing data validation ranges (this avoids limitations on number of dropdown items in excel and openoffice)
         range = "Sheet2!A1:" + str(end_col_letter) + "1"
-        self.sheet_service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body).execute()
-
+        self.sheet_service.spreadsheets().values().update(
+            spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body
+        ).execute()
 
         # format column header row
         header_format_body = {
-                "requests":[
+            "requests": [
                 {
-                      "repeatCell": {
-                        "range": {
-                          "startRowIndex": 0,
-                          "endRowIndex": 1
-                        },
+                    "repeatCell": {
+                        "range": {"startRowIndex": 0, "endRowIndex": 1},
                         "cell": {
-                          "userEnteredFormat": {
-                            "backgroundColor": {
-                              "red": 224.0/255,
-                              "green": 224.0/255,
-                              "blue": 224.0/255
-                            },
-                            "horizontalAlignment" : "CENTER",
-                            "textFormat": {
-                              "foregroundColor": {
-                                "red": 0.0/255,
-                                "green": 0.0/255,
-                                "blue": 0.0/255
-                              },
-                              "fontSize": 8,
-                              "bold": True
+                            "userEnteredFormat": {
+                                "backgroundColor": {
+                                    "red": 224.0 / 255,
+                                    "green": 224.0 / 255,
+                                    "blue": 224.0 / 255,
+                                },
+                                "horizontalAlignment": "CENTER",
+                                "textFormat": {
+                                    "foregroundColor": {
+                                        "red": 0.0 / 255,
+                                        "green": 0.0 / 255,
+                                        "blue": 0.0 / 255,
+                                    },
+                                    "fontSize": 8,
+                                    "bold": True,
+                                },
                             }
-                          }
                         },
-                        "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
-                      }
-                    },
-                    {
-                      "updateSheetProperties": {
-                        "properties": {
-                          "gridProperties": {
-                            "frozenRowCount": 1
-                          }
-                        },
-                        "fields": "gridProperties.frozenRowCount"
-                      }
-                    },
-                    {
-                        "autoResizeDimensions": {
-                            "dimensions": {
-                                "dimension": "COLUMNS",
-                                "startIndex": 0
-                            }
-                        }
+                        "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)",
                     }
-                ]
+                },
+                {
+                    "updateSheetProperties": {
+                        "properties": {"gridProperties": {"frozenRowCount": 1}},
+                        "fields": "gridProperties.frozenRowCount",
+                    }
+                },
+                {
+                    "autoResizeDimensions": {
+                        "dimensions": {"dimension": "COLUMNS", "startIndex": 0}
+                    }
+                },
+            ]
         }
 
-        response = self.sheet_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body).execute()
+        response = (
+            self.sheet_service.spreadsheets()
+            .batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body)
+            .execute()
+        )
 
         # adding additional metadata values if needed
         # adding value-constraints from data model as dropdowns
-
 
         # fix for issue #410
         # batch google API request to create metadata template
@@ -485,28 +495,37 @@ class ManifestGenerator(object):
                 values = self.additional_metadata[req]
                 target_col_letter = self._column_to_letter(i)
 
-                range_vals = target_col_letter + '2:' + target_col_letter + str(len(values) + 1)
+                range_vals = (
+                    target_col_letter + "2:" + target_col_letter + str(len(values) + 1)
+                )
 
-                data.append({
-                    "range": range_vals,
-                    "majorDimension": "COLUMNS",
-                    "values": [values]
-                })
+                data.append(
+                    {
+                        "range": range_vals,
+                        "majorDimension": "COLUMNS",
+                        "values": [values],
+                    }
+                )
 
         batch_update_values_request_body = {
             # How the input data should be interpreted.
             "valueInputOption": "RAW",
-
             # The new values to apply to the spreadsheet.
-            "data": data
+            "data": data,
         }
 
-        response = self.sheet_service.spreadsheets().values().batchUpdate(spreadsheetId=spreadsheet_id,
-                                                                          body=batch_update_values_request_body).execute()
+        response = (
+            self.sheet_service.spreadsheets()
+            .values()
+            .batchUpdate(
+                spreadsheetId=spreadsheet_id, body=batch_update_values_request_body
+            )
+            .execute()
+        )
 
         # end of fix for issue #410
 
-        #store all requests to execute at once
+        # store all requests to execute at once
         requests_body = {}
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
@@ -522,33 +541,24 @@ class ManifestGenerator(object):
                 # get node definition
                 note = self.sg.get_node_definition(req)
 
-                notes_body =  {
-                            "requests":[
-                                {
-                                    "updateCells": {
-                                    "range": {
-                                        "startRowIndex": 0,
-                                        "endRowIndex": 1,
-                                        "startColumnIndex": i,
-                                        "endColumnIndex": i+1
-                                    },
-                                   "rows": [
-                                      {
-                                        "values": [
-                                          {
-                                            "note": note
-                                          }
-                                        ]
-                                      }
-                                    ],
-                                    "fields": "note"
-                                    }
-                                }
-                            ]
+                notes_body = {
+                    "requests": [
+                        {
+                            "updateCells": {
+                                "range": {
+                                    "startRowIndex": 0,
+                                    "endRowIndex": 1,
+                                    "startColumnIndex": i,
+                                    "endColumnIndex": i + 1,
+                                },
+                                "rows": [{"values": [{"note": note}]}],
+                                "fields": "note",
+                            }
+                        }
+                    ]
                 }
 
                 requests_body["requests"].append(notes_body["requests"])
-
 
             # get node validation rules if any
             validation_rules = self.sg.get_node_validation_rules(req)
@@ -559,89 +569,90 @@ class ManifestGenerator(object):
             # for now have the list logic here
             if "list" in validation_rules:
                 note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
-                notes_body =  {
-                            "requests":[
-                                {
-                                    "repeatCell": {
-                                    "range": {
-                                        "startRowIndex": 1,
-                                        "startColumnIndex": i,
-                                        "endColumnIndex": i+1
-                                    },
-                                    "cell":{
-                                      "note": note
-                                    },
-                                    "fields": "note"
-                                    }
-                                }
-                            ]
+                notes_body = {
+                    "requests": [
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "startRowIndex": 1,
+                                    "startColumnIndex": i,
+                                    "endColumnIndex": i + 1,
+                                },
+                                "cell": {"note": note},
+                                "fields": "note",
+                            }
+                        }
+                    ]
                 }
 
                 requests_body["requests"].append(notes_body["requests"])
 
-
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
-                bg_color = CONFIG["style"]["google_manifest"].get("req_bg_color", {
-                    "red": 0.9215,
-                    "green": 0.9725,
-                    "blue": 0.9803,
-                })
+                bg_color = CONFIG["style"]["google_manifest"].get(
+                    "req_bg_color",
+                    {
+                        "red": 0.9215,
+                        "green": 0.9725,
+                        "blue": 0.9803,
+                    },
+                )
 
                 req_format_body = {
-                        "requests":[
-                            {
-                                "repeatCell": {
-                                    "range": {
-                                      "startColumnIndex": i,
-                                      "endColumnIndex": i+1
-                                    },
-                                    "cell": {
-                                      "userEnteredFormat": {
-                                        "backgroundColor": bg_color
-                                      }
-                                    },
-                                    "fields": "userEnteredFormat(backgroundColor)"
-                                  }
+                    "requests": [
+                        {
+                            "repeatCell": {
+                                "range": {
+                                    "startColumnIndex": i,
+                                    "endColumnIndex": i + 1,
+                                },
+                                "cell": {
+                                    "userEnteredFormat": {"backgroundColor": bg_color}
+                                },
+                                "fields": "userEnteredFormat(backgroundColor)",
                             }
-                        ]
+                        }
+                    ]
                 }
 
                 requests_body["requests"].append(req_format_body["requests"])
 
             # adding value-constraints if any
-            req_vals = [{"userEnteredValue":value} for value in values if value]
+            req_vals = [{"userEnteredValue": value} for value in values if value]
 
             if not req_vals:
                 continue
-
 
             # generating sheet api request to populate a dropdown or a multi selection UI
             if len(req_vals) > 0 and not "list" in validation_rules:
                 # if more than 0 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice
                 # do not support other kinds of data validation for larger number of items (even if individual items are not that many
                 # excel has a total number of characters limit per dropdown...)
-                validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i, validation_type = "ONE_OF_RANGE")
+                validation_body = self._get_column_data_validation_values(
+                    spreadsheet_id, req_vals, i, validation_type="ONE_OF_RANGE"
+                )
 
             elif "list" in validation_rules:
                 # if list is in validation rule attempt to create a multi-value
                 # selection UI, which requires explicit valid values range in
                 # the spreadsheet
-                validation_body = self._get_column_data_validation_values(spreadsheet_id,
-                                                                          req_vals,
-                                                                          i,
-                                                                          strict = False,
-                                                                          custom_ui = False,
-                                                                          input_message = "",
-                                                                          validation_type = "ONE_OF_RANGE")
+                validation_body = self._get_column_data_validation_values(
+                    spreadsheet_id,
+                    req_vals,
+                    i,
+                    strict=False,
+                    custom_ui=False,
+                    input_message="",
+                    validation_type="ONE_OF_RANGE",
+                )
 
             else:
-                validation_body = self._get_column_data_validation_values(spreadsheet_id, req_vals, i)
-
+                validation_body = self._get_column_data_validation_values(
+                    spreadsheet_id, req_vals, i
+                )
 
             requests_body["requests"].append(validation_body["requests"])
-
 
             # generate a conditional format rule for each required value (i.e. valid value)
             # for this field (i.e. if this field is set to a valid value that may require additional
@@ -657,18 +668,17 @@ class ManifestGenerator(object):
                     continue
 
                 # check if this required/valid value has additional dependency attributes
-                val_dependencies = self.sg.get_node_dependencies(req_val_node_label, schema_ordered = False)
+                val_dependencies = self.sg.get_node_dependencies(
+                    req_val_node_label, schema_ordered=False
+                )
 
                 # prepare request calls
-                dependency_formatting_body = {
-                        "requests": []
-                }
+                dependency_formatting_body = {"requests": []}
 
                 if val_dependencies:
                     # if there are additional attribute dependencies find the corresponding
                     # fields that need to be filled in and construct conditional formatting rules
                     # indicating the dependencies need to be filled in
-
 
                     # set target ranges for this rule
                     # i.e. dependency attribute columns that will be formatted
@@ -676,12 +686,15 @@ class ManifestGenerator(object):
                     # find dependency column indexes
                     # note that dependencies values must be in index
                     # TODO: catch value error that shouldn't happen
-                    column_idxs = [ordered_metadata_fields[0].index(val_dep) for val_dep in val_dependencies]
+                    column_idxs = [
+                        ordered_metadata_fields[0].index(val_dep)
+                        for val_dep in val_dependencies
+                    ]
 
                     # construct ranges based on dependency column indexes
                     rule_ranges = self._columns_to_sheet_ranges(column_idxs)
                     # go over valid value dependencies
-                    for j,val_dep in enumerate(val_dependencies):
+                    for j, val_dep in enumerate(val_dependencies):
                         is_required = False
 
                         if self.sg.is_node_required(val_dep):
@@ -690,32 +703,43 @@ class ManifestGenerator(object):
                             is_required = False
 
                         # construct formatting rule
-                        formatting_rule = self._column_to_cond_format_eq_rule(i, req_val, required = is_required)
+                        formatting_rule = self._column_to_cond_format_eq_rule(
+                            i, req_val, required=is_required
+                        )
 
                         # construct conditional format rule
                         conditional_format_rule = {
-                              "addConditionalFormatRule": {
+                            "addConditionalFormatRule": {
                                 "rule": {
-                                  "ranges": rule_ranges[j],
-                                  "booleanRule": formatting_rule,
-                                 },
-                                "index": 0
-                              }
+                                    "ranges": rule_ranges[j],
+                                    "booleanRule": formatting_rule,
+                                },
+                                "index": 0,
+                            }
                         }
-                        dependency_formatting_body["requests"].append(conditional_format_rule)
+                        dependency_formatting_body["requests"].append(
+                            conditional_format_rule
+                        )
 
                 # check if dependency formatting rules have been added and update sheet if so
                 if dependency_formatting_body["requests"]:
-                    requests_body["requests"].append(dependency_formatting_body["requests"])
+                    requests_body["requests"].append(
+                        dependency_formatting_body["requests"]
+                    )
 
         # setting cell borders
         cell_range = {
-          "sheetId": 0,
-          "startRowIndex": 0,
+            "sheetId": 0,
+            "startRowIndex": 0,
         }
         requests_body["requests"].append(self._get_cell_borders(cell_range))
 
-        execute_google_api_requests(self.sheet_service, requests_body, service_type = "batch_update", spreadsheet_id = spreadsheet_id)
+        execute_google_api_requests(
+            self.sheet_service,
+            requests_body,
+            service_type="batch_update",
+            spreadsheet_id=spreadsheet_id,
+        )
 
         # setting up spreadsheet permissions (setup so that anyone with the link can edit)
         self._set_permissions(spreadsheet_id)
@@ -730,7 +754,6 @@ class ManifestGenerator(object):
 
         return manifest_url
 
-
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame
     ) -> ps.Spreadsheet:
@@ -744,7 +767,7 @@ class ManifestGenerator(object):
             ps.Spreadsheet: A Google Sheet object.
         """
         # authorize pygsheets to read from the given URL
-        gc = ps.authorize(custom_credentials = self.creds)
+        gc = ps.authorize(custom_credentials=self.creds)
 
         # open google sheets and extract first sheet
         sh = gc.open_by_url(manifest_url)
@@ -754,13 +777,12 @@ class ManifestGenerator(object):
         sh.default_parse = False
 
         # update spreadsheet with given manifest starting at top-left cell
-        wb.set_dataframe(manifest_df, (1,1))
+        wb.set_dataframe(manifest_df, (1, 1))
 
         # set permissions so that anyone with the link can edit
-        sh.share("", role = "writer", type = "anyone")
+        sh.share("", role="writer", type="anyone")
 
         return sh
-
 
     def get_dataframe_by_url(self, manifest_url: str) -> pd.DataFrame:
         """Retrieve pandas DataFrame from table in Google Sheets.
@@ -788,10 +810,9 @@ class ManifestGenerator(object):
 
         return manifest_df
 
-
     def map_annotation_names_to_display_names(
-            self, annotations: pd.DataFrame
-        ) -> pd.DataFrame:
+        self, annotations: pd.DataFrame
+    ) -> pd.DataFrame:
         """Update columns names to use display names for consistency.
 
         Args:
@@ -812,11 +833,9 @@ class ManifestGenerator(object):
         # Use the above dictionary to rename columns in question
         return annotations.rename(columns=label_map)
 
-
     def get_manifest_with_annotations(
-            self,
-            annotations: pd.DataFrame
-        ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
+        self, annotations: pd.DataFrame
+    ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
         """Generate manifest, optionally with annotations (if requested).
 
         Args:
@@ -856,9 +875,9 @@ class ManifestGenerator(object):
 
         return manifest_url, manifest_df
 
-
-    def get_manifest(self, dataset_id: str = None, sheet_url: bool = None,
-                     json_schema: str = None):
+    def get_manifest(
+        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None
+    ):
         """Gets manifest for a given dataset on Synapse.
 
         Args:
@@ -886,7 +905,9 @@ class ManifestGenerator(object):
             # you change the behavior here based on self.use_annotations
 
             # get synapse ID manifest associated with dataset
-            manifest_data = syn_store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
+            manifest_data = syn_store.getDatasetManifest(
+                datasetId=dataset_id, downloadFile=True
+            )
 
             # If the sheet URL isn't requested, simply return a pandas DataFrame
             if not sheet_url:
@@ -896,7 +917,9 @@ class ManifestGenerator(object):
             empty_manifest_url = self.get_empty_manifest()
 
             # populate empty manifest with content from downloaded/existing manifest
-            pop_manifest_url = self.populate_manifest_spreadsheet(manifest_data.path, empty_manifest_url)
+            pop_manifest_url = self.populate_manifest_spreadsheet(
+                manifest_data.path, empty_manifest_url
+            )
 
             return pop_manifest_url
 
@@ -921,7 +944,6 @@ class ManifestGenerator(object):
             else:
                 return manifest_df
 
-
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
         """Creates a google sheet manifest based on existing manifest.
 
@@ -944,8 +966,7 @@ class ManifestGenerator(object):
 
         return manifest_sh.url
 
-
-    def sort_manifest_fields(self, manifest_fields, order = "schema"):
+    def sort_manifest_fields(self, manifest_fields, order="schema"):
         # order manifest fields alphabetically (base order)
         manifest_fields = sorted(manifest_fields)
 
@@ -962,9 +983,16 @@ class ManifestGenerator(object):
                 dependencies_display_names = self.sg.get_node_dependencies(self.root)
 
                 # reorder manifest fields so that root dependencies are first and follow schema order
-                manifest_fields = sorted(manifest_fields, key = lambda x: dependencies_display_names.index(x) if x in dependencies_display_names else len(manifest_fields) -1)
+                manifest_fields = sorted(
+                    manifest_fields,
+                    key=lambda x: dependencies_display_names.index(x)
+                    if x in dependencies_display_names
+                    else len(manifest_fields) - 1,
+                )
             else:
-                raise ValueError(f"Provide valid data model path and valid component from data model.")
+                raise ValueError(
+                    f"Provide valid data model path and valid component from data model."
+                )
 
         # always have entityId as last columnn, if present
         if "entityId" in manifest_fields:

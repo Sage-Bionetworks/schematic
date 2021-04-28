@@ -17,15 +17,20 @@ from schematic import CONFIG
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
 
-CONTEXT_SETTINGS = dict(help_option_names=['--help', '-h'])  # help options
+CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
 
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click_log.simple_verbosity_option(logger)
-@click.option('-c', '--config', envvar='SCHEMATIC_CONFIG', help=query_dict(manifest_commands, ("manifest", "config")))
+@click.option(
+    "-c",
+    "--config",
+    envvar="SCHEMATIC_CONFIG",
+    help=query_dict(manifest_commands, ("manifest", "config")),
+)
 @click.pass_context
-def manifest(ctx, config): # use as `schematic manifest ...`
+def manifest(ctx, config):  # use as `schematic manifest ...`
     """
     Sub-commands with Manifest Generation utilities/methods.
     """
@@ -40,40 +45,81 @@ def manifest(ctx, config): # use as `schematic manifest ...`
 
 # prototype based on getModelManifest() and get_manifest()
 # use as `schematic config get positional_args --optional_args`
-@manifest.command('get', short_help=query_dict(manifest_commands, ("manifest", "get", "short_help")))
+@manifest.command(
+    "get", short_help=query_dict(manifest_commands, ("manifest", "get", "short_help"))
+)
 @click_log.simple_verbosity_option(logger)
 # define the optional arguments
-@click.option('-t', '--title', help=query_dict(manifest_commands, ("manifest", "get", "title")))
-@click.option('-dt', '--data_type', help=query_dict(manifest_commands, ("manifest", "get", "data_type")))
-@click.option('-p', '--jsonld', help=query_dict(manifest_commands, ("manifest", "get", "jsonld")))
-@click.option('-d', '--dataset_id', help=query_dict(manifest_commands, ("manifest", "get", "dataset_id")))
-@click.option('-s', '--sheet_url', is_flag=True, help=query_dict(manifest_commands, ("manifest", "get", "sheet_url")))
-@click.option('-o', '--output_csv', help=query_dict(manifest_commands, ("manifest", "get", "output_csv")))
-@click.option('-a', '--use_annotations', is_flag=True, help=query_dict(manifest_commands, ("manifest", "get", "use_annotations")))
-@click.option('-oa', '--oauth', is_flag=True, help=query_dict(manifest_commands, ("manifest", "get", "oauth")))
-@click.option('-j', '--json_schema', help=query_dict(manifest_commands, ("manifest", "get", "json_schema")))
+@click.option(
+    "-t", "--title", help=query_dict(manifest_commands, ("manifest", "get", "title"))
+)
+@click.option(
+    "-dt",
+    "--data_type",
+    help=query_dict(manifest_commands, ("manifest", "get", "data_type")),
+)
+@click.option(
+    "-p", "--jsonld", help=query_dict(manifest_commands, ("manifest", "get", "jsonld"))
+)
+@click.option(
+    "-d",
+    "--dataset_id",
+    help=query_dict(manifest_commands, ("manifest", "get", "dataset_id")),
+)
+@click.option(
+    "-s",
+    "--sheet_url",
+    is_flag=True,
+    help=query_dict(manifest_commands, ("manifest", "get", "sheet_url")),
+)
+@click.option(
+    "-o",
+    "--output_csv",
+    help=query_dict(manifest_commands, ("manifest", "get", "output_csv")),
+)
+@click.option(
+    "-a",
+    "--use_annotations",
+    is_flag=True,
+    help=query_dict(manifest_commands, ("manifest", "get", "use_annotations")),
+)
+@click.option(
+    "-oa",
+    "--oauth",
+    is_flag=True,
+    help=query_dict(manifest_commands, ("manifest", "get", "oauth")),
+)
+@click.option(
+    "-j",
+    "--json_schema",
+    help=query_dict(manifest_commands, ("manifest", "get", "json_schema")),
+)
 @click.pass_obj
-def get_manifest(ctx, title, data_type, jsonld, dataset_id, sheet_url,
-                 output_csv, use_annotations, oauth, json_schema):
+def get_manifest(
+    ctx,
+    title,
+    data_type,
+    jsonld,
+    dataset_id,
+    sheet_url,
+    output_csv,
+    use_annotations,
+    oauth,
+    json_schema,
+):
     """
     Running CLI with manifest generation options.
     """
     # optional parameters that need to be passed to ManifestGenerator()
     # can be read from config.yml as well
-    data_type = fill_in_from_config(
-        "data_type", data_type, ("manifest", "data_type")
-    )
-    jsonld = fill_in_from_config(
-        "jsonld", jsonld, ("model", "input", "location")
-    )
-    title = fill_in_from_config(
-        "title", title, ("manifest", "title"), allow_none=True
-    )
+    data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
+    jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
+    title = fill_in_from_config("title", title, ("manifest", "title"), allow_none=True)
     json_schema = fill_in_from_config(
         "json_schema",
         json_schema,
         ("model", "input", "validation_schema"),
-        allow_none=True
+        allow_none=True,
     )
 
     # create object of type ManifestGenerator

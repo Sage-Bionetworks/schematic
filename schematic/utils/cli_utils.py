@@ -7,14 +7,15 @@ from typing import Any, Mapping, Sequence, Union
 from functools import reduce
 
 from schematic import CONFIG
-from schematic.exceptions import MissingConfigValueError, MissingConfigAndArgumentValueError
+from schematic.exceptions import (
+    MissingConfigValueError,
+    MissingConfigAndArgumentValueError,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def query_dict(
-    dictionary: Mapping[Any, Any], keys: Sequence[Any]
-) -> Union[Any, None]:
+def query_dict(dictionary: Mapping[Any, Any], keys: Sequence[Any]) -> Union[Any, None]:
     """Access a nested value in a dictionary corresponding
     to a series of keys.
 
@@ -62,7 +63,7 @@ def get_from_config(
     if config_value is None:
         raise MissingConfigValueError(keys)
 
-    config_keys_str = ' > '.join(keys)
+    config_keys_str = " > ".join(keys)
 
     logger.info(
         f"The ({config_keys_str}) argument with value "
@@ -73,10 +74,7 @@ def get_from_config(
 
 
 def fill_in_from_config(
-    arg_name: str,
-    arg_value: Any,
-    config_keys: Sequence[Any],
-    allow_none: bool=False
+    arg_name: str, arg_value: Any, config_keys: Sequence[Any], allow_none: bool = False
 ) -> Any:
     """Fill in a missing value from a configuration object.
 
@@ -113,7 +111,7 @@ def fill_in_from_config(
         raise MissingConfigAndArgumentValueError(arg_name, config_keys)
 
     # Make sure argument value and
-    config_keys_str = ' > '.join(config_keys)
+    config_keys_str = " > ".join(config_keys)
 
     logger.info(
         f"The '--{arg_name}' argument is being taken from configuration "

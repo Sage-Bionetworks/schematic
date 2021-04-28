@@ -1,5 +1,6 @@
 from typing import Any, Sequence
 
+
 class MissingConfigValueError(Exception):
     """Exception raised when configuration value not provided in config file.
 
@@ -10,8 +11,9 @@ class MissingConfigValueError(Exception):
     Returns:
         message.
     """
+
     def __init__(self, config_keys: Sequence[Any], message: str = None) -> str:
-        config_keys_str = ' > '.join(config_keys)
+        config_keys_str = " > ".join(config_keys)
         self.message = (
             "The configuration value corresponding to the argument "
             f"({config_keys_str}) doesn't exist. "
@@ -38,9 +40,11 @@ class MissingConfigAndArgumentValueError(Exception):
     Returns:
         message.
     """
-    def __init__(self, arg_name: str, 
-                config_keys: Sequence[Any], message: str = None) -> str:
-        config_keys_str = ' > '.join(config_keys)
+
+    def __init__(
+        self, arg_name: str, config_keys: Sequence[Any], message: str = None
+    ) -> str:
+        config_keys_str = " > ".join(config_keys)
         self.message = (
             f"The value corresponding to the CLI argument '--{arg_name}'"
             " doesn't exist. "
@@ -50,7 +54,7 @@ class MissingConfigAndArgumentValueError(Exception):
 
         if message:
             self.message = message
-            
+
         super().__init__(self.message)
 
     def __str__(self):
@@ -59,7 +63,7 @@ class MissingConfigAndArgumentValueError(Exception):
 
 class AccessCredentialsError(Exception):
     """Exception raised when provided access credentials cannot be resolved.
-    
+
     Args:
         project: Platform/project (e.g., synID of a project)
         message: custom/pre-defined error message to be returned.
@@ -76,7 +80,7 @@ class AccessCredentialsError(Exception):
 
         if message:
             self.message = message
-            
+
         super().__init__(self.message)
 
     def __str__(self):
