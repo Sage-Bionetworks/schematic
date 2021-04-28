@@ -130,17 +130,12 @@ class MetadataModel(object):
                                additional_metadata=additionalMetadata,
                                use_annotations=useAnnotations)
 
-        if datasetId and jsonSchema:
+        if datasetId:
             return mg.get_manifest(dataset_id=datasetId, json_schema=jsonSchema, sheet_url = sheetUrl)
         
-        elif jsonSchema:
-            return mg.get_manifest(json_schema=jsonSchema, sheet_url = sheetUrl)
 
-        elif datasetId:
-            return mg.get_manifest(dataset_id=datasetId, sheet_url = sheetUrl)
 
-        else:
-            return mg.get_manifest(sheet_url = sheetUrl)
+        return mg.get_manifest(sheet_url = sheetUrl)
 
 
     def get_component_requirements(self, source_component: str) -> List[str]:
