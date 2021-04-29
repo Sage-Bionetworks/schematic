@@ -113,7 +113,14 @@ class MetadataModel(object):
         return ordered_nodes
 
     def getModelManifest(
-        self, title: str, rootNode: str, jsonSchema: str = None, filenames: list = None
+        self,
+        title: str,
+        rootNode: str,
+        datasetId: str = None,
+        jsonSchema: str = None,
+        filenames: list = None,
+        useAnnotations: bool = False,
+        sheetUrl: bool = True,
     ) -> str:
         """Gets data from the annotations manifest file.
 
@@ -121,6 +128,7 @@ class MetadataModel(object):
 
         Args:
             rootNode: a schema node label (i.e. term).
+            useAnnotations: whether to populate manifest with current file annotations (True) or not (False, default).
 
         Returns:
             A manifest URI (assume Google doc for now).
@@ -137,12 +145,15 @@ class MetadataModel(object):
             title=title,
             root=rootNode,
             additional_metadata=additionalMetadata,
+            use_annotations=useAnnotations,
         )
 
-        if jsonSchema:
-            return mg.get_manifest(json_schema=jsonSchema)
+        if datasetId:
+            return mg.get_manifest(
+                dataset_id=datasetId, json_schema=jsonSchema, sheet_url=sheetUrl
+            )
 
-        return mg.get_manifest()
+        return mg.get_manifest(sheet_url=sheetUrl)
 
     def get_component_requirements(self, source_component: str) -> List[str]:
         """Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it.
