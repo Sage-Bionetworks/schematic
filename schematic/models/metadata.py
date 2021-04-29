@@ -204,6 +204,10 @@ class MetadataModel(object):
         manifest = pd.read_csv(
             manifestPath, dtype=str
         )  # read manifest csv file as is from manifest path
+        ## convert datatypes except booleans
+
+        manifest = manifest.convert_dtypes(convert_boolean=False)
+
         manifest = trim_commas_df(manifest).fillna(
             ""
         )  # apply cleaning logic as part of pre-processing step
