@@ -202,12 +202,9 @@ class MetadataModel(object):
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = pd.read_csv(
-            manifestPath, dtype=str
+            manifestPath, true_values = ['True'], false_values = ['False']
         )  # read manifest csv file as is from manifest path
         
-        ## infer and convert datatypes except booleans
-        manifest = manifest.convert_dtypes(convert_boolean=False)
-
         manifest = trim_commas_df(manifest).fillna(
             ""
         )  # apply cleaning logic as part of pre-processing step
