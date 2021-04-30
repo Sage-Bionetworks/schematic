@@ -71,11 +71,9 @@ and
 
 Download a copy of the ``.synapseConfig`` file, open the file in the
 editor of your choice and edit the
-`username <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig#L8>`__
-and
-`apikey <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig#L9>`__
-attributes under the
-`[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig#L7>`__
+`authtoken <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/ba42e2d35673d19ce2b5bbd089f4fc1e99aca178/synapseclient/.synapseConfig#L9>`__
+attribute under the
+`[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/ba42e2d35673d19ce2b5bbd089f4fc1e99aca178/synapseclient/.synapseConfig#L7>`__
 section.
 
  Description of config.yml attributes
