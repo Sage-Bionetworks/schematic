@@ -32,10 +32,11 @@ class MetadataModel(object):
         - generate validation schema view of the metadata model
     """
 
-    def __init__(self,
-                inputMModelLocation: str,
-                inputMModelLocationType: str,
-                ) -> None:
+    def __init__(
+        self,
+        inputMModelLocation: str,
+        inputMModelLocationType: str,
+    ) -> None:
 
         """Instantiates a MetadataModel object.
 
@@ -45,20 +46,26 @@ class MetadataModel(object):
         """
         # extract extension of 'inputMModelLocation'
         # ensure that it is necessarily pointing to a '.jsonld' file
-        if inputMModelLocation.rpartition('.')[-1] == "jsonld":
-            logger.debug(f"Initializing SchemaGenerator object from {inputMModelLocation} schema.")
+        if inputMModelLocation.rpartition(".")[-1] == "jsonld":
+            logger.debug(
+                f"Initializing SchemaGenerator object from {inputMModelLocation} schema."
+            )
             self.inputMModelLocation = inputMModelLocation
 
             self.sg = SchemaGenerator(inputMModelLocation)
         else:
-            raise TypeError(f"Please make sure {inputMModelLocation} is a .jsonld file.")
+            raise TypeError(
+                f"Please make sure {inputMModelLocation} is a .jsonld file."
+            )
 
         # check if the type of MModel file is "local"
         # currently, the application only supports reading from local JSON-LD files
         if inputMModelLocationType == "local":
             self.inputMModelLocationType = inputMModelLocationType
         else:
-            raise ValueError(f"The type '{inputMModelLocationType}' is currently not supported.")
+            raise ValueError(
+                f"The type '{inputMModelLocationType}' is currently not supported."
+            )
 
     # business logic: expose metadata model "views" depending on "controller" logic
     # (somewhat analogous to Model View Controller pattern for GUI/web applications)
@@ -69,8 +76,7 @@ class MetadataModel(object):
     # controller components are (loosely speaking) responsible for handling the interaction between views and the model
     # some of these components right now reside in the Bundle class
 
-    def getModelSubgraph(self, rootNode: str,
-                        subgraphType: str) -> nx.DiGraph:
+    def getModelSubgraph(self, rootNode: str, subgraphType: str) -> nx.DiGraph:
         """Gets a schema subgraph from rootNode descendants based on edge/node properties of type subgraphType.
 
         Args:
@@ -98,20 +104,31 @@ class MetadataModel(object):
         Raises:
             ValueError: rootNode not found in metadata model.
         """
-        ordered_nodes = self.sg.get_descendants_by_edge_type(rootNode, relationshipType, connected=True, ordered=True)
+        ordered_nodes = self.sg.get_descendants_by_edge_type(
+            rootNode, relationshipType, connected=True, ordered=True
+        )
 
         ordered_nodes.reverse()
 
         return ordered_nodes
 
-
-    def getModelManifest(self, title: str, rootNode: str, jsonSchema: str = None, filenames: list = None) -> str:
+    def getModelManifest(
+        self,
+        title: str,
+        rootNode: str,
+        datasetId: str = None,
+        jsonSchema: str = None,
+        filenames: list = None,
+        useAnnotations: bool = False,
+        sheetUrl: bool = True,
+    ) -> str:
         """Gets data from the annotations manifest file.
 
         TBD: Does this method belong here or in manifest generator?
 
         Args:
             rootNode: a schema node label (i.e. term).
+            useAnnotations: whether to populate manifest with current file annotations (True) or not (False, default).
 
         Returns:
             A manifest URI (assume Google doc for now).
@@ -123,16 +140,20 @@ class MetadataModel(object):
         if filenames:
             additionalMetadata["Filename"] = filenames
 
-        mg = ManifestGenerator(path_to_json_ld=self.inputMModelLocation, 
-                               title=title, 
-                               root=rootNode, 
-                               additional_metadata=additionalMetadata)
+        mg = ManifestGenerator(
+            path_to_json_ld=self.inputMModelLocation,
+            title=title,
+            root=rootNode,
+            additional_metadata=additionalMetadata,
+            use_annotations=useAnnotations,
+        )
 
-        if jsonSchema:
-            return mg.get_manifest(json_schema=jsonSchema)
+        if datasetId:
+            return mg.get_manifest(
+                dataset_id=datasetId, json_schema=jsonSchema, sheet_url=sheetUrl
+            )
 
-        return mg.get_manifest()
-
+        return mg.get_manifest(sheet_url=sheetUrl)
 
     def get_component_requirements(self, source_component: str) -> List[str]:
         """Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it.
@@ -154,9 +175,10 @@ class MetadataModel(object):
 
         return req_components
 
-
     # TODO: abstract validation in its own module
-    def validateModelManifest(self, manifestPath: str, rootNode: str, jsonSchema: str = None) -> List[str]:
+    def validateModelManifest(
+        self, manifestPath: str, rootNode: str, jsonSchema: str = None
+    ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
         Args:
@@ -172,39 +194,49 @@ class MetadataModel(object):
         """
         # get validation schema for a given node in the data model, if the user has not provided input validation schema
         if not jsonSchema:
-            jsonSchema = self.sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
+            jsonSchema = self.sg.get_json_schema_requirements(
+                rootNode, rootNode + "_validation"
+            )
 
         errors = []
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
-        manifest = pd.read_csv(manifestPath)    # read manifest csv file as is from manifest path
-        manifest = trim_commas_df(manifest).fillna("")  # apply cleaning logic as part of pre-processing step
- 
+        manifest = pd.read_csv(
+            manifestPath
+        )  # read manifest csv file as is from manifest path
+        manifest = trim_commas_df(manifest).fillna(
+            ""
+        )  # apply cleaning logic as part of pre-processing step
+
         # handler for mismatched components/data types
         # throw TypeError if the value(s) in the "Component" column differ from the selected template type
-        if ('Component' in manifest.columns) and (
-            (len(manifest['Component'].unique()) > 1) or (manifest['Component'].unique()[0] != rootNode)
-            ):
-            logging.error(f"The 'Component' column value(s) {manifest['Component'].unique()} do not match the "
-                          f"selected template type '{rootNode}'.")
-            
+        if ("Component" in manifest.columns) and (
+            (len(manifest["Component"].unique()) > 1)
+            or (manifest["Component"].unique()[0] != rootNode)
+        ):
+            logging.error(
+                f"The 'Component' column value(s) {manifest['Component'].unique()} do not match the "
+                f"selected template type '{rootNode}'."
+            )
+
             # row indexes for all rows where 'Component' is rootNode
-            row_idxs = manifest.index[manifest['Component'] != rootNode].tolist()
+            row_idxs = manifest.index[manifest["Component"] != rootNode].tolist()
             # column index value for the 'Component' column
-            col_idx = manifest.columns.get_loc('Component')
+            col_idx = manifest.columns.get_loc("Component")
             # Series with index and 'Component' values from manifest
             mismatched_ser = manifest.iloc[row_idxs, col_idx]
             for index, component in mismatched_ser.items():
-                errors.append([
-                    index + 2,
-                    'Component',
-                    f"Component value provided is: '{component}', whereas the Template Type is: '{rootNode}'",
+                errors.append(
+                    [
+                        index + 2,
+                        "Component",
+                        f"Component value provided is: '{component}', whereas the Template Type is: '{rootNode}'",
+                        # tuple of the component in the manifest and selected template type
+                        # check: R/Reticulate cannnot handle dicts? So returning tuple
+                        (component, rootNode),
+                    ]
+                )
 
-                    # tuple of the component in the manifest and selected template type
-                    # check: R/Reticulate cannnot handle dicts? So returning tuple
-                    (component, rootNode)
-                ])
-                
             return errors
 
         # check if each of the provided annotation columns has validation rule 'list'
@@ -223,9 +255,11 @@ class MetadataModel(object):
             # if the validation rule is set to list, convert items in the
             # annotations manifest to a list and strip each value from leading/trailing spaces
             if "list" in self.sg.get_node_validation_rules(col):
-                manifest[col] = manifest[col].apply(lambda x: [s.strip() for s in str(x).split(",")])
+                manifest[col] = manifest[col].apply(
+                    lambda x: [s.strip() for s in str(x).split(",")]
+                )
 
-        annotations = json.loads(manifest.to_json(orient='records'))
+        annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
 
@@ -238,7 +272,6 @@ class MetadataModel(object):
                 errors.append([errorRow, errorCol, errorMsg, errorVal])
 
         return errors
-
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
         """Populate an existing annotations manifest based on a dataframe.
@@ -253,16 +286,17 @@ class MetadataModel(object):
         Raises:
             ValueError: rootNode not found in metadata model.
         """
-        mg = ManifestGenerator(path_to_json_ld=self.inputMModelLocation, 
-                               title=title, 
-                               root=rootNode)
+        mg = ManifestGenerator(
+            path_to_json_ld=self.inputMModelLocation, title=title, root=rootNode
+        )
 
         emptyManifestURL = mg.get_manifest()
 
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
 
-
-    def submit_metadata_manifest(self, manifest_path: str, dataset_id: str, validate_component: str = None) -> bool:
+    def submit_metadata_manifest(
+        self, manifest_path: str, dataset_id: str, validate_component: str = None
+    ) -> bool:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
         Args:
@@ -287,27 +321,39 @@ class MetadataModel(object):
                 # a KeyError exception is raised when validate_component fails in the try-block above
                 # here, we are suppressing the KeyError exception and replacing it with a more
                 # descriptive ValueError exception
-                raise ValueError("The component {} could not be found "
-                                 "in the schema.".format(validate_component))
+                raise ValueError(
+                    "The component {} could not be found "
+                    "in the schema.".format(validate_component)
+                )
 
             # automatic JSON schema generation and validation with that JSON schema
-            val_errors = self.validateModelManifest(manifestPath=manifest_path, rootNode=validate_component)
+            val_errors = self.validateModelManifest(
+                manifestPath=manifest_path, rootNode=validate_component
+            )
 
             # if there are no errors in validation process
             if not val_errors:
 
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
-                syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
+                syn_store.associateMetadataWithFiles(
+                    metadataManifestPath=manifest_path, datasetId=dataset_id
+                )
 
                 logger.info(f"No validation errors occured during validation.")
                 return True
             else:
-                raise ValidationError("Manifest could not be validated under provided data model. "
-                                      f"Validation failed with the following errors: {val_errors}")
+                raise ValidationError(
+                    "Manifest could not be validated under provided data model. "
+                    f"Validation failed with the following errors: {val_errors}"
+                )
 
         # no need to perform validation, just submit/associate the metadata manifest file
-        syn_store.associateMetadataWithFiles(metadataManifestPath=manifest_path, datasetId=dataset_id)
+        syn_store.associateMetadataWithFiles(
+            metadataManifestPath=manifest_path, datasetId=dataset_id
+        )
 
-        logger.debug("Optional validation was not performed on manifest before association.")
-        
+        logger.debug(
+            "Optional validation was not performed on manifest before association."
+        )
+
         return True
