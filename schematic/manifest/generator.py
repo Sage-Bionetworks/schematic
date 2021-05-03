@@ -249,7 +249,7 @@ class ManifestGenerator(object):
         valid_values,
         column_id,
         validation_type="ONE_OF_LIST",
-        strict=True,
+        strict=False,
         custom_ui=True,
         input_message="Choose one from dropdown",
     ):
