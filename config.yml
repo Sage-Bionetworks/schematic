@@ -25,7 +25,7 @@ model:
 
 style:
   google_manifest:
-    strict_validation: False
+    strict_validation: false
     req_bg_color:
       red: 0.9215
       green: 0.9725
