@@ -249,10 +249,11 @@ class ManifestGenerator(object):
         valid_values,
         column_id,
         validation_type="ONE_OF_LIST",
-        strict=False,
         custom_ui=True,
         input_message="Choose one from dropdown",
     ):
+
+        strict = CONFIG["style"]["google_manifest"]["master_template_id"]
 
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
