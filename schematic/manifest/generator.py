@@ -253,7 +253,9 @@ class ManifestGenerator(object):
         input_message="Choose one from dropdown",
     ):
 
-        strict = CONFIG["style"]["google_manifest"]["strict_validation"]
+        strict = CONFIG["style"]["google_manifest"].get(
+            "strict_validation",
+            True)
 
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
@@ -1001,3 +1003,4 @@ class ManifestGenerator(object):
             manifest_fields.append("entityId")
 
         return manifest_fields
+                            
