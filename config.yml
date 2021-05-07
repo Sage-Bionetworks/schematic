@@ -8,7 +8,7 @@ definitions:
 synapse:
   master_fileview: 'syn23643253'
   manifest_folder: 'manifests'
-  manifest_filename: 'data/manifests/synapse_storage_manifest.csv'
+  manifest_filename: 'synapse_storage_manifest.csv'
   token_creds: 'syn23643259'
   service_acct_creds: 'syn25171627'
 
@@ -18,10 +18,8 @@ manifest:
 
 model:
   input:
-    location: 'data/schema_org_schemas/example.jsonld'
+    location: 'tests/data/example.model.jsonld'
     file_type: 'local'
-    validation_schema: 'data/validation_schemas/example_validation_schema.json'
-    log_location: 'data/json_schema_logs/json_schema_log.json'
 
 style:
   google_manifest:
