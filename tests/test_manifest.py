@@ -54,7 +54,7 @@ def manifest_generator(helpers, request):
 
 
 @pytest.fixture(params=[True, False], ids=["sheet_url", "data_frame"])
-def manifest(manifest_generator, request):
+def manifest(dataset_id, manifest_generator, request):
 
     # Rename request param for readability
     sheet_url = request.param
@@ -62,7 +62,7 @@ def manifest(manifest_generator, request):
     # See parameterization of the `manifest_generator` fixture
     generator, use_annotations, data_type = manifest_generator
 
-    manifest = generator.get_manifest(dataset_id="syn25057021", sheet_url=sheet_url)
+    manifest = generator.get_manifest(dataset_id=dataset_id, sheet_url=sheet_url)
 
     yield manifest, use_annotations, data_type, sheet_url
 
@@ -119,21 +119,18 @@ class TestManifestGenerator:
 
         # Confirm contents of Filename column
         assert output["Filename"].tolist() == [
-            "TestDataset-Annotations-v2/Sample_A.txt",
-            "TestDataset-Annotations-v2/Sample_B.txt",
-            "TestDataset-Annotations-v2/Sample_C.txt",
+            "TestDataset-Annotations-v3/Sample_A.txt",
+            "TestDataset-Annotations-v3/Sample_B.txt",
+            "TestDataset-Annotations-v3/Sample_C.txt",
         ]
 
         # Test dimensions of data frame
         assert output.shape[0] == 3  # Number of rows
         if use_annotations:
-            assert output.shape[1] == 13  # Number of columns
             assert output.shape[0] == 3  # Number of rows
             assert "eTag" in output
             assert "confidence" in output
             assert output["Year of Birth"].tolist() == ["1980", "", ""]
-        else:
-            assert output.shape[1] == 8  # Number of columns
 
         # An annotation merged with an attribute from the data model
         if use_annotations:

@@ -14,9 +14,6 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-DATASET_ID = "syn25057021"
-
-
 @pytest.fixture
 def synapse_store():
     access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
@@ -28,8 +25,8 @@ def synapse_store():
 
 
 @pytest.fixture
-def dataset_fileview(synapse_store):
-    dataset_fileview = DatasetFileView(DATASET_ID, synapse_store.syn)
+def dataset_fileview(dataset_id, synapse_store):
+    dataset_fileview = DatasetFileView(dataset_id, synapse_store.syn)
     yield dataset_fileview
     dataset_fileview.delete()
 
@@ -64,44 +61,51 @@ class TestSynapseStorage:
             "impact": "42.9",
             "confidence": "high",
             "YearofBirth": "1980",
-            "entityId": "syn25057024",
             "FileFormat": "txt",
+            "IsImportantBool": "True",
+            "IsImportantText": "TRUE",
         }
-        actual_dict = synapse_store.getFileAnnotations("syn25057024")
+        actual_dict = synapse_store.getFileAnnotations("syn25614636")
 
-        # For simplicity, just checking if eTag is present since
-        # it changes anytime the files on Synapse change
+        # For simplicity, just checking if eTag and entityId are present
+        # since they change anytime the files on Synapse change
         assert "eTag" in actual_dict
         del actual_dict["eTag"]
+        assert "entityId" in actual_dict
+        del actual_dict["entityId"]
 
         assert expected_dict == actual_dict
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
-    def test_getDatasetAnnotations(self, synapse_store, force_batch):
+    def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
         expected_df = pd.DataFrame.from_records(
             [
                 {
-                    "Filename": "TestDataset-Annotations-v2/Sample_A.txt",
+                    "Filename": "TestDataset-Annotations-v3/Sample_A.txt",
                     "author": "bruno, milen, sujay",
                     "impact": "42.9",
                     "confidence": "high",
                     "FileFormat": "txt",
                     "YearofBirth": "1980",
+                    "IsImportantBool": "True",
+                    "IsImportantText": "TRUE",
                 },
                 {
-                    "Filename": "TestDataset-Annotations-v2/Sample_B.txt",
+                    "Filename": "TestDataset-Annotations-v3/Sample_B.txt",
                     "confidence": "low",
                     "FileFormat": "csv",
                     "date": "2020-02-01",
                 },
                 {
-                    "Filename": "TestDataset-Annotations-v2/Sample_C.txt",
+                    "Filename": "TestDataset-Annotations-v3/Sample_C.txt",
                     "FileFormat": "fastq",
+                    "IsImportantBool": "False",
+                    "IsImportantText": "FALSE",
                 },
             ]
         ).fillna("")
         actual_df = synapse_store.getDatasetAnnotations(
-            DATASET_ID, force_batch=force_batch
+            dataset_id, force_batch=force_batch
         )
 
         # For simplicity, just checking if eTag and entityId are present
@@ -112,9 +116,9 @@ class TestSynapseStorage:
 
         pd.testing.assert_frame_equal(expected_df, actual_df, check_like=True)
 
-    def test_getDatasetProject(self, synapse_store):
+    def test_getDatasetProject(self, dataset_id, synapse_store):
 
-        assert synapse_store.getDatasetProject(DATASET_ID) == "syn23643250"
+        assert synapse_store.getDatasetProject(dataset_id) == "syn23643250"
         assert synapse_store.getDatasetProject("syn23643250") == "syn23643250"
 
         assert synapse_store.getDatasetProject("syn24992812") == "syn24992754"
@@ -125,17 +129,17 @@ class TestSynapseStorage:
 
 
 class TestDatasetFileView:
-    def test_init(self, dataset_fileview, synapse_store):
+    def test_init(self, dataset_id, dataset_fileview, synapse_store):
 
-        assert dataset_fileview.datasetId == DATASET_ID
+        assert dataset_fileview.datasetId == dataset_id
         assert dataset_fileview.synapse is synapse_store.syn
-        assert dataset_fileview.parentId == DATASET_ID
+        assert dataset_fileview.parentId == dataset_id
         assert isinstance(dataset_fileview.view_schema, EntityViewSchema)
 
-    def test_enter_exit(self, synapse_store):
+    def test_enter_exit(self, dataset_id, synapse_store):
 
         # Within the 'with' statement, the file view should be available
-        with DatasetFileView(DATASET_ID, synapse_store.syn) as fileview:
+        with DatasetFileView(dataset_id, synapse_store.syn) as fileview:
             assert isinstance(fileview.view_schema, EntityViewSchema)
             assert synapse_store.syn.get(fileview.view_schema) is not None
 
@@ -156,15 +160,14 @@ class TestDatasetFileView:
         assert "ROW_ETAG" in table
 
         # Check for untidy list-columns
-        author_row = table["ROW_ID"] == 25057024
-        assert author_row.any()
+        sample_a_row = [True, False, False]
         assert "author" in table
-        author_value = table.loc[author_row, "author"].values[0]
+        author_value = table.loc[sample_a_row, "author"].values[0]
         assert author_value == ["bruno", "milen", "sujay"]
 
         # Check for untidy integer-columns
         assert "YearofBirth" in table
-        year_value = table.loc[author_row, "YearofBirth"].values[0]
+        year_value = table.loc[sample_a_row, "YearofBirth"].values[0]
         assert isinstance(year_value, float)
         assert math.isclose(year_value, 1980.0)
 
@@ -183,14 +186,13 @@ class TestDatasetFileView:
         assert table.index.name == "entityId"
 
         # Check for untidy list-columns
-        selected_row = table["entityId"] == "syn25057024"
-        assert selected_row.any()
+        sample_a_row = [True, False, False]
         assert "author" in table
-        author_value = table.loc[selected_row, "author"].values[0]
+        author_value = table.loc[sample_a_row, "author"][0]
         assert author_value == "bruno, milen, sujay"
 
         # Check for untidy integer-columns
         assert "YearofBirth" in table
-        year_value = table.loc[selected_row, "YearofBirth"].values[0]
+        year_value = table.loc[sample_a_row, "YearofBirth"][0]
         assert isinstance(year_value, str)
         assert year_value == "1980"
