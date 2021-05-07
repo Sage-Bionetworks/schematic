@@ -18,7 +18,7 @@ manifest:
 
 model:
   input:
-    location: 'data/schema_org_schemas/example.model.jsonld'
+    location: 'tests/data/example.model.jsonld'
     file_type: 'local'
 
 style:
