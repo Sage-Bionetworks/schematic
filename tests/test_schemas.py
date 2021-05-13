@@ -136,7 +136,7 @@ class TestDfParser:
         # object with attributes from the extended schema
         result = df_parser.attribute_exists(extended_csv_model_se, "Assay")
 
-        assert result is None
+        assert result is True
 
     def test_get_base_schema_path(self):
 
