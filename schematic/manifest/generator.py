@@ -1003,4 +1003,3 @@ class ManifestGenerator(object):
             manifest_fields.append("entityId")
 
         return manifest_fields
-                            
