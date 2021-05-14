@@ -417,7 +417,7 @@ class SynapseStorage(BaseStorage):
         return df, results
 
     def associateMetadataWithFiles(
-        self, metadataManifestPath: str, datasetId: str, useSchemaLabel:bool=True
+        self, metadataManifestPath: str, datasetId: str, useSchemaLabel: bool = True
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
