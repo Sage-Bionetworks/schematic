@@ -417,7 +417,7 @@ class SynapseStorage(BaseStorage):
         return df, results
 
     def associateMetadataWithFiles(
-        self, metadataManifestPath: str, datasetId: str
+        self, metadataManifestPath: str, datasetId: str, useSchemaLabel:bool=True
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -428,6 +428,7 @@ class SynapseStorage(BaseStorage):
             Some datasets, e.g. clinical data, do not contain file id's, but data is stored in a table: one row per item.
             In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file.
             datasetId: synapse ID of folder containing the dataset
+            useSchemaLabel: Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
 
         Returns:
             Synapse Id of the uploaded manifest.
@@ -483,7 +484,10 @@ class SynapseStorage(BaseStorage):
             #  prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces)
             metadataSyn = {}
             for k, v in row.to_dict().items():
-                keySyn = se.get_class_label_from_display_name(str(k))
+                if useSchemaLabel:
+                    keySyn = se.get_class_label_from_display_name(str(k))
+                else:
+                    keySyn = str(k)
 
                 # truncate annotation values to 500 characters if the
                 # size of values is greater than equal to 500 characters
