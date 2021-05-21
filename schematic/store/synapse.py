@@ -492,7 +492,7 @@ class SynapseStorage(BaseStorage):
                 # has been truncated
                 if isinstance(v, str) and len(v) >= 500:
                     v = v[0:472] + "[truncatedByDataCuratorApp]"
-                    
+
                 metadataSyn[keySyn] = v
 
             # set annotation(s) for the various objects/items in a dataset on Synapse
