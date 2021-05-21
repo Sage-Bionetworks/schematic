@@ -507,7 +507,6 @@ class SynapseStorage(BaseStorage):
 
             for anno_k, anno_v in metadataSyn.items():
                 annos[anno_k] = metadataSyn[anno_k]
-                
             self.syn.set_annotations(annos)
             # self.syn.set_annotations(metadataSyn) #-- deprecated code
 
