@@ -497,16 +497,17 @@ class SynapseStorage(BaseStorage):
                 if isinstance(v, str) and len(v) >= 500:
                     v = v[0:472] + "[truncatedByDataCuratorApp]"
 
-                metadataSyn[keySyn] = v
+                if pd.isna(v):
+                    v = ""
 
+                metadataSyn[keySyn] = v
+                
             # set annotation(s) for the various objects/items in a dataset on Synapse
             annos = self.syn.get_annotations(entityId)
 
             for anno_k, anno_v in metadataSyn.items():
                 annos[anno_k] = metadataSyn[anno_k]
                 
-            annos = annos.replace(np.nan, '', regex=True)
-
             self.syn.set_annotations(annos)
             # self.syn.set_annotations(metadataSyn) #-- deprecated code
 
