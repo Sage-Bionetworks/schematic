@@ -500,6 +500,8 @@ class SynapseStorage(BaseStorage):
 
             for anno_k, anno_v in metadataSyn.items():
                 annos[anno_k] = metadataSyn[anno_k]
+                
+            annos = annos.replace(np.nan, '', regex=True)
 
             self.syn.set_annotations(annos)
             # self.syn.set_annotations(metadataSyn) #-- deprecated code
