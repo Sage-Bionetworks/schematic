@@ -494,9 +494,12 @@ class SynapseStorage(BaseStorage):
                 # has been truncated
                 if isinstance(v, str) and len(v) >= 500:
                     v = v[0:472] + "[truncatedByDataCuratorApp]"
-
+                
                 metadataSyn[keySyn] = v
 
+            metadataSyn = {k: v for k, v in metadataSyn.items() if not isinstance(v, float) or  isinstance(v, float) and not isnan(v)}
+
+            k: v for k, v in mydict.items() if not isinstance(v, float) or  isinstance(v, float) and not isnan(v)
             # set annotation(s) for the various objects/items in a dataset on Synapse
             annos = self.syn.get_annotations(entityId)
 
