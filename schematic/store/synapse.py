@@ -494,8 +494,8 @@ class SynapseStorage(BaseStorage):
                     v = v[0:472] + "[truncatedByDataCuratorApp]"
 
                 if pd.isna(v):
-                    v = ""
-                    
+                    return None 
+                
                 metadataSyn[keySyn] = v
 
             # set annotation(s) for the various objects/items in a dataset on Synapse
