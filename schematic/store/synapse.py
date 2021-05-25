@@ -492,6 +492,9 @@ class SynapseStorage(BaseStorage):
                 # has been truncated
                 if isinstance(v, str) and len(v) >= 500:
                     v = v[0:472] + "[truncatedByDataCuratorApp]"
+                    
+                if pd.isna(v):
+                    return None 
 
                 metadataSyn[keySyn] = v
 
