@@ -417,7 +417,7 @@ class SynapseStorage(BaseStorage):
         return df, results
 
     def associateMetadataWithFiles(
-        self, metadataManifestPath: str, datasetId: str
+        self, metadataManifestPath: str, datasetId: str, useSchemaLabel: bool = True
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -483,12 +483,15 @@ class SynapseStorage(BaseStorage):
             #  prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces)
             metadataSyn = {}
             for k, v in row.to_dict().items():
-                keySyn = se.get_class_label_from_display_name(str(k))
-
                 # Skip `Filename` and `ETag` columns when setting annotations
                 if keySyn in ["Filename", "ETag"]:
                     continue
-
+                    
+                if useSchemaLabel:
+                    keySyn = se.get_class_label_from_display_name(str(k))
+                else:
+                    keySyn = str(k)
+                    
                 # truncate annotation values to 500 characters if the
                 # size of values is greater than equal to 500 characters
                 # add an explicit [truncatedByDataCuratorApp] message at the end
