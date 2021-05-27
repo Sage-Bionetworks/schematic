@@ -1,5 +1,4 @@
 import os
-import synapseclient
 import pickle
 import logging
 
@@ -13,6 +12,7 @@ from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from schematic import CONFIG
+from schematic.store.synapse import SynapseStorage
 
 logger = logging.getLogger(__name__)
 
@@ -87,8 +87,7 @@ def download_creds_file(auth: str = "token") -> None:
             "enter one of 'token' or 'service_account'."
         )
 
-    syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
-    syn.login(silent=True)
+    syn = SynapseStorage.login()
 
     if auth == "token":
         if not os.path.exists(CONFIG.CREDS_PATH):
