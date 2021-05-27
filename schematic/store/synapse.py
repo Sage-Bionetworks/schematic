@@ -483,15 +483,16 @@ class SynapseStorage(BaseStorage):
             #  prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces)
             metadataSyn = {}
             for k, v in row.to_dict().items():
-                # Skip `Filename` and `ETag` columns when setting annotations
-                if keySyn in ["Filename", "ETag"]:
-                    continue
-                    
+
                 if useSchemaLabel:
                     keySyn = se.get_class_label_from_display_name(str(k))
                 else:
                     keySyn = str(k)
-                    
+
+                # Skip `Filename` and `ETag` columns when setting annotations
+                if keySyn in ["Filename", "ETag"]:
+                    continue
+
                 # truncate annotation values to 500 characters if the
                 # size of values is greater than equal to 500 characters
                 # add an explicit [truncatedByDataCuratorApp] message at the end
