@@ -485,6 +485,10 @@ class SynapseStorage(BaseStorage):
             for k, v in row.to_dict().items():
                 keySyn = se.get_class_label_from_display_name(str(k))
 
+                # Skip `Filename` and `ETag` columns when setting annotations
+                if keySyn in ["Filename", "ETag"]:
+                    continue
+
                 # truncate annotation values to 500 characters if the
                 # size of values is greater than equal to 500 characters
                 # add an explicit [truncatedByDataCuratorApp] message at the end
