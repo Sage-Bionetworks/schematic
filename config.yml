@@ -20,8 +20,6 @@ model:
   input:
     location: 'tests/data/example.model.jsonld'
     file_type: 'local'
-    validation_schema: 'data/validation_schemas/example_validation_schema.json'
-    log_location: 'data/json_schema_logs/json_schema_log.json'
 
 style:
   google_manifest:
