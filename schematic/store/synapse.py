@@ -364,7 +364,7 @@ class SynapseStorage(BaseStorage):
         return manifest_id
 
 
-    def getAllManifests(self, projectId: str) -> List[str]:
+    def getProjectManifests(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
 
         Returns: A list of datasets per project; metadata manifest Synapse ID for each dataset; and the corresponding schema component of the manifest
