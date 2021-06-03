@@ -20,7 +20,11 @@ def extended_schema_path(helpers, tmp_path):
     # additional "Assay" attribute to be added to example schema
     assay_attr_row = {
         "Attribute": "Assay",
-        "Description": "A planned process with the objective to produce information about the material entity that is the evaluant, by physically examining it or its proxies.[OBI_0000070]",
+        "Description": (
+            "A planned process with the objective to produce information "
+            "about the material entity that is the evaluant, by physically "
+            "examining it or its proxies.[OBI_0000070]"
+        ),
         "Valid Values": "",
         "DependsOn": "",
         "Properties": "",
