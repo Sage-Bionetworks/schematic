@@ -6,8 +6,41 @@ import pytest
 
 from schematic.schemas import df_parser
 
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+@pytest.fixture
+def extended_schema_path(helpers, tmp_path):
+    data_model_csv_path = helpers.get_data_path("example.model.csv")
+
+    example_model_df = pd.read_csv(data_model_csv_path)
+
+    # additional "Assay" attribute to be added to example schema
+    assay_attr_row = {
+        "Attribute": "Assay",
+        "Description": "A planned process with the objective to produce information about the material entity that is the evaluant, by physically examining it or its proxies.[OBI_0000070]",
+        "Valid Values": "",
+        "DependsOn": "",
+        "Properties": "",
+        "Required": False,
+        "Parent": "",
+        "DependsOn Component": "",
+        "Source": "http://purl.obolibrary.org/obo/OBI_0000070",
+        "Validation Rules": "",
+    }
+
+    example_model_df = example_model_df.append(assay_attr_row, ignore_index=True)
+
+    # create empty temporary file to write extended schema to
+    schemas_folder = tmp_path / "schemas"
+    schemas_folder.mkdir()
+    extended_schema_path = schemas_folder / "extended_example.model.csv"
+
+    example_model_df.to_csv(extended_schema_path)
+
+    yield extended_schema_path
 
 
 class TestDfParser:
@@ -94,8 +127,8 @@ class TestDfParser:
         # test when attribute is not present in data model
         attribute_absent = df_parser.attribute_exists(se_obj, "RandomAttribute")
 
-        assert attribute_present == True
-        assert attribute_absent == False
+        assert attribute_present
+        assert not attribute_absent
 
     def test_check_schema_definition(self, helpers):
 
@@ -116,15 +149,15 @@ class TestDfParser:
             example_model_df["Requires Component"] = ""
 
             with pytest.raises(ValueError):
-                assert df_parser.check_schema_definition(example_model_df)
+                df_parser.check_schema_definition(example_model_df)
 
-    def test_create_nx_schema_objects(self, helpers):
+    def test_create_nx_schema_objects(self, helpers, extended_schema_path):
 
         se_obj = helpers.get_schema_explorer("example.model.jsonld")
 
         # path to extended CSV data model which has one additional attribute
         # namely, "Assay"
-        extended_csv_model_path = helpers.get_data_path("example_extension.model.csv")
+        extended_csv_model_path = helpers.get_data_path(extended_schema_path)
 
         extended_model_df = pd.read_csv(extended_csv_model_path)
 
@@ -132,11 +165,11 @@ class TestDfParser:
             extended_model_df, se_obj
         )
 
-        # check if the "Assay" attribute has been added to the new SchemaExplorer 
+        # check if the "Assay" attribute has been added to the new SchemaExplorer
         # object with attributes from the extended schema
         result = df_parser.attribute_exists(extended_csv_model_se, "Assay")
 
-        assert result is True
+        assert result
 
     def test_get_base_schema_path(self):
 
@@ -153,11 +186,11 @@ class TestDfParser:
 
         assert os.path.basename(biothings_path) == "biothings.model.jsonld"
 
-    def test_convert_csv_to_data_model(self, helpers):
+    def test_convert_csv_to_data_model(self, helpers, extended_schema_path):
 
         csv_path = helpers.get_data_path("example.model.jsonld")
 
-        extended_csv_model_path = helpers.get_data_path("example_extension.model.csv")
+        extended_csv_model_path = helpers.get_data_path(extended_schema_path)
 
         # convert extended CSV data model to JSON-LD using provided
         # CSV data model as base schema
@@ -169,4 +202,4 @@ class TestDfParser:
         # we know the conversion was successful
         attribute_present = df_parser.attribute_exists(extended_csv_model_se, "Assay")
 
-        assert attribute_present == True
+        assert attribute_present
