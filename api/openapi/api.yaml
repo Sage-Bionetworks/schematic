@@ -1,0 +1,62 @@
+openapi: 3.0.0
+info:
+  title: Schematic Rest API
+  version: 0.1.0
+  description: Schematic endpoints
+
+servers:
+  - url: /v1
+
+paths:
+  /manifest/generate:
+    get:
+      summary: >-
+        Endpoints to expose annotation, validation and submission
+        functionalities from schematic
+      description: Endpoint to create dynamically create metadata manifest files
+      parameters:
+        - in: query
+          name: title
+          schema:
+            type: string
+            default: Test_Manifest
+          description: Title of manifest to be created
+          required: false
+        - in: query
+          name: data_type
+          schema:
+            type: string
+            nullable: true
+          description: Data type/component from data model
+          required: true
+        - in: query
+          name: oauth
+          schema:
+            type: boolean
+            default: true
+          description: >-
+            Boolean parameter that decides whether to use token or service
+            account mode of authentication
+          required: false
+        - in: query
+          name: use_annotations
+          schema:
+            type: boolean
+            default: false
+          description: Automatically populate manifest from Synapse annotations
+          required: false
+        - in: query
+          name: dataset_id
+          schema:
+            type: string
+            nullable: true
+          description: Synapse Id of annotated or unannotated dataset
+          required: true
+      operationId: api.routes.get_manifest_route
+      responses:
+        '200':
+          description: Sucess
+          content:
+            application/json:
+              schema:
+                type: string
