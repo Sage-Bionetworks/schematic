@@ -16,11 +16,16 @@ from schematic.manifest.generator import ManifestGenerator
 #     # Do stuff after your route executes
 #     pass
 
+CONFIG_PATH = os.path.join(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), "config.yml"
+)
+
 # @before_request
 def get_manifest_route(title, oauth, use_annotations):
-    CONFIG.load_config("./config.yml")
+    CONFIG.load_config(CONFIG_PATH)
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
+    # TODO: move schematic config parameters into FlaskApp config object
     # current_app.config['model']
     # current_app.config['input']
     # current_app.config['location']
@@ -37,9 +42,9 @@ def get_manifest_route(title, oauth, use_annotations):
         use_annotations=use_annotations,
     )
 
+    dataset_id = connexion.request.args["dataset_id"]
+
     # call get_manifest() on manifest_generator
-    result = manifest_generator.get_manifest(
-        sheet_url=True, dataset_id=connexion.request.args["dataset_id"]
-    )
+    result = manifest_generator.get_manifest(sheet_url=True, dataset_id=dataset_id)
 
     return result
