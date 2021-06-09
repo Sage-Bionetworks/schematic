@@ -54,6 +54,8 @@ rdflib = "^5.0.0"
 setuptools = "^52.0.0"
 synapseclient = "~2.3"  # ~ (not ^) until Data Curator App supports OAuth tokens
 toml = "^0.10.2"
+Flask = "^2.0.1"
+connexion = "^2.7.0"
 
 
 [tool.poetry.dev-dependencies]
