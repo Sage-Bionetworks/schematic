@@ -16,45 +16,49 @@ paths:
       description: Endpoint to create dynamically create metadata manifest files
       parameters:
         - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          required: true
+        - in: query
           name: title
           schema:
             type: string
             default: Test_Manifest
-          description: Title of manifest to be created
+          description: Title of Manifest
           required: false
         - in: query
           name: data_type
           schema:
             type: string
             nullable: true
-          description: Data type/component from data model
+          description: Data Model Component
           required: true
         - in: query
           name: oauth
           schema:
             type: boolean
             default: true
-          description: >-
-            Boolean parameter that decides whether to use token or service
-            account mode of authentication
+          description: OAuth or Service Account
           required: false
         - in: query
           name: use_annotations
           schema:
             type: boolean
             default: false
-          description: Automatically populate manifest from Synapse annotations
+          description: To Use Annotations
           required: false
         - in: query
           name: dataset_id
           schema:
             type: string
             nullable: true
-          description: Synapse Id of annotated or unannotated dataset
+          description: Dataset SynID
           required: true
       operationId: api.routes.get_manifest_route
       responses:
-        '200':
+        "200":
           description: Sucess
           content:
             application/json:

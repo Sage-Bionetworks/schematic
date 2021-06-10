@@ -1,4 +1,7 @@
 import os
+import shutil
+import tempfile
+import urllib.request
 
 import connexion
 from flask import current_app, request, g
@@ -16,14 +19,22 @@ from schematic.manifest.generator import ManifestGenerator
 #     # Do stuff after your route executes
 #     pass
 
+# path to `config.yml` file as constant
 CONFIG_PATH = os.path.join(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)), "config.yml"
 )
 
 # @before_request
-def get_manifest_route(title, oauth, use_annotations):
+def get_manifest_route(schema_url, title, oauth, use_annotations):
     CONFIG.load_config(CONFIG_PATH)
-    jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
+
+    # retrieve a JSON-LD via URL and store it in a temporary location
+    with urllib.request.urlopen(schema_url) as response:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonld") as tmp_file:
+            shutil.copyfileobj(response, tmp_file)
+
+    # get path to temporary JSON-LD file
+    jsonld = tmp_file.name
 
     # TODO: move schematic config parameters into FlaskApp config object
     # current_app.config['model']
