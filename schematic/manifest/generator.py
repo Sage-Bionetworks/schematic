@@ -642,7 +642,6 @@ class ManifestGenerator(object):
                     spreadsheet_id,
                     req_vals,
                     i,
-                    strict=False,
                     custom_ui=False,
                     input_message="",
                     validation_type="ONE_OF_RANGE",
