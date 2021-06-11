@@ -1,8 +1,10 @@
 openapi: 3.0.0
 info:
-  title: Schematic Rest API
+  title: Schematic REST API
   version: 0.1.0
-  description: Schematic endpoints
+  description: >-
+    This service exposes core functionalities from schematic as REST API
+    endpoints
 
 servers:
   - url: /v1
@@ -20,13 +22,15 @@ paths:
           schema:
             type: string
           description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
         - in: query
           name: title
           schema:
             type: string
-            default: Test_Manifest
           description: Title of Manifest
+          example: Patient Metadata Manifest
           required: false
         - in: query
           name: data_type
@@ -34,6 +38,7 @@ paths:
             type: string
             nullable: true
           description: Data Model Component
+          example: Patient
           required: true
         - in: query
           name: oauth
@@ -58,8 +63,8 @@ paths:
           required: true
       operationId: api.routes.get_manifest_route
       responses:
-        "200":
-          description: Sucess
+        '200':
+          description: Success. Googlesheet link created.
           content:
             application/json:
               schema:
