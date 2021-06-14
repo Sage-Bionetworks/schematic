@@ -155,25 +155,32 @@ class MetadataModel(object):
 
         return mg.get_manifest(sheet_url=sheetUrl)
 
-    def get_component_requirements(self, source_component: str) -> List[str]:
+    def get_component_requirements(self, source_component: str, as_graph: bool = False) -> List:
         """Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it.
         Useful to construct requirement dependencies not only between specific attributes but also between categories/components of attributes;
         Can be utilized to track metadata completion progress across multiple categories of attributes.
 
         Args:
             source_component: an attribute label indicating the source component.
+            as_graph: if False return component requirements as a list; if True return component requirements as a dependency graph (i.e. a DAG) 
 
         Returns:
             A list of required components associated with the source component.
         """
-        # get metadata model schema graph
-        # mm_graph = self.se.get_nx_schema()
 
         # get required components for the input/source component
         req_components = self.sg.get_component_requirements(source_component)
-        # req_components = get_component_requirements(mm_graph, source_component)
+
+        if not as_graph:
+            return req_components
+        else:
+            req_components_graph = self.sg.get_component_requirements_graph(source_component)
+
+            # serialize component dependencies DAG to a edge list of node tuples
+            req_components = list(req_components_graph.edges())
 
         return req_components
+
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
