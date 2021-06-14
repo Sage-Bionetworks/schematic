@@ -24,7 +24,7 @@ class TestMetadataModel:
     def test_get_component_requirements(self, metadata_model):
             
         source_component = "BulkRNA-seqAssay"
-        as_graph = False
+        as_graph = True
         
         output = metadata_model.get_component_requirements(source_component, as_graph = as_graph)
         

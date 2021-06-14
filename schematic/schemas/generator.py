@@ -118,7 +118,7 @@ class SchemaGenerator(object):
 
         # prune the metadata model graph so as to include only those edges that match the relationship type
         rel_edges = []
-        for (u, v, key, c) in graph.edges(data=True, keys=True):
+        for (u, v, key, c) in graph.out_edges(data=True, keys=True):
             if key == relationship:
                 rel_edges.append((u, v))
 
@@ -176,12 +176,12 @@ class SchemaGenerator(object):
 
         # get a list of required component nodes
         req_components = self.get_component_requirements(source_component)
-
+        
         # get the schema graph
         mm_graph = self.se.get_nx_schema()
 
         # get the subgraph induced on required component nodes
-        req_components_graph = self.get_subgraph_by_edge_type(mm_graph, self.requires_component_relationship)
+        req_components_graph = self.get_subgraph_by_edge_type(mm_graph, self.requires_component_relationship).subgraph(req_components)
 
         return req_components_graph
 
