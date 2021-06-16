@@ -64,25 +64,7 @@ class SynapseStorage(BaseStorage):
             syn_store = SynapseStorage()
         """
 
-        # If no token is provided, try retrieving access token from environment
-        if not token and not access_token:
-            access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-
-        # login using a token
-        if token:
-            self.syn = synapseclient.Synapse()
-
-            try:
-                self.syn.login(sessionToken=token, silent=True)
-            except synapseclient.core.exceptions.SynapseHTTPError:
-                raise ValueError("Please make sure you are logged into synapse.org.")
-        elif access_token:
-            self.syn = synapseclient.Synapse()
-            self.syn.default_headers["Authorization"] = f"Bearer {access_token}"
-        else:
-            # login using synapse credentials provided by user in .synapseConfig (default) file
-            self.syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
-            self.syn.login(silent=True)
+        self.syn = self.login(token, access_token)
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
@@ -101,6 +83,30 @@ class SynapseStorage(BaseStorage):
             raise AccessCredentialsError(self.storageFileview)
         except ValueError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
+
+    @staticmethod
+    def login(token=None, access_token=None):
+        # If no token is provided, try retrieving access token from environment
+        if not token and not access_token:
+            access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+
+        # login using a token
+        if token:
+            syn = synapseclient.Synapse()
+
+            try:
+                syn.login(sessionToken=token, silent=True)
+            except synapseclient.core.exceptions.SynapseHTTPError:
+                raise ValueError("Please make sure you are logged into synapse.org.")
+        elif access_token:
+            syn = synapseclient.Synapse()
+            syn.default_headers["Authorization"] = f"Bearer {access_token}"
+        else:
+            # login using synapse credentials provided by user in .synapseConfig (default) file
+            syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+            syn.login(silent=True)
+
+        return syn
 
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
