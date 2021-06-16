@@ -69,6 +69,5 @@ paths:
             application/json:
               schema:
                 type: string
-          summary: Create link to manifest file
       tags:
         - Manifest Operations
