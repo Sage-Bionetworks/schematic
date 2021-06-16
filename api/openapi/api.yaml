@@ -63,9 +63,12 @@ paths:
           required: true
       operationId: api.routes.get_manifest_route
       responses:
-        '200':
-          description: Success. Googlesheet link created.
+        '201':
+          description: Googlesheet link created.
           content:
             application/json:
               schema:
                 type: string
+          summary: Create link to manifest file
+      tags:
+        - Manifest Operations
