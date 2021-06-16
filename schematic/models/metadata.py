@@ -171,13 +171,14 @@ class MetadataModel(object):
         # get required components for the input/source component
         req_components = self.sg.get_component_requirements(source_component)
 
-        if not as_graph:
-            return req_components
-        else:
+        # retreive components as graph
+        if as_graph:
             req_components_graph = self.sg.get_component_requirements_graph(source_component)
 
             # serialize component dependencies DAG to a edge list of node tuples
             req_components = list(req_components_graph.edges())
+
+            return req_components
 
         return req_components
 
