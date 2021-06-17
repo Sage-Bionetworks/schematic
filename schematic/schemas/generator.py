@@ -106,6 +106,7 @@ class SchemaGenerator(object):
         self, graph: nx.MultiDiGraph, relationship: str
     ) -> nx.DiGraph:
         """Get a subgraph containing all edges of a given type (aka relationship).
+        TODO: possibly move method to SchemaExplorer and refactor downstream code to call from SchemaExplorer
 
         Args:
             graph: input multi digraph (aka hypergraph)
@@ -117,12 +118,14 @@ class SchemaGenerator(object):
 
         # prune the metadata model graph so as to include only those edges that match the relationship type
         rel_edges = []
-        for (u, v, key, c) in graph.edges(data=True, keys=True):
+        for (u, v, key, c) in graph.out_edges(data=True, keys=True):
             if key == relationship:
                 rel_edges.append((u, v))
 
         relationship_subgraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
+
+        return relationship_subgraph
 
     def get_descendants_by_edge_type(
         self,
@@ -160,6 +163,27 @@ class SchemaGenerator(object):
         )
 
         return req_components
+
+    def get_component_requirements_graph(self, source_component: str) -> nx.DiGraph:
+        """Get all components that are associated with a given source component and are required by it; return the components as a dependency graph (i.e. a DAG).
+
+        Args:
+            source_component: source component for which we need to find all required downstream components.
+
+        Returns:
+            A subgraph of the schema graph induced on nodes that are descendants from the source component and are related to the source through a specific component relationship.
+        """
+
+        # get a list of required component nodes
+        req_components = self.get_component_requirements(source_component)
+        
+        # get the schema graph
+        mm_graph = self.se.get_nx_schema()
+
+        # get the subgraph induced on required component nodes
+        req_components_graph = self.get_subgraph_by_edge_type(mm_graph, self.requires_component_relationship).subgraph(req_components)
+
+        return req_components_graph
 
     def get_node_dependencies(
         self, source_node: str, display_names: bool = True, schema_ordered: bool = True
