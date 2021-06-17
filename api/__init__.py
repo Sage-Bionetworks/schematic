@@ -4,23 +4,18 @@ import connexion
 
 from schematic import CONFIG
 
-# path to `config.yml` file as constant
-CONFIG_PATH = os.path.abspath(os.path.join(__file__, "../../config.yml"))
-
 
 def create_app():
     connexionapp = connexion.FlaskApp(__name__, specification_dir="openapi/")
     connexionapp.add_api("api.yaml")
+
+    # get the underlying Flask app instance
     app = connexionapp.app
 
-    # Configure schematic and do the error handling
-    # check if file exists at the path created, i.e., CONFIG_PATH
-    if os.path.isfile(CONFIG_PATH):
-        CONFIG.load_config(CONFIG_PATH)
-    else:
-        FileNotFoundError(
-            f"No configuration file was found at this path: {CONFIG_PATH}"
-        )
+    # path to config.yml file saved as a Flask config variable
+    app.config["SCHEMATIC_CONFIG"] = os.path.abspath(
+        os.path.join(__file__, "../../config.yml")
+    )
 
     # Configure flask app
     # app.config[] = schematic[]

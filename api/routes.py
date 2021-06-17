@@ -4,7 +4,9 @@ import tempfile
 import urllib.request
 
 import connexion
-from flask import current_app, request, g
+from flask import current_app as app, request, g
+
+from schematic import CONFIG
 
 from schematic.manifest.generator import ManifestGenerator
 
@@ -18,6 +20,16 @@ from schematic.manifest.generator import ManifestGenerator
 
 # @before_request
 def get_manifest_route(schema_url, title, oauth, use_annotations):
+    # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
+    path_to_config = app.config["SCHEMATIC_CONFIG"]
+
+    if os.path.isfile(path_to_config):
+        CONFIG.load_config(path_to_config)
+    else:
+        raise FileNotFoundError(
+            f"No configuration file was found at this path: {path_to_config}"
+        )
+
     # retrieve a JSON-LD via URL and store it in a temporary location
     with urllib.request.urlopen(schema_url) as response:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonld") as tmp_file:
@@ -25,11 +37,6 @@ def get_manifest_route(schema_url, title, oauth, use_annotations):
 
     # get path to temporary JSON-LD file
     jsonld = tmp_file.name
-
-    # Move schematic config parameters into FlaskApp config object if any
-    # current_app.config['model']
-    # current_app.config['input']
-    # current_app.config['location']
 
     # request.data[]
     data_type = connexion.request.args["data_type"]
