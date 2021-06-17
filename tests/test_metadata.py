@@ -21,10 +21,6 @@ def metadata_model(helpers):
 
 
 class TestMetadataModel:
-    # TODO: currently, there are no DependsOn Component relationships
-    # in the example data model. Create a dummy relationship between Biospecimen
-    # and Patient using tempfiles and assert list of values rather than data types
-    
     @pytest.mark.parametrize("as_graph", [True, False], ids=["as_graph", "as_list"])
     def test_get_component_requirements(self, metadata_model, as_graph):
 
@@ -33,5 +29,13 @@ class TestMetadataModel:
         output = metadata_model.get_component_requirements(
             source_component, as_graph=as_graph
         )
-        
+
         assert type(output) is list
+
+        if as_graph:
+            assert ("Biospecimen", "Patient") in output
+            assert ("BulkRNA-seqAssay", "Biospecimen") in output
+        else:
+            assert "Biospecimen" in output
+            assert "Patient" in output
+            assert "BulkRNA-seqAssay" in output
