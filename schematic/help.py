@@ -35,8 +35,8 @@ manifest_commands = {
             ),
             "output_csv": ("Path to where the CSV manifest template should be stored."),
             "use_annotations": (
-                "Takes `True` or `False` as argument values. If `True` then it will prepopulate template with existing annotations "
-                "associated with dataset files. If `False` it will skip populating template with Synapse annotations."
+                "This is a boolean flag. If flag is provided when command line utility is executed, it will prepopulate template "
+                "with existing annotations from Synapse."
             ),
             "oauth": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, OAuth will be used to "
