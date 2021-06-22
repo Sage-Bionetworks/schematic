@@ -2203,6 +2203,11 @@
             },
             "sms:displayName": "Biospecimen",
             "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:Patient"
+                }
+            ],
             "sms:requiresDependency": [
                 {
                     "@id": "bts:SampleID"
@@ -2276,6 +2281,11 @@
             },
             "sms:displayName": "Bulk RNA-seq Assay",
             "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:Biospecimen"
+                }
+            ],
             "sms:requiresDependency": [
                 {
                     "@id": "bts:Filename"
