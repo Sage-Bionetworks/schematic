@@ -1,0 +1,73 @@
+openapi: 3.0.0
+info:
+  title: Schematic REST API
+  version: 0.1.0
+  description: >-
+    This service exposes core functionalities from schematic as REST API
+    endpoints
+
+servers:
+  - url: /v1
+
+paths:
+  /manifest/generate:
+    get:
+      summary: >-
+        Endpoints to expose annotation, validation and submission
+        functionalities from schematic
+      description: Endpoint to create dynamically create metadata manifest files
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: Title of Manifest
+          example: Patient Metadata Manifest
+          required: false
+        - in: query
+          name: data_type
+          schema:
+            type: string
+            nullable: true
+          description: Data Model Component
+          example: Patient
+          required: true
+        - in: query
+          name: oauth
+          schema:
+            type: boolean
+            default: true
+          description: OAuth or Service Account
+          required: false
+        - in: query
+          name: use_annotations
+          schema:
+            type: boolean
+            default: false
+          description: To Use Annotations
+          required: false
+        - in: query
+          name: dataset_id
+          schema:
+            type: string
+            nullable: true
+          description: Dataset SynID
+          required: true
+      operationId: api.routes.get_manifest_route
+      responses:
+        '201':
+          description: Googlesheet link created.
+          content:
+            application/json:
+              schema:
+                type: string
+      tags:
+        - Manifest Operations
