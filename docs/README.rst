@@ -126,7 +126,10 @@ refer to the ``Credentials`` section in the
 document.
 
 Use the ``schematic_service_account_creds.json`` file for the service
-account mode of authentication (*for Google services/APIs*).
+account mode of authentication (*for Google services/APIs*). Service accounts 
+are special Google accounts that can be used by applications to access Google APIs 
+programmatically via OAuth2.0, with the advantage being that they do not require 
+human authorization.
 
 Note: The ``Selection Options`` dropdown which allows the user to select
 multiple values in a cell during manifest annotation `does not
