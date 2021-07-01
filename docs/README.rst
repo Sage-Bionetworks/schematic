@@ -67,13 +67,14 @@ credentials files.
 There are two main configuration files that need to be edited –
 `config.yml <https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml>`__
 and
-`.synapseConfig <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig>`__.
+`.synapseConfig <https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig>`__.
 
 Download a copy of the ``.synapseConfig`` file, open the file in the
 editor of your choice and edit the
-`authtoken <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/ba42e2d35673d19ce2b5bbd089f4fc1e99aca178/synapseclient/.synapseConfig#L9>`__
+`username <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.3.0-rc/synapseclient/.synapseConfig#L8>`__ and
+`authtoken <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.3.0-rc/synapseclient/.synapseConfig#L9>`__
 attribute under the
-`[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/ba42e2d35673d19ce2b5bbd089f4fc1e99aca178/synapseclient/.synapseConfig#L7>`__
+`[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.3.0-rc/synapseclient/.synapseConfig#L7>`__
 section.
 
  Description of config.yml attributes
@@ -102,7 +103,7 @@ section.
             location: "data/schema_org_schemas/example.jsonld" # path to JSON-LD data model
             file_type: "local" # only type "local" is supported currently
             validation_schema: "~/path/to/validation_schema.json" # path to custom JSON Validation Schema JSON file
-            log_location: "~/path/to/log_folder/" # auto-generated JSON Validation Schemas can be logged
+            log_location: "~/path/to/log_folder/validation_schema.json" # auto-generated JSON Validation Schemas can be logged
         
 
 Note: Paths can be specified relative to the `config.yml` file or as absolute paths.
@@ -199,4 +200,5 @@ Active contributors and maintainers:
 -  `Milen Nikolov <https://github.com/milen-sage>`__
 -  `Sujay Patil <https://github.com/sujaypatil96>`__
 -  `Bruno Grande <https://github.com/BrunoGrandePhD>`__
+-  `Robert Allaway <https://github.com/allaway>`__
 -  `Xengie Doan <https://github.com/xdoan>`__
