@@ -20,11 +20,11 @@ from schematic.models.metadata import MetadataModel
 #     # Do stuff after your route executes
 #     pass
 
-# @before_request
-def get_manifest_route(schema_url, title, oauth, use_annotations):
-    # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
+
+def config_handler():
     path_to_config = app.config["SCHEMATIC_CONFIG"]
 
+    # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
     if os.path.isfile(path_to_config):
         CONFIG.load_config(path_to_config)
     else:
@@ -32,13 +32,24 @@ def get_manifest_route(schema_url, title, oauth, use_annotations):
             f"No configuration file was found at this path: {path_to_config}"
         )
 
+
+def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
     with urllib.request.urlopen(schema_url) as response:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonld") as tmp_file:
             shutil.copyfileobj(response, tmp_file)
 
     # get path to temporary JSON-LD file
-    jsonld = tmp_file.name
+    return tmp_file.name
+
+
+# @before_request
+def get_manifest_route(schema_url, title, oauth, use_annotations):
+    # call config_handler()
+    config_handler()
+
+    # get path to temporary JSON-LD file
+    jsonld = get_temp_jsonld(schema_url)
 
     # request.data[]
     data_type = connexion.request.args["data_type"]
@@ -61,6 +72,9 @@ def get_manifest_route(schema_url, title, oauth, use_annotations):
 
 
 def validate_manifest_route(schema_url, data_type):
+    # call config_handler()
+    config_handler()
+
     manifest_file = connexion.request.files["csv_file"]
 
     # save contents of incoming manifest CSV file to temp file
@@ -70,23 +84,8 @@ def validate_manifest_route(schema_url, data_type):
     # save content
     manifest_file.save(temp_path)
 
-    # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
-    path_to_config = app.config["SCHEMATIC_CONFIG"]
-
-    if os.path.isfile(path_to_config):
-        CONFIG.load_config(path_to_config)
-    else:
-        raise FileNotFoundError(
-            f"No configuration file was found at this path: {path_to_config}"
-        )
-
-    # retrieve a JSON-LD via URL and store it in a temporary location
-    with urllib.request.urlopen(schema_url) as response:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonld") as tmp_file:
-            shutil.copyfileobj(response, tmp_file)
-
     # get path to temporary JSON-LD file
-    jsonld = tmp_file.name
+    jsonld = get_temp_jsonld(schema_url)
 
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld, inputMModelLocationType="local"
