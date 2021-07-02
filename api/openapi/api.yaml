@@ -103,11 +103,21 @@ paths:
           required: true
       operationId: api.routes.validate_manifest_route
       responses:
-        '201':
+        '200':
           description: Manifest Validated
           content:
             application/json:
               schema:
-                type: string
+                type: array
+                items:
+                  type: array
+                  items:
+                    anyOf:
+                      - type: integer
+                      - type: string
+                      - type: array
+                        items:
+                          type: string
       tags:
         - Model Operations
+        
