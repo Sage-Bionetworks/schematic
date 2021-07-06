@@ -278,8 +278,7 @@ class SynapseStorage(BaseStorage):
             downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
 
         Returns:
-            manifest_syn_id (String): Synapse ID of exisiting manifest file.
-            manifest_data (synapseclient.entity.File): Synapse entity if downloadFile is True.
+            manifest_data (synapseclient.entity.File): Synapse entity.
             "" (String): No pre-exisiting manifest in dataset.
         """
 
@@ -290,30 +289,24 @@ class SynapseStorage(BaseStorage):
             & (all_files["parentId"] == datasetId)
         ]
         manifest = manifest[["id", "name"]]
-
+        
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
             return ""
         # if there is an exisiting manifest
         else:
-            # if the downloadFile option is set to True
-            if downloadFile:
-                # retrieve data from synapse
-                manifest_syn_id = manifest["id"][0]
+            # retrieve data from synapse
+            manifest_syn_id = manifest["id"][0]
 
-                # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                manifest_data = self.syn.get(
-                    manifest_syn_id,
-                    downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                    ifcollision="overwrite.local",
-                )
-
-                return manifest_data
-
-            # extract synapse ID of exisiting dataset manifest
-            manifest_syn_id = manifest.to_records(index=False)[0][0]
-
-            return manifest_syn_id
+            # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+            manifest_data = self.syn.get(
+                manifest_syn_id,
+                downloadFile=downloadFile,
+                downloadLocation=os.path.join(CONFIG["synapse"]["manifest_folder"], manifest_syn_id),
+                ifcollision="overwrite.local",
+            )
+            
+            return manifest_data
 
     def updateDatasetManifestFiles(self, datasetId: str) -> str:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
