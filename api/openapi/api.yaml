@@ -61,7 +61,7 @@ paths:
           required: true
       operationId: api.routes.get_manifest_route
       responses:
-        '201':
+        "201":
           description: Googlesheet link created
           content:
             application/json:
@@ -103,7 +103,7 @@ paths:
           required: true
       operationId: api.routes.validate_manifest_route
       responses:
-        '200':
+        "200":
           description: Manifest Validated
           content:
             application/json:
@@ -120,4 +120,50 @@ paths:
                           type: string
       tags:
         - Model Operations
-        
+  /model/submit:
+    post:
+      summary: Endpoint to facilitate manifest submission
+      description: Endpoint to submit annotated manifest files
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                csv_file:
+                  type: string
+                  format: binary
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: data_type
+          schema:
+            type: string
+            nullable: true
+          description: Data Model Component
+          example: Patient
+          required: true
+        - in: query
+          name: dataset_id
+          schema:
+            type: string
+            nullable: true
+          description: Dataset SynID
+          required: true
+      operationId: api.routes.submit_manifest_route
+      responses:
+        "200":
+          description: Manifest Submitted
+          content:
+            application/json:
+              schema:
+                type: boolean
+      tags:
+        - Model Operations
