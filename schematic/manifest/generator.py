@@ -415,6 +415,9 @@ class ManifestGenerator(object):
             ordered_metadata_fields[0]
         )
 
+        logger.info("Empty manifest ordered columns")
+        logger.info(ordered_metadata_fields)
+
         body = {"values": ordered_metadata_fields}
 
         # determining columns range
@@ -752,7 +755,6 @@ class ManifestGenerator(object):
         # print("Manifest successfully generated from schema!")
         # print("URL: " + manifest_url)
         # print("========================================================================================================")
-
         return manifest_url
 
     def set_dataframe_by_url(
@@ -767,6 +769,9 @@ class ManifestGenerator(object):
         Returns:
             ps.Spreadsheet: A Google Sheet object.
         """
+
+        logger.info(manifest_df)
+
         # authorize pygsheets to read from the given URL
         gc = ps.authorize(custom_credentials=self.creds)
 
@@ -774,11 +779,46 @@ class ManifestGenerator(object):
         sh = gc.open_by_url(manifest_url)
         wb = sh[0]
 
+        # Handle scenario when existing manifest does not match new
+        #       manifest template due to changes in the data model:
+        #
+        # the sheet column header reflect the latest schema
+        # the existing manifest column-set may be outdated
+        # ensure that, if missing, attributes from the latest schema are added to the
+        # column-set of the existing manifest so that the user can modify their data if needed 
+        # to comply with the latest schema
+
+        # get headers from existing manifest and sheet
+        wb_header = wb.get_row(1)
+        manifest_df_header = manifest_df.columns
+        
+        logger.info("Workbook header")
+        logger.info(wb_header)
+        logger.info(len(wb_header))
+
+        logger.info("Manifest DF header")
+        logger.info(manifest_df_header)
+        logger.info(len(manifest_df_header))
+
+        # find missing columns in existing manifest
+        new_columns = set(wb_header) - set(manifest_df_header)
+
+        # update existing manifest w/ missing columns, if any
+        if new_columns:
+            manifest_df = manifest_df.assign(**dict(zip(new_columns, len(new_columns)*[""])))
+
+        # sort columns in the existing manifest to match schema order
+        manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
+        
+        logger.info("Manifest DF header after update")
+        logger.info(manifest_df.columns)
+        logger.info(len(manifest_df.columns))
+
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
         # update spreadsheet with given manifest starting at top-left cell
-        wb.set_dataframe(manifest_df, (1, 1))
+        wb.set_dataframe(manifest_df, (1, 1), fit = "column")
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -888,7 +928,7 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
-
+        
         # Handle case when no dataset ID is provided
         if not dataset_id:
             return self.get_empty_manifest(json_schema_filepath=json_schema)
@@ -898,7 +938,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
-
+        
         # Populate empty template with existing manifest
         if syn_id_and_path:
 
@@ -921,7 +961,7 @@ class ManifestGenerator(object):
             pop_manifest_url = self.populate_manifest_spreadsheet(
                 manifest_data.path, empty_manifest_url
             )
-
+        
             return pop_manifest_url
 
         # Generate empty template and optionally fill in with annotations
@@ -957,12 +997,16 @@ class ManifestGenerator(object):
         manifest = pd.read_csv(existing_manifest_path).fillna("")
 
         # sort manifest columns
-        manifest_fields = manifest.columns.tolist()
-        manifest_fields = self.sort_manifest_fields(manifest_fields)
-        manifest = manifest[manifest_fields]
+        #manifest_fields = manifest.columns.tolist()
 
-        # TODO: Handle scenario when existing manifest does not match new
-        #       manifest template due to changes in the data model
+        #logger.info(manifest_fields)
+
+        #manifest_fields = self.sort_manifest_fields(manifest_fields)
+
+        #logger.info(manifest_fields)
+
+        #manifest = manifest[manifest_fields]
+ 
         manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
 
         return manifest_sh.url
@@ -977,7 +1021,7 @@ class ManifestGenerator(object):
                 manifest_fields.remove("Filename")
                 manifest_fields.insert(0, "Filename")
 
-        # order manifest fields based on schema (schema.org)
+        # order manifest fields based on data-model schema
         if order == "schema":
             if self.sg and self.root:
                 # get display names of dependencies
@@ -994,7 +1038,7 @@ class ManifestGenerator(object):
                 raise ValueError(
                     f"Provide valid data model path and valid component from data model."
                 )
-
+ 
         # always have entityId as last columnn, if present
         if "entityId" in manifest_fields:
             manifest_fields.remove("entityId")
