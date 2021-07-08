@@ -160,10 +160,12 @@ paths:
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
-          description: Manifest Submitted
+          description: Manifest submitted
           content:
             application/json:
               schema:
                 type: boolean
+        "500":
+          description: Check schematic log
       tags:
         - Model Operations
