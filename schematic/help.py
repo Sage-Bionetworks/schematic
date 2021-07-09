@@ -73,8 +73,8 @@ model_commands = {
                 "data filled in your manifest template."
             ),
             "use_schema_label": (
-                "Store attributes using the schema label (True) or store attributes using the display label "
-                "(False). Attribute display names in the schema must not only include characters that are "
+                "Store attributes using the schema label (--use_schema_label, default) or store attributes using the display label "
+                "(--use_display_label). Attribute display names in the schema must not only include characters that are "
                 "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
             ),
         },
