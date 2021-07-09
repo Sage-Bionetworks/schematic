@@ -64,8 +64,8 @@ def model(ctx, config):  # use as `schematic model ...`
     help=query_dict(model_commands, ("model", "submit", "validate_component")),
 )
 @click.option(
-    "--use_schema_label/--use_display_label', 
-    '-sl/-dl',
+    "--use_schema_label/--use_display_label", 
+    "-sl/-dl",
     default=True,
     show_default=True,
     help=query_dict(model_commands, ("model", "submit", "use_schema_label")),
