@@ -71,7 +71,7 @@ def model(ctx, config):  # use as `schematic model ...`
     help=query_dict(model_commands, ("model", "submit", "use_schema_label")),
 )
 @click.pass_obj
-def submit_manifest(ctx, manifest_path, dataset_id, validate_component):
+def submit_manifest(ctx, manifest_path, dataset_id, validate_component, use_schema_label):
     """
     Running CLI with manifest validation (optional) and submission options.
     """
