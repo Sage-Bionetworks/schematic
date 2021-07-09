@@ -67,7 +67,6 @@ def model(ctx, config):  # use as `schematic model ...`
     "--use_schema_label/--use_display_label", 
     "-sl/-dl",
     default=True,
-    show_default=True,
     help=query_dict(model_commands, ("model", "submit", "use_schema_label")),
 )
 @click.pass_obj
