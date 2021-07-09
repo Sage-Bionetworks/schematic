@@ -72,6 +72,11 @@ model_commands = {
                 "The component or data type from the data model which you can use to validate the "
                 "data filled in your manifest template."
             ),
+            "use_schema_label": (
+                "Store attributes using the schema label (True) or store attributes using the display label "
+                "(False). Attribute display names in the schema must not only include characters that are "
+                "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
+            ),
         },
         "validate": {
             "short_help": ("Validation of manifest files."),
