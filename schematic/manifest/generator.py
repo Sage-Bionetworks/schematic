@@ -415,9 +415,6 @@ class ManifestGenerator(object):
             ordered_metadata_fields[0]
         )
 
-        logger.info("Empty manifest ordered columns")
-        logger.info(ordered_metadata_fields)
-
         body = {"values": ordered_metadata_fields}
 
         # determining columns range
@@ -770,8 +767,6 @@ class ManifestGenerator(object):
             ps.Spreadsheet: A Google Sheet object.
         """
 
-        logger.info(manifest_df)
-
         # authorize pygsheets to read from the given URL
         gc = ps.authorize(custom_credentials=self.creds)
 
@@ -792,33 +787,32 @@ class ManifestGenerator(object):
         wb_header = wb.get_row(1)
         manifest_df_header = manifest_df.columns
         
-        logger.info("Workbook header")
-        logger.info(wb_header)
-        logger.info(len(wb_header))
-
-        logger.info("Manifest DF header")
-        logger.info(manifest_df_header)
-        logger.info(len(manifest_df_header))
-
         # find missing columns in existing manifest
         new_columns = set(wb_header) - set(manifest_df_header)
+
+        # find missing columns present in existing manifest but missing in latest schema
+        out_of_schema_columns = set(manifest_df_header) - set(wb_header)
 
         # update existing manifest w/ missing columns, if any
         if new_columns:
             manifest_df = manifest_df.assign(**dict(zip(new_columns, len(new_columns)*[""])))
 
-        # sort columns in the existing manifest to match schema order
+        # sort columns in the updated manifest:
+        # match latest schema order
+        # move obsolete columns at the end
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
+        manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
         
-        logger.info("Manifest DF header after update")
-        logger.info(manifest_df.columns)
-        logger.info(len(manifest_df.columns))
-
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
         # update spreadsheet with given manifest starting at top-left cell
-        wb.set_dataframe(manifest_df, (1, 1), fit = "column")
+        wb.set_dataframe(manifest_df, (1, 1))
+
+        # update validation rules (i.e. no validation rules) for out of schema columns
+        start_col = self._column_to_letter(len(wb_header)) # find start of out of schema columns
+        end_col = self._column_to_letter(len(manifest_df.columns) - 1) # find end of out of schema columns
+        wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -995,17 +989,6 @@ class ManifestGenerator(object):
 
         # read existing manifest
         manifest = pd.read_csv(existing_manifest_path).fillna("")
-
-        # sort manifest columns
-        #manifest_fields = manifest.columns.tolist()
-
-        #logger.info(manifest_fields)
-
-        #manifest_fields = self.sort_manifest_fields(manifest_fields)
-
-        #logger.info(manifest_fields)
-
-        #manifest = manifest[manifest_fields]
  
         manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
 
