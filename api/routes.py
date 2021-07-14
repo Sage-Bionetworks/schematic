@@ -96,3 +96,36 @@ def validate_manifest_route(schema_url, data_type):
     )
 
     return errors
+
+
+def submit_manifest_route(schema_url):
+    # call config_handler()
+    config_handler()
+
+    manifest_file = connexion.request.files["csv_file"]
+
+    # save contents of incoming manifest CSV file to temp file
+    temp_dir = tempfile.gettempdir()
+    # path to temp file where manifest file contents will be saved
+    temp_path = os.path.join(temp_dir, manifest_file.filename)
+    # save content
+    manifest_file.save(temp_path)
+
+    # get path to temporary JSON-LD file
+    jsonld = get_temp_jsonld(schema_url)
+
+    dataset_id = connexion.request.args["dataset_id"]
+
+    data_type = connexion.request.args["data_type"]
+
+    metadata_model = MetadataModel(
+        inputMModelLocation=jsonld, inputMModelLocationType="local"
+    )
+
+    success = metadata_model.submit_metadata_manifest(
+        manifest_path=temp_path,
+        dataset_id=dataset_id,
+        validate_component=data_type,
+    )
+
+    return success
