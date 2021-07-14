@@ -37,8 +37,8 @@ on ``macOS``, you can consider using `miniconda <https://docs.conda.io/en/latest
 If you are using a ``Windows`` machine, typical bash programs will not work 
 on `cmd` in the same way as they work in the Linux/MacOS terminals. To circumvent this, 
 it is recommended that you set up  
-*Bash on Windows* (`WSL <https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/>`__) 
-or `Cygwin <https://cygwin.com/index.html>`__ so you can easily execute the 
+*Bash on Windows* (`WSL <https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/>`__),  
+`Cygwin <https://cygwin.com/index.html>`__ or `Git Bash <https://gitforwindows.org/>`__ so you can easily execute the 
 command line utilities that are described later in these docs.
 
 **Note**: Make sure you are a registered and certified user on
