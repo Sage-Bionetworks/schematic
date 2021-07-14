@@ -52,7 +52,9 @@ credentials files.
 
 .. code:: bash
 
-    source .venv/bin/activate # activate the `venv` virtual environment
+    # activate the `.venv` virtual environment
+    source .venv/bin/activate   # on Linux and MacOS
+    .\.venv\Scripts\activate    # on Windows
 
 3.2. Installing
 ~~~~~~~~~~~~~~~~~
