@@ -20,7 +20,7 @@ You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues)
 1. Follow the [Github docs](https://help.github.com/articles/fork-a-repo/) to make a copy (a fork) of the repository to your own Github account.
 2. [Clone the forked repository](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository-from-github/cloning-a-repository) to your local machine so you can begin making changes.
 3. Make sure this repository is set as the [upstream remote repository](https://docs.github.com/en/github/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-for-a-fork) so you are able to fetch the latest commits.
-3. Push all your changes to the `develop` branch of the forked repository.
+4. Push all your changes to the `develop` branch of the forked repository.
 
 *Note*: Make sure you have you have the latest version of the `develop` branch on your local machine.
 
@@ -29,7 +29,7 @@ git checkout develop
 git pull upstream develop
 ```
 
-4. Create pull requests to the upstream repository.
+5. Create pull requests to the upstream repository.
 
 ### The development lifecycle
 
@@ -51,7 +51,8 @@ git clone https://github.com/Sage-Bionetworks/schematic.git
 
 3. [Create and activate](https://sage-schematic.readthedocs.io/en/develop/README.html#virtual-environment-setup) a virtual environment.
 4. Run the following commands to build schematic and install the package along with all of its dependencies:
-```python
+
+```
 cd schematic  # change directory to schematic
 git checkout develop  # switch to develop branch of schematic
 poetry build # build source and wheel archives
@@ -65,6 +66,15 @@ pip install dist/schematicpy-x.y.z-py3-none-any.whl  # install wheel file
 7. [Run](https://docs.pytest.org/en/stable/usage.html) the test suite.
 
 *Note*: To ensure that all tests run successfully, contact your DCC liason and request to be added to the `schematic-dev` [team](https://www.synapse.org/#!Team:3419888) on Synapse.
+
+8. To test new changes made to any of the modules within `schematic`, do the following:
+
+```
+# make changes to any files or modules
+pip uninstall schematicpy  # uninstall package
+poetry build
+pip install dist/schematicpy-x.y.z-py3-none-any.whl  # install wheel file
+```
 
 ## Testing
 
