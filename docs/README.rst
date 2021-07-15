@@ -34,6 +34,13 @@ on ``macOS``, you can consider using `miniconda <https://docs.conda.io/en/latest
 
 -  `poetry <https://github.com/python-poetry/poetry>`__
 
+If you are using a ``Windows`` machine, typical bash programs will not work 
+on `cmd` in the same way as they work in the Linux/MacOS terminals. To circumvent this, 
+it is recommended that you set up  
+*Bash on Windows* (`WSL <https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/>`__),  
+`Cygwin <https://cygwin.com/index.html>`__ or `Git Bash <https://gitforwindows.org/>`__ so you can easily execute the 
+command line utilities that are described later in these docs.
+
 **Note**: Make sure you are a registered and certified user on
 `synapse.org <https://www.synapse.org/>`__, and also have all the
 right permissions to download credentials files in the following steps.
@@ -52,7 +59,9 @@ credentials files.
 
 .. code:: bash
 
-    source .venv/bin/activate # activate the `venv` virtual environment
+    # activate the `.venv` virtual environment
+    source .venv/bin/activate   # on Linux and MacOS
+    .\.venv\Scripts\activate    # on Windows
 
 3.2. Installing
 ~~~~~~~~~~~~~~~~~
@@ -67,13 +76,14 @@ credentials files.
 There are two main configuration files that need to be edited –
 `config.yml <https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml>`__
 and
-`.synapseConfig <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.2.2-rc/synapseclient/.synapseConfig>`__.
+`.synapseConfig <https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig>`__.
 
 Download a copy of the ``.synapseConfig`` file, open the file in the
 editor of your choice and edit the
-`authtoken <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/ba42e2d35673d19ce2b5bbd089f4fc1e99aca178/synapseclient/.synapseConfig#L9>`__
+`username <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.3.0-rc/synapseclient/.synapseConfig#L8>`__ and
+`authtoken <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.3.0-rc/synapseclient/.synapseConfig#L9>`__
 attribute under the
-`[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/ba42e2d35673d19ce2b5bbd089f4fc1e99aca178/synapseclient/.synapseConfig#L7>`__
+`[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.3.0-rc/synapseclient/.synapseConfig#L7>`__
 section.
 
  Description of config.yml attributes
@@ -102,7 +112,7 @@ section.
             location: "data/schema_org_schemas/example.jsonld" # path to JSON-LD data model
             file_type: "local" # only type "local" is supported currently
             validation_schema: "~/path/to/validation_schema.json" # path to custom JSON Validation Schema JSON file
-            log_location: "~/path/to/log_folder/" # auto-generated JSON Validation Schemas can be logged
+            log_location: "~/path/to/log_folder/validation_schema.json" # auto-generated JSON Validation Schemas can be logged
         
 
 Note: Paths can be specified relative to the `config.yml` file or as absolute paths.
@@ -125,7 +135,10 @@ refer to the ``Credentials`` section in the
 document.
 
 Use the ``schematic_service_account_creds.json`` file for the service
-account mode of authentication (*for Google services/APIs*).
+account mode of authentication (*for Google services/APIs*). Service accounts 
+are special Google accounts that can be used by applications to access Google APIs 
+programmatically via OAuth2.0, with the advantage being that they do not require 
+human authorization.
 
 Note: The ``Selection Options`` dropdown which allows the user to select
 multiple values in a cell during manifest annotation `does not
@@ -199,4 +212,5 @@ Active contributors and maintainers:
 -  `Milen Nikolov <https://github.com/milen-sage>`__
 -  `Sujay Patil <https://github.com/sujaypatil96>`__
 -  `Bruno Grande <https://github.com/BrunoGrandePhD>`__
+-  `Robert Allaway <https://github.com/allaway>`__
 -  `Xengie Doan <https://github.com/xdoan>`__
