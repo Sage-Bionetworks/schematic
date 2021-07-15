@@ -57,6 +57,8 @@ synapseclient = "~2.3"  # ~ (not ^) until Data Curator App supports OAuth tokens
 toml = "^0.10.2"
 Flask = "^2.0.1"
 connexion = "^2.7.0"
+jupyter = "^1.0.0"
+ipykernel = "^6.0.1"
 
 
 [tool.poetry.dev-dependencies]
