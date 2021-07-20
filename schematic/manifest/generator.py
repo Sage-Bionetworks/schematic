@@ -402,7 +402,8 @@ class ManifestGenerator(object):
             if not self.additional_metadata:
                 self.additional_metadata = {}
 
-            self.additional_metadata["Component"] = [self.root]
+            if "Component" not in self.additional_metadata:
+                self.additional_metadata["Component"] = [self.root]
 
         # adding columns to manifest sheet
         end_col = len(required_metadata_fields.keys())
@@ -734,6 +735,42 @@ class ManifestGenerator(object):
         }
         requests_body["requests"].append(self._get_cell_borders(cell_range))
 
+        # Auto-resize columns to fit contents
+        requests_body["requests"].append({
+            "autoResizeDimensions": {
+                "dimensions": {
+                "sheetId": 0,
+                "dimension": "COLUMNS",
+                "startIndex": 0,
+                "endIndex": end_col
+                }
+            }
+        })
+
+        # Protect header row
+        requests_body["requests"].append({
+            "addProtectedRange": {
+                "protectedRange": {
+                    "range": {
+                        "sheetId": 0,
+                        "startRowIndex": 0,
+                        "endRowIndex": 1,
+                        "startColumnIndex": 0,
+                        "endColumnIndex": 1 + len(ordered_metadata_fields[0]),
+                    },
+                    "description": f"Protecting header row",
+                    "warningOnly": True
+                }
+            }
+        })
+
+        # Protect important columns, if applicable
+        to_be_protected = ["Component", "Filename", "entityId", "eTag"]
+        for colname in to_be_protected:
+            if colname in self.additional_metadata:
+                protect_req = self._protect_column(colname, ordered_metadata_fields)
+                requests_body["requests"].append(protect_req)
+
         execute_google_api_requests(
             self.sheet_service,
             requests_body,
@@ -753,6 +790,27 @@ class ManifestGenerator(object):
         # print("========================================================================================================")
 
         return manifest_url
+
+    def _protect_column(self, colname, ordered_metadata_fields):
+        """Protect values for given column."""
+        col_idx = ordered_metadata_fields[0].index(colname)
+        num_rows = len(self.additional_metadata[colname])
+        request = {
+            "addProtectedRange": {
+                "protectedRange": {
+                    "range": {
+                        "sheetId": 0,
+                        "startRowIndex": 1,
+                        "endRowIndex": 1 + num_rows,
+                        "startColumnIndex": col_idx,
+                        "endColumnIndex": 1 + col_idx,
+                    },
+                    "description": f"Protecting {colname} column",
+                    "warningOnly": True
+                }
+            }
+        }
+        return request
 
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame
@@ -855,6 +913,9 @@ class ManifestGenerator(object):
             (k, list(v.values())) for k, v in annotations_dict_raw.items()
         )
 
+        # Make sure that the Component column is full
+        annotations_dict["Component"] = [self.root] * max(1, len(annotations.index))
+
         # Needs to happen before get_empty_manifest() gets called
         self.additional_metadata = annotations_dict
 
@@ -934,7 +995,7 @@ class ManifestGenerator(object):
 
             # Subset columns if no interested in user-defined annotations
             if self.is_file_based and not self.use_annotations:
-                annotations = annotations[["Filename", "eTag", "entityId"]]
+                annotations = annotations[["Filename", "entityId", "eTag"]]
 
             # Update `additional_metadata` and generate manifest
             manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
@@ -998,5 +1059,8 @@ class ManifestGenerator(object):
         if "entityId" in manifest_fields:
             manifest_fields.remove("entityId")
             manifest_fields.append("entityId")
+        if "eTag" in manifest_fields:
+            manifest_fields.remove("eTag")
+            manifest_fields.append("eTag")
 
         return manifest_fields
