@@ -401,18 +401,18 @@ class SynapseStorage(BaseStorage):
                     ("", ""),
                     ("", "")
             )
-            
+
             manifest_info = self.getDatasetManifest(datasetId, downloadFile = True)
             if manifest_info:
                 manifest_id = manifest_info["properties"]["id"]
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
-                
+
                 manifest_df = pd.read_csv(manifest_path)
-            
+
                 if "Component" in manifest_df and  not manifest_df["Component"].empty:
-                    manifest_component = manifest_df["Component"][0]         
-        
+                    manifest_component = manifest_df["Component"][0]
+
                     manifest = (
                         (datasetId, datasetName),
                         (manifest_id, manifest_name),
@@ -424,7 +424,7 @@ class SynapseStorage(BaseStorage):
                         (manifest_id, manifest_name),
                         ("", "")
                     )
-            
+
             manifests.append(manifest)
 
         return manifests
@@ -615,7 +615,7 @@ class SynapseStorage(BaseStorage):
             pd.DataFrame: Table of annotations.
         """
         # Get all files in given dataset
-        dataset_files = self.getFilesInStorageDataset(datasetId)
+        dataset_files = self.getFilesInStorageDataset(datasetId, fullpath=False)
         dataset_files_map = dict(dataset_files)
         dataset_file_ids, _ = list(zip(*dataset_files))
 
