@@ -1043,13 +1043,18 @@ class ManifestGenerator(object):
                 # get display names of dependencies
                 dependencies_display_names = self.sg.get_node_dependencies(self.root)
 
+                # Define function to determine order
+                def get_node_order_key(x):
+                    key = len(manifest_fields) - 1
+                    if x in dependencies_display_names:
+                        key = dependencies_display_names.index(x)
+                    # Ensure that all of the required columns come first
+                    if x in dependencies_display_names and self.sg.is_node_required(x):
+                        key = key / 10
+                    return key
+
                 # reorder manifest fields so that root dependencies are first and follow schema order
-                manifest_fields = sorted(
-                    manifest_fields,
-                    key=lambda x: dependencies_display_names.index(x)
-                    if x in dependencies_display_names
-                    else len(manifest_fields) - 1,
-                )
+                manifest_fields = sorted(manifest_fields, key=get_node_order_key)
             else:
                 raise ValueError(
                     f"Provide valid data model path and valid component from data model."
