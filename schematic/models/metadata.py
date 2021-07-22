@@ -213,7 +213,7 @@ class MetadataModel(object):
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = pd.read_csv(
-            manifestPath
+            manifestPath, dtype=str
         )  # read manifest csv file as is from manifest path
         manifest = trim_commas_df(manifest).fillna(
             ""
