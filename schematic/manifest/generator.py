@@ -747,23 +747,6 @@ class ManifestGenerator(object):
             }
         })
 
-        # Protect header row
-        requests_body["requests"].append({
-            "addProtectedRange": {
-                "protectedRange": {
-                    "range": {
-                        "sheetId": 0,
-                        "startRowIndex": 0,
-                        "endRowIndex": 1,
-                        "startColumnIndex": 0,
-                        "endColumnIndex": 1 + len(ordered_metadata_fields[0]),
-                    },
-                    "description": f"Protecting header row",
-                    "warningOnly": True
-                }
-            }
-        })
-
         # Protect important columns, if applicable
         to_be_protected = ["Component", "Filename", "entityId", "eTag"]
         for colname in to_be_protected:
