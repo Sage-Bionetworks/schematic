@@ -252,85 +252,40 @@ class MetadataModel(object):
                     ]
                 )
 
-            return errors
-
-        # check if each of the provided annotation columns has validation rule 'list'
-        # if so, assume annotation for this column are comma separated list of multi-value annotations
-        # convert multi-valued annotations to list
-
+            #return errors
         '''
-        MD Notes:
-        --------
         TODO:
-            Allow for multiple validation rules to be added by a user separated by
-            a delimiter.
+            - Allow for multiple validation rules to be added by a user separated by
+            a delimiter (:::).
+            - Allow an actual validation error to be raised.
     
         '''
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            col_val_rules = self.sg.get_node_validation_rules(col)
+            validation_rules = self.sg.get_node_validation_rules(col)
 
-            if bool(col_val_rules):
-                ValidateRules(col_val_rules[0], manifest[col])
-           
-            '''
-            types = {"int": int,
-                    "float": float,
-                    "str": str,
-                    }
-            for type_key, type_val in types.items():
-                if type_key in col_val_rules:
-                    for i, value in enumerate(manifest[col]):
-                        if bool(value) and type(value) != type_val:
-                            # This will throw an error depending on the ID type expected.
-                            logging.error(
-                            f"For participant {manifest['HTAN Participant ID'][i]} on row {str(i)}, "
-                            f"the attribute {col} does not contain "
-                            f"the proper value type {type_key}."
-                            )
-                            # Move error generator into its own function.
-                            error_row = str(i)# index of the manifest where the error presented.
-                            error_col = col
-                            error_message = f"For participant {manifest['HTAN Participant ID'][i]} on row {str(i)}, type provided was {type(manifest[col][i])} and was supposed to be {type_key}".format()
-                            error_val = f"For participant {manifest['HTAN Participant ID'][i]} on row {str(i)}, type provided was {type(manifest[col][i])} and was supposed to be {type_key}".format()
-                            errors.append([error_row, error_col, error_message, error_val])
-            
-            # Regex Validation:
-            if bool(col_val_rules) and "regex" in col_val_rules[0]:
-                reg_exp_rules = col_val_rules[0].split(' ')
-                # Make sure the rules are properly formatted.
-                # ['regex', 'module', 'regular expression'] -- This needs to be moved.
-                if len(reg_exp_rules) < 3:
-                    raise ValidationError(
-                        "The regex rules were not provided properly for attribute {col}")
-
-                module_to_call = getattr(re, reg_exp_rules[1])
-                reg_expression = reg_exp_rules[2]
-                manifest[col] = manifest[col].astype(str)
-                for i, exp_to_check in enumerate(manifest[col]):
-                    if not bool(module_to_call(reg_expression, exp_to_check)):
-                        logging.error(
-                        f"For the attribute {col}, on row {str(i)}, the string is not properly formatted. "
-                        f"It should follow the following re.{reg_exp_rules[1]} pattern \"{reg_expression}\"."
-                        )
-            # convert manifest values to string
-            # TODO: when validation handles annotation types as validation rules
-            # would have to avoid converting everything to string
-            manifest[col] = manifest[col].astype(str)
-
-            # List Validation
-
-            # if the validation rule is set to list, convert items in the
-            # annotations manifest to a list and strip each value from leading/trailing spaces
-            # Note this is not a real 'rule' and will not throw an error.
-
-            if "list" in col_val_rules:
-                manifest[col] = manifest[col].apply(
-                    lambda x: [s.strip() for s in str(x).split(",")]
-                )
-        breakpoint()
-            '''
+            if bool(validation_rules):
+                # Given a validation rule, run validation.
+                validation_types = {"int": "type_validation",
+                                    "float": "type_validation",
+                                    "num": "type_validation",
+                                    "str": "type_validation",
+                                    "regex": "regex_validation",
+                                    "url" : "url_validation",
+                                    "list": "list_validation"
+                                    }
+                self.validation_type = validation_rules[0].split(' ')[0]
+                self.validation_method = getattr(ValidateRules, validation_types[self.validation_type])
+                if self.validation_type == "list":
+                   vr_errors, manifest_col = self.validation_method(self, validation_rules[0], manifest[col])
+                   manifest[col] = manifest_col
+                else:
+                   vr_errors = self.validation_method(self, validation_rules[0], manifest[col])
+                if vr_errors:
+                    for error in vr_errors:
+                        errors.append(error)
+                
                 
         # TODO: Move this into its own class as well.
         annotations = json.loads(manifest.to_json(orient="records"))
@@ -344,7 +299,6 @@ class MetadataModel(object):
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
                 errors.append([errorRow, errorCol, errorMsg, errorVal])
-                breakpoint()
 
         return errors
 
