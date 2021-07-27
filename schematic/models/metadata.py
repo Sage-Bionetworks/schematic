@@ -252,21 +252,33 @@ class MetadataModel(object):
                     ]
                 )
 
-            #return errors
+            return errors
         '''
         TODO:
-            - Allow for multiple validation rules to be added by a user separated by
-            a delimiter (:::).
+            - Allow for multiple validation rules to be added by a user 
+            separated by a delimiter (:::).
             - Allow an actual validation error to be raised.
-    
+            - move validation that multiple rules are formatted properly,
+            to convert step.
         '''
+        def get_multiple_types_error(validation_rules, attribute, error_type):
+            if error_type == 'too_many_rules':
+                logging.error(
+                f"For attribute {attribute}, the provided validation rules ({validation_rules}) ."
+                f"have too many entries. We currently only specify two rules ('list :: another_rule').")
+            if error_type == 'list_not_first':
+                logging.error(
+                    f"For attribute {attribute}, the provided validation rules ({validation_rules}) are improperly "
+                    f"specified. 'list' must be first.")
+            return
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = self.sg.get_node_validation_rules(col)
-
+            
             if bool(validation_rules):
                 # Given a validation rule, run validation.
+                vr_errors = []
                 validation_types = {"int": "type_validation",
                                     "float": "type_validation",
                                     "num": "type_validation",
@@ -275,13 +287,57 @@ class MetadataModel(object):
                                     "url" : "url_validation",
                                     "list": "list_validation"
                                     }
-                self.validation_type = validation_rules[0].split(' ')[0]
-                self.validation_method = getattr(ValidateRules, validation_types[self.validation_type])
-                if self.validation_type == "list":
-                   vr_errors, manifest_col = self.validation_method(self, validation_rules[0], manifest[col])
-                   manifest[col] = manifest_col
+                # Check for multiple validation types,
+                # If there are multiple types, validate them.
+
+                # TODO: 
+                # -Investigate why a :: delimiter is breaking up the
+                # validation rules without me having to do anything...
+                # - Move to own class.
+                if len(validation_rules) == 2:
+                    # Move this validation (that list is the first rule)
+                    # into the generation of the Jsonld.
+                    if not validation_rules[0] == 'list':
+                        errors.append(get_multiple_types_error(validation_rules, col, 
+                            error_type = 'list_not_first'))
+                    elif (validation_rules[0] == 'list'):
+                        # Convert user input to list.
+                        self.validation_method = getattr(ValidateRules, 
+                            validation_types['list'])
+                        vr_errors, manifest_col = self.validation_method(self,
+                            validation_rules[0], manifest[col])
+                        manifest[col] = manifest_col
+
+
+                        # Continue to second validation rule
+                        second_rule = validation_rules[1].split(' ')
+                        second_type = second_rule[0]
+                        if second_type != 'list':
+                            module_to_call = getattr(re, second_rule[1])
+                            regular_expression = second_rule[2]
+                            self.validation_method = getattr(
+                                ValidateRules, validation_types[second_type]
+                                )
+                            #breakpoint()
+                            vr_errors.append(
+                                self.validation_method(self, validation_rules[1], manifest[col])
+                                )
+                            #breakpoint()
+                        if vr_errors:
+                            for error in vr_errors:
+                                errors.append(error)
+                elif len(validation_rules) > 2:
+                    get_multiple_types_error(validation_rules, col,
+                        error_type = 'too_many_rules')
+                # Validate for a single validation rule.
                 else:
-                   vr_errors = self.validation_method(self, validation_rules[0], manifest[col])
+                    self.validation_type = validation_rules[0].split(' ')[0]
+                    self.validation_method = getattr(ValidateRules, validation_types[self.validation_type])
+                    if self.validation_type == "list":
+                       vr_errors, manifest_col = self.validation_method(self, validation_rules[0], manifest[col])
+                       manifest[col] = manifest_col
+                    else:
+                       vr_errors = self.validation_method(self, validation_rules[0], manifest[col])
                 if vr_errors:
                     for error in vr_errors:
                         errors.append(error)

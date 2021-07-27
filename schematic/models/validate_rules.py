@@ -111,12 +111,23 @@ class ValidateRules(object):
                 f" They should be provided as follows ['regex', 'module name', 'regular expression']")
        
         errors = []
-        manifest_col = manifest_col.astype(str)
-        for i, re_to_check in enumerate(manifest_col):
-            if not bool(module_to_call(reg_expression, re_to_check)):
-                errors.append(generate_regex_error(val_rule, reg_expression, row_num = str(i+2), 
-                        attribute_value = manifest_col[i], attribute_name = manifest_col.name))
-        
+
+        # Handle case where validating re's within a list.
+        if type(manifest_col[0]) == list:
+            for i, row_values in enumerate(manifest_col):
+                for j, re_to_check in enumerate(row_values):
+                    re_to_check = str(re_to_check)
+                    if not bool(module_to_call(reg_expression, re_to_check)) and bool(re_to_check):
+                        errors.append(generate_regex_error(val_rule, reg_expression, row_num = str(i+2), 
+                                attribute_value = manifest_col[i], attribute_name = manifest_col.name))
+        # Validating single re's    
+        else:
+            manifest_col = manifest_col.astype(str)
+            for i, re_to_check in enumerate(manifest_col):
+                if not bool(module_to_call(reg_expression, re_to_check)) and bool(re_to_check):
+                    errors.append(generate_regex_error(val_rule, reg_expression, row_num = str(i+2), 
+                            attribute_value = manifest_col[i], attribute_name = manifest_col.name))
+            
         return errors
 
     def url_validation(self, val_rule, manifest_col):
@@ -244,7 +255,7 @@ class ValidateRules(object):
             - string_as_list: Input values re-formatted to a list and 
             - Error log.
         '''
-        def generate_list_error(list_string, row_num, attribute_name):
+        def generate_list_error(list_string, row_num, attribute_name, list_error):
             '''
             Purpose:
                 If an error is found in the string formatting, detect and record
@@ -256,34 +267,36 @@ class ValidateRules(object):
             Output:
                 Error message and log.
             '''
-            logging.error(
-                f"For attribute {attribute_name} in row {'a'} it does not "
-                f"appear as if you provided a comma delimited string. Please check "
-                f"your entry ('{'a'}'') and try again"
-                )
-            #error_row = row_num # index row of the manifest where the error presented.
-            error_col = attribute_name # Attribute name
-            error_message = (
-                f"For attribute {attribute_name} in row {'a'} it does not "
-                f"appear as if you provided a comma delimited string. Please check "
-                f"your entry ('{'a'}'') and try again"
-                )
-            error_val = f"List Error"
+            if list_error == 'not_comma_delimited':
+                logging.error(
+                    f"For attribute {attribute_name} in row {row_num} it does not "
+                    f"appear as if you provided a comma delimited string. Please check "
+                    f"your entry ('{list_string}'') and try again."
+                    )
+                error_row = row_num # index row of the manifest where the error presented.
+                error_col = attribute_name # Attribute name
+                error_message = (
+                    f"For attribute {attribute_name} in row {row_num} it does not "
+                    f"appear as if you provided a comma delimited string. Please check "
+                    f"your entry ('{list_string}'') and try again."
+                    )
+                error_val = f"List Error"
             return [error_row, error_col, error_message, error_val]
 
         # For each 'list' (input as a string with a , delimiter) entered,
         # convert to a real list of strings, with leading and trailing
         # white spaces removed.
-        # Do not assume the user has entered these values correctly.
         errors = []
         manifest_col = manifest_col.astype(str)
-        try:
-            manifest_col = manifest_col.apply(
-                lambda x: [s.strip() for s in str(x).split(",")])
-        except:
-            # TODO: Return a better error function!
-            errors.append(generate_list_error(attribute_name = manifest_col.name))
-        # return manifest_col?
-       
+        # This will capture any if an entry is not formatted properly.
+        for row_num, list_string in enumerate(manifest_col):
+            if ',' not in list_string and bool(list_string):
+                list_error = 'not_comma_delimited'
+                errors.append(generate_list_error(list_string, row_num = str(row_num+2), 
+                    attribute_name = manifest_col.name, list_error= list_error))
+        # Convert string to list.
+        manifest_col = manifest_col.apply(
+            lambda x: [s.strip() for s in str(x).split(",")])
+
         return errors, manifest_col
 
