@@ -3,7 +3,7 @@
 
 ## Introduction
 
-SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, data ingress ecosystem, that is meant to streamline the process of dataset annotation, metadata validation and submission to an asset store for various data contributors.
+SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, metadata ingress ecosystem, that is meant to streamline the process of biomedical dataset annotation, metadata validation and submission to a data repository for various data contributors.
 
 ## Installation Requirements and Pre-requisites
 
@@ -61,4 +61,5 @@ Active contributors and maintainers:
 - [Milen Nikolov](https://github.com/milen-sage)
 - [Sujay Patil](https://github.com/sujaypatil96)
 - [Bruno Grande](https://github.com/BrunoGrandePhD)
+- [Robert Allaway](https://github.com/allaway)
 - [Xengie Doan](https://github.com/xdoan)

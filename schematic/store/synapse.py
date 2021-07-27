@@ -64,25 +64,7 @@ class SynapseStorage(BaseStorage):
             syn_store = SynapseStorage()
         """
 
-        # If no token is provided, try retrieving access token from environment
-        if not token and not access_token:
-            access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-
-        # login using a token
-        if token:
-            self.syn = synapseclient.Synapse()
-
-            try:
-                self.syn.login(sessionToken=token, silent=True)
-            except synapseclient.core.exceptions.SynapseHTTPError:
-                raise ValueError("Please make sure you are logged into synapse.org.")
-        elif access_token:
-            self.syn = synapseclient.Synapse()
-            self.syn.default_headers["Authorization"] = f"Bearer {access_token}"
-        else:
-            # login using synapse credentials provided by user in .synapseConfig (default) file
-            self.syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
-            self.syn.login(silent=True)
+        self.syn = self.login(token, access_token)
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
@@ -101,6 +83,30 @@ class SynapseStorage(BaseStorage):
             raise AccessCredentialsError(self.storageFileview)
         except ValueError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
+
+    @staticmethod
+    def login(token=None, access_token=None):
+        # If no token is provided, try retrieving access token from environment
+        if not token and not access_token:
+            access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+
+        # login using a token
+        if token:
+            syn = synapseclient.Synapse()
+
+            try:
+                syn.login(sessionToken=token, silent=True)
+            except synapseclient.core.exceptions.SynapseHTTPError:
+                raise ValueError("Please make sure you are logged into synapse.org.")
+        elif access_token:
+            syn = synapseclient.Synapse()
+            syn.default_headers["Authorization"] = f"Bearer {access_token}"
+        else:
+            # login using synapse credentials provided by user in .synapseConfig (default) file
+            syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+            syn.login(silent=True)
+
+        return syn
 
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
@@ -363,46 +369,66 @@ class SynapseStorage(BaseStorage):
 
         return manifest_id
 
-    def getAllManifests(self) -> List[str]:
-        """Gets all metadata manifest files across all datasets in projects a user has access to.
 
-        Returns: A list of projects, datasets per project and metadata manifest Synapse ID for each dataset
+    def getProjectManifests(self, projectId: str) -> List[str]:
+        """Gets all metadata manifest files across all datasets in a specified project.
+
+        Returns: A list of datasets per project; metadata manifest Synapse ID for each dataset; and the corresponding schema component of the manifest
                  as a list of tuples, one for each manifest:
                     [
                         (
-                            (projectId, projectName),
                             (datasetId, dataName),
-                            (manifestId, manifestName)
+                            (manifestId, manifestName),
+                            (componentSchemaLabel, componentSchemaLabel) TODO: # get component name from schema
                         ),
                         ...
                     ]
 
         TODO: Return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
-        TODO: Use fileview instead of iterating through projects and datasets
-        TODO: GetDatasetManifest() return type has changed to return only manifest synapse ID. Fetch
-              manifestName from config.yml and create tuple
         """
 
-        projects = self.getStorageProjects()
 
         manifests = []
-        for projectId, projectName in projects:
 
-            datasets = self.getStorageDatasetsInProject(projectId)
+        datasets = self.getStorageDatasetsInProject(projectId)
 
-            for (datasetId, datasetName) in datasets:
+        for (datasetId, datasetName) in datasets:
+            # encode information about the manifest in a simple list (so that R clients can unpack it)
+            # eventually can serialize differently
 
-                # encode information about the manifest in a simple list (so that R clients can unpack it)
-                # eventually can serialize differently
-                manifest = (
-                    (projectId, projectName),
+            manifest = (
                     (datasetId, datasetName),
-                    self.getDatasetManifest(datasetId),
-                )
-
-                manifests.append(manifest)
+                    ("", ""),
+                    ("", "")
+            )
+            
+            manifest_info = self.getDatasetManifest(datasetId, downloadFile = True)
+            if manifest_info:
+                manifest_id = manifest_info["properties"]["id"]
+                manifest_name = manifest_info["properties"]["name"]
+                manifest_path = manifest_info["path"]
+                
+                manifest_df = pd.read_csv(manifest_path)
+            
+                if "Component" in manifest_df and  not manifest_df["Component"].empty:
+                    manifest_component = manifest_df["Component"][0]         
+        
+                    manifest = (
+                        (datasetId, datasetName),
+                        (manifest_id, manifest_name),
+                        (manifest_component, manifest_component)
+                    )
+                else:
+                    manifest = (
+                        (datasetId, datasetName),
+                        (manifest_id, manifest_name),
+                        ("", "")
+                    )
+            
+            manifests.append(manifest)
 
         return manifests
+
 
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
