@@ -35,14 +35,12 @@ class ValidateRules(object):
             does not match schema specifications.
         '''
         def generate_type_error(val_rule, row_num, attribute_value, attribute_name):
-            logging.error(
-                f"On row {row_num} the attribute {attribute_name} does not contain "
-                f"the proper value type {val_rule}."
-                )
+            type_error_str = (f"On row {row_num} the attribute {attribute_name} "
+                f"does not contain the proper value type {val_rule}.")
+            logging.error(type_error_str)
             error_row = row_num # index row of the manifest where the error presented.
             error_col = attribute_name # Attribute name
-            error_message = (f"On row {row_num}, type provided was "
-                f"{type(attribute_value)} and was supposed to be {val_rule}".format())
+            error_message = type_error_str
             error_val = f"Type Error"
             return [error_row, error_col, error_message, error_val]
 
@@ -89,14 +87,12 @@ class ValidateRules(object):
             Log and generate an error if a users input values do not match those as specified by the 
             Schema's indicated regular expression.
             '''
-
-            logging.error(
-                f"For the attribute {attribute_name}, on row {row_num}, the string is not properly formatted. "
-                f"It should follow the following re.{module_to_call} pattern \"{reg_expression}\"."
-                )
+            regex_error_string = (f"For the attribute {attribute_name}, on row {row_num}, the string is not properly formatted. "
+                f"It should follow the following re.{module_to_call} pattern \"{reg_expression}\".")
+            logging.error(regex_error_string)
             error_row = row_num # index row of the manifest where the error presented.
             error_col = attribute_name # Attribute name
-            error_message = f"On row {row_num}, the string is not properly formatted. It should follow the following re.{module_to_call} pattern \"{reg_expression}\"."
+            error_message = regex_error_string
             error_val = f"Type Error"
             return [error_row, error_col, error_message, error_val]
         
@@ -173,32 +169,23 @@ class ValidateRules(object):
             error_row = row_num # index row of the manifest where the error presented.
             error_col = attribute_name # Attribute name
             if url_error == 'invalid_url':
-                logging.error(
-                    f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
+                invalid_url_error_string = (f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
                     f"conform to the standards of a URL. Please make sure you are entering a real, working URL "
-                    f"as required by the Schema."
-                    )
-                error_message = (f"For the attribute '{attribute_name}', on row {row_num}, "
-                    f"the URL provided ({url})does not conform to the standards of a URL. "
-                    f"Please make sure you are entering a real, working URL as required by the Schema.")
+                    f"as required by the Schema.")
+                logging.error(invalid_url_error_string)
+                error_message = invalid_url_error_string
                 error_val = f"URL Error: Invalid URL"
             elif url_error == 'arg_error':
-                logging.error(
-                    f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
-                    f"conform to the schema specifications and does not contain the required element: {argument}."
-                    )
-                error_message = (
-                    f"For the attribute {attribute_name}, on row {row_num}, the URL provided ({url}) "
-                    f"does not conform to the schema specifications and does not contain the required element: {argument}.")
+                arg_error_string = (f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
+                    f"conform to the schema specifications and does not contain the required element: {argument}.")
+                logging.error(arg_error_string )
+                error_message = arg_error_string
                 error_val = f"URL Error: Argument Error"
             elif url_error == 'random_entry':
-                logging.error(
-                    f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
-                    f"look like a URL, please check input and try again."
-                    )
-                error_message = (
-                    f"For the attribute '{attribute_name}', on row {row_num}, "
-                    f"the input provided ('{url}'') does not look like a URL, please check input and try again.")
+                random_entry_error_str = (f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
+                    f"look like a URL, please check input and try again.")
+                logging.error(random_entry_error_str)
+                error_message = random_entry_error_str
                 error_val = f"URL Error: Random Entry"
             return [error_row, error_col, error_message, error_val]
 
@@ -268,18 +255,13 @@ class ValidateRules(object):
                 Error message and log.
             '''
             if list_error == 'not_comma_delimited':
-                logging.error(
-                    f"For attribute {attribute_name} in row {row_num} it does not "
+                error_str = (f"For attribute {attribute_name} in row {row_num} it does not "
                     f"appear as if you provided a comma delimited string. Please check "
-                    f"your entry ('{list_string}'') and try again."
-                    )
+                    f"your entry ('{list_string}'') and try again.")
+                logging.error(error_str)
                 error_row = row_num # index row of the manifest where the error presented.
                 error_col = attribute_name # Attribute name
-                error_message = (
-                    f"For attribute {attribute_name} in row {row_num} it does not "
-                    f"appear as if you provided a comma delimited string. Please check "
-                    f"your entry ('{list_string}'') and try again."
-                    )
+                error_message = error_str
                 error_val = f"List Error"
             return [error_row, error_col, error_message, error_val]
 
