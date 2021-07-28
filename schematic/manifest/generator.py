@@ -808,10 +808,11 @@ class ManifestGenerator(object):
         # update spreadsheet with given manifest starting at top-left cell
         wb.set_dataframe(manifest_df, (1, 1))
 
-        # update validation rules (i.e. no validation rules) for out of schema columns
-        start_col = self._column_to_letter(len(wb_header)) # find start of out of schema columns
-        end_col = self._column_to_letter(len(manifest_df.columns) - 1) # find end of out of schema columns
-        wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
+        # update validation rules (i.e. no validation rules) for out of schema columns, if any
+        if len(out_of_schema_columns) > 0: 
+            start_col = self._column_to_letter(len(wb_header)) # find start of out of schema columns
+            end_col = self._column_to_letter(len(manifest_df.columns) - 1) # find end of out of schema columns
+            wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -931,7 +932,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
-        
+       
         # Populate empty template with existing manifest
         if syn_id_and_path:
 
