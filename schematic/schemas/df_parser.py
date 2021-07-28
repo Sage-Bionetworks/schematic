@@ -297,7 +297,7 @@ def create_schema_classes(
     # clean properties strings
     all_properties = []
     for prop in props:
-        all_properties += [p.strip() for p in prop.split(",")]
+        all_properties += [p.strip() for p in prop.strip(",").split(",")]
 
     # get both attributes and their properties (if any)
     properties = schema_extension[["Attribute", "Properties"]].to_dict("records")
@@ -306,7 +306,7 @@ def create_schema_classes(
     prop_2_class = {}
     for record in properties:
         if not pd.isnull(record["Properties"]):
-            props = record["Properties"].strip().split(",")
+            props = record["Properties"].strip().strip(",").split(",")
             for p in props:
                 prop_2_class[p.strip()] = record["Attribute"]
 
@@ -323,7 +323,7 @@ def create_schema_classes(
             subclass_of = None
             if not pd.isnull(attribute["Parent"]):
                 subclass_of = [
-                    parent for parent in attribute["Parent"].strip().split(",")
+                    parent for parent in attribute["Parent"].strip().strip(",").split(",")
                 ]
 
             new_class = get_class(
@@ -369,7 +369,7 @@ def create_schema_classes(
     for prop in properties:
         if not pd.isnull(prop["Properties"]):  # a class may have or not have properties
             for p in (
-                prop["Properties"].strip().split(",")
+                prop["Properties"].strip().strip(",").split(",")
             ):  # a class may have multiple properties
                 attribute = prop["Attribute"]
 
@@ -437,7 +437,7 @@ def create_schema_classes(
             if range_values[0] == '"':
                 range_values_list = re.findall(r'"([^"]*)"', range_values)
             else:
-                range_values_list = range_values.strip().split(",")
+                range_values_list = range_values.strip().strip(",").split(",")
 
             for val in range_values_list:
                 # check if value is in attributes column; add it as a class if not
@@ -560,7 +560,7 @@ def create_schema_classes(
         if not pd.isnull(requires_dependencies):
             logger.debug(">>> Adding dependencies for " + attribute["Attribute"])
 
-            for dep in requires_dependencies.strip().split(","):
+            for dep in requires_dependencies.strip().strip(",").split(","):
                 # check if dependency is a property or not
                 dep = dep.strip()
                 dep_is_property = dep in all_properties
@@ -668,7 +668,7 @@ def create_schema_classes(
         logger.debug(">>> Adding component dependencies for " + attribute["Attribute"])
 
         # iterate over potentially multiple dependency components
-        for comp_dep in component_dependencies.strip().split(","):
+        for comp_dep in component_dependencies.strip().strip(",").split(","):
 
             # check if a component is already defined as an attribute; if not define it in the schema
             if not comp_dep.strip() in list(schema_extension["Attribute"]):
@@ -749,7 +749,7 @@ def create_nx_schema_objects(
     # clean properties strings
     all_properties = []
     for prop in props:
-        all_properties += [p.strip() for p in prop.split(",")]
+        all_properties += [p.strip() for p in prop.strip(",").split(",")]
 
     # get both attributes and their properties (if any)
     properties = schema_extension[["Attribute", "Properties"]].to_dict("records")
@@ -758,7 +758,7 @@ def create_nx_schema_objects(
     prop_2_class = {}
     for record in properties:
         if not pd.isnull(record["Properties"]):
-            props = record["Properties"].strip().split(",")
+            props = record["Properties"].strip().strip(",").split(",")
             for p in props:
                 prop_2_class[p.strip()] = record["Attribute"]
 
@@ -775,7 +775,7 @@ def create_nx_schema_objects(
             subclass_of = None
             if not pd.isnull(attribute["Parent"]):
                 subclass_of = [
-                    parent for parent in attribute["Parent"].strip().split(",")
+                    parent for parent in attribute["Parent"].strip().strip(",").split(",")
                 ]
 
             new_class = get_class(
@@ -821,7 +821,7 @@ def create_nx_schema_objects(
     for prop in properties:
         if not pd.isnull(prop["Properties"]):  # a class may have or not have properties
             for p in (
-                prop["Properties"].strip().split(",")
+                prop["Properties"].strip().strip(",").split(",")
             ):  # a class may have multiple properties
                 attribute = prop["Attribute"]
 
@@ -886,7 +886,7 @@ def create_nx_schema_objects(
             if range_values[0] == '"':
                 range_values_list = re.findall(r'"([^"]*)"', range_values)
             else:
-                range_values_list = range_values.strip().split(",")
+                range_values_list = range_values.strip().strip(",").split(",")
 
             for val in range_values_list:
                 # check if value is in attributes column; add it as a class if not
@@ -1006,7 +1006,7 @@ def create_nx_schema_objects(
         requires_dependencies = attribute["DependsOn"]
         if not pd.isnull(requires_dependencies):
 
-            for dep in requires_dependencies.strip().split(","):
+            for dep in requires_dependencies.strip().strip(",").split(","):
                 # check if dependency is a property or not
                 dep = dep.strip()
                 dep_is_property = dep in all_properties
@@ -1110,7 +1110,7 @@ def create_nx_schema_objects(
             continue
 
         # iterate over potentially multiple dependency components
-        for comp_dep in component_dependencies.strip().split(","):
+        for comp_dep in component_dependencies.strip().strip(",").split(","):
 
             # check if a component is already defined as an attribute; if not define it in the schema
             if not comp_dep.strip() in list(schema_extension["Attribute"]):
