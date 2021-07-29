@@ -1,0 +1,48 @@
+{
+    "@context": {
+        "bts": "http://schema.biothings.io/",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "schema": "http://schema.org/",
+        "xsd": "http://www.w3.org/2001/XMLSchema#"
+    },
+    "@id": "https://sagebionetworks.org/data_models/minimal.model.jsonld#0.1",
+    "@graph": [
+        {
+          "@id": "schema:Text",
+          "@type": [
+            "schema:DataType",
+            "rdfs:Class"
+          ],
+          "rdfs:comment": "Data type: Text.",
+          "rdfs:label": "Text"
+        },
+        {
+          "@id": "schema:Number",
+          "@type": [
+            "schema:DataType",
+            "rdfs:Class"
+          ],
+          "rdfs:comment": "Data type: Number.",
+          "rdfs:label": "Number"
+        },
+        {
+          "@id": "schema:Integer",
+          "@type": "rdfs:Class",
+          "rdfs:comment": "Data type: Integer.",
+          "rdfs:label": "Integer",
+          "rdfs:subClassOf": {
+            "@id": "schema:Number"
+          }
+        },
+        {
+            "@id": "schema:Thing",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "Thing",
+            "rdfs:label": "Thing",
+            "schema:isPartOf": {
+                "@id": "http://schema.org"
+            }
+        }
+    ]
+}
