@@ -809,9 +809,10 @@ class ManifestGenerator(object):
         wb.set_dataframe(manifest_df, (1, 1))
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
+        # TODO: similarly clear formatting for out of schema columns, if any
         if len(out_of_schema_columns) > 0: 
             start_col = self._column_to_letter(len(wb_header)) # find start of out of schema columns
-            end_col = self._column_to_letter(len(manifest_df.columns) - 1) # find end of out of schema columns
+            end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
 
         # set permissions so that anyone with the link can edit
