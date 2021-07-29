@@ -5,6 +5,7 @@ from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
 import pandas as pd
+import networkx as nx
 import pygsheets as ps
 import json
 
@@ -1037,7 +1038,7 @@ class ManifestGenerator(object):
 
         return manifest_sh.url
 
-    def sort_manifest_fields(self, manifest_fields, order="schema"):
+    def sort_manifest_fields(self, manifest_fields, order="schema_plus"):
         # order manifest fields alphabetically (base order)
         manifest_fields = sorted(manifest_fields)
 
@@ -1048,20 +1049,57 @@ class ManifestGenerator(object):
                 manifest_fields.insert(0, "Filename")
 
         # order manifest fields based on data-model schema
-        if order == "schema":
+        if order == "schema" or order == "schema_plus":
             if self.sg and self.root:
                 # get display names of dependencies
-                dependencies_display_names = self.sg.get_node_dependencies(self.root)
+                component_deps = self.sg.get_node_dependencies(self.root)
 
                 # Define function to determine order
                 def get_node_order_key(x):
                     key = len(manifest_fields) - 1
-                    if x in dependencies_display_names:
-                        key = dependencies_display_names.index(x)
-                    # Ensure that all of the required columns come first
-                    if x in dependencies_display_names and self.sg.is_node_required(x):
-                        key = key / 10
+                    if x in component_deps:
+                        key = component_deps.index(x)
+                    else:
+                        key = float("inf")
                     return key
+
+                # If using 'schema_plus', update 'get_node_order_key()' to
+                # better position the conditionally required columns
+                if order == "schema_plus":
+
+                    # Get display names of conditional dependencies
+                    req_rship = self.sg.requires_dependency_relationship
+                    nx_schema = self.sg.se.get_nx_schema()
+                    component_edges = nx.edge_bfs(nx_schema, [self.root])
+                    conditional_deps = list()
+                    for source, target, rship in component_edges:
+                        if rship == req_rship and source != self.root:
+                            target_name = nx_schema.nodes[target]["displayName"]
+                            conditional_deps.append((target, target_name))
+                    conditional_dep_roots = dict()
+                    for dep, dep_name in conditional_deps:
+                        rev_graph = nx.edge_bfs(nx_schema, [dep], orientation="reverse")
+                        for source, target, rship, _ in rev_graph:
+                            if source == self.root and rship == req_rship:
+                                target_name = nx_schema.nodes[target]["displayName"]
+                                conditional_dep_roots[dep_name] = target_name
+
+                    # Define function to determine order
+                    def get_node_order_key(x):
+                        key = len(manifest_fields) - 1
+                        if x in component_deps:
+                            key = component_deps.index(x)
+                        # Ensure that all of the required columns come first
+                        elif x in component_deps and self.sg.is_node_required(x):
+                            key = key * -1
+                        # Move up conditionally required columns
+                        elif x in conditional_dep_roots:
+                            root = conditional_dep_roots[x]
+                            key = get_node_order_key(root)
+                            key = component_deps.index(root) + 0.5
+                        else:
+                            key = float("inf")
+                        return key
 
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(manifest_fields, key=get_node_order_key)
