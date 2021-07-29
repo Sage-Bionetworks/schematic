@@ -306,7 +306,7 @@ class MetadataModel(object):
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
 
     def submit_metadata_manifest(
-        self, manifest_path: str, dataset_id: str, validate_component: str = None
+        self, manifest_path: str, dataset_id: str, validate_component: str = None, use_schema_label: bool = True
     ) -> bool:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -360,7 +360,7 @@ class MetadataModel(object):
 
         # no need to perform validation, just submit/associate the metadata manifest file
         syn_store.associateMetadataWithFiles(
-            metadataManifestPath=manifest_path, datasetId=dataset_id
+            metadataManifestPath=manifest_path, datasetId=dataset_id, useSchemaLabel=use_schema_label
         )
 
         logger.debug(
