@@ -820,13 +820,13 @@ class ManifestGenerator(object):
         # the sheet column header reflect the latest schema
         # the existing manifest column-set may be outdated
         # ensure that, if missing, attributes from the latest schema are added to the
-        # column-set of the existing manifest so that the user can modify their data if needed 
+        # column-set of the existing manifest so that the user can modify their data if needed
         # to comply with the latest schema
 
         # get headers from existing manifest and sheet
         wb_header = wb.get_row(1)
         manifest_df_header = manifest_df.columns
-        
+
         # find missing columns in existing manifest
         new_columns = set(wb_header) - set(manifest_df_header)
 
@@ -842,7 +842,7 @@ class ManifestGenerator(object):
         # move obsolete columns at the end
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
         manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
-        
+
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
@@ -965,7 +965,7 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
-        
+
         # Handle case when no dataset ID is provided
         if not dataset_id:
             return self.get_empty_manifest(json_schema_filepath=json_schema)
@@ -975,7 +975,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
-        
+
         # Populate empty template with existing manifest
         if syn_id_and_path:
 
@@ -998,7 +998,7 @@ class ManifestGenerator(object):
             pop_manifest_url = self.populate_manifest_spreadsheet(
                 manifest_data.path, empty_manifest_url
             )
-        
+
             return pop_manifest_url
 
         # Generate empty template and optionally fill in with annotations
@@ -1032,7 +1032,7 @@ class ManifestGenerator(object):
 
         # read existing manifest
         manifest = pd.read_csv(existing_manifest_path).fillna("")
- 
+
         manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
 
         return manifest_sh.url
@@ -1069,7 +1069,7 @@ class ManifestGenerator(object):
                 raise ValueError(
                     f"Provide valid data model path and valid component from data model."
                 )
- 
+
         # always have entityId as last columnn, if present
         if "entityId" in manifest_fields:
             manifest_fields.remove("entityId")
