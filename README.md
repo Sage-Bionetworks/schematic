@@ -62,4 +62,3 @@ Active contributors and maintainers:
 - [Sujay Patil](https://github.com/sujaypatil96)
 - [Bruno Grande](https://github.com/BrunoGrandePhD)
 - [Robert Allaway](https://github.com/allaway)
-- [Xengie Doan](https://github.com/xdoan)
