@@ -15,52 +15,69 @@ from urllib import error
 logger = logging.getLogger(__name__)
 
 
-class ValidateRules(object):
+class ValidateAttribute(object):
     '''
-    Add additional class documentation.
+    A collection of functions to validate manifest attributes.
+        list_validation
+        regex_validation
+        type_validation
+        url_validation
+    See functions for more details.
     '''
-
-    def type_validation(self, val_rule, manifest_col):
+    def list_validation(self, val_rule:str, manifest_col:pd.core.series.Series) -> (List[List[str]], pd.core.frame.DataFrame):
         '''
         Purpose:
-            Check if values for a given manifest attribue are the same type
-            specified in val_rule.
+            Determine if values for a particular attribute are comma separated.
         Input:
-            - val_rule: str, Validation rule, specifying input type, either
-                'float', 'int', 'num', 'str'
-            - manifest_col: pd.core.series.Series, column for a given
-                attribute in the manifest
+            - val_rule: str, Validation rule
+            - manifest_col: pd.core.series.Series, column for a given attribute
         Returns:
-            This function will return errors when the user input value
-            does not match schema specifications.
+            - manifest_col: Input values in manifest arere-formatted to a list
+            - Error log, error list
         '''
-        def generate_type_error(val_rule, row_num, attribute_value, attribute_name):
-            type_error_str = (f"On row {row_num} the attribute {attribute_name} "
-                f"does not contain the proper value type {val_rule}.")
-            logging.error(type_error_str)
-            error_row = row_num # index row of the manifest where the error presented.
-            error_col = attribute_name # Attribute name
-            error_message = type_error_str
-            error_val = f"Type Error"
+        def generate_list_error(list_string: str, row_num: str,
+                attribute_name: str, list_error: str) -> List[str]:
+            '''
+            Purpose:
+                If an error is found in the string formatting, detect and record
+                an error message.
+            Input:
+                - list_string: the user input list, that is represented as a string.
+                - row_num: the row the error occurred on.
+                - attribute_name: the attribute the error occurred on.
+            Returns:
+                Logging.error.
+                Errors: List[str] Error details for further storage.
+            '''
+            if list_error == 'not_comma_delimited':
+                error_str = (f"For attribute {attribute_name} in row {row_num} it does not "
+                    f"appear as if you provided a comma delimited string. Please check "
+                    f"your entry ('{list_string}'') and try again.")
+                logging.error(error_str)
+                error_row = row_num # index row of the manifest where the error presented.
+                error_col = attribute_name # Attribute name
+                error_message = error_str
+                error_val = f"List Error"
             return [error_row, error_col, error_message, error_val]
 
+        # For each 'list' (input as a string with a , delimiter) entered,
+        # convert to a real list of strings, with leading and trailing
+        # white spaces removed.
         errors = []
-        # num indicates either a float or int.
-        if val_rule == 'num':
-            for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, (int, float)):
-                    errors.append(generate_type_error(val_rule, row_num = str(i+2), 
-                        attribute_value = manifest_col[i], attribute_name = manifest_col.name))
-                    breakpoint()
-        elif val_rule in ['int', 'float', 'str']:            
-            for i, value in enumerate(manifest_col):
-                if bool(value) and type(value) != getattr(builtins, val_rule):
-                    errors.append(generate_type_error(val_rule, row_num = str(i+2), 
-                        attribute_value = manifest_col[i], attribute_name = manifest_col.name))
-                    breakpoint()
-        return errors
+        manifest_col = manifest_col.astype(str)
+        # This will capture any if an entry is not formatted properly.
+        for row_num, list_string in enumerate(manifest_col):
+            if ',' not in list_string and bool(list_string):
+                list_error = 'not_comma_delimited'
+                errors.append(generate_list_error(list_string, row_num = str(row_num+2), 
+                    attribute_name = manifest_col.name, list_error= list_error))
+        # Convert string to list.
+        manifest_col = manifest_col.apply(
+            lambda x: [s.strip() for s in str(x).split(",")])
 
-    def regex_validation(self, val_rule, manifest_col):
+        return errors, manifest_col
+
+    def regex_validation(self, val_rule: str, manifest_col: pd.core.series.Series) -> List[List[str]]:
         '''
         Purpose:
             Check if values for a given manifest attribue conform to the reguar expression,
@@ -77,15 +94,28 @@ class ValidateRules(object):
                 - regular_expression: is the regular expression with which to validate
                 the user input.
         Returns:
-            This function will return errors when the user input value
+            - This function will return errors when the user input value
             does not match schema specifications.
+            Logging.error.
+            Errors: List[str] Error details for further storage.
         TODO: 
             move validation to convert step.
         '''
-        def generate_regex_error(val_rule, reg_expression, row_num, attribute_value, attribute_name):
+        def generate_regex_error(val_rule: str, reg_expression: str,
+                row_num: str, module_to_call: str, attribute_name: str) -> List[str]:
             '''
-            Log and generate an error if a users input values do not match those as specified by the 
-            Schema's indicated regular expression.
+            Purpose:
+                Generate an logging error as well as a stored error message, when
+                a regex error is encountered.
+            Input:
+                val_rule: str, defined in the schema.
+                reg_expression: str, defined in the schema
+                row_num: str, row where the error was detected
+                module_to_call: re module specified in the schema
+                attribute_name: str, attribute being validated
+            Returns:
+                Logging.error.
+                Errors: List[str] Error details for further storage.
             '''
             regex_error_string = (f"For the attribute {attribute_name}, on row {row_num}, the string is not properly formatted. "
                 f"It should follow the following re.{module_to_call} pattern \"{reg_expression}\".")
@@ -115,18 +145,72 @@ class ValidateRules(object):
                     re_to_check = str(re_to_check)
                     if not bool(module_to_call(reg_expression, re_to_check)) and bool(re_to_check):
                         errors.append(generate_regex_error(val_rule, reg_expression, row_num = str(i+2), 
-                                attribute_value = manifest_col[i], attribute_name = manifest_col.name))
+                                module_to_call = reg_exp_rules[1], attribute_name = manifest_col.name))
         # Validating single re's    
         else:
             manifest_col = manifest_col.astype(str)
             for i, re_to_check in enumerate(manifest_col):
                 if not bool(module_to_call(reg_expression, re_to_check)) and bool(re_to_check):
                     errors.append(generate_regex_error(val_rule, reg_expression, row_num = str(i+2), 
-                            attribute_value = manifest_col[i], attribute_name = manifest_col.name))
+                            module_to_call = reg_exp_rules[1], attribute_name = manifest_col.name))
             
         return errors
 
-    def url_validation(self, val_rule, manifest_col):
+    def type_validation(self, val_rule: str, 
+            manifest_col: pd.core.series.Series) -> List[List[str]]:
+        '''
+        Purpose:
+            Check if values for a given manifest attribue are the same type
+            specified in val_rule.
+        Input:
+            - val_rule: str, Validation rule, specifying input type, either
+                'float', 'int', 'num', 'str'
+            - manifest_col: pd.core.series.Series, column for a given
+                attribute in the manifest
+        Returns:
+            -This function will return errors when the user input value
+            does not match schema specifications.
+            Logging.error.
+            Errors: List[str] Error details for further storage.
+        '''
+        def generate_type_error(val_rule:str, row_num:str, 
+            attribute_name:str) -> List[str]:
+            '''
+            Purpose:
+                Generate an logging error as well as a stored error message, when
+                a type error is encountered.
+            Input:
+                val_rule: str, defined in the schema.
+                row_num: str, row where the error was detected
+                attribute_name: str, attribute being validated
+            Returns:
+                Logging.error.
+                Errors: List[str] Error details for further storage.
+            '''
+            type_error_str = (f"On row {row_num} the attribute {attribute_name} "
+                f"does not contain the proper value type {val_rule}.")
+            logging.error(type_error_str)
+            error_row = row_num # index row of the manifest where the error presented.
+            error_col = attribute_name # Attribute name
+            error_message = type_error_str
+            error_val = f"Type Error"
+            return [error_row, error_col, error_message, error_val]
+
+        errors = []
+        # num indicates either a float or int.
+        if val_rule == 'num':
+            for i, value in enumerate(manifest_col):
+                if bool(value) and not isinstance(value, (int, float)):
+                    errors.append(generate_type_error(val_rule, row_num = str(i+2), 
+                        attribute_name = manifest_col.name))
+        elif val_rule in ['int', 'float', 'str']:            
+            for i, value in enumerate(manifest_col):
+                if bool(value) and type(value) != getattr(builtins, val_rule):
+                    errors.append(generate_type_error(val_rule, row_num = str(i+2), 
+                        attribute_name = manifest_col.name))
+        return errors
+
+    def url_validation(self, val_rule: str, manifest_col: str) -> List[List[str]]:
         '''
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
@@ -141,8 +225,8 @@ class ValidateRules(object):
             does not match schema specifications.
         '''
 
-        def generate_url_error(url, url_error, row_num, 
-                        attribute_name, argument):
+        def generate_url_error(url: str, url_error: str, row_num: str, 
+                attribute_name: str, argument: str) -> List[str]:
             '''
             Purpose:
                 Generate an logging error as well as a stored error message, when
@@ -164,7 +248,7 @@ class ValidateRules(object):
                 argument: str, argument being validated.
             Returns:
                 Logging.error.
-                Error details for further storage.
+                Errors: List[str] Error details for further storage.
             '''
             error_row = row_num # index row of the manifest where the error presented.
             error_col = attribute_name # Attribute name
@@ -201,7 +285,7 @@ class ValidateRules(object):
                 url_error = 'random_entry'
                 valid_url = False
                 errors.append(generate_url_error(url, url_error = url_error,
-                    row_num = str(+2), attribute_name = manifest_col.name,
+                    row_num = str(i+2), attribute_name = manifest_col.name,
                     argument = url_args))
             else:
                 # add scheme to the URL if not currently added.
@@ -231,54 +315,5 @@ class ValidateRules(object):
                                 row_num = str(i+2), attribute_name = manifest_col.name, 
                                 argument = arg))
         return errors
-    def list_validation(self, val_rule, manifest_col):
-        '''
-        Purpose:
-            Determine if values for a particular attribute are comma separated.
-        Input:
-            - val_rule: str, Validation rule
-            - manifest_col: pd.core.series.Series, column for a given attribute
-        Returns:
-            - string_as_list: Input values re-formatted to a list and 
-            - Error log.
-        '''
-        def generate_list_error(list_string, row_num, attribute_name, list_error):
-            '''
-            Purpose:
-                If an error is found in the string formatting, detect and record
-                an error message.
-            Input:
-                - list_string: the user input list, that is represented as a string.
-                - row_num: the row the error occurred on.
-                - attribute_name: the attribute the error occurred on.
-            Output:
-                Error message and log.
-            '''
-            if list_error == 'not_comma_delimited':
-                error_str = (f"For attribute {attribute_name} in row {row_num} it does not "
-                    f"appear as if you provided a comma delimited string. Please check "
-                    f"your entry ('{list_string}'') and try again.")
-                logging.error(error_str)
-                error_row = row_num # index row of the manifest where the error presented.
-                error_col = attribute_name # Attribute name
-                error_message = error_str
-                error_val = f"List Error"
-            return [error_row, error_col, error_message, error_val]
-
-        # For each 'list' (input as a string with a , delimiter) entered,
-        # convert to a real list of strings, with leading and trailing
-        # white spaces removed.
-        errors = []
-        manifest_col = manifest_col.astype(str)
-        # This will capture any if an entry is not formatted properly.
-        for row_num, list_string in enumerate(manifest_col):
-            if ',' not in list_string and bool(list_string):
-                list_error = 'not_comma_delimited'
-                errors.append(generate_list_error(list_string, row_num = str(row_num+2), 
-                    attribute_name = manifest_col.name, list_error= list_error))
-        # Convert string to list.
-        manifest_col = manifest_col.apply(
-            lambda x: [s.strip() for s in str(x).split(",")])
-
-        return errors, manifest_col
+    
 
