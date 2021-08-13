@@ -23,6 +23,9 @@ class ValidateAttribute(object):
         type_validation
         url_validation
     See functions for more details.
+    TODO:
+        - Add year validator
+        - Add string length validator
     '''
     def list_validation(self, val_rule:str, manifest_col:pd.core.series.Series) -> (List[List[str]], pd.core.frame.DataFrame):
         '''
@@ -172,6 +175,8 @@ class ValidateAttribute(object):
             does not match schema specifications.
             Logging.error.
             Errors: List[str] Error details for further storage.
+        TODO:
+            Convert all inputs to .lower() just to prevent any entry errors.
         '''
         def generate_type_error(val_rule:str, row_num:str, 
             attribute_name:str) -> List[str]:
