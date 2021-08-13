@@ -28,6 +28,11 @@ CONFIG_PATH = os.path.join(DATA_DIR, "test_config.yml")
 CONFIG.load_config(CONFIG_PATH)
 
 
+@pytest.fixture
+def dataset_id():
+    yield "syn25614635"
+
+
 # This class serves as a container for helper functions that can be
 # passed to individual tests using the `helpers` fixture. This approach
 # was required because fixture functions cannot take arguments.
