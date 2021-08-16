@@ -284,6 +284,8 @@ class ManifestGenerator(object):
                 .execute()
             )
 
+        #if validation_type == "CUSTOM_FORMULA":
+            
         # setup validation data request body
         validation_body = {
             "requests": [
@@ -593,9 +595,23 @@ class ManifestGenerator(object):
             # and matches a python regex, only allow that to be an option.
             # Pull rules from normal validation rules.
 
+            '''
+            Purpose:
+
+            Input:
+
+            Returns:
+
+            Notes:
+
+            '''
+
             if validation_rules:
+                # TODO: Pull into its own function. 
                 split_rules = validation_rules[0].split(' ')
                 if split_rules[0] == "regex" and split_rules[1] == "match":
+                    # Add conditional formatting for regular expressions.
+                    # Color the cell green if the user inputs the correct value.
                     regular_expression = split_rules[2]
                     vr_bg_color = CONFIG["style"]["google_manifest"].get(
                         "vr_bg_color",
@@ -631,6 +647,27 @@ class ManifestGenerator(object):
                     }
                     requests_body["requests"].append(requests_vr["requests"])
 
+                    # Add validation rules for regular expressions.
+                    valid_values = [{
+                            'userEnteredValue':
+                            '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(regular_expression)
+                            }]
+                    input_message = (f"Values in this column are being validated "
+                                    f"against the following regular expression ({regular_expression}) "
+                                    f"to ensura for accuracy. Please re-enter value according to these "
+                                    f"formatting rules")
+
+                    vr_validation_body = self._get_column_data_validation_values(
+                            spreadsheet_id,
+                            valid_values = valid_values,
+                            column_id= i,
+                            custom_ui=False,
+                            input_message=input_message,
+                            validation_type="CUSTOM_FORMULA",
+                            )
+                    requests_body["requests"].append(vr_validation_body["requests"])
+
+
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
@@ -662,6 +699,7 @@ class ManifestGenerator(object):
 
                 requests_body["requests"].append(req_format_body["requests"])
 
+                
             # adding value-constraints if any
             req_vals = [{"userEnteredValue": value} for value in values if value]
 
