@@ -588,6 +588,49 @@ class ManifestGenerator(object):
 
                 requests_body["requests"].append(notes_body["requests"])
 
+            # Apply regular expression validaiton rules to google sheets.
+            # Since google regexmatch is the only regex that is relevant
+            # and matches a python regex, only allow that to be an option.
+            # Pull rules from normal validation rules.
+
+            if validation_rules:
+                split_rules = validation_rules[0].split(' ')
+                if split_rules[0] == "regex" and split_rules[1] == "match":
+                    regular_expression = split_rules[2]
+                    vr_bg_color = CONFIG["style"]["google_manifest"].get(
+                        "vr_bg_color",
+                        {
+                            "red": 0.778,
+                            "green": 0.978,
+                            "blue": 0.582,
+                        })
+                    requests_vr = {
+                        'requests': [{
+                            'addConditionalFormatRule': {
+                                'rule': {
+                                    "ranges": {
+                                        "startColumnIndex": i,
+                                        "endColumnIndex": i + 1,
+                                    },
+                                    'booleanRule': {
+                                        'condition': {
+                                            'type': 'CUSTOM_FORMULA',
+                                            'values': [{
+                                                'userEnteredValue':
+                                                    '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(regular_expression)
+                                            }]
+                                        },
+                                        'format': {
+                                            'backgroundColor': vr_bg_color
+                                        }
+                                    }
+                                },
+                                'index': 0
+                            }
+                        }]
+                    }
+                    requests_body["requests"].append(requests_vr["requests"])
+
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
