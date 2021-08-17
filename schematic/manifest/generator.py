@@ -590,117 +590,130 @@ class ManifestGenerator(object):
 
                 requests_body["requests"].append(notes_body["requests"])
 
-            # Apply regular expression validaiton rules to google sheets.
-            # Since google regexmatch is the only regex that is relevant
-            # and matches a python regex, only allow that to be an option.
-            # Pull rules from normal validation rules.
+            
+            def apply_validation_rules_to_sheets(validation_rules: List[str], i:int):
+                '''
+                Purpose:
+                    - Apply regular expression validaiton rules to google sheets.
+                    - Will only be run if the regex module specified in the validation
+                    rules is 'match'.
+                        - This is because of the limitations of google sheets regex.
+                    - Will do the following:
+                        - In google sheets user entry text will initially appear red.
+                        - Upon correct format entry, text will turn black.
+                        - If incorrect format is entered a validation error will pop up.
+                Input:
+                    validation_rules: List[str], defines the validation rules
+                        applied to a particular column.
+                    i: int, defines current column.
+                Returns:
+                    Performs an in function update of the google sheet to 
+                    comply with conditional formating and data validation 
+                    specifications.
+                TODO:
+                    Add to a different location in script, but might be confusing
+                    since other updaters are not in function, and this function is not
+                    very general.
+                '''
+                def update_base_color_request(color = {"red": 1.0}):
+                    '''
+                    Change color of text in column we are validating
+                    to red.
+                    '''
+                    vr_format_body = {
+                        "requests": [
+                            {"repeatCell": {
+                                    "range": {
+                                        "startColumnIndex": i,
+                                        "endColumnIndex": i + 1,
+                                        "startRowIndex": 1,
+                                    },
+                                    "cell": {
+                                        "userEnteredFormat": {
+                                            "textFormat": {
+                                                "foregroundColor": color}
+                                            }
+                                    },
+                                    "fields": "userEnteredFormat(textFormat)",
+                                }
+                            }
+                        ]
+                    }
+                    return vr_format_body
 
-            '''
-            Purpose:
-
-            Input:
-
-            Returns:
-
-            Notes:
-
-            '''
-
-            if validation_rules:
-                # TODO: Pull into its own function. 
-                split_rules = validation_rules[0].split(' ')
-                if split_rules[0] == "regex" and split_rules[1] == "match":
-                    # Add conditional formatting for regular expressions.
-                    # Color the cell green if the user inputs the correct value.
-                    regular_expression = split_rules[2]
-
-                    def update_base_color_request(color = {"red": 1.0}):
-                    
-                        # Change the base font color to red.
-                        # When the condiitonal formatting is applied it will change
-                        # the color to black if a user enters a correctly formatted value.
-                        # this coloring is intended to serve as a visual indicator to the 
-                        # user that the entered values are being validated.
-                        vr_format_body = {
-                            "requests": [
-                                {"repeatCell": {
-                                        "range": {
+                def make_regex_vr_request(gs_formula, text_color = {'red': 1}):
+                    '''
+                    Generate request to change font color to black upon corretly formatted
+                    user entry.
+                    '''
+                    requests_vr = {
+                        'requests': [
+                            {'addConditionalFormatRule': {
+                                    'rule': {
+                                        "ranges": {
                                             "startColumnIndex": i,
                                             "endColumnIndex": i + 1,
                                             "startRowIndex": 1,
                                         },
-                                        "cell": {
-                                            "userEnteredFormat": {
-                                                "textFormat": {
-                                                    "foregroundColor": color}
-                                                }
-                                        },
-                                        "fields": "userEnteredFormat(textFormat)",
-                                    }
-                                }
-                            ]
-                        }
-                        return vr_format_body
-
-                    vr_format_body = update_base_color_request(color={"red": 232./255., "green": 80./255., "blue": 70./255.})
-                    requests_body["requests"].append(vr_format_body["requests"])
-
-                    def make_regex_vr_request(gs_formula, text_color = {'red': 1}):
-                        requests_vr = {
-                            'requests': [
-                                {'addConditionalFormatRule': {
-                                        'rule': {
-                                            "ranges": {
-                                                "startColumnIndex": i,
-                                                "endColumnIndex": i + 1,
-                                                "startRowIndex": 1,
+                                        'booleanRule': {
+                                            'condition': {
+                                                'type': 'CUSTOM_FORMULA',
+                                                'values': gs_formula,
                                             },
-                                            'booleanRule': {
-                                                'condition': {
-                                                    'type': 'CUSTOM_FORMULA',
-                                                    'values': gs_formula,
-                                                },
-                                                'format': {
-                                                    'textFormat': {
-                                                        "foregroundColor": text_color
-                                                    }
+                                            'format': {
+                                                'textFormat': {
+                                                    "foregroundColor": text_color
                                                 }
                                             }
-                                        },
-                                        'index': 0
-                                    }
+                                        }
+                                    },
+                                    'index': 0
                                 }
-                            ]
-                        }
-                        return requests_vr
+                            }
+                        ]
+                    }
+                    return requests_vr
 
-                    text_color = {"red": 0, "green": 0, "blue": 0}
-                    gs_formula = [{'userEnteredValue': '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(regular_expression)}]
-                    
-                    requests_vr = make_regex_vr_request(gs_formula, text_color)
-                    requests_body["requests"].append(requests_vr["requests"])
+                if validation_rules:
+                    split_rules = validation_rules[0].split(' ')
+                    if split_rules[0] == "regex" and split_rules[1] == "match":
+                        # Set things up:
+                        ## Extract the regular expression we are validating against.
+                        regular_expression = split_rules[2]
+                        ## Define text color to update to upon correct user entry
+                        text_color = {"red": 0, "green": 0, "blue": 0}
+                        ## Define google sheets regular expression formula
+                        gs_formula = [{'userEnteredValue': '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(regular_expression)}]
+                        ## Create error message for users if they enter value with incorrect formatting
+                        input_message = (f"Values in this column are being validated "
+                                        f"against the following regular expression ({regular_expression}) "
+                                        f"to ensure for accuracy. Please re-enter value according to these "
+                                        f"formatting rules")
+                        
+                        # Create Requests:
+                        ## Change request to change the text color of the column we are validating to red.                 
+                        requests_vr_format_body = update_base_color_request(color={"red": 232./255., "green": 80./255., "blue": 70./255.})
+            
+                        ## Create request to for conditionally formatting user input.
+                        requests_vr = make_regex_vr_request(gs_formula, text_color)
+                        
+                        ## Create request to generate data validator.
+                        requests_data_validation_vr = self._get_column_data_validation_values(
+                                spreadsheet_id,
+                                valid_values = gs_formula,
+                                column_id= i,
+                                custom_ui=False,
+                                input_message=input_message,
+                                validation_type="CUSTOM_FORMULA",
+                                )
+                        requests_body["requests"].append(requests_vr_format_body["requests"])
+                        requests_body["requests"].append(requests_vr["requests"])
+                        requests_body["requests"].append(requests_data_validation_vr["requests"])
+                return
 
-                    # Add validation rules for regular expressions.
-                    valid_values = [{
-                            'userEnteredValue':
-                            '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(regular_expression)
-                            }]
-                    input_message = (f"Values in this column are being validated "
-                                    f"against the following regular expression ({regular_expression}) "
-                                    f"to ensure for accuracy. Please re-enter value according to these "
-                                    f"formatting rules")
+            apply_validation_rules_to_sheets(validation_rules, i)
 
-                    vr_validation_body = self._get_column_data_validation_values(
-                            spreadsheet_id,
-                            valid_values = valid_values,
-                            column_id= i,
-                            custom_ui=False,
-                            input_message=input_message,
-                            validation_type="CUSTOM_FORMULA",
-                            )
-                    requests_body["requests"].append(vr_validation_body["requests"])
-
-
+            
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
             if req in json_schema["required"]:
