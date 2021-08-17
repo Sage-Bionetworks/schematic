@@ -613,38 +613,71 @@ class ManifestGenerator(object):
                     # Add conditional formatting for regular expressions.
                     # Color the cell green if the user inputs the correct value.
                     regular_expression = split_rules[2]
-                    vr_bg_color = CONFIG["style"]["google_manifest"].get(
-                        "vr_bg_color",
-                        {
-                            "red": 0.778,
-                            "green": 0.978,
-                            "blue": 0.582,
-                        })
-                    requests_vr = {
-                        'requests': [{
-                            'addConditionalFormatRule': {
-                                'rule': {
-                                    "ranges": {
-                                        "startColumnIndex": i,
-                                        "endColumnIndex": i + 1,
-                                    },
-                                    'booleanRule': {
-                                        'condition': {
-                                            'type': 'CUSTOM_FORMULA',
-                                            'values': [{
-                                                'userEnteredValue':
-                                                    '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(regular_expression)
-                                            }]
+
+                    def update_base_color_request(color = {"red": 1.0}):
+                    
+                        # Change the base font color to red.
+                        # When the condiitonal formatting is applied it will change
+                        # the color to black if a user enters a correctly formatted value.
+                        # this coloring is intended to serve as a visual indicator to the 
+                        # user that the entered values are being validated.
+                        vr_format_body = {
+                            "requests": [
+                                {"repeatCell": {
+                                        "range": {
+                                            "startColumnIndex": i,
+                                            "endColumnIndex": i + 1,
+                                            "startRowIndex": 1,
                                         },
-                                        'format': {
-                                            'backgroundColor': vr_bg_color
-                                        }
+                                        "cell": {
+                                            "userEnteredFormat": {
+                                                "textFormat": {
+                                                    "foregroundColor": color}
+                                                }
+                                        },
+                                        "fields": "userEnteredFormat(textFormat)",
                                     }
-                                },
-                                'index': 0
-                            }
-                        }]
-                    }
+                                }
+                            ]
+                        }
+                        return vr_format_body
+
+                    vr_format_body = update_base_color_request(color={"red": 232./255., "green": 80./255., "blue": 70./255.})
+                    requests_body["requests"].append(vr_format_body["requests"])
+
+                    def make_regex_vr_request(gs_formula, text_color = {'red': 1}):
+                        requests_vr = {
+                            'requests': [
+                                {'addConditionalFormatRule': {
+                                        'rule': {
+                                            "ranges": {
+                                                "startColumnIndex": i,
+                                                "endColumnIndex": i + 1,
+                                                "startRowIndex": 1,
+                                            },
+                                            'booleanRule': {
+                                                'condition': {
+                                                    'type': 'CUSTOM_FORMULA',
+                                                    'values': gs_formula,
+                                                },
+                                                'format': {
+                                                    'textFormat': {
+                                                        "foregroundColor": text_color
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        'index': 0
+                                    }
+                                }
+                            ]
+                        }
+                        return requests_vr
+
+                    text_color = {"red": 0, "green": 0, "blue": 0}
+                    gs_formula = [{'userEnteredValue': '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(regular_expression)}]
+                    
+                    requests_vr = make_regex_vr_request(gs_formula, text_color)
                     requests_body["requests"].append(requests_vr["requests"])
 
                     # Add validation rules for regular expressions.
@@ -654,7 +687,7 @@ class ManifestGenerator(object):
                             }]
                     input_message = (f"Values in this column are being validated "
                                     f"against the following regular expression ({regular_expression}) "
-                                    f"to ensura for accuracy. Please re-enter value according to these "
+                                    f"to ensure for accuracy. Please re-enter value according to these "
                                     f"formatting rules")
 
                     vr_validation_body = self._get_column_data_validation_values(
