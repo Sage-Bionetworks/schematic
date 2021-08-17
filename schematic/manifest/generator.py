@@ -252,9 +252,11 @@ class ManifestGenerator(object):
         custom_ui=True,
         input_message="Choose one from dropdown",
     ):
-
+        # set how strict the validation should be from config file.
         strict = CONFIG["style"]["google_manifest"].get("strict_validation", True)
-
+        # set lighter validation strictness when using custom formula
+        if validation_type == "CUSTOM_FORMULA":
+            strict = False
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
 
@@ -283,8 +285,6 @@ class ManifestGenerator(object):
                 )
                 .execute()
             )
-
-        #if validation_type == "CUSTOM_FORMULA":
             
         # setup validation data request body
         validation_body = {
