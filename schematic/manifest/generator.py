@@ -599,6 +599,9 @@ class ManifestGenerator(object):
                     - Will only be run if the regex module specified in the validation
                     rules is 'match'.
                         - This is because of the limitations of google sheets regex.
+                        - Users can additionally add 'strict' to the end of their validation
+                        rules. This would allow the rule itself to set the level of strictness,
+                        otherwise it would fall to the default level set in the config file.
                     - Will do the following:
                         - In google sheets user entry text will initially appear red.
                         - Upon correct format entry, text will turn black.
