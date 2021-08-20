@@ -1,96 +1,64 @@
-# HTAN Data Ingress Pipeline
+# Schematic
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FSage-Bionetworks%2Fschematic%2Fbadge%3Fref%3Ddevelop&style=flat)](https://actions-badge.atrox.dev/Sage-Bionetworks/schematic/goto?ref=develop) [![Documentation Status](https://readthedocs.org/projects/sage-schematic/badge/?version=develop)](https://sage-schematic.readthedocs.io/en/develop/?badge=develop) [![PyPI version](https://badge.fury.io/py/schematicpy.svg)](https://badge.fury.io/py/schematicpy)
 
-## Usage
+## Introduction
 
-### Virtual Environment Setup
+SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, metadata ingress ecosystem, that is meant to streamline the process of biomedical dataset annotation, metadata validation and submission to a data repository for various data contributors.
 
-Python 3 has built-in support for virtual environments (using `venv` module). Perform the following steps:
+## Installation Requirements and Pre-requisites
 
-_Note: It is assumed that you are running all the below commands from the main/root (`HTAN-data-pipeline`) directory._
+* Python 3.7.1 or higher
 
-After cloning the git repository, navigate into the `HTAN-data-pipeline` directory and run the command as below:
+Note: You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have the right permissions to download the Google credentials files from Synapse.
 
-```bash
-python[3] -m venv .venv
+## Installing
+
+Create and activate a virtual environment within which you can install the package:
+
 ```
-
-This creates a Python3 virtual environment (within the `root` folder/package), with its own site directories (isolated from the system site directories).
-
-To activate the virtual environment, run:
-
-```bash
+python -m venv .venv
 source .venv/bin/activate
 ```
 
-_Note: You should now see the name of the virtual environment to the left of the prompt._
+Install and update the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
-### Install App/Package
-
-To install the package/bundle/application:
-
-```bash
-pip[3] install -e .
+```
+python -m pip install schematicpy
 ```
 
-To verify that the package has been installed (as a `pip` package), check here:
+## Command Line Client Usage
 
-```bash
-pip[3] list
+### Initialization
+
+```
+schematic init --config ~/path/to/config.yml    # initialize mode of authentication
 ```
 
-Now, your environment is ready to test the modules within the application.
+### Manifest
 
-Once, you have finished testing the application within the virtual environment and want to deactivate it, simply run:
-
-```bash
-deactivate
+```
+schematic manifest --config ~/path/to/config.yml get    # generate manifest based on data type
 ```
 
-To run any of the example file(s), go to your root directory and execute/run python script in the following way:
-
-Let's say you want to run the `metadata_usage` example - then do this:
-
-```bash
-python[3] schematic/models/examples/metadata_usage.py
+```
+schematic manifest --config ~/path/to/config.yml validate   # validate manifest
 ```
 
-### Configure Synapse Credentials
+### Model
 
-Download a copy of the `credentials.json` file (or the file needed for authentication using service account, called `quickstart-1560359685924-198a7114b6b5.json`) stored on Synapse, using the synapse client command line utility. The credentials file is necessary for authentication to use Google services/APIs. To do so:
-
-
-_Note: Make sure you have `download` access/permissions to the above files before running the below commands._
-
-For `credentials.json` file:
-```bash
-synapse get syn21088684
+```
+schematic model --config ~/path/to/config.yml submit    # validate and submit manifest
 ```
 
-For `quickstart-1560359685924-198a7114b6b5.json` file:
-```bash
-synapse get syn22316486
-```
+## Contributing
 
-Find the synapse configuration file (_`.synapseConfig`_) downloaded to the current source directory. Access it like this:
+Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](CONTRIBUTION.md). To start contributing to the package, you can refer to the [Getting Started](CONTRIBUTION.md#getting-started) section in our [contributing guide](CONTRIBUTION.md).
 
-```bash
-vi[m] .synapseConfig
-```
+## Contributors
 
-Open the config file, and under the authentication section, replace _< username >_ and _< apikey >_ with your Synapse username and API key.
+Active contributors and maintainers:
 
-_Note: You can get your Synapse API key by: **logging into Synapse > Settings > Synapse API Key > Show API Key**_.
-
-----
-
-### Contribution
-
-Clone a copy of the repository here:
-      
-```bash
-git clone --single-branch --branch develop https://github.com/Sage-Bionetworks/HTAN-data-pipeline.git
-```
-
-Modify your files, add them to the staging area, use a descriptive commit message and push to the same branch as a pull request for review.
-
-* Please consult [CONTRIBUTION.md](https://github.com/Sage-Bionetworks/HTAN-data-pipeline/blob/develop/CONTRIBUTION.md) for further reference.
+- [Milen Nikolov](https://github.com/milen-sage)
+- [Sujay Patil](https://github.com/sujaypatil96)
+- [Bruno Grande](https://github.com/BrunoGrandePhD)
+- [Robert Allaway](https://github.com/allaway)
