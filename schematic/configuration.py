@@ -3,13 +3,11 @@ import yaml
 
 
 class Configuration(object):
-
     def __init__(self):
         # path to config.yml file
         self.CONFIG_PATH = None
         # entire configuration data
         self.DATA = None
-
 
     def __getattribute__(self, name):
         value = super().__getattribute__(name)
@@ -22,15 +20,12 @@ class Configuration(object):
                 "set yet, presumably because the schematic.CONFIG.load_config() "
                 "method hasn't been run yet. Alternatively, you can re-run this "
                 "code with the 'SCHEMATIC_CONFIG' environment variable set to "
-                "the config.yml file, which will be automatically loaded."
-                % name
+                "the config.yml file, which will be automatically loaded." % name
             )
         return value
 
-
     def __getitem__(self, key):
         return self.DATA[key]
-
 
     def get(self, key, default):
         try:
@@ -39,17 +34,15 @@ class Configuration(object):
             value = default
         return value
 
-
     @staticmethod
     def load_yaml(file_path: str) -> dict:
-        with open(file_path, 'r') as stream:
+        with open(file_path, "r") as stream:
             try:
                 config_data = yaml.safe_load(stream)
             except yaml.YAMLError as exc:
                 print(exc)
                 return None
         return config_data
-
 
     def normalize_path(self, path):
         # Retrieve parent directory of the config to decode relative paths
@@ -60,7 +53,6 @@ class Configuration(object):
         # And lastly, normalize file paths
         return os.path.normpath(path)
 
-
     def load_config_from_env(self):
         schematic_config = os.environ["SCHEMATIC_CONFIG"]
         print(
@@ -68,7 +60,6 @@ class Configuration(object):
             "environment variable: %s" % schematic_config
         )
         return self.load_config(schematic_config)
-
 
     def load_config(self, config_path=None):
         # If config_path is None, try loading from environment
