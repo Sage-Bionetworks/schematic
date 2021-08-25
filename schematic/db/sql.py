@@ -72,7 +72,7 @@ class SQL(object):
         logger.debug("Successfully instantiated a SQL DB with schema name: " + self.schema_name)
 
 
-    def create_table_sql(self, table_label:str) -> str:
+    def create_table_sqla(self, table_label:str) -> str:
         """ Given a table label in the RDB schema generate a sqlalchemy table object
 
         Args:
@@ -115,70 +115,73 @@ class SQL(object):
 
         # for each table in the RDB layer, create a sqlalchemy table object
         for table_label in self.rdb.tables.keys():
-            self.create_table_sql(table_label) 
+            self.create_table_sqla(table_label) 
        
         # create all tables (if not existing)
         self.metadata.create_all(self.engine)
 
     
-    
-    def update_table_sql(self, update_table: pd.DataFrame) -> str:
+   
 
-        """ Given an update table dataframe generate a MySQL table update query
-        for each row to be updated; only insert a row if no primary key duplicates; ow update existing keys 
+    def update_table_sqla(self, table_label: str, update_table: pd.DataFrame) -> bool:
+        """ Given a normalized table data frame, update corresponding DB table indicated by table_label.
+        For each row to be updated; only insert a row if no primary key duplicates; ow update existing keys.
+        This is an upsert operation; 
+        e.g. https://michaeljswart.com/2017/07/sql-server-upsert-patterns-and-antipatterns/
+
+        TODO: handle integrity errors; current implementation do not account for that:
+        e.g. https://dev.mysql.com/doc/connector-python/en/connector-python-api-errors-integrityerror.html
+        We assume normalized table
 
         Args:
+            table_label: target table to update
             update_table: a data frame containing table updates
 
         Returns:
-            A SQL statement string
+            If table update completes, return True; ow return False
         """
 
-        update_sql = ""
+        return True
 
 
+    def replace_table_sqla(self, table_label: str, update_table: pd.DataFrame) -> str:
+
+        """ Given a normalized table data frame, update corresponding DB table indicated by table_label.
+        This is a *replace* operation: the existing table is dropped and replaced by the data in the update_table
+
+        Args:
+            table_label: target table to update
+            update_table: a data frame containing table updates
+
+        Returns:
+            If table update completes, return True; ow return False
         """
-        user = Table('user', self.metadata,
-            Column('user_id', Integer, primary_key=True),
-            Column('user_name', String(16), nullable=False),
-        )
+        
+        update_table.to_sql(table_label, self.engine, if_exists = 'replace')
 
-        if not sqla.inspect(self.engine).has_table("user"):
-            self.metadata.create_all(self.engine)
-
-        self.engine.execute(user.insert().values(user_name = "test"))
-
-        '''
-        # create all tables (if not existing)
-        '''
-        query = user.select()
-        ResultProxy = self.engine.execute(query)
-        ResultSet = ResultProxy.fetchall()
-
-        print(ResultSet)
-        """
-
-        return update_sql
+        return table_label
 
 
-
-    def update_db_tables(self, input_table:pd.DataFrame, validate = False, full_validate = False) -> str: 
-        """ Given an input table dataframe, generate a MySQL dump of 
-        SQL table update commands for each affected table 
+    def replace_db_tables(self, input_table:pd.DataFrame, validate: bool = False, full_validation: bool = False) -> List[str]: 
+        """ Given an input table dataframe, that may be a denormalized view of data across multiple DB tables, 
+        generate a set of normalized dataframes and update the corresponding DB tables 
+        by *replacing* them with data in the dataframe.
+         
 
         Args:
             input_table: a dataframe containing DB updates
             validate: if True, validate each table update matches the metadata model schema for that table 
             only update a table if the validation passes for that table; if False update tables 
             and do not validate (e.g. validation can be done later on the entire table row set)
-            full_validate: if True, validate each table update matches the metadata model schema for 
+            full_validation: if True, validate each table update matches the metadata model schema for 
             that table - do not update any table if any of the update table does not validate successfully
         Returns:
-            A string MySQL dump updating existing tables; insert a new row in a given table,
-            unless the primary key exists, in which case update the table 
+            A list of table labels for tables that were successfully updated.
         """
 
-        tables_update_sql = ""
+        # convert column names from display names to property labels
+        dn_pl = self.rdb.get_property_labels_from_table_attrs(input_table.columns)
+        input_table = input_table.rename(columns = dn_pl)
 
         # get the target update tables based on input table attributes
         # note that this assumes columns in the input table will have the same names
@@ -187,6 +190,8 @@ class SQL(object):
 
         # for each table in the target update set of tables, create the corresponding normalized 
         # update data frame
+        
+        updated_tables = []
         for table_label in target_tables:
 
             # get table attributes based on schema
@@ -209,4 +214,7 @@ class SQL(object):
                 pass # TODO: change code logic to validate tableas and do not generate any table update statements if even a single table fails validation
 
             # get sql table update query
-            table_updates_sql += self.update_table_sql(update_table)
+            if not self.update_table_sqla(table_label, update_table):
+                updated_tables.append(table_label)
+        
+        return updated_tables

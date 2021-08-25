@@ -173,6 +173,20 @@ class RDB(object):
         return list(reversed(list(nx.topological_sort(self.db_schema_graph)))) 
 
 
+    def get_property_labels_from_table_attrs(self, attributes: list) -> Dict:
+        """Given a set of table attributes (i.e. column headers) convert them to 
+        schema property labels.
+
+        Args:
+           attributes: a list of string attributes (i.e. column headers from a dataframe) 
+        Returns:
+            A dictionary of schema property labels corresponding to attributes
+        """
+        attr_pl = {attr:self.sg.se.get_property_label_from_display_name(attr) for attr in attributes}
+
+        return attr_pl
+
+
     def get_target_update_tables(self, attributes) -> List[str]:
 
         """Given a set of attributes (e.g. columns in input table) and the RDB schema graph,
@@ -185,6 +199,10 @@ class RDB(object):
             An ordered list of matching target table labels to be updated
         """
 
+        # ensure attribute names are converted to schema property labels
+        attributes = self.get_property_labels_from_table_attrs(attributes).values()
+
+        # get the set of tables that need to be updated
         target_tables = []
         for table_label in self.tables.keys():
             if not set(attributes).isdisjoint(set(self.tables[table_label]['attributes'].keys())):
