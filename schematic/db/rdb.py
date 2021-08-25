@@ -1,21 +1,23 @@
+from typing import Any, Dict, Optional, Text, List
+from os import path
+
+import logging
+
 import networkx as nx
 
 from schematic import schemas
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
 
-from schematic.utils.config_utils import load_yaml
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-from typing import Any, Dict, Optional, Text, List
-
-from definitions import CONFIG_PATH, DATA_PATH
-
-config_data = load_yaml(CONFIG_PATH)
 
 class RDB(object):
 
     def __init__(self,
-                 requires_component_relationship: str = "requiresComponent" # TODO: expose as config param?
+                 path_to_json_ld: str = None,
+                 requires_component_relationship: str = "requiresComponent"
                  ) -> None:
 
         """Create / Initialize object of type RDB (Relation DataBase) .
@@ -33,13 +35,16 @@ class RDB(object):
             None
         """
 
-        # get json-ld schema location
-        MM_LOC = os.path.join(DATA_PATH, config_data["model"]["input"]["location"])
- 
+        self.path_to_json_ld = path_to_json_ld
+        self.schema_name = path.basename(self.path_to_json_ld).split(".rdb.model.jsonld")[0]
+
         self.requires_component_relationship = requires_component_relationship
 
         # instantiate a schema generator to retrieve db schema graph from metadata model graph
-        self.sg = SchemaGenerator(MM_LOC, requires_component_relationship = requires_component_relationship)
+        self.sg = SchemaGenerator(
+                    self.path_to_json_ld, 
+                    requires_component_relationship = requires_component_relationship
+        )
 
         # get metadata model schema graph
         mm_graph = self.sg.se.get_nx_schema()
@@ -48,7 +53,7 @@ class RDB(object):
         # the set of components in the metadata model schema is defined as the set of Valid Values of the 
         # 'Component' attribute in the schema
         # if 'Component' exists, get its corresponding set of tables 
-        self.table_labels = sg.get_node_range('Component', display_names = False)
+        self.table_labels = self.sg.get_node_range('Component', display_names = False)
         
         
         # instantiate db schema graph
@@ -56,7 +61,7 @@ class RDB(object):
         # note that all nodes in the graph are added to the set of relational tables in the db in addition
         # to the tables specified in the 'Component' attribute
         self.db_schema_graph = self.sg.get_subgraph_by_edge_type(mm_graph, self.requires_component_relationship)
-        self.table_labels.append(self.db_schema_graph.nodes())
+        self.table_labels.extend(self.db_schema_graph.nodes())
 
         # get a set of DB tables
         self.tables = self.generate_tables()
@@ -92,8 +97,13 @@ class RDB(object):
             # there should be at least one class property ow table will not be created
             # assume the primary key, if any, is a class property of the form <tableLabel>_id
 
+            #print("TABLE LABEL:")
+            #print(table_label)
             table_attributes = self.sg.se.find_class_specific_properties(table_label)
-            
+
+            #print("TABLE attributes:")
+            #print(table_attributes)
+
             if not table_attributes:
                 continue
             
@@ -103,7 +113,7 @@ class RDB(object):
 
             attributes = {}
             primary_key = self.sg.se.get_property_label_from_display_name(table_label+'_id')
-            
+
             # get foreign keys based on db schema graph 
             foreign_keys = self.get_table_foreign_keys(table_label)
 
@@ -122,8 +132,11 @@ class RDB(object):
             }
 
             tables[table_label] = table 
+        
+        logger.debug("Instantiated tables: ")
+        logger.debug(tables)
 
-            return tables
+        return tables
 
 
     def get_table_foreign_keys(self, table_label) -> List[str]:
@@ -141,7 +154,7 @@ class RDB(object):
         
         connected_tables = self.db_schema_graph.neighbors(table_label)
 
-        foreign_keys = [self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
+        foreign_keys = [ct + "." + self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
 
         return foreign_keys
 
@@ -184,12 +197,3 @@ class RDB(object):
         target_tables = sorted(target_tables, key = lambda x: all_ordered_tables.index(x))
 
         return target_tables
-
-
-
-
-
-
-
-
-
