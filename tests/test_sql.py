@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 def sql_model(helpers):
 
     rdb_model = RDB(
-        path_to_json_ld=helpers.get_data_path("example.rdb.model.jsonld"),
+        path_to_json_ld=helpers.get_data_path("nfti.rdb.model.jsonld"),
         requires_component_relationship = "requiresComponent"
     )
 
 
-    username = ""
-    password = ""
-    host = ""
+    username = "root"
+    password = "md_Sage_pw_86"
+    host = "localhost"
 
     connection = str("mysql://{0}:{1}@{2}/".format(username, password, host)) + rdb_model.schema_name
     
