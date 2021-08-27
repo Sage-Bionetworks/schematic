@@ -85,6 +85,8 @@ class RDB(object):
             ...
         }
 
+        TODO: support multiple PKs 
+
         Returns: A dictionary of tables
         """
         
@@ -97,12 +99,7 @@ class RDB(object):
             # there should be at least one class property ow table will not be created
             # assume the primary key, if any, is a class property of the form <tableLabel>_id
 
-            #print("TABLE LABEL:")
-            #print(table_label)
             table_attributes = self.sg.se.find_class_specific_properties(table_label)
-
-            #print("TABLE attributes:")
-            #print(table_attributes)
 
             if not table_attributes:
                 continue
@@ -117,10 +114,6 @@ class RDB(object):
             # get foreign keys based on db schema graph 
             foreign_keys = self.get_table_foreign_keys(table_label)
 
-            # ensure primary and foreign keys are added to the attributes
-            table_attributes += [primary_key]
-            table_attributes += foreign_keys
-            
             # set the schema for a set of table attributes
             for attr in set(table_attributes):
                 attributes[attr] = {'type':'TEXT'}
@@ -131,15 +124,15 @@ class RDB(object):
                         'foreign_keys': foreign_keys
             }
 
-            tables[table_label] = table 
-        
-        logger.debug("Instantiated tables: ")
+            tables[table_label] = table
+
+        logger.debug("Instantiated tables in RDB model: ")
         logger.debug(tables)
 
         return tables
 
 
-    def get_table_foreign_keys(self, table_label) -> List[str]:
+    def get_table_foreign_keys(self, table_label:str, table_prefix:bool = True) -> List[str]:
         
         """ Given the db schema graph, infer foreign keys between tables; 
         if edge (A, B) exists between tables A and B in the schema DB graph 
@@ -148,18 +141,37 @@ class RDB(object):
         
         Args:
             table_label: name of table to get foreign keys
+            table_prefix: if true include foreign key source table as prefix to key attribute; ow return attribute
         Returns:
             An ordered list of *all* table labels to be updated
         """
         
         connected_tables = self.db_schema_graph.neighbors(table_label)
 
-        foreign_keys = [ct + "." + self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
+        if table_prefix:
+            foreign_keys = [ct + "." + self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
+        else:
+            foreign_keys = [self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
 
         return foreign_keys
 
 
-    
+    def get_attr_from_fk(self, fk:str) -> str:
+
+        """ given a FK strip the table prefix and return column name
+
+        Args:
+            fk: foreign key containing a prefix
+
+        Returns:
+            Column name corresponding to FK w/o table prefix
+        """
+        
+        fk_col = fk.split(".")[1]
+
+        return fk_col
+        
+
     def get_tables_update_order(self) -> List[str]:
         
         """Order tables so that if A requires component B (i.e. B is one-to-many A), then 
@@ -205,7 +217,9 @@ class RDB(object):
         # get the set of tables that need to be updated
         target_tables = []
         for table_label in self.tables.keys():
-            if not set(attributes).isdisjoint(set(self.tables[table_label]['attributes'].keys())):
+
+            # if a table has a column-set that's part of the provided attributes and the provided attributes include the primary key of this table, then target the table for update
+            if not set(attributes).isdisjoint(set(self.tables[table_label]['attributes'].keys())) and self.tables[table_label]['primary_key'] in attributes:
                 target_tables.append(table_label)
 
         # get all db tables in the order they must be updated

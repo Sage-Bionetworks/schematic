@@ -2452,6 +2452,43 @@
             "sms:validationRules": []
         },
         {
+            "@id": "bts:PatientBiospecimenComponent",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "PatientBiospecimenComponent",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Patient Biospecimen Component",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+                {
+                    "@id": "bts:patientId"
+                },
+                {
+                    "@id": "bts:biospecimenId"
+                },
+                {
+                    "@id": "bts:sex"
+                },
+                {
+                    "@id": "bts:yearofBirth"
+                },
+                {
+                    "@id": "bts:diagnosis"
+                },
+                {
+                    "@id": "bts:tissueStatus"
+                }
+            ],
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:Component",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
