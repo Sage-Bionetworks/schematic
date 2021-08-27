@@ -7,6 +7,9 @@ import numpy as np
 import sqlalchemy as sa
 from sqlalchemy import  Table, Column, Text, Integer, String, ForeignKey, ForeignKeyConstraint
 from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy_schemadisplay import create_schema_graph, create_uml_graph
+
+
 
 from schematic.db.rdb import RDB
 from schematic.utils import df_utils
@@ -268,3 +271,30 @@ class SQL(object):
         replace_table.to_sql(table_label, self.engine, if_exists = 'replace', index = False)
 
         return table_label
+
+    def viz_sa_schema(self, output_path: str) -> str:
+        """ From sqlalchemy recipes:
+        https://github.com/sqlalchemy/sqlalchemy/wiki/SchemaDisplay
+
+        Visualize the schema network.
+
+        Args:
+            output_path: path to output schema png image
+
+        Returns:
+            output_path
+        """
+
+        # bind sqlalchemy metadata to db engine
+        self.metadata.reflect(bind = self.engine)
+
+        graph = create_schema_graph(metadata = self.metadata,
+        show_datatypes = False, # The image would get nasty big if we'd show the datatypes
+        show_indexes = False, # ditto for indexes
+        rankdir = 'LR', # From left to right (instead of top to bottom)
+        concentrate = False # Don't try to join the relation lines together
+        )
+        
+        graph.write_png(output_path) # write out the file
+
+        return output_path
