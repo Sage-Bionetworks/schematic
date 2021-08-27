@@ -2,6 +2,7 @@ import os
 import logging
 
 import pytest
+import pandas as pd
 
 from schematic.db.rdb import RDB
 from schematic.db.sql import SQL
@@ -18,7 +19,6 @@ def sql_model(helpers):
         requires_component_relationship = "requiresComponent"
     )
 
-
     username = ""
     password = ""
     host = ""
@@ -34,8 +34,26 @@ def sql_model(helpers):
 
 
 class TestSQL:
+
+      
     def test_create_db_tables(self, sql_model):
 
         output = sql_model.create_db_tables()
 
         assert output is None
+    
+       
+    def test_update_db_tables(self, sql_model):
+
+        # set to absolute path to test manifest e.g.
+        # for Mac OS X
+        #"/Users/<user>/<path_to_schematic>/schematic/tests/data/mock_manifests/example.rdb.manifest.csv"
+        #
+        # To generate manifest from example schema, run (make sure config uses RDB model above)
+        # schematic manifest -v INFO --config ./config.yml get --data_type PatientBiospecimenComponent --oauth --sheet_url
+
+        input_table = pd.read_csv(manifest_path)
+
+        output = sql_model.update_db_tables(input_table)
+
+        assert output is not None
