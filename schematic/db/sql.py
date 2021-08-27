@@ -60,9 +60,6 @@ class SQL(object):
         # create a sqlalchemy metadata object to hold all sqlalchemy DB objects
         self.metadata = sa.MetaData()
 
-        # instantiate a SQL DB
-        # self.create_db_sa()
-
 
     def create_db_sa(self) -> None:
         """ Create a SQL DB schema, if a DB schema with this name doesn't exist
