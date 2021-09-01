@@ -16,19 +16,7 @@ from urllib import error
 
 logger = logging.getLogger(__name__)
 
-
-class ValidateAttribute(object):
-    """
-    A collection of functions to validate manifest attributes.
-        list_validation
-        regex_validation
-        type_validation
-        url_validation
-    See functions for more details.
-    TODO:
-        - Add year validator
-        - Add string length validator
-    """
+class GenerateError():
     def generate_list_error(
             list_string: str, row_num: str, attribute_name: str, list_error: str
         ) -> List[str]:
@@ -172,7 +160,19 @@ class ValidateAttribute(object):
                 error_val = f"URL Error: Random Entry"
             return [error_row, error_col, error_message, error_val]
 
-
+class ValidateAttribute(object):
+    """
+    A collection of functions to validate manifest attributes.
+        list_validation
+        regex_validation
+        type_validation
+        url_validation
+    See functions for more details.
+    TODO:
+        - Add year validator
+        - Add string length validator
+    """
+    
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
     ) -> (List[List[str]], pd.core.frame.DataFrame):
@@ -198,7 +198,7 @@ class ValidateAttribute(object):
             if "," not in list_string and bool(list_string):
                 list_error = "not_comma_delimited"
                 errors.append(
-                    generate_list_error(
+                    GenerateError.generate_list_error(
                         list_string,
                         row_num=str(row_num + 2),
                         attribute_name=manifest_col.name,
@@ -261,7 +261,7 @@ class ValidateAttribute(object):
                         re_to_check
                     ):
                         errors.append(
-                            generate_regex_error(
+                            GenerateError.generate_regex_error(
                                 val_rule,
                                 reg_expression,
                                 row_num=str(i + 2),
@@ -277,7 +277,7 @@ class ValidateAttribute(object):
                     re_to_check
                 ):
                     errors.append(
-                        generate_regex_error(
+                        GenerateError.generate_regex_error(
                             val_rule,
                             reg_expression,
                             row_num=str(i + 2),
@@ -316,7 +316,7 @@ class ValidateAttribute(object):
             for i, value in enumerate(manifest_col):
                 if bool(value) and not isinstance(value, (int, float)):
                     errors.append(
-                        generate_type_error(
+                        GenerateError.generate_type_error(
                             val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
@@ -326,7 +326,7 @@ class ValidateAttribute(object):
             for i, value in enumerate(manifest_col):
                 if bool(value) and type(value) != getattr(builtins, val_rule):
                     errors.append(
-                        generate_type_error(
+                        GenerateError.generate_type_error(
                             val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
@@ -367,7 +367,7 @@ class ValidateAttribute(object):
                 url_error = "random_entry"
                 valid_url = False
                 errors.append(
-                    generate_url_error(
+                    GenerateError.generate_url_error(
                         url,
                         url_error=url_error,
                         row_num=str(i + 2),
@@ -390,7 +390,7 @@ class ValidateAttribute(object):
                     valid_url = False
                     url_error = "invalid_url"
                     errors.append(
-                        generate_url_error(
+                        GenerateError.generate_url_error(
                             url,
                             url_error=url_error,
                             row_num=str(i + 2),
@@ -405,7 +405,7 @@ class ValidateAttribute(object):
                         if arg not in url:
                             url_error = "arg_error"
                             errors.append(
-                                generate_url_error(
+                                GenerateError.generate_url_error(
                                     url,
                                     url_error=url_error,
                                     row_num=str(i + 2),

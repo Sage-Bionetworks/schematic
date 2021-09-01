@@ -21,6 +21,38 @@ logger = logging.getLogger(__name__)
 
 
 class ValidateManifest(object):
+    def __init__(self, errors, manifest, sg, jsonSchema):  
+        self.errors = errors
+        self.manifest = manifest
+        self.sg = sg
+        self.jsonSchema = jsonSchema
+
+    def get_multiple_types_error(
+            validation_rules: list, attribute_name: str, error_type: str
+        ) -> List[str]:
+            """
+            Generate error message for errors when trying to specify 
+            multiple validation rules.
+            """
+            error_col = attribute_name  # Attribute name
+            if error_type == "too_many_rules":
+                error_str = (
+                    f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) ."
+                    f"have too many entries. We currently only specify two rules ('list :: another_rule')."
+                )
+                logging.error(error_str)
+                error_message = error_str
+                error_val = f"Multiple Rules: too many rules"
+            if error_type == "list_not_first":
+                error_str = (
+                    f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
+                    f"specified. 'list' must be first."
+                )
+                logging.error(error_str)
+                error_message = error_str
+                error_val = f"Multiple Rules: list not first"
+            return ["NA", error_col, error_message, error_val]
+
     def validate_manifest_rules(
         self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator
     ) -> (pd.core.frame.DataFrame, List[List[str]]):
@@ -49,32 +81,6 @@ class ValidateManifest(object):
             - Move the rules formatting validation to the JSONLD 
                 generation script.
         """
-
-        def get_multiple_types_error(
-            validation_rules: list, attribute_name: str, error_type: str
-        ) -> List[str]:
-            """
-            Generate error message for errors when trying to specify 
-            multiple validation rules.
-            """
-            error_col = attribute_name  # Attribute name
-            if error_type == "too_many_rules":
-                error_str = (
-                    f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) ."
-                    f"have too many entries. We currently only specify two rules ('list :: another_rule')."
-                )
-                logging.error(error_str)
-                error_message = error_str
-                error_val = f"Multiple Rules: too many rules"
-            if error_type == "list_not_first":
-                error_str = (
-                    f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
-                    f"specified. 'list' must be first."
-                )
-                logging.error(error_str)
-                error_message = error_str
-                error_val = f"Multiple Rules: list not first"
-            return ["NA", error_col, error_message, error_val]
 
         # for each type of rule that can be spefified (key) point
         # to the type of validation that will be run.
@@ -174,3 +180,18 @@ class ValidateManifest(object):
 
                 errors.append([errorRow, errorCol, errorMsg, errorVal])
         return errors
+
+def validate_all(self, errors, manifest, sg, jsonSchema):
+    vm = ValidateManifest(errors, manifest, sg, jsonSchema)
+    manifest, vmr_errors = vm.validate_manifest_rules(
+        manifest, sg
+    )
+    if vmr_errors:
+        errors.extend(vmr_errors)
+
+    vmv_errors = vm.validate_manifest_values(
+        manifest, jsonSchema
+    )
+    if vmv_errors:
+        errors.extend(vmv_errors)
+    return errors, manifest

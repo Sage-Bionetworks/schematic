@@ -20,7 +20,7 @@ from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import trim_commas_df
 
 from schematic.models.validate_attribute import ValidateAttribute
-from schematic.models.validate_manifest import ValidateManifest
+from schematic.models.validate_manifest import validate_all
 
 
 logger = logging.getLogger(__name__)
@@ -251,18 +251,8 @@ class MetadataModel(object):
 
             return errors
 
-        # Validate Manifest Rules
-        manifest, vmr_errors = ValidateManifest.validate_manifest_rules(
-            self, manifest, self.sg
-        )
-        if vmr_errors:
-            errors.extend(vmr_errors)
-
-        vmv_errors = ValidateManifest.validate_manifest_values(
-            self, manifest, jsonSchema
-        )
-        if vmv_errors:
-            errors.extend(vmv_errors)
+        errors, manifest = validate_all(
+            self, errors, manifest, self.sg, jsonSchema)
 
         return errors
 
