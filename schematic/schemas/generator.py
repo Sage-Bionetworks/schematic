@@ -531,8 +531,7 @@ class SchemaGenerator(object):
                         if node_validation_rules:
                             # if this node has extra validation rules process them
                             # TODO: abstract this into its own validation rule constructor/generator module/class
-
-                            if "list" in node_validation_rules:
+                            if "list" in node_validation_rules[0]:
                                 # if this node can be mapped to a list of nodes
                                 # set its schema accordingly
                                 schema_valid_vals = self.get_array_schema(
@@ -574,7 +573,7 @@ class SchemaGenerator(object):
                                     )
 
                                     if node_validation_rules:
-                                        if "list" in node_validation_rules:
+                                        if "list" in node_validation_rules[0]:
                                             # TODO: get_range_schema and get_range_schema have similar behavior - combine in one module
                                             dependency_properties = (
                                                 self.get_array_schema(
@@ -613,10 +612,12 @@ class SchemaGenerator(object):
                             )
 
                             if node_validation_rules:
-                                if "list" in node_validation_rules:
-                                    schema_valid_vals = self.get_array_schema(
-                                        node_range_d, node_display_name, blank=False
-                                    )
+                                # If there are valid values AND they are expected to be a list,
+                                # reformat the Valid Values.
+                                    if "list" in node_validation_rules[0]:
+                                        schema_valid_vals = self.get_array_schema(
+                                            node_range_d, node_display_name, blank=False
+                                        )
                         else:
                             schema_valid_vals = self.get_non_blank_schema(
                                 node_display_name
@@ -635,7 +636,7 @@ class SchemaGenerator(object):
                             )
 
                             if node_validation_rules:
-                                if "list" in node_validation_rules:
+                                if "list" in node_validation_rules[0]:
                                     schema_valid_vals = self.get_array_schema(
                                         node_range_d, node_display_name, blank=True
                                     )
