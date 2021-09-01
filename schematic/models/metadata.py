@@ -23,7 +23,6 @@ from schematic.models.validate_attribute import ValidateAttribute
 from schematic.models.validate_manifest import ValidateManifest
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -38,11 +37,7 @@ class MetadataModel(object):
         - generate validation schema view of the metadata model
     """
 
-    def __init__(
-        self,
-        inputMModelLocation: str,
-        inputMModelLocationType: str,
-    ) -> None:
+    def __init__(self, inputMModelLocation: str, inputMModelLocationType: str,) -> None:
 
         """Instantiates a MetadataModel object.
 
@@ -257,11 +252,15 @@ class MetadataModel(object):
             return errors
 
         # Validate Manifest Rules
-        manifest, vmr_errors = ValidateManifest.validate_manifest_rules(self, manifest, self.sg)
+        manifest, vmr_errors = ValidateManifest.validate_manifest_rules(
+            self, manifest, self.sg
+        )
         if vmr_errors:
             errors.extend(vmr_errors)
-        
-        vmv_errors = ValidateManifest.validate_manifest_values(self, manifest, jsonSchema)
+
+        vmv_errors = ValidateManifest.validate_manifest_values(
+            self, manifest, jsonSchema
+        )
         if vmv_errors:
             errors.extend(vmv_errors)
 
@@ -289,7 +288,11 @@ class MetadataModel(object):
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
 
     def submit_metadata_manifest(
-        self, manifest_path: str, dataset_id: str, validate_component: str = None, use_schema_label: bool = True
+        self,
+        manifest_path: str,
+        dataset_id: str,
+        validate_component: str = None,
+        use_schema_label: bool = True,
     ) -> bool:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -343,7 +346,9 @@ class MetadataModel(object):
 
         # no need to perform validation, just submit/associate the metadata manifest file
         syn_store.associateMetadataWithFiles(
-            metadataManifestPath=manifest_path, datasetId=dataset_id, useSchemaLabel=use_schema_label
+            metadataManifestPath=manifest_path,
+            datasetId=dataset_id,
+            useSchemaLabel=use_schema_label,
         )
 
         logger.debug(

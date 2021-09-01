@@ -1,10 +1,12 @@
 import json
 from jsonschema import Draft7Validator, exceptions, ValidationError
 import logging
-#import numpy as np
+
+# import numpy as np
 import pandas as pd
 import re
 import sys
+
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
 from urllib.parse import urlparse
@@ -14,14 +16,15 @@ from urllib import error
 
 from schematic.models.validate_attribute import ValidateAttribute
 from schematic.schemas.generator import SchemaGenerator
+
 logger = logging.getLogger(__name__)
 
 
 class ValidateManifest(object):
-     
-    def validate_manifest_rules(self, manifest: pd.core.frame.DataFrame, 
-            sg:SchemaGenerator) -> (pd.core.frame.DataFrame, List[List[str]]):
-        '''
+    def validate_manifest_rules(
+        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator
+    ) -> (pd.core.frame.DataFrame, List[List[str]]):
+        """
         Purpose:
             Take validation rules set for a particular attribute
             and validate manifest entries based on these rules.
@@ -45,27 +48,33 @@ class ValidateManifest(object):
                 validation rules without me having to do anything...
             - Move the rules formatting validation to the JSONLD 
                 generation script.
-        '''
-        def get_multiple_types_error(validation_rules: list, 
-                attribute_name: str, error_type: str) -> List[str]:
-            '''
+        """
+
+        def get_multiple_types_error(
+            validation_rules: list, attribute_name: str, error_type: str
+        ) -> List[str]:
+            """
             Generate error message for errors when trying to specify 
             multiple validation rules.
-            '''
-            error_col = attribute_name # Attribute name
-            if error_type == 'too_many_rules':
-                error_str = (f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) ."
-                f"have too many entries. We currently only specify two rules ('list :: another_rule').")
+            """
+            error_col = attribute_name  # Attribute name
+            if error_type == "too_many_rules":
+                error_str = (
+                    f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) ."
+                    f"have too many entries. We currently only specify two rules ('list :: another_rule')."
+                )
                 logging.error(error_str)
                 error_message = error_str
                 error_val = f"Multiple Rules: too many rules"
-            if error_type == 'list_not_first':
-                error_str = ( f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
-                    f"specified. 'list' must be first.")
+            if error_type == "list_not_first":
+                error_str = (
+                    f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
+                    f"specified. 'list' must be first."
+                )
                 logging.error(error_str)
                 error_message = error_str
                 error_val = f"Multiple Rules: list not first"
-            return ['NA', error_col, error_message, error_val]
+            return ["NA", error_col, error_message, error_val]
 
         # for each type of rule that can be spefified (key) point
         # to the type of validation that will be run.
@@ -75,63 +84,77 @@ class ValidateManifest(object):
             "num": "type_validation",
             "str": "type_validation",
             "regex": "regex_validation",
-            "url" : "url_validation",
-            "list": "list_validation"
-            }
-        
-        errors = [] #initialize error handling list.
+            "url": "url_validation",
+            "list": "list_validation",
+        }
+
+        errors = []  # initialize error handling list.
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
-            
+
             # Given a validation rule, run validation.
             if bool(validation_rules):
-                
+
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
                 if len(validation_rules) == 2:
-                    
+
                     # For multiple rules check that the first rule listed is 'list'
                     # if not, throw an error (this is the only format currently supported).
-                    if not validation_rules[0] == 'list':
-                        errors.append(get_multiple_types_error(validation_rules, col, 
-                            error_type = 'list_not_first'))
-                    elif (validation_rules[0] == 'list'):
+                    if not validation_rules[0] == "list":
+                        errors.append(
+                            get_multiple_types_error(
+                                validation_rules, col, error_type="list_not_first"
+                            )
+                        )
+                    elif validation_rules[0] == "list":
                         # Convert user input to list.
-                        validation_method = getattr(ValidateAttribute, 
-                            validation_types['list'])
-                        vr_errors, manifest_col = validation_method(self,
-                            validation_rules[0], manifest[col])
+                        validation_method = getattr(
+                            ValidateAttribute, validation_types["list"]
+                        )
+                        vr_errors, manifest_col = validation_method(
+                            self, validation_rules[0], manifest[col]
+                        )
                         manifest[col] = manifest_col
 
                         # Continue to second validation rule
-                        second_rule = validation_rules[1].split(' ')
+                        second_rule = validation_rules[1].split(" ")
                         second_type = second_rule[0]
-                        if second_type != 'list':
+                        if second_type != "list":
                             module_to_call = getattr(re, second_rule[1])
                             regular_expression = second_rule[2]
                             validation_method = getattr(
                                 ValidateAttribute, validation_types[second_type]
-                                )
+                            )
                             vr_errors.append(
-                                validation_method(self, validation_rules[1], manifest[col])
+                                validation_method(
+                                    self, validation_rules[1], manifest[col]
                                 )
+                            )
                 # Check for edge case that user has entered more than 2 rules,
                 # throw an error if they have.
                 elif len(validation_rules) > 2:
-                    get_multiple_types_error(validation_rules, col,
-                        error_type = 'too_many_rules')
-                
+                    get_multiple_types_error(
+                        validation_rules, col, error_type="too_many_rules"
+                    )
+
                 # Validate for a single validation rule.
                 else:
-                    validation_type = validation_rules[0].split(' ')[0]
-                    validation_method = getattr(ValidateAttribute, validation_types[validation_type])
+                    validation_type = validation_rules[0].split(" ")[0]
+                    validation_method = getattr(
+                        ValidateAttribute, validation_types[validation_type]
+                    )
                     if validation_type == "list":
-                       vr_errors, manifest_col = validation_method(self, validation_rules[0], manifest[col])
-                       manifest[col] = manifest_col
+                        vr_errors, manifest_col = validation_method(
+                            self, validation_rules[0], manifest[col]
+                        )
+                        manifest[col] = manifest_col
                     else:
-                       vr_errors = validation_method(self, validation_rules[0], manifest[col])
+                        vr_errors = validation_method(
+                            self, validation_rules[0], manifest[col]
+                        )
                 # Check for validation rule errors and add them to other errors.
                 if vr_errors:
                     errors.extend(vr_errors)
@@ -151,4 +174,3 @@ class ValidateManifest(object):
 
                 errors.append([errorRow, errorCol, errorMsg, errorVal])
         return errors
-

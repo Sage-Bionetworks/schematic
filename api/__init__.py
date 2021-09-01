@@ -29,6 +29,7 @@ def create_app():
 
     return app
 
+
 # def route_code():
 #     import flask_schematic as sc
 #     sc.method1()

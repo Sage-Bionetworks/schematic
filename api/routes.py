@@ -123,9 +123,7 @@ def submit_manifest_route(schema_url):
     )
 
     success = metadata_model.submit_metadata_manifest(
-        manifest_path=temp_path,
-        dataset_id=dataset_id,
-        validate_component=data_type,
+        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type,
     )
 
     return success

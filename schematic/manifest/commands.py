@@ -133,9 +133,7 @@ def get_manifest(
 
     # call get_manifest() on manifest_generator
     result = manifest_generator.get_manifest(
-        dataset_id=dataset_id,
-        sheet_url=sheet_url,
-        json_schema=json_schema,
+        dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema,
     )
 
     if sheet_url:
