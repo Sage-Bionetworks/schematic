@@ -251,8 +251,7 @@ class MetadataModel(object):
 
             return errors
 
-        errors, manifest = validate_all(
-            self, errors, manifest, self.sg, jsonSchema)
+        errors, manifest = validate_all(self, errors, manifest, self.sg, jsonSchema)
 
         return errors
 

@@ -16,11 +16,12 @@ from urllib import error
 
 logger = logging.getLogger(__name__)
 
-class GenerateError():
+
+class GenerateError:
     def generate_list_error(
-            list_string: str, row_num: str, attribute_name: str, list_error: str
-        ) -> List[str]:
-            """
+        list_string: str, row_num: str, attribute_name: str, list_error: str
+    ) -> List[str]:
+        """
             Purpose:
                 If an error is found in the string formatting, detect and record
                 an error message.
@@ -32,29 +33,27 @@ class GenerateError():
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
-            if list_error == "not_comma_delimited":
-                error_str = (
-                    f"For attribute {attribute_name} in row {row_num} it does not "
-                    f"appear as if you provided a comma delimited string. Please check "
-                    f"your entry ('{list_string}'') and try again."
-                )
-                logging.error(error_str)
-                error_row = (
-                    row_num  # index row of the manifest where the error presented.
-                )
-                error_col = attribute_name  # Attribute name
-                error_message = error_str
-                error_val = f"List Error"
-            return [error_row, error_col, error_message, error_val]
+        if list_error == "not_comma_delimited":
+            error_str = (
+                f"For attribute {attribute_name} in row {row_num} it does not "
+                f"appear as if you provided a comma delimited string. Please check "
+                f"your entry ('{list_string}'') and try again."
+            )
+            logging.error(error_str)
+            error_row = row_num  # index row of the manifest where the error presented.
+            error_col = attribute_name  # Attribute name
+            error_message = error_str
+            error_val = f"List Error"
+        return [error_row, error_col, error_message, error_val]
 
     def generate_regex_error(
-            val_rule: str,
-            reg_expression: str,
-            row_num: str,
-            module_to_call: str,
-            attribute_name: str,
-        ) -> List[str]:
-            """
+        val_rule: str,
+        reg_expression: str,
+        row_num: str,
+        module_to_call: str,
+        attribute_name: str,
+    ) -> List[str]:
+        """
             Purpose:
                 Generate an logging error as well as a stored error message, when
                 a regex error is encountered.
@@ -68,21 +67,21 @@ class GenerateError():
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
-            regex_error_string = (
-                f"For the attribute {attribute_name}, on row {row_num}, the string is not properly formatted. "
-                f'It should follow the following re.{module_to_call} pattern "{reg_expression}".'
-            )
-            logging.error(regex_error_string)
-            error_row = row_num  # index row of the manifest where the error presented.
-            error_col = attribute_name  # Attribute name
-            error_message = regex_error_string
-            error_val = f"Type Error"
-            return [error_row, error_col, error_message, error_val]
+        regex_error_string = (
+            f"For the attribute {attribute_name}, on row {row_num}, the string is not properly formatted. "
+            f'It should follow the following re.{module_to_call} pattern "{reg_expression}".'
+        )
+        logging.error(regex_error_string)
+        error_row = row_num  # index row of the manifest where the error presented.
+        error_col = attribute_name  # Attribute name
+        error_message = regex_error_string
+        error_val = f"Type Error"
+        return [error_row, error_col, error_message, error_val]
 
     def generate_type_error(
-            val_rule: str, row_num: str, attribute_name: str
-        ) -> List[str]:
-            """
+        val_rule: str, row_num: str, attribute_name: str
+    ) -> List[str]:
+        """
             Purpose:
                 Generate an logging error as well as a stored error message, when
                 a type error is encountered.
@@ -94,21 +93,21 @@ class GenerateError():
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
-            type_error_str = (
-                f"On row {row_num} the attribute {attribute_name} "
-                f"does not contain the proper value type {val_rule}."
-            )
-            logging.error(type_error_str)
-            error_row = row_num  # index row of the manifest where the error presented.
-            error_col = attribute_name  # Attribute name
-            error_message = type_error_str
-            error_val = f"Type Error"
-            return [error_row, error_col, error_message, error_val]
+        type_error_str = (
+            f"On row {row_num} the attribute {attribute_name} "
+            f"does not contain the proper value type {val_rule}."
+        )
+        logging.error(type_error_str)
+        error_row = row_num  # index row of the manifest where the error presented.
+        error_col = attribute_name  # Attribute name
+        error_message = type_error_str
+        error_val = f"Type Error"
+        return [error_row, error_col, error_message, error_val]
 
     def generate_url_error(
-            url: str, url_error: str, row_num: str, attribute_name: str, argument: str
-        ) -> List[str]:
-            """
+        url: str, url_error: str, row_num: str, attribute_name: str, argument: str
+    ) -> List[str]:
+        """
             Purpose:
                 Generate an logging error as well as a stored error message, when
                 a URL error is encountered.
@@ -131,34 +130,35 @@ class GenerateError():
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
-            error_row = row_num  # index row of the manifest where the error presented.
-            error_col = attribute_name  # Attribute name
-            if url_error == "invalid_url":
-                invalid_url_error_string = (
-                    f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
-                    f"conform to the standards of a URL. Please make sure you are entering a real, working URL "
-                    f"as required by the Schema."
-                )
-                logging.error(invalid_url_error_string)
-                error_message = invalid_url_error_string
-                error_val = f"URL Error: Invalid URL"
-            elif url_error == "arg_error":
-                arg_error_string = (
-                    f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
-                    f"conform to the schema specifications and does not contain the required element: {argument}."
-                )
-                logging.error(arg_error_string)
-                error_message = arg_error_string
-                error_val = f"URL Error: Argument Error"
-            elif url_error == "random_entry":
-                random_entry_error_str = (
-                    f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
-                    f"look like a URL, please check input and try again."
-                )
-                logging.error(random_entry_error_str)
-                error_message = random_entry_error_str
-                error_val = f"URL Error: Random Entry"
-            return [error_row, error_col, error_message, error_val]
+        error_row = row_num  # index row of the manifest where the error presented.
+        error_col = attribute_name  # Attribute name
+        if url_error == "invalid_url":
+            invalid_url_error_string = (
+                f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
+                f"conform to the standards of a URL. Please make sure you are entering a real, working URL "
+                f"as required by the Schema."
+            )
+            logging.error(invalid_url_error_string)
+            error_message = invalid_url_error_string
+            error_val = f"URL Error: Invalid URL"
+        elif url_error == "arg_error":
+            arg_error_string = (
+                f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
+                f"conform to the schema specifications and does not contain the required element: {argument}."
+            )
+            logging.error(arg_error_string)
+            error_message = arg_error_string
+            error_val = f"URL Error: Argument Error"
+        elif url_error == "random_entry":
+            random_entry_error_str = (
+                f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
+                f"look like a URL, please check input and try again."
+            )
+            logging.error(random_entry_error_str)
+            error_message = random_entry_error_str
+            error_val = f"URL Error: Random Entry"
+        return [error_row, error_col, error_message, error_val]
+
 
 class ValidateAttribute(object):
     """
@@ -172,7 +172,7 @@ class ValidateAttribute(object):
         - Add year validator
         - Add string length validator
     """
-    
+
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
     ) -> (List[List[str]], pd.core.frame.DataFrame):
@@ -187,7 +187,6 @@ class ValidateAttribute(object):
             - Error log, error list
         """
 
-        
         # For each 'list' (input as a string with a , delimiter) entered,
         # convert to a real list of strings, with leading and trailing
         # white spaces removed.
@@ -238,7 +237,7 @@ class ValidateAttribute(object):
         TODO: 
             move validation to convert step.
         """
-        
+
         reg_exp_rules = val_rule.split(" ")
 
         try:
@@ -309,7 +308,6 @@ class ValidateAttribute(object):
             Convert all inputs to .lower() just to prevent any entry errors.
         """
 
-        
         errors = []
         # num indicates either a float or int.
         if val_rule == "num":
@@ -349,7 +347,6 @@ class ValidateAttribute(object):
             does not match schema specifications.
         """
 
-        
         url_args = val_rule.split(" ")[1:]
         errors = []
 
