@@ -293,8 +293,7 @@ class SchemaExplorer:
                     else:
                         content.append(
                             [_property, property_info["description"], record["class"]]
-                        )
-
+                        )  
             # TODO: Log content
 
     def find_class_usages(self, schema_class):
@@ -423,7 +422,6 @@ class SchemaExplorer:
             class_info["displayName"] = self.schema_nx.nodes[schema_class][
                 "displayName"
             ]
-
         return class_info
 
     def get_property_label_from_display_name(self, display_name):
@@ -517,7 +515,6 @@ class SchemaExplorer:
                     break
 
         # check if properties are added multiple times
-
         return property_info
 
     def generate_class_template(self):
