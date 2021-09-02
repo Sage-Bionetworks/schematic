@@ -254,8 +254,8 @@ class ManifestGenerator(object):
         input_message="Choose one from dropdown",
     ):  
 
-        # set validation strictness to config file default if indicated.
-        if strict == "default":
+        # set validation strictness to config file default if None indicated.
+        if strict == None:
             strict = CONFIG["style"]["google_manifest"].get("strict_validation", True)
 
         # get valid values w/o google sheet header
@@ -689,10 +689,10 @@ class ManifestGenerator(object):
                         ## Define google sheets regular expression formula
                         gs_formula = [{'userEnteredValue': '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(regular_expression)}]
                         ## Set validaiton strictness based on user specifications.
+                        strict = None
                         if split_rules[-1].lower() == 'strict':
                             strict = True
-                        else:
-                            strict = 'default'
+                            
                         ## Create error message for users if they enter value with incorrect formatting
                         input_message = (f"Values in this column are being validated "
                                         f"against the following regular expression ({regular_expression}) "
@@ -768,7 +768,7 @@ class ManifestGenerator(object):
                 # do not support other kinds of data validation for larger number of items (even if individual items are not that many
                 # excel has a total number of characters limit per dropdown...)
                 validation_body = self._get_column_data_validation_values(
-                    spreadsheet_id, req_vals, i, strict = 'default', validation_type="ONE_OF_RANGE"
+                    spreadsheet_id, req_vals, i, strict = None, validation_type="ONE_OF_RANGE"
                 )
 
             elif "list" in validation_rules:
@@ -779,7 +779,7 @@ class ManifestGenerator(object):
                     spreadsheet_id,
                     req_vals,
                     i,
-                    strict = 'default',
+                    strict = None,
                     custom_ui=False,
                     input_message="",
                     validation_type="ONE_OF_RANGE",
@@ -787,7 +787,7 @@ class ManifestGenerator(object):
 
             else:
                 validation_body = self._get_column_data_validation_values(
-                    spreadsheet_id, req_vals, i, strict = 'default',
+                    spreadsheet_id, req_vals, i, strict = None,
                 )
 
             requests_body["requests"].append(validation_body["requests"])
