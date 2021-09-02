@@ -552,29 +552,30 @@ class ManifestGenerator(object):
             # get node validation rules if any
             validation_rules = self.sg.get_node_validation_rules(req)
 
-            # if 'list' in validation rules add a note with instructions on
+            # if 'list' in validation rules and valid values are supplied add a note with instructions on
             # adding a list of multiple values
             # TODO: add validation and QC rules "compiler/generator" class elsewhere
             # for now have the list logic here
-            if "list" in validation_rules:
-                note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
-                notes_body = {
-                    "requests": [
-                        {
-                            "repeatCell": {
-                                "range": {
-                                    "startRowIndex": 1,
-                                    "startColumnIndex": i,
-                                    "endColumnIndex": i + 1,
-                                },
-                                "cell": {"note": note},
-                                "fields": "note",
+            if validation_rules:
+                if "list" in validation_rules and values:
+                    note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
+                    notes_body = {
+                        "requests": [
+                            {
+                                "repeatCell": {
+                                    "range": {
+                                        "startRowIndex": 1,
+                                        "startColumnIndex": i,
+                                        "endColumnIndex": i + 1,
+                                    },
+                                    "cell": {"note": note},
+                                    "fields": "note",
+                                }
                             }
-                        }
-                    ]
-                }
+                        ]
+                    }
 
-                requests_body["requests"].append(notes_body["requests"])
+                    requests_body["requests"].append(notes_body["requests"])
 
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
