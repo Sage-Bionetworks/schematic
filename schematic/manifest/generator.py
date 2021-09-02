@@ -618,7 +618,7 @@ class ManifestGenerator(object):
                     spreadsheet_id, req_vals, i, validation_type="ONE_OF_RANGE"
                 )
 
-            elif "list" in validation_rules[0]:
+            elif "list" in validation_rules:
                 # if list is in validation rule attempt to create a multi-value
                 # selection UI, which requires explicit valid values range in
                 # the spreadsheet
