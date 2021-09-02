@@ -576,6 +576,25 @@ class ManifestGenerator(object):
                     }
 
                     requests_body["requests"].append(notes_body["requests"])
+                if "list" in validation_rules and not values:
+                    note = "Please enter values as a comma separated list. For example: XX, YY, ZZ"
+                    notes_body = {
+                        "requests": [
+                            {
+                                "repeatCell": {
+                                    "range": {
+                                        "startRowIndex": 1,
+                                        "startColumnIndex": i,
+                                        "endColumnIndex": i + 1,
+                                    },
+                                    "cell": {"note": note},
+                                    "fields": "note",
+                                }
+                            }
+                        ]
+                    }
+
+                    requests_body["requests"].append(notes_body["requests"])
 
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
