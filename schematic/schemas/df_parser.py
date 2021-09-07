@@ -18,8 +18,6 @@ import numpy as np
 from schematic.schemas.explorer import SchemaExplorer
 from schematic import LOADER
 
-from schematic.utils.validate_rules_utils import validate_schema_rules
-
 logger = logging.getLogger(__name__)
 
 
@@ -513,10 +511,6 @@ def create_nx_schema_objects(
         validation_rules = attribute["Validation Rules"]
 
         if not pd.isnull(validation_rules):
-            validate_vr = validate_schema_rules(
-                            validation_rules, 
-                            attribute["Attribute"],
-                            input_filetype = 'csv_schema')
 
             # TODO: make validation rules delimiter configurable parameter
             validation_rules = [

@@ -333,8 +333,10 @@ class SchemaGenerator(object):
         node_label = self.get_node_label(node_display_name)
 
         mm_graph = self.se.get_nx_schema()
-        node_required = mm_graph.nodes[node_label]["required"]
-
+        try:
+            node_required = mm_graph.nodes[node_label]["required"]
+        except:
+            breakpoint()
         return node_required
 
     def get_nodes_display_names(
@@ -531,7 +533,6 @@ class SchemaGenerator(object):
                         if node_validation_rules:
                             # if this node has extra validation rules process them
                             # TODO: abstract this into its own validation rule constructor/generator module/class
-                            breakpoint()
                             if "list" in node_validation_rules:
                                 # if this node can be mapped to a list of nodes
                                 # set its schema accordingly
@@ -573,7 +574,6 @@ class SchemaGenerator(object):
                                     )
 
                                     if node_validation_rules:
-                                        breakpoint()
                                         if "list" in node_validation_rules:
                                             # TODO: get_range_schema and get_range_schema have similar behavior - combine in one module
                                             dependency_properties = (
@@ -613,7 +613,6 @@ class SchemaGenerator(object):
                             )
 
                             if node_validation_rules:
-                                breakpoint()
                                 if "list" in node_validation_rules:
                                     schema_valid_vals = self.get_array_schema(
                                         node_range_d, node_display_name, blank=False
@@ -636,7 +635,6 @@ class SchemaGenerator(object):
                             )
 
                             if node_validation_rules:
-                                breakpoint()
                                 if "list" in node_validation_rules:
                                     schema_valid_vals = self.get_array_schema(
                                         node_range_d, node_display_name, blank=True
