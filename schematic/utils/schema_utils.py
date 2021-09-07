@@ -3,6 +3,7 @@ import json
 
 from schematic.utils.curie_utils import extract_name_from_uri_or_curie
 from schematic.utils.validate_utils import validate_class_schema
+from schematic.utils.validate_rules_utils import validate_schema_rules
 
 
 def load_schema_into_networkx(schema):
@@ -114,6 +115,11 @@ def load_schema_into_networkx(schema):
         # not sure if this is required?
         if "sms:validationRules" in record:
             node["validationRules"] = record["sms:validationRules"]
+            if node["validationRules"]:
+                validate_vr = validate_schema_rules(
+                                record["sms:validationRules"],
+                                record["rdfs:label"],
+                                input_filetype = 'json_schema')
         else:
             node["validationRules"] = []
 
