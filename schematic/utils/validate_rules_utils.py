@@ -115,7 +115,7 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
 
 def validate_schema_rules(validation_rules, attribute, input_filetype):
     '''
-    validation_rules: str
+    validation_rules: list
     input_filetype: str, used in error generation to aid user in
         locating the source of the error.
 
@@ -125,10 +125,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     Single Rules:
         Additional arg
     '''
-    #validation_rules = [
-               #val_rule.strip() for val_rule in val_rules.strip().split("::")
-            #]
-    
+     
     # Specify all the validation types and whether they currently
     # allow users to pass additional arguments (when used on their own), and if there is
     # a set number of arguments required.
