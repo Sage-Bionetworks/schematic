@@ -8,7 +8,7 @@ import sqlalchemy as sa
 from sqlalchemy import  Table, Column, Text, Integer, String, ForeignKey, ForeignKeyConstraint
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy_schemadisplay import create_schema_graph, create_uml_graph
-
+from sqlalchemy.orm import relationship
 
 
 from schematic.db.rdb import RDB
@@ -100,15 +100,37 @@ class SQL(object):
 
         # set FKs 
         for fk in self.rdb.tables[table_label]['foreign_keys']:
-            fk_attr = self.rdb.get_attr_from_fk(fk)
-            col = Column(fk_attr, String(128))
-            columns.append(col)
-            col = ForeignKeyConstraint([fk_attr], [fk])
-            columns.append(col)
+            if fk == 'Donor.transplantationDonorId':
+                _tablename_ = table_label
+                fk_attr = self.rdb.get_attr_from_fk(fk)
+                donorId = Column('donorId', ForeignKey('Donor.donorId'))
+                transplantationDonorId = Column(fk_attr, ForeignKey('Donor.donorId'))
+                donor = relationship("Donor", foreign_keys=[donorId])
+                transplantationDonor = relationship("Donor", foreign_keys=[transplantationDonorId])
+                columns.append(donorId)
+                columns.append(transplantationDonorId)
+            elif fk == 'Donor.parentDonorId':
+                fk_attr = self.rdb.get_attr_from_fk(fk)
+                _tablename_ = table_label
+                parentDonorId = Column(fk_attr, ForeignKey('Donor.donorId'))
+                parentDonor = relationship("Donor", foreign_keys=[parentDonorId])
+                columns.append(parentDonorId)
+            elif fk == 'Donor.donorId' and table_label == 'Donor':
+                fk_attr = self.rdb.get_attr_from_fk(fk)
+                col = Column(fk_attr, String(128))
+                columns.append(col)
+            else:
+                fk_attr = self.rdb.get_attr_from_fk(fk)
+                col = Column(fk_attr, String(128))
+                columns.append(col)
+                col = ForeignKeyConstraint([fk_attr], [fk])
+                columns.append(col)
+            
+                #col = ForeignKeyConstraint([fk_attr], [fk])
+                #columns.append(col)
 
 
         table_sql = Table(table_label, self.metadata, *columns)
-        
         logger.debug("Successfully added table " + table_label + " to sqlalchemy metadata model")
 
 
@@ -120,9 +142,12 @@ class SQL(object):
         """
 
         # for each table in the RDB layer, create a sqlalchemy table object
+        self.create_table_sa('Donor')
+
         for table_label in self.rdb.tables.keys():
-            self.create_table_sa(table_label) 
-       
+            if table_label != 'Donor':
+                self.create_table_sa(table_label) 
+
         # create all tables (if not existing)
         self.metadata.create_all(self.engine)
 

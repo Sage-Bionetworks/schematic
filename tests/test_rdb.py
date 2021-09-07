@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def rdb_model(helpers):
 
     rdb_model = RDB(
-        path_to_json_ld=helpers.get_data_path("example.rdb.model.jsonld"),
+        path_to_json_ld=helpers.get_data_path("nfti_test.rdb.model.jsonld"),
         requires_component_relationship = "requiresComponent"
     )
 

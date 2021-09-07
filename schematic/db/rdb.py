@@ -113,6 +113,7 @@ class RDB(object):
 
             # get foreign keys based on db schema graph 
             foreign_keys = self.get_table_foreign_keys(table_label)
+            foreign_keys.extend(self.get_additional_foreign_keys(table_label))
 
             # set the schema for a set of table attributes
             for attr in set(table_attributes):
@@ -125,11 +126,36 @@ class RDB(object):
             }
 
             tables[table_label] = table
-
         logger.debug("Instantiated tables in RDB model: ")
         logger.debug(tables)
 
         return tables
+
+    def get_primary_key_table_from_id(self, dependency_id):
+        pk_table_name = dependency_id.capitalize().replace('_id', '')
+        return pk_table_name
+
+    def get_additional_foreign_keys(self, table_label):
+        """Find foreign keys with alternate names than table names.
+        These are assumed to have a 'depends on' that only contains the
+        primary key name. 
+        Should allow reference of FK to PK in same table.
+        Should allow reference of FK with name not matching the PK in another table.
+        
+        Returns:
+        ['Donor.parentDonorId']
+        Will match the FK parentDonorId to the PK in the Donor table?
+        """
+        table_attributes = self.sg.se.find_class_specific_properties(table_label)
+        foreign_keys = []
+        for attr in table_attributes:
+            dependencies = self.sg.get_node_dependencies(attr)
+            if len(dependencies) == 1 and '_id' in dependencies[0]:
+                foreign_keys.append(
+                    self.get_primary_key_table_from_id(dependencies[0])
+                    + "." + attr
+                )
+        return foreign_keys
 
 
     def get_table_foreign_keys(self, table_label:str, table_prefix:bool = True) -> List[str]:
@@ -145,14 +171,13 @@ class RDB(object):
         Returns:
             An ordered list of *all* table labels to be updated
         """
-        
         connected_tables = self.db_schema_graph.neighbors(table_label)
 
         if table_prefix:
             foreign_keys = [ct + "." + self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
         else:
             foreign_keys = [self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
-
+         
         return foreign_keys
 
 
