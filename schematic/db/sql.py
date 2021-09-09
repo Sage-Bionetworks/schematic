@@ -72,6 +72,26 @@ class SQL(object):
         create_query = str("CREATE SCHEMA IF NOT EXISTS {0};".format(self.schema_name))
         self.engine.execute(create_query)
 
+    def table_and_fk_attr_match(self, fk):
+        """
+        return: bool
+        """
+        target_table = fk.split('.')[0].lower()
+        target_attr = fk.split('.')[1].lower().replace('id', '')
+
+        return target_table == target_attr
+
+    def find_mismatched_tables_fks(self):
+        pk_table = []
+        fks = []
+        for table_label in self.rdb.tables.keys():
+            for fk in self.rdb.tables[table_label]['foreign_keys']:
+                if self.table_and_fk_attr_match(fk) == False:
+                    pk_table.append(fk.split('.')[0])
+                    fks.append(fk)
+        pk_table_set = set(pk_table)
+        pk_tables = list(pk_table_set)
+        return pk_tables, fks
 
     def create_table_sa(self, table_label:str) -> str:
         """ Given a table label in the RDB schema generate a sqlalchemy table object
@@ -100,25 +120,31 @@ class SQL(object):
 
         # set FKs 
         for fk in self.rdb.tables[table_label]['foreign_keys']:
-            if fk == 'Donor.transplantationDonorId':
-                _tablename_ = table_label
-                fk_attr = self.rdb.get_attr_from_fk(fk)
-                donorId = Column('donorId', ForeignKey('Donor.donorId'))
-                transplantationDonorId = Column(fk_attr, ForeignKey('Donor.donorId'))
-                donor = relationship("Donor", foreign_keys=[donorId])
-                transplantationDonor = relationship("Donor", foreign_keys=[transplantationDonorId])
-                columns.append(donorId)
-                columns.append(transplantationDonorId)
-            elif fk == 'Donor.parentDonorId':
-                fk_attr = self.rdb.get_attr_from_fk(fk)
-                _tablename_ = table_label
-                parentDonorId = Column(fk_attr, ForeignKey('Donor.donorId'))
-                parentDonor = relationship("Donor", foreign_keys=[parentDonorId])
-                columns.append(parentDonorId)
-            elif fk == 'Donor.donorId' and table_label == 'Donor':
-                fk_attr = self.rdb.get_attr_from_fk(fk)
-                col = Column(fk_attr, String(128))
-                columns.append(col)
+            #Infer how a FK should attach to a PK based on its naming.
+            target_table = fk.split('.')[0]
+            # If the FK has a different name than the PK establish a
+            # relationship based on the tables that are being connected.
+            if not self.table_and_fk_attr_match(fk):
+                # FK is in a different table than the PK
+                if target_table != table_label:
+                    pk_attr = self.rdb.tables[target_table]['primary_key']
+                    fk_attr = self.rdb.get_attr_from_fk(fk)
+                    primary_key = target_table + '.' + pk_attr
+                    pk_id = Column(pk_attr, ForeignKey(primary_key))
+                    fk_id = Column(fk_attr, ForeignKey(primary_key))
+                    target_relationship = relationship(target_table, foreign_keys=[pk_id])
+                    current_relationship = relationship(target_table, foreign_keys=[fk_id])
+                    columns.append(pk_id)
+                    columns.append(fk_id)
+                # FK is in the same table as the PK
+                elif target_table == table_label:
+                    pk_attr = self.rdb.tables[target_table]['primary_key']
+                    fk_attr = self.rdb.get_attr_from_fk(fk)
+                    primary_key = target_table + '.' + pk_attr
+                    fk_id = Column(fk_attr, ForeignKey(primary_key))
+                    relshp = relationship(target_table, foreign_keys=[fk_id])
+                    columns.append(fk_id)
+            # If FK and PKs match.
             else:
                 fk_attr = self.rdb.get_attr_from_fk(fk)
                 col = Column(fk_attr, String(128))
@@ -126,10 +152,6 @@ class SQL(object):
                 col = ForeignKeyConstraint([fk_attr], [fk])
                 columns.append(col)
             
-                #col = ForeignKeyConstraint([fk_attr], [fk])
-                #columns.append(col)
-
-
         table_sql = Table(table_label, self.metadata, *columns)
         logger.debug("Successfully added table " + table_label + " to sqlalchemy metadata model")
 
@@ -141,11 +163,16 @@ class SQL(object):
                 None
         """
 
-        # for each table in the RDB layer, create a sqlalchemy table object
-        self.create_table_sa('Donor')
+        pk_tables, fks = self.find_mismatched_tables_fks()
+
+        # For each table in the RDB layer, create a sqlalchemy table object
+        # Create SA table first for tables where there are primary keys with 
+        # many relationships (so that they can be referenced by other tables)
+        for table in pk_tables:
+            self.create_table_sa(table)
 
         for table_label in self.rdb.tables.keys():
-            if table_label != 'Donor':
+            if table_label not in pk_tables:
                 self.create_table_sa(table_label) 
 
         # create all tables (if not existing)
