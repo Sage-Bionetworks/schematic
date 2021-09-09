@@ -73,20 +73,34 @@ class SQL(object):
         self.engine.execute(create_query)
 
     def table_and_fk_attr_match(self, fk):
-        """
-        return: bool
+        """ Find if the table and attribute names match. 
+            If they dont it would imply the foriegn key 
+            has a different name than the primary key.
+            Args:
+                fk: str, foreign key containing table prefix.
+            Returns: 
+                bool, True if the table and id match.
         """
         target_table = fk.split('.')[0].lower()
         target_attr = fk.split('.')[1].lower().replace('id', '')
 
         return target_table == target_attr
 
-    def find_mismatched_tables_fks(self):
+    def find_matched_tables_fks(self):
+        """ When a FK and PK do not share naming get the table 
+            where the PK is located, along with corresponding FKs.
+            Args:
+                None
+            Returns:
+                pk_tables: list of strings, primary key tables.
+                fks: list of strings, foreign keys
+
+        """
         pk_table = []
         fks = []
         for table_label in self.rdb.tables.keys():
             for fk in self.rdb.tables[table_label]['foreign_keys']:
-                if self.table_and_fk_attr_match(fk) == False:
+                if not self.table_and_fk_attr_match(fk):
                     pk_table.append(fk.split('.')[0])
                     fks.append(fk)
         pk_table_set = set(pk_table)
@@ -163,7 +177,7 @@ class SQL(object):
                 None
         """
 
-        pk_tables, fks = self.find_mismatched_tables_fks()
+        pk_tables, fks = self.find_matched_tables_fks()
 
         # For each table in the RDB layer, create a sqlalchemy table object
         # Create SA table first for tables where there are primary keys with 
