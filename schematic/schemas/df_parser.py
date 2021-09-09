@@ -999,9 +999,8 @@ def create_nx_schema_objects(
                     validation_rules=property_info["validation_rules"],
                 )
                 se.edit_schema_object_nx(property_val_rule_edit)
-
-            logger.debug(val + "validation rules added")
-
+            logger.debug(attribute["Attribute"] + " validation rules added")
+        
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["DependsOn"]
         if not pd.isnull(requires_dependencies):
