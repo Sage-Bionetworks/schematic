@@ -15,15 +15,13 @@ logger = logging.getLogger(__name__)
 def sql_model(helpers):
 
     rdb_model = RDB(
-        path_to_json_ld=helpers.get_data_path("nfti_test.rdb.model.jsonld"),
+        path_to_json_ld=helpers.get_data_path("example.rdb.model.jsonld"),
         requires_component_relationship = "requiresComponent"
     )
 
-
-    username = "root"
-    password = "md_Sage_pw_86"
-    host = "localhost"
-
+    username = ""
+    password = ""
+    host = ""
 
     connection = str("mysql://{0}:{1}@{2}/".format(username, password, host)) + rdb_model.schema_name
     
@@ -54,7 +52,7 @@ class TestSQL:
         # To generate manifest from example schema, run (make sure config uses RDB model above)
         # schematic manifest -v INFO --config ./config.yml get --data_type PatientBiospecimenComponent --oauth --sheet_url
 
-        manifest_path = "/Users/mialydefelice/Documents/schematic/schematic/tests/data/mock_manifests/nfti_test.rdb.manifest.csv"
+        manifest_path = ""
         input_table = pd.read_csv(manifest_path)
 
         output = sql_model.update_db_tables(input_table)
@@ -69,8 +67,7 @@ class TestSQL:
         #"/Users/<user>/<path_to_schematic>/schematic/tests/data/" + sql_model.schema_name + ".rdb.model.png"
         # TODO: change to work with relative path to tests folder (see other test modules)
 
-        output_path = "/Users/mialydefelice/Documents/schematic/schematic/tests/data/"  + sql_model.schema_name + ".rdb.model.png"
+        output_path = "" 
         output = sql_model.viz_sa_schema(output_path)
 
         assert output == output_path
-
