@@ -279,7 +279,10 @@ class SQL(object):
         for table_label in target_tables:
 
             pk = self.rdb.tables[table_label]['primary_key']
-            fks = self.rdb.tables[table_label]['foreign_keys'] 
+            fks = self.rdb.tables[table_label]['foreign_keys']
+            # parse fk names if still linked with fk_attr, this will make sure
+            # the table is updated properly and the column names match.
+            fks = [fk.split('.')[1] if '.' in fk else fk for fk in fks]
 
             # get table attributes based on schema
             table_attributes = list(self.rdb.tables[table_label]['attributes'].keys()) 
@@ -301,7 +304,6 @@ class SQL(object):
                 
                 # by default, fill in missing columns w/ None
                 update_table[missing_column] = None
-
 
             # normalize update table
             update_table = df_utils.normalize_table(update_table, self.rdb.tables[table_label]['primary_key'])
