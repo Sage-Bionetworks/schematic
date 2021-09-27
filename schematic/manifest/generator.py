@@ -782,12 +782,15 @@ class ManifestGenerator(object):
         # column-set of the existing manifest so that the user can modify their data if needed 
         # to comply with the latest schema
 
-        # get headers from existing manifest and sheet
+        # get headers from existing manifest and sheet 
         wb_header = wb.get_row(1)
         manifest_df_header = manifest_df.columns
         
         # find missing columns in existing manifest
         new_columns = set(wb_header) - set(manifest_df_header)
+
+        # clean empty columns if any are present (there should be none)
+        new_columns = new_columns.remove('')
 
         # find missing columns present in existing manifest but missing in latest schema
         out_of_schema_columns = set(manifest_df_header) - set(wb_header)
@@ -801,7 +804,8 @@ class ManifestGenerator(object):
         # move obsolete columns at the end
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
         manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
-        
+       
+        print(manifest_df.columns)
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
@@ -810,9 +814,11 @@ class ManifestGenerator(object):
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
-        if len(out_of_schema_columns) > 0: 
-            start_col = self._column_to_letter(len(wb_header)) # find start of out of schema columns
+        num_out_of_schema_columns = len(out_of_schema_columns)
+        if num_out_of_schema_columns > 0: 
+            start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
             end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
+       
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
 
         # set permissions so that anyone with the link can edit
