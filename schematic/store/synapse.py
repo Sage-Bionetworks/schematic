@@ -507,7 +507,10 @@ class SynapseStorage(BaseStorage):
                 # get the entity id corresponding to this row
                 entityId = row["entityId"]
 
-            #  prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
+            # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
+            # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
+            # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
+            # columns with special characters are outside of the schema
             metadataSyn = {}
             blacklist_chars = ['(', ')', '.', ' ']
             
