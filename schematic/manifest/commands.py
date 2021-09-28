@@ -139,8 +139,13 @@ def get_manifest(
     )
 
     if sheet_url:
-        logger.info("Find the manifest template using this Google Sheet URL:")
-        click.echo(result)
+        if type(result) == list:
+            for r in result:
+                logger.info("Find the manifest template using this Google Sheet URL:")
+                click.echo(r)
+        else:
+            logger.info("Find the manifest template using this Google Sheet URL:")
+            click.echo(result)
 
     elif isinstance(result, pd.DataFrame):
         if output_csv is None:
