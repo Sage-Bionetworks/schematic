@@ -805,7 +805,6 @@ class ManifestGenerator(object):
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
         manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
        
-        print(manifest_df.columns)
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
