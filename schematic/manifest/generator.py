@@ -790,6 +790,7 @@ class ManifestGenerator(object):
         new_columns = set(wb_header) - set(manifest_df_header)
 
         # clean empty columns if any are present (there should be none)
+        # TODO: Remove this line once we start preventing empty column names
         new_columns = new_columns.remove('')
 
         # find missing columns present in existing manifest but missing in latest schema
