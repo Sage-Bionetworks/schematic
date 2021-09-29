@@ -372,7 +372,7 @@ class SynapseStorage(BaseStorage):
                 # store manifest and update associated metadata with manifest on Synapse
                 manifest_id = self.associateMetadataWithFiles(manifest_filepath, datasetId)
 
-            return manifest_id, manifest
+        return manifest_id, manifest
 
 
     def getProjectManifests(self, projectId: str) -> List[str]:
