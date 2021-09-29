@@ -356,13 +356,11 @@ class SynapseStorage(BaseStorage):
                     new_files["entityId"].append(file_id)
 
             # update manifest so that it contain new files
-            # manifest = pd.DataFrame(new_files)
             new_files = pd.DataFrame(new_files)
             manifest = (
                 pd.concat([manifest, new_files], sort=False)
                 .reset_index()
                 .drop("index", axis=1)
-                .fillna("")
             )
 
             # update the manifest file, so that it contains the relevant entity IDs
@@ -372,7 +370,10 @@ class SynapseStorage(BaseStorage):
                 # store manifest and update associated metadata with manifest on Synapse
                 manifest_id = self.associateMetadataWithFiles(manifest_filepath, datasetId)
 
+        manifest = manifest.fillna("") 
+        
         return manifest_id, manifest
+
 
 
     def getProjectManifests(self, projectId: str) -> List[str]:
