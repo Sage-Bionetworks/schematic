@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
@@ -15,6 +15,9 @@ from schematic.utils.google_api_utils import (
     build_service_account_creds,
 )
 from schematic.utils.df_utils import update_df
+
+#TODO: This module should only be aware of the store interface
+# we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
@@ -32,8 +35,6 @@ class ManifestGenerator(object):
         oauth: bool = True,
         use_annotations: bool = False,
     ) -> None:
-
-        """TODO: read in a config file instead of hardcoding paths to credential files..."""
 
         if oauth:
             # if user wants to use OAuth for Google authentication
@@ -920,8 +921,9 @@ class ManifestGenerator(object):
 
     def get_manifest(
         self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None
-    ):
+    ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
+           TODO: move this function to class MetadatModel (after MetadataModel is refactored)
 
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
@@ -936,35 +938,33 @@ class ManifestGenerator(object):
             return self.get_empty_manifest(json_schema_filepath=json_schema)
 
         # Otherwise, create manifest using the given dataset
-        syn_store = SynapseStorage()
+        #TODO: avoid explicitly exposing Synapse store functionality
+        # just instantiate a Store class and let it decide at runtime/config
+        # the store type
+
+        store = SynapseStorage()
 
         # Get manifest file associated with given dataset (if applicable)
-        syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
+        # populate manifest with set of new files (if applicable)
+        manifest_record = store.updateDatasetManifestFiles(datasetId = dataset_id, store = False)
        
         # Populate empty template with existing manifest
-        if syn_id_and_path:
+        if manifest_record:
 
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
 
-            # get synapse ID manifest associated with dataset
-            manifest_data = syn_store.getDatasetManifest(
-                datasetId=dataset_id, downloadFile=True
-            )
-
             # If the sheet URL isn't requested, simply return a pandas DataFrame
             if not sheet_url:
-                return pd.read_csv(manifest_data.path)
+                return manifest_record[1]
 
             # get URL of an empty manifest file created based on schema component
             empty_manifest_url = self.get_empty_manifest()
-
+            
             # populate empty manifest with content from downloaded/existing manifest
-            pop_manifest_url = self.populate_manifest_spreadsheet(
-                manifest_data.path, empty_manifest_url
-            )
-        
-            return pop_manifest_url
+            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest_record[1])
+
+            return manifest_sh.url
 
         # Generate empty template and optionally fill in with annotations
         else:
@@ -986,6 +986,7 @@ class ManifestGenerator(object):
                 return manifest_url
             else:
                 return manifest_df
+
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
         """Creates a google sheet manifest based on existing manifest.
