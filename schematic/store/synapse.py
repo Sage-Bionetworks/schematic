@@ -6,7 +6,7 @@ import logging
 import secrets
 
 # allows specifying explicit variable types
-from typing import Dict, List, Tuple, Sequence
+from typing import Dict, List, Tuple, Sequence, Union
 from collections import OrderedDict
 
 import numpy as np
@@ -315,24 +315,26 @@ class SynapseStorage(BaseStorage):
 
             return manifest_syn_id
 
-    def updateDatasetManifestFiles(self, datasetId: str) -> str:
+    def updateDatasetManifestFiles(self, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 
         Args:
             datasetId: synapse ID of a storage dataset.
+            store: if set to True store updated manifest in asset store; if set to False
+            return a Pandas dataframe containing updated manifest but do not store to asset store
+
 
         Returns:
-            Synapse ID of updated manifest.
+            Synapse ID of updated manifest and Pandas dataframe containing the updated manifest. 
+            If there is no existing manifest return None
         """
 
         # get existing manifest Synapse ID
         manifest_id = self.getDatasetManifest(datasetId)
+
+        # if there is no manifest return None
         if not manifest_id:
-            # no manifest exists yet: abort
-            raise FileNotFoundError(
-                f"Manifest file {CONFIG['synapse']['manifest_filename']} "
-                f"cannot be found in {datasetId} dataset folder."
-            )
+            return None
 
         manifest_filepath = self.syn.get(manifest_id).path
         manifest = pd.read_csv(manifest_filepath)
@@ -354,20 +356,24 @@ class SynapseStorage(BaseStorage):
                     new_files["entityId"].append(file_id)
 
             # update manifest so that it contain new files
-            # manifest = pd.DataFrame(new_files)
             new_files = pd.DataFrame(new_files)
             manifest = (
-                pd.concat([new_files, manifest], sort=False)
+                pd.concat([manifest, new_files], sort=False)
                 .reset_index()
                 .drop("index", axis=1)
             )
+
             # update the manifest file, so that it contains the relevant entity IDs
-            manifest.to_csv(manifest_filepath, index=False)
+            if store:
+                manifest.to_csv(manifest_filepath, index=False)
 
-            # store manifest and update associated metadata with manifest on Synapse
-            manifest_id = self.associateMetadataWithFiles(manifest_filepath, datasetId)
+                # store manifest and update associated metadata with manifest on Synapse
+                manifest_id = self.associateMetadataWithFiles(manifest_filepath, datasetId)
 
-        return manifest_id
+        manifest = manifest.fillna("") 
+        
+        return manifest_id, manifest
+
 
 
     def getProjectManifests(self, projectId: str) -> List[str]:
