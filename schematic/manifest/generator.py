@@ -368,14 +368,14 @@ class ManifestGenerator(object):
         return json_schema
 
     def _get_required_fields_per_manifest(
-        self, foreign_keys: list, json_schema: dict, prop_label_to_display_name: dict
+        self, all_keys: list, json_schema: dict, prop_label_to_display_name: dict
     ) -> list[list]:
         """For a RDB root manifest, create a manifest per connected
         foreign key table, that contains only attributes for the root table
         and the foreign key. In this step gather the attributes/fields per manifest.
 
         Args:
-            foreign_keys(list_: FKS linked to the root node
+            all_keys(list_: keys linked to the root node
             json_schema(dict): representing a handful of values
                 representing the data model, including: '$schema', '$id', 'title',
                 'type', 'properties', 'required'
@@ -398,9 +398,9 @@ class ManifestGenerator(object):
         manifest_attributes = []
         # Each of the foreign keys represents a separate table that will
         # be linked to the root.
-        for fk in foreign_keys:
+        for key in all_keys:
             manifest_attributes = root_manifest_base_attributes.copy()
-            manifest_attributes.append(fk)
+            manifest_attributes.append(key)
             # Convert naming to property labels.
             manifest_attributes = [
                 prop_label_to_display_name[attr] for attr in manifest_attributes
@@ -1115,24 +1115,31 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def _get_rdb_root_fks(self) -> list[str]:
+    def _get_rdb_root_keys(self) -> list[str]:
         """Get all foreign keys related to the root manifest.
         Used only for relational databases.
 
         Args:
             None
         Return:
-            List, of foreign keys (str)
+            List, of keys (str), both primary and foreign
         """
         # get foreign keys based on db schema graph
         self.rdb = RDB(self.path_to_json_ld)
+        all_keys = []
+
+        primary_key = self.sg.se.get_property_label_from_display_name(self.max_authority +'_id')
 
         # Gather Foreign Key Ids so we know what values to keep per sheet.
         foreign_keys = self.rdb.get_table_foreign_keys(
             self.max_authority, table_prefix=False
         )
         foreign_keys.extend(self.rdb.get_additional_foreign_keys(self.max_authority))
-        return foreign_keys
+        
+        # Gather all keys.
+        all_keys.append(primary_key)
+        all_keys.extend(foreign_keys)
+        return all_keys
 
     def get_empty_manifest(self, json_schema_filepath=None):
         """Create an empty manifest using specifications from the
@@ -1180,16 +1187,16 @@ class ManifestGenerator(object):
                 Each of whom link to a gs manifest.
         """
         json_schema = self._get_json_schema(json_schema_filepath)
-        foreign_keys = self._get_rdb_root_fks()
+        all_keys = self._get_rdb_root_keys()
         spreadsheet_ids = [
-            self._create_empty_manifest_spreadsheet(self.title) for i in foreign_keys
+            self._create_empty_manifest_spreadsheet(self.title) for i in all_keys
         ]
         prop_label_to_display_name = self.sg.se.property_label_to_display_dict(
             json_schema["properties"].keys()
         )
         # Determine the fields/attributes to include per manifest
         req_fields_per_manifest = self._get_required_fields_per_manifest(
-            foreign_keys, json_schema, prop_label_to_display_name
+            all_keys, json_schema, prop_label_to_display_name
         )
         # Gather all data for generating each manifest
         required_metadata_fields_per_manifest = []
