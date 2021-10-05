@@ -973,7 +973,7 @@ class ManifestGenerator(object):
             # entities to files and folders (ignoring tables/views)
             annotations = pd.DataFrame()
             if self.is_file_based:
-                annotations = syn_store.getDatasetAnnotations(dataset_id)
+                annotations = store.getDatasetAnnotations(dataset_id)
 
             # Subset columns if no interested in user-defined annotations
             if self.is_file_based and not self.use_annotations:
