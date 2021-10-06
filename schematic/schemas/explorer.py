@@ -433,14 +433,13 @@ class SchemaExplorer:
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
         label = label[:1].lower() + label[1:] if label else ''
         """
-        label = re.sub(r"[\s-]", "", display_name)
+        label = re.sub(r"[\s()-]", "", display_name)
         label = re.sub(r"[^A-Za-z0-9_.]", "_", label)
         return label
 
     def get_class_label_from_display_name(self, display_name):
         """Convert a given display name string into a proper class label string"""
-        label = re.sub(r"[\s-]", "", display_name)
-        label = re.sub(r"[^A-Za-z0-9_.]", "_", label)
+        label = self.get_property_label_from_display_name(display_name)
         return label
 
     def get_class_by_property(self, property_display_name):
