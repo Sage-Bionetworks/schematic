@@ -5,10 +5,16 @@ import pandas as pd
 import numpy as np
 
 import sqlalchemy as sa
-from sqlalchemy import  Table, Column, Text, Integer, String, ForeignKey, ForeignKeyConstraint
+from sqlalchemy import  Table, Column, Text, Integer, String, ForeignKey, ForeignKeyConstraint, inspect
+from sqlalchemy.ext.automap import automap_base, generate_relationship, name_for_collection_relationship
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy_schemadisplay import create_schema_graph, create_uml_graph
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import interfaces
+from sqlalchemy.orm import relationship, backref
+
+from schematic import schemas
+from schematic.schemas.explorer import SchemaExplorer
+from schematic.schemas.generator import SchemaGenerator
 
 
 from schematic.db.rdb import RDB
@@ -60,6 +66,10 @@ class SQL(object):
         # create a sqlalchemy metadata object to hold all sqlalchemy DB objects
         self.metadata = sa.MetaData()
 
+        #MD
+        # get metadata model schema graph
+        self.mm_graph = self.rdb.sg.se.get_nx_schema()
+
 
     def create_db_sa(self) -> None:
         """ Create a SQL DB schema, if a DB schema with this name doesn't exist
@@ -107,6 +117,26 @@ class SQL(object):
         pk_tables = list(pk_table_set)
         return pk_tables, fks
 
+    def reverse_dict_with_list(self, d):
+        r_dict = {}
+        for key, value in d.items():
+            for v in value:
+                if v not in r_dict.keys():
+                    r_dict[v] = []
+                r_dict[v].append(key)
+        return r_dict
+
+    def _find_child_parent_relationships(self):
+        # Refers to sql alchemy parent child relationships.
+        # First for each table, track the tables where the foreign keys end up
+        
+        child_to_parent_table_dict = {}
+        for table_label in self.rdb.tables.keys():
+            fks = self.rdb.tables[table_label]['foreign_keys']
+            child_to_parent_table_dict[table_label] = [fk.split('.')[0] for fk in fks]
+        parent_to_child_table_dict = self.reverse_dict_with_list(child_to_parent_table_dict)
+        return child_to_parent_table_dict, parent_to_child_table_dict
+
     def create_table_sa(self, table_label:str) -> str:
         """ Given a table label in the RDB schema generate a sqlalchemy table object
 
@@ -131,7 +161,7 @@ class SQL(object):
         pk = self.rdb.tables[table_label]['primary_key']
         col = Column(pk, String(128), primary_key = True, autoincrement = False, nullable = False)
         columns.append(col)
-
+        
         # set FKs 
         for fk in self.rdb.tables[table_label]['foreign_keys']:
             #Infer how a FK should attach to a PK based on its naming.
@@ -165,7 +195,7 @@ class SQL(object):
                 columns.append(col)
                 col = ForeignKeyConstraint([fk_attr], [fk])
                 columns.append(col)
-            
+
         table_sql = Table(table_label, self.metadata, *columns)
         logger.debug("Successfully added table " + table_label + " to sqlalchemy metadata model")
 
@@ -176,9 +206,8 @@ class SQL(object):
             Returns:
                 None
         """
-
+    
         pk_tables, fks = self.find_matched_tables_fks()
-
         # For each table in the RDB layer, create a sqlalchemy table object
         # Create SA table first for tables where there are primary keys with 
         # many relationships (so that they can be referenced by other tables)
@@ -187,11 +216,56 @@ class SQL(object):
 
         for table_label in self.rdb.tables.keys():
             if table_label not in pk_tables:
-                self.create_table_sa(table_label) 
+                self.create_table_sa(table_label)
 
         # create all tables (if not existing)
         self.metadata.create_all(self.engine)
 
+        
+        # reflect metadata
+        self.metadata.reflect(self.engine)
+        # we can then produce a set of mappings from this MetaData.
+        Base = automap_base(metadata=self.metadata)
+
+        # calling prepare() just sets up mapped classes and relationships.
+        Base.prepare()
+        Resource = Base.classes.Resource
+        Genetic_Reagent = Base.classes.GeneticReagent
+        Observation = Base.classes.Observation
+
+        '''
+        gr_attr_name = name_for_collection_relationship(Base, Genetic_Reagent, Resource, None)
+
+        g_to_r_rel = generate_relationship(Base, interfaces.ONETOMANY, relationship, gr_attr_name, Genetic_Reagent, Resource)
+        r_to_g_rel = generate_relationship(Base, interfaces.MANYTOONE, backref, gr_attr_name, Resource, Genetic_Reagent)
+
+        r_attr_name = name_for_collection_relationship(Base, Resource, Observation, None)
+        r_to_o_rel = generate_relationship(Base, interfaces.ONETOMANY, relationship, r_attr_name, Resource, Observation)
+        r_to_g_rel = generate_relationship(Base, interfaces.MANYTOONE, backref, r_attr_name, Observation, Resource)
+        '''
+        self.base_metadata = Base.metadata
+        # create all tables (if not existing)
+        self.base_metadata.create_all(self.engine)
+
+        all_resource_dirs = []
+        for r in inspect(Resource).relationships:
+            all_resource_dirs.append(r.direction)
+
+        all_observation_dirs = []
+        for r in inspect(Observation).relationships:
+            all_observation_dirs.append(r.direction)
+
+        self.base_metadata.reflect(self.engine)
+        graph = create_schema_graph(metadata = self.base_metadata,
+        show_datatypes = False, # The image would get nasty big if we'd show the datatypes
+        show_indexes = False, # ditto for indexes
+        rankdir = 'LR', # From left to right (instead of top to bottom)
+        concentrate = False # Don't try to join the relation lines together
+        )
+        output_path = "/Users/mialydefelice/Documents/schematic_b/schematic/tests/data/"  + 'test' + ".rdb.model.png"
+        graph.write_png(output_path) # write out the file
+
+        
     
     def update_table_sa(self, table_label: str, update_table: pd.DataFrame, dialect: str = 'mysql') -> str:
         """ Given a normalized table data frame, update corresponding DB table indicated by table_label.
