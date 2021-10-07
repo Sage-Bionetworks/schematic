@@ -978,7 +978,7 @@ class ManifestGenerator(object):
             # if there are no files with annotations just generate an empty manifest
             if not annotations:
                 manifest_url = self.get_empty_manifest() 
-                manifest_df = pd.DataFrame()
+                manifest_df = self.get_dataframe_by_url(manifest_url)
             else:
                 # Subset columns if no interested in user-defined annotations and there are files present
                 if self.is_file_based and not self.use_annotations:
