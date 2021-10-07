@@ -976,7 +976,7 @@ class ManifestGenerator(object):
                 annotations = store.getDatasetAnnotations(dataset_id)
 
             # if there are no files with annotations just generate an empty manifest
-            if not annotations:
+            if annotations.empty:
                 manifest_url = self.get_empty_manifest() 
                 manifest_df = self.get_dataframe_by_url(manifest_url)
             else:
