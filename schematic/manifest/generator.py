@@ -968,19 +968,24 @@ class ManifestGenerator(object):
 
         # Generate empty template and optionally fill in with annotations
         else:
-
+            
             # Using getDatasetAnnotations() to retrieve file names and subset
             # entities to files and folders (ignoring tables/views)
             annotations = pd.DataFrame()
             if self.is_file_based:
                 annotations = store.getDatasetAnnotations(dataset_id)
 
-            # Subset columns if no interested in user-defined annotations
-            if self.is_file_based and not self.use_annotations:
-                annotations = annotations[["Filename", "eTag", "entityId"]]
+            # if there are no files with annotations just generate an empty manifest
+            if not annotations:
+                manifest_url = self.get_empty_manifest() 
+                manifest_df = pd.DataFrame()
+            else:
+                # Subset columns if no interested in user-defined annotations and there are files present
+                if self.is_file_based and not self.use_annotations:
+                    annotations = annotations[["Filename", "eTag", "entityId"]]
 
-            # Update `additional_metadata` and generate manifest
-            manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
+                # Update `additional_metadata` and generate manifest
+                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
 
             if sheet_url:
                 return manifest_url

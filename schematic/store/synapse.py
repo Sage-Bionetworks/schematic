@@ -632,6 +632,12 @@ class SynapseStorage(BaseStorage):
         """
         # Get all files in given dataset
         dataset_files = self.getFilesInStorageDataset(datasetId)
+
+        # if there are no dataset files, there are no annotations
+        # return None
+        if not dataset_files:
+            return None
+
         dataset_files_map = dict(dataset_files)
         dataset_file_ids, _ = list(zip(*dataset_files))
 
