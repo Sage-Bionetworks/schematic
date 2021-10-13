@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional, Text, List, TextIO
 import logging
 
+import os
 import pandas as pd
 import numpy as np
 
@@ -191,10 +192,10 @@ class SQL(object):
             # If FK and PKs match.
             else:
                 fk_attr = self.rdb.get_attr_from_fk(fk)
-                col = Column(fk_attr, String(128))
+                col = Column(fk_attr, String(128), ForeignKey(fk), nullable=True)
                 columns.append(col)
-                col = ForeignKeyConstraint([fk_attr], [fk])
-                columns.append(col)
+                #col = ForeignKeyConstraint([fk_attr], [fk])
+                #columns.append(col)
 
         table_sql = Table(table_label, self.metadata, *columns)
         logger.debug("Successfully added table " + table_label + " to sqlalchemy metadata model")
@@ -221,52 +222,6 @@ class SQL(object):
         # create all tables (if not existing)
         self.metadata.create_all(self.engine)
 
-        
-        # reflect metadata
-        self.metadata.reflect(self.engine)
-        # we can then produce a set of mappings from this MetaData.
-        Base = automap_base(metadata=self.metadata)
-
-        # calling prepare() just sets up mapped classes and relationships.
-        Base.prepare()
-        Resource = Base.classes.Resource
-        Genetic_Reagent = Base.classes.GeneticReagent
-        Observation = Base.classes.Observation
-
-        '''
-        gr_attr_name = name_for_collection_relationship(Base, Genetic_Reagent, Resource, None)
-
-        g_to_r_rel = generate_relationship(Base, interfaces.ONETOMANY, relationship, gr_attr_name, Genetic_Reagent, Resource)
-        r_to_g_rel = generate_relationship(Base, interfaces.MANYTOONE, backref, gr_attr_name, Resource, Genetic_Reagent)
-
-        r_attr_name = name_for_collection_relationship(Base, Resource, Observation, None)
-        r_to_o_rel = generate_relationship(Base, interfaces.ONETOMANY, relationship, r_attr_name, Resource, Observation)
-        r_to_g_rel = generate_relationship(Base, interfaces.MANYTOONE, backref, r_attr_name, Observation, Resource)
-        '''
-        self.base_metadata = Base.metadata
-        # create all tables (if not existing)
-        self.base_metadata.create_all(self.engine)
-
-        all_resource_dirs = []
-        for r in inspect(Resource).relationships:
-            all_resource_dirs.append(r.direction)
-
-        all_observation_dirs = []
-        for r in inspect(Observation).relationships:
-            all_observation_dirs.append(r.direction)
-
-        self.base_metadata.reflect(self.engine)
-        graph = create_schema_graph(metadata = self.base_metadata,
-        show_datatypes = False, # The image would get nasty big if we'd show the datatypes
-        show_indexes = False, # ditto for indexes
-        rankdir = 'LR', # From left to right (instead of top to bottom)
-        concentrate = False # Don't try to join the relation lines together
-        )
-        output_path = "/Users/mialydefelice/Documents/schematic_b/schematic/tests/data/"  + 'test' + ".rdb.model.png"
-        graph.write_png(output_path) # write out the file
-
-        
-    
     def update_table_sa(self, table_label: str, update_table: pd.DataFrame, dialect: str = 'mysql') -> str:
         """ Given a normalized table data frame, update corresponding DB table indicated by table_label.
         For each row to be updated; only insert a row if no primary key duplicates; ow update existing keys.
@@ -303,6 +258,7 @@ class SQL(object):
             
             # change NaN values to ""
             update_table = update_table.fillna("NaN")
+            #update_table = update_table.fillna(None)
 
             # get row data 
             rows = update_table.to_dict('split')["data"]
@@ -313,9 +269,12 @@ class SQL(object):
                 query = "INSERT INTO `" + table_label + "` " + columns_isqlf +\
                         " VALUES " + columns_vsqlf +\
                         " ON DUPLICATE KEY UPDATE " + columns_usqlf
-               
-                # execute query; note we have to pass row twice to fill in all format strings 
-                self.engine.execute(query, row + row)
+                try:
+                    # execute query; note we have to pass row twice to fill in all format strings 
+                    self.engine.execute(query, row + row)
+                except:
+                    row = [None if x is 'NaN' or x is '\n' else x for x in row]                
+                    self.engine.execute(query, row + row)
 
         return table_label
 
@@ -410,6 +369,13 @@ class SQL(object):
         replace_table.to_sql(table_label, self.engine, if_exists = 'replace', index = False)
 
         return table_label
+
+    def execute_and_save_query(self, sql_model, query, output_path):
+
+        output_file_path = os.path.join(output_path, query[1] + '.csv')
+        df = pd.read_sql(query[0], self.connection)
+
+        return df.to_csv(output_file_path)
 
     def viz_sa_schema(self, output_path: str) -> str:
         """ From sqlalchemy recipes:
