@@ -1,3 +1,4 @@
+import argparse
 import os
 from os import walk
 from pathlib import Path
@@ -15,13 +16,62 @@ logger = logging.getLogger(__name__)
 
 DATA_DIR = os.path.join(os.getcwd(), 'tests', 'data')
 
+# TODO:
+# Format citation data in JSONLD format.
+
 class sql_query():
 
     def __init__(self,
             ) -> None:
         
         self.sql_queries = [
-        ('SELECT * FROM Development', 'development_table'),
+        ('SELECT * FROM Resource', \
+            'syn26344826'),
+        ('SELECT * FROM `Development` \
+            JOIN `Investigator` \
+            USING(investigatorId)', \
+            'syn26344827'),
+        ('SELECT * FROM `Development` \
+            JOIN `Publication`\
+            USING(publicationId)',\
+            'syn26344828'),
+        ('SELECT * FROM `Development` \
+            JOIN `Funder`\
+            USING(funderId)',\
+            'syn26344829'),
+        ('SELECT * from `Resource` \
+            INNER JOIN `VendorItem` \
+            USING(resourceID) \
+            INNER JOIN `Vendor` \
+            USING(vendorId)',\
+            'syn26344830'),
+        ('SELECT * FROM `ResourceApplication`', \
+            'syn26344831'),
+        ('SELECT * from `Observation` \
+            INNER JOIN `Development` \
+            USING(resourceId) \
+            INNER JOIN `Publication` \
+            USING(publicationId)',\
+            'syn26344832'),
+        ('SELECT * FROM \
+            (SELECT R.resourceId, R.animalModelId, R.cellLineId, R.rrid, \
+            R.resourceName,R.synonyms, R.resourceType, R.description, \
+            R.mTARequired, R.usageRequirements, R.dateAdded, R.dateModified, \
+            M.mutationId, M.mutationDetailsId\
+            FROM `Resource` AS R\
+            JOIN `Mutation` M\
+            ON R.animalModelId = M.animalModelId \
+            UNION ALL \
+            SELECT R.resourceId, R.animalModelId, R.cellLineId, R.rrid, \
+            R.resourceName,R.synonyms, R.resourceType, R.description, \
+            R.mTARequired, R.usageRequirements, R.dateAdded, R.dateModified, \
+            M.mutationId, M.mutationDetailsId\
+            FROM `Resource` AS R\
+            JOIN `Mutation` M\
+            ON R.cellLineId = M.cellLineId) foo\
+            JOIN MutationDetails md\
+            ON md.mutationDetailsId = foo.mutationDetailsId',\
+            'syn26344833'),
         ]
 
         rdb_model = RDB(
@@ -59,4 +109,10 @@ class sql_query():
         return 
 
 if __name__ == '__main__':
+    '''
+    parser = argparse.ArgumentParser(description = 'Run sql queries and optionall push to synapse')
+    parser.add_argument('query_path', help='path to csv file containing the sql queries')
+    parser.add_argument('-to-synapse', help='Update tables in synapse')
+    args = parser.parse_args()
+    '''
     sql_query().run_sql_queries()

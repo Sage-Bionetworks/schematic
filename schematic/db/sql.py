@@ -373,7 +373,9 @@ class SQL(object):
     def execute_and_save_query(self, sql_model, query, output_path):
 
         output_file_path = os.path.join(output_path, query[1] + '.csv')
+
         df = pd.read_sql(query[0], self.connection)
+        df = df.loc[:,~df.columns.duplicated()]
 
         return df.to_csv(output_file_path)
 
