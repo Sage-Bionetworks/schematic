@@ -28,9 +28,6 @@ from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 
-timeout_in_sec = 60 * 3  # 3 minutes timeout limit
-socket.setdefaulttimeout(timeout_in_sec)
-
 
 class ManifestGenerator(object):
     def __init__(
