@@ -56,9 +56,10 @@ Interested in contributing? Awesome! We follow the typical [GitHub workflow](htt
 
 ## Contributors
 
-Active contributors and maintainers:
+Main contributors and developers:
 
 - [Milen Nikolov](https://github.com/milen-sage)
+- [Mialy DeFelice](https://github.com/mialy-defelice)
 - [Sujay Patil](https://github.com/sujaypatil96)
 - [Bruno Grande](https://github.com/BrunoGrandePhD)
 - [Robert Allaway](https://github.com/allaway)
