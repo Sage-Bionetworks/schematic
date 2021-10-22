@@ -950,16 +950,8 @@ class ManifestGenerator(object):
         # match latest schema order
         # move obsolete columns at the end
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
-<<<<<<< HEAD
-        manifest_df = manifest_df[
-            [c for c in manifest_df if c not in out_of_schema_columns]
-            + list(out_of_schema_columns)
-        ]
-
-=======
         manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
     
->>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
@@ -968,23 +960,12 @@ class ManifestGenerator(object):
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
-<<<<<<< HEAD
-        if len(out_of_schema_columns) > 0:
-            start_col = self._column_to_letter(
-                len(wb_header)
-            )  # find start of out of schema columns
-            end_col = self._column_to_letter(
-                len(manifest_df.columns) + 1
-            )  # find end of out of schema columns
-            wb.set_data_validation(start=start_col, end=end_col, condition_type=None)
-=======
         num_out_of_schema_columns = len(out_of_schema_columns)
         if num_out_of_schema_columns > 0: 
             start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
             end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
        
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
->>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -1108,14 +1089,9 @@ class ManifestGenerator(object):
         store = SynapseStorage()
 
         # Get manifest file associated with given dataset (if applicable)
-<<<<<<< HEAD
-        syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
-
-=======
         # populate manifest with set of new files (if applicable)
         manifest_record = store.updateDatasetManifestFiles(datasetId = dataset_id, store = False)
        
->>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
         # Populate empty template with existing manifest
         if manifest_record:
 
@@ -1130,17 +1106,9 @@ class ManifestGenerator(object):
             empty_manifest_url = self.get_empty_manifest()
             
             # populate empty manifest with content from downloaded/existing manifest
-<<<<<<< HEAD
-            pop_manifest_url = self.populate_manifest_spreadsheet(
-                manifest_data.path, empty_manifest_url
-            )
-
-            return pop_manifest_url
-=======
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest_record[1])
 
             return manifest_sh.url
->>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
 
         # Generate empty template and optionally fill in with annotations
         else:
