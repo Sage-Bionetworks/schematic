@@ -961,17 +961,16 @@ class ManifestGenerator(object):
             if create_dropdown:
                 requests_body["requests"].append(create_dropdown)
 
-            if not self.rdb_root:
-                # generate a conditional format rule for each required value (i.e. valid value)
-                # for this field (i.e. if this field is set to a valid value that may require additional
-                # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
-                dependency_formatting_body = self._request_dependency_formatting(
-                    i, req_vals, ordered_metadata_fields, requests_body
+            # generate a conditional format rule for each required value (i.e. valid value)
+            # for this field (i.e. if this field is set to a valid value that may require additional
+            # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
+            dependency_formatting_body = self._request_dependency_formatting(
+                i, req_vals, ordered_metadata_fields, requests_body
+            )
+            if dependency_formatting_body["requests"]:
+                requests_body["requests"].append(
+                    dependency_formatting_body["requests"]
                 )
-                if dependency_formatting_body["requests"]:
-                    requests_body["requests"].append(
-                        dependency_formatting_body["requests"]
-                    )
         # Set borders formatting
         borders_formatting = self._request_cell_borders()
         if borders_formatting:
@@ -1025,6 +1024,30 @@ class ManifestGenerator(object):
         manifest_url = "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
         return manifest_url
 
+    def _gather_all_fields(self, fields, json_schema):
+        """Gather all the attributes/fields to include as columns in the manifest.
+        Args:
+            fields(list[str]): fields/attributes to search
+        Returns:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+        """
+        # Get required fields
+        required_metadata_fields = self._get_required_metadata_fields(
+            json_schema, fields
+        )
+        # Add additioal dependencies
+        required_metadata_fields = self._gather_dependency_requirements(
+            json_schema, required_metadata_fields
+        )
+        # Add additional metadata as entries to columns
+        required_metadata_fields = self._get_additional_metadata(
+            required_metadata_fields
+        )
+        return required_metadata_fields
+
     def get_empty_manifest(self, json_schema_filepath=None):
         """Create an empty manifest using specifications from the
         json schema.
@@ -1033,12 +1056,6 @@ class ManifestGenerator(object):
         Returns:
             manifest_url (str): url of the google sheet manifest.
         """
-
-        # Check if creating an empty manifest for the root node of
-        # a relational database. If so, construct them a different way.
-        if self.rdb_root:
-            manifest_urls = self.generate_empty_root_manifests()
-            return manifest_urls
 
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
         json_schema = self._get_json_schema(json_schema_filepath)
