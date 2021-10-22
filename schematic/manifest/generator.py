@@ -991,9 +991,12 @@ class ManifestGenerator(object):
         for i, req in enumerate(ordered_metadata_fields[0]):
             # Gather validation rules and valid values for attribute
             validation_rules = self.sg.get_node_validation_rules(req)
-            valid_values = self._get_valid_values_from_jsonschema_property(
-                json_schema["properties"][req]
-            )
+            if req in json_schema["properties"].keys():
+                valid_values = self._get_valid_values_from_jsonschema_property(
+                    json_schema["properties"][req]
+                )
+            else:
+                valid_values = []
 
             # Set row formatting
             get_row_formatting = self._request_row_format(i, req)
