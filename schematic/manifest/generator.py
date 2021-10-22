@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
@@ -15,6 +15,9 @@ from schematic.utils.google_api_utils import (
     build_service_account_creds,
 )
 from schematic.utils.df_utils import update_df
+
+#TODO: This module should only be aware of the store interface
+# we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
@@ -32,8 +35,6 @@ class ManifestGenerator(object):
         oauth: bool = True,
         use_annotations: bool = False,
     ) -> None:
-
-        """TODO: read in a config file instead of hardcoding paths to credential files..."""
 
         if oauth:
             # if user wants to use OAuth for Google authentication
@@ -924,12 +925,17 @@ class ManifestGenerator(object):
         # column-set of the existing manifest so that the user can modify their data if needed
         # to comply with the latest schema
 
-        # get headers from existing manifest and sheet
+        # get headers from existing manifest and sheet 
         wb_header = wb.get_row(1)
         manifest_df_header = manifest_df.columns
 
         # find missing columns in existing manifest
         new_columns = set(wb_header) - set(manifest_df_header)
+
+        # clean empty columns if any are present (there should be none)
+        # TODO: Remove this line once we start preventing empty column names
+        if '' in new_columns:
+            new_columns = new_columns.remove('')
 
         # find missing columns present in existing manifest but missing in latest schema
         out_of_schema_columns = set(manifest_df_header) - set(wb_header)
@@ -944,11 +950,16 @@ class ManifestGenerator(object):
         # match latest schema order
         # move obsolete columns at the end
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
+<<<<<<< HEAD
         manifest_df = manifest_df[
             [c for c in manifest_df if c not in out_of_schema_columns]
             + list(out_of_schema_columns)
         ]
 
+=======
+        manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
+    
+>>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
@@ -957,6 +968,7 @@ class ManifestGenerator(object):
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
+<<<<<<< HEAD
         if len(out_of_schema_columns) > 0:
             start_col = self._column_to_letter(
                 len(wb_header)
@@ -965,6 +977,14 @@ class ManifestGenerator(object):
                 len(manifest_df.columns) + 1
             )  # find end of out of schema columns
             wb.set_data_validation(start=start_col, end=end_col, condition_type=None)
+=======
+        num_out_of_schema_columns = len(out_of_schema_columns)
+        if num_out_of_schema_columns > 0: 
+            start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
+            end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
+       
+            wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
+>>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -1064,8 +1084,9 @@ class ManifestGenerator(object):
 
     def get_manifest(
         self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None
-    ):
+    ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
+           TODO: move this function to class MetadatModel (after MetadataModel is refactored)
 
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
@@ -1080,56 +1101,73 @@ class ManifestGenerator(object):
             return self.get_empty_manifest(json_schema_filepath=json_schema)
 
         # Otherwise, create manifest using the given dataset
-        syn_store = SynapseStorage()
+        #TODO: avoid explicitly exposing Synapse store functionality
+        # just instantiate a Store class and let it decide at runtime/config
+        # the store type
+
+        store = SynapseStorage()
 
         # Get manifest file associated with given dataset (if applicable)
+<<<<<<< HEAD
         syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
 
+=======
+        # populate manifest with set of new files (if applicable)
+        manifest_record = store.updateDatasetManifestFiles(datasetId = dataset_id, store = False)
+       
+>>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
         # Populate empty template with existing manifest
-        if syn_id_and_path:
+        if manifest_record:
 
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
 
-            # get synapse ID manifest associated with dataset
-            manifest_data = syn_store.getDatasetManifest(
-                datasetId=dataset_id, downloadFile=True
-            )
-
             # If the sheet URL isn't requested, simply return a pandas DataFrame
             if not sheet_url:
-                return pd.read_csv(manifest_data.path)
+                return manifest_record[1]
 
             # get URL of an empty manifest file created based on schema component
             empty_manifest_url = self.get_empty_manifest()
-
+            
             # populate empty manifest with content from downloaded/existing manifest
+<<<<<<< HEAD
             pop_manifest_url = self.populate_manifest_spreadsheet(
                 manifest_data.path, empty_manifest_url
             )
 
             return pop_manifest_url
+=======
+            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest_record[1])
+
+            return manifest_sh.url
+>>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
 
         # Generate empty template and optionally fill in with annotations
         else:
-
+            
             # Using getDatasetAnnotations() to retrieve file names and subset
             # entities to files and folders (ignoring tables/views)
             annotations = pd.DataFrame()
             if self.is_file_based:
-                annotations = syn_store.getDatasetAnnotations(dataset_id)
+                annotations = store.getDatasetAnnotations(dataset_id)
 
-            # Subset columns if no interested in user-defined annotations
-            if self.is_file_based and not self.use_annotations:
-                annotations = annotations[["Filename", "eTag", "entityId"]]
+            # if there are no files with annotations just generate an empty manifest
+            if annotations.empty:
+                manifest_url = self.get_empty_manifest() 
+                manifest_df = self.get_dataframe_by_url(manifest_url)
+            else:
+                # Subset columns if no interested in user-defined annotations and there are files present
+                if self.is_file_based and not self.use_annotations:
+                    annotations = annotations[["Filename", "eTag", "entityId"]]
 
-            # Update `additional_metadata` and generate manifest
-            manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
+                # Update `additional_metadata` and generate manifest
+                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
 
             if sheet_url:
                 return manifest_url
             else:
                 return manifest_df
+
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
         """Creates a google sheet manifest based on existing manifest.
