@@ -959,7 +959,6 @@ class ManifestGenerator(object):
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
-
         num_out_of_schema_columns = len(out_of_schema_columns)
         if num_out_of_schema_columns > 0: 
             start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
