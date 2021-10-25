@@ -889,6 +889,9 @@ def create_nx_schema_objects(
                 range_values_list = range_values.strip().strip(",").split(",")
 
             for val in range_values_list:
+                # Skip blank valid values to avoid downstream problems
+                if val.strip() == "":
+                    continue
                 # check if value is in attributes column; add it as a class if not
                 if not val.strip() in list(schema_extension["Attribute"]):
 
