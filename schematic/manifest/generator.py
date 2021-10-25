@@ -320,6 +320,152 @@ class ManifestGenerator(object):
         else:
             return []
 
+    def _update_base_color_request(self, i: int, color={"red": 1.0}):
+        """
+        Change color of text in column we are validating
+        to red.
+        """
+        vr_format_body = {
+            "requests": [
+                {
+                    "repeatCell": {
+                        "range": {
+                            "startColumnIndex": i,
+                            "endColumnIndex": i + 1,
+                            "startRowIndex": 1,
+                        },
+                        "cell": {
+                            "userEnteredFormat": {
+                                "textFormat": {"foregroundColor": color}
+                            }
+                        },
+                        "fields": "userEnteredFormat(textFormat)",
+                    }
+                }
+            ]
+        }
+        return vr_format_body
+
+    def _make_regex_vr_request(self, gs_formula, i:int, text_color={"red": 1}):
+        """
+        Generate request to change font color to black upon corretly formatted
+        user entry.
+        """
+        requests_vr = {
+            "requests": [
+                {
+                    "addConditionalFormatRule": {
+                        "rule": {
+                            "ranges": {
+                                "startColumnIndex": i,
+                                "endColumnIndex": i + 1,
+                                "startRowIndex": 1,
+                            },
+                            "booleanRule": {
+                                "condition": {
+                                    "type": "CUSTOM_FORMULA",
+                                    "values": gs_formula,
+                                },
+                                "format": {
+                                    "textFormat": {
+                                        "foregroundColor": text_color
+                                    }
+                                },
+                            },
+                        },
+                        "index": 0,
+                    }
+                }
+            ]
+        }
+        return requests_vr
+
+    def _apply_validation_rules_to_sheets(self, validation_rules: List[str], i: int,
+        spreadsheet_id: str, requests_body: dict,
+        ):
+        """
+        Purpose:
+            - Apply regular expression validaiton rules to google sheets.
+            - Will only be run if the regex module specified in the validation
+            rules is 'match'.
+                - This is because of the limitations of google sheets regex.
+                - Users can additionally add 'strict' to the end of their validation
+                rules. This would allow the rule itself to set the level of strictness,
+                otherwise it would fall to the default level set in the config file.
+            - Will do the following:
+                - In google sheets user entry text will initially appear red.
+                - Upon correct format entry, text will turn black.
+                - If incorrect format is entered a validation error will pop up.
+        Input:
+            validation_rules: List[str], defines the validation rules
+                applied to a particular column.
+            i: int, defines current column.
+        Returns:
+            Performs an in function update of the google sheet to 
+            comply with conditional formating and data validation 
+            specifications.
+        """
+        split_rules = validation_rules[0].split(" ")
+        if split_rules[0] == "regex" and split_rules[1] == "match":
+            # Set things up:
+            ## Extract the regular expression we are validating against.
+            regular_expression = split_rules[2]
+            ## Define text color to update to upon correct user entry
+            text_color = {"red": 0, "green": 0, "blue": 0}
+            ## Define google sheets regular expression formula
+            gs_formula = [
+                {
+                    "userEnteredValue": '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(
+                        regular_expression
+                    )
+                }
+            ]
+            ## Set validaiton strictness based on user specifications.
+            strict = None
+            if split_rules[-1].lower() == "strict":
+                strict = True
+
+            ## Create error message for users if they enter value with incorrect formatting
+            input_message = (
+                f"Values in this column are being validated "
+                f"against the following regular expression ({regular_expression}) "
+                f"to ensure for accuracy. Please re-enter value according to these "
+                f"formatting rules"
+            )
+
+            # Create Requests:
+            ## Change request to change the text color of the column we are validating to red.
+            requests_vr_format_body = self._update_base_color_request(
+                i,
+                color={
+                    "red": 232.0 / 255.0,
+                    "green": 80.0 / 255.0,
+                    "blue": 70.0 / 255.0,
+                }
+            )
+
+            ## Create request to for conditionally formatting user input.
+            requests_vr = self._make_regex_vr_request(gs_formula, i, text_color)
+
+            ## Create request to generate data validator.
+            requests_data_validation_vr = self._get_column_data_validation_values(
+                spreadsheet_id,
+                valid_values=gs_formula,
+                column_id=i,
+                strict=strict,
+                custom_ui=False,
+                input_message=input_message,
+                validation_type="CUSTOM_FORMULA",
+            )
+            requests_body["requests"].append(
+                requests_vr_format_body["requests"]
+            )
+            requests_body["requests"].append(requests_vr["requests"])
+            requests_body["requests"].append(
+                requests_data_validation_vr["requests"]
+            )
+        return
+
     def get_empty_manifest(self, json_schema_filepath=None):
         # TODO: Refactor get_manifest method
         # - abstract function for requirements gathering
@@ -580,156 +726,9 @@ class ManifestGenerator(object):
 
                 requests_body["requests"].append(notes_body["requests"])
 
-            def apply_validation_rules_to_sheets(validation_rules: List[str], i: int):
-                """
-                Purpose:
-                    - Apply regular expression validaiton rules to google sheets.
-                    - Will only be run if the regex module specified in the validation
-                    rules is 'match'.
-                        - This is because of the limitations of google sheets regex.
-                        - Users can additionally add 'strict' to the end of their validation
-                        rules. This would allow the rule itself to set the level of strictness,
-                        otherwise it would fall to the default level set in the config file.
-                    - Will do the following:
-                        - In google sheets user entry text will initially appear red.
-                        - Upon correct format entry, text will turn black.
-                        - If incorrect format is entered a validation error will pop up.
-                Input:
-                    validation_rules: List[str], defines the validation rules
-                        applied to a particular column.
-                    i: int, defines current column.
-                Returns:
-                    Performs an in function update of the google sheet to 
-                    comply with conditional formating and data validation 
-                    specifications.
-                TODO:
-                    Add to a different location in script, but might be confusing
-                    since other updaters are not in function, and this function is not
-                    very general.
-                """
-
-                def update_base_color_request(color={"red": 1.0}):
-                    """
-                    Change color of text in column we are validating
-                    to red.
-                    """
-                    vr_format_body = {
-                        "requests": [
-                            {
-                                "repeatCell": {
-                                    "range": {
-                                        "startColumnIndex": i,
-                                        "endColumnIndex": i + 1,
-                                        "startRowIndex": 1,
-                                    },
-                                    "cell": {
-                                        "userEnteredFormat": {
-                                            "textFormat": {"foregroundColor": color}
-                                        }
-                                    },
-                                    "fields": "userEnteredFormat(textFormat)",
-                                }
-                            }
-                        ]
-                    }
-                    return vr_format_body
-
-                def make_regex_vr_request(gs_formula, text_color={"red": 1}):
-                    """
-                    Generate request to change font color to black upon corretly formatted
-                    user entry.
-                    """
-                    requests_vr = {
-                        "requests": [
-                            {
-                                "addConditionalFormatRule": {
-                                    "rule": {
-                                        "ranges": {
-                                            "startColumnIndex": i,
-                                            "endColumnIndex": i + 1,
-                                            "startRowIndex": 1,
-                                        },
-                                        "booleanRule": {
-                                            "condition": {
-                                                "type": "CUSTOM_FORMULA",
-                                                "values": gs_formula,
-                                            },
-                                            "format": {
-                                                "textFormat": {
-                                                    "foregroundColor": text_color
-                                                }
-                                            },
-                                        },
-                                    },
-                                    "index": 0,
-                                }
-                            }
-                        ]
-                    }
-                    return requests_vr
-
-                if validation_rules:
-                    split_rules = validation_rules[0].split(" ")
-                    if split_rules[0] == "regex" and split_rules[1] == "match":
-                        # Set things up:
-                        ## Extract the regular expression we are validating against.
-                        regular_expression = split_rules[2]
-                        ## Define text color to update to upon correct user entry
-                        text_color = {"red": 0, "green": 0, "blue": 0}
-                        ## Define google sheets regular expression formula
-                        gs_formula = [
-                            {
-                                "userEnteredValue": '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(
-                                    regular_expression
-                                )
-                            }
-                        ]
-                        ## Set validaiton strictness based on user specifications.
-                        strict = None
-                        if split_rules[-1].lower() == "strict":
-                            strict = True
-
-                        ## Create error message for users if they enter value with incorrect formatting
-                        input_message = (
-                            f"Values in this column are being validated "
-                            f"against the following regular expression ({regular_expression}) "
-                            f"to ensure for accuracy. Please re-enter value according to these "
-                            f"formatting rules"
-                        )
-
-                        # Create Requests:
-                        ## Change request to change the text color of the column we are validating to red.
-                        requests_vr_format_body = update_base_color_request(
-                            color={
-                                "red": 232.0 / 255.0,
-                                "green": 80.0 / 255.0,
-                                "blue": 70.0 / 255.0,
-                            }
-                        )
-
-                        ## Create request to for conditionally formatting user input.
-                        requests_vr = make_regex_vr_request(gs_formula, text_color)
-
-                        ## Create request to generate data validator.
-                        requests_data_validation_vr = self._get_column_data_validation_values(
-                            spreadsheet_id,
-                            valid_values=gs_formula,
-                            column_id=i,
-                            strict=strict,
-                            custom_ui=False,
-                            input_message=input_message,
-                            validation_type="CUSTOM_FORMULA",
-                        )
-                        requests_body["requests"].append(
-                            requests_vr_format_body["requests"]
-                        )
-                        requests_body["requests"].append(requests_vr["requests"])
-                        requests_body["requests"].append(
-                            requests_data_validation_vr["requests"]
-                        )
-                return
-
-            apply_validation_rules_to_sheets(validation_rules, i)
+            
+            if validation_rules:
+                self._apply_validation_rules_to_sheets(validation_rules, i, spreadsheet_id, requests_body)
 
             # update background colors so that columns that are required are highlighted
             # check if attribute is required and set a corresponding color
@@ -950,16 +949,8 @@ class ManifestGenerator(object):
         # match latest schema order
         # move obsolete columns at the end
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
-<<<<<<< HEAD
-        manifest_df = manifest_df[
-            [c for c in manifest_df if c not in out_of_schema_columns]
-            + list(out_of_schema_columns)
-        ]
-
-=======
         manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
     
->>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
@@ -968,23 +959,13 @@ class ManifestGenerator(object):
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
-<<<<<<< HEAD
-        if len(out_of_schema_columns) > 0:
-            start_col = self._column_to_letter(
-                len(wb_header)
-            )  # find start of out of schema columns
-            end_col = self._column_to_letter(
-                len(manifest_df.columns) + 1
-            )  # find end of out of schema columns
-            wb.set_data_validation(start=start_col, end=end_col, condition_type=None)
-=======
+
         num_out_of_schema_columns = len(out_of_schema_columns)
         if num_out_of_schema_columns > 0: 
             start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
             end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
        
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
->>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -1108,14 +1089,9 @@ class ManifestGenerator(object):
         store = SynapseStorage()
 
         # Get manifest file associated with given dataset (if applicable)
-<<<<<<< HEAD
-        syn_id_and_path = syn_store.getDatasetManifest(datasetId=dataset_id)
-
-=======
         # populate manifest with set of new files (if applicable)
         manifest_record = store.updateDatasetManifestFiles(datasetId = dataset_id, store = False)
        
->>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
         # Populate empty template with existing manifest
         if manifest_record:
 
@@ -1130,17 +1106,9 @@ class ManifestGenerator(object):
             empty_manifest_url = self.get_empty_manifest()
             
             # populate empty manifest with content from downloaded/existing manifest
-<<<<<<< HEAD
-            pop_manifest_url = self.populate_manifest_spreadsheet(
-                manifest_data.path, empty_manifest_url
-            )
-
-            return pop_manifest_url
-=======
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest_record[1])
 
             return manifest_sh.url
->>>>>>> 372c1a69edb1a01f3f31b32f9c50e492c7b3d95e
 
         # Generate empty template and optionally fill in with annotations
         else:
