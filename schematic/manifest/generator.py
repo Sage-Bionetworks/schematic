@@ -320,162 +320,14 @@ class ManifestGenerator(object):
         else:
             return []
 
-    def _update_base_color_request(self, i: int, color={"red": 1.0}):
-        """
-        Change color of text in column we are validating
-        to red.
-        """
-        vr_format_body = {
-            "requests": [
-                {
-                    "repeatCell": {
-                        "range": {
-                            "startColumnIndex": i,
-                            "endColumnIndex": i + 1,
-                            "startRowIndex": 1,
-                        },
-                        "cell": {
-                            "userEnteredFormat": {
-                                "textFormat": {"foregroundColor": color}
-                            }
-                        },
-                        "fields": "userEnteredFormat(textFormat)",
-                    }
-                }
-            ]
-        }
-        return vr_format_body
 
-    def _make_regex_vr_request(self, gs_formula, i:int, text_color={"red": 1}):
-        """
-        Generate request to change font color to black upon corretly formatted
-        user entry.
-        """
-        requests_vr = {
-            "requests": [
-                {
-                    "addConditionalFormatRule": {
-                        "rule": {
-                            "ranges": {
-                                "startColumnIndex": i,
-                                "endColumnIndex": i + 1,
-                                "startRowIndex": 1,
-                            },
-                            "booleanRule": {
-                                "condition": {
-                                    "type": "CUSTOM_FORMULA",
-                                    "values": gs_formula,
-                                },
-                                "format": {
-                                    "textFormat": {
-                                        "foregroundColor": text_color
-                                    }
-                                },
-                            },
-                        },
-                        "index": 0,
-                    }
-                }
-            ]
-        }
-        return requests_vr
-
-    def _apply_validation_rules_to_sheets(self, validation_rules: List[str], i: int,
-        spreadsheet_id: str, requests_body: dict,
-        ):
-        """
-        Purpose:
-            - Apply regular expression validaiton rules to google sheets.
-            - Will only be run if the regex module specified in the validation
-            rules is 'match'.
-                - This is because of the limitations of google sheets regex.
-                - Users can additionally add 'strict' to the end of their validation
-                rules. This would allow the rule itself to set the level of strictness,
-                otherwise it would fall to the default level set in the config file.
-            - Will do the following:
-                - In google sheets user entry text will initially appear red.
-                - Upon correct format entry, text will turn black.
-                - If incorrect format is entered a validation error will pop up.
-        Input:
-            validation_rules: List[str], defines the validation rules
-                applied to a particular column.
-            i: int, defines current column.
+    def _get_json_schema(self, json_schema_filepath: str) -> Dict:
+        """Open json schema as a dictionary.
+        Args:
+            json_schema_filepath(str): path to json schema file
         Returns:
-            Performs an in function update of the google sheet to 
-            comply with conditional formating and data validation 
-            specifications.
+            Dictionary, containing portions of the json schema
         """
-        split_rules = validation_rules[0].split(" ")
-        if split_rules[0] == "regex" and split_rules[1] == "match":
-            # Set things up:
-            ## Extract the regular expression we are validating against.
-            regular_expression = split_rules[2]
-            ## Define text color to update to upon correct user entry
-            text_color = {"red": 0, "green": 0, "blue": 0}
-            ## Define google sheets regular expression formula
-            gs_formula = [
-                {
-                    "userEnteredValue": '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(
-                        regular_expression
-                    )
-                }
-            ]
-            ## Set validaiton strictness based on user specifications.
-            strict = None
-            if split_rules[-1].lower() == "strict":
-                strict = True
-
-            ## Create error message for users if they enter value with incorrect formatting
-            input_message = (
-                f"Values in this column are being validated "
-                f"against the following regular expression ({regular_expression}) "
-                f"to ensure for accuracy. Please re-enter value according to these "
-                f"formatting rules"
-            )
-
-            # Create Requests:
-            ## Change request to change the text color of the column we are validating to red.
-            requests_vr_format_body = self._update_base_color_request(
-                i,
-                color={
-                    "red": 232.0 / 255.0,
-                    "green": 80.0 / 255.0,
-                    "blue": 70.0 / 255.0,
-                }
-            )
-
-            ## Create request to for conditionally formatting user input.
-            requests_vr = self._make_regex_vr_request(gs_formula, i, text_color)
-
-            ## Create request to generate data validator.
-            requests_data_validation_vr = self._get_column_data_validation_values(
-                spreadsheet_id,
-                valid_values=gs_formula,
-                column_id=i,
-                strict=strict,
-                custom_ui=False,
-                input_message=input_message,
-                validation_type="CUSTOM_FORMULA",
-            )
-            requests_body["requests"].append(
-                requests_vr_format_body["requests"]
-            )
-            requests_body["requests"].append(requests_vr["requests"])
-            requests_body["requests"].append(
-                requests_data_validation_vr["requests"]
-            )
-        return
-
-    def get_empty_manifest(self, json_schema_filepath=None):
-        # TODO: Refactor get_manifest method
-        # - abstract function for requirements gathering
-        # - abstract google sheet API requests as functions
-        # --- specifying row format
-        # --- setting valid values in dropdowns for columns/cells
-        # --- setting notes/comments to cells
-
-        spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
-
         if not json_schema_filepath:
             # if no json schema is provided; there must be
             # schema explorer defined for schema.org schema
@@ -485,11 +337,25 @@ class ManifestGenerator(object):
         else:
             with open(json_schema_filepath) as jsonfile:
                 json_schema = json.load(jsonfile)
+        return json_schema
 
+    def _get_required_metadata_fields(self, json_schema, fields):
+        """For the root node gather dependency requirements (all attributes linked to this node)
+        and corresponding allowed values constraints (i.e. valid values).
+
+        Args:
+            json_schema(dict): representing a handful of values
+                representing the data model, including: '$schema', '$id', 'title',
+                'type', 'properties', 'required'
+            fields(list[str]): fields/attributes to search
+        Returns:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+        """
         required_metadata_fields = {}
-
-        # gathering dependency requirements and corresponding allowed values constraints (i.e. valid values) for root node
-        for req in json_schema["properties"].keys():
+        for req in fields:
             required_metadata_fields[
                 req
             ] = self._get_valid_values_from_jsonschema_property(
@@ -497,8 +363,27 @@ class ManifestGenerator(object):
             )
             # the following line may not be needed
             json_schema["properties"][req]["enum"] = required_metadata_fields[req]
+        return required_metadata_fields
 
-        # gathering dependency requirements and allowed value constraints for conditional dependencies if any
+    def _gather_dependency_requirements(self, json_schema, required_metadata_fields):
+        """Gathering dependency requirements and allowed value constraints
+            for conditional dependencies, if any
+        TODO:
+            Refactor
+        Args:
+            json_schema(dict): representing a handful of values
+                representing the data model, including: '$schema', '$id', 'title',
+                'type', 'properties', 'required'
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+        Returns:
+            required_metadata_fields(dict):
+                updates dictionary to additional attributes, if applicable,
+                as keys with their corresponding valid values.
+        """
+
         if "allOf" in json_schema:
             for conditional_reqs in json_schema["allOf"]:
                 if "required" in conditional_reqs["if"]:
@@ -527,37 +412,91 @@ class ManifestGenerator(object):
                                     json_schema["properties"][req]
                                 )
 
+        return required_metadata_fields
+
+    def _add_root_to_component(self, required_metadata_fields):
+        """If 'Component' is in the column set, add root node as a
+        metadata component entry in the first row of that column.
+        Args:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+        Return:
+            updates self.additional_metadata if appropriate to
+            contain {'Component': [self.root]}
+        """
+
+        if "Component" in required_metadata_fields.keys():
+            # check if additional metadata has actually been instantiated in the
+            # constructor (it's optional) if not, instantiate it
+            if not self.additional_metadata:
+                self.additional_metadata = {}
+            self.additional_metadata["Component"] = [self.root]
+        return
+
+    def _get_additional_metadata(self, required_metadata_fields: dict) -> dict:
+        """Add additional metadata as entries to columns.
+        Args:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+        Return:
+            required_metadata_fields(dict): Updated required_metadata_fields to include additional metadata
+                that is to be added to specified columns
+        """
+        self._add_root_to_component(required_metadata_fields)
         # if additional metadata is provided append columns (if those do not exist already)
         if self.additional_metadata:
             for column in self.additional_metadata.keys():
                 if not column in required_metadata_fields:
                     required_metadata_fields[column] = []
+        return required_metadata_fields
 
-        # if 'component' is in column set (see your input jsonld schema for definition of 'component', if the 'component' attribute is present), add the root node as an additional metadata component entry
-        if "Component" in required_metadata_fields.keys():
-            # check if additional metadata has actually been instantiated in the constructor (it's optional)
-            # if not, instantiate it
-            if not self.additional_metadata:
-                self.additional_metadata = {}
-
-            self.additional_metadata["Component"] = [self.root]
-
-        # adding columns to manifest sheet
+    def _get_column_range_and_order(self, required_metadata_fields):
+        """Find the alphabetical range of columns and sort them.
+        Args:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+        Returns:
+            end_col_letter (chr): google sheet letter representation of a column index integer
+            ordered_metadata_fields(List[list]): Contining all the attributes to
+            add as columns, ordered
+        """
+        # determining columns range
         end_col = len(required_metadata_fields.keys())
         end_col_letter = self._column_to_letter(end_col)
 
         # order columns header (since they are generated based on a json schema, which is a dict)
         ordered_metadata_fields = [list(required_metadata_fields.keys())]
-
         ordered_metadata_fields[0] = self.sort_manifest_fields(
             ordered_metadata_fields[0]
         )
+        return end_col_letter, ordered_metadata_fields
+
+    def _gs_add_and_format_columns(self, required_metadata_fields, spreadsheet_id):
+        """Add columns to the google sheet and format them.
+        Args:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+            spreadsheet_id(str): id of the google sheet
+        Returns:
+            respones: In return for a request, used by google sheet api to add columns
+                to the sheet being generated.
+            ordered_metadata_fields(List[list]): contining all the attributes to
+            add as columns, ordered
+        """
+
+        end_col_letter, ordered_metadata_fields = self._get_column_range_and_order(
+            required_metadata_fields
+        )
 
         body = {"values": ordered_metadata_fields}
-
-        # determining columns range
-        end_col = len(required_metadata_fields.keys())
-        end_col_letter = self._column_to_letter(end_col)
 
         range = "Sheet1!A1:" + str(end_col_letter) + "1"
 
@@ -619,12 +558,25 @@ class ManifestGenerator(object):
             .batchUpdate(spreadsheetId=spreadsheet_id, body=header_format_body)
             .execute()
         )
+        return response, ordered_metadata_fields
 
-        # adding additional metadata values if needed
-        # adding value-constraints from data model as dropdowns
-
-        # fix for issue #410
-        # batch google API request to create metadata template
+    def _gs_add_additional_metadata(
+        self, required_metadata_fields, ordered_metadata_fields, spreadsheet_id
+    ):
+        """Adding additional metadata values, if needed. Add value-constraints
+        from data model as dropdowns. Batch google API request to
+        create metadata template.
+        Args:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+            ordered_metadata_fields(List[list]): contining all the attributes to
+            add as columns, ordered
+            spreadsheet_id(str): id for the google sheet
+        Returns: Response(dict): For batch update to create metadata
+        template.
+        """
         data = []
 
         for i, req in enumerate(ordered_metadata_fields[0]):
@@ -661,221 +613,552 @@ class ManifestGenerator(object):
             )
             .execute()
         )
+        return response
 
-        # end of fix for issue #410
-
-        # store all requests to execute at once
-        requests_body = {}
-        requests_body["requests"] = []
-        for i, req in enumerate(ordered_metadata_fields[0]):
-            values = required_metadata_fields[req]
-
-            # adding description to headers
-            # this is not executed if only JSON schema is defined
-            # TODO: abstract better and document
-
-            # also formatting required columns
-            if self.sg.se:
-
-                # get node definition
-                note = self.sg.get_node_definition(req)
-
-                notes_body = {
-                    "requests": [
-                        {
-                            "updateCells": {
-                                "range": {
-                                    "startRowIndex": 0,
-                                    "endRowIndex": 1,
-                                    "startColumnIndex": i,
-                                    "endColumnIndex": i + 1,
-                                },
-                                "rows": [{"values": [{"note": note}]}],
-                                "fields": "note",
+    def _request_update_base_color(self, i: int, color={"red": 1.0}):
+        """
+        Change color of text in column we are validating
+        to red.
+        """
+        vr_format_body = {
+            "requests": [
+                {
+                    "repeatCell": {
+                        "range": {
+                            "startColumnIndex": i,
+                            "endColumnIndex": i + 1,
+                            "startRowIndex": 1,
+                        },
+                        "cell": {
+                            "userEnteredFormat": {
+                                "textFormat": {"foregroundColor": color}
                             }
-                        }
-                    ]
+                        },
+                        "fields": "userEnteredFormat(textFormat)",
+                    }
                 }
+            ]
+        }
+        return vr_format_body
 
-                requests_body["requests"].append(notes_body["requests"])
-
-            # get node validation rules if any
-            validation_rules = self.sg.get_node_validation_rules(req)
-
-            # if 'list' in validation rules add a note with instructions on
-            # adding a list of multiple values
-            # TODO: add validation and QC rules "compiler/generator" class elsewhere
-            # for now have the list logic here
-            if "list" in validation_rules:
-                note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
-                notes_body = {
-                    "requests": [
-                        {
-                            "repeatCell": {
-                                "range": {
-                                    "startRowIndex": 1,
-                                    "startColumnIndex": i,
-                                    "endColumnIndex": i + 1,
+    def _request_regex_vr(self, gs_formula, i:int, text_color={"red": 1}):
+        """
+        Generate request to change font color to black upon corretly formatted
+        user entry.
+        """
+        requests_vr = {
+            "requests": [
+                {
+                    "addConditionalFormatRule": {
+                        "rule": {
+                            "ranges": {
+                                "startColumnIndex": i,
+                                "endColumnIndex": i + 1,
+                                "startRowIndex": 1,
+                            },
+                            "booleanRule": {
+                                "condition": {
+                                    "type": "CUSTOM_FORMULA",
+                                    "values": gs_formula,
                                 },
-                                "cell": {"note": note},
-                                "fields": "note",
-                            }
-                        }
-                    ]
+                                "format": {
+                                    "textFormat": {
+                                        "foregroundColor": text_color
+                                    }
+                                },
+                            },
+                        },
+                        "index": 0,
+                    }
                 }
+            ]
+        }
+        return requests_vr
 
-                requests_body["requests"].append(notes_body["requests"])
-
-            
-            if validation_rules:
-                self._apply_validation_rules_to_sheets(validation_rules, i, spreadsheet_id, requests_body)
-
-            # update background colors so that columns that are required are highlighted
-            # check if attribute is required and set a corresponding color
-            if req in json_schema["required"]:
-                bg_color = CONFIG["style"]["google_manifest"].get(
-                    "req_bg_color", {"red": 0.9215, "green": 0.9725, "blue": 0.9803,},
-                )
-
-                req_format_body = {
-                    "requests": [
-                        {
-                            "repeatCell": {
-                                "range": {
-                                    "startColumnIndex": i,
-                                    "endColumnIndex": i + 1,
-                                },
-                                "cell": {
-                                    "userEnteredFormat": {"backgroundColor": bg_color}
-                                },
-                                "fields": "userEnteredFormat(backgroundColor)",
-                            }
-                        }
-                    ]
-                }
-
-                requests_body["requests"].append(req_format_body["requests"])
-
-            # adding value-constraints if any
-            req_vals = [{"userEnteredValue": value} for value in values if value]
-
-            if not req_vals:
-                continue
-
-            # generating sheet api request to populate a dropdown or a multi selection UI
-            if len(req_vals) > 0 and not "list" in validation_rules:
-                # if more than 0 values in dropdown use ONE_OF_RANGE type of validation since excel and openoffice
-                # do not support other kinds of data validation for larger number of items (even if individual items are not that many
-                # excel has a total number of characters limit per dropdown...)
-                validation_body = self._get_column_data_validation_values(
-                    spreadsheet_id,
-                    req_vals,
-                    i,
-                    strict=None,
-                    validation_type="ONE_OF_RANGE",
-                )
-
-            elif "list" in validation_rules:
-                # if list is in validation rule attempt to create a multi-value
-                # selection UI, which requires explicit valid values range in
-                # the spreadsheet
-                validation_body = self._get_column_data_validation_values(
-                    spreadsheet_id,
-                    req_vals,
-                    i,
-                    strict=None,
-                    custom_ui=False,
-                    input_message="",
-                    validation_type="ONE_OF_RANGE",
-                )
-
-            else:
-                validation_body = self._get_column_data_validation_values(
-                    spreadsheet_id, req_vals, i, strict=None,
-                )
-
-            requests_body["requests"].append(validation_body["requests"])
-
-            # generate a conditional format rule for each required value (i.e. valid value)
-            # for this field (i.e. if this field is set to a valid value that may require additional
-            # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
-            for req_val in req_vals:
-                # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
-                req_val = req_val["userEnteredValue"]
-
-                req_val_node_label = self.sg.get_node_label(req_val)
-                if not req_val_node_label:
-                    # if this node is not in the graph
-                    # continue - there are no dependencies for it
-                    continue
-
-                # check if this required/valid value has additional dependency attributes
-                val_dependencies = self.sg.get_node_dependencies(
-                    req_val_node_label, schema_ordered=False
-                )
-
-                # prepare request calls
-                dependency_formatting_body = {"requests": []}
-
-                if val_dependencies:
-                    # if there are additional attribute dependencies find the corresponding
-                    # fields that need to be filled in and construct conditional formatting rules
-                    # indicating the dependencies need to be filled in
-
-                    # set target ranges for this rule
-                    # i.e. dependency attribute columns that will be formatted
-
-                    # find dependency column indexes
-                    # note that dependencies values must be in index
-                    # TODO: catch value error that shouldn't happen
-                    column_idxs = [
-                        ordered_metadata_fields[0].index(val_dep)
-                        for val_dep in val_dependencies
-                    ]
-
-                    # construct ranges based on dependency column indexes
-                    rule_ranges = self._columns_to_sheet_ranges(column_idxs)
-                    # go over valid value dependencies
-                    for j, val_dep in enumerate(val_dependencies):
-                        is_required = False
-
-                        if self.sg.is_node_required(val_dep):
-                            is_required = True
-                        else:
-                            is_required = False
-
-                        # construct formatting rule
-                        formatting_rule = self._column_to_cond_format_eq_rule(
-                            i, req_val, required=is_required
-                        )
-
-                        # construct conditional format rule
-                        conditional_format_rule = {
-                            "addConditionalFormatRule": {
-                                "rule": {
-                                    "ranges": rule_ranges[j],
-                                    "booleanRule": formatting_rule,
-                                },
-                                "index": 0,
-                            }
-                        }
-                        dependency_formatting_body["requests"].append(
-                            conditional_format_rule
-                        )
-
-                # check if dependency formatting rules have been added and update sheet if so
-                if dependency_formatting_body["requests"]:
-                    requests_body["requests"].append(
-                        dependency_formatting_body["requests"]
+    def _request_regex_match_vr_formatting(self, validation_rules: List[str], i: int,
+        spreadsheet_id: str, requests_body: dict,
+        ):
+        """
+        Purpose:
+            - Apply regular expression validaiton rules to google sheets.
+            - Will only be run if the regex module specified in the validation
+            rules is 'match'.
+                - This is because of the limitations of google sheets regex.
+                - Users can additionally add 'strict' to the end of their validation
+                rules. This would allow the rule itself to set the level of strictness,
+                otherwise it would fall to the default level set in the config file.
+            - Will do the following:
+                - In google sheets user entry text will initially appear red.
+                - Upon correct format entry, text will turn black.
+                - If incorrect format is entered a validation error will pop up.
+        Input:
+            validation_rules: List[str], defines the validation rules
+                applied to a particular column.
+            i: int, defines current column.
+            requests_body: dict, containing all the update requests to add to the gs
+        Returns:
+            requests_body: updated with additional formatting requests if regex match
+                is specified.
+        """
+        split_rules = validation_rules[0].split(" ")
+        if split_rules[0] == "regex" and split_rules[1] == "match":
+            # Set things up:
+            ## Extract the regular expression we are validating against.
+            regular_expression = split_rules[2]
+            ## Define text color to update to upon correct user entry
+            text_color = {"red": 0, "green": 0, "blue": 0}
+            ## Define google sheets regular expression formula
+            gs_formula = [
+                {
+                    "userEnteredValue": '=REGEXMATCH(INDIRECT("RC",FALSE), "{}")'.format(
+                        regular_expression
                     )
+                }
+            ]
+            ## Set validaiton strictness based on user specifications.
+            strict = None
+            if split_rules[-1].lower() == "strict":
+                strict = True
 
+            ## Create error message for users if they enter value with incorrect formatting
+            input_message = (
+                f"Values in this column are being validated "
+                f"against the following regular expression ({regular_expression}) "
+                f"to ensure for accuracy. Please re-enter value according to these "
+                f"formatting rules"
+            )
+
+            # Create Requests:
+            ## Change request to change the text color of the column we are validating to red.
+            requests_vr_format_body = self._request_update_base_color(
+                i,
+                color={
+                    "red": 232.0 / 255.0,
+                    "green": 80.0 / 255.0,
+                    "blue": 70.0 / 255.0,
+                }
+            )
+
+            ## Create request to for conditionally formatting user input.
+            requests_vr = self._request_regex_vr(gs_formula, i, text_color)
+
+            ## Create request to generate data validator.
+            requests_data_validation_vr = self._get_column_data_validation_values(
+                spreadsheet_id,
+                valid_values=gs_formula,
+                column_id=i,
+                strict=strict,
+                custom_ui=False,
+                input_message=input_message,
+                validation_type="CUSTOM_FORMULA",
+            )
+
+            requests_body["requests"].append(
+                requests_vr_format_body["requests"]
+            )
+            requests_body["requests"].append(requests_vr["requests"])
+            requests_body["requests"].append(
+                requests_data_validation_vr["requests"]
+            )
+        return requests_body
+
+
+    def _request_row_format(self, i, req):
+        """Adding description to headers, this is not executed if
+        only JSON schema is defined. Also formatting required columns.
+        Args:
+            i (int): column index
+            req (str): column name
+        Returns:
+            notes_body["requests"] (dict): with information on note
+                to add to the column header. This notes body will be added to a request.
+        """
+        if self.sg.se:
+            # get node definition
+            note = self.sg.get_node_definition(req)
+
+            notes_body = {
+                "requests": [
+                    {
+                        "updateCells": {
+                            "range": {
+                                "startRowIndex": 0,
+                                "endRowIndex": 1,
+                                "startColumnIndex": i,
+                                "endColumnIndex": i + 1,
+                            },
+                            "rows": [{"values": [{"note": note}]}],
+                            "fields": "note",
+                        }
+                    }
+                ]
+            }
+
+            return notes_body["requests"]
+        else:
+            return
+
+    def _request_note_valid_values(self, i, req, validation_rules, valid_values):
+        """If the node validation rule is 'list' and the node also contains
+        valid values, add a note a note with instructions on adding a list of
+        multiple values with the multi-select option in google sheets
+
+        TODO: add validation and QC rules "compiler/generator" class elsewhere
+            for now have the list logic here
+        Args:
+            i (int): column index
+            req (str): column name
+            validation_rules(list[str]): containing all relevant
+                rules applied to node/column
+            valid_values(list[str]): containing all valid values defined in the
+                data model for this node/column
+
+        Returns:
+            notes_body["requests"] (dict): with information on note
+                to add to the column header, about using multiselect.
+                This notes body will be added to a request.
+        """            
+       
+        if "list" in validation_rules and valid_values:
+            note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
+            notes_body = {
+                "requests": [
+                    {
+                        "repeatCell": {
+                            "range": {
+                                "startRowIndex": 1,
+                                "startColumnIndex": i,
+                                "endColumnIndex": i + 1,
+                            },
+                            "cell": {"note": note},
+                            "fields": "note",
+                        }
+                    }
+                ]
+            }
+            return notes_body["requests"]
+        else:
+            return
+
+    def _request_notes_comments(self, i, req, json_schema):
+        """Update background colors so that columns that are required are highlighted
+        Args:
+            i (int): column index
+            req (str): column name
+            json_schema(dict): representing a handful of values
+                representing the data model, including: '$schema', '$id', 'title',
+                'type', 'properties', 'required'
+        Returns:
+            req_format_body["requests"] (dict): specifing the format updating for
+                required attributes/columns
+        """
+        # check if attribute is required and set a corresponding color
+        if req in json_schema["required"]:
+            bg_color = CONFIG["style"]["google_manifest"].get(
+                "req_bg_color",
+                {
+                    "red": 0.9215,
+                    "green": 0.9725,
+                    "blue": 0.9803,
+                },
+            )
+
+            req_format_body = {
+                "requests": [
+                    {
+                        "repeatCell": {
+                            "range": {
+                                "startColumnIndex": i,
+                                "endColumnIndex": i + 1,
+                            },
+                            "cell": {
+                                "userEnteredFormat": {"backgroundColor": bg_color}
+                            },
+                            "fields": "userEnteredFormat(backgroundColor)",
+                        }
+                    }
+                ]
+            }
+            return req_format_body["requests"]
+        else:
+            return
+
+    def _request_cell_borders(self):
+        """Get cell border color specifications.
+        Args: None
+        Returns:
+            Dict, containing cell border design specifications.
+        """
         # setting cell borders
         cell_range = {
             "sheetId": 0,
             "startRowIndex": 0,
         }
-        requests_body["requests"].append(self._get_cell_borders(cell_range))
+        return self._get_cell_borders(cell_range)
 
+    def _request_dropdown_or_multi(
+        self, i, req_vals, spreadsheet_id, validation_rules, valid_values
+    ):
+        """Generating sheet api request to populate a dropdown or a multi selection UI
+        Args:
+            i (int): column index
+            req_vals (list[dict]): dict for each valid value
+                key: 'userEnteredValue'
+                value: str, valid value
+            spreadsheet_id (str): id for the google sheet
+            validation_rules(list[str]): containing all relevant
+                rules applied to node/column
+            valid_values(list[str]): containing all valid values defined in the
+                data model for this node/column
+        Returns:
+            validation_body: dict
+        """
+        if len(req_vals) > 0 and not "list" in validation_rules:
+            # if more than 0 values in dropdown use ONE_OF_RANGE type of validation
+            # since excel and openoffice
+            # do not support other kinds of data validation for
+            # larger number of items (even if individual items are not that many
+            # excel has a total number of characters limit per dropdown...)
+            validation_body = self._get_column_data_validation_values(
+                spreadsheet_id, req_vals, i, strict=None, validation_type="ONE_OF_RANGE"
+            )
+        elif "list" in validation_rules and valid_values:
+            # if list is in validation rule attempt to create a multi-value
+            # selection UI, which requires explicit valid values range in
+            # the spreadsheet
+            validation_body = self._get_column_data_validation_values(
+                spreadsheet_id,
+                req_vals,
+                i,
+                strict=None,
+                custom_ui=False,
+                input_message="",
+                validation_type="ONE_OF_RANGE",
+            )
+        else:
+            validation_body = self._get_column_data_validation_values(
+                spreadsheet_id, req_vals, i, strict=None
+            )
+        return validation_body["requests"]
+
+    def _dependency_formatting(
+        self, i, req_val, ordered_metadata_fields, val_dependencies
+    ):
+        """If there are additional attribute dependencies find the corresponding
+        fields that need to be filled in and construct conditional formatting rules
+        indicating the dependencies need to be filled in.
+
+        set target ranges for this rule
+        i.e. dependency attribute columns that will be formatted
+
+        Args:
+            i (int): column index
+            req_val (str): node name
+            ordered_metadata_fields(List[list]): contining all the attributes to
+            add as columns, ordered
+            val_depenencies (list[str]): dependencies
+        Returns:
+            conditional_format_rule (dict):
+                specifies gs conditional formatting
+        """
+
+        # find dependency column indexes
+        # note that dependencies values must be in index
+        # TODO: catch value error that shouldn't happen
+        column_idxs = [
+            ordered_metadata_fields[0].index(val_dep) for val_dep in val_dependencies
+        ]
+
+        # construct ranges based on dependency column indexes
+        rule_ranges = self._columns_to_sheet_ranges(column_idxs)
+        # go over valid value dependencies
+        for j, val_dep in enumerate(val_dependencies):
+            is_required = False
+
+            if self.sg.is_node_required(val_dep):
+                is_required = True
+            else:
+                is_required = False
+
+            # construct formatting rule
+            formatting_rule = self._column_to_cond_format_eq_rule(
+                i, req_val, required=is_required
+            )
+
+            # construct conditional format rule
+            conditional_format_rule = {
+                "addConditionalFormatRule": {
+                    "rule": {
+                        "ranges": rule_ranges[j],
+                        "booleanRule": formatting_rule,
+                    },
+                    "index": 0,
+                }
+            }
+        return conditional_format_rule
+
+    def _request_dependency_formatting(
+        self, i, req_vals, ordered_metadata_fields, requests_body
+    ):
+        """Gather all the formattng for node dependencies.
+        Args:
+            i (int): column index
+            req_val (str): node name
+            ordered_metadata_fields(List[list]): contining all the attributes to
+            add as columns, ordered
+            requests_body(dict):
+                containing all the update requests to add to the gs
+        Return:
+            dependency_formatting_body (dict): specifiying the conditional
+            formatting rules to apply
+        """
+        for req_val in req_vals:
+            # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
+            req_val = req_val["userEnteredValue"]
+
+            req_val_node_label = self.sg.get_node_label(req_val)
+            if not req_val_node_label:
+                # if this node is not in the graph
+                # continue - there are no dependencies for it
+                continue
+            # check if this required/valid value has additional dependency attributes
+            val_dependencies = self.sg.get_node_dependencies(
+                req_val_node_label, schema_ordered=False
+            )
+
+            # prepare request calls
+            dependency_formatting_body = {"requests": []}
+
+            # set conditiaon formatting for dependencies.
+            if val_dependencies:
+                conditional_format_rule = self._dependency_formatting(
+                    i, req_val, ordered_metadata_fields, val_dependencies
+                )
+                dependency_formatting_body["requests"].append(conditional_format_rule)
+        return dependency_formatting_body
+
+    def _create_requests_body(
+        self,
+        required_metadata_fields,
+        ordered_metadata_fields,
+        json_schema,
+        spreadsheet_id,
+    ):
+        """Create and store all formatting changes for the google sheet to
+        execute at once.
+        Args:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+            ordered_metadata_fields: List[list], contining all the attributes to
+                add as columns, ordered
+            json_schema: dict, representing a handful of values
+                representing the data model, including: '$schema', '$id', 'title',
+                'type', 'properties', 'required'
+            spreadsheet_id: str, of the id for the google sheet
+        Return:
+            requests_body(dict):
+                containing all the update requests to add to the gs
+        """
+        # store all requests to execute at once
+        requests_body = {}
+        requests_body["requests"] = []
+        for i, req in enumerate(ordered_metadata_fields[0]):
+            # Gather validation rules and valid values for attribute
+            validation_rules = self.sg.get_node_validation_rules(req)
+
+            if validation_rules:
+                requests_body =self._request_regex_match_vr_formatting(
+                        validation_rules, i, spreadsheet_id, requests_body
+                        )
+
+            if req in json_schema["properties"].keys():
+                valid_values = self._get_valid_values_from_jsonschema_property(
+                    json_schema["properties"][req]
+                )
+            else:
+                valid_values = []
+
+            # Set row formatting
+            get_row_formatting = self._request_row_format(i, req)
+            if get_row_formatting:
+                requests_body["requests"].append(get_row_formatting)
+
+            # Add notes to headers to provide descriptions of the attribute
+            header_notes = self._request_notes_comments(i, req, json_schema)
+            if header_notes:
+                requests_body["requests"].append(header_notes)
+            # Add note on how to use multi-select, when appropriate
+            note_vv = self._request_note_valid_values(
+                i, req, validation_rules, valid_values
+            )
+            if note_vv:
+                requests_body["requests"].append(note_vv)
+
+            # Adding value-constraints, if any
+            values = required_metadata_fields[req]
+            req_vals = [{"userEnteredValue": value} for value in values if value]
+            if not req_vals:
+                continue
+
+            # Create dropdown or multi-select options, where called for
+            create_dropdown = self._request_dropdown_or_multi(
+                i, req_vals, spreadsheet_id, validation_rules, valid_values
+            )
+            if create_dropdown:
+                requests_body["requests"].append(create_dropdown)
+
+            # generate a conditional format rule for each required value (i.e. valid value)
+            # for this field (i.e. if this field is set to a valid value that may require additional
+            # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
+            dependency_formatting_body = self._request_dependency_formatting(
+                i, req_vals, ordered_metadata_fields, requests_body
+            )
+            if dependency_formatting_body["requests"]:
+                requests_body["requests"].append(
+                    dependency_formatting_body["requests"]
+                )
+
+        # Set borders formatting
+        borders_formatting = self._request_cell_borders()
+        if borders_formatting:
+            requests_body["requests"].append(borders_formatting)
+        return requests_body
+
+    def _create_empty_gs(self, required_metadata_fields, json_schema, spreadsheet_id):
+        """Generate requests to add columns and format the google sheet.
+        Args:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+            json_schema: dict, representing a handful of values
+                representing the data model, including: '$schema', '$id', 'title',
+                'type', 'properties', 'required'
+            spreadsheet_id: str, of the id for the google sheet
+        Returns:
+            manifest_url (str): url of the google sheet manifest.
+        """
+        # adding columns to manifest sheet
+        response, ordered_metadata_fields = self._gs_add_and_format_columns(
+            required_metadata_fields, spreadsheet_id
+        )
+
+        # Add additional metadata
+        response = self._gs_add_additional_metadata(
+            required_metadata_fields, ordered_metadata_fields, spreadsheet_id
+        )
+
+        # Create requests body to add additional formatting to the sheets
+        requests_body = self._create_requests_body(
+            required_metadata_fields,
+            ordered_metadata_fields,
+            json_schema,
+            spreadsheet_id,
+        )
+
+        # Execute requests
         execute_google_api_requests(
             self.sheet_service,
             requests_body,
@@ -883,17 +1166,59 @@ class ManifestGenerator(object):
             spreadsheet_id=spreadsheet_id,
         )
 
-        # setting up spreadsheet permissions (setup so that anyone with the link can edit)
+        # Setting up spreadsheet permissions (setup so that anyone with the link can edit)
         self._set_permissions(spreadsheet_id)
 
         # generating spreadsheet URL
         manifest_url = "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
-
-        # print("========================================================================================================")
-        # print("Manifest successfully generated from schema!")
-        # print("URL: " + manifest_url)
-        # print("========================================================================================================")
         return manifest_url
+
+    def _gather_all_fields(self, fields, json_schema):
+        """Gather all the attributes/fields to include as columns in the manifest.
+        Args:
+            fields(list[str]): fields/attributes to search
+        Returns:
+            required_metadata_fields(dict):
+                keys: of all the fields/attributes that need to be added
+                    to the manifest
+                values(list[str]): valid values
+        """
+        # Get required fields
+        required_metadata_fields = self._get_required_metadata_fields(
+            json_schema, fields
+        )
+        # Add additioal dependencies
+        required_metadata_fields = self._gather_dependency_requirements(
+            json_schema, required_metadata_fields
+        )
+
+        # Add additional metadata as entries to columns
+        required_metadata_fields = self._get_additional_metadata(
+            required_metadata_fields
+        )
+        return required_metadata_fields
+
+    def get_empty_manifest(self, json_schema_filepath=None):
+        """Create an empty manifest using specifications from the
+        json schema.
+        Args:
+            json_schema_filepath (str): path to json schema file
+        Returns:
+            manifest_url (str): url of the google sheet manifest.
+        """
+
+        spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
+        json_schema = self._get_json_schema(json_schema_filepath)
+
+        required_metadata_fields = self._gather_all_fields(
+            json_schema["properties"].keys(), json_schema
+        )
+
+        manifest_url = self._create_empty_gs(
+            required_metadata_fields, json_schema, spreadsheet_id
+        )
+        return manifest_url
+
 
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame
