@@ -1,30 +1,26 @@
 # Do not change the 'definitions' section unless you know what you're doing
 definitions:
-  synapse_config: "/Users/mialydefelice/Documents/schematic/schematic_package_docs/.synapseConfig"
-  creds_path: "/Users/mialydefelice/Documents/schematic/credentials.json"
-  token_pickle: "/Users/mialydefelice/Documents/schematic/token.pickle"
-  service_acct_creds: "/Users/mialydefelice/Documents/schematic/schematic_service_account_creds.json"
+  synapse_config: ".synapseConfig"
+  creds_path: "credentials.json"
+  token_pickle: "token.pickle"
+  service_acct_creds: "schematic_service_account_creds.json"
 
 synapse:
-  master_fileview: 'syn20446927'
+  master_fileview: 'syn23643253'
   manifest_folder: 'manifests'
   manifest_filename: 'synapse_storage_manifest.csv'
   token_creds: 'syn23643259'
   service_acct_creds: 'syn25171627'
 
 manifest:
-  title: 'htan_BulkRNA-seqLevel1_manifest'
-  #title: 'Patient'
-  data_type: 'BulkRNA-seqLevel3'
+  title: 'Patient_Manifest'
+  data_type: 'Patient'
 
 model:
   input:
-    location: '/Users/mialydefelice/Documents/schematic_2/test_files/HTAN_schema_validation_rules_test.model.jsonld'
-    #location: '/Users/mialydefelice/Documents/schematic_2/schematic/tests/data/example.model.jsonld'
-    #location: '/Users/mialydefelice/Documents/schematic/schematic/tests/data/example.rdb.model.jsonld'
+    location: 'tests/data/example.model.jsonld'
     file_type: 'local'
-    #validation_schema: "tests/data/example.Patient.schema.json" # path to custom JSON Validation Schema JSON file
-    #log_location: "tests/data/example.Patient.schema.json"
+
 style:
   google_manifest:
     req_bg_color:
@@ -35,9 +31,5 @@ style:
       red: 1.0
       green: 1.0
       blue: 0.9019
-    vr_bg_color:
-      red: 0.778
-      green: 0.978
-      blue: 0.582
     master_template_id: '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU'
-    strict_validation: False
+    strict_validation: true
