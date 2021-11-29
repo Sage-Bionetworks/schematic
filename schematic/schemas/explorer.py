@@ -93,7 +93,7 @@ class SchemaExplorer:
         source_node: str,
         relationship: str,
         connected: bool = True,
-        ordered: bool = False
+        ordered: bool = False,
     ) -> List[str]:
         """Get all nodes that are descendants of a given source node, based on a specific type of edge / relationship type.
 

@@ -837,6 +837,24 @@ class ManifestGenerator(object):
                 ]
             }
             return notes_body["requests"]
+        elif "list" in validation_rules and not valid_values:
+            note = "Please enter values as a comma separated list. For example: XX, YY, ZZ"
+            notes_body = {
+                "requests": [
+                    {
+                        "repeatCell": {
+                            "range": {
+                                "startRowIndex": 1,
+                                "startColumnIndex": i,
+                                "endColumnIndex": i + 1,
+                            },
+                            "cell": {"note": note},
+                            "fields": "note",
+                        }
+                    }
+                ]
+            }
+            return notes_body["requests"]
         else:
             return
 

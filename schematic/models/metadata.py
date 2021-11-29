@@ -1,7 +1,9 @@
 import json
 import logging
 
+import numpy as np
 import pandas as pd
+import re
 import networkx as nx
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
 
@@ -21,6 +23,9 @@ from schematic.store.synapse import SynapseStorage
 
 from schematic.utils.df_utils import trim_commas_df
 
+from schematic.models.validate_attribute import ValidateAttribute
+from schematic.models.validate_manifest import validate_all
+
 
 logger = logging.getLogger(__name__)
 
@@ -36,11 +41,7 @@ class MetadataModel(object):
         - generate validation schema view of the metadata model
     """
 
-    def __init__(
-        self,
-        inputMModelLocation: str,
-        inputMModelLocationType: str,
-    ) -> None:
+    def __init__(self, inputMModelLocation: str, inputMModelLocationType: str,) -> None:
 
         """Instantiates a MetadataModel object.
 
@@ -246,37 +247,7 @@ class MetadataModel(object):
 
             return errors
 
-        # check if each of the provided annotation columns has validation rule 'list'
-        # if so, assume annotation for this column are comma separated list of multi-value annotations
-        # convert multi-valued annotations to list
-        for col in manifest.columns:
-
-            # remove trailing/leading whitespaces from manifest
-            manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-
-            # convert manifest values to string
-            # TODO: when validation handles annotation types as validation rules
-            # would have to avoid converting everything to string
-            manifest[col] = manifest[col].astype(str)
-
-            # if the validation rule is set to list, convert items in the
-            # annotations manifest to a list and strip each value from leading/trailing spaces
-            if "list" in self.sg.get_node_validation_rules(col):
-                manifest[col] = manifest[col].apply(
-                    lambda x: [s.strip() for s in str(x).split(",")]
-                )
-
-        annotations = json.loads(manifest.to_json(orient="records"))
-        for i, annotation in enumerate(annotations):
-            v = Draft7Validator(jsonSchema)
-
-            for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
-                errorRow = i + 2
-                errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema"
-                errorMsg = error.message[0:500]
-                errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
-
-                errors.append([errorRow, errorCol, errorMsg, errorVal])
+        errors, manifest = validate_all(self, errors, manifest, self.sg, jsonSchema)
 
         return errors
 
@@ -303,7 +274,11 @@ class MetadataModel(object):
         return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
 
     def submit_metadata_manifest(
-        self, manifest_path: str, dataset_id: str, validate_component: str = None, use_schema_label: bool = True
+        self,
+        manifest_path: str,
+        dataset_id: str,
+        validate_component: str = None,
+        use_schema_label: bool = True,
     ) -> bool:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -361,7 +336,9 @@ class MetadataModel(object):
 
         # no need to perform validation, just submit/associate the metadata manifest file
         syn_store.associateMetadataWithFiles(
-            metadataManifestPath=manifest_path, datasetId=dataset_id, useSchemaLabel=use_schema_label
+            metadataManifestPath=manifest_path,
+            datasetId=dataset_id,
+            useSchemaLabel=use_schema_label,
         )
 
         logger.debug(

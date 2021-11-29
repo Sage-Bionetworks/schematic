@@ -10,6 +10,7 @@ from schematic.utils.io_utils import load_json
 from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema
+
 from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
@@ -176,12 +177,14 @@ class SchemaGenerator(object):
 
         # get a list of required component nodes
         req_components = self.get_component_requirements(source_component)
-        
+
         # get the schema graph
         mm_graph = self.se.get_nx_schema()
 
         # get the subgraph induced on required component nodes
-        req_components_graph = self.get_subgraph_by_edge_type(mm_graph, self.requires_component_relationship).subgraph(req_components)
+        req_components_graph = self.get_subgraph_by_edge_type(
+            mm_graph, self.requires_component_relationship
+        ).subgraph(req_components)
 
         return req_components_graph
 
@@ -531,7 +534,6 @@ class SchemaGenerator(object):
                         if node_validation_rules:
                             # if this node has extra validation rules process them
                             # TODO: abstract this into its own validation rule constructor/generator module/class
-
                             if "list" in node_validation_rules:
                                 # if this node can be mapped to a list of nodes
                                 # set its schema accordingly
@@ -576,18 +578,16 @@ class SchemaGenerator(object):
                                     if node_validation_rules:
                                         if "list" in node_validation_rules:
                                             # TODO: get_range_schema and get_range_schema have similar behavior - combine in one module
-                                            dependency_properties = (
-                                                self.get_array_schema(
-                                                    node_range_d,
-                                                    node_display_name,
-                                                    blank=not node_required,
-                                                )
+                                            dependency_properties = self.get_array_schema(
+                                                node_range_d,
+                                                node_display_name,
+                                                blank=not node_required,
                                             )
 
                                 else:
                                     if node_required:
-                                        dependency_properties = (
-                                            self.get_non_blank_schema(node_display_name)
+                                        dependency_properties = self.get_non_blank_schema(
+                                            node_display_name
                                         )
                                     else:
                                         dependency_properties = {node_display_name: {}}
@@ -613,6 +613,8 @@ class SchemaGenerator(object):
                             )
 
                             if node_validation_rules:
+                                # If there are valid values AND they are expected to be a list,
+                                # reformat the Valid Values.
                                 if "list" in node_validation_rules:
                                     schema_valid_vals = self.get_array_schema(
                                         node_range_d, node_display_name, blank=False

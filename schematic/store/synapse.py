@@ -375,7 +375,6 @@ class SynapseStorage(BaseStorage):
         return manifest_id, manifest
 
 
-
     def getProjectManifests(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
 
@@ -393,7 +392,6 @@ class SynapseStorage(BaseStorage):
         TODO: Return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
         """
 
-
         manifests = []
 
         datasets = self.getStorageDatasetsInProject(projectId)
@@ -402,39 +400,34 @@ class SynapseStorage(BaseStorage):
             # encode information about the manifest in a simple list (so that R clients can unpack it)
             # eventually can serialize differently
 
-            manifest = (
-                    (datasetId, datasetName),
-                    ("", ""),
-                    ("", "")
-            )
-            
-            manifest_info = self.getDatasetManifest(datasetId, downloadFile = True)
+            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+
+            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
             if manifest_info:
                 manifest_id = manifest_info["properties"]["id"]
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
-                
+
                 manifest_df = pd.read_csv(manifest_path)
-            
-                if "Component" in manifest_df and  not manifest_df["Component"].empty:
-                    manifest_component = manifest_df["Component"][0]         
-        
+
+                if "Component" in manifest_df and not manifest_df["Component"].empty:
+                    manifest_component = manifest_df["Component"][0]
+
                     manifest = (
                         (datasetId, datasetName),
                         (manifest_id, manifest_name),
-                        (manifest_component, manifest_component)
+                        (manifest_component, manifest_component),
                     )
                 else:
                     manifest = (
                         (datasetId, datasetName),
                         (manifest_id, manifest_name),
-                        ("", "")
+                        ("", ""),
                     )
-            
+
             manifests.append(manifest)
 
         return manifests
-
 
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
