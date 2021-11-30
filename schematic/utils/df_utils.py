@@ -1,7 +1,8 @@
 import logging
+import json
 
 import pandas as pd
-
+from schematic.utils.general import str2jsonlist
 
 logger = logging.getLogger(__name__)
 
@@ -94,4 +95,16 @@ def trim_commas_df(df: pd.DataFrame):
 
     # remove all completely empty rows
     df = df.dropna(how="all", axis=0)
+    return df
+
+def convert_string_cols_to_json(df: pd.DataFrame, cols_to_modify: list):
+    """Converts values in a column from strings to JSON list 
+    for upload to Synapse.
+    Args:
+
+    Returns:
+    """
+    for col in df.columns:
+        if col in cols_to_modify:
+            df[col] = df[col].apply(lambda x: json.dumps([y.strip() for y in x.replace('"', '').split(',')]) if x != "NaN" and x else x)
     return df
