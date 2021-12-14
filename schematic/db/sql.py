@@ -292,6 +292,18 @@ class SQL(object):
 
         return table_label
 
+    def check_db_columns(self, table_label: str, column_name: str) -> str:
+        """ 
+        """
+
+        query = "SELECT {}{}{} FROM {}{}{}".format("`", column_name, "`", "`",table_label, "`")
+        column_value = self.run_sql_query(self.engine, [query])
+        if column_value.empty:
+            cols_present = False
+        else:
+            cols_present = True
+        return cols_present
+
     def get_updated_rows(self, table_label, update_table, pk):
         '''
         Do a sql query for current table.
@@ -401,7 +413,10 @@ class SQL(object):
                     continue
                 
                 # by default, fill in missing columns w/ None
-                update_table[missing_column] = None
+                # todo change way this is done to comply with warning
+                col_present = self.check_db_columns(table_label, missing_column)
+                if not col_present:
+                    update_table.loc[:, missing_column] = None
             
             # if resource is being explicitily update, update the UNIX times.
             '''
@@ -418,7 +433,6 @@ class SQL(object):
             if full_validation:
                 pass # TODO: change code logic to validate tableas and do not generate any table update statements if even a single table fails validation
             # get sql table replace query
-            breakpoint()
             updated_tables.append(self.update_table_sa(table_label, update_table))
 
         resource_ids = self.get_resource_ids(updated_row_pkids)
