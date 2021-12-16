@@ -19,7 +19,8 @@ logger = logging.getLogger(__name__)
 
 class GenerateError:
     def generate_list_error(
-        list_string: str, row_num: str, attribute_name: str, list_error: str
+        list_string: str, row_num: str, attribute_name: str, list_error: str,
+        invalid_entry:str,
     ) -> List[str]:
         """
             Purpose:
@@ -43,7 +44,7 @@ class GenerateError:
             error_row = row_num  # index row of the manifest where the error presented.
             error_col = attribute_name  # Attribute name
             error_message = error_str
-            error_val = f"List Error"
+            error_val = invalid_entry
         return [error_row, error_col, error_message, error_val]
 
     def generate_regex_error(
@@ -52,6 +53,7 @@ class GenerateError:
         row_num: str,
         module_to_call: str,
         attribute_name: str,
+        invalid_entry:str,
     ) -> List[str]:
         """
             Purpose:
@@ -75,11 +77,11 @@ class GenerateError:
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = regex_error_string
-        error_val = f"Type Error"
+        error_val = invalid_entry
         return [error_row, error_col, error_message, error_val]
 
     def generate_type_error(
-        val_rule: str, row_num: str, attribute_name: str
+        val_rule: str, row_num: str, attribute_name: str, invalid_entry:str,
     ) -> List[str]:
         """
             Purpose:
@@ -101,11 +103,12 @@ class GenerateError:
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = type_error_str
-        error_val = f"Type Error"
+        error_val = invalid_entry
         return [error_row, error_col, error_message, error_val]
 
     def generate_url_error(
-        url: str, url_error: str, row_num: str, attribute_name: str, argument: str
+        url: str, url_error: str, row_num: str, attribute_name: str, argument: str,
+        invalid_entry:str,
     ) -> List[str]:
         """
             Purpose:
@@ -140,7 +143,7 @@ class GenerateError:
             )
             logging.error(invalid_url_error_string)
             error_message = invalid_url_error_string
-            error_val = f"URL Error: Invalid URL"
+            error_val = invalid_entry
         elif url_error == "arg_error":
             arg_error_string = (
                 f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
@@ -202,6 +205,7 @@ class ValidateAttribute(object):
                         row_num=str(row_num + 2),
                         attribute_name=manifest_col.name,
                         list_error=list_error,
+                        invalid_entry=manifest_col[i]
                     )
                 )
         # Convert string to list.
@@ -250,7 +254,6 @@ class ValidateAttribute(object):
             )
 
         errors = []
-
         # Handle case where validating re's within a list.
         if type(manifest_col[0]) == list:
             for i, row_values in enumerate(manifest_col):
@@ -266,6 +269,7 @@ class ValidateAttribute(object):
                                 row_num=str(i + 2),
                                 module_to_call=reg_exp_rules[1],
                                 attribute_name=manifest_col.name,
+                                invalid_entry=manifest_col[i]
                             )
                         )
         # Validating single re's
@@ -282,6 +286,7 @@ class ValidateAttribute(object):
                             row_num=str(i + 2),
                             module_to_call=reg_exp_rules[1],
                             attribute_name=manifest_col.name,
+                            invalid_entry=manifest_col[i]
                         )
                     )
 
@@ -318,6 +323,7 @@ class ValidateAttribute(object):
                             val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
+                            invalid_entry=manifest_col[i]
                         )
                     )
         elif val_rule in ["int", "float", "str"]:
@@ -328,6 +334,7 @@ class ValidateAttribute(object):
                             val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
+                            invalid_entry=manifest_col[i]
                         )
                     )
         return errors
@@ -370,6 +377,7 @@ class ValidateAttribute(object):
                         row_num=str(i + 2),
                         attribute_name=manifest_col.name,
                         argument=url_args,
+                        invalid_entry=manifest_col[i]
                     )
                 )
             else:
@@ -393,6 +401,7 @@ class ValidateAttribute(object):
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             argument=url_args,
+                            invalid_entry=manifest_col[i]
                         )
                     )
                 if valid_url == True:
@@ -408,6 +417,7 @@ class ValidateAttribute(object):
                                     row_num=str(i + 2),
                                     attribute_name=manifest_col.name,
                                     argument=arg,
+                                    invalid_entry=manifest_col[i]
                                 )
                             )
         return errors
