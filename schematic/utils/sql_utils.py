@@ -2,8 +2,6 @@ import os
 from pathlib import Path
 from schematic import CONFIG
 
-#DATA_DIR = os.path.join(os.getcwd(), 'tests', 'data')
-
 class sql_helpers():
     def get_data_path(data_dir, path, *paths):
         return os.path.join(data_dir, path, *paths)
