@@ -2,7 +2,6 @@ import logging
 import json
 
 import pandas as pd
-from schematic.utils.general import str2jsonlist
 
 logger = logging.getLogger(__name__)
 

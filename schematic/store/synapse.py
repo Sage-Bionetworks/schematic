@@ -734,7 +734,7 @@ class SynapseStorage(BaseStorage):
 
         return table
 
-    def make_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, column_type_dictionary, specify_schema=True):
+    def make_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, column_type_dictionary = {}, specify_schema=True):
         '''
         Record based data
         '''
