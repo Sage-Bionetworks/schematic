@@ -4,7 +4,7 @@ from schematic import CONFIG
 
 class sql_helpers():
     def get_data_path(data_dir, path, *paths):
-        return os.path.join(data_dir, path, *paths)
+        return str(Path(os.path.join(data_dir, path, *paths)).resolve())
 
     def make_output_dir():
         parent_path = Path(os.getcwd()).parent
