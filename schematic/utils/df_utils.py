@@ -77,6 +77,10 @@ def update_df(
     input_df_idx.reset_index(inplace=True)
     input_df_idx = input_df_idx[input_df.columns]
 
+     # Sometimes pandas update can change the column datatype, recast
+    for col in input_df_idx.columns:
+        input_df_idx[col] = input_df_idx[col].astype(input_df.dtypes[col])
+
     return input_df_idx
 
 
