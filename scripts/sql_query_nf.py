@@ -312,9 +312,7 @@ class sql_query():
                 syn_store = SynapseStorage()
                 # When trouleshooting reintroduce the breakpoint so that
                 # you can catch any errors, or else they will proceed silently.
-                breakpoint()
-                make_synapse_table = syn_store.make_synapse_table(df, arguments['synapse_project_folder'], 
-                    existing_table_id, table_name, column_type_dict, specify_schema)
+                make_synapse_table = syn_store.make_synapse_table(df, arguments['synapse_project_folder'], existing_table_id, table_name, column_type_dict, specify_schema)
         return
 
 class parse_variables():
@@ -341,10 +339,10 @@ class parse_variables():
         parser.add_argument('-path_to_configs', default='schematic', help='Path to folder containing config files')
         
         # Synapse Arguments
-        parser.add_argument('-save_to_synapse', help='Update tables in synapse', default=True, action='store_false')
-        parser.add_argument('-table_id_type', help='Is the folder type being saved to on synapse, defined in joins csv column name', default='Staging table ID')
+        parser.add_argument('-save_to_synapse', help='Update tables in synapse', default=False, action='store_false')
+        parser.add_argument('-table_id_type', help='Is the folder type being saved to on synapse, defined in joins csv column name')
         parser.add_argument('-synapse_project_folder')
-        parser.add_argument('-save_local', default=False, action='store_true')
+        parser.add_argument('-save_local', default=True, action='store_true')
         
         # SQL Arguments
         parser.add_argument('-name_of_query', help='Table Name of query to run or \'all\' to run all queries')
