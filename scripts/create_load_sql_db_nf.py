@@ -137,11 +137,8 @@ class parse_variables():
         parser = argparse.ArgumentParser(description = 'Run sql queries and optionall push to synapse')
         parser.add_argument('-data_dir', help='Path to folder where rdb.model.jsonld \
                 is located')
-        #parser.add_argument('-rdb_data_dir', help='Path to folder should contain folders \
-         #of completed manifests, column_types.csv and joins_for_synapse.csv')
         parser.add_argument('-path_to_configs', default='', help='Path to folder containing config files')
         parser.add_argument('-output_path', '--o', default="schematic/tests/data/")
-        #parser.add_argument('-path_to_data')
         parser.add_argument('-rdb_jsonld_filename')
         
         # Select which functions to run.
@@ -192,7 +189,7 @@ if __name__ == '__main__':
         else:
             # add in an additional check to ensure the path is pointing to subfolders
             # containing csv files.
-            sql_create_load(arguments['data_dir'], arguments['rdb_jsonld_filename'], arguments['path_to_configs']).update_db_tables(arguments['data_dir'])
+            sql_create_load(arguments['data_dir'], arguments['rdb_jsonld_filename'], arguments['path_to_configs']).update_db_tables(arguments['rdb_data_dir'])
 
     if arguments['create_schema_viz']:
         sql_create_load(arguments['data_dir'], arguments['rdb_jsonld_filename'], arguments['path_to_configs']).viz_sa_schema(arguments['output_path'])
