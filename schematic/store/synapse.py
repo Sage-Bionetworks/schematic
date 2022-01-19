@@ -739,6 +739,7 @@ class SynapseStorage(BaseStorage):
         Record based data
         '''
         # create/update a table corresponding to this dataset in this dataset's parent project
+        
         if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
             #results = self.get_synapse_table(existingTableId)
@@ -778,6 +779,38 @@ class SynapseStorage(BaseStorage):
                 # column types.
                 table = build_table(table_name, datasetParentProject, table_to_load)
                 table = self.syn.store(table)
+    
+    def remake_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, column_type_dictionary = {}, specify_schema=True):
+        '''Delete rows in a table and remake if necessary'''
+        results = self.syn.tableQuery(f"SELECT * FROM {existingTableId}")
+        self.syn.delete(results)
+        datasetParentProject = self.getDatasetProject(dataset_id)
+        if specify_schema:
+            #create list of columns:
+            cols = []
+            for col in table_to_load.columns:
+                if col in column_type_dictionary:
+                    col_type = column_type_dictionary[col]['column_type']
+                    max_size = column_type_dictionary[col]['maximum_size']
+                    max_list_len = column_type_dictionary[col]['maximum_list_length']
+                    if max_size and max_list_len:
+                        cols.append(Column(name=col, columnType=col_type, 
+                            maximumSize=max_size, maximumListLength=max_list_len))
+                    elif max_size:
+                        cols.append(Column(name=col, columnType=col_type, 
+                            maximumSize=max_size))
+                    else:
+                        cols.append(Column(name=col, columnType=col_type))
+                else:
+                    cols.append(Column(name=col, columnType='STRING', maximumSize=500))
+            schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
+            table = Table(schema, table_to_load)
+            table = self.syn.store(Table(existingTableId, table_to_load))
+        else:
+            # For just uploading the tables to synapse using default
+            # column types.
+            table = build_table(table_name, datasetParentProject, table_to_load)
+            table = self.syn.store(table)
         return
 
 
