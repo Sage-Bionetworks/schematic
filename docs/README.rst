@@ -122,7 +122,7 @@ Note: Paths can be specified relative to the `config.yml` file or as absolute pa
 
 .. code:: bash
 
-    schematic init --config ~/path/to/config.yml --auth [token|serivce_account] 
+    schematic init --config ~/path/to/config.yml --auth [token|service_account] 
 
 The ``credentials.json`` file is required when you are using
 `OAuth2 <https://developers.google.com/identity/protocols/oauth2>`__
@@ -176,7 +176,7 @@ above step:
 
 .. code:: bash
 
-    schematic model --config validate --manifest_path ~/path/to/manifest.csv
+    schematic model --config ~/path/to/config.yml validate --manifest_path ~/path/to/manifest.csv
 
 4.4. Metadata Manifest Validation and Submission
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
