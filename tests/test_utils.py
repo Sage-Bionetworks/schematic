@@ -267,7 +267,7 @@ class TestDfUtils:
         )
         expected_df = pd.DataFrame(
             {
-                "numCol": [1, float(4)],
+                "numCol": [int(1), int(4)],
                 "entityId": ["syn01", "syn02"],
                 "strCol": ["___", "bar"],
             },
