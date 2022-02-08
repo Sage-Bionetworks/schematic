@@ -16,14 +16,14 @@ def load_json(file_path):
             return data
     # handle file path
     else:
-        with open(file_path,encoding='utf8') as f:
+        with open(file_path, encoding="utf8") as f:
             data = json.load(f)
             return data
 
 
 def export_json(json_doc, file_path):
     """Export JSON doc to file"""
-    with open(file_path, "w",encoding='utf8') as f:
+    with open(file_path, "w") as f:
         json.dump(json_doc, f, sort_keys=True, indent=4, ensure_ascii=False)
 
 
