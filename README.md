@@ -63,3 +63,4 @@ Main contributors and developers:
 - [Sujay Patil](https://github.com/sujaypatil96)
 - [Bruno Grande](https://github.com/BrunoGrandePhD)
 - [Robert Allaway](https://github.com/allaway)
+- [Gianna Jordan](https://github.com/giajordan)
