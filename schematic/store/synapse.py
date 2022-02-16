@@ -538,10 +538,13 @@ class SynapseStorage(BaseStorage):
             annos = self.syn.get_annotations(entityId)
 
             for anno_k, anno_v in metadataSyn.items():
-                if isinstance(metadataSyn[anno_k],float) and np.isnan(metadataSyn[anno_k]):
-                    pass
+                
+                #Do not save blank annotations as NaNs,
+                #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
+                if isinstance(anno_v,float) and np.isnan(anno_v):
+                    annos.pop(anno_k) if anno_k in annos.keys() else annos                
                 else:
-                    annos[anno_k] = metadataSyn[anno_k]
+                    annos[anno_k] = anno_v
 
             self.syn.set_annotations(annos)
             # self.syn.set_annotations(metadataSyn) #-- deprecated code
