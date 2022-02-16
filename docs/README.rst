@@ -213,4 +213,5 @@ Active contributors and maintainers:
 -  `Sujay Patil <https://github.com/sujaypatil96>`__
 -  `Bruno Grande <https://github.com/BrunoGrandePhD>`__
 -  `Robert Allaway <https://github.com/allaway>`__
--  `Xengie Doan <https://github.com/xdoan>`__
+-  `Mialy DeFelice <https://github.com/mialy-defelice>`__
+-  `Gianna Jordan <https://github.com/giajordan>`__
