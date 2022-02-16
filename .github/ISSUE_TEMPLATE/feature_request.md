@@ -23,9 +23,9 @@ A clear and concise description of what the problem is. Ex. I'm always frustrate
 A clear and concise description of what you want to happen.
 
 **How important is this feature?** Select from the options below:
-• Low - it's an enhancement but not crucial for work
-• Medium - can do work without it; but it's important (e.g. to save time or for convenience)
-• Important - it's a blocker and can't do work without it
+• 🏝 Low - it's an enhancement but not crucial for work
+• 🌗 Medium - can do work without it; but it's important (e.g. to save time or for convenience)
+• 🌋 Important - it's a blocker and can't do work without it
 
 **When will use cases depending on this become relevant?** Select from the options below:
 • Short-term - 2-4 weeks
