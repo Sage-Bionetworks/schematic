@@ -538,8 +538,8 @@ class SynapseStorage(BaseStorage):
             annos = self.syn.get_annotations(entityId)
 
             for anno_k, anno_v in metadataSyn.items():
-                if isinstance(metadataSyn[anno_k],float) and  np.isnan(metadataSyn[anno_k]):
-                    annos[anno_k]=''
+                if isinstance(metadataSyn[anno_k],float) and np.isnan(metadataSyn[anno_k]):
+                    pass
                 else:
                     annos[anno_k] = metadataSyn[anno_k]
 
