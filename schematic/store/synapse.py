@@ -442,7 +442,7 @@ class SynapseStorage(BaseStorage):
         return df, results
 
     def associateMetadataWithFiles(
-        self, metadataManifestPath: str, datasetId: str, useSchemaLabel: bool = True
+        self, metadataManifestPath: str, datasetId: str, useSchemaLabel: bool = True, hideBlanks: bool = False,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -542,7 +542,10 @@ class SynapseStorage(BaseStorage):
                 #Do not save blank annotations as NaNs,
                 #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
                 if isinstance(anno_v,float) and np.isnan(anno_v):
-                    annos.pop(anno_k) if anno_k in annos.keys() else annos                
+                    if hideBlanks:
+                        annos.pop(anno_k) if anno_k in annos.keys() else annos
+                    else:
+                        annos[anno_k] = ""
                 else:
                     annos[anno_k] = anno_v
 

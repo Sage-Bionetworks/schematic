@@ -77,6 +77,10 @@ model_commands = {
                 "(--use_display_label). Attribute display names in the schema must not only include characters that are "
                 "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
             ),
+            "hide_blanks":(
+                "This is a boolean flag. If flag is provided when command line utility is executed, annotations with blank values will be hidden from a dataset's annotation list in Synaspe."
+                "If not, annotations with blank values will be displayed."
+            ),
         },
         "validate": {
             "short_help": ("Validation of manifest files."),

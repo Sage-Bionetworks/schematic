@@ -69,9 +69,15 @@ def model(ctx, config):  # use as `schematic model ...`
     default=True,
     help=query_dict(model_commands, ("model", "submit", "use_schema_label")),
 )
+@click.option(
+    "--hide_blanks",
+    "-hb",
+    is_flag=True,
+    help=query_dict(model_commands,("model","submit","hide_blanks")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, use_schema_label
+    ctx, manifest_path, dataset_id, validate_component, use_schema_label, hide_blanks
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -90,6 +96,7 @@ def submit_manifest(
             dataset_id=dataset_id,
             validate_component=validate_component,
             use_schema_label=use_schema_label,
+            hide_blanks=hide_blanks,
         )
 
         if success:
