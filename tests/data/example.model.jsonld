@@ -2468,6 +2468,242 @@
             "sms:validationRules": []
         },
         {
+            "@id": "bts:MockComponent",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "MockComponent",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataType"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "MockComponent",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+                {
+                    "@id": "bts:CheckList"
+                },
+                {
+                    "@id": "bts:CheckRegexList"
+                },
+                {
+                    "@id": "bts:CheckRegexSingle"
+                },
+                {
+                    "@id": "bts:CheckNum"
+                },
+                {
+                    "@id": "bts:CheckFloat"
+                },
+                {
+                    "@id": "bts:CheckInt"
+                },
+                {
+                    "@id": "bts:CheckString"
+                },
+                {
+                    "@id": "bts:CheckURL"
+                }
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:CheckList",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckList",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check List",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "list"
+            ]
+        },
+        {
+            "@id": "bts:CheckRegexList",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRegexList",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Regex List",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "list",
+                "regex match [a-f]"
+            ]
+        },
+        {
+            "@id": "bts:CheckRegexSingle",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRegexSingle",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Regex Single",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "regex search [a-f]"
+            ]
+        },
+        {
+            "@id": "bts:CheckNum",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckNum",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Num",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "num"
+            ]
+        },
+        {
+            "@id": "bts:CheckFloat",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckFloat",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Float",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "float"
+            ]
+        },
+        {
+            "@id": "bts:CheckInt",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckInt",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Int",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "int"
+            ]
+        },
+        {
+            "@id": "bts:CheckString",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckString",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check String",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "str"
+            ]
+        },
+        {
+            "@id": "bts:CheckURL",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckURL",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check URL",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "url"
+            ]
+        },
+        {
             "@id": "bts:Component",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",

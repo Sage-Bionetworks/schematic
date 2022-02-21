@@ -18,3 +18,12 @@ CRAM,,,"Genome Build, Genome FASTA",,FALSE,ValidValue,,,
 CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
 Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
+MockComponent,,,"Check List, Check Regex List, Check Regex Single, Check Num, Check Float, Check Int, Check String, Check URL",,FALSE,DataType,,,
+Check List,,,,,FALSE,DataProperty,MockComponent,,list
+Check Regex List,,,,,FALSE,DataProperty,MockComponent,,list::regex match [a-f]
+Check Regex Single,,,,,FALSE,DataProperty,MockComponent,,regex search [a-f]
+Check Num,,,,,FALSE,DataProperty,MockComponent,,num
+Check Float,,,,,FALSE,DataProperty,MockComponent,,float
+Check Int,,,,,FALSE,DataProperty,MockComponent,,int
+Check String,,,,,FALSE,DataProperty,MockComponent,,str
+Check URL,,,,,FALSE,DataProperty,MockComponent,,url

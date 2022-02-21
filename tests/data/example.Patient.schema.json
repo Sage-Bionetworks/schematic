@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/Patient_validation",
+  "title": "Patient_validation",
+  "type": "object",
+  "properties": {
+    "Sex": {
+      "enum": [
+        "Female",
+        "Male",
+        "Other"
+      ]
+    },
+    "Component": {},
+    "Year of Birth": {},
+    "Diagnosis": {
+      "enum": [
+        "Healthy",
+        "Cancer"
+      ]
+    },
+    "Patient ID": {
+      "not": {
+        "type": "null"
+      },
+      "minLength": 1
+    },
+    "Family History": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "Skin",
+          "Lung",
+          "Prostate",
+          "Colorectal",
+          "Breast",
+          ""
+        ]
+      },
+      "maxItems": 5
+    },
+    "Cancer Type": {
+      "enum": [
+        "Skin",
+        "Lung",
+        "Prostate",
+        "Colorectal",
+        "Breast",
+        ""
+      ]
+    }
+  },
+  "required": [
+    "Sex",
+    "Diagnosis",
+    "Patient ID"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "Diagnosis": {
+            "enum": [
+              "Cancer"
+            ]
+          }
+        },
+        "required": [
+          "Diagnosis"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Family History": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "Skin",
+                "Lung",
+                "Prostate",
+                "Colorectal",
+                "Breast"
+              ]
+            },
+            "maxItems": 5
+          }
+        },
+        "required": [
+          "Family History"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Diagnosis": {
+            "enum": [
+              "Cancer"
+            ]
+          }
+        },
+        "required": [
+          "Diagnosis"
+        ]
+      },
+      "then": {
+        "properties": {
+          "Cancer Type": {
+            "enum": [
+              "Skin",
+              "Lung",
+              "Prostate",
+              "Colorectal",
+              "Breast"
+            ]
+          }
+        },
+        "required": [
+          "Cancer Type"
+        ]
+      }
+    }
+  ]
+}
