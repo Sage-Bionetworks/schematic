@@ -1,0 +1,123 @@
+{
+  "data_asset_type": null,
+  "expectation_suite_name": "manifest_suite",
+  "expectations": [
+    {
+      "expectation_type": "expect_column_values_to_be_of_type",
+      "kwargs": {
+        "column": "Check List",
+        "mostly": 1.0,
+        "type_": "list"
+      },
+      "meta": {
+        "notes": {
+          "content": "Expectat column values to be list type **Markdown** `Supported`",
+          "format": "markdown"
+        }
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_of_type",
+      "kwargs": {
+        "column": "Check Regex List",
+        "mostly": 1.0
+      },
+      "meta": {
+        "notes": {
+          "content": "Expectation {validation_expectation[rule]} **Markdown** `Supported`",
+          "format": "markdown"
+        }
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_match_regex",
+      "kwargs": {
+        "column": "Check Regex Single",
+        "mostly": 1.0,
+        "regex": "[a-f]"
+      },
+      "meta": {
+        "notes": {
+          "content": "Expectat column values to match regex  **Markdown** `Supported`",
+          "format": "markdown"
+        }
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_type_list",
+      "kwargs": {
+        "column": "Check Num",
+        "mostly": 1.0,
+        "type_list": [
+          "int",
+          "float"
+        ]
+      },
+      "meta": {
+        "notes": {
+          "content": "Expect column values to be of int or float type. **Markdown** `Supported`",
+          "format": "markdown"
+        }
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_of_type",
+      "kwargs": {
+        "column": "Check Float",
+        "mostly": 1.0,
+        "type_": "float"
+      },
+      "meta": {
+        "notes": {
+          "content": "Expect column values to be of float type. **Markdown** `Supported`",
+          "format": "markdown"
+        }
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_of_type",
+      "kwargs": {
+        "column": "Check Int",
+        "mostly": 1.0,
+        "type_": "int"
+      },
+      "meta": {
+        "notes": {
+          "content": "Expect column values to be of int type. **Markdown** `Supported`",
+          "format": "markdown"
+        }
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_of_type",
+      "kwargs": {
+        "column": "Check String",
+        "mostly": 1.0,
+        "type_": "str"
+      },
+      "meta": {
+        "notes": {
+          "content": "Expect column values to be of string type. **Markdown** `Supported`",
+          "format": "markdown"
+        }
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_valid_urls",
+      "kwargs": {
+        "column": "Check URL",
+        "mostly": 1.0
+      },
+      "meta": {
+        "notes": {
+          "content": "Expectat URLs in column to be valid. **Markdown** `Supported`",
+          "format": "markdown"
+        }
+      }
+    }
+  ],
+  "ge_cloud_id": null,
+  "meta": {
+    "great_expectations_version": "0.14.7"
+  }
+}

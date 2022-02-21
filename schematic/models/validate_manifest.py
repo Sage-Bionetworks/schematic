@@ -2,7 +2,7 @@ import json
 from jsonschema import Draft7Validator, exceptions, ValidationError
 import logging
 
-# import numpy as np
+import numpy as np
 import pandas as pd
 import re
 import sys
@@ -17,6 +17,17 @@ from urllib import error
 from schematic.models.validate_attribute import ValidateAttribute
 from schematic.schemas.generator import SchemaGenerator
 
+from ruamel import yaml
+
+import great_expectations as ge
+from great_expectations.core.batch import RuntimeBatchRequest, BatchRequest
+from great_expectations.core.expectation_configuration import ExpectationConfiguration
+from great_expectations.data_context.types.resource_identifiers import (ExpectationSuiteIdentifier,)
+from great_expectations.profile.user_configurable_profiler import (UserConfigurableProfiler,)
+from great_expectations.checkpoint import SimpleCheckpoint
+from great_expectations.exceptions import DataContextError
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,6 +37,229 @@ class ValidateManifest(object):
         self.manifest = manifest
         self.sg = sg
         self.jsonSchema = jsonSchema
+        
+
+    def  build_validator(self):
+        
+        self.context=ge.get_context()
+        datasource_config = {
+            "name": "example_datasource",
+            "class_name": "Datasource",
+            "module_name": "great_expectations.datasource",
+            "execution_engine": {
+                "module_name": "great_expectations.execution_engine",
+                "class_name": "PandasExecutionEngine",
+            },
+            "data_connectors": {
+                "default_runtime_data_connector_name": {
+                    "class_name": "RuntimeDataConnector",
+                    "module_name": "great_expectations.datasource.data_connector",
+                    "batch_identifiers": ["default_identifier_name"],
+                },
+            },
+        }
+
+        self.context.test_yaml_config(yaml.dump(datasource_config))
+        self.context.add_datasource(**datasource_config)
+
+        self.batch_request = RuntimeBatchRequest(
+            datasource_name="example_datasource",
+            data_connector_name="default_runtime_data_connector_name",
+            data_asset_name="Manifest",  # This can be anything that identifies this data_asset for you
+            runtime_parameters={"batch_data": self.manifest},  # df is your dataframe
+            batch_identifiers={"default_identifier_name": "default_identifier"},
+        )
+
+        self.context.create_expectation_suite(
+            expectation_suite_name="Manifest_test_suite", overwrite_existing=True
+        )
+
+        self.validator = self.context.get_validator(
+            batch_request=self.batch_request, expectation_suite_name="Manifest_test_suite"
+        )
+
+        print(self.validator.head())
+    
+    def build_expectation_suite(self, sg: SchemaGenerator):
+
+        validation_expectation = {
+            "int": "expect_column_values_to_be_of_type",
+            "float": "expect_column_values_to_be_of_type",
+            "str": "expect_column_values_to_be_of_type",
+            "num": "expect_column_values_to_be_in_type_list",
+            "regex": "expect_column_values_to_match_regex",
+            "url": "expect_column_values_to_be_valid_urls",
+            #"list": "expect_column_values_to_follow_rule",
+            "list": "expect_column_values_to_be_of_type",
+            "regexList": "expect_column_values_to_match_regex_list",
+        }
+
+        expectation_suite_name = "manifest_suite"
+        '''
+        try:
+            suite = self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name)
+            print(
+                f'Loaded ExpectationSuite "{suite.expectation_suite_name}" containing {len(suite.expectations)} expectations.'
+            )
+        except DataContextError:
+        '''
+        suite = self.context.create_expectation_suite(
+            expectation_suite_name=expectation_suite_name,
+            overwrite_existing=True
+        )
+        print(f'Created ExpectationSuite "{suite.expectation_suite_name}".')        
+
+
+        validation_rules_and_col={}
+
+        
+        for col in self.manifest.columns:
+            # remove trailing/leading whitespaces from manifest
+            self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+            rule=sg.get_node_validation_rules(col)[0]
+            """
+            if sg.get_node_validation_rules(col)[0] not in validation_rules_and_col.keys():
+                validation_rules_and_col[sg.get_node_validation_rules(col)[0]]=[]
+            
+            validation_rules_and_col[sg.get_node_validation_rules(col)[0]].append(str(col))
+            """
+            args={}
+            args["column"]=col
+
+            print(rule)
+
+            #Validate lift of regices
+            if len(sg.get_node_validation_rules(col)) > 1:
+               
+                
+                args["mostly"]=1.0
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expectation {validation_expectation[rule]} **Markdown** `Supported`"
+                    }
+                }
+                
+            #Validate list
+            elif rule=='list':
+                args["mostly"]=1.0
+                args["type_"]="list"
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expectat column values to be list type **Markdown** `Supported`"
+                    }
+                }
+           
+            #Validate regex
+            elif rule.startswith('regex'):
+                
+                args["mostly"]=1.0
+                args["regex"]=rule.split(" ")[-1]
+                rule='regex'
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expectat column values to match regex  **Markdown** `Supported`"
+                    }
+                }
+           
+            #Validate url
+            elif rule=='url':
+                args["mostly"]=1.0
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expectat URLs in column to be valid. **Markdown** `Supported`"
+                    }
+                }
+           
+            #Validate num
+            elif rule=='num':
+                args["mostly"]=1.0
+                args["type_list"]=['int', "float"]
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
+                    }
+                }
+           
+            #Validate float
+            elif rule=='float':
+                args["mostly"]=1.0
+                args["type_"]='float'
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be of float type. **Markdown** `Supported`"
+                    }
+                }
+           
+            #Validate int
+            elif rule=='int':
+                args["mostly"]=1.0
+                args["type_"]='int'
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be of int type. **Markdown** `Supported`"
+                    }
+                }
+           
+            #Validate string
+            elif rule=='str':
+                args["mostly"]=1.0
+                args["type_"]='str'
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be of string type. **Markdown** `Supported`"
+                    }
+                }
+        
+            # Create an Expectation
+            expectation_configuration = ExpectationConfiguration(
+                # Name of expectation type being added
+                expectation_type=validation_expectation[rule],
+
+                # These are the arguments of the expectation
+                # The keys allowed in the dictionary are Parameters and
+                # Keyword Arguments of this Expectation Type
+                kwargs={**args},
+
+                # This is how you can optionally add a comment about this expectation.
+                # It will be rendered in Data Docs.
+                # See this guide for details:
+                # `How to add comments to Expectations and display them in Data Docs`.
+                meta={**meta}
+            )
+            # Add the Expectation to the suite
+            suite.add_expectation(expectation_configuration=expectation_configuration)
+
+        self.context.save_expectation_suite(expectation_suite=suite, expectation_suite_name=expectation_suite_name)
+        suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=expectation_suite_name)
+        self.context.build_data_docs(resource_identifiers=[suite_identifier])
+        self.context.open_data_docs(resource_identifier=suite_identifier)
+            
+
+    def build_checkpoint(self):
+        print(self.validator.get_expectation_suite(discard_failed_expectations=False))
+        self.validator.save_expectation_suite(discard_failed_expectations=False)
+
+        checkpoint_config = {
+            "class_name": "SimpleCheckpoint",
+            "validations": [
+                {
+                    "batch_request": self.batch_request,
+                    "expectation_suite_name": "manifest_suite",
+                }
+            ],
+        }
+        self.checkpoint = SimpleCheckpoint(
+            f"_tmp_checkpoint_manifest_suite", self.context, **checkpoint_config
+        )        
+
 
     def get_multiple_types_error(
         validation_rules: list, attribute_name: str, error_type: str
@@ -93,6 +327,14 @@ class ValidateManifest(object):
             "url": "url_validation",
             "list": "list_validation",
         }
+
+        self.build_validator()
+        self.build_expectation_suite(sg)
+        self.build_checkpoint()
+        print(self.checkpoint.run())
+
+        
+
 
         errors = []  # initialize error handling list.
         for col in manifest.columns:
@@ -167,6 +409,7 @@ class ValidateManifest(object):
         return manifest, errors
 
     def validate_manifest_values(self, manifest, jsonSchema):
+        
         errors = []
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
