@@ -14,7 +14,13 @@ synapse:
 
 manifest:
   title: 'Patient_Manifest'
+  # data_type: 'all manifests' to make all manifests.
   data_type: 'Patient'
+  # for making many manifests
+  title_prefix: 'example'
+  data_type_set:
+    - 'Patient'
+    - 'Biospecimen'
 
 model:
   input:
