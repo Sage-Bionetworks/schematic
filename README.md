@@ -20,10 +20,18 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
+Note: Python 3 has a built-in support for virtual environment [venv](https://docs.python.org/3/library/venv.html#module-venv) so you no longer need to install virtualenv. 
+
 Install and update the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
 ```
 python -m pip install schematicpy
+```
+
+If you run into error: Failed building wheel for numpy, the error might be able to resolve by upgrading pip. Please try to upgrade pip by: 
+
+```
+pip3 install --upgrade pip
 ```
 
 ## Command Line Client Usage

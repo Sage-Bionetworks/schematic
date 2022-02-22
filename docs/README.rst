@@ -86,7 +86,16 @@ attribute under the
 `[authentication] <https://github.com/Sage-Bionetworks/synapsePythonClient/blob/v2.3.0-rc/synapseclient/.synapseConfig#L7>`__
 section.
 
- Description of config.yml attributes
+Note: You could also visit `configparser <https://docs.python.org/3/library/configparser.html#module-configparser>`__ doc to see the format that .synapseConfig must have. For instance: 
+::
+
+  [authentication]
+  username = ABC
+  authtoken = abc
+
+::
+
+Description of config.yml attributes
 
 ::
 
@@ -157,6 +166,8 @@ mode of authentication of your choice:
 .. code:: bash
 
     schematic init --config ~/path/to/config.yml
+
+Note: this should prompt you with a URL that will take you through Google OAuth. Your credential.json will get automatically downloaded the first time you run this command.
 
 4.2. Metadata Manifest Generation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
