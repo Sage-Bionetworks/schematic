@@ -13,15 +13,13 @@ synapse:
   service_acct_creds: 'syn25171627'
 
 manifest:
-  title: 'Patient_Manifest'
-  # data_type: 'all manifests' to make all manifests.
-  data_type: 'Patient'
-  # for making many manifests
-  title_prefix: 'example'
-  data_type_set:
-    - 'Patient'
+  # if making many manifests, just include name prefix
+  title: 'example'
+  # to make all manifests enter only 'all manifests'
+  data_type: 
     - 'Biospecimen'
-
+    - 'Patient'
+  
 model:
   input:
     location: 'tests/data/example.model.jsonld'
