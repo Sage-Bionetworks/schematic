@@ -55,17 +55,9 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     "-t", "--title", help=query_dict(manifest_commands, ("manifest", "get", "title"))
 )
 @click.option(
-    "-tp", "--title_prefix",help=query_dict(manifest_commands, ("manifest", "get", "title_prefix"))
-    )
-@click.option(
     "-dt",
     "--data_type",
     help=query_dict(manifest_commands, ("manifest", "get", "data_type")),
-)
-@click.option(
-    "-dts",
-    "--data_type_set",
-    help=query_dict(manifest_commands, ("manifest", "get", "data_type_set")),
 )
 @click.option(
     "-p", "--jsonld", help=query_dict(manifest_commands, ("manifest", "get", "jsonld"))
@@ -107,9 +99,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
 def get_manifest(
     ctx,
     title,
-    title_prefix,
     data_type,
-    data_type_set,
     jsonld,
     dataset_id,
     sheet_url,
@@ -126,8 +116,6 @@ def get_manifest(
     data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
     jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
     title = fill_in_from_config("title", title, ("manifest", "title"), allow_none=True)
-    title_prefix = fill_in_from_config("title_prefix", title_prefix, ("manifest", "title_prefix"), allow_none=True)
-    data_type_set = fill_in_from_config("data_type_set", data_type_set, ("manifest", "data_type_set"), allow_none=True)
 
     json_schema = fill_in_from_config(
         "json_schema",
@@ -142,7 +130,7 @@ def get_manifest(
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
-            title=title,
+            title=t,
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
@@ -172,18 +160,19 @@ def get_manifest(
             result.to_csv(output_csv, index=False)
         return result
 
-    if data_type == 'all manifests':
+    if data_type[0] == 'all manifests':
         sg = SchemaGenerator(path_to_json_ld=jsonld)
         component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
         components = component_digraph.nodes()
         for component in components:
-            title = f'{title_prefix}.{component}.manifest'
+            t = f'{title}.{component}.manifest'
             result = create_single_manifest(data_type = component)
-    elif data_type_set:
-        for dt in data_type_set:
-            title = f'{title_prefix}.{dt}.manifest'
-            result = create_single_manifest(data_type = dt)
     else:
-        result = create_single_manifest(data_type=data_type)
+        for dt in data_type:
+            if len(data_type) > 1:
+                t = f'{title}.{dt}.manifest'
+            else:
+                t = title
+            result = create_single_manifest(data_type = dt)
 
     return result
