@@ -19,7 +19,7 @@ manifest:
   data_type: 
     - 'Biospecimen'
     - 'Patient'
-  
+
 model:
   input:
     location: 'tests/data/example.model.jsonld'
