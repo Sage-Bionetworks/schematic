@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import logging
 
@@ -13,8 +11,6 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic.help import manifest_commands
 from schematic import CONFIG
-
-from schematic.schemas.generator import SchemaGenerator
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -43,6 +39,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
         logger.error("'--config' not provided or environment variable not set.")
         logger.exception(e)
         sys.exit(1)
+
 
 # prototype based on getModelManifest() and get_manifest()
 # use as `schematic config get positional_args --optional_args`
@@ -116,17 +113,14 @@ def get_manifest(
     data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
     jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
     title = fill_in_from_config("title", title, ("manifest", "title"), allow_none=True)
-
     json_schema = fill_in_from_config(
         "json_schema",
         json_schema,
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
+
     def create_single_manifest(data_type):
-        '''
-        Nesting bc placing outside get_manifest causes it to be run independently.
-        '''
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
