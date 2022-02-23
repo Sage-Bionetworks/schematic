@@ -5,6 +5,7 @@ from jsonschema import Draft7Validator, exceptions, ValidationError
 import logging
 
 import numpy as np
+import os
 import pandas as pd
 import re
 import sys
@@ -45,9 +46,10 @@ class ValidateManifest(object):
         self.jsonSchema = jsonSchema
         
 
-    def  build_validator(self):
+    def  build_context(self):
         
         self.context=ge.get_context()
+
         datasource_config = {
             "name": "example_datasource",
             "class_name": "Datasource",
@@ -59,12 +61,10 @@ class ValidateManifest(object):
             "data_connectors": {
                 "default_runtime_data_connector_name": {
                     "class_name": "RuntimeDataConnector",
-                    #"module_name": "great_expectations.datasource.data_connector",
                     "batch_identifiers": ["default_identifier_name"],
                 },
             },
         }
-
 
         data_context_config = DataContextConfig(
             datasources={
@@ -81,89 +81,50 @@ class ValidateManifest(object):
                     },
                 )
             },
-            store_backend_defaults=FilesystemStoreBackendDefaults(root_directory="/great_expectations"),
+            store_backend_defaults=FilesystemStoreBackendDefaults(root_directory=os.path.join(os.getcwd(),'great_expectations')),
         )
 
         self.context=BaseDataContext(project_config=data_context_config)
 
-        #self.context.test_yaml_config(yaml.dump(datasource_config))
+        self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
         
-        '''
-        self.batch_request = RuntimeBatchRequest(
-            datasource_name="example_datasource",
-            data_connector_name="default_runtime_data_connector_name",
-            data_asset_name="Manifest",  # This can be anything that identifies this data_asset for you
-            runtime_parameters={"batch_data": self.manifest},  # df is your dataframe
-            batch_identifiers={"default_identifier_name": "default_identifier"},
-
-        )
-           
-    
-        self.context.create_expectation_suite(
-            expectation_suite_name="Manifest_test_suite", overwrite_existing=True
-        )
-
-            
-        self.validator = self.context.get_validator(
-            batch_request=self.batch_request, expectation_suite_name="Manifest_test_suite"
-        )
         
+    def build_expectation_suite(self, sg: SchemaGenerator, unimplemented_expectations = []):
 
-        print(self.validator.head())
-        '''
         
-    def build_expectation_suite(self, sg: SchemaGenerator):
-
         validation_expectation = {
             "int": "expect_column_values_to_be_of_type",
             "float": "expect_column_values_to_be_of_type",
             "str": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
             "regex": "expect_column_values_to_match_regex",
-            #"url": "expect_column_values_to_be_valid_urls",
-            #"list": "expect_column_values_to_follow_rule",
-            "list": "expect_column_values_to_be_of_type",
-            "regexList": "expect_column_values_to_match_regex_list",
+            "url": "expect_column_values_to_be_valid_urls",
+            "list": "expect_column_values_to_follow_rule",
+            #"regexList": "expect_column_values_to_match_regex_list",
         }
 
-        expectationSuiteName = "Manifest_test_suite"
-        '''
-        try:
-            suite = self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name)
-            print(
-                f'Loaded ExpectationSuite "{suite.expectation_suite_name}" containing {len(suite.expectations)} expectations.'
-            )
-        except DataContextError:
-        '''
+        expectation_suite_name = "Manifest_test_suite"
+
         suite = self.context.create_expectation_suite(
-            expectation_suite_name=expectationSuiteName,
+            expectation_suite_name=expectation_suite_name,
             overwrite_existing=True
         )
         print(f'Created ExpectationSuite "{suite.expectation_suite_name}".')        
 
-
-        #validation_rules_and_col={}
-
         
         for col in self.manifest.columns:
+
             # remove trailing/leading whitespaces from manifest
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             rule=sg.get_node_validation_rules(col)[0]
-            """
-            if sg.get_node_validation_rules(col)[0] not in validation_rules_and_col.keys():
-                validation_rules_and_col[sg.get_node_validation_rules(col)[0]]=[]
-            
-            validation_rules_and_col[sg.get_node_validation_rules(col)[0]].append(str(col))
-            """
 
-            if rule in ['url']:
+            if rule in unimplemented_expectations:
                 continue
 
             args={}
             args["column"]=col
 
-            #print(rule)
 
             #Validate lift of regices
             if len(sg.get_node_validation_rules(col)) > 1:
@@ -275,36 +236,16 @@ class ValidateManifest(object):
             suite.add_expectation(expectation_configuration=expectation_configuration)
 
         
-        #print(self.context.get_expectation_suite(expectation_suite_name=expectationSuiteName))
-        self.context.save_expectation_suite(expectation_suite=suite, expectation_suite_name=expectationSuiteName)
+        #print(self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name))
+        self.context.save_expectation_suite(expectation_suite=suite, expectation_suite_name=expectation_suite_name)
 
-        suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=expectationSuiteName)
+        suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=expectation_suite_name)
         self.context.build_data_docs(resource_identifiers=[suite_identifier])
-        #self.context.open_data_docs(resource_identifier=suite_identifier)
+        self.context.open_data_docs(resource_identifier=suite_identifier)
 
-        #print(suite)
-            
 
     def build_checkpoint(self):
-        #print(self.validator.get_expectation_suite(discard_failed_expectations=False))
-        #self.validator.save_expectation_suite(discard_failed_expectations=False)
         checkpoint_name = "manifest_checkpoint"  
-
-        yaml_config = f"""
-        name: {checkpoint_name}
-        config_version: 1.0
-        class_name: SimpleCheckpoint
-        run_name_template: "%Y%m%d-%H%M%S-my-run-name-template"
-        validations:
-        - batch_request:
-            datasource_name: example_datasource
-            data_connector_name: default_runtime_data_connector_name
-            data_asset_name: Manifest
-            data_connector_query:
-                index: -1
-        expectation_suite_name: Manifest_test_suite
-        """
-
         checkpoint_config={
             "name": checkpoint_name,
             "config_version": 1,
@@ -320,16 +261,11 @@ class ValidateManifest(object):
                 }
             ],
         }
- 
-
-        #print(yaml_config)
 
         self.context.test_yaml_config(yaml.dump(checkpoint_config),return_mode="report_object")
         
-
-        #self.context.add_checkpoint(**YAML().load(yaml_config))
         self.context.add_checkpoint(**checkpoint_config)
-        pass
+
 
 
     def get_multiple_types_error(
@@ -399,11 +335,12 @@ class ValidateManifest(object):
             "list": "list_validation",
         }
 
-        self.build_validator()
-        self.build_expectation_suite(sg)
+        unimplemented_expectations=['url','regexList','list']
+
+        self.build_context()
+        self.build_expectation_suite(sg, unimplemented_expectations)
         self.build_checkpoint()
-        #print(self.context.get_checkpoint(name='manifest_checkpoint'))
-        #print(self.batch_request)
+
        
         results = self.context.run_checkpoint(
             checkpoint_name="manifest_checkpoint",
@@ -416,21 +353,7 @@ class ValidateManifest(object):
         )        
         
         
-
-
-        '''
-        result = self.context.run_checkpoint(
-                checkpoint_name='manifest_checkpoint',                
-                batch_request={
-                    "runtime_parameters": {"batch_data": manifest},
-                    "batch_identifiers": {
-                        "default_identifier_name": "default_identifier"
-                    }
-                },               
-            )
-            
-        '''
-        print(results)
+        print(results['success'])
         
         
 
