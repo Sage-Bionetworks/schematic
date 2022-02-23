@@ -12,13 +12,15 @@ manifest_commands = {
                 "This is a required argument."
             ),
             "title": (
-                "Specify the title of the manifest that will be created at the end of the run. "
-                "You can either explicitly pass the title of the manifest here or provide it in the `config.yml` "
+                "Specify the title of the manifest (or title prefix of multiple manifests) that "
+                "will be created at the end of the run. You can either explicitly pass the "
+                "title of the manifest here or provide it in the `config.yml` "
                 "file as a value for the `(manifest > title)` key."
             ),
             "data_type": (
-                "Specify the component (data type) from the data model that is to be used "
-                "for generating the metadata manifest file. You can either explicitly pass the data type here or provide "
+                "Specify the component(s) (data type) from the data model that is to be used "
+                "for generating the metadata manifest file. To make all available manifests enter 'all manifests'. "
+                "You can either explicitly pass the data type here or provide "
                 "it in the `config.yml` file as a value for the `(manifest > data_type)` key."
             ),
             "jsonld": (

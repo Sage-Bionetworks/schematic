@@ -13,8 +13,12 @@ synapse:
   service_acct_creds: 'syn25171627'
 
 manifest:
-  title: 'Patient_Manifest'
-  data_type: 'Patient'
+  # if making many manifests, just include name prefix
+  title: 'example'
+  # to make all manifests enter only 'all manifests'
+  data_type: 
+    - 'Biospecimen'
+    - 'Patient'
 
 model:
   input:
