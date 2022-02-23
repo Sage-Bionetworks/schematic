@@ -11,6 +11,7 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic.help import manifest_commands
 from schematic import CONFIG
+from schematic.schemas.generator import SchemaGenerator
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
