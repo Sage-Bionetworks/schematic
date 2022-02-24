@@ -175,7 +175,7 @@ class ValidateManifest(object):
             #Validate num
             elif rule=='num':
                 args["mostly"]=1.0
-                args["type_list"]=['int', "float"]
+                args["type_list"]=['int64', "float"]
                 meta={
                     "notes": {
                         "format": "markdown",
@@ -197,7 +197,7 @@ class ValidateManifest(object):
             #Validate int
             elif rule=='int':
                 args["mostly"]=1.0
-                args["type_"]='int'
+                args["type_"]='int64' #might need to add other int types
                 meta={
                     "notes": {
                         "format": "markdown",
@@ -241,7 +241,7 @@ class ValidateManifest(object):
 
         suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=expectation_suite_name)
         self.context.build_data_docs(resource_identifiers=[suite_identifier])
-        self.context.open_data_docs(resource_identifier=suite_identifier)
+        #self.context.open_data_docs(resource_identifier=suite_identifier) #Webpage DataDocs opened here
 
 
     def build_checkpoint(self):
@@ -335,8 +335,9 @@ class ValidateManifest(object):
             "list": "list_validation",
         }
 
+        
         unimplemented_expectations=['url','regexList','list']
-
+        print(manifest)
         self.build_context()
         self.build_expectation_suite(sg, unimplemented_expectations)
         self.build_checkpoint()
@@ -353,7 +354,17 @@ class ValidateManifest(object):
         )        
         
         
-        print(results['success'])
+        print(results)
+        
+        
+
+        if results['success']:
+            print("Manifest is valid")
+        else:
+            print(results['run_results'])
+            print("Manifest is invalid")
+            
+            
         
         
 
@@ -365,7 +376,8 @@ class ValidateManifest(object):
             validation_rules = sg.get_node_validation_rules(col)
 
             # Given a validation rule, run validation.
-            if bool(validation_rules):
+            if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or len(validation_rules) > 1:
+                print("Validating rule:" + str(validation_rules))
 
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
