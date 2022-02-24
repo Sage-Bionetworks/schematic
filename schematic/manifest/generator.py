@@ -960,7 +960,8 @@ class ManifestGenerator(object):
         return validation_body["requests"]
 
     def _dependency_formatting(
-        self, i, req_val, ordered_metadata_fields, val_dependencies
+        self, i, req_val, ordered_metadata_fields, val_dependencies,
+        dependency_formatting_body
     ):
         """If there are additional attribute dependencies find the corresponding
         fields that need to be filled in and construct conditional formatting rules
@@ -976,8 +977,8 @@ class ManifestGenerator(object):
             add as columns, ordered
             val_depenencies (list[str]): dependencies
         Returns:
-            conditional_format_rule (dict):
-                specifies gs conditional formatting
+            dependency_formatting_body["requests"] (list):
+                specifies gs conditional formatting per val_dependency
         """
 
         # find dependency column indexes
@@ -990,6 +991,7 @@ class ManifestGenerator(object):
         # construct ranges based on dependency column indexes
         rule_ranges = self._columns_to_sheet_ranges(column_idxs)
         # go over valid value dependencies
+        dependency_formatting_body = {"requests": []}
         for j, val_dep in enumerate(val_dependencies):
             is_required = False
 
@@ -1013,7 +1015,10 @@ class ManifestGenerator(object):
                     "index": 0,
                 }
             }
-        return conditional_format_rule
+            dependency_formatting_body["requests"].append(
+                            conditional_format_rule
+                        )
+        return dependency_formatting_body["requests"]
 
     def _request_dependency_formatting(
         self, i, req_vals, ordered_metadata_fields, requests_body
@@ -1027,13 +1032,12 @@ class ManifestGenerator(object):
             requests_body(dict):
                 containing all the update requests to add to the gs
         Return:
-            dependency_formatting_body (dict): specifiying the conditional
+            requests_body (dict): adding the conditional
             formatting rules to apply
         """
         for req_val in req_vals:
             # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
             req_val = req_val["userEnteredValue"]
-
             req_val_node_label = self.sg.get_node_label(req_val)
             if not req_val_node_label:
                 # if this node is not in the graph
@@ -1049,11 +1053,16 @@ class ManifestGenerator(object):
 
             # set conditiaon formatting for dependencies.
             if val_dependencies:
-                conditional_format_rule = self._dependency_formatting(
-                    i, req_val, ordered_metadata_fields, val_dependencies
+                dependency_formatting_body["requests"] = self._dependency_formatting(
+                    i, req_val, ordered_metadata_fields, val_dependencies,
+                    dependency_formatting_body
                 )
-                dependency_formatting_body["requests"].append(conditional_format_rule)
-        return dependency_formatting_body
+
+            if dependency_formatting_body["requests"]:
+                requests_body["requests"].append(
+                    dependency_formatting_body["requests"]
+                )
+        return requests_body
 
     def _create_requests_body(
         self,
@@ -1130,14 +1139,9 @@ class ManifestGenerator(object):
             # generate a conditional format rule for each required value (i.e. valid value)
             # for this field (i.e. if this field is set to a valid value that may require additional
             # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
-            dependency_formatting_body = self._request_dependency_formatting(
-                i, req_vals, ordered_metadata_fields, requests_body
-            )
-            if dependency_formatting_body["requests"]:
-                requests_body["requests"].append(
-                    dependency_formatting_body["requests"]
-                )
 
+            requests_body = self._request_dependency_formatting(i, req_vals, ordered_metadata_fields, requests_body)
+           
         # Set borders formatting
         borders_formatting = self._request_cell_borders()
         if borders_formatting:

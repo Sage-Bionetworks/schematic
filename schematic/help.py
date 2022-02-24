@@ -12,13 +12,15 @@ manifest_commands = {
                 "This is a required argument."
             ),
             "title": (
-                "Specify the title of the manifest that will be created at the end of the run. "
-                "You can either explicitly pass the title of the manifest here or provide it in the `config.yml` "
+                "Specify the title of the manifest (or title prefix of multiple manifests) that "
+                "will be created at the end of the run. You can either explicitly pass the "
+                "title of the manifest here or provide it in the `config.yml` "
                 "file as a value for the `(manifest > title)` key."
             ),
             "data_type": (
-                "Specify the component (data type) from the data model that is to be used "
-                "for generating the metadata manifest file. You can either explicitly pass the data type here or provide "
+                "Specify the component(s) (data type) from the data model that is to be used "
+                "for generating the metadata manifest file. To make all available manifests enter 'all manifests'. "
+                "You can either explicitly pass the data type here or provide "
                 "it in the `config.yml` file as a value for the `(manifest > data_type)` key."
             ),
             "jsonld": (
@@ -76,6 +78,10 @@ model_commands = {
                 "Store attributes using the schema label (--use_schema_label, default) or store attributes using the display label "
                 "(--use_display_label). Attribute display names in the schema must not only include characters that are "
                 "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
+            ),
+            "hide_blanks":(
+                "This is a boolean flag. If flag is provided when command line utility is executed, annotations with blank values will be hidden from a dataset's annotation list in Synaspe."
+                "If not, annotations with blank values will be displayed."
             ),
         },
         "validate": {

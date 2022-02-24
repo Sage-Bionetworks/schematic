@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import logging
 
@@ -13,6 +11,7 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic.help import manifest_commands
 from schematic import CONFIG
+from schematic.schemas.generator import SchemaGenerator
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -122,36 +121,53 @@ def get_manifest(
         allow_none=True,
     )
 
-    # create object of type ManifestGenerator
-    manifest_generator = ManifestGenerator(
-        path_to_json_ld=jsonld,
-        title=title,
-        root=data_type,
-        oauth=oauth,
-        use_annotations=use_annotations,
-    )
-
-    # call get_manifest() on manifest_generator
-    result = manifest_generator.get_manifest(
-        dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema,
-    )
-
-    if sheet_url:
-        logger.info("Find the manifest template using this Google Sheet URL:")
-        click.echo(result)
-
-    elif isinstance(result, pd.DataFrame):
-        if output_csv is None:
-            prefix, _ = os.path.splitext(jsonld)
-            prefix_root, prefix_ext = os.path.splitext(prefix)
-            if prefix_ext == ".model":
-                prefix = prefix_root
-            output_csv = f"{prefix}.{data_type}.manifest.csv"
-
-        logger.info(
-            f"Find the manifest template using this CSV file path: {output_csv}"
+    def create_single_manifest(data_type):
+        # create object of type ManifestGenerator
+        manifest_generator = ManifestGenerator(
+            path_to_json_ld=jsonld,
+            title=t,
+            root=data_type,
+            oauth=oauth,
+            use_annotations=use_annotations,
         )
 
-        result.to_csv(output_csv, index=False)
+        # call get_manifest() on manifest_generator
+        result = manifest_generator.get_manifest(
+            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema,
+        )
+
+        if sheet_url:
+            logger.info("Find the manifest template using this Google Sheet URL:")
+            click.echo(result)
+
+        elif isinstance(result, pd.DataFrame):
+            if output_csv is None:
+                prefix, _ = os.path.splitext(jsonld)
+                prefix_root, prefix_ext = os.path.splitext(prefix)
+                if prefix_ext == ".model":
+                    prefix = prefix_root
+                output_csv = f"{prefix}.{data_type}.manifest.csv"
+
+            logger.info(
+                f"Find the manifest template using this CSV file path: {output_csv}"
+            )
+
+            result.to_csv(output_csv, index=False)
+        return result
+
+    if data_type[0] == 'all manifests':
+        sg = SchemaGenerator(path_to_json_ld=jsonld)
+        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+        components = component_digraph.nodes()
+        for component in components:
+            t = f'{title}.{component}.manifest'
+            result = create_single_manifest(data_type = component)
+    else:
+        for dt in data_type:
+            if len(data_type) > 1:
+                t = f'{title}.{dt}.manifest'
+            else:
+                t = title
+            result = create_single_manifest(data_type = dt)
 
     return result

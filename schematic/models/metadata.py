@@ -279,6 +279,7 @@ class MetadataModel(object):
         dataset_id: str,
         validate_component: str = None,
         use_schema_label: bool = True,
+        hide_blanks: bool = False,
     ) -> bool:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -323,7 +324,7 @@ class MetadataModel(object):
 
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 syn_store.associateMetadataWithFiles(
-                    metadataManifestPath=manifest_path, datasetId=dataset_id
+                    metadataManifestPath=manifest_path, datasetId=dataset_id, hideBlanks=hide_blanks,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
@@ -339,6 +340,7 @@ class MetadataModel(object):
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             useSchemaLabel=use_schema_label,
+            hideBlanks=hide_blanks,
         )
 
         logger.debug(
