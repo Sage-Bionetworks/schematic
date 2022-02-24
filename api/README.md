@@ -14,6 +14,12 @@ Notes on installation:
 pip install connexion['swagger=ui']
 ```
 
+* Please also consider following these [instructions](https://sage-schematic.readthedocs.io/en/develop/index.html) to fill in configuration file and run the following command to obtain credential.json:
+```bash 
+schematic init --config ~/path/to/config.yml
+```
+
+
 Access the Swagger UI docs at this location:
 ```bash
 http://localhost:3001/v1/ui/
