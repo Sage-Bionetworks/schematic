@@ -154,6 +154,13 @@ multiple values in a cell during manifest annotation `does not
 work <https://developers.google.com/apps-script/api/concepts>`__ with
 the service account mode of authentication.
 
+Background: schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
+Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
+requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
+token-based authentication and keep only service account authentication in the future. 
+
+
+
 4. Command Line Interface
 -------------------------------
 
