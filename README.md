@@ -50,6 +50,19 @@ schematic manifest --config ~/path/to/config.yml validate   # validate manifest
 schematic model --config ~/path/to/config.yml submit    # validate and submit manifest
 ```
 
+
+As of Feb 25, 2022, the hybrid validation rules are as follows:
+    In-house Validation Rules:
+    List::Regex
+    Regex module
+    list
+    url
+
+    Great Expectations:
+    num
+    int/float/string
+    regex match
+
 ## Contributing
 
 Interested in contributing? Awesome! We follow the typical [GitHub workflow](https://guides.github.com/introduction/flow/) of forking a repo, creating a branch, and opening pull requests. For more information on how you can add or propose a change, visit our [contributing guide](CONTRIBUTION.md). To start contributing to the package, you can refer to the [Getting Started](CONTRIBUTION.md#getting-started) section in our [contributing guide](CONTRIBUTION.md).
