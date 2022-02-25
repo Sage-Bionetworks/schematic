@@ -20,7 +20,7 @@ from urllib import error
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
 
-#from ruamel import yaml
+from ruamel import yaml
 
 import great_expectations as ge
 from great_expectations.core.batch import RuntimeBatchRequest, BatchRequest
@@ -46,9 +46,9 @@ class ValidateManifest(object):
         
 
     def  build_context(self):
-        
         self.context=ge.get_context()
 
+        #create datasource configuration
         datasource_config = {
             "name": "example_datasource",
             "class_name": "Datasource",
@@ -65,6 +65,7 @@ class ValidateManifest(object):
             },
         }
 
+        #create data context configuration
         data_context_config = DataContextConfig(
             datasources={
                 "pandas": DatasourceConfig(
@@ -83,15 +84,13 @@ class ValidateManifest(object):
             store_backend_defaults=FilesystemStoreBackendDefaults(root_directory=os.path.join(os.getcwd(),'great_expectations')),
         )
 
+        #build context and add data source
         self.context=BaseDataContext(project_config=data_context_config)
-
         #self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
         
         
     def build_expectation_suite(self, sg: SchemaGenerator, unimplemented_expectations = []):
-
-        
         validation_expectation = {
             "int": "expect_column_values_to_be_of_type",
             "float": "expect_column_values_to_be_of_type",
@@ -104,16 +103,16 @@ class ValidateManifest(object):
             "url": "expect_column_values_to_be_valid_urls",
             "list": "expect_column_values_to_follow_rule",
         }
-
-        expectation_suite_name = "Manifest_test_suite"
-
+        
+        #create blank expectation suite
+        expectation_suite_name = "Manifest_test_suite"       
         suite = self.context.create_expectation_suite(
             expectation_suite_name=expectation_suite_name,
             overwrite_existing=True
         )
-        print(f'Created ExpectationSuite "{suite.expectation_suite_name}".')        
+        #print(f'Created ExpectationSuite "{suite.expectation_suite_name}".')        
 
-        
+        #build expectation configurations for each expecation
         for col in self.manifest.columns:
 
             # remove trailing/leading whitespaces from manifest
@@ -121,7 +120,7 @@ class ValidateManifest(object):
             rule=sg.get_node_validation_rules(col)[0]
             
 
-            if rule in unimplemented_expectations or rule.__contains__('search'):
+            if rule in unimplemented_expectations or rule.__contains__('search'): #modify if list is implemented before list::regex
                 continue
 
             args={}
@@ -230,6 +229,7 @@ class ValidateManifest(object):
                 # Name of expectation type being added
                 expectation_type=validation_expectation[rule],
 
+                #add arguments and meta message
                 kwargs={**args},
                 meta={**meta}
             )
@@ -246,6 +246,8 @@ class ValidateManifest(object):
 
 
     def build_checkpoint(self):
+
+        #create manifest checkpoint
         checkpoint_name = "manifest_checkpoint"  
         checkpoint_config={
             "name": checkpoint_name,
@@ -343,11 +345,13 @@ class ValidateManifest(object):
 
         unimplemented_expectations=['url','regexList','list','regex search']
 
+        #operations necessary to set up and run ge suite validation
         self.build_context()
         self.build_expectation_suite(sg, unimplemented_expectations)
         self.build_checkpoint()
 
        
+       #run GE validation
         results = self.context.run_checkpoint(
             checkpoint_name="manifest_checkpoint",
             batch_request={
@@ -361,7 +365,9 @@ class ValidateManifest(object):
         #print(results)       
         #results.list_validation_results()
 
-        errors = []  # initialize error handling 2list.    
+        errors = []  # initialize error handling 2list. 
+
+        #parse validation results dict   
         validation_results = results.list_validation_results()
         for result_dict in validation_results[0]['results']:
             
@@ -371,20 +377,25 @@ class ValidateManifest(object):
             #print(result_dict)
             #print(result_dict['expectation_config']['expectation_type'])
 
+            #if the expectaion failed, get infromation to generate error message
             if not result_dict['success']:
                 errColumn   = result_dict['expectation_config']['kwargs']['column']               
                 rule        = result_dict['expectation_config']['meta']['validation_rule']
 
+
+                #only some expectations explicitly list unexpected values and indices, read or find if not present
                 if 'unexpected_index_list' in result_dict['result']:
                     indices = result_dict['result']['unexpected_index_list']
                     values  = result_dict['result']['unexpected_list']
 
+                #because type validation is column aggregate expectation and not column map expectation, indices and values cannot be returned
                 else:
                     for i, item in enumerate(manifest[errColumn]):
                         observed_type=result_dict['result']['observed_value']
                         indices.append(i)   if isinstance(item,type_dict[observed_type]) else indices
                         values.append(item) if isinstance(item,type_dict[observed_type]) else values
 
+                #call functions to generate error messages and add to error list
                 if validation_types[rule]=='type_validation':
                     for row, value in zip(indices,values):
                         errors.append(
@@ -394,8 +405,8 @@ class ValidateManifest(object):
                         )                                      
                 elif validation_types[rule]=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
-                    for row, value in zip(indices,values):
-                        
+
+                    for row, value in zip(indices,values):   
                         errors.append(
                             GenerateError.generate_regex_error(
                                 rule, expression, row+2, 'match', errColumn, value
@@ -408,7 +419,7 @@ class ValidateManifest(object):
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
                 
-            # Given a validation rule, run validation.
+            # Given a validation rule, run validation. Skip validations already performed by GE
             if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or len(validation_rules) > 1 or validation_rules[0].__contains__('search'):
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
