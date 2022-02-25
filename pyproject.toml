@@ -47,6 +47,7 @@ importlib-metadata = {version = "^1.6.0", python = "<3.8"}
 inflection = "^0.5.1"
 jsonschema = "^3.2.0"
 networkx = "^2.5"
+numpy = "1.21.1"
 oauth2client = "<4.0.0"  # Specified because of bug in version ^4.0.0
 pandas = "^1.2.1"
 pygsheets = "^2.0.4"
