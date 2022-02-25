@@ -17,11 +17,10 @@ from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
 from urllib.request import Request
 from urllib import error
 
-from schematic.models.validate_attribute import ValidateAttribute
+from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
 
-from ruamel import yaml
-from ruamel.yaml import YAML
+#from ruamel import yaml
 
 import great_expectations as ge
 from great_expectations.core.batch import RuntimeBatchRequest, BatchRequest
@@ -86,7 +85,7 @@ class ValidateManifest(object):
 
         self.context=BaseDataContext(project_config=data_context_config)
 
-        self.context.test_yaml_config(yaml.dump(datasource_config))
+        #self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
         
         
@@ -97,11 +96,13 @@ class ValidateManifest(object):
             "int": "expect_column_values_to_be_of_type",
             "float": "expect_column_values_to_be_of_type",
             "str": "expect_column_values_to_be_of_type",
+            #"int": "expect_column_values_to_be_in_type_list",
+            #"float": "expect_column_values_to_be_in_type_list",            
+            #"str": "expect_column_values_to_be_in_type_list",
             "num": "expect_column_values_to_be_in_type_list",
             "regex": "expect_column_values_to_match_regex",
             "url": "expect_column_values_to_be_valid_urls",
             "list": "expect_column_values_to_follow_rule",
-            #"regexList": "expect_column_values_to_match_regex_list",
         }
 
         expectation_suite_name = "Manifest_test_suite"
@@ -118,39 +119,41 @@ class ValidateManifest(object):
             # remove trailing/leading whitespaces from manifest
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             rule=sg.get_node_validation_rules(col)[0]
+            
 
-            if rule in unimplemented_expectations:
+            if rule in unimplemented_expectations or rule.__contains__('search'):
                 continue
 
             args={}
             args["column"]=col
+            args["result_format"] = "COMPLETE"
 
 
             #Validate lift of regices
-            if len(sg.get_node_validation_rules(col)) > 1:
-               
-                
+            if len(sg.get_node_validation_rules(col)) > 1: #currently unused
                 args["mostly"]=1.0
                 meta={
                     "notes": {
                         "format": "markdown",
                         "content": "Expectation {validation_expectation[rule]} **Markdown** `Supported`"
-                    }
+                    },
+                    "validation_rule": rule
                 }
                 
             #Validate list
-            elif rule=='list':
+            elif rule=='list':  #currently unused
                 args["mostly"]=1.0
                 args["type_"]="list"
                 meta={
                     "notes": {
                         "format": "markdown",
                         "content": "Expectat column values to be list type **Markdown** `Supported`"
-                    }
+                    },
+                    "validation_rule": rule
                 }
            
             #Validate regex
-            elif rule.startswith('regex'):
+            elif rule.startswith('regex match'):
                 
                 args["mostly"]=1.0
                 args["regex"]=rule.split(" ")[-1]
@@ -159,50 +162,55 @@ class ValidateManifest(object):
                     "notes": {
                         "format": "markdown",
                         "content": "Expectat column values to match regex  **Markdown** `Supported`"
-                    }
+                    },
+                    "validation_rule": rule
                 }
            
             #Validate url
-            elif rule=='url':
+            elif rule=='url': #currently unused
                 args["mostly"]=1.0
                 meta={
                     "notes": {
                         "format": "markdown",
                         "content": "Expectat URLs in column to be valid. **Markdown** `Supported`"
-                    }
+                    },
+                    "validation_rule": rule
                 }
            
             #Validate num
             elif rule=='num':
                 args["mostly"]=1.0
-                args["type_list"]=['int64', "float"]
+                args["type_list"]=['int64', "float64"]
                 meta={
                     "notes": {
                         "format": "markdown",
                         "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
-                    }
+                    },
+                    "validation_rule": rule
                 }
            
             #Validate float
             elif rule=='float':
                 args["mostly"]=1.0
-                args["type_"]='float'
+                args["type_"]='float64'
                 meta={
                     "notes": {
                         "format": "markdown",
-                        "content": "Expect column values to be of float type. **Markdown** `Supported`"
-                    }
+                        "content": "Expect column values to be of float type. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
                 }
            
             #Validate int
             elif rule=='int':
                 args["mostly"]=1.0
-                args["type_"]='int64' #might need to add other int types
+                args["type_"]='int64' 
                 meta={
                     "notes": {
                         "format": "markdown",
-                        "content": "Expect column values to be of int type. **Markdown** `Supported`"
-                    }
+                        "content": "Expect column values to be of int type. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
                 }
            
             #Validate string
@@ -212,8 +220,9 @@ class ValidateManifest(object):
                 meta={
                     "notes": {
                         "format": "markdown",
-                        "content": "Expect column values to be of string type. **Markdown** `Supported`"
-                    }
+                        "content": "Expect column values to be of string type. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
                 }
         
             # Create an Expectation
@@ -221,15 +230,7 @@ class ValidateManifest(object):
                 # Name of expectation type being added
                 expectation_type=validation_expectation[rule],
 
-                # These are the arguments of the expectation
-                # The keys allowed in the dictionary are Parameters and
-                # Keyword Arguments of this Expectation Type
                 kwargs={**args},
-
-                # This is how you can optionally add a comment about this expectation.
-                # It will be rendered in Data Docs.
-                # See this guide for details:
-                # `How to add comments to Expectations and display them in Data Docs`.
                 meta={**meta}
             )
             # Add the Expectation to the suite
@@ -262,8 +263,7 @@ class ValidateManifest(object):
             ],
         }
 
-        self.context.test_yaml_config(yaml.dump(checkpoint_config),return_mode="report_object")
-        
+        #self.context.test_yaml_config(yaml.dump(checkpoint_config),return_mode="report_object")        
         self.context.add_checkpoint(**checkpoint_config)
 
 
@@ -335,9 +335,14 @@ class ValidateManifest(object):
             "list": "list_validation",
         }
 
-        
-        unimplemented_expectations=['url','regexList','list']
-        print(manifest)
+        type_dict={
+            'float64': float,
+            'int64': int,
+            'str': str,
+        }
+
+        unimplemented_expectations=['url','regexList','list','regex search']
+
         self.build_context()
         self.build_expectation_suite(sg, unimplemented_expectations)
         self.build_checkpoint()
@@ -348,37 +353,63 @@ class ValidateManifest(object):
             batch_request={
                 "runtime_parameters": {"batch_data": manifest},
                 "batch_identifiers": {
-                    "default_identifier_name": "default_identifier"
+                    "default_identifier_name": "manifestID"
                 },
             },
+            result_format={'result_format': 'COMPLETE'},
         )        
-        
-        
-        print(results)
-        
-        
+        #print(results)       
+        #results.list_validation_results()
 
-        if results['success']:
-            print("Manifest is valid")
-        else:
-            print(results['run_results'])
-            print("Manifest is invalid")
+        errors = []  # initialize error handling 2list.    
+        validation_results = results.list_validation_results()
+        for result_dict in validation_results[0]['results']:
             
-            
-        
-        
+            indices = []
+            values = []
+
+            #print(result_dict)
+            #print(result_dict['expectation_config']['expectation_type'])
+
+            if not result_dict['success']:
+                errColumn   = result_dict['expectation_config']['kwargs']['column']               
+                rule        = result_dict['expectation_config']['meta']['validation_rule']
+
+                if 'unexpected_index_list' in result_dict['result']:
+                    indices = result_dict['result']['unexpected_index_list']
+                    values  = result_dict['result']['unexpected_list']
+
+                else:
+                    for i, item in enumerate(manifest[errColumn]):
+                        observed_type=result_dict['result']['observed_value']
+                        indices.append(i)   if isinstance(item,type_dict[observed_type]) else indices
+                        values.append(item) if isinstance(item,type_dict[observed_type]) else values
+
+                if validation_types[rule]=='type_validation':
+                    for row, value in zip(indices,values):
+                        errors.append(
+                            GenerateError.generate_type_error(
+                                rule, row+2, errColumn, value
+                            )
+                        )                                      
+                elif validation_types[rule]=='regex_validation':
+                    expression=result_dict['expectation_config']['kwargs']['regex']
+                    for row, value in zip(indices,values):
+                        
+                        errors.append(
+                            GenerateError.generate_regex_error(
+                                rule, expression, row+2, 'match', errColumn, value
+                            )
+                        )                                      
 
 
-        errors = []  # initialize error handling list.
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
-
+                
             # Given a validation rule, run validation.
-            if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or len(validation_rules) > 1:
-                print("Validating rule:" + str(validation_rules))
-
+            if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or len(validation_rules) > 1 or validation_rules[0].__contains__('search'):
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
                 if len(validation_rules) == 2:

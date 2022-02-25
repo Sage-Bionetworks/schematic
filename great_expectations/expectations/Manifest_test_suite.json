@@ -3,34 +3,22 @@
   "expectation_suite_name": "Manifest_test_suite",
   "expectations": [
     {
-      "expectation_type": "expect_column_values_to_match_regex",
-      "kwargs": {
-        "column": "Check Regex Single",
-        "mostly": 1.0,
-        "regex": "[a-f]"
-      },
-      "meta": {
-        "notes": {
-          "content": "Expectat column values to match regex  **Markdown** `Supported`",
-          "format": "markdown"
-        }
-      }
-    },
-    {
       "expectation_type": "expect_column_values_to_be_in_type_list",
       "kwargs": {
         "column": "Check Num",
         "mostly": 1.0,
+        "result_format": "COMPLETE",
         "type_list": [
           "int64",
-          "float"
+          "float64"
         ]
       },
       "meta": {
         "notes": {
           "content": "Expect column values to be of int or float type. **Markdown** `Supported`",
           "format": "markdown"
-        }
+        },
+        "validation_rule": "num"
       }
     },
     {
@@ -38,13 +26,15 @@
       "kwargs": {
         "column": "Check Float",
         "mostly": 1.0,
-        "type_": "float"
+        "result_format": "COMPLETE",
+        "type_": "float64"
       },
       "meta": {
         "notes": {
           "content": "Expect column values to be of float type. **Markdown** `Supported`",
           "format": "markdown"
-        }
+        },
+        "validation_rule": "float"
       }
     },
     {
@@ -52,13 +42,15 @@
       "kwargs": {
         "column": "Check Int",
         "mostly": 1.0,
+        "result_format": "COMPLETE",
         "type_": "int64"
       },
       "meta": {
         "notes": {
           "content": "Expect column values to be of int type. **Markdown** `Supported`",
           "format": "markdown"
-        }
+        },
+        "validation_rule": "int"
       }
     },
     {
@@ -66,13 +58,15 @@
       "kwargs": {
         "column": "Check String",
         "mostly": 1.0,
+        "result_format": "COMPLETE",
         "type_": "str"
       },
       "meta": {
         "notes": {
           "content": "Expect column values to be of string type. **Markdown** `Supported`",
           "format": "markdown"
-        }
+        },
+        "validation_rule": "str"
       }
     }
   ],
