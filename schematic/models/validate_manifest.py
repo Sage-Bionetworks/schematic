@@ -420,7 +420,7 @@ class ValidateManifest(object):
             validation_rules = sg.get_node_validation_rules(col)
                 
             # Given a validation rule, run validation. Skip validations already performed by GE
-            if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or len(validation_rules) > 1 or validation_rules[0].__contains__('search'):
+            if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or len(validation_rules) > 1:
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
                 if len(validation_rules) == 2:
@@ -448,6 +448,8 @@ class ValidateManifest(object):
                         second_type = second_rule[0]
                         if second_type != "list":
                             module_to_call = getattr(re, second_rule[1])
+                            if module_to_call == 'match':
+                                continue
                             regular_expression = second_rule[2]
                             validation_method = getattr(
                                 ValidateAttribute, validation_types[second_type]
