@@ -60,7 +60,6 @@ jobs:
       - name: Install library
         run: |
           poetry install --no-interaction
-          pip uninstall great_expectations
           pip install great_expectations
       
       #----------------------------------------------
@@ -92,7 +91,6 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
         run: >
           source .venv/bin/activate; 
-          great_expectations init;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not google_credentials_needed"
     
