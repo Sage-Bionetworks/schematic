@@ -91,7 +91,7 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
         run: >
           source .venv/bin/activate; 
-          great_expectations init
+          great_expectations init;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not google_credentials_needed"
     
