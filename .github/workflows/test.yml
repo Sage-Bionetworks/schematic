@@ -60,6 +60,7 @@ jobs:
       - name: Install library
         run: |
           poetry install --no-interaction
+          pip uninstall great_expectations
           pip install great_expectations
       
       #----------------------------------------------
@@ -92,7 +93,6 @@ jobs:
         run: >
           source .venv/bin/activate; 
           great_expectations init;
-          y;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not google_credentials_needed"
     
