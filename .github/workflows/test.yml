@@ -52,16 +52,16 @@ jobs:
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: |
-          poetry install --no-interaction --no-root
-          pip install great_expectations
-          great_expectations init
+        run: poetry install --no-interaction --no-root
         
       #----------------------------------------------
       #    install your root project, if required 
       #----------------------------------------------      
       - name: Install library
-        run: poetry install --no-interaction
+        run: |
+          poetry install --no-interaction
+          pip install great_expectations
+          great_expectations init
       
       #----------------------------------------------
       #             perform linting
