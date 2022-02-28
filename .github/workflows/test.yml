@@ -62,7 +62,6 @@ jobs:
           poetry install --no-interaction
           pip install great_expectations
           great_expectations init
-          "y"
       
       #----------------------------------------------
       #             perform linting
