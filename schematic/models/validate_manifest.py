@@ -119,8 +119,9 @@ class ValidateManifest(object):
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             rule=sg.get_node_validation_rules(col)[0]
             
-
-            if rule in unimplemented_expectations or rule.__contains__('search'): #modify if list is implemented before list::regex
+            #update to only do regex match
+            print(rule)
+            if rule in unimplemented_expectations or rule.startswith('regex') and not rule.__contains__('match'): #modify if list is implemented before list::regex
                 continue
 
             args={}
