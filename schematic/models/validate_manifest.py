@@ -20,7 +20,7 @@ from urllib import error
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
 
-from ruamel import yaml
+#from ruamel import yaml
 
 import great_expectations as ge
 from great_expectations.core.batch import RuntimeBatchRequest, BatchRequest
@@ -120,7 +120,6 @@ class ValidateManifest(object):
             rule=sg.get_node_validation_rules(col)[0]
             
             #update to only do regex match
-            print(rule)
             if rule in unimplemented_expectations or rule.startswith('regex') and not rule.__contains__('match'): #modify if list is implemented before list::regex
                 continue
 
