@@ -76,6 +76,28 @@ poetry build
 pip install dist/schematicpy-x.y.z-py3-none-any.whl  # install wheel file
 ```
 
+### Using Poetry to set up development environment 
+1. Start the virtual environment by doing: 
+```
+poetry shell
+```
+2. Install the dependencies by doing: 
+```
+poetry install
+```
+This command will install the dependencies based on what we specify in poetry.lock
+
+*Note*: The run command executes the given command inside the project’s virtualenv. For example, to see the python version that you are using in the virtual environment, you could do: 
+```
+poetry run Python -V
+```
+Similarly, for checking the version of Pytest that you are using, you can simply do: 
+```
+poetry run which pytest
+```
+You would still need to follow step 5-6 to obtain and fill in configuration files. But you won't need step 8 for testing out local changes. 
+
+
 ## Release process
 
 Once the code has been merged into the `develop` branch on this repo, there are two processes that need to be completed to ensure a _release_ is complete.
