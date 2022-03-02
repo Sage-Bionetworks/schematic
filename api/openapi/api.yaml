@@ -27,8 +27,10 @@ paths:
           name: title
           schema:
             type: string
-          description: Title of Manifest
-          example: Patient Metadata Manifest
+          description: >
+            Title of Manifest or Title Prefix, 
+            if making multiple manifests
+          example: Example
           required: false
         - in: query
           name: data_type
