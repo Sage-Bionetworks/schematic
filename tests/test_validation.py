@@ -1,8 +1,7 @@
 import os
 import logging
-from turtle import title
 import pytest
-from tests.conftest import Helpers
+from tests.conftest import Helpers as helpers
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.models.validate_manifest import validate_all
@@ -13,12 +12,12 @@ logger = logging.getLogger(__name__)
 
 
 class TestManifestValidation:
-    def test_valid_manifest(request):
-        manifestPath = Helpers.get_data_path("./mock_manifests/valid_test_manifest.csv")
+    def test_valid_manifest(self,helpers):
+        manifestPath = helpers.get_data_path("./mock_manifests/valid_test_manifest.csv")
         rootNode='MockComponent'
 
         metadataModel= MetadataModel(
-            inputMModelLocation=   Helpers.get_data_path("example.model.jsonld"),
+            inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
             inputMModelLocationType="local"
             )
 
@@ -33,13 +32,13 @@ class TestManifestValidation:
         
 
 
-    def test_invalid_manifest(helpers):
-        manifestPath = Helpers.get_data_path("./mock_manifests/invalid_test_manifest.csv")
+    def test_invalid_manifest(self,helpers):
+        manifestPath = helpers.get_data_path("./mock_manifests/invalid_test_manifest.csv")
         rootNode='MockComponent'
 
 
         metadataModel= MetadataModel(
-            inputMModelLocation=   Helpers.get_data_path("example.model.jsonld"),
+            inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
             inputMModelLocationType="local"
             )
 
