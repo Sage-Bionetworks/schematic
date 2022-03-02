@@ -18,8 +18,7 @@ class TestManifestValidation:
         rootNode='MockComponent'
 
         metadataModel= MetadataModel(
-            #inputMModelLocation =  helpers.get_data_path("example.model.jsonld"),
-            inputMModelLocation =str(Path(os.path.join(os.getcwd(),'tests/data/example.model.jsonld')).resolve()),
+            inputMModelLocation =  helpers.get_data_path("example.model.jsonld"),
             inputMModelLocationType="local"
             )
 
@@ -41,8 +40,7 @@ class TestManifestValidation:
 
 
         metadataModel= MetadataModel(
-            #inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
-            inputMModelLocation = str(Path(os.path.join(os.getcwd(),'tests/data/example.model.jsonld')).resolve()),
+            inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
             inputMModelLocationType="local"
             )
 
