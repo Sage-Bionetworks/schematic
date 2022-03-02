@@ -1,6 +1,7 @@
 definitions:
   creds_path: "../../credentials.json"
   token_pickle: "token.pickle"
+  synapse_config: "../../.synapseConfig"
 
 synapse:
   master_fileview: "syn23643253"
