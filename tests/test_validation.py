@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class TestManifestValidation:
     def test_valid_manifest(self,helpers):
-        manifestPath = helpers.get_data_path("./mock_manifests/valid_test_manifest.csv")
+        manifestPath = helpers.get_data_path("mock_manifests/valid_test_manifest.csv")
         rootNode='MockComponent'
 
         metadataModel= MetadataModel(
@@ -33,7 +33,7 @@ class TestManifestValidation:
 
 
     def test_invalid_manifest(self,helpers):
-        manifestPath = helpers.get_data_path("./mock_manifests/invalid_test_manifest.csv")
+        manifestPath = helpers.get_data_path("mock_manifests/invalid_test_manifest.csv")
         rootNode='MockComponent'
 
 
