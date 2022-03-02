@@ -58,9 +58,7 @@ jobs:
       #    install your root project, if required 
       #----------------------------------------------      
       - name: Install library
-        run: |
-          poetry install --no-interaction
-          pip install great_expectations
+        run: poetry install --no-interaction
       
       #----------------------------------------------
       #             perform linting
@@ -91,6 +89,7 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
         run: >
           source .venv/bin/activate; 
+          pip install great_expectations
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not google_credentials_needed"
     
