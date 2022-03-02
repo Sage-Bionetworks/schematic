@@ -26,11 +26,11 @@ import great_expectations as ge
 #from great_expectations.core.batch import RuntimeBatchRequest, BatchRequest
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
-from great_expectations.profile.user_configurable_profiler import UserConfigurableProfiler
-from great_expectations.checkpoint import SimpleCheckpoint
-from great_expectations.exceptions import DataContextError
-from great_expectations.checkpoint.types.checkpoint_result import CheckpointResult
-from great_expectations.data_context import DataContext
+#from great_expectations.profile.user_configurable_profiler import UserConfigurableProfiler
+#from great_expectations.checkpoint import SimpleCheckpoint
+#from great_expectations.exceptions import DataContextError
+#from great_expectations.checkpoint.types.checkpoint_result import CheckpointResult
+#from great_expectations.data_context import DataContext
 from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
 from great_expectations.data_context import BaseDataContext
 
