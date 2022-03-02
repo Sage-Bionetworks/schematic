@@ -76,6 +76,39 @@ poetry build
 pip install dist/schematicpy-x.y.z-py3-none-any.whl  # install wheel file
 ```
 
+### Using Poetry to set up development environment 
+1. Start the virtual environment by doing: 
+```
+poetry shell
+```
+2. Install the dependencies by doing: 
+```
+poetry install
+```
+This command will install the dependencies based on what we specify in poetry.lock
+3. Add additional package by doing: 
+```
+poetry add 
+```
+The `add` command adds required packages to your pyproject.toml and installs them.
+
+*Note*: The run command executes the given command inside the project’s virtualenv. For example, to see the python version that you are using in the virtual environment, you could do: 
+```
+poetry run Python -V
+```
+Similarly, for checking the version of Pytest that you are using, you can simply do: 
+```
+poetry run which pytest
+```
+For running tests locally, you could do: 
+```
+poetry run pytest tests
+```
+You would still need to follow step 5-6 to obtain and fill in configuration files. But you won't need step 8 for testing out local changes. 
+
+Note: if you are using synapse-token authentication and running into error: KeyError 'synapse_config', please consider adding `synapse_config` key to the `tests/data/test_config.yml`.
+
+
 ## Release process
 
 Once the code has been merged into the `develop` branch on this repo, there are two processes that need to be completed to ensure a _release_ is complete.
@@ -132,3 +165,4 @@ pytest -vs tests/
 
 * Please consult the [Google Python style guide](http://google.github.io/styleguide/pyguide.html) prior to contributing code to this project.
 * Be consistent and follow existing code conventions and spirit.
+
