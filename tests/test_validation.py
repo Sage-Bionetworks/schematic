@@ -1,7 +1,6 @@
 import os
 import logging
 import pytest
-from tests.conftest import Helpers as helpers
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.models.validate_manifest import validate_all
