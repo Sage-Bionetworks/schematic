@@ -19,20 +19,19 @@ from urllib import error
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
+from schematic.store.synapse import SynapseStorage
+from schematic.store.base import BaseStorage
+
+import synapseclient
+syn=synapseclient.Synapse()
 
 #from ruamel import yaml
 
 import great_expectations as ge
-#from great_expectations.core.batch import RuntimeBatchRequest, BatchRequest
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
-from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
-#from great_expectations.profile.user_configurable_profiler import UserConfigurableProfiler
-#from great_expectations.checkpoint import SimpleCheckpoint
-#from great_expectations.exceptions import DataContextError
-#from great_expectations.checkpoint.types.checkpoint_result import CheckpointResult
-#from great_expectations.data_context import DataContext
-from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
 from great_expectations.data_context import BaseDataContext
+from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
+from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +101,8 @@ class ValidateManifest(object):
             "regex": "expect_column_values_to_match_regex",
             "url": "expect_column_values_to_be_valid_urls",
             "list": "expect_column_values_to_follow_rule",
+            "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+            "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
         }
         
         #create blank expectation suite
@@ -223,8 +224,47 @@ class ValidateManifest(object):
                     },
                     "validation_rule": rule
                 }
+
+            #validate cross manifest match
+            elif rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
+
+                [source_component, source_attribute] = rule.split(" ")[1].split(".")
+                [target_component, target_attribute] = rule.split(" ")[2].split(".")
+
+                #Find all manifests with 2nd component
+                synStore = SynapseStorage()
+                synStore.login()
+                syn.login()
+                projects = synStore.getStorageProjects()
+                for project in projects:
+                    print(project[0])
+                    
+                    target_datasets=synStore.getProjectManifests(projectId=project[0])
+                    print(synStore.getProjectManifests(projectId=project[0]))
+
+                    for target_dataset in target_datasets:
+                        print(target_dataset)
+                        if target_component in target_dataset[-1]:
+                            target_manifest_ID = target_dataset[1][0]
+
+                            entity = syn.get(target_manifest_ID)
+                            target_manifest=pd.read_csv(entity.path)
+                            if target_attribute in target_manifest.columns:
+                                target_column = target_manifest[target_attribute]
+
+                                #Do the validation on both columns
+
+                                #Write expectation to maybe take multiple columns 
+                                #instead of just one B
+                        
+                            else:
+                                print("Attribute not found in manifest")
+                                    continue                           
+                        
+
+
         
-            # Create an Expectation
+            # Create an Expectation, move to its own function
             expectation_configuration = ExpectationConfiguration(
                 # Name of expectation type being added
                 expectation_type=validation_expectation[rule],
@@ -418,9 +458,11 @@ class ValidateManifest(object):
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
-                
+
+
+            print(validation_rules)
             # Given a validation rule, run validation. Skip validations already performed by GE
-            if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or len(validation_rules) > 1:
+            if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or (validation_rules[0]=='list' and validation_rules[1].startswith('regex')):
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
                 if len(validation_rules) == 2:
