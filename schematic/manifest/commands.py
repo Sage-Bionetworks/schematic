@@ -155,6 +155,9 @@ def get_manifest(
             result.to_csv(output_csv, index=False)
         return result
 
+    if type(data_type) is str:
+        data_type = [data_type]
+
     if data_type[0] == 'all manifests':
         sg = SchemaGenerator(path_to_json_ld=jsonld)
         component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
