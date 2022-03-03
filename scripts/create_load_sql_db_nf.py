@@ -107,18 +107,7 @@ class sql_create_load():
                         assert output is not None
                     except:
                         breakpoint()
-      
-    #def create_schema_viz(self, output_path: str) -> None:
-        ''' Generate a ERD diagram depicting the sql model.
-        Args: self: containing the sql model.
-             output_path (str): relative or aboslute path where figure should be stored.
-        Returns: ERD Diagram saved to output path as a png.
-        '''
-    #    output_path = str(Path(output_path).resolve()) + 'nf_research_tools.rdb.model.png'
-    #    output = self.sql_model.viz_sa_schema(output_path)
-
-    #    assert output == output_path
-    
+          
     def create_schema_viz(self, output_path: str, rdb_jsonld_filename: str) -> None:
         ''' Generate a ERD diagram depicting the sql model.
         Args: self: containing the sql model.
