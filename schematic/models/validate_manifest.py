@@ -120,11 +120,15 @@ class ValidateManifest(object):
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             rule=sg.get_node_validation_rules(col)[0]
             
+            args={}
+            meta={}
+
+            print(rule)
             #update to only do regex match
-            if rule in unimplemented_expectations or rule.startswith('regex') and not rule.__contains__('match'): #modify if list is implemented before list::regex
+            if rule in unimplemented_expectations or (rule.startswith('regex') and not rule.__contains__('match')) or (rule.startswith('matchExactlyOne') or rule.startswith('matchAtLeastOne')): #modify if list is implemented before list::regex
                 continue
 
-            args={}
+            
             args["column"]=col
             args["result_format"] = "COMPLETE"
 
@@ -227,7 +231,8 @@ class ValidateManifest(object):
 
             #validate cross manifest match
             elif rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
-
+                
+                
                 [source_component, source_attribute] = rule.split(" ")[1].split(".")
                 [target_component, target_attribute] = rule.split(" ")[2].split(".")
 
