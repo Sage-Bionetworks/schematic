@@ -120,7 +120,7 @@ class SynapseStorage(BaseStorage):
             try:
                 syn_api.default_headers["Authorization"] = f"Bearer {input_token}"
             except synapseclient.core.exceptions.SynapseHTTPError:
-                raise ValueError("Please make sure that your token is correct")
+                raise ValueError("No access to resources. Please make sure that your token is correct")
             return syn_api
 
 
