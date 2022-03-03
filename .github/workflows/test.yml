@@ -90,7 +90,7 @@ jobs:
         run: >
           source .venv/bin/activate; 
           pip install great_expectations;
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+          pytest --cov-report=term --cov-report=html:htmlcov
           -m "not google_credentials_needed"
     
       - name: Upload pytest test results
