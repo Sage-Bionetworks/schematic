@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 class TestManifestValidation:
     def test_valid_manifest(self,helpers):
         #manifestPath = helpers.get_data_path("mock_manifests/valid_test_manifest.csv")
-        manifestPath = Path(os.path.join((os.getcwd(),'tests/data/mock_manifests/valid_test_manifest.csv')).resolve()
-        rootNode='MockComponent'
+        manifestPath = Path(os.path.join(os.getcwd(),'tests/data/mock_manifests/valid_test_manifest.csv')).resolve()
+        rootNode = 'MockComponent'
 
         metadataModel= MetadataModel(
             inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
@@ -37,7 +37,7 @@ class TestManifestValidation:
     def test_invalid_manifest(self,helpers):
         #manifestPath = helpers.get_data_path("mock_manifests/invalid_test_manifest.csv")
         manifestPath = Path(os.path.join(os.getcwd(),'tests/data/mock_manifests/invalid_test_manifest.csv')).resolve()
-        rootNode='MockComponent'
+        rootNode = 'MockComponent'
 
 
         metadataModel= MetadataModel(
