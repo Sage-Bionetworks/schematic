@@ -259,7 +259,7 @@ class ValidateManifest(object):
                         
                             else:
                                 print("Attribute not found in manifest")
-                                    continue                           
+                                continue                           
                         
 
 
