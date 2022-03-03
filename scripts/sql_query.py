@@ -38,33 +38,58 @@ class sql_query():
         # The synapseId for the project we are working on.
         # Highly recommended to have a staging folder to test in before
         # adding/updating tables in the real project.
-        self.datasetId = 'syn26338068' # NF RDB Project Folder
-        #self.datasetId = 'syn26434836' # NF RDB Staging Folder
+        #self.datasetId = 'syn26338068' # NF RDB Project Folder
+        self.datasetId = 'syn26434836' # NF RDB Staging Folder
         
         self.sql_queries = [
-        ['SELECT * FROM \
-                (SELECT R.resourceId, R.animalModelId, R.cellLineId, R.rrid, \
-                R.resourceName,R.synonyms, R.resourceType, R.description, \
-                R.mTARequired, R.usageRequirements, R.dateAdded, R.dateModified, \
-                M.mutationId, M.mutationDetailsId\
-                FROM `Resource` AS R\
-                JOIN `Mutation` M\
-                ON R.animalModelId = M.animalModelId \
-                UNION ALL \
-                SELECT R.resourceId, R.animalModelId, R.cellLineId, R.rrid, \
-                R.resourceName,R.synonyms, R.resourceType, R.description, \
-                R.mTARequired, R.usageRequirements, R.dateAdded, R.dateModified, \
-                M.mutationId, M.mutationDetailsId\
-                FROM `Resource` AS R\
-                JOIN `Mutation` M\
-                ON R.cellLineId = M.cellLineId) foo\
-                JOIN MutationDetails md\
-                ON md.mutationDetailsId = foo.mutationDetailsId',\
-                'syn26450014', 'Resource_Mutation_MutationDetails']]
+                    ['SELECT * FROM `Publication`',\
+                        '',
+                        'Publication', 
+                        True]
+                  ]
+
         '''
+        self.sql_queries = [
+                    ['SELECT resourceId, rrid, resourceName, synonyms, \
+                    resourceType, description, mtaRequired, \
+                    usageRequirements, cellLineCategory, \
+                    cellLineDisease, modelOfManifestation, \
+                    backgroundStrain, backgroundSubstrain, \
+                    animalModelDisease, animalModelOfManifestation, \
+                    insertName, insertSpecies, vectorType,\
+                    targetAntigen, reactiveSpecies, hostOrganism, \
+                    specimenPreparationMethod, specimenType, tumorType, specimenTissueType, \
+                    specimenFormat, diseaseType \
+                    FROM (\
+                        SELECT resourceId, rrid, resourceName, \
+                        synonyms, resourceType, description, \
+                        mtaRequired, usageRequirements, cellLineCategory, \
+                        cellLineDisease, modelOfManifestation, \
+                        backgroundStrain, backgroundSubstrain, \
+                        animalModelDisease, animalModelOfManifestation, \
+                        insertName, insertSpecies, vectorType, \
+                        targetAntigen, reactiveSpecies, hostOrganism, \
+                        cellLineId, animalModelId, antibodyId, \
+                        specimenPreparationMethod, specimenType, tumorType, specimenTissueType, \
+                        specimenFormat, diseaseType \
+                        FROM Resource \
+                        LEFT JOIN cellLine USING(cellLineId) \
+                        LEFT JOIN animalModel USING(animalModelId) \
+                        LEFT JOIN geneticReagent USING(geneticReagentId) \
+                        LEFT JOIN antibody USING(antibodyId) \
+                        LEFT JOIN biobank USING(resourceId)) temp;',
+                        '', 
+                        'Resource_CellLine_AnimalModel_GeneticReagent_Antibody_Biobank', 
+                        True
+                        ],
+                  ]
+        
         # This is a master list of queries. 
         # It is not advised to run all queries within a for loop
         # in case there are issues.
+        # Structured as follows per query:
+        # [ String Query, SynapseID of the table if it already exists - empty string if not,
+         String name of the table, If we are using a specified schema column types or not.]
         self.sql_queries = [
             ,
             ['SELECT * FROM Resource', \
@@ -300,21 +325,20 @@ class sql_query():
             # Convert all string Nans to actual nans
             df.replace('NaN', np.nan, inplace=True)
             df.where(pd.notnull(df), None)
-            
+            breakpoint()
             # Either save df locally or upload to synapse (or both).
             if save_local:
                 output_file_path = self._make_output_path(output_dir, query[1])
                 df.to_csv(output_file_path)
             if save_to_synapse:
-                existing_table_id = query[1]
-                table_name = query[2]
+                existing_table_id, table_name, specify_schema = query[1:]
                 try:
                     syn_store = SynapseStorage()
                     # When trouleshooting reintroduce the breakpoint to that
                     # you can catch any errors, or else they will proceed silently.
-                    make_synapse_table = syn_store.make_synapse_table(df, self.datasetId, existing_table_id, table_name, column_type_dict)
+                    make_synapse_table = syn_store.make_synapse_table(df, self.datasetId, existing_table_id, table_name, column_type_dict, specify_schema)
                 except:
-                    breakpoint
+                    breakpoint()
         return 
 
 if __name__ == '__main__':
