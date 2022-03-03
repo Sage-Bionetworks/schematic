@@ -87,7 +87,7 @@ jobs:
       - name: Run tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
-        working-directory: ./
+        working-directory: ../
         run: >
           source .venv/bin/activate; 
           pip install great_expectations;
