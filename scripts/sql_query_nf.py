@@ -199,7 +199,7 @@ class sql_query():
         return pd.read_csv(os.path.join(str(Path(data_dir).resolve()), 
                     query_csv))
 
-    def _gather_query_data(self, queries_df: pd.DataFrame, name_of_query: str) -> [List[list], bool]:
+    def _gather_query_data(self, queries_df: pd.DataFrame, arguments: dict) -> [List[list], bool]:
         '''
         Gather all data for the query(s) to be performed and move into a list of lists, either for a single query or all as defined by the user.
         Args:
@@ -277,7 +277,7 @@ class sql_query():
         cols_to_convert = self._get_cols_to_convert(arguments['col_name_updates'])
 
         # Put relevant query data into a list.
-        queries, need_column_types = self._gather_query_data(queries_df, arguments['name_of_query'])
+        queries, need_column_types = self._gather_query_data(queries_df, arguments)
         
         # Get column types for synapse if necessary for query:
         column_type_dict = {}
@@ -312,14 +312,22 @@ class sql_query():
                 syn_store = SynapseStorage()
                 # When trouleshooting reintroduce the breakpoint so that
                 # you can catch any errors, or else they will proceed silently.
-                make_synapse_table = syn_store.make_synapse_table(df, arguments['synapse_project_folder'], existing_table_id, table_name, column_type_dict, specify_schema)
+                #make_synapse_table = syn_store.make_synapse_table(df, arguments['synapse_project_folder'], existing_table_id, table_name, column_type_dict, specify_schema)
+                make_synapse_table = syn_store.remake_synapse_table(df, arguments['synapse_project_folder'], existing_table_id, table_name, column_type_dict, specify_schema)
         return
 
 class parse_variables():
     def __init__(self,
-        ) -> None:
-        self.args = self._parse_args()
-        self.var = sql_helpers.parse_config(self.args.path_to_configs, 'sql_query_config.yml')
+        notebook_args = {}) -> None:
+        if notebook_args:
+            # If using a the Jupyter notebook, the notebook itself will
+            # pull in config arguments.
+            self.args = notebook_args
+            self.var = None
+            #self.var = sql_helpers.parse_config(notebook_args['path_to_configs'], 'sql_query_config.yml')
+        else:
+            self.args = self._parse_args()
+            self.var = sql_helpers.parse_config(self.args.path_to_configs, 'sql_query_config.yml')
         return
 
     def _parse_args(self):
@@ -394,7 +402,8 @@ class parse_variables():
         args parser, along with hard coded values added at the top of this script.
         
         Args:
-            Self : self.args: parsed command line arguments
+            Self : self.args: parsed command line arguments or arguments coming
+                    from a jupyter notebook
                    self.vars: parsed config file
             Global hard coded values.
         Returns:
@@ -409,14 +418,21 @@ class parse_variables():
         arguments['col_name_updates'] = COL_NAME_UPDATES
         
         # Add config file to arguments
-        arguments.update(self.var)
+        if self.var:
+            arguments.update(self.var)
 
-        # If a command line arg is supplied, overwrite the
-        # config version.
-        parsed_args = vars(self.args)
+        # If a command line arg (try) or jupyter notebook arg(except) 
+        # is supplied, overwrite the config version
+        try:
+            parsed_args = vars(self.args)
+        except:
+            parsed_args = self.args
         for key, value in parsed_args.items():
             if value:
                 arguments[key] = value
+            if key not in parsed_args.items():
+                arguments[key] = value
+
 
         logger.debug(f"Running a quick check on provided arguments")
         arg_errors = self.check_arguments(arguments)
@@ -425,6 +441,8 @@ class parse_variables():
         return arguments
 
 if __name__ == '__main__':
+    if '-f' in sys.argv:
+        sys.argv.remove('-f')
     arguments = parse_variables().set_arguments()
     sql_query(arguments['data_dir'], arguments['rdb_jsonld_filename'], arguments['path_to_configs']).run_sql_queries(arguments)
     
