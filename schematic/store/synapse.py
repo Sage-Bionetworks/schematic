@@ -48,6 +48,7 @@ class SynapseStorage(BaseStorage):
         self,
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
+        input_token: str = None
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -65,6 +66,7 @@ class SynapseStorage(BaseStorage):
         """
 
         self.syn = self.login(token, access_token)
+        self.syn_api = self.api_login(input_token) 
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
@@ -107,6 +109,20 @@ class SynapseStorage(BaseStorage):
             syn.login(silent=True)
 
         return syn
+
+    @staticmethod
+    def api_login(input_token=None):
+        if not input_token:
+            print("no token is provided")
+        if input_token:
+            syn_api = synapseclient.Synapse()
+
+            try:
+                syn_api.default_headers["Authorization"] = f"Bearer {input_token}"
+            except synapseclient.core.exceptions.SynapseHTTPError:
+                raise ValueError("Please make sure that your token is correct")
+            return syn_api
+
 
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.

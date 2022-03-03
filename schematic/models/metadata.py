@@ -280,6 +280,7 @@ class MetadataModel(object):
         validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
+        input_token: str = None
     ) -> bool:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -289,6 +290,7 @@ class MetadataModel(object):
             validate_component: Component from the schema.org schema based on which the manifest template has been generated.
         Returns:
             True: If both validation and association were successful.
+            Synapse ID: If no validation is needed.
         Exceptions:
             ValueError: When validate_component is provided, but it cannot be found in the schema.
             ValidationError: If validation against data model was not successful.
@@ -297,7 +299,8 @@ class MetadataModel(object):
         #TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-        syn_store = SynapseStorage()
+        syn_store = SynapseStorage(input_token=input_token)
+        result=None
 
         # check if user wants to perform validation or not
         if validate_component is not None:
@@ -328,7 +331,7 @@ class MetadataModel(object):
                 )
 
                 logger.info(f"No validation errors occured during validation.")
-                return True
+                result = True
             else:
                 raise ValidationError(
                     "Manifest could not be validated under provided data model. "
@@ -336,7 +339,7 @@ class MetadataModel(object):
                 )
 
         # no need to perform validation, just submit/associate the metadata manifest file
-        syn_store.associateMetadataWithFiles(
+        result = syn_store.associateMetadataWithFiles(
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             useSchemaLabel=use_schema_label,
@@ -347,4 +350,4 @@ class MetadataModel(object):
             "Optional validation was not performed on manifest before association."
         )
 
-        return True
+        return result

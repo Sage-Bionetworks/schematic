@@ -167,6 +167,13 @@ paths:
             nullable: true
           description: Dataset SynID
           required: true
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: true
+          description: Token
+          required: true
       operationId: api.routes.submit_manifest_route
       responses:
         "200":

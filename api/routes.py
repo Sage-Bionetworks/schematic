@@ -147,12 +147,19 @@ def submit_manifest_route(schema_url):
 
     data_type = connexion.request.args["data_type"]
 
+    input_token = connexion.request.args["input_token"]
+
+    if input_token == 'None':
+        input_token = None
+
+
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
-
-    success = metadata_model.submit_metadata_manifest(
-        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type,
+    
+    # return id of the manifest 
+    synapse_id = metadata_model.submit_metadata_manifest(
+        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type, input_token=input_token
     )
 
-    return success
+    return synapse_id
