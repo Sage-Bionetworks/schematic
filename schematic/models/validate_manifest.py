@@ -151,9 +151,8 @@ class ValidateManifest(object):
             args={}
             meta={}
 
-            print(rule)
             #update to only do regex match
-            if rule in unimplemented_expectations or (rule.startswith('regex') and not rule.__contains__('match')) or (rule.startswith('matchExactlyOne') or rule.startswith('matchAtLeastOne')): #modify if list is implemented before list::regex
+            if re.match(unimplemented_expectations,rule):
                 continue
 
             
@@ -264,23 +263,6 @@ class ValidateManifest(object):
                 [source_component, source_attribute] = rule.split(" ")[1].split(".")
                 [target_component, target_attribute] = rule.split(" ")[2].split(".")
 
-                '''
-                #Find all manifests with 2nd component
-                synStore = SynapseStorage()
-                synStore.login()
-                syn.login()
-                projects = synStore.getStorageProjects()
-                for project in projects:
-                    print(project[0])
-                    
-                    target_datasets=synStore.getProjectManifests(projectId=project[0])
-                    print(synStore.getProjectManifests(projectId=project[0]))
-
-                    for target_dataset in target_datasets:
-                        print(target_dataset)
-                        if target_component in target_dataset[-1]:
-                            target_manifest_ID = target_dataset[1][0]
-                '''
 
                 target_IDs=self.get_target_manifests(target_component)
                 for target_manifest_ID in target_IDs:
@@ -291,15 +273,15 @@ class ValidateManifest(object):
 
                         #dummy data
                         dumda={
-                            'x': [1,2,3,4,5],
-                            'y': [5,4,3,2,1],
-                            'z': [6,5,4,3,2]
+                            "x": [1,2,3,4,5],
+                            "y": [5,4,3,2,1],
+                            "z": [6,5,4,3,2]
                             }
 
                         dumda2={
-                            'x': [1,2,3,4,5],
-                            'y': [5,4,3,2,1],
-                            'z': [6,5,4,3,2]
+                            "x": [1,2,3,4,5],
+                            "y": [5,4,3,2,1],
+                            "z": [6,5,4,3,2]
                             }
 
                         dummydf=pd.DataFrame(data=dumda)
@@ -427,15 +409,26 @@ class ValidateManifest(object):
             "regex": "regex_validation",
             "url": "url_validation",
             "list": "list_validation",
+            "matchAtLeastOne": "cross_validation",
+            "matchExactlyOne": "cross_validation",
         }
 
         type_dict={
-            'float64': float,
-            'int64': int,
-            'str': str,
+            "float64": float,
+            "int64": int,
+            "str": str,
         }
 
-        unimplemented_expectations=['url','regexList','list','regex search']
+        unimplemented_expectations=[
+            "url",
+            "regexList",
+            "list",
+            "regex search.*",
+            "matchAtLeastOne.*",
+            "matchExactlyOne.*",
+            ]
+
+        unimplemented_expectations='|'.join(unimplemented_expectations)
 
         #operations necessary to set up and run ge suite validation
         self.build_context()
@@ -514,7 +507,7 @@ class ValidateManifest(object):
 
             print(validation_rules)
             # Given a validation rule, run validation. Skip validations already performed by GE
-            if bool(validation_rules) and validation_rules[0] in unimplemented_expectations or (validation_rules[0]=='list' and validation_rules[1].startswith('regex')):
+            if bool(validation_rules) and re.match(unimplemented_expectations,validation_rules[0]):
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
                 if len(validation_rules) == 2:
