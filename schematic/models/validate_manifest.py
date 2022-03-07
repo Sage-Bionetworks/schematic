@@ -25,7 +25,7 @@ from schematic.store.base import BaseStorage
 import synapseclient
 syn=synapseclient.Synapse()
 
-#from ruamel import yaml
+from ruamel import yaml
 
 import great_expectations as ge
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
