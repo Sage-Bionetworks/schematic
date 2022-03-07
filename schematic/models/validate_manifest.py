@@ -42,6 +42,34 @@ class ValidateManifest(object):
         self.manifest = manifest
         self.sg = sg
         self.jsonSchema = jsonSchema
+
+    def get_target_manifests(self,target_component):
+
+        target_manifest_IDs=[]
+        #Find all manifests with 2nd component
+        synStore = SynapseStorage()
+        synStore.login()
+        syn.login()
+        projects = synStore.getStorageProjects()
+        for project in projects:
+            print(project[0])
+            
+            target_datasets=synStore.getProjectManifests(projectId=project[0])
+            print(synStore.getProjectManifests(projectId=project[0]))
+
+            for target_dataset in target_datasets:
+                print(target_dataset)
+                if target_component in target_dataset[-1]:
+                    target_manifest_IDs.append(target_dataset[1][0])
+
+        return target_manifest_IDs
+
+    def present_In(self,source_attribute: pd.Series, target_attribute: pd.Series):
+
+        missing_values = source_attribute[~source_attribute.isin(target_attribute)]
+        
+        return missing_values
+        
         
 
     def  build_context(self):
@@ -236,6 +264,7 @@ class ValidateManifest(object):
                 [source_component, source_attribute] = rule.split(" ")[1].split(".")
                 [target_component, target_attribute] = rule.split(" ")[2].split(".")
 
+                '''
                 #Find all manifests with 2nd component
                 synStore = SynapseStorage()
                 synStore.login()
@@ -251,23 +280,41 @@ class ValidateManifest(object):
                         print(target_dataset)
                         if target_component in target_dataset[-1]:
                             target_manifest_ID = target_dataset[1][0]
+                '''
 
-                            entity = syn.get(target_manifest_ID)
-                            target_manifest=pd.read_csv(entity.path)
-                            if target_attribute in target_manifest.columns:
-                                target_column = target_manifest[target_attribute]
+                target_IDs=self.get_target_manifests(target_component)
+                for target_manifest_ID in target_IDs:
+                    entity = syn.get(target_manifest_ID)
+                    target_manifest=pd.read_csv(entity.path)
+                    if target_attribute in target_manifest.columns:
+                        target_column = target_manifest[target_attribute]
 
-                                #Do the validation on both columns
+                        #dummy data
+                        dumda={
+                            'x': [1,2,3,4,5],
+                            'y': [5,4,3,2,1],
+                            'z': [6,5,4,3,2]
+                            }
 
-                                #Write expectation to maybe take multiple columns 
-                                #instead of just one B
+                        dumda2={
+                            'x': [1,2,3,4,5],
+                            'y': [5,4,3,2,1],
+                            'z': [6,5,4,3,2]
+                            }
+
+                        dummydf=pd.DataFrame(data=dumda)
+                        dummydf2=pd.DataFrame(data=dumda2)
+
                         
-                            else:
-                                print("Attribute not found in manifest")
-                                continue                           
+                        #Do the validation on both columns
+                        self.present_In(dummydf.x,dummydf2.z)
                         
-
-
+                        #maybe write expectation to maybe take multiple columns 
+                        #instead of just one B
+                
+                    else:
+                        print("Attribute not found in manifest")
+                        continue                           
         
             # Create an Expectation, move to its own function
             expectation_configuration = ExpectationConfiguration(
@@ -281,7 +328,7 @@ class ValidateManifest(object):
             # Add the Expectation to the suite
             suite.add_expectation(expectation_configuration=expectation_configuration)
 
-        
+    
         #print(self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name))
         self.context.save_expectation_suite(expectation_suite=suite, expectation_suite_name=expectation_suite_name)
 
