@@ -14,6 +14,10 @@ from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
 from urllib.request import Request
 from urllib import error
 
+from schematic.store.synapse import SynapseStorage
+import synapseclient
+syn=synapseclient.Synapse()
+
 logger = logging.getLogger(__name__)
 
 
@@ -170,6 +174,7 @@ class ValidateAttribute(object):
         regex_validation
         type_validation
         url_validation
+        cross_validation
     See functions for more details.
     TODO:
         - Add year validator
@@ -421,3 +426,60 @@ class ValidateAttribute(object):
                                 )
                             )
         return errors
+
+
+    
+    def cross_validation(
+        self, val_rule: str, manifest_col: pd.core.series.Series
+    ) -> List[List[str]]:
+
+        [source_component, source_attribute] = val_rule.split(" ")[1].split(".")
+        [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
+
+        synStore = SynapseStorage()
+        synStore.login()
+        syn.login()
+        
+
+        errors = []
+
+        target_IDs=self.get_target_manifests(target_component)
+        for target_manifest_ID in target_IDs:
+            entity = syn.get(target_manifest_ID)
+            target_manifest=pd.read_csv(entity.path)
+            if target_attribute in target_manifest.columns:
+                target_column = target_manifest[target_attribute]
+
+                '''
+                #dummy data
+                dumda={
+                    "x": [1,2,3,4,5],
+                    "y": [5,4,3,2,1],
+                    "z": [6,5,4,3,2]
+                    }
+
+                dumda2={
+                    "x": [1,2,3,4,5],
+                    "y": [5,4,3,2,1],
+                    "z": [6,5,4,3,2]
+                    }
+
+                dummydf=pd.DataFrame(data=dumda)
+                dummydf2=pd.DataFrame(data=dumda2)
+
+                
+                #Do the validation on both columns
+                #self.present_In(dummydf.x,dummydf2.z)
+                '''
+
+                #Do the validation on both columns
+                missing_values = manifest_col[~manifest_col.isin(target_column)]
+                
+        
+            else:
+                print("Attribute not found in manifest")
+                  
+
+        return errors
+
+

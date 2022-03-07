@@ -20,7 +20,6 @@ from urllib import error
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
-from schematic.store.base import BaseStorage
 
 import synapseclient
 syn=synapseclient.Synapse()
@@ -41,35 +40,7 @@ class ValidateManifest(object):
         self.errors = errors
         self.manifest = manifest
         self.sg = sg
-        self.jsonSchema = jsonSchema
-
-    def get_target_manifests(self,target_component):
-
-        target_manifest_IDs=[]
-        #Find all manifests with 2nd component
-        synStore = SynapseStorage()
-        synStore.login()
-        syn.login()
-        projects = synStore.getStorageProjects()
-        for project in projects:
-            print(project[0])
-            
-            target_datasets=synStore.getProjectManifests(projectId=project[0])
-            print(synStore.getProjectManifests(projectId=project[0]))
-
-            for target_dataset in target_datasets:
-                print(target_dataset)
-                if target_component in target_dataset[-1]:
-                    target_manifest_IDs.append(target_dataset[1][0])
-
-        return target_manifest_IDs
-
-    def present_In(self,source_attribute: pd.Series, target_attribute: pd.Series):
-
-        missing_values = source_attribute[~source_attribute.isin(target_attribute)]
-        
-        return missing_values
-        
+        self.jsonSchema = jsonSchema       
         
 
     def  build_context(self):
@@ -115,7 +86,29 @@ class ValidateManifest(object):
         self.context=BaseDataContext(project_config=data_context_config)
         #self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
-        
+
+    def get_target_manifests(self,target_component):
+
+        target_manifest_IDs=[]
+
+        synStore = SynapseStorage()
+        synStore.login()
+        syn.login()
+
+        #Find all manifests with 2nd component
+        projects = synStore.getStorageProjects()
+        for project in projects:
+            print(project[0])
+            
+            target_datasets=synStore.getProjectManifests(projectId=project[0])
+            print(synStore.getProjectManifests(projectId=project[0]))
+
+            for target_dataset in target_datasets:
+                print(target_dataset)
+                if target_component in target_dataset[-1]:
+                    target_manifest_IDs.append(target_dataset[1][0])
+
+        return target_manifest_IDs
         
     def build_expectation_suite(self, sg: SchemaGenerator, unimplemented_expectations = []):
         validation_expectation = {
@@ -152,7 +145,7 @@ class ValidateManifest(object):
             meta={}
 
             #update to only do regex match
-            if re.match(unimplemented_expectations,rule):
+            if re.match(unimplemented_expectations,rule):# or (rule.startswith('regex') and not rule.startswith('regex match')):
                 continue
 
             
@@ -259,44 +252,24 @@ class ValidateManifest(object):
             #validate cross manifest match
             elif rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
                 
-                
+                '''
                 [source_component, source_attribute] = rule.split(" ")[1].split(".")
                 [target_component, target_attribute] = rule.split(" ")[2].split(".")
-
+                
 
                 target_IDs=self.get_target_manifests(target_component)
                 for target_manifest_ID in target_IDs:
                     entity = syn.get(target_manifest_ID)
                     target_manifest=pd.read_csv(entity.path)
                     if target_attribute in target_manifest.columns:
-                        target_column = target_manifest[target_attribute]
-
-                        #dummy data
-                        dumda={
-                            "x": [1,2,3,4,5],
-                            "y": [5,4,3,2,1],
-                            "z": [6,5,4,3,2]
-                            }
-
-                        dumda2={
-                            "x": [1,2,3,4,5],
-                            "y": [5,4,3,2,1],
-                            "z": [6,5,4,3,2]
-                            }
-
-                        dummydf=pd.DataFrame(data=dumda)
-                        dummydf2=pd.DataFrame(data=dumda2)
-
-                        
-                        #Do the validation on both columns
-                        self.present_In(dummydf.x,dummydf2.z)
-                        
-                        #maybe write expectation to maybe take multiple columns 
-                        #instead of just one B
+                        target_column = target_manifest[target_attribute]                       
+                        #Add Columns to dict to be added after all manifests are parsed
                 
                     else:
                         print("Attribute not found in manifest")
-                        continue                           
+                        continue        
+                '''
+                pass                   
         
             # Create an Expectation, move to its own function
             expectation_configuration = ExpectationConfiguration(
@@ -421,9 +394,9 @@ class ValidateManifest(object):
 
         unimplemented_expectations=[
             "url",
-            "regexList",
+            #"regexList",
             "list",
-            "regex search.*",
+            "regex.*",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
             ]
@@ -504,7 +477,6 @@ class ValidateManifest(object):
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
 
-
             print(validation_rules)
             # Given a validation rule, run validation. Skip validations already performed by GE
             if bool(validation_rules) and re.match(unimplemented_expectations,validation_rules[0]):
@@ -535,8 +507,6 @@ class ValidateManifest(object):
                         second_type = second_rule[0]
                         if second_type != "list":
                             module_to_call = getattr(re, second_rule[1])
-                            if module_to_call == 'match':
-                                continue
                             regular_expression = second_rule[2]
                             validation_method = getattr(
                                 ValidateAttribute, validation_types[second_type]
@@ -569,6 +539,7 @@ class ValidateManifest(object):
                             self, validation_rules[0], manifest[col]
                         )
                 # Check for validation rule errors and add them to other errors.
+                print(vr_errors)
                 if vr_errors:
                     errors.extend(vr_errors)
         return manifest, errors

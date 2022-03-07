@@ -25,7 +25,7 @@ class TestManifestValidation:
             metadataModel,
             manifestPath=manifestPath,
             rootNode=rootNode)
-        
+        print(errors)
         assert errors == [[]]
 
         
@@ -47,7 +47,7 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
 
-        assert len(errors) == 10
+        assert len(errors) == 11
 
         assert GenerateError.generate_type_error('num',2,'Check Num', '6') in errors
         assert GenerateError.generate_type_error('num',3,'Check Num', 'c') in errors
@@ -68,6 +68,14 @@ class TestManifestValidation:
             'Check Regex List',
             "not_comma_delimited",
             'ab cd ef') in errors
+
+        assert GenerateError.generate_regex_error(
+            val_rule='regex',
+            reg_expression='[a-f]',
+            row_num='3',
+            attribute_name='Check Regex Single',
+            module_to_call='search',
+            invalid_entry='q') in errors   
 
         assert GenerateError.generate_url_error(
             'http://googlef.com/',
