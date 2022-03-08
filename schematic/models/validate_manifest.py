@@ -101,10 +101,11 @@ class ValidateManifest(object):
             print(project[0])
             
             target_datasets=synStore.getProjectManifests(projectId=project[0])
-            print(synStore.getProjectManifests(projectId=project[0]))
+            print(target_datasets)
 
             for target_dataset in target_datasets:
                 print(target_dataset)
+
                 if target_component in target_dataset[-1]:
                     target_manifest_IDs.append(target_dataset[1][0])
 
@@ -477,7 +478,7 @@ class ValidateManifest(object):
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
 
-            print(validation_rules)
+            #print(validation_rules)
             # Given a validation rule, run validation. Skip validations already performed by GE
             if bool(validation_rules) and re.match(unimplemented_expectations,validation_rules[0]):
                 # Check for multiple validation types,

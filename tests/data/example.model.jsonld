@@ -2512,6 +2512,9 @@
                 },
                 {
                     "@id": "bts:CheckMatchExactly"
+                },
+                {
+                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
@@ -2722,7 +2725,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Check Match at Least",
+            "sms:displayName": "CheckMatchatLeast",
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
@@ -2730,7 +2733,7 @@
                 }
             ],
             "sms:validationRules": [
-                "matchAtLeastOne Patient.PatientID Biospecimen.PatientID"
+                "matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID"
             ]
         },
         {
@@ -2746,7 +2749,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Check Match Exactly",
+            "sms:displayName": "CheckMatchExactly",
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
@@ -2754,7 +2757,7 @@
                 }
             ],
             "sms:validationRules": [
-                "matchExactlyOne Patient.PatientID Biospecimen.PatientID"
+                "matchExactlyOne MockComponent.checkExactly Patient.PatientID"
             ]
         },
         {

@@ -447,8 +447,16 @@ class ValidateAttribute(object):
         for target_manifest_ID in target_IDs:
             entity = syn.get(target_manifest_ID)
             target_manifest=pd.read_csv(entity.path)
-            if target_attribute in target_manifest.columns:
-                target_column = target_manifest[target_attribute]
+
+            column_names={}
+
+            for name in target_manifest.columns:
+                column_names[name.replace(" ","")]=name
+
+            print(column_names)
+
+            if target_attribute in column_names:
+                target_column = target_manifest[column_names[target_attribute]]
 
                 '''
                 #dummy data
