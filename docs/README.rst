@@ -149,6 +149,27 @@ are special Google accounts that can be used by applications to access Google AP
 programmatically via OAuth2.0, with the advantage being that they do not require 
 human authorization.
 
+
+To obtain ``schematic_service_account_creds.json``, please run:
+
+.. code:: bash
+
+    schematic init --config ~/path/to/config.yml --auth service_account
+
+To obtain ``credentials.json`` and ``token.pickle``, please run:
+
+.. code:: bash
+
+    schematic init --config ~/path/to/config.yml --auth token
+
+OR: 
+
+.. code:: bash
+
+    schematic init --config ~/path/to/config.yml
+
+
+
 Note: The ``Selection Options`` dropdown which allows the user to select
 multiple values in a cell during manifest annotation `does not
 work <https://developers.google.com/apps-script/api/concepts>`__ with
@@ -174,7 +195,7 @@ mode of authentication of your choice:
 
     schematic init --config ~/path/to/config.yml
 
-Note: this should prompt you with a URL that will take you through Google OAuth. Your credential.json will get automatically downloaded the first time you run this command.
+Note: this should prompt you with a URL that will take you through Google OAuth. Your credential.json and token.pickle will get automatically downloaded the first time you run this command.
 
 4.2. Metadata Manifest Generation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
