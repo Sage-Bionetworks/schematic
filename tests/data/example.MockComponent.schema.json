@@ -4,16 +4,17 @@
   "title": "MockComponent_validation",
   "type": "object",
   "properties": {
-    "Check String": {},
-    "Check Regex Single": {},
-    "Check Regex List": {},
-    "Check URL": {},
     "Check Match Exactly": {},
-    "Check Float": {},
-    "Check Int": {},
-    "Check List": {},
     "Check Match at Least": {},
-    "Check Num": {}
+    "Check URL": {},
+    "Check Float": {},
+    "Check Num": {},
+    "Check List": {},
+    "Check String": {},
+    "Check Regex List": {},
+    "Component": {},
+    "Check Regex Single": {},
+    "Check Int": {}
   },
   "required": []
 }
