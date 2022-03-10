@@ -38,9 +38,6 @@ class TestManifestValidation:
         
         assert errors == [[]]
 
-        
-        
-
 
     def test_invalid_manifest(self,helpers,synapse_store):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
@@ -57,7 +54,6 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
 
-        assert len(errors) == 13
 
         assert GenerateError.generate_type_error(
             val_rule = 'num',
@@ -138,6 +134,7 @@ class TestManifestValidation:
             matching_manifests = ['syn27600102', 'syn27648165']
             ) in errors
 
+        assert len(errors) == 13
         
 
 
