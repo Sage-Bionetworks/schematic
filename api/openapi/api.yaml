@@ -171,7 +171,7 @@ paths:
           name: input_token
           schema:
             type: string
-            nullable: true
+            nullable: false
           description: Token
           required: true
       operationId: api.routes.submit_manifest_route

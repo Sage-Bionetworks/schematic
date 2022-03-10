@@ -149,10 +149,6 @@ def submit_manifest_route(schema_url):
 
     input_token = connexion.request.args["input_token"]
 
-    if input_token == 'None':
-        input_token = None
-
-
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld, inputMModelLocationType="local"
     )

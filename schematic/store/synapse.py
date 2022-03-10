@@ -65,8 +65,7 @@ class SynapseStorage(BaseStorage):
             syn_store = SynapseStorage()
         """
 
-        self.syn = self.login(token, access_token)
-        self.syn_api = self.api_login(input_token) 
+        self.syn = self.login(token, access_token, input_token)
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
@@ -87,9 +86,9 @@ class SynapseStorage(BaseStorage):
             raise MissingConfigValueError(("synapse", "master_fileview"))
 
     @staticmethod
-    def login(token=None, access_token=None):
+    def login(token=None, access_token=None, input_token=None):
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token:
+        if not token and not access_token and not input_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
@@ -103,27 +102,18 @@ class SynapseStorage(BaseStorage):
         elif access_token:
             syn = synapseclient.Synapse()
             syn.default_headers["Authorization"] = f"Bearer {access_token}"
+        elif input_token: 
+            try: 
+                syn = synapseclient.Synapse()
+                syn.default_headers["Authorization"] = f"Bearer {input_token}"
+            except synapseclient.core.exceptions.SynapseHTTPError:
+                raise ValueError("No access to resources. Please make sure that your token is correct")
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
             syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
             syn.login(silent=True)
 
-        return syn
-
-    @staticmethod
-    def api_login(input_token=None):
-        if not input_token:
-            print("no token is provided")
-        if input_token:
-            syn_api = synapseclient.Synapse()
-
-            try:
-                syn_api.default_headers["Authorization"] = f"Bearer {input_token}"
-            except synapseclient.core.exceptions.SynapseHTTPError:
-                raise ValueError("No access to resources. Please make sure that your token is correct")
-            return syn_api
-
-
+        return syn    
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
 
