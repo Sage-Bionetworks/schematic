@@ -21,8 +21,6 @@ from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 
-import synapseclient
-syn=synapseclient.Synapse()
 
 from ruamel import yaml
 
@@ -92,24 +90,26 @@ class ValidateManifest(object):
         target_manifest_IDs=[]
 
         synStore = SynapseStorage()
-        synStore.login()
-        syn.login()
+        syn=synStore.login()
+        
 
-        #Find all manifests with 2nd component
+        #Get list of all projects user has access to
         projects = synStore.getStorageProjects()
         for project in projects:
-            print(project[0])
+            #print('Project: ', str(project[0]))
             
+            #get all manifests associated with datasets in the projects
             target_datasets=synStore.getProjectManifests(projectId=project[0])
-            print(target_datasets)
+            #print(target_datasets)
 
+            #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
-                print(target_dataset)
+                #print(target_dataset)
 
                 if target_component in target_dataset[-1]:
                     target_manifest_IDs.append(target_dataset[1][0])
 
-        return target_manifest_IDs
+        return syn, target_manifest_IDs
         
     def build_expectation_suite(self, sg: SchemaGenerator, unimplemented_expectations = []):
         validation_expectation = {
@@ -540,7 +540,7 @@ class ValidateManifest(object):
                             self, validation_rules[0], manifest[col]
                         )
                 # Check for validation rule errors and add them to other errors.
-                print(vr_errors)
+                #print(vr_errors)
                 if vr_errors:
                     errors.extend(vr_errors)
         return manifest, errors

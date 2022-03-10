@@ -35,14 +35,14 @@ class TestManifestValidation:
             metadataModel,
             manifestPath=manifestPath,
             rootNode=rootNode)
-        print(errors)
+        
         assert errors == [[]]
 
         
         
 
 
-    def test_invalid_manifest(self,helpers):
+    def test_invalid_manifest(self,helpers,synapse_store):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = 'MockComponent'
 
@@ -57,7 +57,7 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
 
-        assert len(errors) == 11
+        assert len(errors) == 13
 
         assert GenerateError.generate_type_error(
             val_rule = 'num',
@@ -105,6 +105,8 @@ class TestManifestValidation:
             list_error="not_comma_delimited",
             invalid_entry='ab cd ef') in errors
 
+        assert [] in errors
+
         assert GenerateError.generate_regex_error(
             val_rule='regex',
             reg_expression='[a-f]',
@@ -120,6 +122,21 @@ class TestManifestValidation:
             attribute_name = 'Check URL',
             argument = None,
             invalid_entry = 'http://googlef.com/') in errors
+
+        assert GenerateError.generate_cross_error(
+            val_rule = 'matchAtLeastOne',
+            attribute_name='checkMatchatLeast',
+            row_num = '3',
+            missing_entry = '7163',
+            manifest_ID = 'syn27600110',
+            ) in errors
+
+        assert GenerateError.generate_cross_error(
+            val_rule = 'MatchExactlyOne',
+            attribute_name='checkMatchExactly',
+            manifest_ID = 'syn27600110',
+            matching_manifests = ['syn27600102', 'syn27648165']
+            ) in errors
 
         
 

@@ -2725,7 +2725,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "CheckMatchatLeast",
+            "sms:displayName": "Check Match at Least",
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
@@ -2749,7 +2749,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "CheckMatchExactly",
+            "sms:displayName": "Check Match Exactly",
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
@@ -2757,7 +2757,7 @@
                 }
             ],
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkExactly Patient.PatientID"
+                "matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
             ]
         },
         {
