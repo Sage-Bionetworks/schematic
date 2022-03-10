@@ -16,7 +16,7 @@ Note: You need to be a registered and certified user on [`synapse.org`](https://
 Create and activate a virtual environment within which you can install the package:
 
 ```
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 ```
 
@@ -25,7 +25,7 @@ Note: Python 3 has a built-in support for virtual environment [venv](https://doc
 Install and update the package using [pip](https://pip.pypa.io/en/stable/quickstart/):
 
 ```
-python -m pip install schematicpy
+python3 -m pip install schematicpy
 ```
 
 If you run into error: Failed building wheel for numpy, the error might be able to resolve by upgrading pip. Please try to upgrade pip by: 

@@ -57,23 +57,11 @@ Examples:
 
 2) Get an existing biospecimen manifest (synapse ID: syn26543611) from HTAN TNP-TMA by using HTAN data model: 
 
-* Step 1:  Make sure you have credentials to download the manifest from Synapse 
+* Step 1:  Make sure you have credentials to download the desired manifest from Synapse. The "download" button should be disabled if you don't have credentials. 
 
-    Try to visit [HTAN TNP-TMA](https://www.synapse.org/#!Synapse:syn26543611) and see if you could download the manifest from the UI. The "download" button should be disabled if you don't have credentials. 
-
-* Step 2: Update master_fileview in config.yml
-
-    Make sure that your config.yml is pointing to the right master_fileview. For HTAN, the master fileview should be: [syn20446927](https://www.synapse.org/#!Synapse:syn20446927/tables/)
+* Step 2: Update master_fileview in config.yml. Make sure that your config.yml point to the right master fileview. 
 
 * Step 3: Use parent id of the manifest for "dataset_id" parameter
-
-    Make sure that you use the parent id instead of the id of the manifest. For example, the parent Id of the biospecimen manifest that we want to obtain is: [syn24995166](https://www.synapse.org/#!Synapse:syn24995166)
-
-To sum up, use the following values to fill out the parameters in swagger UI: 
-* schema_url: https://raw.githubusercontent.com/ncihtan/data-models/main/HTAN.model.jsonld
-* title: Biospecimen Metadata Manifest
-* data_type: Biospecimen
-* dataset_id: syn24995166
     
 Note: if the dataset_id you provided is invalid, it will generate an empty manifest based on the data model. 
 
