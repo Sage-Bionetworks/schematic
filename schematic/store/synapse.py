@@ -66,7 +66,6 @@ class SynapseStorage(BaseStorage):
         """
 
         self.syn = self.login(token, access_token, input_token)
-
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
 
