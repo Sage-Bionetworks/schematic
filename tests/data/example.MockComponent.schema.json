@@ -5,16 +5,16 @@
   "type": "object",
   "properties": {
     "Check Match Exactly": {},
-    "Check Match at Least": {},
-    "Check URL": {},
     "Check Float": {},
-    "Check Num": {},
-    "Check List": {},
-    "Check String": {},
+    "Check Int": {},
     "Check Regex List": {},
+    "Check Num": {},
     "Component": {},
+    "Check String": {},
     "Check Regex Single": {},
-    "Check Int": {}
+    "Check URL": {},
+    "Check List": {},
+    "Check Match at Least": {}
   },
   "required": []
 }
