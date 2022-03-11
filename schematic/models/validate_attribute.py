@@ -230,6 +230,36 @@ class ValidateAttribute(object):
         - Add year validator
         - Add string length validator
     """
+    def get_target_manifests(target_component):
+
+        target_manifest_IDs=[]
+
+        access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+        if access_token:
+            synStore = SynapseStorage(access_token=access_token)
+        else:
+            synStore = SynapseStorage()
+
+        syn = synStore.login(access_token = access_token)
+        
+
+        #Get list of all projects user has access to
+        projects = synStore.getStorageProjects()
+        for project in projects:
+            #print('Project: ', str(project[0]))
+            
+            #get all manifests associated with datasets in the projects
+            target_datasets=synStore.getProjectManifests(projectId=project[0])
+            #print(target_datasets)
+
+            #If the manifest includes the target component, include synID in list
+            for target_dataset in target_datasets:
+                print(target_dataset)
+
+                if target_component in target_dataset[-1]:
+                    target_manifest_IDs.append(target_dataset[1][0])
+
+        return target_manifest_IDs    
 
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
@@ -495,12 +525,12 @@ class ValidateAttribute(object):
        
         access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
         syn = synapseclient.Synapse()     
-        syn.login(authToken = access_token)
+        syn.login(authToken = access_token, silent = True)
 
         #Get IDs of manifests with target component
         t1=time.time()
 
-        target_IDs=self.get_target_manifests(target_component)
+        target_IDs=ValidateAttribute.get_target_manifests(target_component)
         
         t2=time.time()-t1
 

@@ -85,36 +85,6 @@ class ValidateManifest(object):
         #self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
 
-    def get_target_manifests(self,target_component):
-
-        target_manifest_IDs=[]
-
-        access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-        if access_token:
-            synStore = SynapseStorage(access_token=access_token)
-        else:
-            synStore = SynapseStorage()
-
-        syn = synStore.login(access_token = access_token)
-        
-
-        #Get list of all projects user has access to
-        projects = synStore.getStorageProjects()
-        for project in projects:
-            #print('Project: ', str(project[0]))
-            
-            #get all manifests associated with datasets in the projects
-            target_datasets=synStore.getProjectManifests(projectId=project[0])
-            #print(target_datasets)
-
-            #If the manifest includes the target component, include synID in list
-            for target_dataset in target_datasets:
-                print(target_dataset)
-
-                if target_component in target_dataset[-1]:
-                    target_manifest_IDs.append(target_dataset[1][0])
-
-        return target_manifest_IDs
         
     def build_expectation_suite(self, sg: SchemaGenerator, unimplemented_expectations = []):
         validation_expectation = {
