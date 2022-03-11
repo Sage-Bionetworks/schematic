@@ -124,15 +124,15 @@ class TestManifestValidation:
             invalid_entry = 'http://googlef.com/') in errors
 
         assert GenerateError.generate_cross_error(
-            val_rule = 'matchAtLeastOne',
-            attribute_name='checkMatchatLeast',
+            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID ',
             row_num = '3',
+            attribute_name='checkMatchatLeast',
             missing_entry = '7163',
             manifest_ID = 'syn27600110',
             ) in errors
 
         assert GenerateError.generate_cross_error(
-            val_rule = 'matchExactlyOne',
+            val_rule = 'matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly ',
             attribute_name='checkMatchExactly',
             manifest_ID = 'syn27600110',
             matching_manifests = ['syn27600102', 'syn27648165']
