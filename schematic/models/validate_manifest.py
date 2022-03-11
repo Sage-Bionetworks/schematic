@@ -95,7 +95,7 @@ class ValidateManifest(object):
         else:
             synStore = SynapseStorage()
 
-        syn = synStore.syn
+        syn = synStore.login(access_token = access_token)
         
 
         #Get list of all projects user has access to
@@ -109,12 +109,12 @@ class ValidateManifest(object):
 
             #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
-                #print(target_dataset)
+                print(target_dataset)
 
                 if target_component in target_dataset[-1]:
                     target_manifest_IDs.append(target_dataset[1][0])
 
-        return syn, target_manifest_IDs
+        return target_manifest_IDs
         
     def build_expectation_suite(self, sg: SchemaGenerator, unimplemented_expectations = []):
         validation_expectation = {

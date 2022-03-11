@@ -7,6 +7,7 @@ from numpy import full
 import pandas as pd
 import re
 import sys
+import os
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -16,7 +17,7 @@ from urllib.request import Request
 from urllib import error
 
 from schematic.store.synapse import SynapseStorage
-
+import synapseclient
 
 import time
 
@@ -492,10 +493,15 @@ class ValidateAttribute(object):
         #synStore = SynapseStorage()
         #syn=synStore.login()
        
+        access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+        syn = synapseclient.Synapse()     
+        syn.login(authToken = access_token)
 
         #Get IDs of manifests with target component
         t1=time.time()
-        syn,target_IDs=self.get_target_manifests(target_component)
+
+        target_IDs=self.get_target_manifests(target_component)
+        
         t2=time.time()-t1
 
         print(f'Manifest Gathering Elapsed Time: {int(t2/60)}:{int(t2%60)}')
