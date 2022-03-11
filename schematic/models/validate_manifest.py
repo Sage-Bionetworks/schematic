@@ -95,7 +95,7 @@ class ValidateManifest(object):
         else:
             synStore = SynapseStorage()
 
-        syn=synStore.login()
+        syn = synStore.syn
         
 
         #Get list of all projects user has access to
