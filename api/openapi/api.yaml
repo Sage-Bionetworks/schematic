@@ -5,7 +5,7 @@ info:
   description: >-
     This service exposes core functionalities from schematic as REST API
     endpoints
-
+    
 servers:
   - url: /v1
 
@@ -177,11 +177,11 @@ paths:
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
-          description: Manifest submitted
+          description: Manifest submitted. Synapse ID returned. 
           content:
             application/json:
               schema:
-                type: boolean
+                type: string
         "500":
           description: Check schematic log
       tags:
