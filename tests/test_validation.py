@@ -126,8 +126,8 @@ class TestManifestValidation:
         assert GenerateError.generate_cross_error(
             val_rule = 'matchAtLeastOne',
             attribute_name='checkMatchatLeast',
-            row_num = str(3),
-            missing_entry = str(7163),
+            row_num = '3',
+            missing_entry = '7163',
             manifest_ID = 'syn27600110',
             ) in errors
 
