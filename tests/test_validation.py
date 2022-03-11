@@ -126,7 +126,7 @@ class TestManifestValidation:
         assert GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
-            manifest_ID = 'syn27600110',
+            #manifest_ID = 'syn27600110',
             matching_manifests = ['syn27600102', 'syn27648165']
             ) in errors
 

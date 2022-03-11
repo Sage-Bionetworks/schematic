@@ -542,7 +542,8 @@ class ValidateAttribute(object):
         for target_manifest_ID in target_IDs:
             entity = syn.get(target_manifest_ID)
             target_manifest=pd.read_csv(entity.path)
-            os.remove(entity.path)
+            #os.remove(entity.path)
+            print(entity.path)
             print(target_manifest_ID)
             print(target_manifest)
 
@@ -565,7 +566,7 @@ class ValidateAttribute(object):
                 else:
                     missing_manifest_log[target_manifest_ID] = missing_values
 
-
+            
             #else:
             #    print("Attribute not found in manifest")
 
@@ -579,7 +580,7 @@ class ValidateAttribute(object):
                         row_num = str(row),
                         attribute_name = source_attribute,
                         missing_entry = str(value),
-                        manifest_ID = str(target_manifest_ID),
+                        manifest_ID = target_manifest_ID,
                     )
                 )
         elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
@@ -588,7 +589,7 @@ class ValidateAttribute(object):
                 GenerateError.generate_cross_error(
                     val_rule = val_rule,
                     attribute_name = source_attribute,
-                    manifest_ID = str(target_manifest_ID),
+                    #manifest_ID = target_manifest_ID,
                     matching_manifests=present_manifest_log,
                 )
             )
