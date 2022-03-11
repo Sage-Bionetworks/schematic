@@ -39,13 +39,13 @@ Make sure that the following libraries have the correct version:
 * jinja2 version: 2.11.3
 * markupsafe version: 2.0.1
 
-## Notes for using API endpoints: 
-Before trying out the API endpoints, please make sure that you have obtained `credentials.json`, `schematic_service_account_creds.json`, and `token.pickle`. 
+## Notes for using schematic features and API endpoints utilizing Google Services (e.g. manifest generation): 
+Before trying out the API endpoints, please make sure that you have obtained `credentials.json`, `schematic_service_account_creds.json`, and `token.pickle`. (Instructions can be found [here](https://sage-schematic.readthedocs.io/en/develop/README.html#obtain-google-credentials-file-s))
 
 
 ###  GET /manifest/generate
 
-This endpoint functions similarly like the following: 
+This endpoint functions similarly to the following: 
 ```bash
 schematic manifest -c ~/path/to/config.yml get -d <synapse id> -s -oauth
 ```
@@ -59,7 +59,7 @@ Examples:
 
 * Step 1:  Make sure you have credentials to download the desired manifest from Synapse. The "download" button should be disabled if you don't have credentials. 
 
-* Step 2: Update master_fileview in config.yml. Make sure that your config.yml point to the right master fileview. 
+* Step 2: Update master_fileview in config.yml. Make sure that your config.yml points to the right master fileview. 
 
 * Step 3: Use parent id of the manifest for "dataset_id" parameter
     
@@ -75,4 +75,4 @@ Note: if the dataset_id you provided is invalid, it will generate an empty manif
 
 For the patient manifest, "Family History" column only accepts a list. The details of the validation rules (based on the example data model) could be found [here](https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.csv)
 
-After execution, you should be able to see your manifest.csv get uploaded to your test folder on Synapse. The execution should respond the synapse ID of your submitted manifest.
+After execution, you should be able to see your manifest.csv get uploaded to your test folder on Synapse. The execution should return the synapse ID of your submitted manifest.
