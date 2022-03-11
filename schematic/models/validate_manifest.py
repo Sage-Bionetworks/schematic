@@ -453,7 +453,6 @@ class ValidateManifest(object):
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
 
-            #print(validation_rules)
             # Given a validation rule, run validation. Skip validations already performed by GE
             if bool(validation_rules) and re.match(unimplemented_expectations,validation_rules[0]):
                 # Check for multiple validation types,
@@ -515,7 +514,6 @@ class ValidateManifest(object):
                             self, validation_rules[0], manifest[col]
                         )
                 # Check for validation rule errors and add them to other errors.
-                #print(vr_errors)
                 if vr_errors:
                     errors.extend(vr_errors)
         return manifest, errors

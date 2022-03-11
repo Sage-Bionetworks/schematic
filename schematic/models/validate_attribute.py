@@ -17,7 +17,6 @@ from urllib.request import Request
 from urllib import error
 
 from schematic.store.synapse import SynapseStorage
-import synapseclient
 
 import time
 
@@ -259,7 +258,7 @@ class ValidateAttribute(object):
                 if target_component in target_dataset[-1]:
                     target_manifest_IDs.append(target_dataset[1][0])
 
-        return target_manifest_IDs    
+        return syn, target_manifest_IDs    
 
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
@@ -512,40 +511,25 @@ class ValidateAttribute(object):
     def cross_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
     ) -> List[List[str]]:
-
-
         errors = []
-        fully_present_in=0
+        missing_values = {}
+        missing_manifest_log={}
+        present_manifest_log=[]
+
         #parse sources and targets
         [source_component, source_attribute] = val_rule.split(" ")[1].split(".")
         [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
 
-        #synStore = SynapseStorage()
-        #syn=synStore.login()
-       
-        access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-        syn = synapseclient.Synapse()     
-        syn.login(authToken = access_token, silent = True)
-
         #Get IDs of manifests with target component
         t1=time.time()
 
-        target_IDs=ValidateAttribute.get_target_manifests(target_component)
-        
+        syn, target_IDs=ValidateAttribute.get_target_manifests(target_component)
         t2=time.time()-t1
-
         print(f'Manifest Gathering Elapsed Time: {int(t2/60)}:{int(t2%60)}')
-        missing_values = {}
-        missing_manifest_log={}
-        present_manifest_log=[]
         #Load each manifest
         for target_manifest_ID in target_IDs:
             entity = syn.get(target_manifest_ID)
             target_manifest=pd.read_csv(entity.path)
-            #os.remove(entity.path)
-            print(entity.path)
-            print(target_manifest_ID)
-            print(target_manifest)
 
             #convert manifest column names into validation rule input format
             column_names={}
@@ -553,25 +537,18 @@ class ValidateAttribute(object):
                 column_names[name.replace(" ","").lower()]=name
 
             #If the manifest has the target attribute for the component do the cross validation
-
-            
             if target_attribute.lower() in column_names:
                 target_column = target_manifest[column_names[target_attribute.lower()]]
 
                 #Do the validation on both columns
                 missing_values = manifest_col[~manifest_col.isin(target_column)]
                 if missing_values.empty:
-                    fully_present_in+=1
                     present_manifest_log.append(target_manifest_ID)
                 else:
                     missing_manifest_log[target_manifest_ID] = missing_values
 
-            
-            #else:
-            #    print("Attribute not found in manifest")
-
-        if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:
-            #generate errors if necessary
+        #generate errors if necessary
+        if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:            
             for row, value in zip (missing_values.keys(),missing_values):
                 row = row +2 
                 errors.append(
@@ -584,12 +561,10 @@ class ValidateAttribute(object):
                     )
                 )
         elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
-            #generate errors if necessary
             errors.append(
                 GenerateError.generate_cross_error(
                     val_rule = val_rule,
                     attribute_name = source_attribute,
-                    #manifest_ID = target_manifest_ID,
                     matching_manifests=present_manifest_log,
                 )
             )
