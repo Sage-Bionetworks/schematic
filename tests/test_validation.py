@@ -30,7 +30,7 @@ class TestManifestValidation:
 
         metadataModel= MetadataModel(
             inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
-            inputMModelLocationType="local"
+            inputMModelLocationType = "local"
             )
 
         errors = MetadataModel.validateModelManifest(
@@ -38,6 +38,7 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
         
+        print(errors)
         assert errors == [[]]
 
 
@@ -45,11 +46,11 @@ class TestManifestValidation:
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = 'MockComponent'
         assert synapse_store.storageFileview == "syn23643253"
-        
+
 
         metadataModel= MetadataModel(
             inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
-            inputMModelLocationType="local"
+            inputMModelLocationType = "local"
             )
 
         errors = MetadataModel.validateModelManifest(
@@ -125,8 +126,8 @@ class TestManifestValidation:
         assert GenerateError.generate_cross_error(
             val_rule = 'matchAtLeastOne',
             attribute_name='checkMatchatLeast',
-            row_num = '3',
-            missing_entry = '7163',
+            row_num = str(3),
+            missing_entry = str(7163),
             manifest_ID = 'syn27600110',
             ) in errors
 
