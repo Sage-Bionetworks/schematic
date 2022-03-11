@@ -25,7 +25,6 @@ class TestManifestValidation:
     def test_valid_manifest(self,helpers,synapse_store):
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
         rootNode = 'MockComponent'
-        assert synapse_store.storageFileview == "syn23643253"
 
 
         metadataModel= MetadataModel(
@@ -38,14 +37,14 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
         
-        print(errors)
+        for error in errors:
+            print(error)
         assert errors == [[]]
 
 
     def test_invalid_manifest(self,helpers,synapse_store):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = 'MockComponent'
-        assert synapse_store.storageFileview == "syn23643253"
 
 
         metadataModel= MetadataModel(
@@ -58,6 +57,8 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
 
+        for error in errors:
+            print(error)
 
         assert GenerateError.generate_type_error(
             val_rule = 'num',
