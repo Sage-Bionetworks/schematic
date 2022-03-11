@@ -190,12 +190,12 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
-        if val_rule.lower().__contains__('matchatleast'):
+        if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
                 f"Manifest {manifest_ID} does not contain the value {missing_entry} "
                 f"from row {row_num} of the attribute {attribute_name} in the source manifest."
             )
-        elif val_rule.lower().__contains__('matchexactly'):
+        elif val_rule.__contains__('matchExactly'):
             if matching_manifests != []:
                 cross_error_str = (
                     f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1. "
