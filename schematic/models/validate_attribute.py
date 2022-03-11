@@ -506,6 +506,8 @@ class ValidateAttribute(object):
         for target_manifest_ID in target_IDs:
             entity = syn.get(target_manifest_ID)
             target_manifest=pd.read_csv(entity.path)
+            print(target_manifest_ID)
+            print(target_manifest)
 
             #convert manifest column names into validation rule input format
             column_names={}
