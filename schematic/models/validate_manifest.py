@@ -89,7 +89,12 @@ class ValidateManifest(object):
 
         target_manifest_IDs=[]
 
-        synStore = SynapseStorage()
+        access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+        if access_token:
+            synStore = SynapseStorage(access_token=access_token)
+        else:
+            synStore = SynapseStorage()
+
         syn=synStore.login()
         
 
