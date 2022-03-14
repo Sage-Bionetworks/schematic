@@ -1,13 +1,12 @@
 import builtins
 from jsonschema import ValidationError
 import logging
-from numpy import full
 
 # import numpy as np
 import pandas as pd
 import re
 import sys
-import os
+from os import getenv
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -18,8 +17,9 @@ from urllib import error
 
 from schematic.store.synapse import SynapseStorage
 
-logger = logging.getLogger(__name__)
+import time
 
+logger = logging.getLogger(__name__)
 
 class GenerateError:
     def generate_list_error(
@@ -180,10 +180,12 @@ class GenerateError:
                 a cross validation error is encountered.
             Input:
                 val_rule: str, defined in the schema.
+                matching_manifests: list of manifests with all values in the target attribute present
+                manifest_ID: str, synID of the target manifest missing the source value
                 row_num: str, row where the error was detected
                 attribute_name: str, attribute being validated
                 missing_entry: str, value present in source manifest that is missing in the target
-                manifest_ID: str, synID of the target manifest missing the source value
+                row_num: row in source manifest with value missing in target manifests             
             Returns:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
@@ -230,13 +232,13 @@ class ValidateAttribute(object):
     def get_target_manifests(target_component):
 
         target_manifest_IDs=[]
-
-        access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+        
+        #login
+        access_token = getenv("SYNAPSE_ACCESS_TOKEN")
         if access_token:
             synStore = SynapseStorage(access_token=access_token)
         else:
             synStore = SynapseStorage()
-
         syn = synStore.login(access_token = access_token)
         
 
@@ -504,8 +506,6 @@ class ValidateAttribute(object):
                             )
         return errors
 
-
-    
     def cross_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
     ) -> List[List[str]]:
@@ -525,7 +525,7 @@ class ValidateAttribute(object):
             entity = syn.get(target_manifest_ID)
             target_manifest=pd.read_csv(entity.path)
 
-            #convert manifest column names into validation rule input format
+            #convert manifest column names into validation rule input format - 
             column_names={}
             for name in target_manifest.columns:
                 column_names[name.replace(" ","").lower()]=name
