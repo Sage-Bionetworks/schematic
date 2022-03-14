@@ -18,8 +18,6 @@ from urllib import error
 
 from schematic.store.synapse import SynapseStorage
 
-import time
-
 logger = logging.getLogger(__name__)
 
 
@@ -520,13 +518,9 @@ class ValidateAttribute(object):
         [source_component, source_attribute] = val_rule.split(" ")[1].split(".")
         [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
 
-        #Get IDs of manifests with target component
-        t1=time.time()
-
         syn, target_IDs=ValidateAttribute.get_target_manifests(target_component)
-        t2=time.time()-t1
-        print(f'Manifest Gathering Elapsed Time: {int(t2/60)}:{int(t2%60)}')
-        #Load each manifest
+
+        #Read each manifest
         for target_manifest_ID in target_IDs:
             entity = syn.get(target_manifest_ID)
             target_manifest=pd.read_csv(entity.path)
