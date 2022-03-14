@@ -311,7 +311,6 @@ class SynapseStorage(BaseStorage):
                 except(KeyError):
                     manifest_data = self.syn.get(
                         manifest_syn_id,
-                        #downloadLocation=CONFIG["synapse"]["manifest_folder"],
                         ifcollision="overwrite.local",
                     )
 
