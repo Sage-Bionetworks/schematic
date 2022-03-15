@@ -179,3 +179,93 @@ paths:
           description: Check schematic log
       tags:
         - Model Operations
+  /storage/projects:
+    get:
+      summary: Get all storage projects the current user has access to
+      description: Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
+      operationId: api.routes.get_storage_projects
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: true
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: syn_master_file_view
+          schema:
+            type: string
+            nullable: false
+          description: synapse ID of master file view. 
+          example: syn23643253
+          required: true
+        - in: query
+          name: syn_master_file_name
+          schema:
+            type: string
+            nullable: true
+          description: Synapse storage manifest file name. 
+          example: synapse_storage_manifest.csv
+          required: true
+      responses:
+        "200":
+          description: Get all storage projects the current user has access to
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Check log
+      tags:
+        - Synapse Storage
+  /storage/project/datasets:
+    get:
+      summary: Gets all datasets in folder under a given storage project that the current user has access to.
+      description: Gets all datasets in folder under a given storage project that the current user has access to.
+      operationId: api.routes.get_storage_projects_datasets
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: true
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: syn_master_file_view
+          schema:
+            type: string
+            nullable: false
+          description: synapse ID of master file view. 
+          example: syn23643253
+          required: true
+        - in: query
+          name: syn_master_file_name
+          schema:
+            type: string
+            nullable: true
+          description: Synapse storage manifest file name. 
+          example: synapse_storage_manifest.csv
+          required: true
+        - in: query
+          name: project_id
+          schema:
+            type: string
+            nullable: true
+          description: synapse ID of a storage project.
+          example: syn26251192
+          required: true
+      responses:
+        "200":
+          description: Get all storage projects the current user has access to
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Check log
+      tags:
+        - Synapse Storage

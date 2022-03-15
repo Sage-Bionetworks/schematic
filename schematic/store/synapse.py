@@ -48,6 +48,9 @@ class SynapseStorage(BaseStorage):
         self,
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
+        input_token: str = None,
+        syn_master_file_view: str = None, 
+        syn_master_file_name: str = None
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -64,17 +67,19 @@ class SynapseStorage(BaseStorage):
             syn_store = SynapseStorage()
         """
 
-        self.syn = self.login(token, access_token)
+        self.syn = self.login(token, access_token, input_token)
 
-        try:
+        if syn_master_file_view and syn_master_file_name: 
+            self.storageFileview = syn_master_file_view
+            self.manifest = syn_master_file_name
+        else: 
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
-
-            # get data in administrative fileview for this pipeline
-            self.storageFileviewTable = self.syn.tableQuery(
-                "SELECT * FROM " + self.storageFileview
-            ).asDataFrame()
-
             self.manifest = CONFIG["synapse"]["manifest_filename"]
+        try:
+            self.storageFileviewTable = self.syn.tableQuery(
+                    "SELECT * FROM " + self.storageFileview
+                ).asDataFrame()
+        
         except KeyError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
         except AttributeError:
@@ -85,9 +90,10 @@ class SynapseStorage(BaseStorage):
             raise MissingConfigValueError(("synapse", "master_fileview"))
 
     @staticmethod
-    def login(token=None, access_token=None):
+    def login(token=None, access_token=None, input_token=None):
+
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token:
+        if not token and not access_token and not input_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
@@ -101,12 +107,15 @@ class SynapseStorage(BaseStorage):
         elif access_token:
             syn = synapseclient.Synapse()
             syn.default_headers["Authorization"] = f"Bearer {access_token}"
+        elif input_token:
+            syn = synapseclient.Synapse()
+            syn.default_headers["Authorization"] = f"Bearer {input_token}"
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
             syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
             syn.login(silent=True)
-
         return syn
+
 
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.

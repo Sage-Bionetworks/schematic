@@ -15,6 +15,8 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 
+from schematic.store.synapse import SynapseStorage
+
 
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
@@ -156,3 +158,20 @@ def submit_manifest_route(schema_url):
     )
 
     return success
+
+def get_storage_projects(input_token, syn_master_file_view, syn_master_file_name):
+    store = SynapseStorage(input_token=input_token, syn_master_file_view= syn_master_file_view, syn_master_file_name= syn_master_file_name)
+
+    lst_storage_projects = store.getStorageProjects()
+    
+
+    return lst_storage_projects
+
+def get_storage_projects_datasets(input_token, syn_master_file_view, syn_master_file_name, project_id):
+    store = SynapseStorage(input_token=input_token, syn_master_file_view= syn_master_file_view, syn_master_file_name= syn_master_file_name)
+
+    sorted_dataset_lst = store.getStorageDatasetsInProject(projectId = project_id)
+    
+
+    return sorted_dataset_lst
+
