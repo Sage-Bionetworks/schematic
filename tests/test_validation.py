@@ -6,6 +6,7 @@ from pathlib import Path
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.models.validate_manifest import validate_all
 from schematic.models.metadata import MetadataModel
+from schematic.store.synapse import SynapseStorage
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -14,13 +15,12 @@ logger = logging.getLogger(__name__)
 class TestManifestValidation:
     def test_valid_manifest(self,helpers):
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
-        #manifestPath = Path(os.path.join(Path(os.getcwd()).parent,'tests/data/mock_manifests/valid_test_manifest.csv')).resolve()
         rootNode = 'MockComponent'
+
 
         metadataModel= MetadataModel(
             inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
-            #inputMModelLocation = str(Path(os.path.join(os.getcwd(),'tests/data/example.model.jsonld')).resolve()),
-            inputMModelLocationType="local"
+            inputMModelLocationType = "local"
             )
 
         errors = MetadataModel.validateModelManifest(
@@ -28,22 +28,19 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
         
+        for error in errors:
+            print(error)
         assert errors == [[]]
-
-        
-        
 
 
     def test_invalid_manifest(self,helpers):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
-        #manifestPath = Path(os.path.join(Path(os.getcwd()).parent,'tests/data/mock_manifests/invalid_test_manifest.csv')).resolve()
         rootNode = 'MockComponent'
 
 
         metadataModel= MetadataModel(
             inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
-            #inputMModelLocation = str(Path(os.path.join(os.getcwd(),'tests/data/example.model.jsonld')).resolve()),
-            inputMModelLocationType="local"
+            inputMModelLocationType = "local"
             )
 
         errors = MetadataModel.validateModelManifest(
@@ -51,36 +48,89 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
 
-        assert len(errors) == 10
+        for error in errors:
+            print(error)
 
-        assert GenerateError.generate_type_error('num',2,'Check Num', '6') in errors
-        assert GenerateError.generate_type_error('num',3,'Check Num', 'c') in errors
-        assert GenerateError.generate_type_error('num',4,'Check Num', '6.5') in errors
+        assert GenerateError.generate_type_error(
+            val_rule = 'num',
+            row_num = 2,
+            attribute_name = 'Check Num',
+            invalid_entry = '6') in errors
+        assert GenerateError.generate_type_error(
+            val_rule ='num',
+            row_num=3,
+            attribute_name = 'Check Num', 
+            invalid_entry = 'c') in errors
+        assert GenerateError.generate_type_error(
+            val_rule ='num',
+            row_num =4,
+             attribute_name = 'Check Num', 
+             invalid_entry = '6.5') in errors
 
-        assert GenerateError.generate_type_error('int',2,'Check Int', 7.0) in errors
-        assert GenerateError.generate_type_error('int',3,'Check Int', 5.63) in errors
-        assert GenerateError.generate_type_error('int',4,'Check Int', 2.0) in errors
+        assert GenerateError.generate_type_error(
+            val_rule ='int',
+            row_num =2,
+             attribute_name = 'Check Int', 
+             invalid_entry = 7.0) in errors
+        assert GenerateError.generate_type_error(
+            val_rule ='int',
+            row_num =3,
+             attribute_name = 'Check Int', 
+             invalid_entry = 5.63) in errors
+        assert GenerateError.generate_type_error(
+            val_rule ='int',
+            row_num =4,
+             attribute_name = 'Check Int', 
+             invalid_entry = 2.0) in errors
 
-        assert GenerateError.generate_list_error('invalid list values',
-            '3',
-            'Check List',
-            "not_comma_delimited",
-            'invalid list values') in errors
+        assert GenerateError.generate_list_error(
+            list_string='invalid list values',
+            row_num='3',
+            attribute_name='Check List',
+            list_error="not_comma_delimited",
+            invalid_entry='invalid list values') in errors
 
-        assert GenerateError.generate_list_error('ab cd ef',
-            '3',
-            'Check Regex List',
-            "not_comma_delimited",
-            'ab cd ef') in errors
+        assert GenerateError.generate_list_error(
+            list_string='ab cd ef',
+            row_num='3',
+            attribute_name='Check Regex List',
+            list_error="not_comma_delimited",
+            invalid_entry='ab cd ef') in errors
+
+        assert [] in errors
+
+        assert GenerateError.generate_regex_error(
+            val_rule='regex',
+            reg_expression='[a-f]',
+            row_num='3',
+            attribute_name='Check Regex Single',
+            module_to_call='search',
+            invalid_entry='q') in errors   
 
         assert GenerateError.generate_url_error(
-            'http://googlef.com/',
-            'invalid_url',
-            '3',
-            'Check URL',
-            None,
-            'http://googlef.com/') in errors
+            url = 'http://googlef.com/',
+            url_error = 'invalid_url',
+            row_num = '3',
+            attribute_name = 'Check URL',
+            argument = None,
+            invalid_entry = 'http://googlef.com/') in errors
 
+        assert GenerateError.generate_cross_error(
+            val_rule = 'matchAtLeastOne',
+            row_num = '3',
+            attribute_name='checkMatchatLeast',
+            missing_entry = '7163',
+            manifest_ID = 'syn27600110',
+            ) in errors
+
+        assert GenerateError.generate_cross_error(
+            val_rule = 'matchExactlyOne',
+            attribute_name='checkMatchExactly',
+            #manifest_ID = 'syn27600110',
+            matching_manifests = ['syn27600102', 'syn27648165']
+            ) in errors
+
+        assert len(errors) == 13
         
 
 

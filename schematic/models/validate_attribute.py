@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 import re
 import sys
+from os import getenv
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -14,8 +15,11 @@ from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
 from urllib.request import Request
 from urllib import error
 
-logger = logging.getLogger(__name__)
+from schematic.store.synapse import SynapseStorage
 
+import time
+
+logger = logging.getLogger(__name__)
 
 class GenerateError:
     def generate_list_error(
@@ -162,6 +166,55 @@ class GenerateError:
             error_val = f"URL Error: Random Entry"
         return [error_row, error_col, error_message, error_val]
 
+    def generate_cross_error(
+        val_rule: str,
+        attribute_name: str,
+        matching_manifests = [],
+        manifest_ID = None,
+        missing_entry = None,
+        row_num = None,
+    ) -> List[str]:
+        """
+            Purpose:
+                Generate an logging error as well as a stored error message, when
+                a cross validation error is encountered.
+            Input:
+                val_rule: str, defined in the schema.
+                matching_manifests: list of manifests with all values in the target attribute present
+                manifest_ID: str, synID of the target manifest missing the source value
+                row_num: str, row where the error was detected
+                attribute_name: str, attribute being validated
+                missing_entry: str, value present in source manifest that is missing in the target
+                row_num: row in source manifest with value missing in target manifests             
+            Returns:
+                Logging.error.
+                Errors: List[str] Error details for further storage.
+            """
+        if val_rule.__contains__('matchAtLeast'):
+            cross_error_str = (
+                f"Manifest {manifest_ID} does not contain the value {missing_entry} "
+                f"from row {row_num} of the attribute {attribute_name} in the source manifest."
+            )
+        elif val_rule.__contains__('matchExactly'):
+            if matching_manifests != []:
+                cross_error_str = (
+                    f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1. "
+                    f"Manifests {matching_manifests} match the values in the source attribute."
+                )
+            else:
+                cross_error_str = (
+                    f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
+                )
+
+        logging.error(cross_error_str)
+        error_row = row_num  # index row of the manifest where the error presented.
+        error_col = attribute_name  # Attribute name
+        error_message = cross_error_str
+        error_val = missing_entry #Value from source manifest missing from targets
+        
+        return [error_row, error_col, error_message, error_val]
+
+
 
 class ValidateAttribute(object):
     """
@@ -170,11 +223,42 @@ class ValidateAttribute(object):
         regex_validation
         type_validation
         url_validation
+        cross_validation
     See functions for more details.
     TODO:
         - Add year validator
         - Add string length validator
     """
+    def get_target_manifests(target_component):
+
+        target_manifest_IDs=[]
+        
+        #login
+        access_token = getenv("SYNAPSE_ACCESS_TOKEN")
+        if access_token:
+            synStore = SynapseStorage(access_token=access_token)
+        else:
+            synStore = SynapseStorage()
+        syn = synStore.login(access_token = access_token)
+        
+
+        #Get list of all projects user has access to
+        projects = synStore.getStorageProjects()
+        for project in projects:
+            #print('Project: ', str(project[0]))
+            
+            #get all manifests associated with datasets in the projects
+            target_datasets=synStore.getProjectManifests(projectId=project[0])
+            #print(target_datasets)
+
+            #If the manifest includes the target component, include synID in list
+            for target_dataset in target_datasets:
+                print(target_dataset)
+
+                if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
+                    target_manifest_IDs.append(target_dataset[1][0])
+
+        return syn, target_manifest_IDs    
 
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
@@ -421,3 +505,65 @@ class ValidateAttribute(object):
                                 )
                             )
         return errors
+
+    def cross_validation(
+        self, val_rule: str, manifest_col: pd.core.series.Series
+    ) -> List[List[str]]:
+        errors = []
+        missing_values = {}
+        missing_manifest_log={}
+        present_manifest_log=[]
+
+        #parse sources and targets
+        [source_component, source_attribute] = val_rule.split(" ")[1].split(".")
+        [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
+
+        syn, target_IDs=ValidateAttribute.get_target_manifests(target_component)
+
+        #Read each manifest
+        for target_manifest_ID in target_IDs:
+            entity = syn.get(target_manifest_ID)
+            target_manifest=pd.read_csv(entity.path)
+
+            #convert manifest column names into validation rule input format - 
+            column_names={}
+            for name in target_manifest.columns:
+                column_names[name.replace(" ","").lower()]=name
+
+            #If the manifest has the target attribute for the component do the cross validation
+            if target_attribute.lower() in column_names:
+                target_column = target_manifest[column_names[target_attribute.lower()]]
+
+                #Do the validation on both columns
+                missing_values = manifest_col[~manifest_col.isin(target_column)]
+                if missing_values.empty:
+                    present_manifest_log.append(target_manifest_ID)
+                else:
+                    missing_manifest_log[target_manifest_ID] = missing_values
+
+        #generate errors if necessary
+        if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:            
+            for row, value in zip (missing_values.keys(),missing_values):
+                row = row +2 
+                errors.append(
+                    GenerateError.generate_cross_error(
+                        val_rule = val_rule,
+                        row_num = str(row),
+                        attribute_name = source_attribute,
+                        missing_entry = str(value),
+                        manifest_ID = target_manifest_ID,
+                    )
+                )
+        elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
+            errors.append(
+                GenerateError.generate_cross_error(
+                    val_rule = val_rule,
+                    attribute_name = source_attribute,
+                    matching_manifests=present_manifest_log,
+                )
+            )
+            
+
+        return errors
+
+

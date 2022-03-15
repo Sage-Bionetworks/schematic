@@ -302,11 +302,17 @@ class SynapseStorage(BaseStorage):
                 manifest_syn_id = manifest["id"][0]
 
                 # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                manifest_data = self.syn.get(
-                    manifest_syn_id,
-                    downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                    ifcollision="overwrite.local",
-                )
+                try:
+                    manifest_data = self.syn.get(
+                        manifest_syn_id,
+                        downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                        ifcollision="overwrite.local",
+                    )
+                except(KeyError):
+                    manifest_data = self.syn.get(
+                        manifest_syn_id,
+                        ifcollision="overwrite.local",
+                    )
 
                 return manifest_data
 

@@ -2506,6 +2506,15 @@
                 },
                 {
                     "@id": "bts:CheckURL"
+                },
+                {
+                    "@id": "bts:CheckMatchatLeast"
+                },
+                {
+                    "@id": "bts:CheckMatchExactly"
+                },
+                {
+                    "@id": "bts:Component"
                 }
             ],
             "sms:validationRules": []
@@ -2701,6 +2710,54 @@
             ],
             "sms:validationRules": [
                 "url"
+            ]
+        },
+        {
+            "@id": "bts:CheckMatchatLeast",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckMatchatLeast",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Match at Least",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID"
+            ]
+        },
+        {
+            "@id": "bts:CheckMatchExactly",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckMatchExactly",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Match Exactly",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
             ]
         },
         {

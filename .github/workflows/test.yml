@@ -82,6 +82,13 @@ jobs:
       #     black . --check
       
       #----------------------------------------------
+      #              Install GE   
+      #----------------------------------------------      
+      - name: Install Great Expectations
+        run: >
+          source .venv/bin/activate; 
+          pip install great_expectations;
+      #----------------------------------------------
       #              run test suite   
       #----------------------------------------------
       - name: Run tests
@@ -89,7 +96,6 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
         run: >
           source .venv/bin/activate; 
-          pip install great_expectations;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not google_credentials_needed"
     
