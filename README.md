@@ -8,15 +8,14 @@
   - [Installation guide for data curator app](#installation-guide-for-data-curator-app)
   - [Installation guide for developers/contributors](#installation-guide-for-developerscontributors)
 - [Other Contribution Guidelines](#other-contribution-guidelines)
-  - [Reporting bugs or feature requests](#reporting-bugs-or-feature-requests)
+- [Command Line Usage](#command-line-usage)
+  - [Initialization](#initialization)
+  - [Other command line functions](#other-command-line-functions)
 - [Release process](#release-process)
   - [Release to Test PyPI _(optional)_](#release-to-test-pypi-_optional_)
   - [Release to PyPI _(mandatory)_](#release-to-pypi-_mandatory_)
 - [Testing](#testing)
   - [Updating Synapse test resources](#updating-synapse-test-resources)
-- [Command Line Usage](#command-line-usage)
-  - [Initialization](#initialization)
-  - [Other command line functions](#other-command-line-functions)
 - [Code Style](#code-style)
 - [Contributors](#contributors)
 
@@ -86,9 +85,13 @@ poetry install
 This command will install the dependencies based on what we specify in poetry.lock
 
 5. Fill in credential files: 
+*Note*: If you won't interact with Synapse, please ignore this section.
+
 There are two main configuration files that need to be edited :
 [config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml)
 and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig)
+
+<strong>Configure .synapseConfig File</strong>
 
 Download a copy of the ``.synapseConfig`` file, open the file in the
 editor of your choice and edit the `username` and `authtoken` attribute under the `authentication` section 
@@ -96,6 +99,7 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 *Note*: You could also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
 >[authentication]<br> username = ABC <br> authtoken = abc
 
+<strong>Configure config.yml File</strong>
 
 Description of `config.yml` attributes
 
@@ -161,13 +165,43 @@ requires token-based authentication. As browser support that requires the token-
 token-based authentication and keep only service account authentication in the future. 
 
 # Other Contribution Guidelines
-## Reporting bugs or feature requests
+### Reporting bugs or feature requests
 You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues) tab to **create bug and feature requests**. Providing enough details to the developers to verify and troubleshoot your issue is paramount:
 - **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
 - **Describe the exact steps which reproduce the problem** in as many details as possible.
 - **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 - **Explain which behavior you expected to see** instead and why.
 - **Provide screenshots of the expected or actual behaviour** where applicable.
+
+# Command Line Usage
+
+## Initialization
+
+```
+schematic init --config ~/path/to/config.yml    # initialize mode of authentication
+```
+**Options**:
+
+Required: 
+* -c, --config: Specify the path to the `config.yml` using this option. 
+
+Optional: 
+* -v, --verbosity: Either CRITICAL, ERROR, WARNING, INFO or DEBUG
+* -a, --auth: Specify the mode of authentication you want to use for Google accounts. You can use one of either `token` or `service_account`. The default mode of authentication is `token` which uses OAuth.
+
+*Note*: 
+For obtaining `schematic_service_account_creds.json`
+```
+schematic init --config ~/path/to/config.yml  -a service_account 
+```
+Similarly, for obtaining `token.pickle` and `credentials.json`: 
+For obtaining `schematic_service_account_creds.json`
+```
+schematic init --config ~/path/to/config.yml  -a token
+```
+## Other command line functions
+Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html)
+
 
 # Release process
 Once the code has been merged into the `develop` branch on this repo, there are two processes that need to be completed to ensure a _release_ is complete.
@@ -219,36 +253,6 @@ pytest -vs tests/
 4. Open a PR as per the usual process (see above).
 5. Once the PR is merged, leave the original copies on Synapse to maintain support for feature branches that were forked from `develop` before your update.
    - If the old copies are problematic and need to be removed immediately (_e.g._ contain sensitive data), proceed with the deletion and alert the other contributors that they need to merge the latest `develop` branch into their feature branches for their tests to work.
-
-# Command Line Usage
-
-## Initialization
-
-```
-schematic init --config ~/path/to/config.yml    # initialize mode of authentication
-```
-**Options**:
-
-Required: 
-* -c, --config: Specify the path to the `config.yml` using this option. 
-
-Optional: 
-* -v, --verbosity: Either CRITICAL, ERROR, WARNING, INFO or DEBUG
-* -a, --auth: Specify the mode of authentication you want to use for Google accounts. You can use one of either `token` or `service_account`. The default mode of authentication is `token` which uses OAuth.
-
-*Note*: 
-For obtaining `schematic_service_account_creds.json`
-```
-schematic init --config ~/path/to/config.yml  -a service_account 
-```
-Similarly, for obtaining `token.pickle` and `credentials.json`: 
-For obtaining `schematic_service_account_creds.json`
-```
-schematic init --config ~/path/to/config.yml  -a token
-```
-## Other command line functions
-Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html)
-
 
 # Code style
 
