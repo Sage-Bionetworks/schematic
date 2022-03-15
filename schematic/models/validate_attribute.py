@@ -255,7 +255,7 @@ class ValidateAttribute(object):
             for target_dataset in target_datasets:
                 print(target_dataset)
 
-                if target_component in target_dataset[-1]:
+                if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
                     target_manifest_IDs.append(target_dataset[1][0])
 
         return syn, target_manifest_IDs    
