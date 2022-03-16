@@ -23,6 +23,7 @@ from synapseclient import (
     Column,
 )
 from synapseclient.table import CsvFileTable
+from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError
 import synapseutils
@@ -429,6 +430,41 @@ class SynapseStorage(BaseStorage):
 
         return manifests
 
+    def upload_project_manifests_to_synapse(self, projectId: str) -> List[str]:
+        """Gets all metadata manifest files across all datasets in a specified project.
+
+        Returns: 
+        """
+
+        manifests = []
+        manifest_loaded = []
+        datasets = self.getStorageDatasetsInProject(projectId)
+
+        for (datasetId, datasetName) in datasets:
+            # encode information about the manifest in a simple list (so that R clients can unpack it)
+            # eventually can serialize differently
+
+            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+
+            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
+            if manifest_info:
+                manifest_id = manifest_info["properties"]["id"]
+                manifest_name = manifest_info["properties"]["name"]
+                manifest_path = manifest_info["path"]
+
+                manifest_df = pd.read_csv(manifest_path)
+                cols = [col.replace(" ", "") for col in manifest_df.columns]
+                manifest_df.columns = cols
+                # Later just use datasetId that is defined above.
+                #datasetId = 'syn26434836' #put into my staging folder
+                existingTableId = ''
+                table_name = datasetName + '_manifest_table'
+                # Put manifest onto synapse
+                self.make_synapse_table(manifest_df, datasetId, existingTableId,
+                    table_name, column_type_dictionary = {}, specify_schema=False)
+                manifest_loaded.append(datasetName)
+        return manifest_loaded
+
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
 
@@ -751,6 +787,52 @@ class SynapseStorage(BaseStorage):
         table = table.reset_index(drop=True)
 
         return table
+
+    def make_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, column_type_dictionary = {}, specify_schema=True):
+        '''
+        Record based data
+        '''
+        # create/update a table corresponding to this dataset in this dataset's parent project
+        
+        if existingTableId:
+            existing_table, existing_results = self.get_synapse_table(existingTableId)
+            #results = self.get_synapse_table(existingTableId)
+            table_to_load = update_df(existing_table, table_to_load, 'md5_id')
+            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag))
+            # remove system metadata from manifest
+            existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
+        else:
+            datasetEntity = self.syn.get(dataset_id, downloadFile = False)
+            datasetName = datasetEntity.name
+            if not table_name:
+                table_name = datasetName + 'table'
+            datasetParentProject = self.getDatasetProject(dataset_id)
+            if specify_schema:
+                #create list of columns:
+                cols = []
+                for col in table_to_load.columns:
+                    if col in column_type_dictionary:
+                        col_type = column_type_dictionary[col]['column_type']
+                        max_size = column_type_dictionary[col]['maximum_size']
+                        max_list_len = column_type_dictionary[col]['maximum_list_length']
+                        if max_size and max_list_len:
+                            cols.append(Column(name=col, columnType=col_type, 
+                                maximumSize=max_size, maximumListLength=max_list_len))
+                        elif max_size:
+                            cols.append(Column(name=col, columnType=col_type, 
+                                maximumSize=max_size))
+                        else:
+                            cols.append(Column(name=col, columnType=col_type))
+                    else:
+                        cols.append(Column(name=col, columnType='STRING', maximumSize=500))
+                schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
+                table = Table(schema, table_to_load)
+                table = self.syn.store(table)
+            else:
+                # For just uploading the tables to synapse using default
+                # column types.
+                table = build_table(table_name, datasetParentProject, table_to_load)
+                table = self.syn.store(table)
 
 
 class DatasetFileView:
