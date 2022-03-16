@@ -7,10 +7,7 @@
   - [Installation Requirements](#installation-requirements)
   - [Installation guide for data curator app](#installation-guide-for-data-curator-app)
   - [Installation guide for developers/contributors](#installation-guide-for-developerscontributors)
-- [Other Contribution Guidelines](#other-contribution-guidelines)
 - [Command Line Usage](#command-line-usage)
-  - [Initialization](#initialization)
-  - [Other command line functions](#other-command-line-functions)
 - [Release process](#release-process)
   - [Release to Test PyPI _(optional)_](#release-to-test-pypi-_optional_)
   - [Release to PyPI _(mandatory)_](#release-to-pypi-_mandatory_)
@@ -137,7 +134,7 @@ To obtain ``credentials.json`` and ``token.pickle``, please run:
 ```
 schematic init --config ~/path/to/config.yml
 ```
-This should prompt you with a URL that will take you through Google OAuth. Your `credential.json` and `token.pickle` will get automatically downloaded the first time you run this command.
+This should prompt you with a URL that will take you through Google OAuth. Your `credentials.json` and `token.pickle` will get automatically downloaded the first time you run this command.
 
 *Note* : The ``credentials.json`` file is required when you are using
 [OAuth2](https://developers.google.com/identity/protocols/oauth2)
@@ -174,32 +171,6 @@ You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues)
 - **Provide screenshots of the expected or actual behaviour** where applicable.
 
 # Command Line Usage
-
-## Initialization
-
-```
-schematic init --config ~/path/to/config.yml    # initialize mode of authentication
-```
-**Options**:
-
-Required: 
-* -c, --config: Specify the path to the `config.yml` using this option. 
-
-Optional: 
-* -v, --verbosity: Either CRITICAL, ERROR, WARNING, INFO or DEBUG
-* -a, --auth: Specify the mode of authentication you want to use for Google accounts. You can use one of either `token` or `service_account`. The default mode of authentication is `token` which uses OAuth.
-
-*Note*: 
-For obtaining `schematic_service_account_creds.json`
-```
-schematic init --config ~/path/to/config.yml  -a service_account 
-```
-Similarly, for obtaining `token.pickle` and `credentials.json`: 
-For obtaining `schematic_service_account_creds.json`
-```
-schematic init --config ~/path/to/config.yml  -a token
-```
-## Other command line functions
 Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html)
 
 
