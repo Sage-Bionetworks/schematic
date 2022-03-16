@@ -54,8 +54,8 @@ schematic model --config ~/path/to/config.yml submit    # validate and submit ma
 As of Feb 25, 2022, the hybrid validation rules are as follows:
 
     In-house Validation Rules:
-    List::Regex
-    Regex module
+    list::regex
+    regex module
     list
     url
 
