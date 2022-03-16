@@ -150,7 +150,7 @@ class ValidateManifest(object):
         #results.list_validation_results()
 
         errors = []  # initialize error handling 2list. 
-
+        warnings = []
           
         validation_results = results.list_validation_results()
         
@@ -229,11 +229,12 @@ class ValidateManifest(object):
                 # Check for validation rule errors and add them to other errors.
                 if vr_errors:
                     errors.extend(vr_errors)
-        return manifest, errors
+        return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema):
         
         errors = []
+        warnings = []
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
@@ -245,16 +246,19 @@ class ValidateManifest(object):
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
                 errors.append([errorRow, errorCol, errorMsg, errorVal])
-        return errors
+        return errors, warnings
 
 
-def validate_all(self, errors, manifest, sg, jsonSchema):
+def validate_all(self, errors, warnings, manifest, sg, jsonSchema):
     vm = ValidateManifest(errors, manifest, sg, jsonSchema)
-    manifest, vmr_errors = vm.validate_manifest_rules(manifest, sg)
+    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg)
     if vmr_errors:
         errors.extend(vmr_errors)
 
-    vmv_errors = vm.validate_manifest_values(manifest, jsonSchema)
+    vmv_errors, vmv_warnings = vm.validate_manifest_values(manifest, jsonSchema)
     if vmv_errors:
         errors.extend(vmv_errors)
-    return errors, manifest
+    if vmv_warnings:
+        warnings.extend(vmv_warnings)
+
+    return errors, warnings, manifest

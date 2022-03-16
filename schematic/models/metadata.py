@@ -207,6 +207,7 @@ class MetadataModel(object):
             )
 
         errors = []
+        warnings = []
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = pd.read_csv(
@@ -247,9 +248,8 @@ class MetadataModel(object):
 
             return errors
 
-        errors, manifest = validate_all(self, errors, manifest, self.sg, jsonSchema)
-
-        return errors
+        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, self.sg, jsonSchema)
+        return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
         """Populate an existing annotations manifest based on a dataframe.

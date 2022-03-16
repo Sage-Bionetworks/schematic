@@ -159,7 +159,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema):
         inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
     )
 
-    errors = metadata_model.validateModelManifest(
+    errors, warnings = metadata_model.validateModelManifest(
         manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema
     )
 
