@@ -175,3 +175,15 @@ def get_storage_projects_datasets(input_token, syn_master_file_view, syn_master_
 
     return sorted_dataset_lst
 
+
+def get_files_storage_dataset(input_token, syn_master_file_view, syn_master_file_name, dataset_id, full_path, file_names=None):
+    store = SynapseStorage(input_token=input_token, syn_master_file_view= syn_master_file_view, syn_master_file_name= syn_master_file_name)
+
+    # no file names were specified (file_names = [''])
+    if file_names and not all(file_names): 
+        file_names=None
+    file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
+    return file_lst
+
+
+

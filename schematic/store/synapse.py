@@ -261,7 +261,7 @@ class SynapseStorage(BaseStorage):
             for filename in filenames:
 
                 if (not "manifest" in filename[0] and not fileNames) or (
-                    not fileNames == None and filename[0] in fileNames
+                    fileNames and filename[0] in fileNames
                 ):
 
                     # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
