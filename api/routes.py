@@ -5,12 +5,15 @@ import shutil
 import urllib.request
 
 import connexion
+from connexion.decorators.uri_parsing import Swagger2URIParser
 from flask import current_app as app, request, g, jsonify
+from werkzeug.debug import DebuggedApplication
 
 from schematic import CONFIG
 
 from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
+from schematic.schemas.generator import SchemaGenerator
 
 
 # def before_request(var1, var2):
@@ -51,24 +54,50 @@ def get_manifest_route(schema_url, title, oauth, use_annotations):
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
 
-    # request.data[]
-    data_type = connexion.request.args["data_type"]
+    # Gather all data_types to make manifests for.
+    all_args = connexion.request.args
+    args_dict = dict(all_args.lists())
+    data_type = args_dict['data_type']
 
-    # create object of type ManifestGenerator
-    manifest_generator = ManifestGenerator(
-        path_to_json_ld=jsonld,
-        title=title,
-        root=data_type,
-        oauth=oauth,
-        use_annotations=use_annotations,
-    )
+    def create_single_manifest(data_type):
+        # create object of type ManifestGenerator
+        manifest_generator = ManifestGenerator(
+            path_to_json_ld=jsonld,
+            title=t,
+            root=data_type,
+            oauth=oauth,
+            use_annotations=use_annotations,
+        )
 
-    dataset_id = connexion.request.args["dataset_id"]
+        dataset_id = connexion.request.args["dataset_id"]
+        if dataset_id == 'None':
+            dataset_id = None
 
-    # call get_manifest() on manifest_generator
-    result = manifest_generator.get_manifest(sheet_url=True, dataset_id=dataset_id)
+        result = manifest_generator.get_manifest(
+            dataset_id=dataset_id, sheet_url=True,
+        )
+        return result
 
-    return result
+    # Gather all returned result urls
+    all_results = []
+    if data_type[0] == 'all manifests':
+        sg = SchemaGenerator(path_to_json_ld=jsonld)
+        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+        components = component_digraph.nodes()
+        for component in components:
+            t = f'{title}.{component}.manifest'
+            result = create_single_manifest(data_type = component)
+            all_results.append(result)
+    else:
+        for dt in data_type:
+            if len(data_type) > 1:
+                t = f'{title}.{dt}.manifest'
+            else:
+                t = title
+            result = create_single_manifest(data_type = dt)
+            all_results.append(result)
+
+    return all_results
 
 
 def validate_manifest_route(schema_url, data_type):

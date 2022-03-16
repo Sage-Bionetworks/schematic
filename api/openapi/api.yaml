@@ -27,16 +27,25 @@ paths:
           name: title
           schema:
             type: string
-          description: Title of Manifest
-          example: Patient Metadata Manifest
+          description: >
+            Title of Manifest or Title Prefix, 
+            if making multiple manifests
+          example: Example
           required: false
         - in: query
           name: data_type
+          style: form
           schema:
-            type: string
+            type: array
+            items: 
+              type: string
             nullable: true
-          description: Data Model Component
-          example: Patient
+          description: >
+            Data Model Component(s). 
+            To make all manifests, enter "all manifests".
+          example: 
+            - Patient
+            - Biospecimen
           required: true
         - in: query
           name: oauth
@@ -57,7 +66,8 @@ paths:
           schema:
             type: string
             nullable: true
-          description: Dataset SynID
+          description: >
+            Dataset SynID. Enter 'None' if there is none.
           required: true
       operationId: api.routes.get_manifest_route
       responses:

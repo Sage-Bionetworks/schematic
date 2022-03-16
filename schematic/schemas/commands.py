@@ -44,7 +44,6 @@ def schema():  # use as `schematic model ...`
 @click.option(
     "--output_jsonld",
     "-o",
-    type=click.Path(exists=True),
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
@@ -68,5 +67,9 @@ def convert(schema_csv, base_schema, output_jsonld):
         )
 
     # saving updated schema.org schema
-    base_se.export_schema(output_jsonld)
-    click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
+    try:
+        base_se.export_schema(output_jsonld)
+        click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
+    except:
+        click.echo(f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again")
+
