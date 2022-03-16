@@ -212,10 +212,6 @@ paths:
       responses:
         "200":
           description: A list of tuples
-          content:
-            application/json:
-              schema:
-                type: array
         "500":
           description: Check log
       tags:
@@ -261,11 +257,6 @@ paths:
       responses:
         "200":
           description: A list of tuples
-          content:
-            application/json:
-              schema:
-                type: array
-                example: [["syn123456","Folder1"]]
         "500":
           description: Check log
       tags:
@@ -327,12 +318,6 @@ paths:
       responses:
         "200":
           description: A list of tuples
-          content:
-            application/json:
-              schema:
-                type: array
-                #example: [('syn25705259','test1/test2'),('syn123456','test1/test2')]
-                example: [['syn25705259','test1/test2'],['syn123456','test1/test2']]
         "500":
           description: Check schematic log
       tags:
