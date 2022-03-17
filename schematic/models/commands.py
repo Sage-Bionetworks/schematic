@@ -91,7 +91,7 @@ def submit_manifest(
     )
 
     try:
-        success = metadata_model.submit_metadata_manifest(
+        syn_id = metadata_model.submit_metadata_manifest(
             manifest_path=manifest_path,
             dataset_id=dataset_id,
             validate_component=validate_component,
@@ -99,7 +99,7 @@ def submit_manifest(
             hide_blanks=hide_blanks,
         )
 
-        if success:
+        if syn_id:
             logger.info(
                 f"File at '{manifest_path}' was successfully associated "
                 f"with dataset '{dataset_id}'."

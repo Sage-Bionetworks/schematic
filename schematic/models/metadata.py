@@ -1,5 +1,6 @@
 import json
 import logging
+import string
 
 import numpy as np
 import pandas as pd
@@ -281,7 +282,7 @@ class MetadataModel(object):
         use_schema_label: bool = True,
         hide_blanks: bool = False,
         input_token: str = None
-    ) -> bool:
+    ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
         Args:
