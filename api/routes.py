@@ -37,6 +37,17 @@ def config_handler():
             f"No configuration file was found at this path: {path_to_config}"
         )
 
+def csv_path_handler():
+    manifest_file = connexion.request.files["csv_file"]
+
+    # save contents of incoming manifest CSV file to temp file
+    temp_dir = tempfile.gettempdir()
+    # path to temp file where manifest file contents will be saved
+    temp_path = os.path.join(temp_dir, manifest_file.filename)
+    # save content
+    manifest_file.save(temp_path)
+
+    return temp_path
 
 def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
@@ -106,14 +117,15 @@ def validate_manifest_route(schema_url, data_type):
     # call config_handler()
     config_handler()
 
-    manifest_file = connexion.request.files["csv_file"]
+    # manifest_file = connexion.request.files["csv_file"]
 
-    # save contents of incoming manifest CSV file to temp file
-    temp_dir = tempfile.gettempdir()
-    # path to temp file where manifest file contents will be saved
-    temp_path = os.path.join(temp_dir, manifest_file.filename)
-    # save content
-    manifest_file.save(temp_path)
+    # # save contents of incoming manifest CSV file to temp file
+    # temp_dir = tempfile.gettempdir()
+    # # path to temp file where manifest file contents will be saved
+    # temp_path = os.path.join(temp_dir, manifest_file.filename)
+    # # save content
+    # manifest_file.save(temp_path)
+    temp_path = csv_path_handler()
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
@@ -133,14 +145,15 @@ def submit_manifest_route(schema_url):
     # call config_handler()
     config_handler()
 
-    manifest_file = connexion.request.files["csv_file"]
+    # manifest_file = connexion.request.files["csv_file"]
 
-    # save contents of incoming manifest CSV file to temp file
-    temp_dir = tempfile.gettempdir()
-    # path to temp file where manifest file contents will be saved
-    temp_path = os.path.join(temp_dir, manifest_file.filename)
-    # save content
-    manifest_file.save(temp_path)
+    # # save contents of incoming manifest CSV file to temp file
+    # temp_dir = tempfile.gettempdir()
+    # # path to temp file where manifest file contents will be saved
+    # temp_path = os.path.join(temp_dir, manifest_file.filename)
+    # # save content
+    # manifest_file.save(temp_path)
+    temp_path = csv_path_handler()
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
@@ -156,6 +169,11 @@ def submit_manifest_route(schema_url):
     success = metadata_model.submit_metadata_manifest(
         manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type,
     )
+
+    # if data_type == 'None':
+    #     success = metadata_model.submit_metadata_manifest(
+    #         manifest_path=temp_path, dataset_id=dataset_id, validate_component=None,
+    #     )
 
     return success
 
@@ -186,4 +204,20 @@ def get_files_storage_dataset(input_token, syn_master_file_view, syn_master_file
     return file_lst
 
 
+def get_associate_meta_data_with_files(input_token, syn_master_file_view, syn_master_file_name, dataset_id, use_schema_label):
+    store = SynapseStorage(input_token=input_token, syn_master_file_view= syn_master_file_view, syn_master_file_name= syn_master_file_name)
 
+    temp_path = csv_path_handler()
+
+    #config_handler()
+
+    # get path to temporary JSON-LD file
+    #jsonld = get_temp_jsonld("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld")
+
+    # metadata_model = MetadataModel(
+    #     inputMModelLocation=jsonld, inputMModelLocationType="local"
+    # )
+
+    manifestSynapseFileId = store.associateMetadataWithFiles(metadataManifestPath=temp_path, datasetId=dataset_id, useSchemaLabel=use_schema_label, hideBlanks=False)
+
+    return manifestSynapseFileId
