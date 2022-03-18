@@ -214,7 +214,39 @@ class GenerateError:
         
         return [error_row, error_col, error_message, error_val]
 
+    def generate_content_error(
+        val_rule: str,
+        attribute_name: str,
+        row_num = None,
+        error_val = None,
+    ) -> List[str]:
+    
+        error_col = attribute_name  # Attribute name
 
+        if val_rule.__contains__('recommended'):
+            
+            cross_error_str = (
+                f"Column {attribute_name} is recommended but empty."
+            )
+            logging.error(cross_error_str)
+            error_message = cross_error_str
+            return [error_col, error_message]
+
+        elif val_rule.__contains__('unique'):    
+            cross_error_str = (
+                f"Column {attribute_name} has the duplicate value(s) {set(error_val)} in rows: {row_num}."
+            )
+
+        elif val_rule.__contains__('protectAges'):
+            cross_error_str = (
+                f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
+            )            
+
+
+        logging.error(cross_error_str)
+        error_row = row_num 
+        error_message = cross_error_str
+        return [error_row, error_col, error_message, set(error_val)]
 
 class ValidateAttribute(object):
     """

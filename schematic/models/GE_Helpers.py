@@ -4,6 +4,7 @@ from tabnanny import check
 import logging
 import os
 import re
+import numpy as np
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -86,6 +87,9 @@ class GreatExpectationsHelpers(object):
             "list": "expect_column_values_to_follow_rule",
             "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
             "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+            "recommended": "expect_column_values_to_not_match_regex_list",
+            "protectAges": "expect_column_values_to_be_between",
+            "unique": "expect_column_values_to_be_unique",
         }
         
         #create blank expectation suite
@@ -235,6 +239,36 @@ class GreatExpectationsHelpers(object):
                     validation_expectation=validation_expectation,
                 )
                 '''
+            elif rule.startswith("recommended"):
+                args["mostly"]=0.0000000001
+                args["regex_list"]=['^$']
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column to not be empty. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
+            elif rule.startswith("protectAges"):
+                args["mostly"]=1.0
+                args["min_value"]=6550
+                args["max_value"]=32849
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
+            elif rule.startswith("unique"):
+                args["mostly"]=1.0
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
                                    
             #add expectation for attribute to suite        
             if not rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
@@ -327,7 +361,10 @@ class GreatExpectationsHelpers(object):
                     for row, value in zip(indices,values):
                         errors.append(
                             GenerateError.generate_type_error(
-                                rule, row+2, errColumn, value
+                                val_rule = rule,
+                                row_num = row+2,
+                                attribute_name = errColumn,
+                                invalid_entry = value,
                             )
                         )                                      
                 elif validation_types[rule]=='regex_validation':
@@ -336,7 +373,24 @@ class GreatExpectationsHelpers(object):
                     for row, value in zip(indices,values):   
                         errors.append(
                             GenerateError.generate_regex_error(
-                                rule, expression, row+2, 'match', errColumn, value
+                                val_rule= rule,
+                                reg_expression = expression,
+                                row_num = row+2,
+                                module_to_call = 'match',
+                                attribute_name = errColumn,
+                                invalid_entry = value,
                             )
                         )    
+                elif validation_types[rule]=='content_validation':
+                    
+                    errors.append(
+                            GenerateError.generate_content_error(
+                                val_rule = rule, 
+                                attribute_name = errColumn,
+                                row_num = list(np.array(indices)+2),
+                                #row_num = indices,
+                                error_val = values,  
+                            )
+                        )  
+
         return errors

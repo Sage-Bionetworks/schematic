@@ -23,14 +23,13 @@ class TestManifestValidation:
             inputMModelLocationType = "local"
             )
 
-        errors = MetadataModel.validateModelManifest(
+        errors, warnings = MetadataModel.validateModelManifest(
             metadataModel,
             manifestPath=manifestPath,
             rootNode=rootNode)
         
-        for error in errors:
-            print(error)
         assert errors == [[]]
+        assert warnings ==  []
 
 
     def test_invalid_manifest(self,helpers):
@@ -38,18 +37,17 @@ class TestManifestValidation:
         rootNode = 'MockComponent'
 
 
-        metadataModel= MetadataModel(
+        metadataModel = MetadataModel(
             inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
             inputMModelLocationType = "local"
             )
 
-        errors = MetadataModel.validateModelManifest(
+        errors, warnings = MetadataModel.validateModelManifest(
             metadataModel, 
             manifestPath=manifestPath,
             rootNode=rootNode)
 
-        for error in errors:
-            print(error)
+        assert warnings ==  []
 
         assert GenerateError.generate_type_error(
             val_rule = 'num',
@@ -122,15 +120,34 @@ class TestManifestValidation:
             missing_entry = '7163',
             manifest_ID = 'syn27600110',
             ) in errors
-
+        
         assert GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
-            #manifest_ID = 'syn27600110',
             matching_manifests = ['syn27600102', 'syn27648165']
             ) in errors
+        
+        assert GenerateError.generate_content_error(
+            val_rule = 'recommended', 
+            attribute_name = 'Check Recommended',
+            ) in errors
 
-        assert len(errors) == 13
+        assert GenerateError.generate_content_error(
+            val_rule = 'protectAges', 
+            attribute_name = 'Check Ages',
+            row_num = [2,3],
+            error_val = [6549,32851] 
+            ) in errors
+
+        assert GenerateError.generate_content_error(
+            val_rule = 'unique', 
+            attribute_name = 'Check Unique',
+            row_num = [2,3,4],
+            error_val = ['str1'],  
+            ) in errors
+
+        assert len(errors) == 16
+        
         
 
 

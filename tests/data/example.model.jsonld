@@ -2484,6 +2484,9 @@
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
+                    "@id": "bts:Component"
+                },
+                {
                     "@id": "bts:CheckList"
                 },
                 {
@@ -2514,7 +2517,13 @@
                     "@id": "bts:CheckMatchExactly"
                 },
                 {
-                    "@id": "bts:Component"
+                    "@id": "bts:CheckRecommended"
+                },
+                {
+                    "@id": "bts:CheckAges"
+                },
+                {
+                    "@id": "bts:CheckUnique"
                 }
             ],
             "sms:validationRules": []
@@ -2758,6 +2767,78 @@
             ],
             "sms:validationRules": [
                 "matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
+            ]
+        },
+        {
+            "@id": "bts:CheckRecommended",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRecommended",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Recommended",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "recommended"
+            ]
+        },
+        {
+            "@id": "bts:CheckAges",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckAges",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Ages",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "protectAges"
+            ]
+        },
+        {
+            "@id": "bts:CheckUnique",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckUnique",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Unique",
+            "sms:required": "sms:false",
+            "sms:requiresComponent": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "sms:validationRules": [
+                "unique"
             ]
         },
         {

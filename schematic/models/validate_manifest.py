@@ -106,6 +106,9 @@ class ValidateManifest(object):
             "list": "list_validation",
             "matchAtLeastOne": "cross_validation",
             "matchExactlyOne": "cross_validation",
+            "recommended": "content_validation",
+            "protectAges": "content_validation",
+            "unique": "content_validation",
         }
 
         type_dict={
@@ -116,7 +119,6 @@ class ValidateManifest(object):
 
         unimplemented_expectations=[
             "url",
-            #"regexList",
             "list",
             "regex.*",
             "matchAtLeastOne.*",
