@@ -62,6 +62,9 @@ As of Feb 25, 2022, the hybrid validation rules are as follows:
     Great Expectations:
     num
     int/float/string
+    recommended
+    protectAges
+    unique
 
 ## Contributing
 
