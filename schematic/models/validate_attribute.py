@@ -170,7 +170,7 @@ class GenerateError:
         val_rule: str,
         attribute_name: str,
         matching_manifests = [],
-        manifest_ID = None,
+        missing_manifest_ID = None,
         missing_entry = None,
         row_num = None,
     ) -> List[str]:
@@ -192,7 +192,7 @@ class GenerateError:
             """
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
-                f"Manifest {manifest_ID} does not contain the value {missing_entry} "
+                f"Manifest {missing_manifest_ID} does not contain the value {missing_entry} "
                 f"from row {row_num} of the attribute {attribute_name} in the source manifest."
             )
         elif val_rule.__contains__('matchExactly'):
@@ -232,6 +232,7 @@ class ValidateAttribute(object):
     def get_target_manifests(target_component):
 
         target_manifest_IDs=[]
+        target_dataset_IDs=[]
         
         #login
         access_token = getenv("SYNAPSE_ACCESS_TOKEN")
@@ -239,7 +240,7 @@ class ValidateAttribute(object):
             synStore = SynapseStorage(access_token=access_token)
         else:
             synStore = SynapseStorage()
-        syn = synStore.login(access_token = access_token)
+        #syn = synStore.login(access_token = access_token)
         
 
         #Get list of all projects user has access to
@@ -257,8 +258,9 @@ class ValidateAttribute(object):
 
                 if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
                     target_manifest_IDs.append(target_dataset[1][0])
+                    target_dataset_IDs.append(target_dataset[0][0])
 
-        return syn, target_manifest_IDs    
+        return synStore, target_manifest_IDs, target_dataset_IDs    
 
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
@@ -520,10 +522,14 @@ class ValidateAttribute(object):
 
         #Get IDs of manifests with target component
         syn, target_IDs=ValidateAttribute.get_target_manifests(target_component)
+        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
 
         #Read each manifest
-        for target_manifest_ID in target_IDs:
-            entity = syn.get(target_manifest_ID)
+        for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
+            entity = synStore.getDatasetManifest(
+                datasetId = target_dataset_ID,
+                downloadFile = True
+                )
             target_manifest=pd.read_csv(entity.path)
 
             #convert manifest column names into validation rule input format - 
@@ -552,7 +558,7 @@ class ValidateAttribute(object):
                         row_num = str(row),
                         attribute_name = source_attribute,
                         missing_entry = str(value),
-                        manifest_ID = target_manifest_ID,
+                        missing_manifest_ID = target_manifest_ID,
                     )
                 )
         elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
@@ -560,7 +566,7 @@ class ValidateAttribute(object):
                 GenerateError.generate_cross_error(
                     val_rule = val_rule,
                     attribute_name = source_attribute,
-                    matching_manifests=present_manifest_log,
+                    matching_manifests = present_manifest_log,
                 )
             )
             
