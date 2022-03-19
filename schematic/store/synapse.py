@@ -49,8 +49,8 @@ class SynapseStorage(BaseStorage):
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
         input_token: str = None,
-        syn_master_file_view: str = None, 
-        syn_master_file_name: str = None
+        # syn_master_file_view: str = None, 
+        # syn_master_file_name: str = None
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -69,13 +69,20 @@ class SynapseStorage(BaseStorage):
 
         self.syn = self.login(token, access_token, input_token)
 
-        if syn_master_file_view and syn_master_file_name: 
-            self.storageFileview = syn_master_file_view
-            self.manifest = syn_master_file_name
-        else: 
+        # if syn_master_file_view and syn_master_file_name: 
+        #     self.storageFileview = syn_master_file_view
+        #     self.manifest = syn_master_file_name
+        # else: 
+        #     self.storageFileview = CONFIG["synapse"]["master_fileview"]
+        #     self.manifest = CONFIG["synapse"]["manifest_filename"]
+        # try:
+        #     self.storageFileviewTable = self.syn.tableQuery(
+        #             "SELECT * FROM " + self.storageFileview
+        #         ).asDataFrame()
+
+        try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
             self.manifest = CONFIG["synapse"]["manifest_filename"]
-        try:
             self.storageFileviewTable = self.syn.tableQuery(
                     "SELECT * FROM " + self.storageFileview
                 ).asDataFrame()

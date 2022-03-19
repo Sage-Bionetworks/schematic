@@ -61,7 +61,7 @@ class Configuration(object):
         )
         return self.load_config(schematic_config)
 
-    def load_config(self, config_path=None):
+    def load_config(self, config_path=None, syn_master_file_view=None, syn_master_file_name=None):
         # If config_path is None, try loading from environment
         if config_path is None and "SCHEMATIC_CONFIG" in os.environ:
             return self.load_config_from_env()
@@ -78,7 +78,24 @@ class Configuration(object):
         self.DATA = self.load_yaml(config_path)
         self.CONFIG_PATH = config_path
         # Return self.DATA as a side-effect
+
+        if syn_master_file_view and syn_master_file_name: 
+            self.DATA['master_file'] = syn_master_file_view
+            self.DATA['manifest_filename'] = syn_master_file_name
+
+
         return self.DATA
+
+    # def load_auth_from_user(self, syn_master_file_view=None, syn_master_file_name=None, use_default=False):
+    #     config = {'definitions': {'synapse_config': '.synapseConfig', 'creds_path': 'credentials.json', 'token_pickle': 'token.pickle', 'service_acct_creds': 'schematic_service_account_creds.json'}, 'synapse': {'master_fileview': 'syn23643253', 'manifest_folder': 'manifests', 'manifest_filename': 'synapse_storage_manifest.csv', 'token_creds': 'syn23643259', 'service_acct_creds': 'syn25171627'}, 'manifest': {'title': 'example', 'data_type': ['Biospecimen', 'Patient']}, 'model': {'input': {'location': 'tests/data/example.model.jsonld', 'file_type': 'local'}}, 'style': {'google_manifest': {'req_bg_color': {'red': 0.9215, 'green': 0.9725, 'blue': 0.9803}, 'opt_bg_color': {'red': 1.0, 'green': 1.0, 'blue': 0.9019}, 'master_template_id': '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU', 'strict_validation': True}}}
+    #     #config = {'synapse': {'master_fileview': 'syn23643253', 'manifest_folder': 'manifests', 'manifest_filename': 'synapse_storage_manifest.csv', 'token_creds': 'syn23643259', 'service_acct_creds': 'syn25171627'}}
+    #     if syn_master_file_view and syn_master_file_name: 
+    #         config['master_file'] = syn_master_file_view
+    #         config['manifest_filename'] = syn_master_file_name
+    #     elif use_default: 
+    #         self.DATA = config
+    #     self.DATA = config
+    #     return self.DATA
 
     @property
     def CREDS_PATH(self):
