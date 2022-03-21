@@ -7,10 +7,18 @@ from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.models.validate_manifest import validate_all
 from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
+from schematic.schemas.generator import SchemaGenerator
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+@pytest.fixture
+def sg(helpers):
+
+    inputModelLocation = helpers.get_data_path('example.model.jsonld')
+    sg = SchemaGenerator(inputModelLocation)
+
+    yield sg
 
 class TestManifestValidation:
     def test_valid_manifest(self,helpers):
@@ -29,10 +37,10 @@ class TestManifestValidation:
             rootNode=rootNode)
         
         assert errors == [[]]
-        assert warnings ==  []
+        assert warnings ==  [[]]
 
 
-    def test_invalid_manifest(self,helpers):
+    def test_invalid_manifest(self,helpers,sg):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = 'MockComponent'
 
@@ -47,8 +55,8 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode)
 
-        assert warnings ==  []
-
+        
+        #Check errors
         assert GenerateError.generate_type_error(
             val_rule = 'num',
             row_num = 2,
@@ -95,8 +103,6 @@ class TestManifestValidation:
             list_error="not_comma_delimited",
             invalid_entry='ab cd ef') in errors
 
-        assert [] in errors
-
         assert GenerateError.generate_regex_error(
             val_rule='regex',
             reg_expression='[a-f]',
@@ -128,25 +134,28 @@ class TestManifestValidation:
             ) in errors
         
         assert GenerateError.generate_content_error(
-            val_rule = 'recommended', 
-            attribute_name = 'Check Recommended',
-            ) in errors
-
-        assert GenerateError.generate_content_error(
-            val_rule = 'protectAges', 
+            val_rule = 'protectAges error', 
             attribute_name = 'Check Ages',
+            sg = sg,
             row_num = [2,3],
             error_val = [6549,32851] 
-            ) in errors
+            )[0] in errors
+
+        #check warnings
+        assert GenerateError.generate_content_error(
+            val_rule = 'recommended', 
+            attribute_name = 'Check Recommended',
+            sg = sg,
+            )[1] in warnings
 
         assert GenerateError.generate_content_error(
             val_rule = 'unique', 
             attribute_name = 'Check Unique',
+            sg = sg,
             row_num = [2,3,4],
             error_val = ['str1'],  
-            ) in errors
+            )[1] in warnings
 
-        assert len(errors) == 16
         
         
 

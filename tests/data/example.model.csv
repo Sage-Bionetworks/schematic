@@ -30,5 +30,5 @@ Check URL,,,,,FALSE,DataProperty,MockComponent,,url
 Check Match at Least,,,,,FALSE,DataProperty,MockComponent,,matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID 
 Check Match Exactly,,,,,FALSE,DataProperty,MockComponent,,matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly 
 Check Recommended,,,,,FALSE,DataProperty,MockComponent,,recommended
-Check Ages,,,,,FALSE,DataProperty,MockComponent,,protectAges
+Check Ages,,,,,FALSE,DataProperty,MockComponent,,protectAges error
 Check Unique,,,,,FALSE,DataProperty,MockComponent,,unique

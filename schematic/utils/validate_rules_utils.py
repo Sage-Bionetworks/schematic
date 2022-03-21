@@ -86,7 +86,7 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
             "matchAtLeastOne": {'arguments':(True, 2)},
             "matchExactlyOne": {'arguments':(True, 2)},
             "recommended": {'arguments':(False, None)},
-            "protectAges": {'arguments':(False, 1)},
+            "protectAges": {'arguments':(True, 1)},
             "unique": {'arguments':(True, 1)},
             }
     validation_rule_with_args = [

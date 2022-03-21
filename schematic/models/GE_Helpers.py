@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
 from urllib.request import Request
 from urllib import error
+from attr import attr
 
 from ruamel import yaml
 
@@ -287,11 +288,17 @@ class GreatExpectationsHelpers(object):
         ##Webpage DataDocs opened here:
         #self.context.open_data_docs(resource_identifier=suite_identifier) 
 
-    def add_expectation(self,rule,args,meta,validation_expectation):
+    def add_expectation(
+        self,
+        rule: str,
+        args: Dict,
+        meta: Dict,
+        validation_expectation: Dict,
+        ):
         # Create an Expectation
         expectation_configuration = ExpectationConfiguration(
             # Name of expectation type being added
-            expectation_type=validation_expectation[rule],
+            expectation_type=validation_expectation[rule.split(" ")[0]],
 
             #add arguments and meta message
             kwargs={**args},
@@ -301,7 +308,6 @@ class GreatExpectationsHelpers(object):
         self.suite.add_expectation(expectation_configuration=expectation_configuration)
 
     def build_checkpoint(self):
-
         #create manifest checkpoint
         checkpoint_name = "manifest_checkpoint"  
         checkpoint_config={
@@ -323,7 +329,13 @@ class GreatExpectationsHelpers(object):
         #self.context.test_yaml_config(yaml.dump(checkpoint_config),return_mode="report_object")        
         self.context.add_checkpoint(**checkpoint_config)
     
-    def generate_errors(self,validation_results,validation_types,errors=[],):
+    def generate_errors(
+        self,
+        validation_results: Dict,
+        validation_types: Dict,
+        errors: List,
+        warnings: List
+        ):
         type_dict={
             "float64": float,
             "int64": int,
@@ -337,7 +349,9 @@ class GreatExpectationsHelpers(object):
 
             #print(result_dict)
             #print(result_dict['expectation_config']['expectation_type'])
+            pass
 
+            
             #if the expectaion failed, get infromation to generate error message
             if not result_dict['success']:
                 errColumn   = result_dict['expectation_config']['kwargs']['column']               
@@ -357,7 +371,7 @@ class GreatExpectationsHelpers(object):
                         values.append(item) if isinstance(item,type_dict[observed_type]) else values
 
                 #call functions to generate error messages and add to error list
-                if validation_types[rule]=='type_validation':
+                if validation_types[rule.split(" ")[0]]=='type_validation':
                     for row, value in zip(indices,values):
                         errors.append(
                             GenerateError.generate_type_error(
@@ -367,7 +381,7 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                             )
                         )                                      
-                elif validation_types[rule]=='regex_validation':
+                elif validation_types[rule.split(" ")[0]]=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
 
                     for row, value in zip(indices,values):   
@@ -381,16 +395,19 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                             )
                         )    
-                elif validation_types[rule]=='content_validation':
+                elif validation_types[rule.split(" ")[0]]=='content_validation':
                     
-                    errors.append(
-                            GenerateError.generate_content_error(
-                                val_rule = rule, 
-                                attribute_name = errColumn,
-                                row_num = list(np.array(indices)+2),
-                                #row_num = indices,
-                                error_val = values,  
-                            )
-                        )  
-
-        return errors
+                    content_errors, content_warnings = GenerateError.generate_content_error(
+                                                            val_rule = rule, 
+                                                            attribute_name = errColumn,
+                                                            row_num = list(np.array(indices)+2),
+                                                            error_val = values,  
+                                                            sg = self.sg
+                                                        )       
+                    if content_errors:
+                        print(content_errors)
+                        errors.append(content_errors)  
+                    if content_warnings:
+                        print(content_warnings)
+                        warnings.append(content_warnings)  
+        return errors, warnings

@@ -2814,7 +2814,7 @@
                 }
             ],
             "sms:validationRules": [
-                "protectAges"
+                "protectAges error"
             ]
         },
         {
