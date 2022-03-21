@@ -26,12 +26,12 @@ from schematic.store.synapse import SynapseStorage
 #     pass
 
 
-def config_handler(syn_master_file_view=None, syn_master_file_name=None):
+def config_handler(syn_master_file_view=None, syn_manifest_file_name=None):
     path_to_config = app.config["SCHEMATIC_CONFIG"]
 
     # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
     if os.path.isfile(path_to_config):
-        CONFIG.load_config(path_to_config, syn_master_file_name, syn_master_file_view)
+        CONFIG.load_config(path_to_config, syn_manifest_file_name = syn_manifest_file_name, syn_master_file_view = syn_master_file_view)
 
     # if syn_master_file_view and syn_master_file_name:
     #     CONFIG.load_auth_from_user(syn_master_file_view, syn_master_file_name)
@@ -187,9 +187,9 @@ def submit_manifest_route(schema_url):
 
     return success
 
-def get_storage_projects(input_token, syn_master_file_view, syn_master_file_name):
+def get_storage_projects(input_token, syn_master_file_view, syn_manifest_file_name):
     #store = SynapseStorage(input_token=input_token, syn_master_file_view= syn_master_file_view, syn_master_file_name= syn_master_file_name)
-    config_handler(syn_master_file_view=syn_master_file_view, syn_master_file_name = syn_master_file_name)
+    config_handler(syn_master_file_view=syn_master_file_view, syn_manifest_file_name = syn_manifest_file_name)
     store = SynapseStorage(input_token=input_token)
 
     lst_storage_projects = store.getStorageProjects()
@@ -197,9 +197,9 @@ def get_storage_projects(input_token, syn_master_file_view, syn_master_file_name
 
     return lst_storage_projects
 
-def get_storage_projects_datasets(input_token, syn_master_file_view, syn_master_file_name, project_id):
+def get_storage_projects_datasets(input_token, syn_master_file_view, syn_manifest_file_name, project_id):
     #store = SynapseStorage(input_token=input_token, syn_master_file_view= syn_master_file_view, syn_master_file_name= syn_master_file_name)
-    config_handler(syn_master_file_view=syn_master_file_view, syn_master_file_name = syn_master_file_name)
+    config_handler(syn_master_file_view=syn_master_file_view, syn_manifest_file_name = syn_manifest_file_name)
 
     store = SynapseStorage(input_token=input_token)
     sorted_dataset_lst = store.getStorageDatasetsInProject(projectId = project_id)
@@ -208,8 +208,8 @@ def get_storage_projects_datasets(input_token, syn_master_file_view, syn_master_
     return sorted_dataset_lst
 
 
-def get_files_storage_dataset(input_token, syn_master_file_view, syn_master_file_name, dataset_id, full_path, file_names=None):
-    config_handler(syn_master_file_view=syn_master_file_view, syn_master_file_name = syn_master_file_name)
+def get_files_storage_dataset(input_token, syn_master_file_view, syn_manifest_file_name, dataset_id, full_path, file_names=None):
+    config_handler(syn_master_file_view=syn_master_file_view, syn_manifest_file_name = syn_manifest_file_name)
 
     store = SynapseStorage(input_token=input_token)
 

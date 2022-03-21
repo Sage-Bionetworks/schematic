@@ -61,7 +61,7 @@ class Configuration(object):
         )
         return self.load_config(schematic_config)
 
-    def load_config(self, config_path=None, syn_master_file_view=None, syn_master_file_name=None):
+    def load_config(self, config_path=None, syn_master_file_view=None, syn_manifest_file_name=None):
         # If config_path is None, try loading from environment
         if config_path is None and "SCHEMATIC_CONFIG" in os.environ:
             return self.load_config_from_env()
@@ -77,13 +77,11 @@ class Configuration(object):
         config_path = os.path.abspath(config_path)
         self.DATA = self.load_yaml(config_path)
         self.CONFIG_PATH = config_path
+        # handle user input (for API endpoints)
+        if syn_master_file_view and syn_manifest_file_name: 
+            self.DATA['synapse']['master_fileview'] = syn_master_file_view
+            self.DATA['synapse']['manifest_filename'] = syn_manifest_file_name
         # Return self.DATA as a side-effect
-
-        if syn_master_file_view and syn_master_file_name: 
-            self.DATA['master_file'] = syn_master_file_view
-            self.DATA['manifest_filename'] = syn_master_file_name
-
-
         return self.DATA
 
     # def load_auth_from_user(self, syn_master_file_view=None, syn_master_file_name=None, use_default=False):
