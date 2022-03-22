@@ -533,7 +533,6 @@ class ValidateAttribute(object):
         [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
 
         #Get IDs of manifests with target component
-        syn, target_IDs=ValidateAttribute.get_target_manifests(target_component)
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
 
         #Read each manifest
