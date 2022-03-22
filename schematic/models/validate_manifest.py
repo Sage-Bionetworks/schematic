@@ -153,8 +153,7 @@ class ValidateManifest(object):
         
         # initialize error and warning handling lists.
         errors = []   
-        warnings = []
-        #vr_warnings=[]  
+        warnings = [] 
         
 
         validation_results = results.list_validation_results()

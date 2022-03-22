@@ -239,7 +239,8 @@ class GenerateError:
             Logging.error or Logging.warning.
             Message: List[str] Error|Warning details for further storage.
         """
-    
+        error_list = []
+        warning_list = []
         error_col = attribute_name  # Attribute name
         
         #Determine whether to raise a warning or error
@@ -264,13 +265,12 @@ class GenerateError:
             error_message = cross_error_str
 
             if raises == 'error':
-                return [error_col, error_message], []
-            
+                error_list = [error_col, error_message]
             #return warning and empty list for errors
             elif raises == 'warning':
-                return [], [error_col, error_message]
+                warning_list = [error_col, error_message]
 
-
+            return error_list, warning_list
 
         elif val_rule.__contains__('unique'):    
             cross_error_str = (
@@ -288,11 +288,12 @@ class GenerateError:
 
         #return error and empty list for warnings
         if raises == 'error':
-            return [error_row, error_col, error_message, set(error_val)] , []
-        
+            error_list = [error_row, error_col, error_message, set(error_val)]
         #return warning and empty list for errors
         elif raises == 'warning':
-            return [], [error_row, error_col, error_message, set(error_val)]
+            warning_list = [error_row, error_col, error_message, set(error_val)]
+        
+        return error_list, warning_list
 
     def get_message_level(
         val_rule: str,
