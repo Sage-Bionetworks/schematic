@@ -2543,11 +2543,6 @@
             },
             "sms:displayName": "Check List",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "list"
             ]
@@ -2567,11 +2562,6 @@
             },
             "sms:displayName": "Check Regex List",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "list",
                 "regex match [a-f]"
@@ -2592,11 +2582,6 @@
             },
             "sms:displayName": "Check Regex Single",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "regex search [a-f]"
             ]
@@ -2616,11 +2601,6 @@
             },
             "sms:displayName": "Check Num",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "num"
             ]
@@ -2640,11 +2620,6 @@
             },
             "sms:displayName": "Check Float",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "float"
             ]
@@ -2664,11 +2639,6 @@
             },
             "sms:displayName": "Check Int",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "int"
             ]
@@ -2688,11 +2658,6 @@
             },
             "sms:displayName": "Check String",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "str"
             ]
@@ -2712,11 +2677,6 @@
             },
             "sms:displayName": "Check URL",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "url"
             ]
@@ -2736,11 +2696,6 @@
             },
             "sms:displayName": "Check Match at Least",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID"
             ]
@@ -2760,11 +2715,6 @@
             },
             "sms:displayName": "Check Match Exactly",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
             ]
@@ -2784,11 +2734,6 @@
             },
             "sms:displayName": "Check Recommended",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "recommended"
             ]
@@ -2808,11 +2753,6 @@
             },
             "sms:displayName": "Check Ages",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "protectAges error"
             ]
@@ -2832,11 +2772,6 @@
             },
             "sms:displayName": "Check Unique",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "unique"
             ]
