@@ -26,21 +26,12 @@ from schematic.store.synapse import SynapseStorage
 #     pass
 
 
-def config_handler(syn_master_file_view=None, syn_manifest_file_name=None):
+def config_handler(asset_view=None, manifest_file_name=None):
     path_to_config = app.config["SCHEMATIC_CONFIG"]
 
     # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
     if os.path.isfile(path_to_config):
-        CONFIG.load_config(path_to_config, syn_manifest_file_name = syn_manifest_file_name, syn_master_file_view = syn_master_file_view)
-
-    # if syn_master_file_view and syn_master_file_name:
-    #     CONFIG.load_auth_from_user(syn_master_file_view, syn_master_file_name)
-    
-    # elif use_default:
-    #     CONFIG.load_auth_from_user(use_default)
-
-    # elif os.path.isfile(path_to_config):
-    #     CONFIG.load_config(path_to_config)    
+        CONFIG.load_config(path_to_config, asset_view = asset_view, manifest_file_name = manifest_file_name)
 
     else:
         raise FileNotFoundError(
@@ -70,9 +61,9 @@ def get_temp_jsonld(schema_url):
 
 
 # @before_request
-def get_manifest_route(schema_url, title, oauth, use_annotations):
+def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_id=None, asset_view = None):
     # call config_handler()
-    config_handler()
+    config_handler(asset_view = asset_view)
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
@@ -92,13 +83,18 @@ def get_manifest_route(schema_url, title, oauth, use_annotations):
             use_annotations=use_annotations,
         )
 
-        dataset_id = connexion.request.args["dataset_id"]
-        if dataset_id == 'None':
-            dataset_id = None
+        #dataset_id = connexion.request.args["dataset_id"]
+        # if dataset_id == 'None':
+        #     dataset_id = None
 
-        result = manifest_generator.get_manifest(
+        if dataset_id: 
+            result = manifest_generator.get_manifest(
             dataset_id=dataset_id, sheet_url=True,
         )
+        else: 
+            result = manifest_generator.get_manifest(
+            dataset_id=None, sheet_url=True,
+        )            
         return result
 
     # Gather all returned result urls
@@ -187,34 +183,42 @@ def submit_manifest_route(schema_url):
 
     return success
 
-def get_storage_projects(input_token, syn_master_file_view, syn_manifest_file_name):
-    #store = SynapseStorage(input_token=input_token, syn_master_file_view= syn_master_file_view, syn_master_file_name= syn_master_file_name)
-    config_handler(syn_master_file_view=syn_master_file_view, syn_manifest_file_name = syn_manifest_file_name)
+def get_storage_projects(input_token, asset_view):
+    # call config handler 
+    config_handler(asset_view=asset_view)
+
+    # use Synapse storage 
     store = SynapseStorage(input_token=input_token)
 
+    # call getStorageProjects function
     lst_storage_projects = store.getStorageProjects()
     
-
     return lst_storage_projects
 
-def get_storage_projects_datasets(input_token, syn_master_file_view, syn_manifest_file_name, project_id):
-    #store = SynapseStorage(input_token=input_token, syn_master_file_view= syn_master_file_view, syn_master_file_name= syn_master_file_name)
-    config_handler(syn_master_file_view=syn_master_file_view, syn_manifest_file_name = syn_manifest_file_name)
+def get_storage_projects_datasets(input_token, asset_view, manifest_file_name, project_id):
+    # call config handler
+    config_handler(asset_view=asset_view, manifest_file_name=manifest_file_name)
 
+    # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
+
+    # call getStorageDatasetsInProject function
     sorted_dataset_lst = store.getStorageDatasetsInProject(projectId = project_id)
     
-
     return sorted_dataset_lst
 
 
-def get_files_storage_dataset(input_token, syn_master_file_view, syn_manifest_file_name, dataset_id, full_path, file_names=None):
-    config_handler(syn_master_file_view=syn_master_file_view, syn_manifest_file_name = syn_manifest_file_name)
+def get_files_storage_dataset(input_token, asset_view, manifest_file_name, dataset_id, full_path, file_names=None):
+    # call config handler
+    config_handler(asset_view=asset_view, manifest_file_name=manifest_file_name)
 
+    # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
 
     # no file names were specified (file_names = [''])
     if file_names and not all(file_names): 
         file_names=None
+    
+    # call getFilesInStorageDataset function
     file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
     return file_lst

@@ -49,8 +49,6 @@ class SynapseStorage(BaseStorage):
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
         input_token: str = None,
-        # syn_master_file_view: str = None, 
-        # syn_master_file_name: str = None
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:

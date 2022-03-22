@@ -67,8 +67,15 @@ paths:
             type: string
             nullable: true
           description: >
-            Dataset SynID. Enter 'None' if there is none.
-          required: true
+            Dataset SynID. If you want to get an existing manifest, this dataset_id should be the parent ID of the manifest.
+          required: false
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: true
+          description: ID of view listing all project data assets. E.g. for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          required: false
       operationId: api.routes.get_manifest_route
       responses:
         "201":
@@ -194,20 +201,12 @@ paths:
           example: Token
           required: true
         - in: query
-          name: syn_master_file_view
+          name: asset_view
           schema:
             type: string
             nullable: false
-          description: synapse ID of master file view. 
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           example: syn23643253
-          required: true
-        - in: query
-          name: syn_manifest_file_name
-          schema:
-            type: string
-            nullable: false
-          description: Synapse storage manifest file name. 
-          example: synapse_storage_manifest.csv
           required: true
       responses:
         "200":
@@ -231,19 +230,19 @@ paths:
           example: Token
           required: true
         - in: query
-          name: syn_master_file_view
+          name: asset_view
           schema:
             type: string
             nullable: false
-          description: synapse ID of master file view. 
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           example: syn23643253
           required: true
         - in: query
-          name: syn_manifest_file_name
+          name: manifest_file_name
           schema:
             type: string
             nullable: false
-          description: Synapse storage manifest file name. 
+          description: Dataset manifest filename. For example, for Synapse this would be the manifest_filename in config.yml
           example: synapse_storage_manifest.csv
           required: true
         - in: query
@@ -276,19 +275,19 @@ paths:
           example: Token
           required: true
         - in: query
-          name: syn_master_file_view
+          name: asset_view
           schema:
             type: string
             nullable: false
-          description: synapse ID of master file view. 
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           example: syn23643253
           required: true
         - in: query
-          name: syn_manifest_file_name
+          name: manifest_file_name
           schema:
             type: string
             nullable: false
-          description: Synapse storage manifest file name. 
+          description: Dataset manifest filename. For example, for Synapse this would be the manifest_filename in config.yml
           example: synapse_storage_manifest.csv
           required: true
         - in: query
