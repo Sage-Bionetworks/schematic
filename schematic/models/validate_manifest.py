@@ -249,9 +249,7 @@ class ValidateManifest(object):
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
-            #EMPTY COLUMNS ERRORS TO WARNIGNS CHANGE HAPPENS HERE
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
-                #print(error)
                 errorRow = i + 2
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema"
                 errorMsg = error.message[0:500]
