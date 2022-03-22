@@ -26,12 +26,12 @@ from schematic.store.synapse import SynapseStorage
 #     pass
 
 
-def config_handler(asset_view=None, manifest_file_name=None):
+def config_handler(asset_view=None):
     path_to_config = app.config["SCHEMATIC_CONFIG"]
 
     # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
     if os.path.isfile(path_to_config):
-        CONFIG.load_config(path_to_config, asset_view = asset_view, manifest_file_name = manifest_file_name)
+        CONFIG.load_config(path_to_config, asset_view = asset_view)
 
     else:
         raise FileNotFoundError(
@@ -195,9 +195,9 @@ def get_storage_projects(input_token, asset_view):
     
     return lst_storage_projects
 
-def get_storage_projects_datasets(input_token, asset_view, manifest_file_name, project_id):
+def get_storage_projects_datasets(input_token, asset_view, project_id):
     # call config handler
-    config_handler(asset_view=asset_view, manifest_file_name=manifest_file_name)
+    config_handler(asset_view=asset_view)
 
     # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
@@ -208,9 +208,9 @@ def get_storage_projects_datasets(input_token, asset_view, manifest_file_name, p
     return sorted_dataset_lst
 
 
-def get_files_storage_dataset(input_token, asset_view, manifest_file_name, dataset_id, full_path, file_names=None):
+def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, file_names=None):
     # call config handler
-    config_handler(asset_view=asset_view, manifest_file_name=manifest_file_name)
+    config_handler(asset_view=asset_view)
 
     # use Synapse Storage
     store = SynapseStorage(input_token=input_token)

@@ -61,7 +61,7 @@ class Configuration(object):
         )
         return self.load_config(schematic_config)
 
-    def load_config(self, config_path=None, asset_view=None, manifest_file_name=None):
+    def load_config(self, config_path=None, asset_view=None):
         # If config_path is None, try loading from environment
         if config_path is None and "SCHEMATIC_CONFIG" in os.environ:
             return self.load_config_from_env()
@@ -80,8 +80,7 @@ class Configuration(object):
         # handle user input (for API endpoints)
         if asset_view: 
             self.DATA['synapse']['master_fileview'] = asset_view
-        if manifest_file_name:
-            self.DATA['synapse']['manifest_filename'] = manifest_file_name
+
         # Return self.DATA as a side-effect
         return self.DATA
     @property
