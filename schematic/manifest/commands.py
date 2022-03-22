@@ -89,7 +89,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "oauth")),
 )
 @click.option(
-    "-j",
+    "-js",
     "--json_schema",
     help=query_dict(manifest_commands, ("manifest", "get", "json_schema")),
 )
