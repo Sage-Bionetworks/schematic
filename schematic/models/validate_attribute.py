@@ -511,6 +511,18 @@ class ValidateAttribute(object):
     def cross_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
     ) -> List[List[str]]:
+        """
+        Purpose:
+            Do cross validation between the current manifest and all other manifests a user has access to on Synapse.
+            Check if values in this manifest are present fully in others.
+        Input:
+            - val_rule: str, Validation rule
+            - manifest_col: pd.core.series.Series, column for a given
+                attribute in the manifest
+        Output:
+            This function will return errors when values in the current manifest's attribute 
+            are not fully present in the correct amount of other manifests.
+        """
         errors = []
         missing_values = {}
         missing_manifest_log={}
