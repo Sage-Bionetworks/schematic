@@ -274,14 +274,6 @@ paths:
           description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           example: syn23643253
           required: true
-        # - in: query
-        #   name: manifest_file_name
-        #   schema:
-        #     type: string
-        #     nullable: false
-        #   description: Dataset manifest filename. For example, for Synapse this would be the manifest_filename in config.yml
-        #   example: synapse_storage_manifest.csv
-        #   required: true
         - in: query
           name: dataset_id
           schema:

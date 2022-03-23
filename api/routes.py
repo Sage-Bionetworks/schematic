@@ -73,6 +73,7 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_id=Non
     args_dict = dict(all_args.lists())
     data_type = args_dict['data_type']
 
+
     def create_single_manifest(data_type):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -83,18 +84,10 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_id=Non
             use_annotations=use_annotations,
         )
 
-        #dataset_id = connexion.request.args["dataset_id"]
-        # if dataset_id == 'None':
-        #     dataset_id = None
-
-        if dataset_id: 
-            result = manifest_generator.get_manifest(
+        result = manifest_generator.get_manifest(
             dataset_id=dataset_id, sheet_url=True,
         )
-        else: 
-            result = manifest_generator.get_manifest(
-            dataset_id=None, sheet_url=True,
-        )            
+               
         return result
 
     # Gather all returned result urls
