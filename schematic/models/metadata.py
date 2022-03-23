@@ -277,8 +277,8 @@ class MetadataModel(object):
         self,
         manifest_path: str,
         dataset_id: str,
+        manifest_record_type: str,
         validate_component: str = None,
-        manfiest_record_type: str,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
     ) -> bool:
@@ -319,7 +319,7 @@ class MetadataModel(object):
             val_errors = self.validateModelManifest(
                 manifestPath=manifest_path, rootNode=validate_component
             )
-
+            
             # if there are no errors in validation process
             if not val_errors:
 
