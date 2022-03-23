@@ -591,9 +591,7 @@ class SynapseStorage(BaseStorage):
             manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
 
         Returns:
-            If manifest_record_type = 'both': Joined Synapse Ids of the uploaded manifest (FileID_TableID)
-                                      'entity': Synapse File Id of the uploaded manifest
-                                      'table': Synapse Table Id of the uploaded manifest
+            manifest_synapse_file_id: SynID of manifest csv uploaded to synapse.
 
         Raises:
             ValueError: manifest_record_type is not 'entity', 'table' or 'both'
@@ -636,12 +634,9 @@ class SynapseStorage(BaseStorage):
         else:
             manifest["entityId"].fillna("", inplace=True)
 
-
         # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
         se = SchemaExplorer()
 
-        manifest_synapse_table_id = ''
-        manifest_synapse_file_id = ''
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
