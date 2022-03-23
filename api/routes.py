@@ -147,12 +147,14 @@ def submit_manifest_route(schema_url):
 
     data_type = connexion.request.args["data_type"]
 
+    manifest_record_type = connexion.request.args["manifest_record_type"]
+
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
 
     success = metadata_model.submit_metadata_manifest(
-        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type,
+        manifest_path=temp_path, dataset_id=dataset_id, manifest_record_type=manifest_record_type, validate_component=data_type,
     )
 
     return success
