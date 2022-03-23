@@ -116,14 +116,7 @@ def validate_manifest_route(schema_url, data_type):
     # call config_handler()
     config_handler()
 
-    # manifest_file = connexion.request.files["csv_file"]
-
-    # # save contents of incoming manifest CSV file to temp file
-    # temp_dir = tempfile.gettempdir()
-    # # path to temp file where manifest file contents will be saved
-    # temp_path = os.path.join(temp_dir, manifest_file.filename)
-    # # save content
-    # manifest_file.save(temp_path)
+    #Get path to temp file where manifest file contents will be saved
     temp_path = csv_path_handler()
 
     # get path to temporary JSON-LD file
@@ -144,14 +137,7 @@ def submit_manifest_route(schema_url):
     # call config_handler()
     config_handler()
 
-    # manifest_file = connexion.request.files["csv_file"]
-
-    # # save contents of incoming manifest CSV file to temp file
-    # temp_dir = tempfile.gettempdir()
-    # # path to temp file where manifest file contents will be saved
-    # temp_path = os.path.join(temp_dir, manifest_file.filename)
-    # # save content
-    # manifest_file.save(temp_path)
+    # Get path to temp file where manifest file contents will be saved
     temp_path = csv_path_handler()
 
     # get path to temporary JSON-LD file

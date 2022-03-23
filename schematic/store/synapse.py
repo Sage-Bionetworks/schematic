@@ -69,10 +69,13 @@ class SynapseStorage(BaseStorage):
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
-            self.manifest = CONFIG["synapse"]["manifest_filename"]
+
+            # get data in administrative fileview for this pipeline
             self.storageFileviewTable = self.syn.tableQuery(
-                    "SELECT * FROM " + self.storageFileview
-                ).asDataFrame()
+                "SELECT * FROM " + self.storageFileview
+            ).asDataFrame()
+
+            self.manifest = CONFIG["synapse"]["manifest_filename"]
         
         except KeyError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
@@ -108,6 +111,7 @@ class SynapseStorage(BaseStorage):
             # login using synapse credentials provided by user in .synapseConfig (default) file
             syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
             syn.login(silent=True)
+            
         return syn
 
 
