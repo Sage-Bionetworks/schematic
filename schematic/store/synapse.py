@@ -671,12 +671,10 @@ class SynapseStorage(BaseStorage):
                 annos = self.format_annotations(se, row, entityId, useSchemaLabel, hideBlanks)
                 # Store annotations for an entity
                 self.syn.set_annotations(annos)
-
-        # Load or update manifest with entity col as a file or table, depending on user input
-        if manifest_record_type == 'entity' or manifest_record_type == 'both':
-            # Load manifest to synapse as a CSV File
-            manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId)
-            logger.info("Associated manifest file with dataset on Synapse.")
+        
+        # Load manifest to synapse as a CSV File
+        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId)
+        logger.info("Associated manifest file with dataset on Synapse.")
             
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
@@ -688,12 +686,13 @@ class SynapseStorage(BaseStorage):
                 update_col = 'Uuid',
                 specify_schema = False,
                 )
+
         if manifest_record_type == 'both' and manifest_synapse_file_id and manifest_synapse_table_id:
-            return (manifest_synapse_file_id, manifest_synapse_table_id).join('_')
+            return '_'.join([manifest_synapse_file_id, manifest_synapse_table_id])
         elif manifest_record_type == 'entity' and manifest_synapse_file_id:
             return manifest_synapse_file_id
         elif manifest_record_type == 'table' and manifest_synapse_table_id:
-            return manifest_synapse_table_id
+            return '_'.join([manifest_synapse_file_id, manifest_synapse_table_id])
 
     def getFileAnnotations(self, fileId: str) -> Dict[str, str]:
         """Generate dictionary of annotations for the given Synapse file.
