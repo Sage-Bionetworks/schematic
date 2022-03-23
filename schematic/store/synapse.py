@@ -474,19 +474,34 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, manifest, datasetId, table_prefix):
-        # Get rid of spacing in column names so that materialized views can be performed against
-        # File Views
-        cols = [col.replace(" ", "") for col in manifest.columns]
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_prefix):
+        # Rename the manifest columns to display names to match fileview
+        blacklist_chars = ['(', ')', '.', ' ']
+        manifest_columns = manifest.columns.tolist()
+        manifest_columns.remove('entityId')
+        
+        cols = [
+            se.get_class_label_from_display_name(
+                str(col)
+                ).translate({ord(x): '' for x in blacklist_chars})
+            for col in manifest_columns
+        ]
+
+        cols.append('entityId')
+
+        # Reset column names in manifest
         manifest.columns = cols
-        cols = as_table_columns(manifest)
+
+        # Get the column schema
+        col_schema = as_table_columns(manifest)
+
         # Set uuid column length to 64 (for some reason not being auto set.)
-        for i, col in enumerate(cols):
-            if col['name'] == 'uuid':
-                cols[i]['maximumSize'] = 64
+        for i, col in enumerate(col_schema):
+            if col['name'] == 'Uuid':
+                col_schema[i]['maximumSize'] = 64
 
         # Put manifest onto synapse
-        schema = Schema(name=table_prefix + '_manifest_table', columns=cols, parent=datasetId)
+        schema = Schema(name=table_prefix + '_manifest_table', columns=col_schema, parent=datasetId)
         table = self.syn.store(Table(schema, manifest))
         manifest_table_id = table.schema.id
 
@@ -604,6 +619,16 @@ class SynapseStorage(BaseStorage):
                 f"No manifest file was found at this path: {metadataManifestPath}"
             ) from err
 
+        # Add uuid for table updates and fill.
+        if not "Uuid" in manifest.columns:
+            manifest["Uuid"] = ''
+
+        for idx,row in manifest.iterrows():
+            if not row["Uuid"]:
+                gen_uuid = uuid.uuid4()
+                row["Uuid"] = gen_uuid
+                manifest.loc[idx, 'Uuid'] = gen_uuid
+
         # add entityId as a column if not already there or
         # fill any blanks with an empty string.
         if not "entityId" in manifest.columns:
@@ -611,14 +636,6 @@ class SynapseStorage(BaseStorage):
         else:
             manifest["entityId"].fillna("", inplace=True)
 
-        if not "uuid" in manifest.columns:
-            manifest["uuid"] = ''
-
-        for idx,row in manifest.iterrows():
-            if not row["uuid"]:
-                gen_uuid = uuid.uuid4()
-                row["uuid"] = gen_uuid
-                manifest.loc[idx, 'uuid'] = gen_uuid
 
         # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
         se = SchemaExplorer()
@@ -628,7 +645,7 @@ class SynapseStorage(BaseStorage):
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
-                                                        manifest, datasetId, manifest['Component'][0].lower())
+                                                        se, manifest, datasetId, manifest['Component'][0].lower())
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
@@ -668,7 +685,7 @@ class SynapseStorage(BaseStorage):
                 dataset_id = datasetId,
                 existingTableId = manifest_synapse_table_id,
                 table_name = manifest['Component'][0].lower() + '_manifest_table',
-                update_col = 'uuid',
+                update_col = 'Uuid',
                 specify_schema = False,
                 )
         if manifest_record_type == 'both' and manifest_synapse_file_id and manifest_synapse_table_id:
