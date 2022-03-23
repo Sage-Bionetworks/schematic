@@ -439,7 +439,7 @@ class SynapseStorage(BaseStorage):
     def upload_project_manifests_to_synapse(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
 
-        Returns: 
+        Returns: String of all the manifest_table_ids of all the manifests that have been loaded.
         """
 
         manifests = []
@@ -687,12 +687,7 @@ class SynapseStorage(BaseStorage):
                 specify_schema = False,
                 )
 
-        if manifest_record_type == 'both' and manifest_synapse_file_id and manifest_synapse_table_id:
-            return '_'.join([manifest_synapse_file_id, manifest_synapse_table_id])
-        elif manifest_record_type == 'entity' and manifest_synapse_file_id:
-            return manifest_synapse_file_id
-        elif manifest_record_type == 'table' and manifest_synapse_table_id:
-            return '_'.join([manifest_synapse_file_id, manifest_synapse_table_id])
+        return manifest_synapse_file_id
 
     def getFileAnnotations(self, fileId: str) -> Dict[str, str]:
         """Generate dictionary of annotations for the given Synapse file.

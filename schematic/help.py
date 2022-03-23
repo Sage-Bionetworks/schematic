@@ -85,8 +85,8 @@ model_commands = {
             ),
             "manifest_record_type":(
                 "Specify the way the manifest should be store as on Synapse. Options are 'entity', 'table' and "
-                "'both'. 'entity' will store the manifest as a csv and create Synapse fles for each row in the manifest. "
-                "'table' will store the manifest as a table on Synapse. 'both' will do both of the options specified above. "
+                "'both'. 'entity' will store the manifest as a csv and create Synapse files for each row in the manifest. "
+                "'table' will store the manifest as a table and a csv on Synapse. 'both' will do both of the options specified above. "
                 "Default value is 'table'."
             ),
         },
