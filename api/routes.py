@@ -162,6 +162,25 @@ def submit_manifest_route(schema_url):
 
     return success
 
+def populate_manifest_route(schema_url, title=None, data_type=None):
+    # call config_handler()
+    config_handler()
+
+    # get path to temporary JSON-LD file
+    jsonld = get_temp_jsonld(schema_url)
+
+    # Get path to temp file where manifest file contents will be saved
+    temp_path = csv_path_handler()
+   
+    #Initalize MetadataModel
+    metadata_model = MetadataModel(inputMModelLocation=jsonld, inputMModelLocationType='local')
+
+    #Call populateModelManifest class
+    populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type)
+
+    return populated_manifest_link
+
+
 def get_storage_projects(input_token, asset_view):
     # call config handler 
     config_handler(asset_view=asset_view)

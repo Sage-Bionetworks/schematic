@@ -186,6 +186,55 @@ paths:
           description: Check schematic log
       tags:
         - Model Operations
+  /manifest/populate:
+    post:
+      summary: Create a Google sheet link based on an existing manifest. 
+      description: Create a Google sheet link based on an existing manifest.  
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                csv_file:
+                  type: string
+                  format: binary
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: data_type
+          schema:
+            type: string
+            nullable: true
+          description: Data Model Component
+          example: Patient
+          required: true
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: Title of Manifest
+          example: Example
+          required: false
+      operationId: api.routes.populate_manifest_route
+      responses:
+        "200":
+          description: Googlesheet link created
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Check schematic log
+      tags:
+        - Manifest Operations
   /storage/projects:
     get:
       summary: Get all storage projects the current user has access to
