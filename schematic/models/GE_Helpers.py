@@ -251,7 +251,7 @@ class GreatExpectationsHelpers(object):
                     "validation_rule": rule
                 }
             elif rule.startswith("protectAges"):
-                #Insert function to convert to different age formats
+                #Function to convert to different age limit formats
                 min_age, max_age = self.get_age_limits()
 
                 args["mostly"]=1.0
@@ -410,10 +410,14 @@ class GreatExpectationsHelpers(object):
                                                         )       
                     if content_errors:
                         errors.append(content_errors)  
-                    if content_warnings:
+                        if rule.startswith('protectAges'):
+                            self.censor_ages(content_errors,errColumn)
+                    elif content_warnings:
                         warnings.append(content_warnings)  
+                        if rule.startswith('protectAges'):
+                            self.censor_ages(content_warnings,errColumn)
 
-        return errors, warnings
+        return errors, warnings, self.manifest
 
     def get_age_limits(
         self,
@@ -422,6 +426,19 @@ class GreatExpectationsHelpers(object):
         min_age = 6550      #days
         max_age = 32849     #days
 
-
-
         return min_age, max_age
+
+    def censor_ages(
+        self,
+        message: List,
+        col: str,
+        ):
+        
+        censor_rows = list(np.array(message[0]) - 2) 
+        if self.manifest[col].dtype == 'int64':
+            self.manifest[col] = self.manifest[col].astype('Int64')
+        self.manifest.loc[censor_rows,(col)] = np.nan
+
+        logging.info("Sensitive ages have been censored and replaced with NaN values.")
+
+        return

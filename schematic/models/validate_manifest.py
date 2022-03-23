@@ -133,6 +133,7 @@ class ValidateManifest(object):
             unimplemented_expectations=unimplemented_expectations,
             manifest = manifest,
             )
+
         ge_helpers.build_context()
         ge_helpers.build_expectation_suite()
         ge_helpers.build_checkpoint()
@@ -148,23 +149,26 @@ class ValidateManifest(object):
             },
             result_format={'result_format': 'COMPLETE'},
         )        
-        #print(results)       
-        #results.list_validation_results()
+        
         
         # initialize error and warning handling lists.
         errors = []   
         warnings = [] 
         
-
+        #print(results)       
+        #results.list_validation_results()
         validation_results = results.list_validation_results()
         
+
         #parse validation results dict and generate errors
-        errors, warnings = ge_helpers.generate_errors(
+        errors, warnings, manifest = ge_helpers.generate_errors(
             errors = errors,
             warnings = warnings,
             validation_results = validation_results,
             validation_types = validation_types,
             )                              
+
+        self.manifest = manifest
 
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
