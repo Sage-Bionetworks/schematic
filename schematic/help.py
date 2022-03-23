@@ -83,6 +83,12 @@ model_commands = {
                 "This is a boolean flag. If flag is provided when command line utility is executed, annotations with blank values will be hidden from a dataset's annotation list in Synaspe."
                 "If not, annotations with blank values will be displayed."
             ),
+            "manifest_record_type":(
+                "Specify the way the manifest should be store as on Synapse. Options are 'entity', 'table' and "
+                "'both'. 'entity' will store the manifest as a csv and create Synapse fles for each row in the manifest. "
+                "'table' will store the manifest as a table on Synapse. 'both' will do both of the options specified above. "
+                "Default value is 'table'."
+            ),
         },
         "validate": {
             "short_help": ("Validation of manifest files."),
