@@ -251,9 +251,12 @@ class GreatExpectationsHelpers(object):
                     "validation_rule": rule
                 }
             elif rule.startswith("protectAges"):
+                #Insert function to convert to different age formats
+                min_age, max_age = self.get_age_limits()
+
                 args["mostly"]=1.0
-                args["min_value"]=6550
-                args["max_value"]=32849
+                args["min_value"]=min_age
+                args["max_value"]=max_age
                 meta={
                     "notes": {
                         "format": "markdown",
@@ -336,6 +339,7 @@ class GreatExpectationsHelpers(object):
         errors: List,
         warnings: List
         ):
+
         type_dict={
             "float64": float,
             "int64": int,
@@ -405,9 +409,19 @@ class GreatExpectationsHelpers(object):
                                                             sg = self.sg
                                                         )       
                     if content_errors:
-                        print(content_errors)
                         errors.append(content_errors)  
                     if content_warnings:
-                        print(content_warnings)
                         warnings.append(content_warnings)  
+
         return errors, warnings
+
+    def get_age_limits(
+        self,
+        ):
+
+        min_age = 6550      #days
+        max_age = 32849     #days
+
+
+
+        return min_age, max_age

@@ -254,7 +254,7 @@ class GenerateError:
         if raises:
             logLevel = getattr(logging,raises)  
         else:
-            return
+            return error_list, warning_list
         
         #log warning or error message
         if val_rule.__contains__('recommended'):
@@ -312,7 +312,6 @@ class GenerateError:
                 val_rule: str, defined in the schema.
                 sg: schemaGenerator object
                 attribute_name: str, attribute being validated
-
         Returns:
             'error' or 'warning'
         """
