@@ -35,6 +35,12 @@ def config_handler():
             f"No configuration file was found at this path: {path_to_config}"
         )
 
+def initalize_metadata_model(schema_url):
+    jsonld = get_temp_jsonld(schema_url)
+    metadata_model = MetadataModel(
+        inputMModelLocation=jsonld, inputMModelLocationType="local"
+    )
+    return metadata_model
 
 def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
@@ -140,21 +146,24 @@ def submit_manifest_route(schema_url):
     # save content
     manifest_file.save(temp_path)
 
-    # get path to temporary JSON-LD file
-    jsonld = get_temp_jsonld(schema_url)
-
     dataset_id = connexion.request.args["dataset_id"]
 
     data_type = connexion.request.args["data_type"]
 
     manifest_record_type = connexion.request.args["manifest_record_type"]
 
-    metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
-    )
+    metadata_model = initalize_metadata_model(schema_url)
 
     success = metadata_model.submit_metadata_manifest(
         manifest_path=temp_path, dataset_id=dataset_id, manifest_record_type=manifest_record_type, validate_component=data_type,
     )
 
     return success
+
+def get_component_requirements(schema_url, source_component, as_graph):
+    metadata_model = initalize_metadata_model(schema_url)
+
+    req_components = metadata_model.get_component_requirements(source_component=source_component, as_graph = as_graph)
+
+    return req_components
+
