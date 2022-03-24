@@ -33,9 +33,10 @@ from great_expectations.data_context.types.resource_identifiers import Expectati
 logger = logging.getLogger(__name__)
 
 class ValidateManifest(object):
-    def __init__(self, errors, manifest, sg, jsonSchema):
+    def __init__(self, errors, manifest, manifestPath, sg, jsonSchema):
         self.errors = errors
         self.manifest = manifest
+        self.manifestPath = manifestPath
         self.sg = sg
         self.jsonSchema = jsonSchema       
 
@@ -132,6 +133,7 @@ class ValidateManifest(object):
             sg=sg,
             unimplemented_expectations=unimplemented_expectations,
             manifest = manifest,
+            manifestPath = self.manifestPath,
             )
 
         ge_helpers.build_context()
@@ -263,8 +265,8 @@ class ValidateManifest(object):
         return errors, warnings
 
 
-def validate_all(self, errors, warnings, manifest, sg, jsonSchema):
-    vm = ValidateManifest(errors, manifest, sg, jsonSchema)
+def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema):
+    vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema)
     manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg)
     if vmr_errors:
         errors.extend(vmr_errors)
