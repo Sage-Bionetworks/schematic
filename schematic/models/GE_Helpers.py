@@ -27,18 +27,44 @@ from schematic.models.validate_attribute import GenerateError
 logger = logging.getLogger(__name__)
 
 class GreatExpectationsHelpers(object):
+    """
+        Great Expectations helper class
+
+        Provides basic utilities to:
+            1) Create GE workflow specific to manifest according to validation rules
+            2) Parse results dict to generate appropriate errors
+    """
     def __init__(self,
         sg,
         unimplemented_expectations,
         manifest,
         manifestPath
         ):
+        """
+            Purpose:
+                Instantiate a great expectations helpers object
+            Args:
+                sg: 
+                    schemaGenerator object
+                unimplemented_expectations:
+                    dictionary of validation rules that currently do not have expectations developed
+                manifest:
+                    manifest being validated
+                manifestPath:
+                    path to manifest being validated            
+        """
         self.unimplemented_expectations = unimplemented_expectations
         self.sg = sg
         self.manifest = manifest
         self.manifestPath = manifestPath
 
     def  build_context(self):
+        """
+            Purpose:
+                Create a dataContext and datasource and add to object 
+            Returns:
+                saves dataContext and datasource to self
+        """
         self.context=ge.get_context()
 
         #create datasource configuration
@@ -84,6 +110,16 @@ class GreatExpectationsHelpers(object):
 
         
     def build_expectation_suite(self,):
+        """
+            Purpose:
+                Construct an expectation suite to validate columns with rules that have expectations
+                Add suite to object
+            Input:
+                
+            Returns:
+                saves expectation suite and identifier to self
+            
+        """
         validation_expectation = {
             "int": "expect_column_values_to_be_of_type",
             "float": "expect_column_values_to_be_of_type",
@@ -304,6 +340,22 @@ class GreatExpectationsHelpers(object):
         meta: Dict,
         validation_expectation: Dict,
         ):
+        """
+            Purpose:
+                Add individual expectation for a rule to the suite
+            Input:
+                rule: 
+                    validation rule
+                args: 
+                    dict of arguments specifying expectation behavior
+                meta:
+                    dict of additional information for each expectation
+                validation_expectation:
+                    dictionary to map between rules and expectations
+            Returns:
+                adds expectation to self.suite
+            
+        """
         # Create an Expectation
         expectation_configuration = ExpectationConfiguration(
             # Name of expectation type being added
@@ -317,6 +369,13 @@ class GreatExpectationsHelpers(object):
         self.suite.add_expectation(expectation_configuration=expectation_configuration)
 
     def build_checkpoint(self):
+        """
+            Purpose:
+                Build checkpoint to validate manifest
+            Input:
+            Returns:
+                adds checkpoint to self 
+        """
         #create manifest checkpoint
         checkpoint_name = "manifest_checkpoint"  
         checkpoint_config={
@@ -345,6 +404,26 @@ class GreatExpectationsHelpers(object):
         errors: List,
         warnings: List
         ):
+        """
+            Purpose:
+                Parse results dictionary and generate errors for expectations
+            Input:
+                validation_results:
+                    dictionary of results for each expectation
+                validation_types:
+                    dict of types of errors to generate for each validation rule
+                errors:
+                    list of errors
+                warnings:
+                    list of warnings    
+            Returns:
+                errors:
+                    list of errors
+                warnings:
+                    list of warnings
+                self.manifest:
+                    manifest, possibly updated (censored ages)
+        """
 
         type_dict={
             "float64": float,
@@ -428,6 +507,17 @@ class GreatExpectationsHelpers(object):
     def get_age_limits(
         self,
         ):
+        """
+            Purpose:
+                Get boundaries of ages that need to be censored for different age formats
+            Input:
+            Returns:
+                min_age:
+                    minimum age that will not be censored
+                max age:
+                    maximum age that will not be censored
+            
+        """        
 
         min_age = 6550      #days
         max_age = 32849     #days
@@ -439,6 +529,18 @@ class GreatExpectationsHelpers(object):
         message: List,
         col: str,
         ):
+        """
+            Purpose:
+                Censor ages in manifest as appropriate
+            Input:
+                message: 
+                    error or warning message for age validation rule
+                col:
+                    name of column containing ages
+            Returns:
+                updates self.manifest with censored ages
+            
+        """
         
         censor_rows = list(np.array(message[0]) - 2) 
         if self.manifest[col].dtype == 'int64':
