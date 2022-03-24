@@ -248,7 +248,6 @@ class MetadataModel(object):
 
             return errors
 
-        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, self.sg, jsonSchema)
         errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema)
         return errors, warnings
 
@@ -316,7 +315,7 @@ class MetadataModel(object):
                 )
 
             # automatic JSON schema generation and validation with that JSON schema
-            val_errors = self.validateModelManifest(
+            val_errors, val_warnings = self.validateModelManifest(
                 manifestPath=manifest_path, rootNode=validate_component
             )
 
