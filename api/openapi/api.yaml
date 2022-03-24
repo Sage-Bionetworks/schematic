@@ -67,7 +67,7 @@ paths:
             type: string
             nullable: true
           description: >
-            Dataset SynID. If you want to get an existing manifest, this dataset_id should be the parent ID of the manifest.
+            Dataset ID. If you want to get an existing manifest, this dataset_id should be the parent ID of the manifest.
           required: false
         - in: query
           name: asset_view
