@@ -27,10 +27,16 @@ from schematic.models.validate_attribute import GenerateError
 logger = logging.getLogger(__name__)
 
 class GreatExpectationsHelpers(object):
-    def __init__(self, sg, unimplemented_expectations,manifest):
+    def __init__(self,
+        sg,
+        unimplemented_expectations,
+        manifest,
+        manifestPath
+        ):
         self.unimplemented_expectations = unimplemented_expectations
         self.sg = sg
         self.manifest = manifest
+        self.manifestPath = manifestPath
 
     def  build_context(self):
         self.context=ge.get_context()

@@ -249,6 +249,7 @@ class MetadataModel(object):
             return errors
 
         errors, warnings, manifest = validate_all(self, errors, warnings, manifest, self.sg, jsonSchema)
+        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema)
         return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
