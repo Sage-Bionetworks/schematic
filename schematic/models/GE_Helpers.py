@@ -496,12 +496,12 @@ class GreatExpectationsHelpers(object):
                     if content_errors:
                         errors.append(content_errors)  
                         if rule.startswith('protectAges'):
-                            #self.censor_ages(content_errors,errColumn)
+                            self.censor_ages(content_errors,errColumn)
                             pass
                     elif content_warnings:
                         warnings.append(content_warnings)  
                         if rule.startswith('protectAges'):
-                            #self.censor_ages(content_warnings,errColumn)
+                            self.censor_ages(content_warnings,errColumn)
                             pass
 
         return errors, warnings, self.manifest
@@ -545,12 +545,10 @@ class GreatExpectationsHelpers(object):
         """
         
         censor_rows = list(np.array(message[0]) - 2) 
-        if self.manifest[col].dtype == 'int64':
-            self.manifest[col] = self.manifest[col].astype('Int64')
-        self.manifest.loc[censor_rows,(col)] = np.nan
+        self.manifest.loc[censor_rows,(col)] = 'age censored'
 
         # update the manifest file, so that ages are censored
-        self.manifest.to_csv(self.manifestPath, index=False)
+        self.manifest.to_csv(self.manifestPath.replace('.csv','_censored.csv'), index=False)
         logging.info("Sensitive ages have been censored and replaced with NaN values.")
 
         return
