@@ -49,6 +49,12 @@ def csv_path_handler():
     manifest_file.save(temp_path)
 
     return temp_path
+def initalize_metadata_model(schema_url):
+    jsonld = get_temp_jsonld(schema_url)
+    metadata_model = MetadataModel(
+        inputMModelLocation=jsonld, inputMModelLocationType="local"
+    )
+    return metadata_model
 
 def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
@@ -140,16 +146,11 @@ def submit_manifest_route(schema_url):
     # Get path to temp file where manifest file contents will be saved
     temp_path = csv_path_handler()
 
-    # get path to temporary JSON-LD file
-    jsonld = get_temp_jsonld(schema_url)
-
     dataset_id = connexion.request.args["dataset_id"]
 
     data_type = connexion.request.args["data_type"]
 
-    metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
-    )
+    metadata_model = initalize_metadata_model(schema_url)
 
     success = metadata_model.submit_metadata_manifest(
         manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type,
@@ -220,3 +221,10 @@ def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, fi
     # call getFilesInStorageDataset function
     file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
     return file_lst
+def get_component_requirements(schema_url, source_component, as_graph):
+    metadata_model = initalize_metadata_model(schema_url)
+
+    req_components = metadata_model.get_component_requirements(source_component=source_component, as_graph = as_graph)
+
+    return req_components
+

@@ -12,6 +12,8 @@
 #
 import os
 import sys
+file_dir = os.path.dirname(__file__) 
+sys.path.append(file_dir)
 from utils import _parse_toml
 import pathlib
 
@@ -19,11 +21,11 @@ sys.path.insert(0, os.path.abspath(".."))
 
 
 # -- Project information -----------------------------------------------------
-toml_file_path = pathlib.Path("../pyproject.toml")
+toml_file_path = pathlib.Path("../../pyproject.toml")
 
 toml_metadata = _parse_toml(toml_file_path)
 project = toml_metadata["name"]
-copyright = "2021, Sage Bionetworks"
+copyright = "2022, Sage Bionetworks"
 
 author = toml_metadata["authors"]
 
