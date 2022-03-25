@@ -300,7 +300,7 @@ class MetadataModel(object):
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
         syn_store = SynapseStorage(input_token=input_token)
-        syn_id=None
+        manifest_id=None
 
         # check if user wants to perform validation or not
         if validate_component is not None:
@@ -326,12 +326,12 @@ class MetadataModel(object):
             if not val_errors:
 
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
-                syn_id = syn_store.associateMetadataWithFiles(
+                manifest_id = syn_store.associateMetadataWithFiles(
                     metadataManifestPath=manifest_path, datasetId=dataset_id, hideBlanks=hide_blanks,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
-                return syn_id
+                return manifest_id
             else:
                 raise ValidationError(
                     "Manifest could not be validated under provided data model. "
