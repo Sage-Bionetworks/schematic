@@ -48,6 +48,7 @@ class SynapseStorage(BaseStorage):
         self,
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
+        input_token: str = None,
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -64,7 +65,7 @@ class SynapseStorage(BaseStorage):
             syn_store = SynapseStorage()
         """
 
-        self.syn = self.login(token, access_token)
+        self.syn = self.login(token, access_token, input_token)
 
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
@@ -75,6 +76,7 @@ class SynapseStorage(BaseStorage):
             ).asDataFrame()
 
             self.manifest = CONFIG["synapse"]["manifest_filename"]
+        
         except KeyError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
         except AttributeError:
@@ -85,9 +87,10 @@ class SynapseStorage(BaseStorage):
             raise MissingConfigValueError(("synapse", "master_fileview"))
 
     @staticmethod
-    def login(token=None, access_token=None):
+    def login(token=None, access_token=None, input_token=None):
+
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token:
+        if not token and not access_token and not input_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
@@ -101,12 +104,16 @@ class SynapseStorage(BaseStorage):
         elif access_token:
             syn = synapseclient.Synapse()
             syn.default_headers["Authorization"] = f"Bearer {access_token}"
+        elif input_token:
+            syn = synapseclient.Synapse()
+            syn.default_headers["Authorization"] = f"Bearer {input_token}"
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
             syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
             syn.login(silent=True)
-
+            
         return syn
+
 
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
@@ -252,7 +259,7 @@ class SynapseStorage(BaseStorage):
             for filename in filenames:
 
                 if (not "manifest" in filename[0] and not fileNames) or (
-                    not fileNames == None and filename[0] in fileNames
+                    fileNames and filename[0] in fileNames
                 ):
 
                     # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
