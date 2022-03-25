@@ -2754,7 +2754,7 @@
             "sms:displayName": "Check Ages",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "protectAges error"
+                "protectAges"
             ]
         },
         {
@@ -2773,7 +2773,7 @@
             "sms:displayName": "Check Unique",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "unique"
+                "unique error"
             ]
         },
         {

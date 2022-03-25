@@ -134,12 +134,12 @@ class TestManifestValidation:
             ) in errors
         
         assert GenerateError.generate_content_error(
-            val_rule = 'protectAges error', 
-            attribute_name = 'Check Ages',
+            val_rule = 'unique', 
+            attribute_name = 'Check Unique',
             sg = sg,
-            row_num = [2,3],
-            error_val = [6549,32851] 
-            )[0] in errors
+            row_num = [2,3,4],
+            error_val = ['str1'],  
+            )[1] in errors
 
         #check warnings
         assert GenerateError.generate_content_error(
@@ -147,14 +147,15 @@ class TestManifestValidation:
             attribute_name = 'Check Recommended',
             sg = sg,
             )[1] in warnings
-
+        
         assert GenerateError.generate_content_error(
-            val_rule = 'unique', 
-            attribute_name = 'Check Unique',
+            val_rule = 'protectAges error', 
+            attribute_name = 'Check Ages',
             sg = sg,
-            row_num = [2,3,4],
-            error_val = ['str1'],  
-            )[1] in warnings
+            row_num = [2,3],
+            error_val = [6549,32851] 
+            )[0] in warnings
+        
 
         
         
