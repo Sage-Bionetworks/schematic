@@ -322,7 +322,7 @@ class MetadataModel(object):
 
             censored_maniefst_path=manifest_path.replace('.csv','_censored.csv')
             # if there are no errors in validation process
-            if not val_errors[0]:
+            if val_errors == [[]]:
 
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if exists(censored_maniefst_path):
