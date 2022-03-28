@@ -437,7 +437,7 @@ class SynapseStorage(BaseStorage):
         return manifests
 
     def upload_project_manifests_to_synapse(self, projectId: str) -> List[str]:
-        """Gets all metadata manifest files across all datasets in a specified project.
+        """Upload all metadata manifest files across all datasets in a specified project as tables in Synapse.
 
         Returns: String of all the manifest_table_ids of all the manifests that have been loaded.
         """
@@ -458,7 +458,7 @@ class SynapseStorage(BaseStorage):
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
                 manifest_df = pd.read_csv(manifest_path)
-                manifest_table_id = upload_manifest_table(manifest, dataset_id, datasetName)
+                manifest_table_id = upload_format_manifest_table(manifest, dataset_id, datasetName)
                 manifest_loaded.append(datasetName)
         return manifest_loaded
 
