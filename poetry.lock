@@ -482,7 +482,7 @@ test = ["mock (>=3)", "pytest (>=4)", "pytest-mock (>=2)", "pytest-cov"]
 
 [[package]]
 name = "great-expectations"
-version = "0.14.10"
+version = "0.14.11"
 description = "Always know what to expect from your data."
 category = "main"
 optional = false
@@ -491,17 +491,21 @@ python-versions = "*"
 [package.dependencies]
 altair = ">=4.0.0,<5"
 Click = ">=7.1.2"
+colorama = ">=0.4.3"
+cryptography = ">=3.2,<4.0.0"
 importlib-metadata = ">=1.7.0"
 ipywidgets = ">=7.5.1"
 jinja2 = ">=2.10"
 jsonpatch = ">=1.22"
 jsonschema = ">=2.5.1"
 mistune = ">=0.8.4,<2.0.0"
+nbformat = ">=5.0"
 numpy = ">=1.14.1"
+packaging = "*"
 pandas = ">=0.23.0"
 pyparsing = ">=2.4,<3"
 python-dateutil = ">=2.8.1"
-pytz = ">=2015.6"
+pytz = ">=2021.3"
 requests = ">=2.20"
 "ruamel.yaml" = ">=0.16,<0.17.18"
 scipy = ">=0.19.0"
@@ -509,17 +513,28 @@ termcolor = ">=1.1.0"
 tqdm = ">=4.59.0"
 typing-extensions = ">=3.10.0.0"
 tzlocal = ">=1.2"
+urllib3 = ">=1.25.4,<1.27"
 
 [package.extras]
-airflow = ["apache-airflow[s3] (>=1.9.0)", "boto3 (>=1.7.3)"]
-aws_secrets = ["boto3 (>=1.8.7)"]
-azure_secrets = ["azure-identity (>=1.0.0)", "azure-keyvault-secrets (>=4.0.0)"]
-gcp = ["google-cloud-storage (>=1.28.0)", "google-cloud-secret-manager (>=1.0.0)", "sqlalchemy-bigquery (>=1.3.0)"]
-redshift = ["psycopg2 (>=2.8)"]
-s3 = ["boto3 (>=1.14)"]
-snowflake = ["snowflake-sqlalchemy (>=1.2)"]
+arrow = ["feather-format (>=0.4.1)", "pyarrow (>=0.12.0)"]
+athena = ["pyathena (>=1.11)"]
+aws_secrets = ["boto3 (==1.17.106)"]
+azure = ["azure-identity (>=1.0.0)", "azure-keyvault-secrets (>=4.0.0)", "azure-storage-blob (>=12.5.0)"]
+azure_secrets = ["azure-identity (>=1.0.0)", "azure-keyvault-secrets (>=4.0.0)", "azure-storage-blob (>=12.5.0)"]
+bigquery = ["gcsfs (>=0.5.1)", "google-cloud-secret-manager (>=1.0.0)", "google-cloud-storage (>=1.28.0)", "sqlalchemy-bigquery (>=1.3.0)"]
+dremio = ["pyarrow (>=0.12.0)", "pyodbc (>=4.0.30)", "sqlalchemy-dremio (>=1.2.1)"]
+excel = ["openpyxl (>=3.0.7)", "xlrd (>=1.1.0,<2.0.0)"]
+gcp = ["gcsfs (>=0.5.1)", "google-cloud-secret-manager (>=1.0.0)", "google-cloud-storage (>=1.28.0)", "sqlalchemy-bigquery (>=1.3.0)"]
+mssql = ["pyodbc (>=4.0.30)"]
+mysql = ["PyMySQL (>=0.9.3,<0.10)"]
+pagerduty = ["pypd (==1.1.0)"]
+postgresql = ["psycopg2-binary (>=2.7.6)"]
+redshift = ["psycopg2-binary (>=2.7.6)", "sqlalchemy-redshift (>=0.7.7)"]
+s3 = ["boto3 (==1.17.106)"]
+snowflake = ["snowflake-connector-python (==2.5.0)", "snowflake-sqlalchemy (>=1.2.3)"]
 spark = ["pyspark (>=2.3.2)"]
-sqlalchemy = ["sqlalchemy (>=1.3.18)"]
+sqlalchemy = ["sqlalchemy (>=1.3.18,<1.4.10)"]
+teradata = ["teradatasqlalchemy (==17.0.0.1)"]
 
 [[package]]
 name = "httplib2"
@@ -635,7 +650,7 @@ python-versions = "*"
 
 [[package]]
 name = "ipywidgets"
-version = "7.6.5"
+version = "7.7.0"
 description = "IPython HTML widgets for Jupyter"
 category = "main"
 optional = false
@@ -648,7 +663,7 @@ ipython-genutils = ">=0.2.0,<0.3.0"
 jupyterlab-widgets = {version = ">=1.0.0", markers = "python_version >= \"3.6\""}
 nbformat = ">=4.2.0"
 traitlets = ">=4.3.1"
-widgetsnbextension = ">=3.5.0,<3.6.0"
+widgetsnbextension = ">=3.6.0,<3.7.0"
 
 [package.extras]
 test = ["pytest (>=3.6.0)", "pytest-cov", "mock"]
@@ -784,7 +799,7 @@ pygments = ">=2.4.1,<3"
 
 [[package]]
 name = "jupyterlab-widgets"
-version = "1.0.2"
+version = "1.1.0"
 description = "A JupyterLab extension."
 category = "main"
 optional = false
@@ -1326,7 +1341,7 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "pytz"
-version = "2021.1"
+version = "2022.1"
 description = "World timezone definitions, modern and historical"
 category = "main"
 optional = false
@@ -1672,7 +1687,7 @@ python-versions = "*"
 
 [[package]]
 name = "tzdata"
-version = "2021.5"
+version = "2022.1"
 description = "Provider of IANA time zone data"
 category = "main"
 optional = false
@@ -1746,7 +1761,7 @@ watchdog = ["watchdog"]
 
 [[package]]
 name = "widgetsnbextension"
-version = "3.5.2"
+version = "3.6.0"
 description = "IPython HTML widgets for Jupyter"
 category = "main"
 optional = false
@@ -1778,7 +1793,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1"
-content-hash = "1e983cb3583f8ff861bbc9c9b31281fb4098b80a0ad9a3782a3e1f85ea45b454"
+content-hash = "e08101a9072f02f5f0dca2ad2ff72a31b84cc9785b5d270da03ae1e6289b1765"
 
 [metadata.files]
 altair = [
@@ -2086,8 +2101,8 @@ graphviz = [
     {file = "graphviz-0.16.zip", hash = "sha256:d2d25af1c199cad567ce4806f0449cb74eb30cf451fd7597251e1da099ac6e57"},
 ]
 great-expectations = [
-    {file = "great_expectations-0.14.10-py3-none-any.whl", hash = "sha256:88f55e4a9ad83a6ee17904921f877a537ba31772b73ad87a0f1c315d247a7959"},
-    {file = "great_expectations-0.14.10.tar.gz", hash = "sha256:e92a00b04abf58e93efba518a3099a57f3c130bca62865cffb48026ac2b9e58e"},
+    {file = "great_expectations-0.14.11-py3-none-any.whl", hash = "sha256:289599fa3bb33459bdf449a04efc5cb3174a821c8a7097f8573243495825ac8e"},
+    {file = "great_expectations-0.14.11.tar.gz", hash = "sha256:084cf4c68f5ded9a6f6dd9611bee0424e92bae5c948d401d9a21272fa10a3cf1"},
 ]
 httplib2 = [
     {file = "httplib2-0.19.1-py3-none-any.whl", hash = "sha256:2ad195faf9faf079723f6714926e9a9061f694d07724b846658ce08d40f522b4"},
@@ -2122,8 +2137,8 @@ ipython-genutils = [
     {file = "ipython_genutils-0.2.0.tar.gz", hash = "sha256:eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"},
 ]
 ipywidgets = [
-    {file = "ipywidgets-7.6.5-py2.py3-none-any.whl", hash = "sha256:d258f582f915c62ea91023299603be095de19afb5ee271698f88327b9fe9bf43"},
-    {file = "ipywidgets-7.6.5.tar.gz", hash = "sha256:00974f7cb4d5f8d494c19810fedb9fa9b64bffd3cda7c2be23c133a1ad3c99c5"},
+    {file = "ipywidgets-7.7.0-py2.py3-none-any.whl", hash = "sha256:e58ff58bc94d481e91ecb6e13a5cb96a87b6b8ade135e055603d0ca24593df38"},
+    {file = "ipywidgets-7.7.0.tar.gz", hash = "sha256:ab4a5596855a88b83761921c768707d65e5847068139bc1729ddfe834703542a"},
 ]
 isodate = [
     {file = "isodate-0.6.0-py2.py3-none-any.whl", hash = "sha256:aa4d33c06640f5352aca96e4b81afd8ab3b47337cc12089822d6f322ac772c81"},
@@ -2166,8 +2181,8 @@ jupyterlab-pygments = [
     {file = "jupyterlab_pygments-0.1.2.tar.gz", hash = "sha256:cfcda0873626150932f438eccf0f8bf22bfa92345b814890ab360d666b254146"},
 ]
 jupyterlab-widgets = [
-    {file = "jupyterlab_widgets-1.0.2-py3-none-any.whl", hash = "sha256:f5d9efface8ec62941173ba1cffb2edd0ecddc801c11ae2931e30b50492eb8f7"},
-    {file = "jupyterlab_widgets-1.0.2.tar.gz", hash = "sha256:7885092b2b96bf189c3a705cc3c412a4472ec5e8382d0b47219a66cccae73cfa"},
+    {file = "jupyterlab_widgets-1.1.0-py3-none-any.whl", hash = "sha256:c2a9bd3789f120f64d73268c066ed3b000c56bc1dda217be5cdc43e7b4ebad3f"},
+    {file = "jupyterlab_widgets-1.1.0.tar.gz", hash = "sha256:d5f41bc1713795385f718d44dcba47e1e1473c6289f28a95aa6b2c0782ee372a"},
 ]
 keyring = [
     {file = "keyring-12.0.2-py2.py3-none-any.whl", hash = "sha256:26edbe23dd0d79682b9c2cf825e58376fa87412ba4c94018edbbcabb7dcedfcf"},
@@ -2551,8 +2566,8 @@ python-dotenv = [
     {file = "python_dotenv-0.15.0-py2.py3-none-any.whl", hash = "sha256:0c8d1b80d1a1e91717ea7d526178e3882732420b03f08afea0406db6402e220e"},
 ]
 pytz = [
-    {file = "pytz-2021.1-py2.py3-none-any.whl", hash = "sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798"},
-    {file = "pytz-2021.1.tar.gz", hash = "sha256:83a4a90894bf38e243cf052c8b58f381bfe9a7a483f6a9cab140bc7f702ac4da"},
+    {file = "pytz-2022.1-py2.py3-none-any.whl", hash = "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"},
+    {file = "pytz-2022.1.tar.gz", hash = "sha256:1e760e2fe6a8163bc0b3d9a19c4f84342afa0a2affebfaa84b01b978a02ecaa7"},
 ]
 pytz-deprecation-shim = [
     {file = "pytz_deprecation_shim-0.1.0.post0-py2.py3-none-any.whl", hash = "sha256:8314c9692a636c8eb3bda879b9f119e350e93223ae83e70e80c31675a0fdc1a6"},
@@ -2922,8 +2937,8 @@ typing-extensions = [
     {file = "typing_extensions-3.10.0.0.tar.gz", hash = "sha256:50b6f157849174217d0656f99dc82fe932884fb250826c18350e159ec6cdf342"},
 ]
 tzdata = [
-    {file = "tzdata-2021.5-py2.py3-none-any.whl", hash = "sha256:3eee491e22ebfe1e5cfcc97a4137cd70f092ce59144d81f8924a844de05ba8f5"},
-    {file = "tzdata-2021.5.tar.gz", hash = "sha256:68dbe41afd01b867894bbdfd54fa03f468cfa4f0086bfb4adcd8de8f24f3ee21"},
+    {file = "tzdata-2022.1-py2.py3-none-any.whl", hash = "sha256:238e70234214138ed7b4e8a0fab0e5e13872edab3be586ab8198c407620e2ab9"},
+    {file = "tzdata-2022.1.tar.gz", hash = "sha256:8b536a8ec63dc0751342b3984193a3118f8fca2afe25752bb9b7fffd398552d3"},
 ]
 tzlocal = [
     {file = "tzlocal-4.1-py3-none-any.whl", hash = "sha256:28ba8d9fcb6c9a782d6e0078b4f6627af1ea26aeaa32b4eab5324abc7df4149f"},
@@ -2950,8 +2965,8 @@ werkzeug = [
     {file = "Werkzeug-1.0.1.tar.gz", hash = "sha256:6c80b1e5ad3665290ea39320b91e1be1e0d5f60652b964a3070216de83d2e47c"},
 ]
 widgetsnbextension = [
-    {file = "widgetsnbextension-3.5.2-py2.py3-none-any.whl", hash = "sha256:763a9fdc836d141fa080005a886d63f66f73d56dba1fb5961afc239c77708569"},
-    {file = "widgetsnbextension-3.5.2.tar.gz", hash = "sha256:e0731a60ba540cd19bbbefe771a9076dcd2dde90713a8f87f27f53f2d1db7727"},
+    {file = "widgetsnbextension-3.6.0-py2.py3-none-any.whl", hash = "sha256:4fd321cad39fdcf8a8e248a657202d42917ada8e8ed5dd3f60f073e0d54ceabd"},
+    {file = "widgetsnbextension-3.6.0.tar.gz", hash = "sha256:e84a7a9fcb9baf3d57106e184a7389a8f8eb935bf741a5eb9d60aa18cc029a80"},
 ]
 wrapt = [
     {file = "wrapt-1.12.1.tar.gz", hash = "sha256:b62ffa81fb85f4332a4f609cab4ac40709470da05643a082ec1eb88e6d9b97d7"},

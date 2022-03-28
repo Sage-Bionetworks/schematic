@@ -80,14 +80,7 @@ jobs:
       #     # run black in check mode
       #     # if files are not formatted correctly, the build will not go through
       #     black . --check
-      
-      #----------------------------------------------
-      #              Install GE   
-      #----------------------------------------------      
-      - name: Install Great Expectations
-        run: >
-          source .venv/bin/activate; 
-          pip install great_expectations;
+
       #----------------------------------------------
       #              run test suite   
       #----------------------------------------------

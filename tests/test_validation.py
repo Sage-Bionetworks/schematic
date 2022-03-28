@@ -62,32 +62,36 @@ class TestManifestValidation:
             row_num = 2,
             attribute_name = 'Check Num',
             invalid_entry = '6') in errors
+
         assert GenerateError.generate_type_error(
             val_rule ='num',
             row_num=3,
             attribute_name = 'Check Num', 
             invalid_entry = 'c') in errors
+
         assert GenerateError.generate_type_error(
             val_rule ='num',
             row_num =4,
-             attribute_name = 'Check Num', 
-             invalid_entry = '6.5') in errors
+            attribute_name = 'Check Num', 
+            invalid_entry = '6.5') in errors
 
         assert GenerateError.generate_type_error(
             val_rule ='int',
             row_num =2,
-             attribute_name = 'Check Int', 
-             invalid_entry = 7.0) in errors
+            attribute_name = 'Check Int', 
+            invalid_entry = 7.0) in errors
+
         assert GenerateError.generate_type_error(
             val_rule ='int',
             row_num =3,
-             attribute_name = 'Check Int', 
-             invalid_entry = 5.63) in errors
+            attribute_name = 'Check Int', 
+            invalid_entry = 5.63) in errors
+
         assert GenerateError.generate_type_error(
             val_rule ='int',
             row_num =4,
-             attribute_name = 'Check Int', 
-             invalid_entry = 2.0) in errors
+            attribute_name = 'Check Int', 
+            invalid_entry = 2.0) in errors
 
         assert GenerateError.generate_list_error(
             list_string='invalid list values',
@@ -124,7 +128,7 @@ class TestManifestValidation:
             row_num = '3',
             attribute_name='checkMatchatLeast',
             missing_entry = '7163',
-            manifest_ID = 'syn27600110',
+            missing_manifest_ID = 'syn27600110',
             ) in errors
         
         assert GenerateError.generate_cross_error(
