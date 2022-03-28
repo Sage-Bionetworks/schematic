@@ -290,7 +290,7 @@ class MetadataModel(object):
             dataset_id: Synapse ID of the dataset on Synapse containing the metadata manifest file.
             validate_component: Component from the schema.org schema based on which the manifest template has been generated.
         Returns:
-            Synapse ID: If both validation and association were successful.
+            Manifest ID: If both validation and association were successful.
         Exceptions:
             ValueError: When validate_component is provided, but it cannot be found in the schema.
             ValidationError: If validation against data model was not successful.
