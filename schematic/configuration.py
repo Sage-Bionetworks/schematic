@@ -61,7 +61,7 @@ class Configuration(object):
         )
         return self.load_config(schematic_config)
 
-    def load_config(self, config_path=None):
+    def load_config(self, config_path=None, asset_view=None):
         # If config_path is None, try loading from environment
         if config_path is None and "SCHEMATIC_CONFIG" in os.environ:
             return self.load_config_from_env()
@@ -77,9 +77,12 @@ class Configuration(object):
         config_path = os.path.abspath(config_path)
         self.DATA = self.load_yaml(config_path)
         self.CONFIG_PATH = config_path
+        # handle user input (for API endpoints)
+        if asset_view: 
+            self.DATA['synapse']['master_fileview'] = asset_view
+
         # Return self.DATA as a side-effect
         return self.DATA
-
     @property
     def CREDS_PATH(self):
         self._CREDS_PATH = self.DATA["definitions"]["creds_path"]
