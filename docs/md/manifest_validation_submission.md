@@ -7,3 +7,16 @@ The following command is a generic call to the programmatic interface for manife
 ### Run Example Command
 
 ```schematic model --config config.yml submit --manifest_path ~/path/to/patient_manifest.csv --dataset_id syn23643254 --validate_component Patient```
+
+### Hybrid Validation Rule Distribution
+As of Feb 25, 2022, the hybrid validation rules are as follows:
+
+    In-house Validation Rules:
+    list::regex
+    regex module
+    list
+    url
+
+    Great Expectations:
+    num
+    int/float/string
