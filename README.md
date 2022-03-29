@@ -7,6 +7,8 @@
   - [Installation Requirements](#installation-requirements)
   - [Installation guide for data curator app](#installation-guide-for-data-curator-app)
   - [Installation guide for developers/contributors](#installation-guide-for-developerscontributors)
+- [Other Contribution Guidelines](#other-contribution-guidelines)
+    - [Update readthedocs documentation](#update-readthedocs-documentation)
 - [Command Line Usage](#command-line-usage)
 - [Testing](#testing)
   - [Updating Synapse test resources](#updating-synapse-test-resources)
@@ -159,7 +161,18 @@ requires token-based authentication. As browser support that requires the token-
 token-based authentication and keep only service account authentication in the future. 
 
 # Other Contribution Guidelines
-### Reporting bugs or feature requests
+## Update readthedocs documentation
+1. `cd docs`
+2. Install poetry and activate a virtual environment by using `poetry shell`. You can then install `sphinx_click` by doing `poetry add sphinx_click`
+3. After making relevant changes, you could run the `make html` command to re-generate the `build` folder.
+4. Please contact the dev team to publish your updates
+
+*Other helpful resources*:
+
+1. [Getting started with Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
+2. [Installing Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
+
+## Reporting bugs or feature requests
 You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues) tab to **create bug and feature requests**. Providing enough details to the developers to verify and troubleshoot your issue is paramount:
 - **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
 - **Describe the exact steps which reproduce the problem** in as many details as possible.
