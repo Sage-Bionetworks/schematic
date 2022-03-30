@@ -33,9 +33,10 @@ from great_expectations.data_context.types.resource_identifiers import Expectati
 logger = logging.getLogger(__name__)
 
 class ValidateManifest(object):
-    def __init__(self, errors, manifest, sg, jsonSchema):
+    def __init__(self, errors, manifest, manifestPath, sg, jsonSchema):
         self.errors = errors
         self.manifest = manifest
+        self.manifestPath = manifestPath
         self.sg = sg
         self.jsonSchema = jsonSchema       
 
@@ -106,6 +107,9 @@ class ValidateManifest(object):
             "list": "list_validation",
             "matchAtLeastOne": "cross_validation",
             "matchExactlyOne": "cross_validation",
+            "recommended": "content_validation",
+            "protectAges": "content_validation",
+            "unique": "content_validation",
         }
 
         type_dict={
@@ -116,7 +120,6 @@ class ValidateManifest(object):
 
         unimplemented_expectations=[
             "url",
-            #"regexList",
             "list",
             "regex.*",
             "matchAtLeastOne.*",
@@ -130,7 +133,9 @@ class ValidateManifest(object):
             sg=sg,
             unimplemented_expectations=unimplemented_expectations,
             manifest = manifest,
+            manifestPath = self.manifestPath,
             )
+
         ge_helpers.build_context()
         ge_helpers.build_expectation_suite()
         ge_helpers.build_checkpoint()
@@ -146,20 +151,26 @@ class ValidateManifest(object):
             },
             result_format={'result_format': 'COMPLETE'},
         )        
+        
+        
+        # initialize error and warning handling lists.
+        errors = []   
+        warnings = [] 
+        
         #print(results)       
         #results.list_validation_results()
-
-        errors = []  # initialize error handling 2list. 
-
-          
         validation_results = results.list_validation_results()
         
+
         #parse validation results dict and generate errors
-        errors = ge_helpers.generate_errors(
+        errors, warnings, manifest = ge_helpers.generate_errors(
             errors = errors,
+            warnings = warnings,
             validation_results = validation_results,
-            validation_types = validation_types
+            validation_types = validation_types,
             )                              
+
+        self.manifest = manifest
 
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
@@ -185,7 +196,7 @@ class ValidateManifest(object):
                         validation_method = getattr(
                             ValidateAttribute, validation_types["list"]
                         )
-                        vr_errors, manifest_col = validation_method(
+                        vr_errors, vr_warnings, manifest_col = validation_method(
                             self, validation_rules[0], manifest[col]
                         )
                         manifest[col] = manifest_col
@@ -199,10 +210,14 @@ class ValidateManifest(object):
                             validation_method = getattr(
                                 ValidateAttribute, validation_types[second_type]
                             )
-                            vr_errors.append(
-                                validation_method(
+                            second_error, second_warning = validation_method(
                                     self, validation_rules[1], manifest[col]
-                                )
+                            )
+                            vr_errors.append(
+                                second_error
+                            )
+                            vr_warnings.append(
+                                second_warning
                             )
                 # Check for edge case that user has entered more than 2 rules,
                 # throw an error if they have.
@@ -218,26 +233,28 @@ class ValidateManifest(object):
                         ValidateAttribute, validation_types[validation_type]
                     )
                     if validation_type == "list":
-                        vr_errors, manifest_col = validation_method(
+                        vr_errors, vr_warnings, manifest_col = validation_method(
                             self, validation_rules[0], manifest[col]
                         )
                         manifest[col] = manifest_col
                     else:
-                        vr_errors = validation_method(
+                        vr_errors, vr_warnings = validation_method(
                             self, validation_rules[0], manifest[col]
                         )
                 # Check for validation rule errors and add them to other errors.
                 if vr_errors:
                     errors.extend(vr_errors)
-        return manifest, errors
+                if vr_warnings:
+                    warnings.extend(vr_warnings)
+        return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema):
         
         errors = []
+        warnings = []
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
-
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
                 errorRow = i + 2
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema"
@@ -245,16 +262,21 @@ class ValidateManifest(object):
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
                 errors.append([errorRow, errorCol, errorMsg, errorVal])
-        return errors
+        return errors, warnings
 
 
-def validate_all(self, errors, manifest, sg, jsonSchema):
-    vm = ValidateManifest(errors, manifest, sg, jsonSchema)
-    manifest, vmr_errors = vm.validate_manifest_rules(manifest, sg)
+def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema):
+    vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema)
+    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg)
     if vmr_errors:
         errors.extend(vmr_errors)
+    if vmr_warnings:
+        warnings.extend(vmr_warnings)
 
-    vmv_errors = vm.validate_manifest_values(manifest, jsonSchema)
+    vmv_errors, vmv_warnings = vm.validate_manifest_values(manifest, jsonSchema)
     if vmv_errors:
         errors.extend(vmv_errors)
-    return errors, manifest
+    if vmv_warnings:
+        warnings.extend(vmv_warnings)
+
+    return errors, warnings, manifest

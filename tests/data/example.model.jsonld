@@ -2484,6 +2484,9 @@
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
+                    "@id": "bts:Component"
+                },
+                {
                     "@id": "bts:CheckList"
                 },
                 {
@@ -2514,7 +2517,13 @@
                     "@id": "bts:CheckMatchExactly"
                 },
                 {
-                    "@id": "bts:Component"
+                    "@id": "bts:CheckRecommended"
+                },
+                {
+                    "@id": "bts:CheckAges"
+                },
+                {
+                    "@id": "bts:CheckUnique"
                 }
             ],
             "sms:validationRules": []
@@ -2534,11 +2543,6 @@
             },
             "sms:displayName": "Check List",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "list"
             ]
@@ -2558,11 +2562,6 @@
             },
             "sms:displayName": "Check Regex List",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "list",
                 "regex match [a-f]"
@@ -2583,11 +2582,6 @@
             },
             "sms:displayName": "Check Regex Single",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "regex search [a-f]"
             ]
@@ -2607,11 +2601,6 @@
             },
             "sms:displayName": "Check Num",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "num"
             ]
@@ -2631,11 +2620,6 @@
             },
             "sms:displayName": "Check Float",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "float"
             ]
@@ -2655,11 +2639,6 @@
             },
             "sms:displayName": "Check Int",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "int"
             ]
@@ -2679,11 +2658,6 @@
             },
             "sms:displayName": "Check String",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "str"
             ]
@@ -2703,11 +2677,6 @@
             },
             "sms:displayName": "Check URL",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "url"
             ]
@@ -2727,11 +2696,6 @@
             },
             "sms:displayName": "Check Match at Least",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID"
             ]
@@ -2751,13 +2715,65 @@
             },
             "sms:displayName": "Check Match Exactly",
             "sms:required": "sms:false",
-            "sms:requiresComponent": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
             "sms:validationRules": [
                 "matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
+            ]
+        },
+        {
+            "@id": "bts:CheckRecommended",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRecommended",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Recommended",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "recommended"
+            ]
+        },
+        {
+            "@id": "bts:CheckAges",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckAges",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Ages",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "protectAges"
+            ]
+        },
+        {
+            "@id": "bts:CheckUnique",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckUnique",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Unique",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "unique error"
             ]
         },
         {

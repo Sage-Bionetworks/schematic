@@ -6,6 +6,7 @@ import pandas as pd
 import re
 import networkx as nx
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
+from os.path import exists
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -207,6 +208,7 @@ class MetadataModel(object):
             )
 
         errors = []
+        warnings = []
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = pd.read_csv(
@@ -247,9 +249,8 @@ class MetadataModel(object):
 
             return errors
 
-        errors, manifest = validate_all(self, errors, manifest, self.sg, jsonSchema)
-
-        return errors
+        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema)
+        return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
         """Populate an existing annotations manifest based on a dataframe.
@@ -315,19 +316,25 @@ class MetadataModel(object):
                 )
 
             # automatic JSON schema generation and validation with that JSON schema
-            val_errors = self.validateModelManifest(
+            val_errors, val_warnings = self.validateModelManifest(
                 manifestPath=manifest_path, rootNode=validate_component
             )
 
+            censored_maniefst_path=manifest_path.replace('.csv','_censored.csv')
             # if there are no errors in validation process
-            if not val_errors:
+            if val_errors == [[]]:
 
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
-                syn_store.associateMetadataWithFiles(
-                    metadataManifestPath=manifest_path, datasetId=dataset_id, hideBlanks=hide_blanks,
-                )
+                if exists(censored_maniefst_path):
+                    syn_store.associateMetadataWithFiles(
+                        metadataManifestPath=censored_maniefst_path, datasetId=dataset_id, hideBlanks=hide_blanks,
+                    )
+                else:
+                    syn_store.associateMetadataWithFiles(
+                        metadataManifestPath=manifest_path, datasetId=dataset_id, hideBlanks=hide_blanks,
+                    )
 
-                logger.info(f"No validation errors occured during validation.")
+                logger.info(f"No validation errors ocured during validation.")
                 return True
             else:
                 raise ValidationError(
@@ -336,12 +343,20 @@ class MetadataModel(object):
                 )
 
         # no need to perform validation, just submit/associate the metadata manifest file
-        syn_store.associateMetadataWithFiles(
+        if exists(censored_maniefst_path):
+            syn_store.associateMetadataWithFiles(
+            metadataManifestPath=censored_maniefst_path,
+            datasetId=dataset_id,
+            useSchemaLabel=use_schema_label,
+            hideBlanks=hide_blanks,
+            )
+        else:
+            syn_store.associateMetadataWithFiles(
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
-        )
+            )
 
         logger.debug(
             "Optional validation was not performed on manifest before association."

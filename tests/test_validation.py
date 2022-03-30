@@ -7,10 +7,18 @@ from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.models.validate_manifest import validate_all
 from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
+from schematic.schemas.generator import SchemaGenerator
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+@pytest.fixture
+def sg(helpers):
+
+    inputModelLocation = helpers.get_data_path('example.model.jsonld')
+    sg = SchemaGenerator(inputModelLocation)
+
+    yield sg
 
 class TestManifestValidation:
     def test_valid_manifest(self,helpers):
@@ -23,31 +31,32 @@ class TestManifestValidation:
             inputMModelLocationType = "local"
             )
 
-        errors = MetadataModel.validateModelManifest(
+        errors, warnings = MetadataModel.validateModelManifest(
             metadataModel,
             manifestPath=manifestPath,
             rootNode=rootNode)
         
-        for error in errors:
-            print(error)
         assert errors == [[]]
+        assert warnings ==  [[]]
 
 
-    def test_invalid_manifest(self,helpers):
+    def test_invalid_manifest(self,helpers,sg):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = 'MockComponent'
 
 
-        metadataModel= MetadataModel(
+        metadataModel = MetadataModel(
             inputMModelLocation =   helpers.get_data_path("example.model.jsonld"),
             inputMModelLocationType = "local"
             )
 
-        errors = MetadataModel.validateModelManifest(
+        errors, warnings = MetadataModel.validateModelManifest(
             metadataModel, 
             manifestPath=manifestPath,
             rootNode=rootNode)
 
+        
+        #Check errors
         assert GenerateError.generate_type_error(
             val_rule = 'num',
             row_num = 2,
@@ -121,14 +130,38 @@ class TestManifestValidation:
             missing_entry = '7163',
             missing_manifest_ID = 'syn27600110',
             ) in errors
-
+        
         assert GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
             matching_manifests = ['syn27600102', 'syn27648165']
             ) in errors
+        
+        assert GenerateError.generate_content_error(
+            val_rule = 'unique', 
+            attribute_name = 'Check Unique',
+            sg = sg,
+            row_num = [2,3,4],
+            error_val = ['str1'],  
+            )[1] in errors
 
-        assert len(errors) == 13
+        #check warnings
+        assert GenerateError.generate_content_error(
+            val_rule = 'recommended', 
+            attribute_name = 'Check Recommended',
+            sg = sg,
+            )[1] in warnings
+        
+        assert GenerateError.generate_content_error(
+            val_rule = 'protectAges error', 
+            attribute_name = 'Check Ages',
+            sg = sg,
+            row_num = [2,3],
+            error_val = [6549,32851] 
+            )[0] in warnings
+        
+
+        
         
 
 
