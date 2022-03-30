@@ -11,6 +11,7 @@ The following command is a generic call to the programmatic interface for manife
 ### Hybrid Validation Rule Distribution
 As of March 29, 2022, the hybrid validation rules are as follows:
 
+
     In-house Validation Rules:
     list::regex
     regex module
@@ -23,3 +24,4 @@ As of March 29, 2022, the hybrid validation rules are as follows:
     recommended
     protectAges
     unique
+
