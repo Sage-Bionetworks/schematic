@@ -145,15 +145,19 @@ class GreatExpectationsHelpers(object):
 
         #build expectation configurations for each expecation
         for col in self.manifest.columns:
-
-            # remove trailing/leading whitespaces from manifest
-            self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            rule = self.sg.get_node_validation_rules(col)[0]
-            
             args={}
             meta={}
-
-            #update to only do regex match
+            
+            # remove trailing/leading whitespaces from manifest
+            self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+            rule = self.sg.get_node_validation_rules(col)
+            #check if attribute has a rule associated with it
+            if rule:
+                rule = rule[0]
+            else:
+                continue
+            
+            #check if rule has an implemented expectation
             if re.match(self.unimplemented_expectations,rule):
                 continue
 
