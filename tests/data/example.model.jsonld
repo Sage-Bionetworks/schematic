@@ -2524,6 +2524,9 @@
                 },
                 {
                     "@id": "bts:CheckUnique"
+                },
+                {
+                    "@id": "bts:CheckRange"
                 }
             ],
             "sms:validationRules": []
@@ -2774,6 +2777,25 @@
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "unique error"
+            ]
+        },
+        {
+            "@id": "bts:CheckRange",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRange",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Range",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "inRange 50 100 error"
             ]
         },
         {
