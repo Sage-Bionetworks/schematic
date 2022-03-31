@@ -257,7 +257,7 @@ class GenerateError:
             return error_list, warning_list
         
         #log warning or error message
-        if val_rule.__contains__('recommended'):
+        if val_rule.startswith('recommended'):
             cross_error_str = (
                 f"Column {attribute_name} is recommended but empty."
             )
@@ -272,15 +272,20 @@ class GenerateError:
 
             return error_list, warning_list
 
-        elif val_rule.__contains__('unique'):    
+        elif val_rule.startswith('unique'):    
             cross_error_str = (
                 f"Column {attribute_name} has the duplicate value(s) {set(error_val)} in rows: {row_num}."
             )
 
-        elif val_rule.__contains__('protectAges'):
+        elif val_rule.startswith('protectAges'):
             cross_error_str = (
                 f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
-            )            
+            )           
+
+        elif val_rule.startswith('inRange'):
+            cross_error_str = (
+                f"{attribute_name} values in rows {row_num} are out of the specified range."
+            )  
 
         logLevel(cross_error_str)
         error_row = row_num 
