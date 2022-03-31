@@ -253,6 +253,12 @@ class ManifestGenerator(object):
 
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
+        
+        if self.sort.lower().startswith('a'):
+            values = sorted(values)
+        elif self.sort.lower().startswith('d'):
+            values = sorted(values, reverse = True)
+        
 
         if validation_type == "ONE_OF_RANGE":
 
