@@ -34,6 +34,7 @@ class ManifestGenerator(object):
         additional_metadata: Dict = None,
         oauth: bool = True,
         use_annotations: bool = False,
+        sort_valid_values: str = None,
     ) -> None:
 
         if oauth:
@@ -55,6 +56,9 @@ class ManifestGenerator(object):
 
         # schema root
         self.root = root
+
+        # sort valid values
+        self.sort = sort_valid_values
 
         # manifest title
         self.title = title
