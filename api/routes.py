@@ -228,3 +228,18 @@ def get_component_requirements(schema_url, source_component, as_graph):
 
     return req_components
 
+def download_manifest(input_token, dataset_id, asset_view):
+    # call config handler
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # download existing file
+    manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
+
+    #return local file path
+    manifest_local_file_path = manifest_data['path']
+    
+    return manifest_local_file_path
+

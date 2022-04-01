@@ -86,6 +86,45 @@ paths:
                 type: string
       tags:
         - Manifest Operations
+  /manifest/download:
+    get:
+      summary: Endpoint to download an existing manifest
+      description: Endpoint to download an existing manifest
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: dataset_id
+          schema:
+            type: string
+            nullable: true
+          description: >
+            Dataset ID. If you want to get an existing manifest, this dataset_id should be the parent ID of the manifest.
+          required: false
+      operationId: api.routes.download_manifest
+      responses:
+        "200":
+          description: A manifest get downloaded. 
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Manifest Operations
   /model/validate:
     post:
       summary: Endpoint to facilitate manifest validation
