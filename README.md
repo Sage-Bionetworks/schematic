@@ -163,9 +163,8 @@ token-based authentication and keep only service account authentication in the f
 # Other Contribution Guidelines
 ## Update readthedocs documentation
 1. `cd docs`
-2. Install poetry and activate a virtual environment by using `poetry shell`. You can then install `sphinx_click` by doing `poetry add sphinx_click`
-3. After making relevant changes, you could run the `make html` command to re-generate the `build` folder.
-4. Please contact the dev team to publish your updates
+2. After making relevant changes, you could run the `make html` command to re-generate the `build` folder.
+3. Please contact the dev team to publish your updates
 
 *Other helpful resources*:
 
