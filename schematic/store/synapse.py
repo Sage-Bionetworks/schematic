@@ -595,12 +595,8 @@ class SynapseStorage(BaseStorage):
             In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file.
             datasetId: synapse ID of folder containing the dataset
             useSchemaLabel: Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
-<<<<<<< HEAD
             manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
-
-=======
             hideBlanks: Default is false. Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
->>>>>>> fe54659b2ab8c7878956f0b1d4951ce0ed8041d5
         Returns:
             manifest_synapse_file_id: SynID of manifest csv uploaded to synapse.
 
