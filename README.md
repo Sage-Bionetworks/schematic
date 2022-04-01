@@ -171,6 +171,9 @@ token-based authentication and keep only service account authentication in the f
 1. [Getting started with Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
 2. [Installing Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
 
+## Update toml file and lock file
+If you install external libraries by using `poetry add <name of library>`, please make sure that you include `pyproject.toml` and `poetry.lock` file in your commit.
+
 ## Reporting bugs or feature requests
 You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues) tab to **create bug and feature requests**. Providing enough details to the developers to verify and troubleshoot your issue is paramount:
 - **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
