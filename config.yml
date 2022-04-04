@@ -8,7 +8,7 @@ definitions:
 synapse:
   master_fileview: 'syn23643253'
   manifest_folder: 'manifests'
-  manifest_filename: 'synapse_storage_manifest.csv'
+  manifest_basename: 'synapse_storage_manifest' 
   token_creds: 'syn23643259'
   service_acct_creds: 'syn25171627'
 
