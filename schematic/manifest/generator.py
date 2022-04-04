@@ -255,9 +255,9 @@ class ManifestGenerator(object):
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
         
         if self.alphabetize.lower().startswith('a'):
-            values = sorted(values)
+            values.sort(reverse=False)
         elif self.alphabetize.lower().startswith('d'):
-            values = sorted(values, reverse = True)
+            values.sort(reverse=True)
         
 
         if validation_type == "ONE_OF_RANGE":
