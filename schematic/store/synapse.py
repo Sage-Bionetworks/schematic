@@ -48,7 +48,7 @@ class SynapseStorage(BaseStorage):
         self,
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
-        input_token: str = None
+        input_token: str = None,
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -75,6 +75,7 @@ class SynapseStorage(BaseStorage):
             ).asDataFrame()
 
             self.manifest = CONFIG["synapse"]["manifest_filename"]
+        
         except KeyError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
         except AttributeError:
@@ -111,8 +112,10 @@ class SynapseStorage(BaseStorage):
             # login using synapse credentials provided by user in .synapseConfig (default) file
             syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
             syn.login(silent=True)
+            
+        return syn
 
-        return syn    
+
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
 
@@ -257,7 +260,7 @@ class SynapseStorage(BaseStorage):
             for filename in filenames:
 
                 if (not "manifest" in filename[0] and not fileNames) or (
-                    not fileNames == None and filename[0] in fileNames
+                    fileNames and filename[0] in fileNames
                 ):
 
                     # don't add manifest to list of files unless it is specified in the list of specified fileNames; return all found files
@@ -459,7 +462,7 @@ class SynapseStorage(BaseStorage):
             In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file.
             datasetId: synapse ID of folder containing the dataset
             useSchemaLabel: Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
-
+            hideBlanks: Default is false. Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
         Returns:
             Synapse Id of the uploaded manifest.
 

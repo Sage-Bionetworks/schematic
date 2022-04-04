@@ -15,6 +15,8 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 
+from schematic.store.synapse import SynapseStorage
+
 
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
@@ -24,17 +26,35 @@ from schematic.schemas.generator import SchemaGenerator
 #     pass
 
 
-def config_handler():
+def config_handler(asset_view=None):
     path_to_config = app.config["SCHEMATIC_CONFIG"]
 
     # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
     if os.path.isfile(path_to_config):
-        CONFIG.load_config(path_to_config)
+        CONFIG.load_config(path_to_config, asset_view = asset_view)
+
     else:
         raise FileNotFoundError(
             f"No configuration file was found at this path: {path_to_config}"
         )
 
+def csv_path_handler():
+    manifest_file = connexion.request.files["csv_file"]
+
+    # save contents of incoming manifest CSV file to temp file
+    temp_dir = tempfile.gettempdir()
+    # path to temp file where manifest file contents will be saved
+    temp_path = os.path.join(temp_dir, manifest_file.filename)
+    # save content
+    manifest_file.save(temp_path)
+
+    return temp_path
+def initalize_metadata_model(schema_url):
+    jsonld = get_temp_jsonld(schema_url)
+    metadata_model = MetadataModel(
+        inputMModelLocation=jsonld, inputMModelLocationType="local"
+    )
+    return metadata_model
 
 def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
@@ -47,9 +67,9 @@ def get_temp_jsonld(schema_url):
 
 
 # @before_request
-def get_manifest_route(schema_url, title, oauth, use_annotations):
+def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_id=None, asset_view = None):
     # call config_handler()
-    config_handler()
+    config_handler(asset_view = asset_view)
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
@@ -58,6 +78,7 @@ def get_manifest_route(schema_url, title, oauth, use_annotations):
     all_args = connexion.request.args
     args_dict = dict(all_args.lists())
     data_type = args_dict['data_type']
+
 
     def create_single_manifest(data_type):
         # create object of type ManifestGenerator
@@ -69,13 +90,10 @@ def get_manifest_route(schema_url, title, oauth, use_annotations):
             use_annotations=use_annotations,
         )
 
-        dataset_id = connexion.request.args["dataset_id"]
-        if dataset_id == 'None':
-            dataset_id = None
-
         result = manifest_generator.get_manifest(
             dataset_id=dataset_id, sheet_url=True,
         )
+               
         return result
 
     # Gather all returned result urls
@@ -104,14 +122,8 @@ def validate_manifest_route(schema_url, data_type):
     # call config_handler()
     config_handler()
 
-    manifest_file = connexion.request.files["csv_file"]
-
-    # save contents of incoming manifest CSV file to temp file
-    temp_dir = tempfile.gettempdir()
-    # path to temp file where manifest file contents will be saved
-    temp_path = os.path.join(temp_dir, manifest_file.filename)
-    # save content
-    manifest_file.save(temp_path)
+    #Get path to temp file where manifest file contents will be saved
+    temp_path = csv_path_handler()
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
@@ -131,31 +143,88 @@ def submit_manifest_route(schema_url):
     # call config_handler()
     config_handler()
 
-    manifest_file = connexion.request.files["csv_file"]
-
-    # save contents of incoming manifest CSV file to temp file
-    temp_dir = tempfile.gettempdir()
-    # path to temp file where manifest file contents will be saved
-    temp_path = os.path.join(temp_dir, manifest_file.filename)
-    # save content
-    manifest_file.save(temp_path)
-
-    # get path to temporary JSON-LD file
-    jsonld = get_temp_jsonld(schema_url)
+    # Get path to temp file where manifest file contents will be saved
+    temp_path = csv_path_handler()
 
     dataset_id = connexion.request.args["dataset_id"]
 
     data_type = connexion.request.args["data_type"]
 
+    metadata_model = initalize_metadata_model(schema_url)
+
     input_token = connexion.request.args["input_token"]
 
-    metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
-    )
-    
-    # return id of the manifest 
-    synapse_id = metadata_model.submit_metadata_manifest(
-        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type, input_token=input_token
-    )
+    if data_type == 'None':
+        manifest_id = metadata_model.submit_metadata_manifest(
+            manifest_path=temp_path, dataset_id=dataset_id, validate_component=None, input_token=input_token
+        )
+    else: 
+        manifest_id = metadata_model.submit_metadata_manifest(
+        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type, input_token=input_token)
 
-    return synapse_id
+    return manifest_id
+
+def populate_manifest_route(schema_url, title=None, data_type=None):
+    # call config_handler()
+    config_handler()
+
+    # get path to temporary JSON-LD file
+    jsonld = get_temp_jsonld(schema_url)
+
+    # Get path to temp file where manifest file contents will be saved
+    temp_path = csv_path_handler()
+   
+    #Initalize MetadataModel
+    metadata_model = MetadataModel(inputMModelLocation=jsonld, inputMModelLocationType='local')
+
+    #Call populateModelManifest class
+    populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type)
+
+    return populated_manifest_link
+
+
+def get_storage_projects(input_token, asset_view):
+    # call config handler 
+    config_handler(asset_view=asset_view)
+
+    # use Synapse storage 
+    store = SynapseStorage(input_token=input_token)
+
+    # call getStorageProjects function
+    lst_storage_projects = store.getStorageProjects()
+    
+    return lst_storage_projects
+
+def get_storage_projects_datasets(input_token, asset_view, project_id):
+    # call config handler
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # call getStorageDatasetsInProject function
+    sorted_dataset_lst = store.getStorageDatasetsInProject(projectId = project_id)
+    
+    return sorted_dataset_lst
+
+
+def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, file_names=None):
+    # call config handler
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # no file names were specified (file_names = [''])
+    if file_names and not all(file_names): 
+        file_names=None
+    
+    # call getFilesInStorageDataset function
+    file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
+    return file_lst
+def get_component_requirements(schema_url, source_component, as_graph):
+    metadata_model = initalize_metadata_model(schema_url)
+
+    req_components = metadata_model.get_component_requirements(source_component=source_component, as_graph = as_graph)
+
+    return req_components
