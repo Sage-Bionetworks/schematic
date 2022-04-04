@@ -320,14 +320,14 @@ class MetadataModel(object):
                 manifestPath=manifest_path, rootNode=validate_component
             )
 
-            censored_maniefst_path=manifest_path.replace('.csv','_censored.csv')
+            censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
             # if there are no errors in validation process
             if val_errors == [[]]:
 
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
-                if exists(censored_maniefst_path):
+                if exists(censored_manifest_path):
                     syn_store.associateMetadataWithFiles(
-                        metadataManifestPath=censored_maniefst_path, datasetId=dataset_id, hideBlanks=hide_blanks,
+                        metadataManifestPath=censored_manifest_path, datasetId=dataset_id, hideBlanks=hide_blanks,
                     )
                 else:
                     syn_store.associateMetadataWithFiles(
@@ -343,9 +343,9 @@ class MetadataModel(object):
                 )
 
         # no need to perform validation, just submit/associate the metadata manifest file
-        if exists(censored_maniefst_path):
+        if exists(censored_manifest_path):
             syn_store.associateMetadataWithFiles(
-            metadataManifestPath=censored_maniefst_path,
+            metadataManifestPath=censored_manifest_path,
             datasetId=dataset_id,
             useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
