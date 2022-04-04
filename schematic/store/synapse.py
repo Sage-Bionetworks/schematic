@@ -73,7 +73,6 @@ class SynapseStorage(BaseStorage):
         """
 
         self.syn = self.login(token, access_token, input_token)
-
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
 
@@ -95,7 +94,6 @@ class SynapseStorage(BaseStorage):
 
     @staticmethod
     def login(token=None, access_token=None, input_token=None):
-
         # If no token is provided, try retrieving access token from environment
         if not token and not access_token and not input_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
@@ -111,9 +109,12 @@ class SynapseStorage(BaseStorage):
         elif access_token:
             syn = synapseclient.Synapse()
             syn.default_headers["Authorization"] = f"Bearer {access_token}"
-        elif input_token:
-            syn = synapseclient.Synapse()
-            syn.default_headers["Authorization"] = f"Bearer {input_token}"
+        elif input_token: 
+            try: 
+                syn = synapseclient.Synapse()
+                syn.default_headers["Authorization"] = f"Bearer {input_token}"
+            except synapseclient.core.exceptions.SynapseHTTPError:
+                raise ValueError("No access to resources. Please make sure that your token is correct")
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
             syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
