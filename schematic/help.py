@@ -50,7 +50,8 @@ manifest_commands = {
                 "as a value for the `(model > input > validation_schema)` key."
             ),
             "alphabetize_valid_values": (
-                "Specify to alphabetize valid attribute values either ascending (a) or descending (d). Optional"
+                "Specify to alphabetize valid attribute values either ascending (a) or descending (d)." 
+                "Optional"
             ),
         },
     }
