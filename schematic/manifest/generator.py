@@ -34,7 +34,7 @@ class ManifestGenerator(object):
         additional_metadata: Dict = None,
         oauth: bool = True,
         use_annotations: bool = False,
-        sort_valid_values: str = None,
+        alphabetize_valid_values: str = None,
     ) -> None:
 
         if oauth:
@@ -57,8 +57,8 @@ class ManifestGenerator(object):
         # schema root
         self.root = root
 
-        # sort valid values
-        self.sort = sort_valid_values
+        # alphabetize valid values
+        self.alphabetize = alphabetize_valid_values
 
         # manifest title
         self.title = title
@@ -254,9 +254,9 @@ class ManifestGenerator(object):
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
         
-        if self.sort.lower().startswith('a'):
+        if self.alphabetize.lower().startswith('a'):
             values = sorted(values)
-        elif self.sort.lower().startswith('d'):
+        elif self.alphabetize.lower().startswith('d'):
             values = sorted(values, reverse = True)
         
 
