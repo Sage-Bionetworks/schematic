@@ -177,7 +177,7 @@ paths:
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
-          description: Manifest submitted. Synapse ID returned. 
+          description: Manifest ID (e.g. Synapse ID if your asset management platform is Synapse)
           content:
             application/json:
               schema:

@@ -339,7 +339,7 @@ class MetadataModel(object):
                 )
 
         # no need to perform validation, just submit/associate the metadata manifest file
-        syn_id = syn_store.associateMetadataWithFiles(
+        manifest_id = syn_store.associateMetadataWithFiles(
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             useSchemaLabel=use_schema_label,
@@ -350,4 +350,4 @@ class MetadataModel(object):
             "Optional validation was not performed on manifest before association."
         )
 
-        return syn_id
+        return manifest_id
