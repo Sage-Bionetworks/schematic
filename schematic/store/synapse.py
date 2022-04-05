@@ -487,7 +487,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_prefix):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_prefix, restrict):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
@@ -515,12 +515,12 @@ class SynapseStorage(BaseStorage):
 
         # Put manifest onto synapse
         schema = Schema(name=table_prefix + '_manifest_table', columns=col_schema, parent=datasetId)
-        table = self.syn.store(Table(schema, manifest))
+        table = self.syn.store(Table(schema, manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
 
         return manifest_table_id, manifest
 
-    def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId):
+    def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest):
         # Update manifest to have the new entityId column
         manifest.to_csv(metadataManifestPath, index=False)
 
@@ -530,8 +530,9 @@ class SynapseStorage(BaseStorage):
             description="Manifest for dataset " + datasetId,
             parent=datasetId,
         )
-        manifest_synapse_file_id = self.syn.store(manifestSynapseFile).id
-    
+
+        manifest_synapse_file_id = self.syn.store(manifestSynapseFile, isRestricted = restrict_manifest).id
+        
         return manifest_synapse_file_id
 
     def format_annotations(self, se, row, entityId, useSchemaLabel, hideBlanks):
@@ -581,7 +582,7 @@ class SynapseStorage(BaseStorage):
 
     def associateMetadataWithFiles(
         self, metadataManifestPath: str, datasetId: str, manifest_record_type: str, 
-        useSchemaLabel: bool = True, hideBlanks: bool = False,
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -653,7 +654,7 @@ class SynapseStorage(BaseStorage):
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, manifest['Component'][0].lower())
+                                                        se, manifest, datasetId, manifest['Component'][0].lower(), restrict = restrict_manifest)
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
@@ -681,7 +682,7 @@ class SynapseStorage(BaseStorage):
                 self.syn.set_annotations(annos)
         
         # Load manifest to synapse as a CSV File
-        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId)
+        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
         logger.info("Associated manifest file with dataset on Synapse.")
             
         if manifest_record_type == 'table' or manifest_record_type == 'both':

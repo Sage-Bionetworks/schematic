@@ -96,7 +96,7 @@ def submit_manifest(
     )
 
     try:
-        manifest_id = metadata_model.submit_metadata_manifest(
+        manifest_id, censored_manifest_id = metadata_model.submit_metadata_manifest(
             manifest_path=manifest_path,
             dataset_id=dataset_id,
             validate_component=validate_component,
@@ -105,7 +105,16 @@ def submit_manifest(
             hide_blanks=hide_blanks,
         )
 
-        if manifest_id:
+
+        if censored_manifest_id:
+            logger.info(
+                f"File at '{manifest_path}' was censored and successfully associated "
+                f"with dataset '{dataset_id}'. "
+                f"An uncensored version has also been associated with dataset '{dataset_id}' "
+                f"and submitted to the Synapse Access Control Team to begin the process "
+                f"of adding terms of use or review board approval."
+            )
+        elif manifest_id:
             logger.info(
                 f"File at '{manifest_path}' was successfully associated "
                 f"with dataset '{dataset_id}'."
