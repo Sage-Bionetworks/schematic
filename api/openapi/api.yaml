@@ -175,6 +175,13 @@ paths:
           description: Dataset SynID
           required: true
         - in: query
+          name: manifest_record_type
+          schema:
+            type: string
+            enum: [ "table", "entity", "both"]
+          description: Manifest storage type.
+          example: 'table'
+        - in: query
           name: input_token
           schema:
             type: string

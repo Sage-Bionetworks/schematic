@@ -150,6 +150,8 @@ def submit_manifest_route(schema_url):
 
     data_type = connexion.request.args["data_type"]
 
+    manifest_record_type = connexion.request.args["manifest_record_type"]
+
     metadata_model = initalize_metadata_model(schema_url)
 
     input_token = connexion.request.args["input_token"]

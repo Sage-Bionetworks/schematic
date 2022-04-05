@@ -278,6 +278,7 @@ class MetadataModel(object):
         self,
         manifest_path: str,
         dataset_id: str,
+        manifest_record_type: str,
         validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
@@ -321,13 +322,14 @@ class MetadataModel(object):
             val_errors = self.validateModelManifest(
                 manifestPath=manifest_path, rootNode=validate_component
             )
-
+            
             # if there are no errors in validation process
             if not val_errors:
 
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 manifest_id = syn_store.associateMetadataWithFiles(
-                    metadataManifestPath=manifest_path, datasetId=dataset_id, hideBlanks=hide_blanks,
+                    metadataManifestPath=manifest_path, datasetId=dataset_id, manifest_record_type=manifest_record_type,
+                    hideBlanks=hide_blanks,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
@@ -342,6 +344,7 @@ class MetadataModel(object):
         manifest_id = syn_store.associateMetadataWithFiles(
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
+            manifest_record_type=manifest_record_type,
             useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
         )
