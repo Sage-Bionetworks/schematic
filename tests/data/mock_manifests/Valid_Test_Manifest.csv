@@ -1,5 +1,5 @@
-﻿Check List,Check Regex List,Check Regex Single,Check Num,Check Float,Check Int,Check String,Check URL,Check Match at Least,Check Match Exactly,Check Recommended,Check Ages,Check Unique
-"valid,list,values","a,c,f",a,6,99.65,7,valid,https://www.google.com/,1738,8085,,6571,str1
-"valid,list,values","a,c,f",e,71,58.4,3,valid,https://www.google.com/,9965,9965,,6571,str2
-"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,8085,1738,present,32849,str3
-"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,79,7,,32849,str4
+Component,CheckList,CheckRegexList,CheckRegexSingle,CheckNum,CheckFloat,CheckInt,CheckString,CheckURL,CheckMatchatLeast,CheckMatchExactly,CheckRecommended,CheckAges,CheckUnique,Uuid,entityId
+MockComponent,"valid,list,values","a,c,f",a,6,99.65,7,valid,https://www.google.com/,1738,8085,,6571,str1,fd86c729-2b3d-489d-b92e-c3e4c6ca09f9,
+MockComponent,"valid,list,values","a,c,f",e,71,58.4,3,valid,https://www.google.com/,9965,9965,,6571,str2,f5ad5957-609a-474c-8f1c-ab3300d51e5c,
+MockComponent,"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,8085,1738,present,32849,str3,7a7b0a92-2c21-49be-b4ff-b118155ba318,
+MockComponent,"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,79,7,,32849,str4,818a401e-d6c2-4c30-bf25-ad1828eca6a2,
