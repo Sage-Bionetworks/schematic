@@ -301,7 +301,7 @@ class SynapseStorage(BaseStorage):
         # get a list of files containing the manifest for this dataset (if any)
         all_files = self.storageFileviewTable
 
-        manifest_re=re.compile(os.path.basename(self.manifest)+".*")
+        manifest_re=re.compile(os.path.basename(self.manifest)+".*.[tc]sv")
         manifest = all_files[
             (all_files['name'].str.contains(manifest_re,regex=True))
             & (all_files["parentId"] == datasetId)
