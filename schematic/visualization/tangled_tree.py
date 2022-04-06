@@ -556,7 +556,7 @@ class TangledTree(object):
                     topological_gen[base_layers[node]].remove(node)
         
         elif self.figure_type == 'dependency':
-            for key, i in base_layers_copy_copy.items():
+            for node, i in base_layers_copy_copy.items():
                 
                 # Check if the location of the node is more than the number of 
                 # layers topological gen current handles
@@ -668,7 +668,7 @@ class TangledTree(object):
         '''
         if save_file == True:
             if cn:
-                output_file_name = f"{self.schema_abbr}_{self.figure_type}_{comp}_tangled_tree.json"
+                output_file_name = f"{self.schema_abbr}_{self.figure_type}_{cn}_tangled_tree.json"
             else:
                 output_file_name = f"{self.schema_abbr}_{self.figure_type}_tangled_tree.json"
             with open(os.path.join(self.json_output_path, output_file_name), 'w') as outfile:
