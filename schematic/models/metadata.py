@@ -350,7 +350,7 @@ class MetadataModel(object):
                 )
 
                 logger.info(f"No validation errors ocured during validation.")
-                return manifest_id, censored_manifest_id
+                return manifest_id
                 
             else:
                 raise ValidationError(
@@ -382,4 +382,4 @@ class MetadataModel(object):
             "Optional validation was not performed on manifest before association."
         )
 
-        return manifest_id, censored_manifest_id
+        return manifest_id
