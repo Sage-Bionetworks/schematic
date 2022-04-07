@@ -2796,7 +2796,7 @@
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "int",
-                "unique"
+                "unique error"
             ]
         },
         {
