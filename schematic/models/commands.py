@@ -115,7 +115,7 @@ def submit_manifest(
                 f"of adding terms of use or review board approval."
             )
         '''
-        elif manifest_id:
+        if manifest_id:
             logger.info(
                 f"File at '{manifest_path}' was successfully associated "
                 f"with dataset '{dataset_id}'."
