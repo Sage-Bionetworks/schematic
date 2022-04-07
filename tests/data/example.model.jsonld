@@ -2524,6 +2524,9 @@
                 },
                 {
                     "@id": "bts:CheckUnique"
+                },
+                {
+                    "@id": "bts:CheckMultiple"
                 }
             ],
             "sms:validationRules": []
@@ -2774,6 +2777,26 @@
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "unique error"
+            ]
+        },
+        {
+            "@id": "bts:CheckMultiple",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckMultiple",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Multiple",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "int",
+                "unique"
             ]
         },
         {

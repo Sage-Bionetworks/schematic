@@ -1,5 +1,5 @@
-Component,CheckList,CheckRegexList,CheckRegexSingle,CheckNum,CheckFloat,CheckInt,CheckString,CheckURL,CheckMatchatLeast,CheckMatchExactly,CheckRecommended,CheckAges,CheckUnique
-MockComponent,"valid,list,values","a,c,f",a,6,99.65,7,valid,https://www.google.com/,1738,8085,,6571,str1
-MockComponent,"valid,list,values","a,c,f",e,71,58.4,3,valid,https://www.google.com/,9965,9965,,6571,str2
-MockComponent,"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,8085,1738,present,32849,str3
-MockComponent,"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,79,7,,32849,str4
+Check Multiple,CheckList,CheckRegexList,CheckRegexSingle,CheckNum,CheckFloat,CheckInt,CheckString,CheckURL,CheckMatchatLeast,CheckMatchExactly,CheckRecommended,CheckAges,CheckUnique,Component
+91,"valid,list,values","a,c,f",a,6,99.65,7,valid,https://www.google.com/,1738,8085,,6571,str1,MockComponent
+65,"valid,list,values","a,c,f",e,71,58.4,3,valid,https://www.google.com/,9965,9965,,6571,str2,MockComponent
+42,"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,8085,1738,present,32849,str3,MockComponent
+11,"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,79,7,,32849,str4,MockComponent
