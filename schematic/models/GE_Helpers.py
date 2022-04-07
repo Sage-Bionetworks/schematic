@@ -150,12 +150,12 @@ class GreatExpectationsHelpers(object):
             
             # remove trailing/leading whitespaces from manifest
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            all_rules = self.sg.get_node_validation_rules(col)
+            validation_rules = self.sg.get_node_validation_rules(col)
 
             #check if attribute has any rules associated with it
-            if all_rules:
+            if validation_rules:
                 #iterate through all validation rules for an attribute
-                for rule in all_rules:
+                for rule in validation_rules:
                     
             
                     #check if rule has an implemented expectation
