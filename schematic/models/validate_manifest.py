@@ -177,9 +177,7 @@ class ValidateManifest(object):
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
-            print(validation_rules)
-            #check if list and regex and in right format
-            
+
             for rule in validation_rules:
                 validation_type = rule.split(" ")[0]
                 if re.match(unimplemented_expectations,rule):

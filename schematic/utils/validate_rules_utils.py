@@ -131,6 +131,21 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     Single Rules:
         Additional arg
     '''
+    complementary_rules = {
+        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
+        "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
+        "regex": ['list','unique'],
+        "url": ['matchAtLeastOne','matchExactlyOne'],
+        "matchAtLeastOne": ['int','float','num','str','list','url'],
+        "matchExactlyOne": ['int','float','num','str','list','url'],
+        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne'],
+        "protectAges": ['int','float','num','recommended'],
+        "unique": ['int','float','num','str','regex'],
+        "inRange": ['int','float','num'],
+    }
      
     # Specify all the validation types and whether they currently
     # allow users to pass additional arguments (when used on their own), and if there is
