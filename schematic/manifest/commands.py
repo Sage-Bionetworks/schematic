@@ -121,7 +121,7 @@ def get_manifest(
         allow_none=True,
     )
 
-    def create_single_manifest(data_type):
+    def create_single_manifest(data_type, output_csv=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -171,6 +171,6 @@ def get_manifest(
                 t = f'{title}.{dt}.manifest'
             else:
                 t = title
-            result = create_single_manifest(data_type = dt)
+            result = create_single_manifest(data_type = dt, output_csv=output_csv)
 
     return result

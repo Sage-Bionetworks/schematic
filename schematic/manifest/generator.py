@@ -1220,26 +1220,28 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, json_schema_filepath=None):
+    def get_empty_manifest(self, json_schema_filepath=None, sheet_url=True):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
             json_schema_filepath (str): path to json schema file
+            sheet_url (bool): determine if a Googlesheet URL or pandas dataframe should be return.
         Returns:
-            manifest_url (str): url of the google sheet manifest.
+            Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
-
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
         json_schema = self._get_json_schema(json_schema_filepath)
 
         required_metadata_fields = self._gather_all_fields(
             json_schema["properties"].keys(), json_schema
         )
-
-        manifest_url = self._create_empty_gs(
+        if sheet_url:
+            result = self._create_empty_gs(
             required_metadata_fields, json_schema, spreadsheet_id
         )
-        return manifest_url
+        else:
+            result = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in required_metadata_fields.items() ]))
+        return result
 
 
     def set_dataframe_by_url(
@@ -1425,7 +1427,7 @@ class ManifestGenerator(object):
 
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            return self.get_empty_manifest(json_schema_filepath=json_schema)
+            return self.get_empty_manifest(json_schema_filepath=json_schema, sheet_url=sheet_url)
 
         # Otherwise, create manifest using the given dataset
         #TODO: avoid explicitly exposing Synapse store functionality
