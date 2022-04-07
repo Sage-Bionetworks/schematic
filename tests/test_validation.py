@@ -39,8 +39,8 @@ class TestManifestValidation:
             rootNode=rootNode
             )
         
-        assert errors == [[]]
-        assert warnings ==  [[]]
+        assert errors == []
+        assert warnings ==  []
 
 
     def test_invalid_manifest(self,helpers,sg,metadataModel):

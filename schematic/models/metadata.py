@@ -330,7 +330,7 @@ class MetadataModel(object):
             
 
             # if there are no errors in validation process
-            if val_errors == [[]]:                
+            if val_errors == []:                
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if exists(censored_manifest_path):
                     censored_manifest_id = syn_store.associateMetadataWithFiles(
