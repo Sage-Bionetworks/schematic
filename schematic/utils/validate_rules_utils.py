@@ -150,7 +150,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     # Specify all the validation types and whether they currently
     # allow users to pass additional arguments (when used on their own), and if there is
     # a set number of arguments required.
-    
+    '''Temporary
     errors = []
 
     num_validation_rules = len(validation_rules)
@@ -174,7 +174,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
                 if ':' in second_type[-1]:
                     errors.append(get_error(validation_rules, attribute,
                         error_type = 'delimiter', input_filetype=input_filetype))
-                else:
+                else:2
                     errors.append(get_error(validation_rules, attribute,
                         error_type = 'second_rule', input_filetype=input_filetype))
                 
@@ -194,5 +194,5 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
                         f"for attribute {attribute}. "
                         f"Validation failed with the following errors: {errors}"
                     )
-    
+    '''
     return 
