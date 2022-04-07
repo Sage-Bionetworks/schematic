@@ -5,7 +5,7 @@ info:
   description: >-
     This service exposes core functionalities from schematic as REST API
     endpoints
-
+    
 servers:
   - url: /v1
 
@@ -82,6 +82,45 @@ paths:
           description: Googlesheet link created
           content:
             application/json:
+              schema:
+                type: string
+      tags:
+        - Manifest Operations
+  /manifest/download:
+    get:
+      summary: Endpoint to download an existing manifest
+      description: Endpoint to download an existing manifest
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn28559058
+          required: true
+        - in: query
+          name: dataset_id
+          schema:
+            type: string
+            nullable: true
+          description: this dataset_id should be the parent ID of the manifest.
+          example: syn28268700
+          required: true
+      operationId: api.routes.download_manifest
+      responses:
+        "200":
+          description: A manifest gets downloaded and local file path of the manifest gets returned.
+          content:
+            text/csv:
               schema:
                 type: string
       tags:
@@ -174,14 +213,28 @@ paths:
             nullable: true
           description: Dataset SynID
           required: true
+        - in: query
+          name: manifest_record_type
+          schema:
+            type: string
+            enum: [ "table", "entity", "both"]
+          description: Manifest storage type.
+          example: 'table'
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          required: true
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
-          description: Manifest submitted
+          description: Manifest ID (e.g. Synapse ID if your asset management platform is Synapse)
           content:
             application/json:
               schema:
-                type: boolean
+                type: string
         "500":
           description: Check schematic log
       tags:

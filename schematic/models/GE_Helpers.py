@@ -521,7 +521,7 @@ class GreatExpectationsHelpers(object):
                             self.censor_ages(content_warnings,errColumn)
                             pass
 
-        return errors, warnings, self.manifest
+        return errors, warnings
 
     def get_age_limits(
         self,

@@ -164,14 +164,12 @@ class ValidateManifest(object):
         
 
         #parse validation results dict and generate errors
-        errors, warnings, manifest = ge_helpers.generate_errors(
+        errors, warnings = ge_helpers.generate_errors(
             errors = errors,
             warnings = warnings,
             validation_results = validation_results,
             validation_types = validation_types,
             )                              
-
-        self.manifest = manifest
 
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest

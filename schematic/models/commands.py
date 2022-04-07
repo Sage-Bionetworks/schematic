@@ -75,9 +75,14 @@ def model(ctx, config):  # use as `schematic model ...`
     is_flag=True,
     help=query_dict(model_commands,("model","submit","hide_blanks")),
 )
+@click.option(
+    "--manifest_record_type",
+    "-mrt",
+    default='table',
+    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, use_schema_label, hide_blanks
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -91,15 +96,26 @@ def submit_manifest(
     )
 
     try:
-        success = metadata_model.submit_metadata_manifest(
+        manifest_id = metadata_model.submit_metadata_manifest(
             manifest_path=manifest_path,
             dataset_id=dataset_id,
             validate_component=validate_component,
+            manifest_record_type=manifest_record_type,
             use_schema_label=use_schema_label,
             hide_blanks=hide_blanks,
         )
 
-        if success:
+        '''
+        if censored_manifest_id:
+            logger.info(
+                f"File at '{manifest_path}' was censored and successfully associated "
+                f"with dataset '{dataset_id}'. "
+                f"An uncensored version has also been associated with dataset '{dataset_id}' "
+                f"and submitted to the Synapse Access Control Team to begin the process "
+                f"of adding terms of use or review board approval."
+            )
+        '''
+        elif manifest_id:
             logger.info(
                 f"File at '{manifest_path}' was successfully associated "
                 f"with dataset '{dataset_id}'."
