@@ -133,6 +133,7 @@ class GreatExpectationsHelpers(object):
             "recommended": "expect_column_values_to_not_match_regex_list",
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
+            "inRange": "expect_column_values_to_be_between",
         }
         
         #create blank expectation suite

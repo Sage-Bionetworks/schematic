@@ -110,6 +110,7 @@ class ValidateManifest(object):
             "recommended": "content_validation",
             "protectAges": "content_validation",
             "unique": "content_validation",
+            "inRange": "content_validation",
         }
 
         type_dict={

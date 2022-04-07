@@ -88,6 +88,7 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
             "recommended": {'arguments':(False, None)},
             "protectAges": {'arguments':(True, 1)},
             "unique": {'arguments':(True, 1)},
+            "inRange": {'arguments':(True, 3)},
             }
     validation_rule_with_args = [
                 val_rule.strip() for val_rule in validation_rules.strip().split(" ")]
