@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-
+import re
 import synapseclient
 import synapseutils
 
@@ -81,7 +81,7 @@ class SynapseStorage(BaseStorage):
                 "SELECT * FROM " + self.storageFileview
             ).asDataFrame()
 
-            self.manifest = CONFIG["synapse"]["manifest_filename"]
+            self.manifest = CONFIG["synapse"]["manifest_basename"]
         
         except KeyError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
@@ -300,10 +300,13 @@ class SynapseStorage(BaseStorage):
 
         # get a list of files containing the manifest for this dataset (if any)
         all_files = self.storageFileviewTable
+
+        manifest_re=re.compile(os.path.basename(self.manifest)+".*.[tc]sv")
         manifest = all_files[
-            (all_files["name"] == os.path.basename(self.manifest))
+            (all_files['name'].str.contains(manifest_re,regex=True))
             & (all_files["parentId"] == datasetId)
         ]
+
         manifest = manifest[["id", "name"]]
 
         # if there is no pre-exisiting manifest in the specified dataset
