@@ -303,6 +303,8 @@ class MetadataModel(object):
         # the store type
         syn_store = SynapseStorage(input_token=input_token)
         manifest_id=None
+        censored_manifest_id=None
+        restrict_maniest=False
 
         # check if user wants to perform validation or not
         if validate_component is not None:
@@ -325,27 +327,31 @@ class MetadataModel(object):
             )
 
             censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
-            # if there are no errors in validation process
-            if val_errors == [[]]:
+            
 
+            # if there are no errors in validation process
+            if val_errors == [[]]:                
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if exists(censored_manifest_path):
-                    manifest_id = syn_store.associateMetadataWithFiles(
+                    censored_manifest_id = syn_store.associateMetadataWithFiles(
                         metadataManifestPath = censored_manifest_path,
                         datasetId = dataset_id, 
                         manifest_record_type = manifest_record_type,
                         hideBlanks = hide_blanks,
                     )
-                else:
-                    manifest_id = syn_store.associateMetadataWithFiles(
-                        metadataManifestPath = manifest_path, 
-                        datasetId = dataset_id, 
-                        manifest_record_type = manifest_record_type, 
-                        hideBlanks = hide_blanks,
-                    )
+                    restrict_maniest = True
+                
+                manifest_id = syn_store.associateMetadataWithFiles(
+                    metadataManifestPath = manifest_path, 
+                    datasetId = dataset_id, 
+                    manifest_record_type = manifest_record_type, 
+                    hideBlanks = hide_blanks,
+                    restrict_manifest=restrict_maniest,
+                )
 
                 logger.info(f"No validation errors ocured during validation.")
                 return manifest_id
+                
             else:
                 raise ValidationError(
                     "Manifest could not be validated under provided data model. "
@@ -354,21 +360,23 @@ class MetadataModel(object):
 
         # no need to perform validation, just submit/associate the metadata manifest file
         if exists(censored_manifest_path):
-            manifest_id = syn_store.associateMetadataWithFiles(
-            metadataManifestPath=censored_manifest_path,
-            datasetId=dataset_id,
-            manifest_record_type=manifest_record_type,
-            useSchemaLabel=use_schema_label,
-            hideBlanks=hide_blanks,
+            censored_manifest_id = syn_store.associateMetadataWithFiles(
+                metadataManifestPath=censored_manifest_path,
+                datasetId=dataset_id,
+                manifest_record_type=manifest_record_type,
+                useSchemaLabel=use_schema_label,
+                hideBlanks=hide_blanks,
             )
-        else:
-            manifest_id = syn_store.associateMetadataWithFiles(
+            restrict_maniest = True
+        
+        manifest_id = syn_store.associateMetadataWithFiles(
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
             useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
-            )
+            restrict_manifest=restrict_maniest,
+        )
 
         logger.debug(
             "Optional validation was not performed on manifest before association."
