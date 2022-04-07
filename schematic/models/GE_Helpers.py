@@ -133,6 +133,7 @@ class GreatExpectationsHelpers(object):
             "recommended": "expect_column_values_to_not_match_regex_list",
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
+            "inRange": "expect_column_values_to_be_between",
         }
         
         #create blank expectation suite
@@ -312,6 +313,18 @@ class GreatExpectationsHelpers(object):
                 }
             elif rule.startswith("unique"):
                 args["mostly"]=1.0
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
+            
+            elif rule.startswith("inRange"):
+                args["mostly"]=1.0
+                args["min_value"]=float(rule.split(" ")[1])
+                args["max_value"]=float(rule.split(" ")[2])
                 meta={
                     "notes": {
                         "format": "markdown",

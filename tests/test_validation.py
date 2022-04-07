@@ -151,6 +151,14 @@ class TestManifestValidation:
             error_val = ['str1'],  
             )[0] in errors
 
+        assert GenerateError.generate_content_error(
+            val_rule = 'inRange 50 100 error', 
+            attribute_name = 'Check Range',
+            sg = sg,
+            row_num = [3],
+            error_val = [30], 
+            )[0] in errors
+
         #check warnings
         assert GenerateError.generate_content_error(
             val_rule = 'recommended', 
@@ -163,7 +171,7 @@ class TestManifestValidation:
             attribute_name = 'Check Ages',
             sg = sg,
             row_num = [2,3],
-            error_val = [6549,32851] 
+            error_val = [6549,32851], 
             )[1] in warnings
         
 
