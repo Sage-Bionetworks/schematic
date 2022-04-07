@@ -180,14 +180,6 @@ class ValidateManifest(object):
             print(validation_rules)
             #check if list and regex and in right format
             
-            if 'list' in validation_rules and list(filter(regex_re.search,validation_rules)):
-                if not validation_rules[0] == "list":
-                    errors.append(
-                        self.get_multiple_types_error(
-                            validation_rules, col, error_type="list_not_first"
-                        )
-                    )
-
             for rule in validation_rules:
                 validation_type = rule.split(" ")[0]
                 if re.match(unimplemented_expectations,rule):
