@@ -311,6 +311,18 @@ class GreatExpectationsHelpers(object):
                             },
                             "validation_rule": rule
                         }
+
+                    elif rule.startswith("inRange"):
+                        args["mostly"]=1.0
+                        args["min_value"]=float(rule.split(" ")[1])
+                        args["max_value"]=float(rule.split(" ")[2])
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
                                         
                     #add expectation for attribute to suite        
                     if not rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
