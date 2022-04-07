@@ -150,18 +150,21 @@ def submit_manifest_route(schema_url):
 
     data_type = connexion.request.args["data_type"]
 
+    manifest_record_type = connexion.request.args["manifest_record_type"]
+
     metadata_model = initalize_metadata_model(schema_url)
 
-    success = metadata_model.submit_metadata_manifest(
-        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type,
-    )
+    input_token = connexion.request.args["input_token"]
 
     if data_type == 'None':
-        success = metadata_model.submit_metadata_manifest(
-            manifest_path=temp_path, dataset_id=dataset_id, validate_component=None,
+        manifest_id = metadata_model.submit_metadata_manifest(
+            manifest_path=temp_path, dataset_id=dataset_id, validate_component=None, input_token=input_token
         )
+    else: 
+        manifest_id = metadata_model.submit_metadata_manifest(
+        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type, input_token=input_token)
 
-    return success
+    return manifest_id
 
 def populate_manifest_route(schema_url, title=None, data_type=None):
     # call config_handler()
@@ -242,4 +245,3 @@ def download_manifest(input_token, dataset_id, asset_view):
     manifest_local_file_path = manifest_data['path']
     
     return manifest_local_file_path
-

@@ -5,7 +5,7 @@ info:
   description: >-
     This service exposes core functionalities from schematic as REST API
     endpoints
-
+    
 servers:
   - url: /v1
 
@@ -213,14 +213,28 @@ paths:
             nullable: true
           description: Dataset SynID
           required: true
+        - in: query
+          name: manifest_record_type
+          schema:
+            type: string
+            enum: [ "table", "entity", "both"]
+          description: Manifest storage type.
+          example: 'table'
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          required: true
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
-          description: Manifest submitted
+          description: Manifest ID (e.g. Synapse ID if your asset management platform is Synapse)
           content:
             application/json:
               schema:
-                type: boolean
+                type: string
         "500":
           description: Check schematic log
       tags:
