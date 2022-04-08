@@ -7,6 +7,10 @@ import pytest
 import json 
 from urllib.parse import urlencode
 from werkzeug.datastructures import FileStorage
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def app():
