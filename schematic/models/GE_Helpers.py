@@ -121,13 +121,13 @@ class GreatExpectationsHelpers(object):
             
         """
         validation_expectation = {
+            "list": "expect_column_values_to_match_regex_list",
             "int": "expect_column_values_to_be_of_type",
             "float": "expect_column_values_to_be_of_type",
             "str": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
             "regex": "expect_column_values_to_match_regex",
             "url": "expect_column_values_to_be_valid_urls",
-            "list": "expect_column_values_to_follow_rule",
             "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
             "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
             "recommended": "expect_column_values_to_not_match_regex_list",
@@ -170,9 +170,18 @@ class GreatExpectationsHelpers(object):
 
                         
                     #Validate list
-                    if rule=='list':  #currently unused
+                    if rule=='list':                          
+                        if 'int' in validation_rules: #Look for comma separated digits
+                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))']
+                        elif 'float' in validation_rules: #Look for comma separated digits that have a decimal and at least one digit after
+                            args["regex_list"]=['((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
+                        elif 'num' in validation_rules: #Look for comma separated ints or floats
+                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))','((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
+                        else: #Just list rule: look for comma separated anything
+                            args["regex_list"]=['((.+\,+)+((.+\,?)+))']
+
                         args["mostly"]=1.0
-                        args["type_"]="list"
+                        args["match_on"]='any'
                         meta={
                             "notes": {
                                 "format": "markdown",
@@ -324,8 +333,8 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
                                         
-                    #add expectation for attribute to suite        
-                    if not rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
+                    #add expectation for attribute to suite    
+                    if not rule.startswith("matchAtLeastOne" or "matchExactlyOne"):    
                         self.add_expectation(
                             rule=rule,
                             args=args,
@@ -333,8 +342,9 @@ class GreatExpectationsHelpers(object):
                             validation_expectation=validation_expectation,
                         )
     
-        #print(self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name))
+        
         self.context.save_expectation_suite(expectation_suite=self.suite, expectation_suite_name=expectation_suite_name)
+        #print(self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name))
 
         suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=expectation_suite_name)
         self.context.build_data_docs(resource_identifiers=[suite_identifier])
@@ -477,7 +487,20 @@ class GreatExpectationsHelpers(object):
                                 attribute_name = errColumn,
                                 invalid_entry = value,
                             )
-                        )                                      
+                        )          
+                
+                elif validation_types[rule.split(" ")[0]]=='list_validation':
+                    for row, value in zip(indices,values):   
+                        errors.append(
+                            GenerateError.generate_list_error(
+                                list_string = value,
+                                row_num = str(row+2),
+                                attribute_name = errColumn,
+                                list_error="not_comma_delimited",
+                                invalid_entry = value,
+                            )
+                        )  
+                
                 elif validation_types[rule.split(" ")[0]]=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
 
@@ -492,8 +515,7 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                             )
                         )    
-                elif validation_types[rule.split(" ")[0]]=='content_validation':
-                    
+                elif validation_types[rule.split(" ")[0]]=='content_validation':     
                     content_errors, content_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,
