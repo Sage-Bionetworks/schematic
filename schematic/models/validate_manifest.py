@@ -121,7 +121,6 @@ class ValidateManifest(object):
 
         unimplemented_expectations=[
             "url",
-            "list",
             "regex.*",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
