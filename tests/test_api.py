@@ -6,6 +6,7 @@ from api import create_app
 import pytest
 import json 
 from urllib.parse import urlencode
+from werkzeug.datastructures import FileStorage
 
 @pytest.fixture
 def app():
@@ -36,54 +37,67 @@ def populate_manifest_url_response(params):
 
     return url
 
-def get_request_url(client, url):
+def get_response(client, url):
     response = client.get(url)
-    json_obj = json.loads(response.data)
-    return json_obj
+    status_code = response.status_code
+    result = json.loads(response.data)
+    return status_code, result
 
-def post_request_url(client, url, files):
-    response = client.post(url, data=files, headers={"Content-Type": "multipart/form-data"})
-    json_obj = json.loads(response.data)
-    return json_obj
+def post_request_url(client, url, content):
+    response = client.post(url, data={"csv_file":content}, content_type="multipart/form-data")
+    status_code = response.status_code
+    result = json.loads(response.data)
+    return status_code, result
 
 def upload_biospecimen_file():
-    files = {'upload_file': open('tests/data/mock_manifests/biospecimen_manifest.csv','rb')}
-    return files
+    biospecimen_manifest = FileStorage(
+        stream=open('tests/data/mock_manifests/biospecimen_manifest.csv', 'rb'),
+        filename="biospecimen_manifest.csv",
+        content_type="text/csv",
+    )
+    return biospecimen_manifest
 
-# def test_generate_manifest(construct_basic_params, client):
-#     # call response
-#     construct_basic_params['oauth'] = True
-#     requested_url=generate_manifest_url_response(construct_basic_params)
+def test_generate_manifest(construct_basic_params, client):
+    # construct url 
+    construct_basic_params['oauth'] = True
 
-#     # get json object of response
-#     json_obj = get_request_url(client, requested_url)
-
-#     # count the number of url in the response
-#     assert len(json_obj)==1
-
-# def test_generate_manifest_with_dataset_assetview(client, construct_basic_params):
-#     # add new params
-#     construct_basic_params["dataset_id"] = "syn28268700"
-#     construct_basic_params["asset_view"] = "syn28559058"
-#     construct_basic_params['oauth'] = True
-    
-#     # call response
-#     requested_url=generate_manifest_url_response(construct_basic_params)
-
-#     # get json object of response
-#     json_obj = get_request_url(client, requested_url)
-
-#     # count the number of url in the response
-#     assert len(json_obj)==1
-
-def test_populate_manifest(client, construct_basic_params):
-    # call response
-    files = upload_biospecimen_file()
-    requested_url=populate_manifest_url_response(construct_basic_params)
+    # make api request
+    requested_url=generate_manifest_url_response(construct_basic_params)
 
     # get json object of response
-    json_obj = post_request_url(client, requested_url, files)
+    status_code, json_obj = get_response(client, requested_url)
 
-    #print('post result', json_obj)
-
+    # count the number of url in the response and see status code
+    assert status_code == 200
     assert len(json_obj)==1
+
+def test_generate_manifest_with_dataset_assetview(client, construct_basic_params):
+    # add new params 
+    construct_basic_params["dataset_id"] = "syn28268700"
+    construct_basic_params["asset_view"] = "syn28559058"
+    construct_basic_params['oauth'] = True
+    
+    # make api request 
+    requested_url=generate_manifest_url_response(construct_basic_params)
+
+    # get json object of response
+    status_code, json_obj = get_response(client, requested_url)
+
+    # count the number of url in the response
+    assert status_code == 200
+    assert len(json_obj)==1
+
+
+def test_populate_manifest(client, construct_basic_params):
+    # convert csv file to byte
+    files = upload_biospecimen_file()
+
+    # make api request
+    requested_url=populate_manifest_url_response(construct_basic_params)
+
+    # make post request    
+    status_code, google_sheet_url = post_request_url(client, requested_url, files)
+
+    assert status_code == 200
+    assert isinstance(google_sheet_url, str)
+    assert google_sheet_url != ''
