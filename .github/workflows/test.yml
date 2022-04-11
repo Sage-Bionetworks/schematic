@@ -87,12 +87,10 @@ jobs:
       - name: Create and populate credentials.file
         env:
           SCHEMATIC_SERVICE_ACCT_CREDS: ${{ secrets.SCHEMATIC_SERVICE_ACCT_CREDS }}
-          SCHEMATIC_CREDS_JSON: ${{ secrets.SCHEMATIC_CREDS_JSON }}
+          SCHEMATIC_TOKEN_PICKLE: ${{ secrets.SCHEMATIC_TOKEN_PICKLE }}
         run: |
-          echo "credential json is here: ${SCHEMATIC_CREDS_JSON}"
-          echo "service account json is here: ${SCHEMATIC_SERVICE_ACCT_CREDS}"
           echo "${{ secrets.SCHEMATIC_SERVICE_ACCT_CREDS }}" > schematic_service_account_creds.json
-          echo "${{ secrets.SCHEMATIC_TOKEN_PICKLE }}" > token.pickle
+          echo "$SCHEMATIC_TOKEN_PICKLE" | base64 -d > token.pickle
 
 
       
