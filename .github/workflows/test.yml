@@ -86,7 +86,8 @@ jobs:
       #----------------------------------------------
       - name: Create and populate credentials.file
         run: >
-          echo "${{ secrets.SCHEMATIC_CREDS_PATH }}" > credentials.json
+          echo "${{ secrets.SCHEMATIC_SERVICE_ACCT_CREDS }}" > schematic_service_account_creds.json
+          echo "${{ secrets.SCHEMATIC_TOKEN_PICKLE }}" > token.pickle
 
 
       
