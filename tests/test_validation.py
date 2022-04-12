@@ -136,7 +136,15 @@ class TestManifestValidation:
             missing_entry = '7163',
             missing_manifest_ID = 'syn27600110',
             ) in errors
-        
+
+        assert GenerateError.generate_cross_error(
+            val_rule = 'matchAtLeastOne',
+            row_num = '3',
+            attribute_name='checkMatchatLeast',
+            missing_entry = '7163',
+            missing_manifest_ID = 'syn29381803',
+            ) in errors
+
         assert GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
