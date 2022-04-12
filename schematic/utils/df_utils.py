@@ -8,10 +8,8 @@ logger = logging.getLogger(__name__)
 
 def load_df(file_path, **kwargs):
 
-    if 'model' in file_path:
-        df = pd.read_csv(file_path, **kwargs)
-    else:
-        df = pd.read_csv(file_path, **kwargs).fillna("")
+    df = pd.read_csv(file_path, **kwargs)
+    df = trim_commas_df(df)
 
     return df
 
@@ -107,4 +105,5 @@ def trim_commas_df(df: pd.DataFrame):
 
     # remove all completely empty rows
     df = df.dropna(how="all", axis=0)
+    df.fillna("", inplace=True)
     return df

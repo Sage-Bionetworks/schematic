@@ -213,9 +213,6 @@ class MetadataModel(object):
         manifest = load_df(
             manifestPath
         )  # read manifest csv file as is from manifest path
-        manifest = trim_commas_df(manifest).fillna(
-            ""
-        )  # apply cleaning logic as part of pre-processing step
 
         # handler for mismatched components/data types
         # throw TypeError if the value(s) in the "Component" column differ from the selected template type
