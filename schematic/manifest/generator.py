@@ -14,7 +14,7 @@ from schematic.utils.google_api_utils import (
     execute_google_api_requests,
     build_service_account_creds,
 )
-from schematic.utils.df_utils import update_df
+from schematic.utils.df_utils import update_df, load_df
 
 #TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
@@ -1492,7 +1492,7 @@ class ManifestGenerator(object):
         """
 
         # read existing manifest
-        manifest = pd.read_csv(existing_manifest_path).fillna("")
+        manifest = load_df(existing_manifest_path)
 
         manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
 

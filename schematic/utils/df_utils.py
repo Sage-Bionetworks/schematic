@@ -6,6 +6,15 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
+def load_df(file_path, **kwargs):
+
+    if 'model' in file_path:
+       df = pd.read_csv(file_path, **kwargs)
+    else:
+        df = pd.read_csv(file_path, **kwargs).fillna("")
+
+    return df
+
 def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
 
     """
