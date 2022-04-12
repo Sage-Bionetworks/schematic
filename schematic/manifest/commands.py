@@ -77,6 +77,11 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "output_csv")),
 )
 @click.option(
+    "-o",
+    "--output_xlsx",
+    help=query_dict(manifest_commands, ("manifest", "get", "output_xlsx")),
+)
+@click.option(
     "-a",
     "--use_annotations",
     is_flag=True,
@@ -105,6 +110,7 @@ def get_manifest(
     use_annotations,
     oauth,
     json_schema,
+    output_xlsx
 ):
     """
     Running CLI with manifest generation options.
@@ -121,7 +127,7 @@ def get_manifest(
         allow_none=True,
     )
 
-    def create_single_manifest(data_type, output_csv=None):
+    def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -141,18 +147,29 @@ def get_manifest(
             click.echo(result)
 
         elif isinstance(result, pd.DataFrame):
-            if output_csv is None:
+            # if output_csv and output_xlsx are not specified (i.e. schematic manifest --config config.yml), this would download a CSV (with a standard filename)
+            if output_csv is None and output_xlsx is None:
                 prefix, _ = os.path.splitext(jsonld)
                 prefix_root, prefix_ext = os.path.splitext(prefix)
                 if prefix_ext == ".model":
                     prefix = prefix_root
                 output_csv = f"{prefix}.{data_type}.manifest.csv"
-
-            logger.info(
+                logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
-
-            result.to_csv(output_csv, index=False)
+                result.to_csv(output_csv, index=False)
+            
+            # if output_xlsx is specified (i.e. schematic manifest --config config.yml --output_xlsx test.xlsx), this would return a manifest in EXCEL format
+            elif output_xlsx:
+                result.to_excel(output_xlsx)
+                logger.info(f"Find the manifest template using this Excel file path: {output_xlsx}")
+            
+            # if output_csv is specified (i.e. i.e. schematic manifest --config config.yml--output_csv test.csv) or any other conditions, this would return a manifest in CSV format
+            else:
+                logger.info(
+                f"Find the manifest template using this CSV file path: {output_csv}"
+            )
+                result.to_csv(output_csv, index=False)
         return result
 
     if type(data_type) is str:
@@ -171,6 +188,6 @@ def get_manifest(
                 t = f'{title}.{dt}.manifest'
             else:
                 t = title
-            result = create_single_manifest(data_type = dt, output_csv=output_csv)
+            result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
 
     return result
