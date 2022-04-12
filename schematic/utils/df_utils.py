@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 def load_df(file_path, **kwargs):
 
     df = pd.read_csv(file_path, **kwargs)
-    df = trim_commas_df(df)
+    if 'model' not in file_path:
+        df = trim_commas_df(df)
 
     return df
 
