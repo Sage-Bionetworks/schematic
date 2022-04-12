@@ -1,9 +1,26 @@
 # Release Process
+- Test usage of new features/bug-fixes (e.g. with CLI) locally from the develop branch
+- when the develop branch has a feature (or a number of features) that need a release,  create a “release PR” from develop into main 
+    - In the release PR link all PRs and/or issues that are included in the release 
+    - when the release PR is merged in main all commits related to PRs and issues in it will be added to the changelog on release
+- once merged into main, tag the latest commit - i.e. the merge commit - with a version number (as version number is defined below). To tag the latest commit, you could use the following command: 
+```
+git tag -a <Tag name> -m <commit message>
+```
+- push the tag to main branch: 
+```
+git push origin <Tag name>
+```
 
-Once the code has been merged into the `develop` branch on this repo, there are two processes that need to be completed to ensure a _release_ is complete.
+A GitHub workflow would get auto-triggered (see `.github/workflows/publish.yml`) to publish the package on PyPI (Schematic is on PyPI as [schematicpy](https://pypi.org/project/schematicpy/)) and test PyPI. You can also go through the following two sections to manually publish the package.
 
-- You should create a GitHub [tag](https://git-scm.com/book/en/v2/Git-Basics-Tagging), with the appropriate version number. Typically, from `v21.06` onwards all tags are created following the Linux Ubuntu versioning convention which is the `YY.MM` format where `Y` is the year and `M` is the month of that year when that release was created.
-- You should push the package to [PyPI](https://pypi.org/). Schematic is on PyPI as [schematicpy](https://pypi.org/project/schematicpy/). You can go through the following two sections for that.
+*Note*: If your tag does not fit into the format of `v*.*.*`, it would only get published to testPyPI. Before pushing to `main`, you could check your tag by using `git show <tag name>` For more information related to `git tag`, please check out [here](https://git-scm.com/book/en/v2/Git-Basics-Tagging)
+
+## Definition of version number
+vYY.MM.N
+* YY stands for year
+* MM stands for month
+* N is the Nth consecutive release in a month
 
 ## Release to Test PyPI _(optional)_
 
@@ -29,4 +46,4 @@ If the package looks great on Test PyPI and works well, the next step is to publ
 poetry publish  # publish the package to PyPI
 ```
 
-> You'll need to [register](https://pypi.org/account/register/) for a PyPI account before uploading packages to the package index. Similarly for [Test PyPI](https://test.pypi.org/account/register/) as well.
+> You'll need to [register](https://pypi.org/account/register/) for a PyPI account and get added as maintainer before uploading packages to the package index. Similarly for [Test PyPI](https://test.pypi.org/account/register/) as well. 
