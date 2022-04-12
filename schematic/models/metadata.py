@@ -306,7 +306,7 @@ class MetadataModel(object):
         manifest_id=None
         censored_manifest_id=None
         restrict_maniest=False
-
+        censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
         # check if user wants to perform validation or not
         if validate_component is not None:
 
@@ -326,9 +326,6 @@ class MetadataModel(object):
             val_errors, val_warnings = self.validateModelManifest(
                 manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules
             )
-
-            censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
-            
 
             # if there are no errors in validation process
             if val_errors == [[]]:                
