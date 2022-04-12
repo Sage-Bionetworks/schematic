@@ -80,9 +80,15 @@ def model(ctx, config):  # use as `schematic model ...`
     "-mrt",
     default='table',
     help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
+@click.option(
+    "-rr",
+    "--restrict_rules",
+    is_flag=True,
+    help=query_dict(model_commands,("model","validate","restrict_rules")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -101,6 +107,7 @@ def submit_manifest(
             dataset_id=dataset_id,
             validate_component=validate_component,
             manifest_record_type=manifest_record_type,
+            restrict_rules=restrict_rules,
             use_schema_label=use_schema_label,
             hide_blanks=hide_blanks,
         )
@@ -153,8 +160,14 @@ def submit_manifest(
     "--json_schema",
     help=query_dict(model_commands, ("model", "validate", "json_schema")),
 )
+@click.option(
+    "-rr",
+    "--restrict_rules",
+    is_flag=True,
+    help=query_dict(model_commands,("model","validate","restrict_rules")),
+)
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema):
+def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules):
     """
     Running CLI for manifest validation.
     """
@@ -176,7 +189,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema):
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema
+        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules,
     )
 
     if not errors:

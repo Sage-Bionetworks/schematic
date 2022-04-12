@@ -187,7 +187,7 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, jsonSchema: str = None
+        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, 
     ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
@@ -250,7 +250,7 @@ class MetadataModel(object):
 
             return errors
 
-        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema)
+        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules)
         return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
@@ -280,10 +280,11 @@ class MetadataModel(object):
         manifest_path: str,
         dataset_id: str,
         manifest_record_type: str,
+        restrict_rules: bool,
         validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
-        input_token: str = None
+        input_token: str = None,
     ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -323,7 +324,7 @@ class MetadataModel(object):
 
             # automatic JSON schema generation and validation with that JSON schema
             val_errors, val_warnings = self.validateModelManifest(
-                manifestPath=manifest_path, rootNode=validate_component
+                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules
             )
 
             censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
