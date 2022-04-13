@@ -1,7 +1,6 @@
 from io import StringIO
 import json
 import logging
-import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import os
@@ -26,8 +25,6 @@ from schematic.utils.io_utils import load_json
 logger = logging.getLogger(__name__)
 #OUTPUT_DATA_DIR = str(Path('tests/data/visualization/AMPAD').resolve())
 #DATA_DIR = str(Path('tests/data').resolve())
-
-# TODO: RENAME SOME VARIABLES: the whole component layers copy copy madness
 
 class TangledTree(object):
     """
