@@ -49,6 +49,10 @@ manifest_commands = {
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
             ),
+            "alphabetize_valid_values": (
+                "Specify to alphabetize valid attribute values either ascending (a) or descending (d)." 
+                "Optional"
+            ),
         },
     }
 }
