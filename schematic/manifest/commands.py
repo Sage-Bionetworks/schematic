@@ -151,7 +151,7 @@ def get_manifest(
             column_lst = result.columns.values.tolist()
             sorted_column = sorted(column_lst)
 
-            # if output_csv and output_xlsx are not specified (i.e. schematic manifest --config config.yml), this would download a CSV (with a standard filename)
+            # if output_csv and output_xlsx are not specified (i.e. schematic manifest --config config.yml get), this would download a CSV (with a standard filename)
             if output_csv is None and output_xlsx is None:
                 prefix, _ = os.path.splitext(jsonld)
                 prefix_root, prefix_ext = os.path.splitext(prefix)
