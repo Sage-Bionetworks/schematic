@@ -608,7 +608,9 @@ class SynapseStorage(BaseStorage):
 
             # Add component to metadata
             metadata['Component'] = component[0]
+        
         elif is_table:
+            # Get table metadata
             metadata = self.getTableAnnotations(manifest_synapse_id)
         
         # Get annotations
