@@ -161,7 +161,7 @@ def get_manifest(
             
             # if output_xlsx is specified (i.e. schematic manifest --config config.yml --output_xlsx test.xlsx), this would return a manifest in EXCEL format
             elif output_xlsx:
-                result.to_excel(output_xlsx)
+                result.to_excel(output_xlsx, index=False)
                 logger.info(f"Find the manifest template using this Excel file path: {output_xlsx}")
             
             # if output_csv is specified (i.e. i.e. schematic manifest --config config.yml--output_csv test.csv) or any other conditions, this would return a manifest in CSV format
