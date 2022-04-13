@@ -8,11 +8,18 @@ logger = logging.getLogger(__name__)
 
 def load_df(file_path, **kwargs):
 
-    df = pd.read_csv(file_path, **kwargs)
-    if 'model' not in file_path:
-        df = trim_commas_df(df)
 
-    return df
+    df = pd.read_csv(file_path, **kwargs)
+    df2=df.astype('object')
+
+    if 'model' not in file_path:
+        for col in df.columns:
+            df2[col]=pd.to_numeric(df2[col],errors='coerce')
+            df2[col].fillna(df[col][df2[col].isna()],inplace=True)
+        
+        df2 = trim_commas_df(df2)
+
+    return df2
 
 def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
 
