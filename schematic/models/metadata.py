@@ -347,7 +347,7 @@ class MetadataModel(object):
                     restrict_manifest=restrict_maniest,
                 )
 
-                logger.info(f"No validation errors ocured during validation.")
+                logger.info(f"No validation errors occured during validation.")
                 return manifest_id
                 
             else:
