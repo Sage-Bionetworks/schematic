@@ -147,6 +147,10 @@ def get_manifest(
             click.echo(result)
 
         elif isinstance(result, pd.DataFrame):
+            # sort the column names alphabetically
+            column_lst = result.columns.values.tolist()
+            sorted_column = sorted(column_lst)
+
             # if output_csv and output_xlsx are not specified (i.e. schematic manifest --config config.yml), this would download a CSV (with a standard filename)
             if output_csv is None and output_xlsx is None:
                 prefix, _ = os.path.splitext(jsonld)
@@ -157,11 +161,11 @@ def get_manifest(
                 logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
-                result.to_csv(output_csv, index=False)
+                result.to_csv(output_csv, index=False, columns=sorted_column)
             
             # if output_xlsx is specified (i.e. schematic manifest --config config.yml --output_xlsx test.xlsx), this would return a manifest in EXCEL format
             elif output_xlsx:
-                result.to_excel(output_xlsx, index=False)
+                result.to_excel(output_xlsx, index=False, columns=sorted_column)
                 logger.info(f"Find the manifest template using this Excel file path: {output_xlsx}")
             
             # if output_csv is specified (i.e. i.e. schematic manifest --config config.yml--output_csv test.csv) or any other conditions, this would return a manifest in CSV format
@@ -169,7 +173,7 @@ def get_manifest(
                 logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
-                result.to_csv(output_csv, index=False)
+                result.to_csv(output_csv, index=False, columns=sorted_column)
         return result
 
     if type(data_type) is str:
