@@ -416,7 +416,7 @@ class ValidateAttribute(object):
                 errors.append(
                     GenerateError.generate_list_error(
                         list_string,
-                        row_num=str(i+2),
+                        row_num=str(i + 2),
                         attribute_name=manifest_col.name,
                         list_error=list_error,
                         invalid_entry=manifest_col[i]
