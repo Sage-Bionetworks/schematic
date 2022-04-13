@@ -82,9 +82,9 @@ jobs:
       #     black . --check
 
       #----------------------------------------------
-      #              populate credentials file  
+      #          populate credentials
       #----------------------------------------------
-      - name: Create and populate credentials.file
+      - name: Create and populate credentials
         env:
           SCHEMATIC_SERVICE_ACCT_CREDS: ${{ secrets.SCHEMATIC_SERVICE_ACCT_CREDS }}
           SCHEMATIC_TOKEN_PICKLE: ${{ secrets.SCHEMATIC_TOKEN_PICKLE }}
