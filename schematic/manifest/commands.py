@@ -6,12 +6,17 @@ import click_log
 import logging
 import sys
 import pandas as pd
+import requests
 
 from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
+
+
+from schematic.utils.google_api_utils import build_service_account_creds
+
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -121,6 +126,30 @@ def get_manifest(
         allow_none=True,
     )
 
+    def export_manifest(file_name, manifest_url, output_excel=None):
+
+        # intialize drive service 
+        services_creds = build_service_account_creds()
+        drive_service = services_creds["drive_service"]
+
+        # set file output based on parameter
+        if output_excel:
+            DST_MIMETYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        else:
+            DST_MIMETYPE = 'text/csv'
+
+        # get spreadsheet id from url 
+        spreadsheet_id = manifest_url.split('/')[-1]
+
+        # use google sheet api 
+        data = drive_service.files().export(fileId=spreadsheet_id, mimeType=DST_MIMETYPE).execute()
+
+        # open file and write data
+        with open(file_name, 'wb') as f:
+            f.write(data)
+        f.close
+
+
     def create_single_manifest(data_type, output_csv=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -139,20 +168,17 @@ def get_manifest(
         if sheet_url:
             logger.info("Find the manifest template using this Google Sheet URL:")
             click.echo(result)
+        if output_csv is None: 
+            prefix, _ = os.path.splitext(jsonld)
+            prefix_root, prefix_ext = os.path.splitext(prefix)
+            if prefix_ext == ".model":
+                prefix = prefix_root
+            output_csv = f"{prefix}.{data_type}.manifest.csv"
 
-        elif isinstance(result, pd.DataFrame):
-            if output_csv is None:
-                prefix, _ = os.path.splitext(jsonld)
-                prefix_root, prefix_ext = os.path.splitext(prefix)
-                if prefix_ext == ".model":
-                    prefix = prefix_root
-                output_csv = f"{prefix}.{data_type}.manifest.csv"
-
-            logger.info(
+        export_manifest(file_name=output_csv, manifest_url=result)
+        logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
-
-            result.to_csv(output_csv, index=False)
         return result
 
     if type(data_type) is str:
