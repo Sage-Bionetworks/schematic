@@ -128,12 +128,6 @@ def get_manifest(
         allow_none=True,
     )
     def export_manifest(file_name, manifest_url, output_excel=None):
-        # check if file_name has an extension 
-        try:
-            file_extension = file_name.split('.')[-1]
-        except ValueError:
-            logger.info(f"{file_name} does not have a file extension. Please add file extension to your file name. For example, test.csv")
-
         # intialize drive service 
         services_creds = build_service_account_creds()
         drive_service = services_creds["drive_service"]
