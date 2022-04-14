@@ -122,6 +122,10 @@ class SynapseStorage(BaseStorage):
             
         return syn
 
+    def getStorageFileviewTable(self):
+        """ Returns the storageFileviewTable obtained during initialization.
+        """
+        return self.storageFileviewTable
 
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
