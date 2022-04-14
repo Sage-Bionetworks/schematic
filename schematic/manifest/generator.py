@@ -1227,7 +1227,7 @@ class ManifestGenerator(object):
             json_schema_filepath (str): path to json schema file
             sheet_url (bool): determine if a Googlesheet URL or pandas dataframe should be return.
         Returns:
-            Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
+            manifest_url (str): url of the google sheet manifest..
         """
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
         json_schema = self._get_json_schema(json_schema_filepath)
@@ -1237,12 +1237,6 @@ class ManifestGenerator(object):
         )
         result = self._create_empty_gs(
             required_metadata_fields, json_schema, spreadsheet_id)
-        # if sheet_url:
-        #     result = self._create_empty_gs(
-        #     required_metadata_fields, json_schema, spreadsheet_id
-        # )
-        #else:
-            # result = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in required_metadata_fields.items() ]))
         return result
 
 
@@ -1429,7 +1423,7 @@ class ManifestGenerator(object):
 
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            return self.get_empty_manifest(json_schema_filepath=json_schema, sheet_url=sheet_url)
+            return self.get_empty_manifest(json_schema_filepath=json_schema)
 
         # Otherwise, create manifest using the given dataset
         #TODO: avoid explicitly exposing Synapse store functionality
