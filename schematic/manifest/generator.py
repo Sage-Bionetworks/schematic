@@ -1220,7 +1220,7 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, json_schema_filepath=None, sheet_url=True):
+    def get_empty_manifest(self, json_schema_filepath=None):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
@@ -1235,12 +1235,8 @@ class ManifestGenerator(object):
         required_metadata_fields = self._gather_all_fields(
             json_schema["properties"].keys(), json_schema
         )
-        if sheet_url:
-            result = self._create_empty_gs(
-            required_metadata_fields, json_schema, spreadsheet_id
-        )
-        else:
-            result = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in required_metadata_fields.items() ]))
+        result = self._create_empty_gs(
+            required_metadata_fields, json_schema, spreadsheet_id)
         return result
 
 
@@ -1427,7 +1423,7 @@ class ManifestGenerator(object):
 
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            return self.get_empty_manifest(json_schema_filepath=json_schema, sheet_url=sheet_url)
+            return self.get_empty_manifest(json_schema_filepath=json_schema)
 
         # Otherwise, create manifest using the given dataset
         #TODO: avoid explicitly exposing Synapse store functionality

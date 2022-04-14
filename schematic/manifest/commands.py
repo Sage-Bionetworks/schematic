@@ -12,6 +12,7 @@ from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.google_api_utils import build_service_account_creds
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -126,12 +127,40 @@ def get_manifest(
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
+    def export_manifest(file_name, manifest_url, output_excel=None):
+        # check if file_name has an extension 
+        try:
+            file_extension = file_name.split('.')[-1]
+        except ValueError:
+            logger.info(f"{file_name} does not have a file extension. Please add file extension to your file name. For example, test.csv")
+
+        # intialize drive service 
+        services_creds = build_service_account_creds()
+        drive_service = services_creds["drive_service"]
+
+        # set file output based on parameter
+        if output_excel:
+            DST_MIMETYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        else:
+            DST_MIMETYPE = 'text/csv'
+
+        # get spreadsheet id from url 
+        spreadsheet_id = manifest_url.split('/')[-1]
+
+        # use google sheet api
+        # if successful, this method returns the file content as bytes
+        data = drive_service.files().export(fileId=spreadsheet_id, mimeType=DST_MIMETYPE).execute()
+
+        # open file and write data
+        with open(file_name, 'wb') as f:
+            f.write(data)
+        f.close
 
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
-            title=t,
+            title=title,
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
@@ -145,35 +174,22 @@ def get_manifest(
         if sheet_url:
             logger.info("Find the manifest template using this Google Sheet URL:")
             click.echo(result)
-
-        elif isinstance(result, pd.DataFrame):
-            # sort the column names alphabetically
-            column_lst = result.columns.values.tolist()
-            sorted_column = sorted(column_lst)
-
-            # if output_csv and output_xlsx are not specified (i.e. schematic manifest --config config.yml), this would download a CSV (with a standard filename)
-            if output_csv is None and output_xlsx is None:
-                prefix, _ = os.path.splitext(jsonld)
-                prefix_root, prefix_ext = os.path.splitext(prefix)
-                if prefix_ext == ".model":
-                    prefix = prefix_root
-                output_csv = f"{prefix}.{data_type}.manifest.csv"
-                logger.info(
+        if output_csv is None and output_xlsx is None: 
+            prefix, _ = os.path.splitext(jsonld)
+            prefix_root, prefix_ext = os.path.splitext(prefix)
+            if prefix_ext == ".model":
+                prefix = prefix_root
+            output_csv = f"{prefix}.{data_type}.manifest.csv"
+        elif output_xlsx:
+            export_manifest(file_name=output_xlsx, output_excel=True, manifest_url=result)
+            logger.info(
+                f"Find the manifest template using this Excel file path: {output_xlsx}"
+            )
+            return result
+        export_manifest(file_name=output_csv, manifest_url=result)
+        logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
-                result.to_csv(output_csv, index=False, columns=sorted_column)
-            
-            # if output_xlsx is specified (i.e. schematic manifest --config config.yml --output_xlsx test.xlsx), this would return a manifest in EXCEL format
-            elif output_xlsx:
-                result.to_excel(output_xlsx, index=False, columns=sorted_column)
-                logger.info(f"Find the manifest template using this Excel file path: {output_xlsx}")
-            
-            # if output_csv is specified (i.e. i.e. schematic manifest --config config.yml--output_csv test.csv) or any other conditions, this would return a manifest in CSV format
-            else:
-                logger.info(
-                f"Find the manifest template using this CSV file path: {output_csv}"
-            )
-                result.to_csv(output_csv, index=False, columns=sorted_column)
         return result
 
     if type(data_type) is str:

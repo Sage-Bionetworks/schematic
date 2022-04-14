@@ -154,3 +154,19 @@ def execute_google_api_requests(service, requests_body, **kwargs):
         )
 
         return response
+
+def export_manifest(output_excel, file_name, drive_service, manifest_url):
+    if output_excel:
+        DST_MIMETYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    else:
+        DST_MIMETYPE = 'text/csv'
+    
+    spreadsheet_id = manifest_url.split('/')[-1]
+
+    data = drive_service.files().export(fileId=spreadsheet_id, mimeType=DST_MIMETYPE).execute()
+
+    with open(file_name, 'wb') as f:
+        f.write(data)
+    f.close
+
+    
