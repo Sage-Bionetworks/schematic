@@ -1227,7 +1227,7 @@ class ManifestGenerator(object):
             json_schema_filepath (str): path to json schema file
             sheet_url (bool): determine if a Googlesheet URL or pandas dataframe should be return.
         Returns:
-            manifest_url (str): url of the google sheet manifest
+            manifest_url (str): url of the google sheet manifest.
         """
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
         json_schema = self._get_json_schema(json_schema_filepath)

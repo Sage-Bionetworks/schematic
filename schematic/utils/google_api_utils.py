@@ -154,4 +154,3 @@ def execute_google_api_requests(service, requests_body, **kwargs):
         )
 
         return response
-    
