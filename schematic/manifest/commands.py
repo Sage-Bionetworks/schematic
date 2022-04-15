@@ -127,28 +127,47 @@ def get_manifest(
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-    def export_manifest(file_name, manifest_url, output_excel=None):
+    def export_manifest_csv(file_name, manifest_url):
         # intialize drive service 
         services_creds = build_service_account_creds()
         drive_service = services_creds["drive_service"]
 
-        # set file output based on parameter
-        if output_excel:
-            DST_MIMETYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        else:
-            DST_MIMETYPE = 'text/csv'
-
         # get spreadsheet id from url 
         spreadsheet_id = manifest_url.split('/')[-1]
 
-        # use google sheet api
+        # use google drive
         # if successful, this method returns the file content as bytes
-        data = drive_service.files().export(fileId=spreadsheet_id, mimeType=DST_MIMETYPE).execute()
+        data = drive_service.files().export(fileId=spreadsheet_id, mimeType='text/csv').execute()
 
         # open file and write data
         with open(file_name, 'wb') as f:
             f.write(data)
         f.close
+
+    def export_manifest_excel(manifest_url, output_excel=None):
+        # intialize drive service 
+        services_creds = build_service_account_creds()
+        sheet_service = services_creds["sheet_service"]
+
+        # get spreadsheet id from url 
+        spreadsheet_id = manifest_url.split('/')[-1]
+
+        # use google sheet api
+        sheet_metadata = sheet_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+        sheets = sheet_metadata.get('sheets')
+
+        # export to Excel
+        writer = pd.ExcelWriter(output_excel)
+
+        # export each sheet in manifest
+        for sheet in sheets:
+            dataset = sheet_service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=sheet['properties']['title']).execute()
+            dataset_df = pd.DataFrame(dataset['values'])
+            dataset_df.columns = dataset_df.iloc[0]
+            dataset_df.drop(dataset_df.index[0], inplace=True)
+            dataset_df.to_excel(writer, sheet_name=sheet['properties']['title'], index=False)
+        writer.save()
+        writer.close()
 
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
@@ -175,12 +194,12 @@ def get_manifest(
                 prefix = prefix_root
             output_csv = f"{prefix}.{data_type}.manifest.csv"
         elif output_xlsx:
-            export_manifest(file_name=output_xlsx, output_excel=True, manifest_url=result)
+            export_manifest_excel(output_excel=output_xlsx, manifest_url=result)
             logger.info(
                 f"Find the manifest template using this Excel file path: {output_xlsx}"
             )
             return result
-        export_manifest(file_name=output_csv, manifest_url=result)
+        export_manifest_csv(file_name=output_csv, manifest_url=result)
         logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
