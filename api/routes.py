@@ -88,6 +88,7 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_id=Non
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
+            alphabetize_valid_values = 'ascending',
         )
 
         result = manifest_generator.get_manifest(
