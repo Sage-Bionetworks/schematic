@@ -29,7 +29,7 @@ class ManifestGenerator(object):
     def __init__(
         self,
         path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
-        alphabetize_valid_values: str,
+        alphabetize_valid_values: str = 'ascending',
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
