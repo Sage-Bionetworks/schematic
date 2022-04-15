@@ -1228,16 +1228,18 @@ class ManifestGenerator(object):
         Returns:
             manifest_url (str): url of the google sheet manifest.
         """
-        
+
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
         json_schema = self._get_json_schema(json_schema_filepath)
 
         required_metadata_fields = self._gather_all_fields(
             json_schema["properties"].keys(), json_schema
         )
-        result = self._create_empty_gs(
-            required_metadata_fields, json_schema, spreadsheet_id)
-        return result
+
+        manifest_url = self._create_empty_gs(
+            required_metadata_fields, json_schema, spreadsheet_id
+        )
+        return manifest_url
 
 
     def set_dataframe_by_url(

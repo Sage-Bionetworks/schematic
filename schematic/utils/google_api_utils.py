@@ -133,7 +133,6 @@ def download_creds_file(auth: str = "token") -> None:
 def execute_google_api_requests(service, requests_body, **kwargs):
     """
     Execute google API requests batch; attempt to execute in parallel.
-
     Args:
         service: google api service; for now assume google sheets service that is instantiated and authorized
         service_type: default batchUpdate; TODO: add logic for values update
