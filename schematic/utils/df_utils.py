@@ -34,12 +34,13 @@ def load_df(file_path, **kwargs):
             float_df[col]=pd.to_numeric(float_df[col], errors='coerce')
             float_df[col].fillna(org_df[col][float_df[col].isna()],inplace=True)
         
-        #Store values that were entered as ints
-        processed_df=float_df.mask(ints != False, other = ints)  
-        
         #Trim nans and empty rows and columns
-        processed_df = trim_commas_df(processed_df)
-
+        processed_df = trim_commas_df(float_df)
+        
+        #Store values that were entered as ints
+        processed_df=processed_df.mask(ints != False, other = ints)  
+        
+        
     return processed_df
 
 def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
