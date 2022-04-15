@@ -354,6 +354,8 @@ class SynapseStorage(BaseStorage):
         # get existing manifest Synapse ID
         manifest_id = self.getDatasetManifest(datasetId)
 
+        breakpoint()
+
         # if there is no manifest return None
         if not manifest_id:
             return None

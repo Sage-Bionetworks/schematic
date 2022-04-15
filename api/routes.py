@@ -78,7 +78,11 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
     all_args = connexion.request.args
     args_dict = dict(all_args.lists())
     data_type = args_dict['data_type']
-    dataset_ids = args_dict['dataset_id']
+    
+    try:
+        dataset_ids = args_dict['dataset_id']
+    except:
+        pass
     
     if dataset_ids:
         # Check that the number of submitted data_types matches
