@@ -96,7 +96,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
 @click.option(
     "-av",
     "--alphabetize_valid_values",
-    default = None,
+    default = 'ascending',
     help=query_dict(manifest_commands, ("manifest", "get", "alphabetize_valid_values")),
 )
 @click.pass_obj

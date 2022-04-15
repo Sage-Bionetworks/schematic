@@ -29,12 +29,12 @@ class ManifestGenerator(object):
     def __init__(
         self,
         path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
+        alphabetize_valid_values: str,
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
         oauth: bool = True,
         use_annotations: bool = False,
-        alphabetize_valid_values: str = None,
     ) -> None:
 
         if oauth:
@@ -254,9 +254,9 @@ class ManifestGenerator(object):
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
         
-        if self.alphabetize.lower().startswith('a'):
+        if self.alphabetize and self.alphabetize.lower().startswith('a'):
             values.sort(reverse=False)
-        elif self.alphabetize.lower().startswith('d'):
+        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
             values.sort(reverse=True)
         
 
