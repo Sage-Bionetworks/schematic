@@ -22,7 +22,7 @@ from schematic.schemas.generator import SchemaGenerator
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
-from schematic.utils.df_utils import trim_commas_df, load_df
+from schematic.utils.df_utils import load_df
 
 from schematic.models.validate_attribute import ValidateAttribute
 from schematic.models.validate_manifest import validate_all
