@@ -140,7 +140,7 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
                 t = f'{title}.{dt}.manifest'
             else:
                 t = title
-            breakpoint()
+
             if dataset_ids:
                 result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i])
             else:
