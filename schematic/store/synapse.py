@@ -34,7 +34,7 @@ import synapseutils
 
 import uuid
 
-from schematic.utils.df_utils import update_df
+from schematic.utils.df_utils import update_df, load_df
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
@@ -359,7 +359,7 @@ class SynapseStorage(BaseStorage):
             return None
 
         manifest_filepath = self.syn.get(manifest_id).path
-        manifest = pd.read_csv(manifest_filepath)
+        manifest = load_df(manifest_filepath)
 
         # get current list of files
         dataset_files = self.getFilesInStorageDataset(datasetId)
@@ -430,7 +430,7 @@ class SynapseStorage(BaseStorage):
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
 
-                manifest_df = pd.read_csv(manifest_path)
+                manifest_df = load_df(manifest_path)
 
                 if "Component" in manifest_df and not manifest_df["Component"].empty:
                     manifest_component = manifest_df["Component"][0]
@@ -472,7 +472,7 @@ class SynapseStorage(BaseStorage):
                 manifest_id = manifest_info["properties"]["id"]
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
-                manifest_df = pd.read_csv(manifest_path)
+                manifest_df = load_df(manifest_path)
                 manifest_table_id = upload_format_manifest_table(manifest, dataset_id, datasetName)
                 manifest_loaded.append(datasetName)
         return manifest_loaded
@@ -671,7 +671,7 @@ class SynapseStorage(BaseStorage):
 
         # read new manifest csv
         try:
-            manifest = pd.read_csv(metadataManifestPath)
+            manifest = load_df(metadataManifestPath)
         except FileNotFoundError as err:
             raise FileNotFoundError(
                 f"No manifest file was found at this path: {metadataManifestPath}"
