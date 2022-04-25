@@ -5,14 +5,13 @@ import click
 import click_log
 import logging
 import sys
-import pandas as pd
 
 from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.google_api_utils import build_service_account_creds
+from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -127,48 +126,6 @@ def get_manifest(
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-    def export_manifest_csv(file_name, manifest_url):
-        # intialize drive service 
-        services_creds = build_service_account_creds()
-        drive_service = services_creds["drive_service"]
-
-        # get spreadsheet id from url 
-        spreadsheet_id = manifest_url.split('/')[-1]
-
-        # use google drive
-        # if successful, this method returns the file content as bytes
-        data = drive_service.files().export(fileId=spreadsheet_id, mimeType='text/csv').execute()
-
-        # open file and write data
-        with open(file_name, 'wb') as f:
-            f.write(data)
-        f.close
-
-    def export_manifest_excel(manifest_url, output_excel=None):
-        # intialize drive service 
-        services_creds = build_service_account_creds()
-        sheet_service = services_creds["sheet_service"]
-
-        # get spreadsheet id from url 
-        spreadsheet_id = manifest_url.split('/')[-1]
-
-        # use google sheet api
-        sheet_metadata = sheet_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
-        sheets = sheet_metadata.get('sheets')
-
-        # export to Excel
-        writer = pd.ExcelWriter(output_excel)
-
-        # export each sheet in manifest
-        for sheet in sheets:
-            dataset = sheet_service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=sheet['properties']['title']).execute()
-            dataset_df = pd.DataFrame(dataset['values'])
-            dataset_df.columns = dataset_df.iloc[0]
-            dataset_df.drop(dataset_df.index[0], inplace=True)
-            dataset_df.to_excel(writer, sheet_name=sheet['properties']['title'], index=False)
-        writer.save()
-        writer.close()
-
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(

@@ -13,6 +13,7 @@ from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from schematic import CONFIG
 from schematic.store.synapse import SynapseStorage
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -153,3 +154,46 @@ def execute_google_api_requests(service, requests_body, **kwargs):
         )
 
         return response
+
+def export_manifest_csv(file_name, manifest_url):
+
+    # intialize drive service 
+    services_creds = build_service_account_creds()
+    drive_service = services_creds["drive_service"]
+
+    # get spreadsheet id from url 
+    spreadsheet_id = manifest_url.split('/')[-1]
+
+    # use google drive
+    # if successful, this method returns the file content as bytes
+    data = drive_service.files().export(fileId=spreadsheet_id, mimeType='text/csv').execute()
+
+    # open file and write data
+    with open(file_name, 'wb') as f:
+        f.write(data)
+    f.close
+    
+def export_manifest_excel(manifest_url, output_excel=None):
+    # intialize drive service 
+    services_creds = build_service_account_creds()
+    sheet_service = services_creds["sheet_service"]
+
+    # get spreadsheet id from url 
+    spreadsheet_id = manifest_url.split('/')[-1]
+
+    # use google sheet api
+    sheet_metadata = sheet_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    sheets = sheet_metadata.get('sheets')
+
+    # export to Excel
+    writer = pd.ExcelWriter(output_excel)
+
+    # export each sheet in manifest
+    for sheet in sheets:
+        dataset = sheet_service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=sheet['properties']['title']).execute()
+        dataset_df = pd.DataFrame(dataset['values'])
+        dataset_df.columns = dataset_df.iloc[0]
+        dataset_df.drop(dataset_df.index[0], inplace=True)
+        dataset_df.to_excel(writer, sheet_name=sheet['properties']['title'], index=False)
+    writer.save()
+    writer.close()   
