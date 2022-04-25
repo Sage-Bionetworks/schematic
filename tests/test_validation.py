@@ -39,6 +39,9 @@ class TestManifestValidation:
             rootNode=rootNode
             )
         
+        for error in errors:
+            print(error)
+
         assert errors == [[]]
         assert warnings ==  [[]]
 
