@@ -80,6 +80,19 @@ jobs:
       #     # run black in check mode
       #     # if files are not formatted correctly, the build will not go through
       #     black . --check
+
+      #----------------------------------------------
+      #          populate credentials
+      #----------------------------------------------
+      - name: Create and populate credentials
+        env:
+          SCHEMATIC_SERVICE_ACCT_CREDS: ${{ secrets.SCHEMATIC_SERVICE_ACCT_CREDS }}
+          SCHEMATIC_TOKEN_PICKLE: ${{ secrets.SCHEMATIC_TOKEN_PICKLE }}
+        run: |
+          echo "${{ secrets.SCHEMATIC_SERVICE_ACCT_CREDS }}" > schematic_service_account_creds.json
+          echo "$SCHEMATIC_TOKEN_PICKLE" | base64 -d > token.pickle
+
+
       
       #----------------------------------------------
       #              run test suite   
