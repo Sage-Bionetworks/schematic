@@ -137,7 +137,7 @@ def get_manifest(
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
-            title=title,
+            title=t,
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
