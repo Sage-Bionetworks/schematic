@@ -125,15 +125,17 @@ class GreatExpectationsHelpers(object):
             "float": "expect_column_values_to_be_in_type_list",
             "str": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
-            "regex": "expect_column_values_to_match_regex",
-            "url": "expect_column_values_to_be_valid_urls",
-            "list": "expect_column_values_to_follow_rule",
-            "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
             "recommended": "expect_column_values_to_not_match_regex_list",
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
             "inRange": "expect_column_values_to_be_between",
+            
+            # To be implemented rules with possible expectations
+            #"regex": "expect_column_values_to_match_regex",
+            #"url": "expect_column_values_to_be_valid_urls",
+            #"list": "expect_column_values_to_follow_rule",
+            #"matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+            #"matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
         }
         
         #create blank expectation suite
@@ -165,58 +167,9 @@ class GreatExpectationsHelpers(object):
             
             args["column"] = col
             args["result_format"] = "COMPLETE"
-
-
-            #Validate lift of regices
-            if len(self.sg.get_node_validation_rules(col)) > 1: #currently unused
-                args["mostly"]=1.0
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expectation {validation_expectation[rule]} **Markdown** `Supported`"
-                    },
-                    "validation_rule": rule
-                }
-                
-            #Validate list
-            elif rule=='list':  #currently unused
-                args["mostly"]=1.0
-                args["type_"]="list"
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expectat column values to be list type **Markdown** `Supported`"
-                    },
-                    "validation_rule": rule
-                }
-           
-            #Validate regex
-            elif rule.startswith('regex match'):
-                
-                args["mostly"]=1.0
-                args["regex"]=rule.split(" ")[-1]
-                rule='regex'
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expectat column values to match regex  **Markdown** `Supported`"
-                    },
-                    "validation_rule": rule
-                }
-           
-            #Validate url
-            elif rule=='url': #currently unused
-                args["mostly"]=1.0
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expectat URLs in column to be valid. **Markdown** `Supported`"
-                    },
-                    "validation_rule": rule
-                }
            
             #Validate num
-            elif rule=='num':
+            if rule=='num':
                 args["mostly"]=1.0
                 args["type_list"]=['int','int64', 'float', 'float64']
                 meta={
@@ -263,30 +216,6 @@ class GreatExpectationsHelpers(object):
                     "validation_rule": rule
                 }
 
-            #validate cross manifest match
-            elif rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
-                
-                '''
-                [source_component, source_attribute] = rule.split(" ")[1].split(".")
-                [target_component, target_attribute] = rule.split(" ")[2].split(".")
-                
-
-                target_IDs=self.get_target_manifests(target_component)
-                for target_manifest_ID in target_IDs:
-                    entity = syn.get(target_manifest_ID)
-                    target_manifest=pd.read_csv(entity.path)
-                    if target_attribute in target_manifest.columns:
-                        target_column = target_manifest[target_attribute]                       
-                        #Add Columns to dict to be added after all manifests are parsed
-                      
-                
-                self.add_expectation(
-                    rule=rule,
-                    args=args,
-                    meta=meta,
-                    validation_expectation=validation_expectation,
-                )
-                '''
             elif rule.startswith("recommended"):
                 args["mostly"]=0.0000000001
                 args["regex_list"]=['^$']
@@ -297,6 +226,7 @@ class GreatExpectationsHelpers(object):
                     },
                     "validation_rule": rule
                 }
+
             elif rule.startswith("protectAges"):
                 #Function to convert to different age limit formats
                 min_age, max_age = self.get_age_limits()
@@ -311,6 +241,7 @@ class GreatExpectationsHelpers(object):
                     },
                     "validation_rule": rule
                 }
+
             elif rule.startswith("unique"):
                 args["mostly"]=1.0
                 meta={
@@ -334,13 +265,12 @@ class GreatExpectationsHelpers(object):
                 }
                                    
             #add expectation for attribute to suite        
-            if not rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
-                self.add_expectation(
-                    rule=rule,
-                    args=args,
-                    meta=meta,
-                    validation_expectation=validation_expectation,
-                )
+            self.add_expectation(
+                rule=rule,
+                args=args,
+                meta=meta,
+                validation_expectation=validation_expectation,
+            )
     
         #print(self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name))
         self.context.save_expectation_suite(expectation_suite=self.suite, expectation_suite_name=expectation_suite_name)
