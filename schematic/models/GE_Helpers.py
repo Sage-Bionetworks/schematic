@@ -121,8 +121,8 @@ class GreatExpectationsHelpers(object):
             
         """
         validation_expectation = {
-            "int": "expect_column_values_to_be_of_type",
-            "float": "expect_column_values_to_be_of_type",
+            "int": "expect_column_values_to_be_in_type_list",
+            "float": "expect_column_values_to_be_in_type_list",
             "str": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
             "regex": "expect_column_values_to_match_regex",
@@ -218,7 +218,7 @@ class GreatExpectationsHelpers(object):
             #Validate num
             elif rule=='num':
                 args["mostly"]=1.0
-                args["type_list"]=['int64', "float64"]
+                args["type_list"]=['int','int64', 'float', 'float64']
                 meta={
                     "notes": {
                         "format": "markdown",
@@ -230,7 +230,7 @@ class GreatExpectationsHelpers(object):
             #Validate float
             elif rule=='float':
                 args["mostly"]=1.0
-                args["type_"]='float64'
+                args["type_list"]=['float', 'float64']
                 meta={
                     "notes": {
                         "format": "markdown",
@@ -242,7 +242,7 @@ class GreatExpectationsHelpers(object):
             #Validate int
             elif rule=='int':
                 args["mostly"]=1.0
-                args["type_"]='int64' 
+                args["type_list"]=['int','int64']
                 meta={
                     "notes": {
                         "format": "markdown",
@@ -469,7 +469,9 @@ class GreatExpectationsHelpers(object):
                     indices = result_dict['result']['unexpected_index_list']
                     values  = result_dict['result']['unexpected_list']
 
-                #because type validation is column aggregate expectation and not column map expectation, indices and values cannot be returned
+                # Technically, this shouldn't ever happen, but will keep as a failsafe in case many things go wrong
+                # because type validation is column aggregate expectation and not column map expectation when columns are not of object type, 
+                # indices and values cannot be returned
                 else:
                     for i, item in enumerate(self.manifest[errColumn]):
                         observed_type=result_dict['result']['observed_value']

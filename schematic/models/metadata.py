@@ -245,7 +245,7 @@ class MetadataModel(object):
                     ]
                 )
 
-            return errors
+            return errors, warnings
 
         errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules)
         return errors, warnings
