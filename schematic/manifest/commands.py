@@ -159,12 +159,12 @@ def get_manifest(
                 prefix = prefix_root
             output_csv = f"{prefix}.{data_type}.manifest.csv"
         elif output_xlsx:
-            export_manifest_excel(output_excel=output_xlsx, manifest_url=result)
+            export_manifest_excel(output_excel=output_xlsx, manifest=result)
             logger.info(
                 f"Find the manifest template using this Excel file path: {output_xlsx}"
             )
             return result
-        export_manifest_csv(file_name=output_csv, manifest_url=result)
+        export_manifest_csv(file_name=output_csv, manifest=result)
         logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
