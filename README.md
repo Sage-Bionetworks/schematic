@@ -108,7 +108,7 @@ Description of `config.yml` attributes
     synapse:
         master_fileview: "syn23643253" # fileview of project with datasets on Synapse
         manifest_folder: "~/path/to/manifest_folder/" # manifests will be downloaded to this folder
-        manifest_filename: "filename.ext" # name of the manifest file in the project dataset
+        manifest_basename: "filename" # base name of the manifest file in the project dataset, without extension
         token_creds: "syn23643259" # synapse ID of credentials.json file
         service_acct_creds: "syn25171627" # synapse ID of service_account_creds.json file
 

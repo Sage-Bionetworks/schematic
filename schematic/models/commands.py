@@ -78,7 +78,8 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='table',
+    default='both',
+    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
 @click.pass_obj
 def submit_manifest(
