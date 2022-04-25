@@ -19,7 +19,7 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic import LOADER
 
 from schematic.utils.validate_rules_utils import validate_schema_rules
-
+from schematic.utils.df_utils import load_df
 
 logger = logging.getLogger(__name__)
 
@@ -746,7 +746,7 @@ def _convert_csv_to_data_model(
                  (base_se.schema and base_se.schema_nx).
     """
     # create data model from provided RFC
-    rfc_df = pd.read_csv(schema_csv)
+    rfc_df = load_df(schema_csv)
 
     # instantiate schema explorer
     base_se = SchemaExplorer()

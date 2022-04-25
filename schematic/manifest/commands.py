@@ -93,6 +93,12 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     "--json_schema",
     help=query_dict(manifest_commands, ("manifest", "get", "json_schema")),
 )
+@click.option(
+    "-av",
+    "--alphabetize_valid_values",
+    default = 'ascending',
+    help=query_dict(manifest_commands, ("manifest", "get", "alphabetize_valid_values")),
+)
 @click.pass_obj
 def get_manifest(
     ctx,
@@ -105,6 +111,7 @@ def get_manifest(
     use_annotations,
     oauth,
     json_schema,
+    alphabetize_valid_values,
 ):
     """
     Running CLI with manifest generation options.
@@ -129,6 +136,7 @@ def get_manifest(
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
+            alphabetize_valid_values=alphabetize_valid_values,
         )
 
         # call get_manifest() on manifest_generator

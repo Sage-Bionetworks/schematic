@@ -23,7 +23,7 @@ from schematic.schemas.generator import SchemaGenerator
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
-from schematic.utils.df_utils import trim_commas_df
+from schematic.utils.df_utils import load_df
 
 from schematic.models.validate_attribute import ValidateAttribute
 from schematic.models.validate_manifest import validate_all
@@ -212,12 +212,9 @@ class MetadataModel(object):
         warnings = []
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
-        manifest = pd.read_csv(
+        manifest = load_df(
             manifestPath
         )  # read manifest csv file as is from manifest path
-        manifest = trim_commas_df(manifest).fillna(
-            ""
-        )  # apply cleaning logic as part of pre-processing step
 
         # handler for mismatched components/data types
         # throw TypeError if the value(s) in the "Component" column differ from the selected template type

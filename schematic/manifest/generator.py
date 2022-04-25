@@ -14,7 +14,7 @@ from schematic.utils.google_api_utils import (
     execute_google_api_requests,
     build_service_account_creds,
 )
-from schematic.utils.df_utils import update_df
+from schematic.utils.df_utils import update_df, load_df
 
 #TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
@@ -29,6 +29,7 @@ class ManifestGenerator(object):
     def __init__(
         self,
         path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
+        alphabetize_valid_values: str = 'ascending',
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
@@ -55,6 +56,9 @@ class ManifestGenerator(object):
 
         # schema root
         self.root = root
+
+        # alphabetize valid values
+        self.alphabetize = alphabetize_valid_values
 
         # manifest title
         self.title = title
@@ -249,6 +253,12 @@ class ManifestGenerator(object):
 
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
+        
+        if self.alphabetize and self.alphabetize.lower().startswith('a'):
+            values.sort(reverse=False)
+        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
+            values.sort(reverse=True)
+        
 
         if validation_type == "ONE_OF_RANGE":
 
@@ -1492,7 +1502,7 @@ class ManifestGenerator(object):
         """
 
         # read existing manifest
-        manifest = pd.read_csv(existing_manifest_path).fillna("")
+        manifest = load_df(existing_manifest_path)
 
         manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
 
