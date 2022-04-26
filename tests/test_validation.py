@@ -42,8 +42,8 @@ class TestManifestValidation:
         for error in errors:
             print(error)
 
-        assert errors == [[]]
-        assert warnings ==  [[]]
+        assert errors == []
+        assert warnings ==  []
 
 
     def test_invalid_manifest(self,helpers,sg,metadataModel):

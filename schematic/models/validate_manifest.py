@@ -232,12 +232,14 @@ class ValidateManifest(object):
                             second_error, second_warning = validation_method(
                                     self, validation_rules[1], manifest[col]
                             )
-                            vr_errors.append(
-                                second_error
-                            )
-                            vr_warnings.append(
-                                second_warning
-                            )
+                            if second_error:
+                                vr_errors.append(
+                                    second_error
+                                )
+                            if second_warning:
+                                vr_warnings.append(
+                                    second_warning
+                                )
                 # Check for edge case that user has entered more than 2 rules,
                 # throw an error if they have.
                 elif len(validation_rules) > 2:
