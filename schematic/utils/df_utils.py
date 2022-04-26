@@ -25,8 +25,6 @@ def load_df(file_path, preserve_raw_input=True, **kwargs):
         #Read CSV to df as type string
         org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', **kwargs)
 
-        #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
-        for col in org_df.columns:
         if preserve_raw_input:
             return org_df
         else:
