@@ -17,17 +17,17 @@ def load_df(file_path, **kwargs):
     Returns: a processed dataframe for manifests or unprocessed df for data models
     """
 
-    #Read CSV to df as type string
-    org_df = pd.read_csv(file_path, dtype=str, **kwargs)
-
     #only process if not data model csv
     if 'model' in file_path:
-        return org_df
+        return pd.read_csv(file_path, encoding='utf8', **kwargs)
     else:
+        #Read CSV to df as type string
+        org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', **kwargs)
+
         float_df=deepcopy(org_df)
 
         #Find integers stored as strings 
-        ints = org_df.applymap(lambda x: int(x) if str.isdigit(x) else False ,na_action='ignore').fillna(False)
+        ints = org_df.applymap(lambda x: int(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
@@ -135,5 +135,7 @@ def trim_commas_df(df: pd.DataFrame):
 
     # remove all completely empty rows
     df = df.dropna(how="all", axis=0)
+
+    #Fill in nan cells with empty strings
     df.fillna("", inplace=True)
     return df
