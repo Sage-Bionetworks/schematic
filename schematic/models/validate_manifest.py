@@ -274,20 +274,15 @@ class ValidateManifest(object):
         errors = []
         warnings = []
         annotations = json.loads(manifest.to_json(orient="records"))
-        print('Validate Manifest Values Errs')
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
-                print(error)
                 errorRow = i + 2
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema"
                 errorMsg = error.message[0:500]
-                print(errorMsg)
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
                 errors.append([errorRow, errorCol, errorMsg, errorVal])
-        
-        print('END Validate Manifest Values Errs')
         return errors, warnings
 
 
