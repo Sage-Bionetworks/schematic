@@ -135,5 +135,7 @@ def trim_commas_df(df: pd.DataFrame):
 
     # remove all completely empty rows
     df = df.dropna(how="all", axis=0)
+
+    #Fill in nan cells with empty strings
     df.fillna("", inplace=True)
     return df
