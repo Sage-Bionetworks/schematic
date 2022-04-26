@@ -17,6 +17,8 @@ from schematic.schemas.generator import SchemaGenerator
 
 from schematic.store.synapse import SynapseStorage
 
+import json
+
 
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
@@ -246,3 +248,19 @@ def download_manifest(input_token, dataset_id, asset_view):
     manifest_local_file_path = manifest_data['path']
     
     return manifest_local_file_path
+
+def get_asset_view_table(input_token, asset_view):
+    # call config handler
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # get file view table
+    file_view_table_df = store.getStorageFileviewTable()
+
+    # convert pandas dataframe to json 
+    file_view_table_js = file_view_table_df.to_json(orient="records")
+    parsed = json.loads(file_view_table_js)
+
+    return parsed
