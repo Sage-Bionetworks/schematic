@@ -17,13 +17,14 @@ def load_df(file_path, **kwargs):
     Returns: a processed dataframe for manifests or unprocessed df for data models
     """
 
-    #Read CSV to df as type string
-    org_df = pd.read_csv(file_path, dtype=str, encoding='utf8', **kwargs)
 
     #only process if not data model csv
     if 'model' in file_path:
-        return org_df
+        return pd.read_csv(file_path, encoding='utf8', **kwargs)
     else:
+        #Read CSV to df as type string
+        org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', **kwargs)
+
         float_df=deepcopy(org_df)
 
         #Find integers stored as strings 
