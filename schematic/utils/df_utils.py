@@ -26,6 +26,7 @@ def load_df(file_path, preserve_raw_input=True, **kwargs):
         org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', **kwargs)
 
         if preserve_raw_input:
+            org_df=trim_commas_df(org_df)
             return org_df
         else:
             float_df=deepcopy(org_df)
