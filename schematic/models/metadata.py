@@ -211,7 +211,7 @@ class MetadataModel(object):
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
-            manifestPath
+            manifestPath, preserve_raw_input=False,
         )  # read manifest csv file as is from manifest path
 
         # handler for mismatched components/data types
