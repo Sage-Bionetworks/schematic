@@ -213,8 +213,8 @@ class MetadataModel(object):
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
-            manifestPath
-        )  # read manifest csv file from manifest path and process
+            manifestPath, preserve_raw_input=False,
+        )  # read manifest csv file as is from manifest path
 
         # handler for mismatched components/data types
         # throw TypeError if the value(s) in the "Component" column differ from the selected template type
