@@ -633,7 +633,7 @@ class SynapseStorage(BaseStorage):
         return annos
 
     def associateMetadataWithFiles(
-        self, metadataManifestPath: str, datasetId: str, manifest_record_type: str, 
+        self, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
         useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
