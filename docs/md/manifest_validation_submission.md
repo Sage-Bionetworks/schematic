@@ -13,10 +13,14 @@ As of March 29, 2022, the hybrid validation rules are as follows:
 
 
     In-house Validation Rules:
+    num
+    int/float/string
     list::regex
     regex module
     list
     url
+    matchAtLeastOne
+    matchExactlyOne
 
     Great Expectations:
     num
@@ -24,4 +28,5 @@ As of March 29, 2022, the hybrid validation rules are as follows:
     recommended
     protectAges
     unique
+    inRange
 
