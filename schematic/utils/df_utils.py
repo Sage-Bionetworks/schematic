@@ -34,7 +34,7 @@ def load_df(file_path, preserve_raw_input=True, **kwargs):
         float_df=deepcopy(org_df)
 
         #Find integers stored as strings 
-        ints = org_df.applymap(lambda x: np.int(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+        ints = org_df.applymap(lambda x: int(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
