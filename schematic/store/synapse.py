@@ -312,17 +312,25 @@ class SynapseStorage(BaseStorage):
         ]
 
         manifest = manifest[["id", "name"]]
-
+        censored_regex=re.compile('.*censored.*')
+        
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
             return ""
         # if there is an exisiting manifest
         else:
+            # retrieve data from synapse
+            # if a censored manifest exists for this dataset
+            if any(manifest['name'].str.contains(censored_regex)):
+                #if a user also has access to the uncensored version, use that one
+                not_censored=~manifest['name'].str.contains(censored_regex)
+                if any(not_censored):
+                    manifest_syn_id=manifest[not_censored]["id"][0]
+            #otherwise, use the censored version
+            else:
+                manifest_syn_id = manifest["id"][0]
             # if the downloadFile option is set to True
             if downloadFile:
-                # retrieve data from synapse
-                manifest_syn_id = manifest["id"][0]
-
                 # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
                 try:
                     manifest_data = self.syn.get(
@@ -337,8 +345,6 @@ class SynapseStorage(BaseStorage):
 
                 return manifest_data
 
-            # extract synapse ID of exisiting dataset manifest
-            manifest_syn_id = manifest.to_records(index=False)[0][0]
 
             return manifest_syn_id
 
