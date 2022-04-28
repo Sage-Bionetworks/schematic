@@ -401,7 +401,7 @@ class SynapseStorage(BaseStorage):
         
         return manifest_id, manifest
 
-    def getManifestInfo(self,datasetId,datasetName):
+    def getManifestInfo(self,datasetId,datasetName) -> List[str]:
         component=None
         entity=None
         manifest = (
@@ -409,6 +409,17 @@ class SynapseStorage(BaseStorage):
             ("", ""),
             ("", ""),
         )
+        """
+        Gets information of metadata manifest files for one dataset.
+
+        Returns: A list of tuples containing datasetID and name, manifestID and name, and the corresponding schema component of the manifest
+            (
+                (datasetId, dataName),
+                (manifestId, manifestName),
+                (componentSchemaLabel, componentSchemaLabel)
+            ),
+
+        """
 
         # Get synID of manifest for a dataset
         manifestId = self.getDatasetManifest(datasetId)
