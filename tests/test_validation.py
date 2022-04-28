@@ -123,7 +123,7 @@ class TestManifestValidation:
         assert GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
-            matching_manifests = ['syn27600102', 'syn27648165']
+            matching_manifests = ['syn29862078', 'syn27648165']
             ) in errors
         
         assert GenerateError.generate_content_error(
