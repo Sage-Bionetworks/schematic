@@ -273,7 +273,7 @@ class ValidateManifest(object):
         
         errors = []
         warnings = []
-        annotations = json.loads(manifest.to_json(orient="records"))
+        annotations = json.loads(manifest.astype('string').to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
