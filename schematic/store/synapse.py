@@ -401,6 +401,82 @@ class SynapseStorage(BaseStorage):
         
         return manifest_id, manifest
 
+    def getManifestInfo(self,datasetId,datasetName):
+        component=None
+        entity=None
+        manifest = (
+            (datasetId, datasetName),
+            ("", ""),
+            ("", ""),
+        )
+
+        # Get synID of manifest for a dataset
+        manifestId = self.getDatasetManifest(datasetId)
+
+        # If a manifest exists, get the annotations for it, else return base 'manifest' tuple
+        if manifestId:
+            annotations = self.getFileAnnotations(manifestId)
+        else: 
+            return manifest
+
+        if not annotations:
+            logging.debug(f'No annotations have been found for manifest {manifestId}')
+
+        # If manifest has annotations specifying component, use that
+        if 'Component' in annotations:
+            component = annotations['Component']
+            entity = self.syn.get(manifestId, downloadFile=False)
+            manifest_name = entity["properties"]["name"]
+
+        # otherwise download the manifest and parse for information
+        elif 'Component' not in annotations or not annotations:
+            logging.debug(
+                f"No component annotations have been found for manifest {manifestId}"
+                "The manifest will be downloaded and parsed instead."
+                "For increased speed, add component annotations to manifest."
+                )
+
+            manifest_info = self.getDatasetManifest(datasetId,downloadFile=True)
+            manifest_name = manifest_info["properties"]["name"]
+            manifest_path = manifest_info["path"]
+
+            manifest_df = load_df(manifest_path)
+
+            # Get component from component column if it exists
+            if "Component" in manifest_df and not manifest_df["Component"].empty:
+                list(set(manifest_df['Component']))
+                component = list(set(manifest_df["Component"]))
+
+                #Added to address issues raised during DCA testing
+                if '' in component:
+                    component.remove('')
+
+                if len(component) == 1:
+                    component = component[0]
+                elif len(component) > 1:
+                    logging.warning(
+                    f"Manifest {manifestId} is composed of multiple components. Schematic does not support mulit-component manifests at this time."
+                    "Behavior of manifests with multiple components is undefined"
+                    )              
+
+        if component:
+            manifest = (
+                (datasetId, datasetName),
+                (manifestId, manifest_name),
+                (component, component),
+            )
+        else:
+            logging.debug("Manifest does not have an associated Component")
+            manifest = (
+                (datasetId, datasetName),
+                (manifestId, manifest_name),
+                ("", ""),
+            )
+
+        
+        return manifest 
+
+
 
     def getProjectManifests(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
@@ -426,34 +502,12 @@ class SynapseStorage(BaseStorage):
         for (datasetId, datasetName) in datasets:
             # encode information about the manifest in a simple list (so that R clients can unpack it)
             # eventually can serialize differently
+                
+            manifest = self.getManifestInfo(datasetId, datasetName)
 
-            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
-
-            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
-            if manifest_info:
-                manifest_id = manifest_info["properties"]["id"]
-                manifest_name = manifest_info["properties"]["name"]
-                manifest_path = manifest_info["path"]
-
-                manifest_df = load_df(manifest_path)
-
-                if "Component" in manifest_df and not manifest_df["Component"].empty:
-                    manifest_component = manifest_df["Component"][0]
-
-                    manifest = (
-                        (datasetId, datasetName),
-                        (manifest_id, manifest_name),
-                        (manifest_component, manifest_component),
-                    )
-                else:
-                    manifest = (
-                        (datasetId, datasetName),
-                        (manifest_id, manifest_name),
-                        ("", ""),
-                    )
-
-            manifests.append(manifest)
-
+            if manifest:
+                manifests.append(manifest)
+                
         return manifests
 
     def upload_project_manifests_to_synapse(self, projectId: str) -> List[str]:
