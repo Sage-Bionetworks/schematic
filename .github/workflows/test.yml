@@ -80,7 +80,6 @@ jobs:
       #     # run black in check mode
       #     # if files are not formatted correctly, the build will not go through
       #     black . --check
-      
       #----------------------------------------------
       #              run test suite   
       #----------------------------------------------

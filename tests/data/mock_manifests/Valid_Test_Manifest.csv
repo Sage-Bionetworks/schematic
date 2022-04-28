@@ -1,0 +1,5 @@
+Component,Check List,Check Regex List,Check Regex Single,Check Num,Check Float,Check Int,Check String,Check URL,Check Match at Least,Check Match Exactly,Check Recommended,Check Ages,Check Unique,Check Range
+MockComponent,"valid,list,values","a,c,f",a,6,99.65,7,valid,https://www.google.com/,1738,8085,,6571,str1,75
+MockComponent,"valid,list,values","a,c,f",e,71,58.4,3,valid,https://www.google.com/,9965,9965,,6571,str2,80
+MockComponent,"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,8085,1738,present,32849,str3,95
+MockComponent,"valid,list,values","b,d,f",b,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,79,7,,32849,str4,55
