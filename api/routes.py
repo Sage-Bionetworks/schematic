@@ -259,8 +259,9 @@ def get_asset_view_table(input_token, asset_view):
     # get file view table
     file_view_table_df = store.getStorageFileviewTable()
 
-    # convert pandas dataframe to json 
-    file_view_table_js = file_view_table_df.to_json(orient="records")
-    parsed = json.loads(file_view_table_js)
+    # convert pandas dataframe to csv
+    path = os.getcwd()
+    export_path = os.path.join(path, 'tests/data/file_view_table.csv')
+    file_view_table_df.to_csv(export_path, index=False)
 
-    return parsed
+    return export_path
