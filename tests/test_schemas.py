@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from schematic.schemas import df_parser
-
+from schematic.utils.df_utils import load_df
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def extended_schema_path(helpers, tmp_path):
     data_model_csv_path = helpers.get_data_path("example.model.csv")
 
-    example_model_df = pd.read_csv(data_model_csv_path)
+    example_model_df = load_df(data_model_csv_path)
 
     # additional "Assay" attribute to be added to example schema
     assay_attr_row = {
@@ -138,7 +138,7 @@ class TestDfParser:
 
         data_model_csv_path = helpers.get_data_path("example.model.csv")
 
-        example_model_df = pd.read_csv(data_model_csv_path)
+        example_model_df = load_df(data_model_csv_path)
 
         # when all required headers are provided in the CSV data model
         actual_df = df_parser.check_schema_definition(example_model_df)
@@ -163,7 +163,7 @@ class TestDfParser:
         # namely, "Assay"
         extended_csv_model_path = helpers.get_data_path(extended_schema_path)
 
-        extended_model_df = pd.read_csv(extended_csv_model_path)
+        extended_model_df = load_df(extended_csv_model_path)
 
         extended_csv_model_se = df_parser.create_nx_schema_objects(
             extended_model_df, se_obj

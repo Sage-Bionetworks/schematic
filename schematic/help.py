@@ -111,6 +111,11 @@ model_commands = {
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
             ),
+            "restrict_rules":(
+                "This is a boolean flag. If flag is provided when command line utility is executed, validation suite will only run with in-house validation rules, "
+                "and Great Expectations rules and suite will not be utilized."
+                "If not, the Great Expectations suite will be utilized and all rules will be available."
+            ),
         },
     }
 }
