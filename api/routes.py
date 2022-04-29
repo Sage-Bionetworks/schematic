@@ -17,8 +17,6 @@ from schematic.schemas.generator import SchemaGenerator
 
 from schematic.store.synapse import SynapseStorage
 
-import json
-
 
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
