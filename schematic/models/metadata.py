@@ -19,7 +19,7 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
 
-#TODO: This module should only be aware of the store interface
+# TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
@@ -43,7 +43,11 @@ class MetadataModel(object):
         - generate validation schema view of the metadata model
     """
 
-    def __init__(self, inputMModelLocation: str, inputMModelLocationType: str,) -> None:
+    def __init__(
+        self,
+        inputMModelLocation: str,
+        inputMModelLocationType: str,
+    ) -> None:
 
         """Instantiates a MetadataModel object.
 
@@ -73,7 +77,6 @@ class MetadataModel(object):
             raise ValueError(
                 f"The type '{inputMModelLocationType}' is currently not supported."
             )
-
 
     def getModelSubgraph(self, rootNode: str, subgraphType: str) -> nx.DiGraph:
         """Gets a schema subgraph from rootNode descendants based on edge/node properties of type subgraphType.
@@ -187,7 +190,11 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, 
+        self,
+        manifestPath: str,
+        rootNode: str,
+        restrict_rules: bool = False,
+        jsonSchema: str = None,
     ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
@@ -213,7 +220,8 @@ class MetadataModel(object):
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
-            manifestPath, preserve_raw_input=False,
+            manifestPath,
+            preserve_raw_input=False,
         )  # read manifest csv file as is from manifest path
 
         # handler for mismatched components/data types
@@ -247,7 +255,16 @@ class MetadataModel(object):
 
             return errors, warnings
 
-        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules)
+        errors, warnings, manifest = validate_all(
+            self,
+            errors,
+            warnings,
+            manifest,
+            manifestPath,
+            self.sg,
+            jsonSchema,
+            restrict_rules,
+        )
         return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
@@ -296,14 +313,14 @@ class MetadataModel(object):
             ValidationError: If validation against data model was not successful.
         """
 
-        #TODO: avoid explicitly exposing Synapse store functionality
+        # TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
         syn_store = SynapseStorage(input_token=input_token)
-        manifest_id=None
-        censored_manifest_id=None
-        restrict_maniest=False
-        censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
+        manifest_id = None
+        censored_manifest_id = None
+        restrict_maniest = False
+        censored_manifest_path = manifest_path.replace(".csv", "_censored.csv")
         # check if user wants to perform validation or not
         if validate_component is not None:
 
@@ -321,32 +338,34 @@ class MetadataModel(object):
 
             # automatic JSON schema generation and validation with that JSON schema
             val_errors, val_warnings = self.validateModelManifest(
-                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules
+                manifestPath=manifest_path,
+                rootNode=validate_component,
+                restrict_rules=restrict_rules,
             )
 
             # if there are no errors in validation process
-            if val_errors == []:                
+            if val_errors == []:
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if exists(censored_manifest_path):
                     censored_manifest_id = syn_store.associateMetadataWithFiles(
-                        metadataManifestPath = censored_manifest_path,
-                        datasetId = dataset_id, 
-                        manifest_record_type = manifest_record_type,
-                        hideBlanks = hide_blanks,
+                        metadataManifestPath=censored_manifest_path,
+                        datasetId=dataset_id,
+                        manifest_record_type=manifest_record_type,
+                        hideBlanks=hide_blanks,
                     )
                     restrict_maniest = True
-                
+
                 manifest_id = syn_store.associateMetadataWithFiles(
-                    metadataManifestPath = manifest_path, 
-                    datasetId = dataset_id, 
-                    manifest_record_type = manifest_record_type, 
-                    hideBlanks = hide_blanks,
+                    metadataManifestPath=manifest_path,
+                    datasetId=dataset_id,
+                    manifest_record_type=manifest_record_type,
+                    hideBlanks=hide_blanks,
                     restrict_manifest=restrict_maniest,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
                 return manifest_id
-                
+
             else:
                 raise ValidationError(
                     "Manifest could not be validated under provided data model. "
@@ -363,7 +382,7 @@ class MetadataModel(object):
                 hideBlanks=hide_blanks,
             )
             restrict_maniest = True
-        
+
         manifest_id = syn_store.associateMetadataWithFiles(
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,

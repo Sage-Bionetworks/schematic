@@ -69,7 +69,10 @@ def convert(schema_csv, base_schema, output_jsonld):
     # saving updated schema.org schema
     try:
         base_se.export_schema(output_jsonld)
-        click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
+        click.echo(
+            f"The Data Model was created and saved to '{output_jsonld}' location."
+        )
     except:
-        click.echo(f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again")
-
+        click.echo(
+            f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again"
+        )

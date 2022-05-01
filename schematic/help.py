@@ -36,7 +36,9 @@ manifest_commands = {
                 "to the metadata manifest file. If not it will produce a pandas dataframe for the same."
             ),
             "output_csv": ("Path to where the CSV manifest template should be stored."),
-            "output_xlsx": ("Path to where the Excel manifest template should be stored."),
+            "output_xlsx": (
+                "Path to where the Excel manifest template should be stored."
+            ),
             "use_annotations": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, it will prepopulate template "
                 "with existing annotations from Synapse."
@@ -51,7 +53,7 @@ manifest_commands = {
                 "as a value for the `(model > input > validation_schema)` key."
             ),
             "alphabetize_valid_values": (
-                "Specify to alphabetize valid attribute values either ascending (a) or descending (d)." 
+                "Specify to alphabetize valid attribute values either ascending (a) or descending (d)."
                 "Optional"
             ),
         },
@@ -84,11 +86,11 @@ model_commands = {
                 "(--use_display_label). Attribute display names in the schema must not only include characters that are "
                 "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
             ),
-            "hide_blanks":(
+            "hide_blanks": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, annotations with blank values will be hidden from a dataset's annotation list in Synaspe."
                 "If not, annotations with blank values will be displayed."
             ),
-            "manifest_record_type":(
+            "manifest_record_type": (
                 "Specify the way the manifest should be store as on Synapse. Options are 'entity', 'table' and "
                 "'both'. 'entity' will store the manifest as a csv and create Synapse files for each row in the manifest. "
                 "'table' will store the manifest as a table and a csv on Synapse. 'both' will do both of the options specified above. "
@@ -111,7 +113,7 @@ model_commands = {
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
             ),
-            "restrict_rules":(
+            "restrict_rules": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, validation suite will only run with in-house validation rules, "
                 "and Great Expectations rules and suite will not be utilized."
                 "If not, the Great Expectations suite will be utilized and all rules will be available."

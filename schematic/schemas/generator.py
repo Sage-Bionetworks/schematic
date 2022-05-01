@@ -578,16 +578,18 @@ class SchemaGenerator(object):
                                     if node_validation_rules:
                                         if "list" in node_validation_rules:
                                             # TODO: get_range_schema and get_range_schema have similar behavior - combine in one module
-                                            dependency_properties = self.get_array_schema(
-                                                node_range_d,
-                                                node_display_name,
-                                                blank=not node_required,
+                                            dependency_properties = (
+                                                self.get_array_schema(
+                                                    node_range_d,
+                                                    node_display_name,
+                                                    blank=not node_required,
+                                                )
                                             )
 
                                 else:
                                     if node_required:
-                                        dependency_properties = self.get_non_blank_schema(
-                                            node_display_name
+                                        dependency_properties = (
+                                            self.get_non_blank_schema(node_display_name)
                                         )
                                     else:
                                         dependency_properties = {node_display_name: {}}

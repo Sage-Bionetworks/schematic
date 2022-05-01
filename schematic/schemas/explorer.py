@@ -52,7 +52,7 @@ class SchemaExplorer:
         self.schema_nx = load_schema_into_networkx(self.schema)
 
     def export_schema(self, file_path):
-        with open(file_path, "w",encoding="utf8") as f:
+        with open(file_path, "w", encoding="utf8") as f:
             json.dump(self.schema, f, sort_keys=True, indent=4, ensure_ascii=False)
 
     def load_default_schema(self):

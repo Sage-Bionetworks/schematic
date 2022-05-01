@@ -78,11 +78,12 @@ class Configuration(object):
         self.DATA = self.load_yaml(config_path)
         self.CONFIG_PATH = config_path
         # handle user input (for API endpoints)
-        if asset_view: 
-            self.DATA['synapse']['master_fileview'] = asset_view
+        if asset_view:
+            self.DATA["synapse"]["master_fileview"] = asset_view
 
         # Return self.DATA as a side-effect
         return self.DATA
+
     @property
     def CREDS_PATH(self):
         self._CREDS_PATH = self.DATA["definitions"]["creds_path"]

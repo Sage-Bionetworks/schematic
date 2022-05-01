@@ -27,10 +27,17 @@ from ruamel import yaml
 import great_expectations as ge
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 from great_expectations.data_context import BaseDataContext
-from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
-from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
+from great_expectations.data_context.types.base import (
+    DataContextConfig,
+    DatasourceConfig,
+    FilesystemStoreBackendDefaults,
+)
+from great_expectations.data_context.types.resource_identifiers import (
+    ExpectationSuiteIdentifier,
+)
 
 logger = logging.getLogger(__name__)
+
 
 class ValidateManifest(object):
     def __init__(self, errors, manifest, manifestPath, sg, jsonSchema):
@@ -38,15 +45,15 @@ class ValidateManifest(object):
         self.manifest = manifest
         self.manifestPath = manifestPath
         self.sg = sg
-        self.jsonSchema = jsonSchema       
+        self.jsonSchema = jsonSchema
 
     def get_multiple_types_error(
         validation_rules: list, attribute_name: str, error_type: str
     ) -> List[str]:
         """
-            Generate error message for errors when trying to specify 
-            multiple validation rules.
-            """
+        Generate error message for errors when trying to specify
+        multiple validation rules.
+        """
         error_col = attribute_name  # Attribute name
         if error_type == "too_many_rules":
             error_str = (
@@ -67,7 +74,10 @@ class ValidateManifest(object):
         return ["NA", error_col, error_message, error_val]
 
     def validate_manifest_rules(
-        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator, restrict_rules: bool
+        self,
+        manifest: pd.core.frame.DataFrame,
+        sg: SchemaGenerator,
+        restrict_rules: bool,
     ) -> (pd.core.frame.DataFrame, List[List[str]]):
         """
         Purpose:
@@ -81,17 +91,17 @@ class ValidateManifest(object):
                 initialized within models/metadata.py
         Returns:
             manifest: pd.core.frame.DataFrame
-                If a 'list' validatior is run, the manifest needs to be 
+                If a 'list' validatior is run, the manifest needs to be
                 updated to change the attribute column values to a list.
                 In this case the manifest will be updated then exported.
             errors: List[List[str]]
                 If any errors are generated they will be added to an errors
                 list log recording the following information:
                 [error_row, error_col, error_message, error_val]
-        TODO: 
+        TODO:
             -Investigate why a :: delimiter is breaking up the
                 validation rules without me having to do anything...
-            - Move the rules formatting validation to the JSONLD 
+            - Move the rules formatting validation to the JSONLD
                 generation script.
         """
 
@@ -113,19 +123,19 @@ class ValidateManifest(object):
             "inRange": "content_validation",
         }
 
-        type_dict={
+        type_dict = {
             "float64": float,
             "int64": int,
             "str": str,
         }
 
-        unimplemented_expectations=[
+        unimplemented_expectations = [
             "url",
             "list",
             "regex.*",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
-            ]
+        ]
 
         in_house_rules = [
             "int",
@@ -140,63 +150,64 @@ class ValidateManifest(object):
         ]
 
         # initialize error and warning handling lists.
-        errors = []   
-        warnings = [] 
+        errors = []
+        warnings = []
 
-        unimplemented_expectations='|'.join(unimplemented_expectations)
-        in_house_rules='|'.join(in_house_rules)
+        unimplemented_expectations = "|".join(unimplemented_expectations)
+        in_house_rules = "|".join(in_house_rules)
 
         if not restrict_rules:
-            #operations necessary to set up and run ge suite validation
-            ge_helpers=GreatExpectationsHelpers(
+            # operations necessary to set up and run ge suite validation
+            ge_helpers = GreatExpectationsHelpers(
                 sg=sg,
                 unimplemented_expectations=unimplemented_expectations,
-                manifest = manifest,
-                manifestPath = self.manifestPath,
-                )
+                manifest=manifest,
+                manifestPath=self.manifestPath,
+            )
 
             ge_helpers.build_context()
             ge_helpers.build_expectation_suite()
             ge_helpers.build_checkpoint()
 
-        #run GE validation
+            # run GE validation
             results = ge_helpers.context.run_checkpoint(
                 checkpoint_name="manifest_checkpoint",
                 batch_request={
                     "runtime_parameters": {"batch_data": manifest},
-                    "batch_identifiers": {
-                        "default_identifier_name": "manifestID"
-                    },
+                    "batch_identifiers": {"default_identifier_name": "manifestID"},
                 },
-                result_format={'result_format': 'COMPLETE'},
-            )        
-        
-            #print(results)       
-            #results.list_validation_results()
-            validation_results = results.list_validation_results()
-            
+                result_format={"result_format": "COMPLETE"},
+            )
 
-            #parse validation results dict and generate errors
+            # print(results)
+            # results.list_validation_results()
+            validation_results = results.list_validation_results()
+
+            # parse validation results dict and generate errors
             errors, warnings = ge_helpers.generate_errors(
-                errors = errors,
-                warnings = warnings,
-                validation_results = validation_results,
-                validation_types = validation_types,
-                )               
-        else:             
-            logging.info("Great Expetations suite will not be utilized.")  
+                errors=errors,
+                warnings=warnings,
+                validation_results=validation_results,
+                validation_types=validation_types,
+            )
+        else:
+            logging.info("Great Expetations suite will not be utilized.")
 
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
 
-            
             # Given a validation rule, run validation. Skip validations already performed by GE
-            if bool(validation_rules) and (restrict_rules or re.match(unimplemented_expectations,validation_rules[0])):
-                
-                if not re.match(in_house_rules,validation_rules[0]):
-                    logging.warning(f"Validation rule {validation_rules[0].split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
+            if bool(validation_rules) and (
+                restrict_rules
+                or re.match(unimplemented_expectations, validation_rules[0])
+            ):
+
+                if not re.match(in_house_rules, validation_rules[0]):
+                    logging.warning(
+                        f"Validation rule {validation_rules[0].split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations."
+                    )
                     continue
 
                 # Check for multiple validation types,
@@ -230,16 +241,12 @@ class ValidateManifest(object):
                                 ValidateAttribute, validation_types[second_type]
                             )
                             second_error, second_warning = validation_method(
-                                    self, validation_rules[1], manifest[col]
+                                self, validation_rules[1], manifest[col]
                             )
                             if second_error:
-                                vr_errors.append(
-                                    second_error
-                                )
+                                vr_errors.append(second_error)
                             if second_warning:
-                                vr_warnings.append(
-                                    second_warning
-                                )
+                                vr_warnings.append(second_warning)
                 # Check for edge case that user has entered more than 2 rules,
                 # throw an error if they have.
                 elif len(validation_rules) > 2:
@@ -270,10 +277,10 @@ class ValidateManifest(object):
         return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema):
-        
+
         errors = []
         warnings = []
-        annotations = json.loads(manifest.astype('string').to_json(orient="records"))
+        annotations = json.loads(manifest.astype("string").to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
@@ -286,9 +293,13 @@ class ValidateManifest(object):
         return errors, warnings
 
 
-def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules):
+def validate_all(
+    self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules
+):
     vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema)
-    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg, restrict_rules)
+    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(
+        manifest, sg, restrict_rules
+    )
     if vmr_errors:
         errors.extend(vmr_errors)
     if vmr_warnings:

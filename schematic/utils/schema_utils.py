@@ -117,9 +117,10 @@ def load_schema_into_networkx(schema):
             node["validationRules"] = record["sms:validationRules"]
             if node["validationRules"]:
                 validate_vr = validate_schema_rules(
-                                record["sms:validationRules"],
-                                record["rdfs:label"],
-                                input_filetype = 'json_schema')
+                    record["sms:validationRules"],
+                    record["rdfs:label"],
+                    input_filetype="json_schema",
+                )
         else:
             node["validationRules"] = []
 

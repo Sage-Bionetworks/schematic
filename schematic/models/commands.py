@@ -73,23 +73,31 @@ def model(ctx, config):  # use as `schematic model ...`
     "--hide_blanks",
     "-hb",
     is_flag=True,
-    help=query_dict(model_commands,("model","submit","hide_blanks")),
+    help=query_dict(model_commands, ("model", "submit", "hide_blanks")),
 )
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='both',
-    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
-    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
+    default="both",
+    type=click.Choice(["table", "entity", "both"], case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")),
+)
 @click.option(
     "-rr",
     "--restrict_rules",
     is_flag=True,
-    help=query_dict(model_commands,("model","validate","restrict_rules")),
+    help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules,
+    ctx,
+    manifest_path,
+    dataset_id,
+    validate_component,
+    manifest_record_type,
+    use_schema_label,
+    hide_blanks,
+    restrict_rules,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -113,7 +121,7 @@ def submit_manifest(
             hide_blanks=hide_blanks,
         )
 
-        '''
+        """
         if censored_manifest_id:
             logger.info(
                 f"File at '{manifest_path}' was censored and successfully associated "
@@ -122,7 +130,7 @@ def submit_manifest(
                 f"and submitted to the Synapse Access Control Team to begin the process "
                 f"of adding terms of use or review board approval."
             )
-        '''
+        """
         if manifest_id:
             logger.info(
                 f"File at '{manifest_path}' was successfully associated "
@@ -165,7 +173,7 @@ def submit_manifest(
     "-rr",
     "--restrict_rules",
     is_flag=True,
-    help=query_dict(model_commands,("model","validate","restrict_rules")),
+    help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.pass_obj
 def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules):
@@ -190,7 +198,10 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules,
+        manifestPath=manifest_path,
+        rootNode=data_type,
+        jsonSchema=json_schema,
+        restrict_rules=restrict_rules,
     )
 
     if not errors:
