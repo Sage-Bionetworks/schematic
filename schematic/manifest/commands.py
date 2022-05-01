@@ -101,7 +101,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
 @click.option(
     "-av",
     "--alphabetize_valid_values",
-    default = 'ascending',
+    default="ascending",
     help=query_dict(manifest_commands, ("manifest", "get", "alphabetize_valid_values")),
 )
 @click.pass_obj
@@ -133,6 +133,7 @@ def get_manifest(
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
+
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -146,13 +147,15 @@ def get_manifest(
 
         # call get_manifest() on manifest_generator
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema,
+            dataset_id=dataset_id,
+            sheet_url=sheet_url,
+            json_schema=json_schema,
         )
 
         if sheet_url:
             logger.info("Find the manifest template using this Google Sheet URL:")
             click.echo(result)
-        if output_csv is None and output_xlsx is None: 
+        if output_csv is None and output_xlsx is None:
             prefix, _ = os.path.splitext(jsonld)
             prefix_root, prefix_ext = os.path.splitext(prefix)
             if prefix_ext == ".model":
@@ -166,26 +169,28 @@ def get_manifest(
             return result
         export_manifest_csv(file_name=output_csv, manifest=result)
         logger.info(
-                f"Find the manifest template using this CSV file path: {output_csv}"
-            )
+            f"Find the manifest template using this CSV file path: {output_csv}"
+        )
         return result
 
     if type(data_type) is str:
         data_type = [data_type]
 
-    if data_type[0] == 'all manifests':
+    if data_type[0] == "all manifests":
         sg = SchemaGenerator(path_to_json_ld=jsonld)
-        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+        component_digraph = sg.se.get_digraph_by_edge_type("requiresComponent")
         components = component_digraph.nodes()
         for component in components:
-            t = f'{title}.{component}.manifest'
-            result = create_single_manifest(data_type = component)
+            t = f"{title}.{component}.manifest"
+            result = create_single_manifest(data_type=component)
     else:
         for dt in data_type:
             if len(data_type) > 1:
-                t = f'{title}.{dt}.manifest'
+                t = f"{title}.{dt}.manifest"
             else:
                 t = title
-            result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
+            result = create_single_manifest(
+                data_type=dt, output_csv=output_csv, output_xlsx=output_xlsx
+            )
 
     return result
