@@ -371,7 +371,7 @@ class ValidateAttribute(object):
         
 
         #Get list of all projects user has access to
-        projects = synStore.getStorageProjects()
+        projects = synStore.getStorageProjects(project_scope=)
         for project in projects:
             #print('Project: ', str(project[0]))
             
