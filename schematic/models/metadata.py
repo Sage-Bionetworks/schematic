@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import re
 import networkx as nx
-from jsonschema import Draft7Validator, exceptions, validate, ValidationError
+from jsonschema import Draft7Validator, exceptions, validate, ValidationError, FormatError
 from os.path import exists
 
 # allows specifying explicit variable types
@@ -74,6 +74,21 @@ class MetadataModel(object):
                 f"The type '{inputMModelLocationType}' is currently not supported."
             )
 
+    def parse_project_scope(self,project_scope):
+
+        project_regex = re.compile("(syn\d{4,10}\,*)+")
+
+        valid=project_regex.fullmatch(project_scope)
+        if valid:
+            project_scope = project_scope.split(",")
+
+            return project_scope
+
+        else:
+            raise FormatError(
+                        f"\nThe provided list of project(s):\n{project_scope}\nis not formatted correctly. "
+                        "Please check your list of projects for errors."
+                    )
 
     def getModelSubgraph(self, rootNode: str, subgraphType: str) -> nx.DiGraph:
         """Gets a schema subgraph from rootNode descendants based on edge/node properties of type subgraphType.
@@ -187,7 +202,7 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, project_scope = None,
+        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, project_scope: str = None,
     ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
@@ -246,6 +261,9 @@ class MetadataModel(object):
                 )
 
             return errors, warnings
+
+        if project_scope:
+            project_scope = self.parse_project_scope(project_scope)
 
         errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope)
         return errors, warnings

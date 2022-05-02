@@ -356,7 +356,7 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def get_target_manifests(target_component,project_scope):
+    def get_target_manifests(target_component, project_scope: List):
 
         target_manifest_IDs=[]
         target_dataset_IDs=[]
@@ -640,7 +640,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope,
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List,
     ) -> List[List[str]]:
         """
         Purpose:
