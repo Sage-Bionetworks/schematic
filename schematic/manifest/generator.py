@@ -448,7 +448,7 @@ class ManifestGenerator(object):
             else:
                 self.additional_metadata["Component"] = [self.root]
 
-            return
+        return
 
     def _get_additional_metadata(self, required_metadata_fields: dict) -> dict:
         """Add additional metadata as entries to columns.
