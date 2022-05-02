@@ -452,7 +452,13 @@ class ManifestGenerator(object):
             # constructor (it's optional) if not, instantiate it
             if not self.additional_metadata:
                 self.additional_metadata = {}
-            self.additional_metadata["Component"] = [self.root]
+            if self.is_file_based:
+                self.additional_metadata["Component"] = [self.root] * max(
+                    1, len(self.additional_metadata["Filename"])
+                )
+            else:
+                self.additional_metadata["Component"] = [self.root]
+
         return
 
     def _get_additional_metadata(self, required_metadata_fields: dict) -> dict:
@@ -1418,11 +1424,6 @@ class ManifestGenerator(object):
         annotations_dict = OrderedDict(
             (k, list(v.values())) for k, v in annotations_dict_raw.items()
         )
-
-        print(annotations.to_string())
-
-        # Make sure that the Component column is full
-        annotations_dict["Component"] = [self.root] * max(1, len(annotations.index))
 
         # Needs to happen before get_empty_manifest() gets called
         self.additional_metadata = annotations_dict
