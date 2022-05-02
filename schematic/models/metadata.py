@@ -7,6 +7,7 @@ import pandas as pd
 import re
 import networkx as nx
 from jsonschema import Draft7Validator, exceptions, validate, ValidationError
+from os.path import exists
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -186,7 +187,7 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, jsonSchema: str = None
+        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, 
     ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
@@ -208,10 +209,11 @@ class MetadataModel(object):
             )
 
         errors = []
+        warnings = []
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
-            manifestPath
+            manifestPath, preserve_raw_input=False,
         )  # read manifest csv file as is from manifest path
 
         # handler for mismatched components/data types
@@ -243,11 +245,10 @@ class MetadataModel(object):
                     ]
                 )
 
-            return errors
+            return errors, warnings
 
-        errors, manifest = validate_all(self, errors, manifest, self.sg, jsonSchema)
-
-        return errors
+        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules)
+        return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
         """Populate an existing annotations manifest based on a dataframe.
@@ -276,10 +277,11 @@ class MetadataModel(object):
         manifest_path: str,
         dataset_id: str,
         manifest_record_type: str,
+        restrict_rules: bool,
         validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
-        input_token: str = None
+        input_token: str = None,
     ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -299,7 +301,9 @@ class MetadataModel(object):
         # the store type
         syn_store = SynapseStorage(input_token=input_token)
         manifest_id=None
-
+        censored_manifest_id=None
+        restrict_maniest=False
+        censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
         # check if user wants to perform validation or not
         if validate_component is not None:
 
@@ -316,21 +320,33 @@ class MetadataModel(object):
                 )
 
             # automatic JSON schema generation and validation with that JSON schema
-            val_errors = self.validateModelManifest(
-                manifestPath=manifest_path, rootNode=validate_component
+            val_errors, val_warnings = self.validateModelManifest(
+                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules
             )
-            
-            # if there are no errors in validation process
-            if not val_errors:
 
+            # if there are no errors in validation process
+            if val_errors == []:                
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
+                if exists(censored_manifest_path):
+                    censored_manifest_id = syn_store.associateMetadataWithFiles(
+                        metadataManifestPath = censored_manifest_path,
+                        datasetId = dataset_id, 
+                        manifest_record_type = manifest_record_type,
+                        hideBlanks = hide_blanks,
+                    )
+                    restrict_maniest = True
+                
                 manifest_id = syn_store.associateMetadataWithFiles(
-                    metadataManifestPath=manifest_path, datasetId=dataset_id, manifest_record_type=manifest_record_type,
-                    hideBlanks=hide_blanks,
+                    metadataManifestPath = manifest_path, 
+                    datasetId = dataset_id, 
+                    manifest_record_type = manifest_record_type, 
+                    hideBlanks = hide_blanks,
+                    restrict_manifest=restrict_maniest,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
                 return manifest_id
+                
             else:
                 raise ValidationError(
                     "Manifest could not be validated under provided data model. "
@@ -338,12 +354,23 @@ class MetadataModel(object):
                 )
 
         # no need to perform validation, just submit/associate the metadata manifest file
+        if exists(censored_manifest_path):
+            censored_manifest_id = syn_store.associateMetadataWithFiles(
+                metadataManifestPath=censored_manifest_path,
+                datasetId=dataset_id,
+                manifest_record_type=manifest_record_type,
+                useSchemaLabel=use_schema_label,
+                hideBlanks=hide_blanks,
+            )
+            restrict_maniest = True
+        
         manifest_id = syn_store.associateMetadataWithFiles(
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
             useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
+            restrict_manifest=restrict_maniest,
         )
 
         logger.debug(

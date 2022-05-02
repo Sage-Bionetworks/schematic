@@ -7,7 +7,7 @@ from copy import deepcopy
 logger = logging.getLogger(__name__)
 
 
-def load_df(file_path, **kwargs):
+def load_df(file_path, preserve_raw_input=True, **kwargs):
     """
     Universal function to load CSVs and return DataFrames
     Args:
@@ -17,17 +17,24 @@ def load_df(file_path, **kwargs):
     Returns: a processed dataframe for manifests or unprocessed df for data models
     """
 
-    #Read CSV to df as type string
-    org_df = pd.read_csv(file_path, dtype=str, **kwargs)
+    #read as normal if not reading in for validation
+    if preserve_raw_input:
+        org_df = pd.read_csv(file_path, encoding='utf8', **kwargs)
 
-    #only process if not data model csv
-    if 'model' in file_path:
+        #only trim if not data model csv
+        if 'model' not in file_path:
+            org_df=trim_commas_df(org_df)
+
         return org_df
+
     else:
+        #Read CSV to df as type string
+        org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', **kwargs)
+
         float_df=deepcopy(org_df)
 
         #Find integers stored as strings 
-        ints = org_df.applymap(lambda x: int(x) if str.isdigit(x) else False ,na_action='ignore').fillna(False)
+        ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
@@ -41,7 +48,7 @@ def load_df(file_path, **kwargs):
         processed_df=processed_df.mask(ints != False, other = ints)  
         
         
-    return processed_df
+        return processed_df
 
 def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
 
@@ -135,5 +142,7 @@ def trim_commas_df(df: pd.DataFrame):
 
     # remove all completely empty rows
     df = df.dropna(how="all", axis=0)
+
+    #Fill in nan cells with empty strings
     df.fillna("", inplace=True)
     return df

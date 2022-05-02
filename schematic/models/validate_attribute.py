@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 import re
 import sys
+from os import getenv
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -14,8 +15,11 @@ from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
 from urllib.request import Request
 from urllib import error
 
-logger = logging.getLogger(__name__)
+from schematic.store.synapse import SynapseStorage
+from schematic.schemas.generator import SchemaGenerator
+import time
 
+logger = logging.getLogger(__name__)
 
 class GenerateError:
     def generate_list_error(
@@ -162,6 +166,180 @@ class GenerateError:
             error_val = f"URL Error: Random Entry"
         return [error_row, error_col, error_message, error_val]
 
+    def generate_cross_error(
+        val_rule: str,
+        attribute_name: str,
+        matching_manifests = [],
+        missing_manifest_ID = None,
+        missing_entry = None,
+        row_num = None,
+    ) -> List[str]:
+        """
+            Purpose:
+                Generate an logging error as well as a stored error message, when
+                a cross validation error is encountered.
+            Input:
+                val_rule: str, defined in the schema.
+                matching_manifests: list of manifests with all values in the target attribute present
+                manifest_ID: str, synID of the target manifest missing the source value
+                attribute_name: str, attribute being validated
+                missing_entry: str, value present in source manifest that is missing in the target
+                row_num: row in source manifest with value missing in target manifests             
+            Returns:
+                Logging.error.
+                Errors: List[str] Error details for further storage.
+            """
+        if val_rule.__contains__('matchAtLeast'):
+            cross_error_str = (
+                f"Manifest {missing_manifest_ID} does not contain the value {missing_entry} "
+                f"from row {row_num} of the attribute {attribute_name} in the source manifest."
+            )
+        elif val_rule.__contains__('matchExactly'):
+            if matching_manifests != []:
+                cross_error_str = (
+                    f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1. "
+                    f"Manifests {matching_manifests} match the values in the source attribute."
+                )
+            else:
+                cross_error_str = (
+                    f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
+                )
+
+        logging.error(cross_error_str)
+        error_row = row_num  # index row of the manifest where the error presented.
+        error_col = attribute_name  # Attribute name
+        error_message = cross_error_str
+        error_val = missing_entry #Value from source manifest missing from targets
+        
+        return [error_row, error_col, error_message, error_val]
+
+    def generate_content_error(
+        val_rule: str,
+        attribute_name: str,
+        sg: SchemaGenerator,
+        row_num = None,
+        error_val = None,    
+    ) -> List[str]:
+        """
+        Purpose:
+            Generate an logging error or warning as well as a stored error/warning message when validating the content of a manifest attribute.
+
+            Types of error/warning included:
+                - recommended - Raised when an attribute is empty and recommended but not required.
+                - unique - Raised when attribute values are not unique.
+                - protectAges - Raised when an attribute contains ages below 18YO or over 90YO that should be censored.
+        Input:
+                val_rule: str, defined in the schema.
+                attribute_name: str, attribute being validated
+                sg: schemaGenerator object
+                row_num: str, row where the error was detected
+                error_val: value duplicated
+
+        Returns:
+            Logging.error or Logging.warning.
+            Message: List[str] Error|Warning details for further storage.
+        """
+        error_list = []
+        warning_list = []
+        error_col = attribute_name  # Attribute name
+        
+        #Determine whether to raise a warning or error
+        raises = GenerateError.get_message_level(
+            val_rule=val_rule,
+            attribute_name = attribute_name,
+            sg = sg,
+            )
+
+        #if a message needs to be raised, get the approrpiate function to do so
+        if raises:
+            logLevel = getattr(logging,raises)  
+        else:
+            return error_list, warning_list
+        
+        #log warning or error message
+        if val_rule.startswith('recommended'):
+            cross_error_str = (
+                f"Column {attribute_name} is recommended but empty."
+            )
+            logLevel(cross_error_str)
+            error_message = cross_error_str
+
+            if raises == 'error':
+                error_list = [error_col, error_message]
+            #return warning and empty list for errors
+            elif raises == 'warning':
+                warning_list = [error_col, error_message]
+
+            return error_list, warning_list
+
+        elif val_rule.startswith('unique'):    
+            cross_error_str = (
+                f"Column {attribute_name} has the duplicate value(s) {set(error_val)} in rows: {row_num}."
+            )
+
+        elif val_rule.startswith('protectAges'):
+            cross_error_str = (
+                f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
+            )           
+
+        elif val_rule.startswith('inRange'):
+            cross_error_str = (
+                f"{attribute_name} values in rows {row_num} are out of the specified range."
+            )  
+
+        logLevel(cross_error_str)
+        error_row = row_num 
+        error_message = cross_error_str
+
+        #return error and empty list for warnings
+        if raises == 'error':
+            error_list = [error_row, error_col, error_message, set(error_val)]
+        #return warning and empty list for errors
+        elif raises == 'warning':
+            warning_list = [error_row, error_col, error_message, set(error_val)]
+        
+        return error_list, warning_list
+
+    def get_message_level(
+        val_rule: str,
+        sg: SchemaGenerator,
+        attribute_name: str,
+        ):
+        """
+        Purpose:
+            Determine whether an error or warning message should be logged and displayed
+
+            Types of error/warning included:
+                - recommended - Raised when an attribute is empty and recommended but not required.
+                - unique - Raised when attribute values are not unique.
+                - protectAges - Raised when an attribute contains ages below 18YO or over 90YO that should be censored.
+        Input:
+                val_rule: str, defined in the schema.
+                sg: schemaGenerator object
+                attribute_name: str, attribute being validated
+        Returns:
+            'error' or 'warning'
+        """
+
+        
+        rule_parts = val_rule.split(" ")
+        
+        #See if the node is required, if it is and the column is missing then a requirement error will be raised later; no error or waring logged here if recommended and required but missing        
+        if val_rule.startswith('recommended') and sg.is_node_required(node_display_name=attribute_name):
+            level = None
+        
+        #if not required, use the message level specified in the rule
+        elif rule_parts[-1].lower() == 'error':
+            level = 'error'
+
+        elif rule_parts[-1].lower() == 'warning':
+            level = 'warning'
+        
+        #if no level specified, the default level is warning
+        else:
+            level = 'warning'
+
+        return level
 
 class ValidateAttribute(object):
     """
@@ -170,11 +348,46 @@ class ValidateAttribute(object):
         regex_validation
         type_validation
         url_validation
+        cross_validation
+        get_target_manifests - helper function
     See functions for more details.
     TODO:
         - Add year validator
         - Add string length validator
     """
+
+    def get_target_manifests(target_component):
+
+        target_manifest_IDs=[]
+        target_dataset_IDs=[]
+        
+        #login
+        access_token = getenv("SYNAPSE_ACCESS_TOKEN")
+        if access_token:
+            synStore = SynapseStorage(access_token=access_token)
+        else:
+            synStore = SynapseStorage()
+        #syn = synStore.login(access_token = access_token)
+        
+
+        #Get list of all projects user has access to
+        projects = synStore.getStorageProjects()
+        for project in projects:
+            #print('Project: ', str(project[0]))
+            
+            #get all manifests associated with datasets in the projects
+            target_datasets=synStore.getProjectManifests(projectId=project[0])
+            #print(target_datasets)
+
+            #If the manifest includes the target component, include synID in list
+            for target_dataset in target_datasets:
+                #print(target_dataset)
+
+                if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
+                    target_manifest_IDs.append(target_dataset[1][0])
+                    target_dataset_IDs.append(target_dataset[0][0])
+
+        return synStore, target_manifest_IDs, target_dataset_IDs    
 
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
@@ -194,6 +407,7 @@ class ValidateAttribute(object):
         # convert to a real list of strings, with leading and trailing
         # white spaces removed.
         errors = []
+        warnings = []
         manifest_col = manifest_col.astype(str)
         # This will capture any if an entry is not formatted properly.
         for i, list_string in enumerate(manifest_col):
@@ -213,7 +427,7 @@ class ValidateAttribute(object):
             lambda x: [s.strip() for s in str(x).split(",")]
         )
 
-        return errors, manifest_col
+        return errors, warnings, manifest_col
 
     def regex_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
@@ -254,6 +468,7 @@ class ValidateAttribute(object):
             )
 
         errors = []
+        warnings = []
         # Handle case where validating re's within a list.
         if type(manifest_col[0]) == list:
             for i, row_values in enumerate(manifest_col):
@@ -290,7 +505,7 @@ class ValidateAttribute(object):
                         )
                     )
 
-        return errors
+        return errors, warnings
 
     def type_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
@@ -314,6 +529,7 @@ class ValidateAttribute(object):
         """
 
         errors = []
+        warnings = []
         # num indicates either a float or int.
         if val_rule == "num":
             for i, value in enumerate(manifest_col):
@@ -337,7 +553,7 @@ class ValidateAttribute(object):
                             invalid_entry=manifest_col[i]
                         )
                     )
-        return errors
+        return errors, warnings
 
     def url_validation(self, val_rule: str, manifest_col: str) -> List[List[str]]:
         """
@@ -356,6 +572,7 @@ class ValidateAttribute(object):
 
         url_args = val_rule.split(" ")[1:]
         errors = []
+        warnings = []
 
         for i, url in enumerate(manifest_col):
             # Check if a random phrase, string or number was added and
@@ -420,4 +637,85 @@ class ValidateAttribute(object):
                                     invalid_entry=manifest_col[i]
                                 )
                             )
-        return errors
+        return errors, warnings
+
+    def cross_validation(
+        self, val_rule: str, manifest_col: pd.core.series.Series
+    ) -> List[List[str]]:
+        """
+        Purpose:
+            Do cross validation between the current manifest and all other manifests a user has access to on Synapse.
+            Check if values in this manifest are present fully in others.
+        Input:
+            - val_rule: str, Validation rule
+            - manifest_col: pd.core.series.Series, column for a given
+                attribute in the manifest
+        Output:
+            This function will return errors when values in the current manifest's attribute 
+            are not fully present in the correct amount of other manifests.
+        """
+        errors = []
+        warnings = []
+        missing_values = {}
+        missing_manifest_log={}
+        present_manifest_log=[]
+
+        #parse sources and targets
+        [source_component, source_attribute] = val_rule.split(" ")[1].split(".")
+        [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
+
+        #Get IDs of manifests with target component
+        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
+
+        #Read each manifest
+        for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
+            entity = synStore.getDatasetManifest(
+                datasetId = target_dataset_ID,
+                downloadFile = True
+                )
+            target_manifest=pd.read_csv(entity.path)
+
+            #convert manifest column names into validation rule input format - 
+            column_names={}
+            for name in target_manifest.columns:
+                column_names[name.replace(" ","").lower()]=name
+
+            #If the manifest has the target attribute for the component do the cross validation
+            if target_attribute.lower() in column_names:
+                target_column = target_manifest[column_names[target_attribute.lower()]]
+
+                #Do the validation on both columns
+                missing_values = manifest_col[~manifest_col.isin(target_column)]
+                if missing_values.empty:
+                    present_manifest_log.append(target_manifest_ID)
+                else:
+                    missing_manifest_log[target_manifest_ID] = missing_values
+
+        #generate errors if necessary
+        if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:      
+            for missing_ID in missing_manifest_log:      
+                missing_dict=missing_manifest_log[missing_ID]
+                for row, value in zip (missing_dict.keys(),missing_dict): #wrong dict used, cause of not all errors being raised
+                    row = row +2 
+                    errors.append(
+                        GenerateError.generate_cross_error(
+                            val_rule = val_rule,
+                            row_num = str(row),
+                            attribute_name = source_attribute,
+                            missing_entry = str(value),
+                            missing_manifest_ID = missing_ID,
+                        )
+                    )
+        elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
+            errors.append(
+                GenerateError.generate_cross_error(
+                    val_rule = val_rule,
+                    attribute_name = source_attribute,
+                    matching_manifests = present_manifest_log,
+                )
+            )
+            
+
+        return errors, warnings
+
+

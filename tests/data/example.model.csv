@@ -18,3 +18,18 @@ CRAM,,,"Genome Build, Genome FASTA",,FALSE,ValidValue,,,
 CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
 Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
+MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match Exactly, Check Recommended, Check Ages, Check Unique, Check Range",,FALSE,DataType,,,
+Check List,,,,,FALSE,DataProperty,,,list
+Check Regex List,,,,,FALSE,DataProperty,,,list::regex match [a-f]
+Check Regex Single,,,,,FALSE,DataProperty,,,regex search [a-f]
+Check Num,,,,,FALSE,DataProperty,,,num
+Check Float,,,,,FALSE,DataProperty,,,float
+Check Int,,,,,FALSE,DataProperty,,,int
+Check String,,,,,FALSE,DataProperty,,,str
+Check URL,,,,,FALSE,DataProperty,,,url
+Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID 
+Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly 
+Check Recommended,,,,,FALSE,DataProperty,,,recommended
+Check Ages,,,,,FALSE,DataProperty,,,protectAges
+Check Unique,,,,,FALSE,DataProperty,,,unique error
+Check Range,,,,,FALSE,DataProperty,,,inRange 50 100 error
