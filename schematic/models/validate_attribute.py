@@ -2,7 +2,7 @@ import builtins
 from jsonschema import ValidationError
 import logging
 
-# import numpy as np
+import numpy as np
 import pandas as pd
 import re
 import sys
@@ -527,13 +527,19 @@ class ValidateAttribute(object):
         TODO:
             Convert all inputs to .lower() just to prevent any entry errors.
         """
+        specified_type = {
+            'num': (int, np.int64, float),
+            'int': (int, np.int64),
+            'float': (float),
+            'str': (str),
+        }
 
         errors = []
         warnings = []
         # num indicates either a float or int.
         if val_rule == "num":
             for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, (int, float)):
+                if bool(value) and not isinstance(value, specified_type[val_rule]):
                     errors.append(
                         GenerateError.generate_type_error(
                             val_rule,
@@ -544,7 +550,7 @@ class ValidateAttribute(object):
                     )
         elif val_rule in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
-                if bool(value) and type(value) != getattr(builtins, val_rule):
+                if bool(value) and not isinstance(value, specified_type[val_rule]):
                     errors.append(
                         GenerateError.generate_type_error(
                             val_rule,
