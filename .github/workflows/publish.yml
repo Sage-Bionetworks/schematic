@@ -1,9 +1,9 @@
-name: Publish to Test PyPI and PyPI
+name: Publish to PyPI
 on:
   push:
     tags:
       - '*'
-    branches: [develop]
+    branches: [main]
 
 jobs:
   test_pypi_release:
@@ -74,10 +74,10 @@ jobs:
       #----------------------------------------------
       #    publish to testpypi
       #----------------------------------------------      
-      - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
-      - run: poetry config pypi-token.testpypi ${{ secrets.TWINE_TEST_TOKEN }}
-      - name: Publish package to test Pypi
-        run: poetry publish -vvvv --build -r testpypi
+      # - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
+      # - run: poetry config pypi-token.testpypi ${{ secrets.TWINE_TEST_TOKEN }}
+      # - name: Publish package to test Pypi
+      #   run: poetry publish -vvvv --build -r testpypi
 
       #----------------------------------------------
       #    check tag

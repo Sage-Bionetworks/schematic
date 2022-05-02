@@ -9,6 +9,8 @@ from schematic.utils.general import dict2list, find_duplicates, str2list, unlist
 from schematic.utils.google_api_utils import (
     download_creds_file,
     execute_google_api_requests,
+    export_manifest_csv,
+    export_manifest_excel,
 )
 from schematic.utils.io_utils import (
     export_json,
