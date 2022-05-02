@@ -449,8 +449,8 @@ class SynapseStorage(BaseStorage):
                 # otherwise download the manifest and parse for information
                 elif 'Component' not in annotations or not annotations:
                     logging.debug(
-                        f"No component annotations have been found for manifest {manifestId}"
-                        "The manifest will be downloaded and parsed instead."
+                        f"No component annotations have been found for manifest {manifestId}. "
+                        "The manifest will be downloaded and parsed instead. "
                         "For increased speed, add component annotations to manifest."
                         )
 
