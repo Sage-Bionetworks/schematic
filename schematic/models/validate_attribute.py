@@ -356,7 +356,7 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def get_target_manifests(target_component):
+    def get_target_manifests(target_component,project_scope):
 
         target_manifest_IDs=[]
         target_dataset_IDs=[]
@@ -640,7 +640,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope,
     ) -> List[List[str]]:
         """
         Purpose:
@@ -665,7 +665,7 @@ class ValidateAttribute(object):
         [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
 
         #Get IDs of manifests with target component
-        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
+        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
 
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):

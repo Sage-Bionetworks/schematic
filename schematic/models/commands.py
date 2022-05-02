@@ -87,9 +87,15 @@ def model(ctx, config):  # use as `schematic model ...`
     is_flag=True,
     help=query_dict(model_commands,("model","validate","restrict_rules")),
 )
+@click.option(
+    "-ps",
+    "--project_scope",
+    default = None,
+    help=query_dict(model_commands, ("model", "validate", "project_scope")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules,
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -111,6 +117,7 @@ def submit_manifest(
             restrict_rules=restrict_rules,
             use_schema_label=use_schema_label,
             hide_blanks=hide_blanks,
+            project_scope=project_scope,
         )
 
         '''
@@ -167,8 +174,14 @@ def submit_manifest(
     is_flag=True,
     help=query_dict(model_commands,("model","validate","restrict_rules")),
 )
+@click.option(
+    "-ps",
+    "--project_scope",
+    default = None,
+    help=query_dict(model_commands, ("model", "validate", "project_scope")),
+)
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules):
+def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope,):
     """
     Running CLI for manifest validation.
     """
@@ -190,7 +203,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules,
+        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules, project_scope=project_scope,
     )
 
     if not errors:
