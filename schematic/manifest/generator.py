@@ -1419,6 +1419,8 @@ class ManifestGenerator(object):
             (k, list(v.values())) for k, v in annotations_dict_raw.items()
         )
 
+        print(annotations.to_string())
+
         # Make sure that the Component column is full
         annotations_dict["Component"] = [self.root] * max(1, len(annotations.index))
 
