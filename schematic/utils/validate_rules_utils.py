@@ -93,6 +93,7 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
     validation_rule_with_args = [
                 val_rule.strip() for val_rule in validation_rules.strip().split(" ")]
 
+    print(validation_rule_with_args[0])
     # Check that the rule is actually a valid rule type.
     if validation_rule_with_args[0] not in validation_types.keys():
         errors.append(get_error(validation_rules, attribute,
