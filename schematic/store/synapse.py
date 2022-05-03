@@ -186,7 +186,11 @@ class SynapseStorage(BaseStorage):
 
         # find set of user projects that are also in this pipeline's storage projects set
         storageProjects = list(set(storageProjects) & set(currentUserProjects))
-
+        
+        # Limit projects to scope if specified
+        if project_scope:
+            storageProjects = list(set(storageProjects) & set(project_scope))
+        
         # prepare a return list of project IDs and names
         projects = []
         for projectId in storageProjects:
