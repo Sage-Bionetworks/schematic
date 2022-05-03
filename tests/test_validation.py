@@ -38,10 +38,7 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode
             )
-        
-        for error in errors:
-            print(error)
-
+    
         assert errors == []
         assert warnings ==  []
 
@@ -54,6 +51,9 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode
             )
+
+        for error in errors:
+            print(error)
 
         #Check errors
         assert GenerateError.generate_type_error(
