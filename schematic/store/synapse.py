@@ -29,7 +29,7 @@ from synapseclient import (
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
-from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError
+from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
 import synapseutils
 
 import uuid
@@ -317,31 +317,46 @@ class SynapseStorage(BaseStorage):
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
             return ""
+
         # if there is an exisiting manifest
         else:
             # retrieve data from synapse
+
             # if a censored manifest exists for this dataset
-            if any(manifest['name'].str.contains(censored_regex)):
-                #if a user also has access to the uncensored version, use that one
+            censored = manifest['name'].str.contains(censored_regex)
+            if any(censored):
+                # Try to use uncensored manifest first
                 not_censored=~manifest['name'].str.contains(censored_regex)
                 if any(not_censored):
                     manifest_syn_id=manifest[not_censored]["id"][0]
-            #otherwise, use the censored version
+
+            #otherwise, use the first (implied only) version that exists
             else:
                 manifest_syn_id = manifest["id"][0]
+
+
             # if the downloadFile option is set to True
             if downloadFile:
-                # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                try:
-                    manifest_data = self.syn.get(
-                        manifest_syn_id,
-                        downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                        ifcollision="overwrite.local",
-                    )
-                except(KeyError):
-                    manifest_data = self.syn.get(
-                        manifest_syn_id,
-                    )
+                # enables retrying if user does not have access to uncensored manifest
+                while True:
+                    # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+                    try:
+                        manifest_data = self.syn.get(
+                            manifest_syn_id,
+                            downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                            ifcollision="overwrite.local",
+                        )
+                        break
+                    # if no manifest folder is set, download to cache
+                    except(KeyError):
+                        manifest_data = self.syn.get(
+                            manifest_syn_id,
+                        )
+                        break
+                    # If user does not have access to uncensored manifest, use censored instead
+                    except(SynapseUnmetAccessRestrictions):
+                            manifest_syn_id=manifest[censored]["id"][0]
+                        
 
                 return manifest_data
 
