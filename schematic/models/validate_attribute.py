@@ -545,7 +545,7 @@ class ValidateAttribute(object):
                             val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i]
+                            invalid_entry=str(manifest_col[i])
                         )
                     )
         elif val_rule in ["int", "float", "str"]:
@@ -556,7 +556,7 @@ class ValidateAttribute(object):
                             val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i]
+                            invalid_entry=str(manifest_col[i])
                         )
                     )
         return errors, warnings
