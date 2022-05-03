@@ -341,18 +341,19 @@ class SynapseStorage(BaseStorage):
                 while True:
                     # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
                     try:
-                        manifest_data = self.syn.get(
-                            manifest_syn_id,
-                            downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                            ifcollision="overwrite.local",
-                        )
-                        break
-                    # if no manifest folder is set, download to cache
-                    except(KeyError):
-                        manifest_data = self.syn.get(
-                            manifest_syn_id,
-                        )
-                        break
+                        if 'manifest_folder' in CONFIG['synapse'].keys():
+                            manifest_data = self.syn.get(
+                                manifest_syn_id,
+                                downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                                ifcollision="overwrite.local",
+                            )
+                            break
+                        # if no manifest folder is set, download to cache
+                        else:
+                            manifest_data = self.syn.get(
+                                manifest_syn_id,
+                            )
+                            break
                     # If user does not have access to uncensored manifest, use censored instead
                     except(SynapseUnmetAccessRestrictions):
                             manifest_syn_id=manifest[censored]["id"][0]
