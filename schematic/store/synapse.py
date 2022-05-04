@@ -190,6 +190,11 @@ class SynapseStorage(BaseStorage):
         # Limit projects to scope if specified
         if project_scope:
             storageProjects = list(set(storageProjects) & set(project_scope))
+
+            if not storageProjects:
+                raise Warning(
+                    f"There are no projects that the user has access to that match the criteria of the specified project scope: {project_scope}"
+                )
         
         # prepare a return list of project IDs and names
         projects = []
