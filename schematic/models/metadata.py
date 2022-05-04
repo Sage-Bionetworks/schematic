@@ -85,9 +85,9 @@ class MetadataModel(object):
             return project_scope
 
         else:
-            raise FormatError(
-                        f"\nThe provided list of project(s):\n{project_scope}\nis not formatted correctly. "
-                        "Please check your list of projects for errors."
+            raise ValueError(
+                        f"The provided list of project synID(s): {project_scope}, is not formatted correctly. "
+                        "\nPlease check your list of projects for errors."
                     )
 
     def getModelSubgraph(self, rootNode: str, subgraphType: str) -> nx.DiGraph:
