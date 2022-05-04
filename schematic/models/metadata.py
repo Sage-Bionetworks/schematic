@@ -76,7 +76,7 @@ class MetadataModel(object):
 
     def parse_project_scope(self,project_scope):
 
-        project_regex = re.compile("(syn\d{4,10}\,*)+")
+        project_regex = re.compile("(syn\d+\,?)+")
 
         valid=project_regex.fullmatch(project_scope)
         if valid:
