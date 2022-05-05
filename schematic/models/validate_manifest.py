@@ -273,7 +273,12 @@ class ValidateManifest(object):
         
         errors = []
         warnings = []
-        annotations = json.loads(manifest.astype('string').to_json(orient="records"))
+        
+        # numerical values need to be type string for the jsonValidator
+        for col in manifest.select_dtypes(include=[np.int64, np.float]).columns:
+            manifest[col]=manifest[col].astype('string')
+
+        annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
