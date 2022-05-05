@@ -300,7 +300,7 @@ class MetadataModel(object):
         use_schema_label: bool = True,
         hide_blanks: bool = False,
         input_token: str = None,
-        project_scope = None,
+        project_scope: List = None,
     ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
