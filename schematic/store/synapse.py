@@ -326,7 +326,7 @@ class SynapseStorage(BaseStorage):
             censored = manifest['name'].str.contains(censored_regex)
             if any(censored):
                 # Try to use uncensored manifest first
-                not_censored=~manifest['name'].str.contains(censored_regex)
+                not_censored=~censored
                 if any(not_censored):
                     manifest_syn_id=manifest[not_censored]["id"][0]
 
