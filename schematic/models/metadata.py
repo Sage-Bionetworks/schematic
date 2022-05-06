@@ -194,6 +194,7 @@ class MetadataModel(object):
         Args:
             rootNode: a schema node label (i.e. term).
             manifestPath: a path to the manifest csv file containing annotations.
+            restrict_rules: bypass great expectations and restrict rule options to those implemented in house
 
         Returns:
             A validation status message; if there is an error the message.
