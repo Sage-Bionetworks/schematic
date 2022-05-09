@@ -79,6 +79,7 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
     args_dict = dict(all_args.lists())
     data_type = args_dict['data_type']
     
+    # Gather all dataset_ids
     try:
         dataset_ids = args_dict['dataset_id']
     except:
@@ -98,6 +99,7 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
                     f"submitted. Please check your submission and try again."
                 )
         
+        # Raise an error if used in conjunction with datatype = 'all_manifests'
         try:
             data_type[0] != 'all manifests'
         except:
@@ -142,6 +144,7 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
                 t = title
 
             if dataset_ids:
+                # if a dataset_id is provided add this to the function call.
                 result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i])
             else:
                 result = create_single_manifest(data_type = dt)
