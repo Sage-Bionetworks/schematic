@@ -498,6 +498,6 @@ class GreatExpectationsHelpers(object):
 
         # update the manifest file, so that ages are censored
         self.manifest.to_csv(self.manifestPath.replace('.csv','_censored.csv'), index=False)
-        logging.info("Sensitive ages have been censored and replaced with NaN values.")
+        logging.info("Sensitive ages have been censored.")
 
         return

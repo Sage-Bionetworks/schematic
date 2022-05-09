@@ -29,7 +29,7 @@ from synapseclient import (
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
-from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError
+from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
 import synapseutils
 
 import uuid
@@ -321,33 +321,55 @@ class SynapseStorage(BaseStorage):
         ]
 
         manifest = manifest[["id", "name"]]
-
+        censored_regex=re.compile('.*censored.*')
+        
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
             return ""
+
         # if there is an exisiting manifest
         else:
-            # if the downloadFile option is set to True
-            if downloadFile:
-                # retrieve data from synapse
+            # retrieve data from synapse
+
+            # if a censored manifest exists for this dataset
+            censored = manifest['name'].str.contains(censored_regex)
+            if any(censored):
+                # Try to use uncensored manifest first
+                not_censored=~censored
+                if any(not_censored):
+                    manifest_syn_id=manifest[not_censored]["id"][0]
+
+            #otherwise, use the first (implied only) version that exists
+            else:
                 manifest_syn_id = manifest["id"][0]
 
-                # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                try:
-                    manifest_data = self.syn.get(
-                        manifest_syn_id,
-                        downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                        ifcollision="overwrite.local",
-                    )
-                except(KeyError):
-                    manifest_data = self.syn.get(
-                        manifest_syn_id,
-                    )
+
+            # if the downloadFile option is set to True
+            if downloadFile:
+                # enables retrying if user does not have access to uncensored manifest
+                while True:
+                    # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+                    try:
+                        if 'manifest_folder' in CONFIG['synapse'].keys():
+                            manifest_data = self.syn.get(
+                                manifest_syn_id,
+                                downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                                ifcollision="overwrite.local",
+                            )
+                            break
+                        # if no manifest folder is set, download to cache
+                        else:
+                            manifest_data = self.syn.get(
+                                manifest_syn_id,
+                            )
+                            break
+                    # If user does not have access to uncensored manifest, use censored instead
+                    except(SynapseUnmetAccessRestrictions):
+                            manifest_syn_id=manifest[censored]["id"][0]
+                        
 
                 return manifest_data
 
-            # extract synapse ID of exisiting dataset manifest
-            manifest_syn_id = manifest.to_records(index=False)[0][0]
 
             return manifest_syn_id
 
@@ -410,7 +432,6 @@ class SynapseStorage(BaseStorage):
         
         return manifest_id, manifest
 
-
     def getProjectManifests(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
 
@@ -427,7 +448,8 @@ class SynapseStorage(BaseStorage):
 
         TODO: Return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
         """
-
+        component=None
+        entity=None
         manifests = []
 
         datasets = self.getStorageDatasetsInProject(projectId)
@@ -435,34 +457,75 @@ class SynapseStorage(BaseStorage):
         for (datasetId, datasetName) in datasets:
             # encode information about the manifest in a simple list (so that R clients can unpack it)
             # eventually can serialize differently
+                
+            # Get synID of manifest for a dataset
+            manifestId = self.getDatasetManifest(datasetId)
 
-            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+            # If a manifest exists, get the annotations for it, else return base 'manifest' tuple
+            if manifestId:
+                annotations = self.getFileAnnotations(manifestId)
 
-            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
-            if manifest_info:
-                manifest_id = manifest_info["properties"]["id"]
-                manifest_name = manifest_info["properties"]["name"]
-                manifest_path = manifest_info["path"]
+                # If manifest has annotations specifying component, use that
+                if 'Component' in annotations:
+                    component = annotations['Component']
+                    entity = self.syn.get(manifestId, downloadFile=False)
+                    manifest_name = entity["properties"]["name"]
 
-                manifest_df = load_df(manifest_path)
+                # otherwise download the manifest and parse for information
+                elif 'Component' not in annotations or not annotations:
+                    logging.debug(
+                        f"No component annotations have been found for manifest {manifestId}. "
+                        "The manifest will be downloaded and parsed instead. "
+                        "For increased speed, add component annotations to manifest."
+                        )
 
-                if "Component" in manifest_df and not manifest_df["Component"].empty:
-                    manifest_component = manifest_df["Component"][0]
+                    manifest_info = self.getDatasetManifest(datasetId,downloadFile=True)
+                    manifest_name = manifest_info["properties"]["name"]
+                    manifest_path = manifest_info["path"]
 
-                    manifest = (
-                        (datasetId, datasetName),
-                        (manifest_id, manifest_name),
-                        (manifest_component, manifest_component),
-                    )
-                else:
-                    manifest = (
-                        (datasetId, datasetName),
-                        (manifest_id, manifest_name),
-                        ("", ""),
-                    )
+                    manifest_df = load_df(manifest_path)
 
-            manifests.append(manifest)
+                    # Get component from component column if it exists
+                    if "Component" in manifest_df and not manifest_df["Component"].empty:
+                        list(set(manifest_df['Component']))
+                        component = list(set(manifest_df["Component"]))
 
+                        #Added to address issues raised during DCA testing
+                        if '' in component:
+                            component.remove('')
+
+                        if len(component) == 1:
+                            component = component[0]
+                        elif len(component) > 1:
+                            logging.warning(
+                            f"Manifest {manifestId} is composed of multiple components. Schematic does not support mulit-component manifests at this time."
+                            "Behavior of manifests with multiple components is undefined"
+                            )              
+
+            #save manifest list with applicable informaiton
+            if component:
+                manifest = (
+                    (datasetId, datasetName),
+                    (manifestId, manifest_name),
+                    (component, component),
+                )
+            elif manifestId:
+                logging.debug(f"Manifest {manifestId} does not have an associated Component")
+                manifest = (
+                    (datasetId, datasetName),
+                    (manifestId, manifest_name),
+                    ("", ""),
+                )
+            else:
+                manifest = (
+                    (datasetId, datasetName),
+                    ("", ""),
+                    ("", ""),
+                )
+
+            if manifest:
+                manifests.append(manifest)
+                
         return manifests
 
     def upload_project_manifests_to_synapse(self, projectId: str) -> List[str]:

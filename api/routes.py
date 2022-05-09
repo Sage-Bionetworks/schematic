@@ -255,3 +255,20 @@ def download_manifest(input_token, dataset_id, asset_view, as_json):
 
     
     return manifest_local_file_path
+
+def get_asset_view_table(input_token, asset_view):
+    # call config handler
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # get file view table
+    file_view_table_df = store.getStorageFileviewTable()
+
+    # convert pandas dataframe to csv
+    path = os.getcwd()
+    export_path = os.path.join(path, 'tests/data/file_view_table.csv')
+    file_view_table_df.to_csv(export_path, index=False)
+
+    return export_path
