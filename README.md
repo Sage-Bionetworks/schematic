@@ -48,6 +48,8 @@ If you run into error: Failed building wheel for numpy, the error might be able 
 pip3 install --upgrade pip
 ```
 
+*Note*: If you will need to interact with synapse, please follow step 5 and step 6 in the section below to obtain credentials. 
+
 ## Installation guide for developers/contributors 
 
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
@@ -69,11 +71,15 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 ```
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
-2. Follow the [instructions](https://python-poetry.org/docs/) here to install `poetry`
-3. Start the virtual environment by doing: 
+2. Follow the [instructions](https://python-poetry.org/docs/master/#installing-with-the-official-installer) here to install `poetry`
+*Note*: You could check the installation of poetry by doing `poetry --version` in a new terminal. 
+
+4. Start your virtual environment by doing: 
 ```
 poetry shell
 ```
+*Note*: To exit the shell, you could run `exit`. Visit the link [here](https://python-poetry.org/docs/basic-usage/#activating-the-virtual-environment) to see more information about activating the virtual environment in poetry. 
+
 4. Install the dependencies by doing: 
 ```
 poetry install
@@ -89,7 +95,7 @@ and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePy
 
 <strong>Configure .synapseConfig File</strong>
 
-Download a copy of the ``.synapseConfig`` file, open the file in the
+**Download** a copy of the ``.synapseConfig`` file, open the file in the
 editor of your choice and edit the `username` and `authtoken` attribute under the `authentication` section 
 
 *Note*: You could also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
