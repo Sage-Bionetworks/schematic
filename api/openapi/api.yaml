@@ -100,7 +100,7 @@ paths:
             type: string
             nullable: false
           description: Token
-          example: Token
+          example: Paste Token Here.
           required: true
         - in: query
           name: asset_view
@@ -118,6 +118,13 @@ paths:
           description: this dataset_id should be the parent ID of the manifest.
           example: syn28268700
           required: true
+        - in: query
+          name: new_manifest_name
+          schema:
+            type: string
+            nullable: true
+          description: Fill in if you want to change the filename of the downloaded manifest.
+          required: false
       operationId: api.routes.download_manifest
       responses:
         "200":
