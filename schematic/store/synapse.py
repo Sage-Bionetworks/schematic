@@ -288,13 +288,14 @@ class SynapseStorage(BaseStorage):
         return file_list
 
     def getDatasetManifest(
-        self, datasetId: str, downloadFile: bool = False
+        self, datasetId: str, downloadFile: bool = False, newManifestName: str = '',
     ) -> List[str]:
         """Gets the manifest associated with a given dataset.
 
         Args:
             datasetId: synapse ID of a storage dataset.
             downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
+            newManifestName: str name that can be passed by user to download a manifest with a new name.
 
         Returns:
             manifest_syn_id (String): Synapse ID of exisiting manifest file.
@@ -323,13 +324,26 @@ class SynapseStorage(BaseStorage):
                 # retrieve data from synapse
                 manifest_syn_id = manifest["id"][0]
 
+                download_location = CONFIG["synapse"]["manifest_folder"]
+
                 # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
                 manifest_data = self.syn.get(
                     manifest_syn_id,
                     downloadLocation=CONFIG["synapse"]["manifest_folder"],
                     ifcollision="overwrite.local",
                 )
+                if newManifestName:
+                    if os.path.exists(manifest_data['path']):
+                        # Rename the file we just made to the new name
+                        new_manifest_filename = newManifestName + '.csv'
+                        new_manifest_path_name = manifest_data['path'].replace(manifest['name'][0], new_manifest_filename)
+                        os.rename(manifest_data['path'], new_manifest_path_name)
 
+                        # Update file names/paths in manifest_data
+                        manifest_data['name'] = new_manifest_filename
+                        manifest_data['filename'] = new_manifest_filename
+                        manifest_data['path'] = new_manifest_path_name
+                
                 return manifest_data
 
             # extract synapse ID of exisiting dataset manifest
