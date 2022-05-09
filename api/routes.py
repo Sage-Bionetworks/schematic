@@ -16,6 +16,8 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 
 from schematic.store.synapse import SynapseStorage
+import pandas as pd
+import json
 
 
 # def before_request(var1, var2):
@@ -266,7 +268,7 @@ def get_component_requirements(schema_url, source_component, as_graph):
 
     return req_components
 
-def download_manifest(input_token, dataset_id, asset_view):
+def download_manifest(input_token, dataset_id, asset_view, as_json):
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -278,5 +280,29 @@ def download_manifest(input_token, dataset_id, asset_view):
 
     #return local file path
     manifest_local_file_path = manifest_data['path']
+
+    # return a json (if as_json = True)
+    if as_json: 
+        manifest_csv = pd.read_csv(manifest_local_file_path)
+        manifest_json = json.loads(manifest_csv.to_json(orient="records"))
+        return manifest_json
+
     
     return manifest_local_file_path
+
+def get_asset_view_table(input_token, asset_view):
+    # call config handler
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # get file view table
+    file_view_table_df = store.getStorageFileviewTable()
+
+    # convert pandas dataframe to csv
+    path = os.getcwd()
+    export_path = os.path.join(path, 'tests/data/file_view_table.csv')
+    file_view_table_df.to_csv(export_path, index=False)
+
+    return export_path

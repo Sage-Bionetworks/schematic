@@ -7,7 +7,7 @@ from dotenv import load_dotenv, find_dotenv
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.configuration import CONFIG
-
+from schematic.utils.df_utils import load_df
 
 load_dotenv()
 
@@ -49,7 +49,7 @@ class Helpers:
     @staticmethod
     def get_data_frame(path, *paths, **kwargs):
         fullpath = os.path.join(DATA_DIR, path, *paths)
-        return pd.read_csv(fullpath, **kwargs)
+        return load_df(fullpath, **kwargs)
 
     @staticmethod
     def get_schema_explorer(path=None, *paths):

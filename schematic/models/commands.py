@@ -78,11 +78,18 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='table',
+    default='both',
+    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
+@click.option(
+    "-rr",
+    "--restrict_rules",
+    is_flag=True,
+    help=query_dict(model_commands,("model","validate","restrict_rules")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -101,10 +108,21 @@ def submit_manifest(
             dataset_id=dataset_id,
             validate_component=validate_component,
             manifest_record_type=manifest_record_type,
+            restrict_rules=restrict_rules,
             use_schema_label=use_schema_label,
             hide_blanks=hide_blanks,
         )
 
+        '''
+        if censored_manifest_id:
+            logger.info(
+                f"File at '{manifest_path}' was censored and successfully associated "
+                f"with dataset '{dataset_id}'. "
+                f"An uncensored version has also been associated with dataset '{dataset_id}' "
+                f"and submitted to the Synapse Access Control Team to begin the process "
+                f"of adding terms of use or review board approval."
+            )
+        '''
         if manifest_id:
             logger.info(
                 f"File at '{manifest_path}' was successfully associated "
@@ -143,8 +161,14 @@ def submit_manifest(
     "--json_schema",
     help=query_dict(model_commands, ("model", "validate", "json_schema")),
 )
+@click.option(
+    "-rr",
+    "--restrict_rules",
+    is_flag=True,
+    help=query_dict(model_commands,("model","validate","restrict_rules")),
+)
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema):
+def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules):
     """
     Running CLI for manifest validation.
     """
@@ -165,8 +189,8 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema):
         inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
     )
 
-    errors = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema
+    errors, warnings = metadata_model.validateModelManifest(
+        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules,
     )
 
     if not errors:

@@ -118,6 +118,13 @@ paths:
           description: this dataset_id should be the parent ID of the manifest.
           example: syn28268700
           required: true
+        - in: query
+          name: as_json
+          schema:
+            type: boolean
+            default: false
+          description: if True return the manifest in JSON format
+          required: false
       operationId: api.routes.download_manifest
       responses:
         "200":
@@ -446,5 +453,34 @@ paths:
           description: A list of tuples
         "500":
           description: Check schematic log
+      tags:
+        - Synapse Storage
+  /storage/assets/tables:
+    get:
+      summary: Retrieve asset view table as a dataframe.
+      description: Retrieve asset view table as a dataframe.
+      operationId: api.routes.get_asset_view_table
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn23643253
+          required: true
+      responses:
+        "200":
+          description: A list of json
+        "500":
+          description: Check schematic log. If the fileview dataframe is too big, 
       tags:
         - Synapse Storage
