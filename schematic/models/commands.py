@@ -108,6 +108,9 @@ def submit_manifest(
         inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
     )
 
+    if project_scope:
+        project_scope = metadata_model.parse_project_scope(project_scope)
+
     try:
         manifest_id = metadata_model.submit_metadata_manifest(
             manifest_path=manifest_path,
@@ -181,7 +184,7 @@ def submit_manifest(
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope,):
+def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope):
     """
     Running CLI for manifest validation.
     """
@@ -193,7 +196,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-
+    
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -201,6 +204,9 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
     )
+
+    if project_scope:
+        project_scope = metadata_model.parse_project_scope(project_scope)
 
     errors, warnings = metadata_model.validateModelManifest(
         manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules, project_scope=project_scope,
