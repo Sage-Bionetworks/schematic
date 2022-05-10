@@ -189,6 +189,7 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
+        attribute_name=attribute_name.lower()
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
                 f"Manifest {missing_manifest_ID} does not contain the value {missing_entry} "
@@ -383,7 +384,7 @@ class ValidateAttribute(object):
             for target_dataset in target_datasets:
                 #print(target_dataset)
 
-                if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
+                if target_component == target_dataset[-1][0].replace(" ","").lower():
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
 
