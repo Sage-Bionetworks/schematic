@@ -2723,6 +2723,42 @@
             ]
         },
         {
+            "@id": "bts:CheckMatchatLeastvalues",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckMatchatLeastvalues",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Match at Least values",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "matchExactlyOne value MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
+            ]
+        },
+        {
+            "@id": "bts:CheckMatchatLeastvalues",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckMatchatLeastvalues",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Match at Least values",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:CheckRecommended",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
