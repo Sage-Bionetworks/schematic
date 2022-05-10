@@ -2700,7 +2700,7 @@
             "sms:displayName": "Check Match at Least",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID"
+                "matchAtLeastOne set MockComponent.checkMatchatLeast Patient.PatientID"
             ]
         },
         {
@@ -2719,7 +2719,7 @@
             "sms:displayName": "Check Match Exactly",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
+                "matchExactlyOne set MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
             ]
         },
         {
