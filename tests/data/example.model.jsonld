@@ -2514,7 +2514,13 @@
                     "@id": "bts:CheckMatchatLeast"
                 },
                 {
+                    "@id": "bts:CheckMatchatLeastvalues"
+                },
+                {
                     "@id": "bts:CheckMatchExactly"
+                },
+                {
+                    "@id": "bts:CheckMatchExactlyvalues"
                 },
                 {
                     "@id": "bts:CheckRecommended"
@@ -2738,14 +2744,14 @@
             "sms:displayName": "Check Match at Least values",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchExactlyOne value MockComponent.checkMatchExactly MockComponent.checkMatchExactly"
+                "matchAtLeastOne value MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeast"
             ]
         },
         {
-            "@id": "bts:CheckMatchatLeastvalues",
+            "@id": "bts:CheckMatchExactlyvalues",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "CheckMatchatLeastvalues",
+            "rdfs:label": "CheckMatchExactlyvalues",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
@@ -2754,9 +2760,11 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Check Match at Least values",
+            "sms:displayName": "Check Match Exactly values",
             "sms:required": "sms:false",
-            "sms:validationRules": []
+            "sms:validationRules": [
+                "matchExactlyOne value MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactly"
+            ]
         },
         {
             "@id": "bts:CheckRecommended",
