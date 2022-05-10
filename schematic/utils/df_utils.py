@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import numpy as np
 from copy import deepcopy
+from csv import QUOTE_NONNUMERIC
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,7 @@ def load_df(file_path, preserve_raw_input=True, **kwargs):
 
     else:
         #Read CSV to df as type string
-        org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', **kwargs)
-
+        org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', quoting=QUOTE_NONNUMERIC, **kwargs,)
         float_df=deepcopy(org_df)
 
         #Find integers stored as strings 
