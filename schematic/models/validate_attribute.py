@@ -706,14 +706,15 @@ class ValidateAttribute(object):
                         missing_manifest_log[target_manifest_ID] = missing_values
                         
                 elif scope.startswith('value'):
-                    target_manifest.rename(columns={column_names[target_attribute]: target_attribute},inplace=True)
-                    print(target_manifest[target_attribute])
+                    # TODO: Decide how to handle duplicate values in both manifests, split functionality for atLeast vs Exactly
+                    target_manifest.rename(columns={column_names[target_attribute]: target_attribute}, inplace=True)
+                    
                     target_column = pd.merge(
-                        target_column,
-                        target_manifest[target_attribute],
-                        how='outer',
-                        left_on=target_attribute,
-                        right_on=target_attribute,
+                        left = target_column,
+                        right = target_manifest[target_attribute],
+                        how = 'outer',
+                        on = target_attribute,
+                        sort = False,
                     )
                     print(target_column)
                     target_column = target_column.squeeze()
