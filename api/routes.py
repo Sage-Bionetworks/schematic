@@ -160,12 +160,12 @@ def submit_manifest_route(schema_url, manifest_record_type=None):
     input_token = connexion.request.args["input_token"]
 
     if data_type == 'None':
-        manifest_id = metadata_model.submit_metadata_manifest(
-            manifest_path=temp_path, dataset_id=dataset_id, validate_component=None, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules
-        )
-    else: 
-        manifest_id = metadata_model.submit_metadata_manifest(
-        manifest_path=temp_path, dataset_id=dataset_id, validate_component=data_type, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
+        validate_component = None
+    else:
+        validate_component = data_type
+
+    manifest_id = metadata_model.submit_metadata_manifest(
+        manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
 
     return manifest_id
 
