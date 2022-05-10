@@ -667,8 +667,9 @@ class ValidateAttribute(object):
         present_manifest_log=[]
 
         #parse sources and targets
-        [source_component, source_attribute] = val_rule.split(" ")[1].split(".")
-        [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
+        [source_component, source_attribute] = val_rule.lower().split(" ")[-2].split(".")
+        [target_component, target_attribute] = val_rule.lower().split(" ")[-1].split(".")
+        scope=val_rule.lower().split(" ")[1]
 
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
