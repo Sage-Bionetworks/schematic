@@ -666,14 +666,17 @@ class ValidateAttribute(object):
         missing_values = {}
         missing_manifest_log={}
         present_manifest_log=[]
-
+        target_column = pd.Series(dtype=object)
         #parse sources and targets
         [source_component, source_attribute] = val_rule.lower().split(" ")[-2].split(".")
         [target_component, target_attribute] = val_rule.lower().split(" ")[-1].split(".")
         scope=val_rule.lower().split(" ")[1]
-
+        target_column.name=target_attribute
+        print(scope)
+        
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
+        target_manifest_IDs.append('end')
 
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
@@ -689,15 +692,32 @@ class ValidateAttribute(object):
                 column_names[name.replace(" ","").lower()]=name
 
             #If the manifest has the target attribute for the component do the cross validation
-            if target_attribute.lower() in column_names:
-                target_column = target_manifest[column_names[target_attribute.lower()]]
+            if target_attribute in column_names:
+                
+                if scope.startswith('set') or (scope.startswith('value') and target_manifest_ID == 'end'):
+                    if scope.startswith('set'):
+                        target_column = target_manifest[column_names[target_attribute]]
 
-                #Do the validation on both columns
-                missing_values = manifest_col[~manifest_col.isin(target_column)]
-                if missing_values.empty:
-                    present_manifest_log.append(target_manifest_ID)
-                else:
-                    missing_manifest_log[target_manifest_ID] = missing_values
+                    #Do the validation on both columns
+                    missing_values = manifest_col[~manifest_col.isin(target_column)]
+                    if missing_values.empty:
+                        present_manifest_log.append(target_manifest_ID)
+                    else:
+                        missing_manifest_log[target_manifest_ID] = missing_values
+                        
+                elif scope.startswith('value'):
+                    target_manifest.rename(columns={column_names[target_attribute]: target_attribute},inplace=True)
+                    print(target_manifest[target_attribute])
+                    target_column = pd.merge(
+                        target_column,
+                        target_manifest[target_attribute],
+                        how='outer',
+                        left_on=target_attribute,
+                        right_on=target_attribute,
+                    )
+                    print(target_column)
+                    target_column = target_column.squeeze()
+                    
 
         #generate errors if necessary
         if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:      
