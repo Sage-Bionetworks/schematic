@@ -721,7 +721,7 @@ class ValidateAttribute(object):
                     
 
         #generate errors if necessary
-        if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:      
+        if val_rule.__contains__('matchAtLeastOne') and val_rule.__contains__('set') and len(present_manifest_log) < 1:      
             for missing_ID in missing_manifest_log:      
                 missing_dict=missing_manifest_log[missing_ID]
                 for row, value in zip (missing_dict.keys(),missing_dict): #wrong dict used, cause of not all errors being raised
@@ -735,7 +735,7 @@ class ValidateAttribute(object):
                             missing_manifest_ID = missing_ID,
                         )
                     )
-        elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
+        elif val_rule.__contains__('matchExactlyOne') and val_rule.__contains__('set') and len(present_manifest_log) != 1:
             errors.append(
                 GenerateError.generate_cross_error(
                     val_rule = val_rule,
