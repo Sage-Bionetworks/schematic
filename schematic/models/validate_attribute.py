@@ -192,8 +192,8 @@ class GenerateError:
         attribute_name=attribute_name.lower()
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
-                f"Manifest {missing_manifest_ID} does not contain the value {missing_entry} "
-                f"from row {row_num} of the attribute {attribute_name} in the source manifest."
+                f"Manifest(s) {missing_manifest_ID} does not contain the value(s) {missing_entry} "
+                f"from row(s) {row_num} of the attribute {attribute_name} in the source manifest."
             )
         elif val_rule.__contains__('matchExactly'):
             if matching_manifests != []:
@@ -705,7 +705,6 @@ class ValidateAttribute(object):
 
             elif scope.__contains__('value'):
                 if target_attribute in column_names:
-                    # TODO: Decide how to handle duplicate values in both manifests, split functionality for atLeast vs Exactly
                     target_manifest.rename(columns={column_names[target_attribute]: target_attribute}, inplace=True)
                     
                     target_column = pd.concat(
@@ -734,20 +733,28 @@ class ValidateAttribute(object):
             
         #generate errors if necessary
         if scope.__contains__('set'):
-            if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:      
-                for missing_ID in missing_manifest_log:      
-                    missing_dict=missing_manifest_log[missing_ID]
-                    for row, value in zip (missing_dict.keys(),missing_dict): #wrong dict used, cause of not all errors being raised
-                        row = row +2 
-                        errors.append(
-                            GenerateError.generate_cross_error(
-                                val_rule = val_rule,
-                                row_num = str(row),
-                                attribute_name = source_attribute,
-                                missing_entry = str(value),
-                                missing_manifest_ID = missing_ID,
-                            )
-                        )
+            if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:     
+                missing_entries = list(missing_manifest_log.values()) 
+                missing_manifest_IDs = list(missing_manifest_log.keys()) 
+                missing_rows=[]
+                missing_values=[]
+                for missing_entry in missing_entries:
+                    missing_rows.append(missing_entry.index[0]+2)
+                    missing_values.append(missing_entry.values[0])
+                    
+                missing_rows=list(set(missing_rows))
+                missing_values=list(set(missing_values))
+                print(missing_rows,missing_values)
+
+                errors.append(
+                    GenerateError.generate_cross_error(
+                        val_rule = val_rule,
+                        row_num = str(missing_rows),
+                        attribute_name = source_attribute,
+                        missing_entry = str(missing_values),
+                        missing_manifest_ID = missing_manifest_IDs,
+                    )
+                )
             elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
                 errors.append(
                     GenerateError.generate_cross_error(

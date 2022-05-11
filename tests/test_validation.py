@@ -103,18 +103,10 @@ class TestManifestValidation:
 
         assert GenerateError.generate_cross_error(
             val_rule = 'matchAtLeastOne',
-            row_num = '3',
+            row_num = '[3]',
             attribute_name='checkMatchatLeast',
-            missing_entry = '7163',
-            missing_manifest_ID = 'syn27600110',
-            ) in errors
-
-        assert GenerateError.generate_cross_error(
-            val_rule = 'matchAtLeastOne',
-            row_num = '3',
-            attribute_name='checkMatchatLeast',
-            missing_entry = '7163',
-            missing_manifest_ID = 'syn29381803',
+            missing_entry = '[7163]',
+            missing_manifest_ID = ['syn27600110', 'syn29381803'],
             ) in errors
 
         assert \
@@ -223,18 +215,10 @@ class TestManifestValidation:
 
         assert GenerateError.generate_cross_error(
             val_rule = 'matchAtLeastOne',
-            row_num = '3',
+            row_num = '[3]',
             attribute_name='checkMatchatLeast',
-            missing_entry = '7163',
-            missing_manifest_ID = 'syn27600110',
-            ) in errors
-
-        assert GenerateError.generate_cross_error(
-            val_rule = 'matchAtLeastOne',
-            row_num = '3',
-            attribute_name='checkMatchatLeast',
-            missing_entry = '7163',
-            missing_manifest_ID = 'syn29381803',
+            missing_entry = '[7163]',
+            missing_manifest_ID = ['syn27600110', 'syn29381803'],
             ) in errors
 
         assert \
