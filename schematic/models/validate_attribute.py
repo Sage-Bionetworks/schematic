@@ -709,6 +709,12 @@ class ValidateAttribute(object):
                     # TODO: Decide how to handle duplicate values in both manifests, split functionality for atLeast vs Exactly
                     target_manifest.rename(columns={column_names[target_attribute]: target_attribute}, inplace=True)
                     
+                    target_column = pd.concat(
+                        objs = [target_column, target_manifest[target_attribute]],
+                        join = 'outer',
+                        ignore_index= True,
+                    )                
+                    '''
                     target_column = pd.merge(
                         left = target_column,
                         right = target_manifest[target_attribute],
@@ -716,6 +722,7 @@ class ValidateAttribute(object):
                         on = target_attribute,
                         sort = False,
                     )
+                    '''
                     print(target_column)
                     target_column = target_column.squeeze()
                     
