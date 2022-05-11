@@ -228,6 +228,13 @@ paths:
           description: Manifest storage type.
           example: 'table'
         - in: query
+          name: restrict_rules
+          schema:
+            type: boolean
+            default: false
+          description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
+          required: true
+        - in: query
           name: input_token
           schema:
             type: string
