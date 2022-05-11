@@ -190,17 +190,18 @@ class GenerateError:
                 Errors: List[str] Error details for further storage.
             """
         attribute_name=attribute_name.lower()
+        
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
-                f"Manifest(s) {missing_manifest_ID} does not contain the value(s) {missing_entry} "
-                f"from row(s) {row_num} of the attribute {attribute_name} in the source manifest."
-            )
+                f"Value(s) {missing_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing." )
+            cross_error_str += f" Manifest(s) {missing_manifest_ID} are missing the value(s)." if missing_manifest_ID else ""
+            
         elif val_rule.__contains__('matchExactly'):
             if matching_manifests != []:
                 cross_error_str = (
-                    f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1. "
-                    f"Manifests {matching_manifests} match the values in the source attribute."
-                )
+                    f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1.")
+                cross_error_str += f" Manifests {matching_manifests} match the values in the source attribute." if matching_manifests else ""
+                    
             else:
                 cross_error_str = (
                     f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
@@ -729,10 +730,15 @@ class ValidateAttribute(object):
         if scope.__contains__('value'):
             missing_values = manifest_col[~manifest_col.isin(target_column)]
             duplicated_values = target_column.duplicated()
+            if val_rule.__contains__('matchAtLeastOne') and not missing_values.empty:
+                pass
+            elif val_rule.__contains__('matchExactlyOne') and duplicated_values.any():
+                pass
+            pass
 
             
         #generate errors if necessary
-        if scope.__contains__('set'):
+        elif scope.__contains__('set'):
             if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:     
                 missing_entries = list(missing_manifest_log.values()) 
                 missing_manifest_IDs = list(missing_manifest_log.keys()) 
