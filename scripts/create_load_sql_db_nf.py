@@ -107,17 +107,17 @@ class sql_create_load():
                         assert output is not None
                     except:
                         breakpoint()
-        
-    def create_schema_viz(self, output_path: str) -> None:
+          
+    def create_schema_viz(self, output_path: str, rdb_jsonld_filename: str) -> None:
         ''' Generate a ERD diagram depicting the sql model.
         Args: self: containing the sql model.
              output_path (str): relative or aboslute path where figure should be stored.
         Returns: ERD Diagram saved to output path as a png.
         '''
-        output_path = str(Path(output_path).resolve())
-        output = self.sql_model.viz_sa_schema(output_path)
+        output_path = os.path.join(str(Path(output_path).resolve()), rdb_jsonld_filename.split('.')[0] + '.rdb.model.png')
+        graph = self.sql_model.viz_sa_schema(output_path)
 
-        assert output == output_path
+        return output_path
 
 class parse_variables():
     def __init__(self,
@@ -192,5 +192,5 @@ if __name__ == '__main__':
             sql_create_load(arguments['data_dir'], arguments['rdb_jsonld_filename'], arguments['path_to_configs']).update_db_tables(arguments['rdb_data_dir'])
 
     if arguments['create_schema_viz']:
-        sql_create_load(arguments['data_dir'], arguments['rdb_jsonld_filename'], arguments['path_to_configs']).viz_sa_schema(arguments['output_path'])
+        sql_create_load(arguments['data_dir'], arguments['rdb_jsonld_filename'], arguments['path_to_configs']).create_schema_viz(arguments['output_path'])
 
