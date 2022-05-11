@@ -51,6 +51,7 @@ def csv_path_handler():
     manifest_file.save(temp_path)
 
     return temp_path
+
 def initalize_metadata_model(schema_url):
     jsonld = get_temp_jsonld(schema_url)
     metadata_model = MetadataModel(
@@ -67,9 +68,8 @@ def get_temp_jsonld(schema_url):
     # get path to temporary JSON-LD file
     return tmp_file.name
 
-
 # @before_request
-def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_id=None, asset_view = None):
+def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=None, asset_view = None):
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -80,9 +80,38 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_id=Non
     all_args = connexion.request.args
     args_dict = dict(all_args.lists())
     data_type = args_dict['data_type']
+    
+    # Gather all dataset_ids
+    try:
+        dataset_ids = args_dict['dataset_id']
+    except:
+        pass
+    
+    if dataset_ids:
+        # Check that the number of submitted data_types matches
+        # the number of dataset_ids (if applicable)
+        len_data_types = len(data_type)
+        len_dataset_ids = len(dataset_ids)
+        
+        try:
+            len_data_types == len_dataset_ids
+        except:
+            raise ValueError(
+                    f"There is a mismatch in the number of data_types and dataset_id's that "
+                    f"submitted. Please check your submission and try again."
+                )
+        
+        # Raise an error if used in conjunction with datatype = 'all_manifests'
+        try:
+            data_type[0] != 'all manifests'
+        except:
+            raise ValueError(
+                    f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
+                    f"Please check your submission and try again."
+                )
 
 
-    def create_single_manifest(data_type):
+    def create_single_manifest(data_type, dataset_id=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -110,12 +139,17 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_id=Non
             result = create_single_manifest(data_type = component)
             all_results.append(result)
     else:
-        for dt in data_type:
+        for i, dt in enumerate(data_type):
             if len(data_type) > 1:
                 t = f'{title}.{dt}.manifest'
             else:
                 t = title
-            result = create_single_manifest(data_type = dt)
+
+            if dataset_ids:
+                # if a dataset_id is provided add this to the function call.
+                result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i])
+            else:
+                result = create_single_manifest(data_type = dt)
             all_results.append(result)
 
     return all_results
