@@ -677,21 +677,19 @@ class ValidateAttribute(object):
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
         target_manifest_IDs.append('end')
-        target_dataset_IDs.append('end')
 
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
-            if target_dataset_ID != 'end':
-                entity = synStore.getDatasetManifest(
-                    datasetId = target_dataset_ID,
-                    downloadFile = True
-                    )
-                target_manifest=pd.read_csv(entity.path)
+            entity = synStore.getDatasetManifest(
+                datasetId = target_dataset_ID,
+                downloadFile = True
+                )
+            target_manifest=pd.read_csv(entity.path)
 
-                #convert manifest column names into validation rule input format - 
-                column_names={}
-                for name in target_manifest.columns:
-                    column_names[name.replace(" ","").lower()]=name
+            #convert manifest column names into validation rule input format - 
+            column_names={}
+            for name in target_manifest.columns:
+                column_names[name.replace(" ","").lower()]=name
 
             #If the manifest has the target attribute for the component do the cross validation
             if target_attribute in column_names:
