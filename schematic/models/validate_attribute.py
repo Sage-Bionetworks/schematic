@@ -668,9 +668,9 @@ class ValidateAttribute(object):
         present_manifest_log=[]
         target_column = pd.Series(dtype=object)
         #parse sources and targets
-        [source_component, source_attribute] = val_rule.lower().split(" ")[-2].split(".")
-        [target_component, target_attribute] = val_rule.lower().split(" ")[-1].split(".")
-        scope=val_rule.lower().split(" ")[1]
+        [source_component, source_attribute] = val_rule.lower().split(" ")[1].split(".")
+        [target_component, target_attribute] = val_rule.lower().split(" ")[2].split(".")
+        scope=val_rule.lower().split(" ")[-1]
         target_column.name=target_attribute
         print(scope)
         

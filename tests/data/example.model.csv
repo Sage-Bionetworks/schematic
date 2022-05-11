@@ -27,10 +27,10 @@ Check Float,,,,,FALSE,DataProperty,,,float
 Check Int,,,,,FALSE,DataProperty,,,int
 Check String,,,,,FALSE,DataProperty,,,str
 Check URL,,,,,FALSE,DataProperty,,,url
-Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne set MockComponent.checkMatchatLeast Patient.PatientID
-Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne set MockComponent.checkMatchExactly MockComponent.checkMatchExactly 
-Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne value MockComponent.checkMatchatLeastvalues Patient.PatientID
-Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne value MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactly 
+Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID set
+Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly set
+Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues Patient.PatientID value
+Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactly value
 Check Recommended,,,,,FALSE,DataProperty,,,recommended
 Check Ages,,,,,FALSE,DataProperty,,,protectAges
 Check Unique,,,,,FALSE,DataProperty,,,unique error
