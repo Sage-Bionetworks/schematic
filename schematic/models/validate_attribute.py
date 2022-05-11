@@ -676,7 +676,6 @@ class ValidateAttribute(object):
         
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
-        target_manifest_IDs.append('end')
 
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
@@ -691,21 +690,21 @@ class ValidateAttribute(object):
             for name in target_manifest.columns:
                 column_names[name.replace(" ","").lower()]=name
 
-            #If the manifest has the target attribute for the component do the cross validation
-            if target_attribute in column_names:
-                
-                if scope.startswith('set') or (scope.startswith('value') and target_manifest_ID == 'end'):
-                    if scope.startswith('set'):
-                        target_column = target_manifest[column_names[target_attribute]]
+            if scope.__contains__('set'):
+                #If the manifest has the target attribute for the component do the cross validation
+                if target_attribute in column_names:                    
+                    target_column = target_manifest[column_names[target_attribute]]
 
                     #Do the validation on both columns
                     missing_values = manifest_col[~manifest_col.isin(target_column)]
+                    print(val_rule,missing_values)
                     if missing_values.empty:
                         present_manifest_log.append(target_manifest_ID)
                     else:
                         missing_manifest_log[target_manifest_ID] = missing_values
-                        
-                elif scope.startswith('value'):
+
+            elif scope.__contains__('value'):
+                if target_attribute in column_names:
                     # TODO: Decide how to handle duplicate values in both manifests, split functionality for atLeast vs Exactly
                     target_manifest.rename(columns={column_names[target_attribute]: target_attribute}, inplace=True)
                     
@@ -725,32 +724,39 @@ class ValidateAttribute(object):
                     '''
                     print(target_column)
                     target_column = target_column.squeeze()
-                    
+        
+        
+        
+        if scope.__contains__('value'):
+            missing_values = manifest_col[~manifest_col.isin(target_column)]
+            duplicated_values = target_column.duplicated()
 
-        #generate errors if necessary
-        if val_rule.__contains__('matchAtLeastOne') and val_rule.__contains__('set') and len(present_manifest_log) < 1:      
-            for missing_ID in missing_manifest_log:      
-                missing_dict=missing_manifest_log[missing_ID]
-                for row, value in zip (missing_dict.keys(),missing_dict): #wrong dict used, cause of not all errors being raised
-                    row = row +2 
-                    errors.append(
-                        GenerateError.generate_cross_error(
-                            val_rule = val_rule,
-                            row_num = str(row),
-                            attribute_name = source_attribute,
-                            missing_entry = str(value),
-                            missing_manifest_ID = missing_ID,
-                        )
-                    )
-        elif val_rule.__contains__('matchExactlyOne') and val_rule.__contains__('set') and len(present_manifest_log) != 1:
-            errors.append(
-                GenerateError.generate_cross_error(
-                    val_rule = val_rule,
-                    attribute_name = source_attribute,
-                    matching_manifests = present_manifest_log,
-                )
-            )
             
+        #generate errors if necessary
+        if scope.__contains__('set'):
+            if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:      
+                for missing_ID in missing_manifest_log:      
+                    missing_dict=missing_manifest_log[missing_ID]
+                    for row, value in zip (missing_dict.keys(),missing_dict): #wrong dict used, cause of not all errors being raised
+                        row = row +2 
+                        errors.append(
+                            GenerateError.generate_cross_error(
+                                val_rule = val_rule,
+                                row_num = str(row),
+                                attribute_name = source_attribute,
+                                missing_entry = str(value),
+                                missing_manifest_ID = missing_ID,
+                            )
+                        )
+            elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
+                errors.append(
+                    GenerateError.generate_cross_error(
+                        val_rule = val_rule,
+                        attribute_name = source_attribute,
+                        matching_manifests = present_manifest_log,
+                    )
+                )
+                
 
         return errors, warnings
 
