@@ -234,7 +234,7 @@ def get_component_requirements(schema_url, source_component, as_graph):
 
     return req_components
 
-def download_manifest(input_token, dataset_id, asset_view, as_json):
+def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -242,7 +242,7 @@ def download_manifest(input_token, dataset_id, asset_view, as_json):
     store = SynapseStorage(input_token=input_token)
 
     # download existing file
-    manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True)
+    manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name)
 
     #return local file path
     manifest_local_file_path = manifest_data['path']
@@ -253,7 +253,6 @@ def download_manifest(input_token, dataset_id, asset_view, as_json):
         manifest_json = json.loads(manifest_csv.to_json(orient="records"))
         return manifest_json
 
-    
     return manifest_local_file_path
 
 def get_asset_view_table(input_token, asset_view):

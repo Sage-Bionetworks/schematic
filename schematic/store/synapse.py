@@ -288,7 +288,7 @@ class SynapseStorage(BaseStorage):
         return file_list
 
     def getDatasetManifest(
-        self, datasetId: str, downloadFile: bool = False
+        self, datasetId: str, downloadFile: bool = False, newManifestName: str='',
     ) -> List[str]:
         """Gets the manifest associated with a given dataset.
 
@@ -357,7 +357,19 @@ class SynapseStorage(BaseStorage):
                     # If user does not have access to uncensored manifest, use censored instead
                     except(SynapseUnmetAccessRestrictions):
                             manifest_syn_id=manifest[censored]["id"][0]
-                        
+                    
+                # Rename manifest file if indicated by user.
+                if newManifestName:
+                    if os.path.exists(manifest_data['path']):
+                        # Rename the file we just made to the new name
+                        new_manifest_filename = newManifestName + '.csv'
+                        new_manifest_path_name = manifest_data['path'].replace(manifest['name'][0], new_manifest_filename)
+                        os.rename(manifest_data['path'], new_manifest_path_name)
+
+                        # Update file names/paths in manifest_data
+                        manifest_data['name'] = new_manifest_filename
+                        manifest_data['filename'] = new_manifest_filename
+                        manifest_data['path'] = new_manifest_path_name
 
                 return manifest_data
 
