@@ -5,6 +5,7 @@ import logging
 
 from typing import Any, Mapping, Sequence, Union
 from functools import reduce
+import re
 
 from schematic import CONFIG
 from schematic.exceptions import (
@@ -119,3 +120,26 @@ def fill_in_from_config(
     )
 
     return config_value
+
+def parse_synIDs(
+    ctx,
+    param,
+    synIDs,
+) -> list[str]:
+
+    if synIDs:
+        project_regex = re.compile("(syn\d+\,?)+")
+
+        valid=project_regex.fullmatch(synIDs)
+        if valid:
+            synIDs = synIDs.split(",")
+
+            return synIDs
+
+        else:
+            raise ValueError(
+                        f"The provided list of project synID(s): {synIDs}, is not formatted correctly. "
+                        "\nPlease check your list of projects for errors."
+                    )
+    else:
+        return

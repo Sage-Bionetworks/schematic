@@ -74,22 +74,6 @@ class MetadataModel(object):
                 f"The type '{inputMModelLocationType}' is currently not supported."
             )
 
-    def parse_project_scope(self,project_scope):
-
-        project_regex = re.compile("(syn\d+\,?)+")
-
-        valid=project_regex.fullmatch(project_scope)
-        if valid:
-            project_scope = project_scope.split(",")
-
-            return project_scope
-
-        else:
-            raise ValueError(
-                        f"The provided list of project synID(s): {project_scope}, is not formatted correctly. "
-                        "\nPlease check your list of projects for errors."
-                    )
-
     def getModelSubgraph(self, rootNode: str, subgraphType: str) -> nx.DiGraph:
         """Gets a schema subgraph from rootNode descendants based on edge/node properties of type subgraphType.
 

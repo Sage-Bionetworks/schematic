@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from gc import callbacks
 import logging
 import sys
 
@@ -9,7 +10,7 @@ import click_log
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict
+from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict, parse_synIDs
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
@@ -91,6 +92,7 @@ def model(ctx, config):  # use as `schematic model ...`
     "-ps",
     "--project_scope",
     default = None,
+    callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.pass_obj
@@ -109,7 +111,7 @@ def submit_manifest(
     )
 
     if project_scope:
-        project_scope = metadata_model.parse_project_scope(project_scope)
+        project_scope = parse_synIDs(project_scope)
 
     try:
         manifest_id = metadata_model.submit_metadata_manifest(
@@ -181,6 +183,7 @@ def submit_manifest(
     "-ps",
     "--project_scope",
     default = None,
+    callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.pass_obj
@@ -204,9 +207,6 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
     )
-
-    if project_scope:
-        project_scope = metadata_model.parse_project_scope(project_scope)
 
     errors, warnings = metadata_model.validateModelManifest(
         manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules, project_scope=project_scope,
