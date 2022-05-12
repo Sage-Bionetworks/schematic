@@ -91,7 +91,7 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "-ps",
     "--project_scope",
-    default = None,
+    default=None,
     callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
@@ -182,7 +182,7 @@ def submit_manifest(
 @click.option(
     "-ps",
     "--project_scope",
-    default = None,
+    default=None,
     callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
