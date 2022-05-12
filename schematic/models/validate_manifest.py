@@ -68,7 +68,7 @@ class ValidateManifest(object):
 
     def validate_manifest_rules(
         self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator, restrict_rules: bool
-    ) -> (pd.core.frame.DataFrame, List[List[str]]):
+    ) -> (pd.core.frame.DataFrame, List[List[str]], List[List[str]]):
         """
         Purpose:
             Take validation rules set for a particular attribute
@@ -269,7 +269,8 @@ class ValidateManifest(object):
                     warnings.extend(vr_warnings)
         return manifest, errors, warnings
 
-    def validate_manifest_values(self, manifest, jsonSchema):
+    def validate_manifest_values(self, manifest, jsonSchema
+    ) -> (List[List[str]], List[List[str]]):
         
         errors = []
         warnings = []
@@ -286,7 +287,8 @@ class ValidateManifest(object):
         return errors, warnings
 
 
-def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules):
+def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules
+) -> (List[List[str]], List[List[str]], pd.core.frame.DataFrame):
     vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema)
     manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg, restrict_rules)
     if vmr_errors:

@@ -16,6 +16,7 @@ from urllib.request import Request
 from urllib import error
 
 from schematic.store.synapse import SynapseStorage
+from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
 import time
 
@@ -219,7 +220,7 @@ class GenerateError:
         sg: SchemaGenerator,
         row_num = None,
         error_val = None,    
-    ) -> List[str]:
+    ) -> (List[str], List[str]):
         """
         Purpose:
             Generate an logging error or warning as well as a stored error/warning message when validating the content of a manifest attribute.
@@ -304,7 +305,7 @@ class GenerateError:
         val_rule: str,
         sg: SchemaGenerator,
         attribute_name: str,
-        ):
+        ) -> str:
         """
         Purpose:
             Determine whether an error or warning message should be logged and displayed
@@ -356,7 +357,8 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def get_target_manifests(target_component):
+    def get_target_manifests(target_component
+    ) -> (SynapseStorage, List[str], List[str]):
 
         target_manifest_IDs=[]
         target_dataset_IDs=[]
@@ -367,22 +369,15 @@ class ValidateAttribute(object):
             synStore = SynapseStorage(access_token=access_token)
         else:
             synStore = SynapseStorage()
-        #syn = synStore.login(access_token = access_token)
         
-
         #Get list of all projects user has access to
         projects = synStore.getStorageProjects()
-        for project in projects:
-            #print('Project: ', str(project[0]))
-            
+        for project in projects:        
             #get all manifests associated with datasets in the projects
             target_datasets=synStore.getProjectManifests(projectId=project[0])
-            #print(target_datasets)
 
             #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
-                #print(target_dataset)
-
                 if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
@@ -391,7 +386,7 @@ class ValidateAttribute(object):
 
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> (List[List[str]], pd.core.frame.DataFrame):
+    ) -> (List[List[str]], List[List[str]], pandas.core.series.Series):
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
@@ -431,7 +426,7 @@ class ValidateAttribute(object):
 
     def regex_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> List[List[str]]:
+    ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Check if values for a given manifest attribue conform to the reguar expression,
@@ -509,7 +504,7 @@ class ValidateAttribute(object):
 
     def type_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> List[List[str]]:
+    ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Check if values for a given manifest attribue are the same type
@@ -561,7 +556,7 @@ class ValidateAttribute(object):
                     )
         return errors, warnings
 
-    def url_validation(self, val_rule: str, manifest_col: str) -> List[List[str]]:
+    def url_validation(self, val_rule: str, manifest_col: str) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
@@ -647,7 +642,7 @@ class ValidateAttribute(object):
 
     def cross_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> List[List[str]]:
+    ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Do cross validation between the current manifest and all other manifests a user has access to on Synapse.
