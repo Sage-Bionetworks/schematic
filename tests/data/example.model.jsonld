@@ -2763,7 +2763,7 @@
             "sms:displayName": "Check Match Exactly values",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactly value"
+                "matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value"
             ]
         },
         {

@@ -30,7 +30,7 @@ Check URL,,,,,FALSE,DataProperty,,,url
 Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID set
 Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly set
 Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues Patient.PatientID value
-Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactly value
+Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value
 Check Recommended,,,,,FALSE,DataProperty,,,recommended
 Check Ages,,,,,FALSE,DataProperty,,,protectAges
 Check Unique,,,,,FALSE,DataProperty,,,unique error
