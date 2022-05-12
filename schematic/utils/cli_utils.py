@@ -3,7 +3,7 @@
 import inspect
 import logging
 
-from typing import Any, Mapping, Sequence, Union
+from typing import Any, Mapping, Sequence, Union, List
 from functools import reduce
 import re
 
