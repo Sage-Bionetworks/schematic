@@ -171,7 +171,7 @@ class GenerateError:
         attribute_name: str,
         matching_manifests = [],
         missing_manifest_ID = None,
-        missing_entry = None,
+        invalid_entry = None,
         row_num = None,
     ) -> List[str]:
         """
@@ -183,7 +183,7 @@ class GenerateError:
                 matching_manifests: list of manifests with all values in the target attribute present
                 manifest_ID: str, synID of the target manifest missing the source value
                 attribute_name: str, attribute being validated
-                missing_entry: str, value present in source manifest that is missing in the target
+                invalid_entry: str, value present in source manifest that is missing in the target
                 row_num: row in source manifest with value missing in target manifests             
             Returns:
                 Logging.error.
@@ -193,7 +193,7 @@ class GenerateError:
         
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
-                f"Value(s) {missing_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing." )
+                f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing." )
             cross_error_str += f" Manifest(s) {missing_manifest_ID} are missing the value(s)." if missing_manifest_ID else ""
             
         elif val_rule.__contains__('matchExactly'):
@@ -202,16 +202,20 @@ class GenerateError:
                     f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1.")
                 cross_error_str += f" Manifests {matching_manifests} match the values in the source attribute." if matching_manifests else ""
                     
-            else:
+            elif val_rule.__contains__('set'):
                 cross_error_str = (
                     f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
                 )
+            elif val_rule.__contains__('value'):
+                cross_error_str = (
+                    f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. " 
+                )            
 
         logging.error(cross_error_str)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = cross_error_str
-        error_val = missing_entry #Value from source manifest missing from targets
+        error_val = invalid_entry #Value from source manifest missing from targets
         
         return [error_row, error_col, error_message, error_val]
 
@@ -673,7 +677,7 @@ class ValidateAttribute(object):
         [target_component, target_attribute] = val_rule.lower().split(" ")[2].split(".")
         scope=val_rule.lower().split(" ")[-1]
         target_column.name=target_attribute
-        print(scope)
+
         
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
@@ -698,7 +702,7 @@ class ValidateAttribute(object):
 
                     #Do the validation on both columns
                     missing_values = manifest_col[~manifest_col.isin(target_column)]
-                    print(val_rule,missing_values)
+
                     if missing_values.empty:
                         present_manifest_log.append(target_manifest_ID)
                     else:
@@ -713,17 +717,18 @@ class ValidateAttribute(object):
                         join = 'outer',
                         ignore_index= True,
                     )                
-                    print(target_column)
+                    #print(target_column)
                     target_column = target_column.squeeze()
         
         
         missing_rows=[]
         missing_values=[]  
 
+
         if scope.__contains__('value'):
             missing_values = manifest_col[~manifest_col.isin(target_column)]
-            duplicated_values = target_column.duplicated()
-
+            duplicated_values = manifest_col[manifest_col.isin(target_column[target_column.duplicated()])]
+            
             if val_rule.__contains__('matchAtLeastOne') and not missing_values.empty:
                 missing_rows = missing_values.index.to_numpy() + 2
                 errors.append(
@@ -731,7 +736,7 @@ class ValidateAttribute(object):
                         val_rule = val_rule,
                         row_num = str(missing_rows),
                         attribute_name = source_attribute,
-                        missing_entry = str(missing_values.values.tolist()),
+                        invalid_entry = str(missing_values.values.tolist()),
                     )
                 )
             elif val_rule.__contains__('matchExactlyOne') and duplicated_values.any():
@@ -750,14 +755,14 @@ class ValidateAttribute(object):
                     
                 missing_rows=list(set(missing_rows))
                 missing_values=list(set(missing_values))
-                print(missing_rows,missing_values)
+                #print(missing_rows,missing_values)
 
                 errors.append(
                     GenerateError.generate_cross_error(
                         val_rule = val_rule,
                         row_num = str(missing_rows),
                         attribute_name = source_attribute,
-                        missing_entry = str(missing_values),
+                        invalid_entry = str(missing_values),
                         missing_manifest_ID = missing_manifest_IDs,
                     )
                 )

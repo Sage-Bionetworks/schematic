@@ -105,7 +105,7 @@ class TestManifestValidation:
             val_rule = 'matchAtLeastOne',
             row_num = '[3]',
             attribute_name='checkMatchatLeast',
-            missing_entry = '[7163]',
+            invalid_entry = '[7163]',
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
             ) in errors
 
@@ -217,7 +217,7 @@ class TestManifestValidation:
             val_rule = 'matchAtLeastOne',
             row_num = '[3]',
             attribute_name='checkMatchatLeast',
-            missing_entry = '[7163]',
+            invalid_entry = '[7163]',
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
             ) in errors
 
