@@ -713,25 +713,27 @@ class ValidateAttribute(object):
                         join = 'outer',
                         ignore_index= True,
                     )                
-                    '''
-                    target_column = pd.merge(
-                        left = target_column,
-                        right = target_manifest[target_attribute],
-                        how = 'outer',
-                        on = target_attribute,
-                        sort = False,
-                    )
-                    '''
                     print(target_column)
                     target_column = target_column.squeeze()
         
         
-        
+        missing_rows=[]
+        missing_values=[]  
+
         if scope.__contains__('value'):
             missing_values = manifest_col[~manifest_col.isin(target_column)]
             duplicated_values = target_column.duplicated()
+
             if val_rule.__contains__('matchAtLeastOne') and not missing_values.empty:
-                pass
+                missing_rows = missing_values.index.to_numpy() + 2
+                errors.append(
+                    GenerateError.generate_cross_error(
+                        val_rule = val_rule,
+                        row_num = str(missing_rows),
+                        attribute_name = source_attribute,
+                        missing_entry = str(missing_values.values.tolist()),
+                    )
+                )
             elif val_rule.__contains__('matchExactlyOne') and duplicated_values.any():
                 pass
             pass
@@ -742,8 +744,6 @@ class ValidateAttribute(object):
             if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:     
                 missing_entries = list(missing_manifest_log.values()) 
                 missing_manifest_IDs = list(missing_manifest_log.keys()) 
-                missing_rows=[]
-                missing_values=[]
                 for missing_entry in missing_entries:
                     missing_rows.append(missing_entry.index[0]+2)
                     missing_values.append(missing_entry.values[0])
