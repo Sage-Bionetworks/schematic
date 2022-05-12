@@ -740,8 +740,16 @@ class ValidateAttribute(object):
                     )
                 )
             elif val_rule.__contains__('matchExactlyOne') and duplicated_values.any():
-                pass
-            pass
+                duplicated_rows = duplicated_values.index.to_numpy() + 2
+                errors.append(
+                    GenerateError.generate_cross_error(
+                        val_rule = val_rule,
+                        attribute_name = source_attribute,
+                        row_num = str(duplicated_rows),  
+                        invalid_entry = str(duplicated_values.tolist()) 
+                    )
+                )
+            
 
             
         #generate errors if necessary
