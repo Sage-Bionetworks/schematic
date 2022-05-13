@@ -212,9 +212,12 @@ class MetadataModel(object):
         errors = []
         warnings = []
 
+        kwargs={
+            "dtype":"string"
+            }
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
-            manifestPath, preserve_raw_input=False,
+            manifestPath, preserve_raw_input=False, **kwargs,
         )  # read manifest csv file as is from manifest path
 
         # handler for mismatched components/data types
