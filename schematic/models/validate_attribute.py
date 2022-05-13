@@ -386,7 +386,7 @@ class ValidateAttribute(object):
 
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> (List[List[str]], List[List[str]], pandas.core.series.Series):
+    ) -> (List[List[str]], List[List[str]], pd.core.series.Series):
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
