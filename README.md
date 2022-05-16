@@ -189,7 +189,11 @@ You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues)
 - **Provide screenshots of the expected or actual behaviour** where applicable.
 
 # Command Line Usage
-Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html)
+Some command line functions also require credentials. Please take a look at step 5 and step 6 of developer contribution section to obtain the following credential files: `schematic_service_account_creds.json`, `credentials.json`, `token.pickle`. 
+
+If you wish to use the latest schematic command line functions, please also go through developer contribution section to install schematic. 
+
+Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html) for CLI usage
 
 
 
