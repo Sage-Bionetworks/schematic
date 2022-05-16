@@ -20,12 +20,8 @@ def load_df(file_path, preserve_raw_input=True, **kwargs):
     """
     #Read CSV to df as type specified in kwargs
     org_df = pd.read_csv(file_path, encoding='utf8', **kwargs)
-    print(org_df)
     
-    #read as normal if not reading in for validation
     if preserve_raw_input:
-        #org_df = pd.read_csv(file_path, encoding='utf8', **kwargs)
-
         #only trim if not data model csv
         if 'model' not in file_path:
             org_df=trim_commas_df(org_df)
@@ -33,25 +29,6 @@ def load_df(file_path, preserve_raw_input=True, **kwargs):
         return org_df
 
     else:
-        #Read CSV to df as type string
-        #org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', **kwargs,)
-        #print(org_df)
-
-        #fp1=file_path.replace('.csv','1.csv')
-        #org_df.to_csv(fp1,quoting=QUOTE_NONNUMERIC,index=False,index_label=False,encoding='utf8')
-        #org_df = pd.read_csv(fp1, encoding='utf8', quoting=QUOTE_NONNUMERIC, **kwargs,)
-        #print(org_df)
-        '''
-        fpc=file_path.replace('.csv',' - Copy.csv')
-        dfc = pd.read_csv(fpc, encoding='utf8', **kwargs,)
-        print(dfc)
-        
-
-        pre_save = pd.DataFrame({'b': ['"1"',2]})
-        pre_save.to_csv(file_path.replace('.csv','pre_save.csv'), quoting=csv.QUOTE_NONNUMERIC, index=False)
-        post_save = pd.read_csv(file_path.replace('.csv','pre_save.csv'), quoting=csv.QUOTE_NONNUMERIC, engine="python",quotechar='\"')
-        '''
-
         float_df=deepcopy(org_df)
         #Find integers stored as strings 
         ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
@@ -66,16 +43,6 @@ def load_df(file_path, preserve_raw_input=True, **kwargs):
         
         #Store values that were entered as ints
         processed_df=processed_df.mask(ints != False, other = ints)  
-        '''
-        fp2=file_path.replace('.csv','2.csv')
-        processed_df.to_csv(fp2,quoting=QUOTE_NONNUMERIC,encoding='utf8',index=False)
-        processed_df = pd.read_csv(fp2, encoding='utf8', quoting=QUOTE_NONNUMERIC, **kwargs,)
-        '''
-
-        print(processed_df)
-
-        #os.remove(fp1)
-        #os.remove(fp2)
 
         return processed_df
 
