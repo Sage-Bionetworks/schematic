@@ -111,6 +111,13 @@ class TestManifestValidation:
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
             ) in errors
 
+        assert  GenerateError.generate_cross_error(
+            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value',
+            row_num = '[3]',
+            attribute_name = 'checkMatchatLeastvalues',
+            invalid_entry = '[51100]',
+            ) in errors      
+
         assert \
             GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
@@ -124,6 +131,13 @@ class TestManifestValidation:
             matching_manifests = ['syn29862066', 'syn27648165']
             ) in errors
                     
+        assert  GenerateError.generate_cross_error(
+            val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
+            row_num = '[3]',
+            attribute_name='checkMatchExactlyvalues',
+            invalid_entry = '[71738]',
+            ) in errors 
+
         assert GenerateError.generate_content_error(
             val_rule = 'unique error', 
             attribute_name = 'Check Unique',
@@ -223,6 +237,13 @@ class TestManifestValidation:
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
             ) in errors
 
+        assert  GenerateError.generate_cross_error(
+            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value',
+            row_num = '[3]',
+            attribute_name = 'checkMatchatLeastvalues',
+            invalid_entry = '[51100]',
+            ) in errors      
+
         assert \
             GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
@@ -235,5 +256,12 @@ class TestManifestValidation:
             attribute_name='checkMatchExactly',
             matching_manifests = ['syn29862066', 'syn27648165']
             ) in errors
+                    
+        assert  GenerateError.generate_cross_error(
+            val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
+            row_num = '[3]',
+            attribute_name='checkMatchExactlyvalues',
+            invalid_entry = '[71738]',
+            ) in errors 
         
 
