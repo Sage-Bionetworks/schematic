@@ -2744,7 +2744,7 @@
             "sms:displayName": "Check Match at Least values",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchAtLeastOne MockComponent.checkMatchatLeastvalues Patient.PatientID value"
+                "matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value"
             ]
         },
         {
