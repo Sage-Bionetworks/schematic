@@ -366,22 +366,17 @@ class ValidateAttribute(object):
         if access_token:
             synStore = SynapseStorage(access_token=access_token)
         else:
-            synStore = SynapseStorage()
-        #syn = synStore.login(access_token = access_token)
-        
+            synStore = SynapseStorage()        
 
         #Get list of all projects user has access to
         projects = synStore.getStorageProjects(project_scope=project_scope)
         for project in projects:
-            #print('Project: ', str(project[0]))
             
             #get all manifests associated with datasets in the projects
             target_datasets=synStore.getProjectManifests(projectId=project[0])
-            #print(target_datasets)
 
             #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
-                #print(target_dataset)
 
                 if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
                     target_manifest_IDs.append(target_dataset[1][0])

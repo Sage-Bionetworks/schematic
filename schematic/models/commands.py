@@ -110,9 +110,6 @@ def submit_manifest(
         inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
     )
 
-    if project_scope:
-        project_scope = parse_synIDs(project_scope)
-
     try:
         manifest_id = metadata_model.submit_metadata_manifest(
             manifest_path=manifest_path,
