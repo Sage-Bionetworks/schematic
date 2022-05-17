@@ -133,9 +133,9 @@ class TestManifestValidation:
                     
         assert  GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[3]',
+            row_num = '[2 3 4]',
             attribute_name='checkMatchExactlyvalues',
-            invalid_entry = '[71738]',
+            invalid_entry = '[[71738], [98085], [210065]]',
             ) in errors 
 
         assert GenerateError.generate_content_error(
@@ -259,9 +259,9 @@ class TestManifestValidation:
                     
         assert  GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[3]',
+            row_num = '[2 3 4]',
             attribute_name='checkMatchExactlyvalues',
-            invalid_entry = '[71738]',
+            invalid_entry = '[[71738], [98085], [210065]]',
             ) in errors 
         
 

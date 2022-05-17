@@ -740,13 +740,14 @@ class ValidateAttribute(object):
                     )
                 )
             elif val_rule.__contains__('matchExactlyOne') and duplicated_values.any():
-                duplicated_rows = duplicated_values.index.to_numpy() + 2
+                invalid_values=pd.merge(duplicated_values,missing_values,how='outer')
+                invalid_rows = invalid_values.index.to_numpy() + 2
                 errors.append(
                     GenerateError.generate_cross_error(
                         val_rule = val_rule,
-                        row_num = str(duplicated_rows), 
+                        row_num = str(invalid_rows), 
                         attribute_name = source_attribute, 
-                        invalid_entry = str(duplicated_values.tolist()) 
+                        invalid_entry = str(invalid_values.values.tolist()) 
                     )
                 )
             
