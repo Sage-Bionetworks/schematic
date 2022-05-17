@@ -744,8 +744,8 @@ class ValidateAttribute(object):
                 errors.append(
                     GenerateError.generate_cross_error(
                         val_rule = val_rule,
-                        attribute_name = source_attribute,
-                        row_num = str(duplicated_rows),  
+                        row_num = str(duplicated_rows), 
+                        attribute_name = source_attribute, 
                         invalid_entry = str(duplicated_values.tolist()) 
                     )
                 )
