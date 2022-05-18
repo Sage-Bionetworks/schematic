@@ -569,7 +569,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_prefix, restrict):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
@@ -600,7 +600,7 @@ class SynapseStorage(BaseStorage):
                 col_schema[i]['maximumSize'] = 64
 
         # Put manifest onto synapse
-        schema = Schema(name=table_prefix + '_manifest_table', columns=col_schema, parent=datasetId)
+        schema = Schema(name=table_name, columns=col_schema, parent=datasetId)
         table = self.syn.store(Table(schema, manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
 
@@ -677,22 +677,25 @@ class SynapseStorage(BaseStorage):
         is_table = entity.concreteType.endswith(".TableEntity")
 
         if is_file:
+
             # Get file metadata
             metadata = self.getFileAnnotations(manifest_synapse_id)
 
-            # Gather component information
-            component = manifest['Component'].unique()
-            
-            # Double check that only a single component is listed, else raise an error.
-            try:
-                len(component) == 1
-            except ValueError as err:
-                raise ValueError(
-                    f"Manifest has more than one component. Please check manifest and resubmit."
-                ) from err
+            # If there is a defined component add it to the metadata.
+            if 'Component' in manifest.columns:
+                # Gather component information
+                component = manifest['Component'].unique()
+                
+                # Double check that only a single component is listed, else raise an error.
+                try:
+                    len(component) == 1
+                except ValueError as err:
+                    raise ValueError(
+                        f"Manifest has more than one component. Please check manifest and resubmit."
+                    ) from err
 
-            # Add component to metadata
-            metadata['Component'] = component[0]
+                # Add component to metadata
+                metadata['Component'] = component[0]
         
         elif is_table:
             # Get table metadata
@@ -778,10 +781,16 @@ class SynapseStorage(BaseStorage):
         # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
         se = SchemaExplorer()
 
+        # Create table name here.
+        if 'Component' in manifest.columns:
+            table_name = manifest['Component'][0].lower() + '_synapse_storage_manifest_table'
+        else:
+            table_name = 'synapse_storage_manifest_table'
+
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, manifest['Component'][0].lower(), restrict = restrict_manifest)
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest)
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
@@ -819,14 +828,14 @@ class SynapseStorage(BaseStorage):
         self.syn.set_annotations(manifest_annotations)
 
         logger.info("Associated manifest file with dataset on Synapse.")
-            
+        
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
             self.make_synapse_table(
                 table_to_load = manifest,
                 dataset_id = datasetId,
                 existingTableId = manifest_synapse_table_id,
-                table_name = manifest['Component'][0].lower() + '_manifest_table',
+                table_name = table_name,
                 update_col = 'Uuid',
                 specify_schema = False,
                 )
