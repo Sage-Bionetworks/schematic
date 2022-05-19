@@ -55,6 +55,18 @@ manifest_commands = {
                 "Optional"
             ),
         },
+        "download": {
+            "short_help": (
+                "Function to download manifest from asset store (Synapse)."
+            ),
+            "dataset_id": (
+                "Specify the synID of a dataset folder on Synapse. If there is an exisiting manifest already present "
+                "in that folder, then it will be pulled with the existing annotations for further annotation/modification. "
+            ),
+            "new_manifest_name": (
+                "Specify the new name to download the manifest file as."
+            ),
+        },
     }
 }
 
