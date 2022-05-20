@@ -89,6 +89,9 @@ def get_class(
     # determine parent class of element and add subclass relationship to schema - required by biothings
     # if no subclass is provided, set a default to schema.org Thing
     if subclass_of:
+        if type(subclass_of[0]) == float:
+            if np.isnan(subclass_of[0]):
+                subclass_of[0] = ""
         if len(subclass_of) == 1 and subclass_of[0] == "":
             parent = {"rdfs:subClassOf": [{"@id": "schema:Thing"}]}
         else:
@@ -313,6 +316,9 @@ def create_nx_schema_objects(
     # property to class map
     prop_2_class = {}
     for record in properties:
+        if type(record["Properties"]) == float:
+            if np.isnan(record["Properties"]):
+                record["Properties"] = ""
         if not record["Properties"] == "":
             props = record["Properties"].strip().split(",")
             for p in props:
@@ -322,6 +328,9 @@ def create_nx_schema_objects(
     for attribute in attributes:
 
         required = None
+        if type(attribute["Required"]) == float:
+            if np.isnan(attribute["Required"]):
+                attribute["Required"] = ""
         if not attribute["Required"] == "":
             required = attribute["Required"]
 
@@ -329,6 +338,9 @@ def create_nx_schema_objects(
             display_name = attribute["Attribute"]
 
             subclass_of = None
+            if type(attribute["Parent"]) == float:
+                if np.isnan(attribute["Parent"]):
+                    attribute["Parent"] = ""
             if not attribute["Parent"] == "":
                 subclass_of = [
                     parent for parent in attribute["Parent"].strip().split(",")
@@ -375,6 +387,9 @@ def create_nx_schema_objects(
     logger.debug("Adding and editing properties")
 
     for prop in properties:
+        if type(prop["Properties"]) == float:
+            if np.isnan(prop["Properties"]):
+                prop["Properties"] = ""
         if not prop["Properties"] == "":  # a class may have or not have properties
             for p in (
                 prop["Properties"].strip().split(",")
@@ -435,6 +450,9 @@ def create_nx_schema_objects(
 
         # get values in range for this attribute, if any are specified
         range_values = attribute["Valid Values"]
+        if type(range_values) == float:
+            if np.isnan(range_values):
+                range_values = ""
         if not range_values == "":
             # prepare the range values list and split based on appropriate delimiter
             # if the string "range_values" starts with double quotes, then extract all "valid values" within double quotes
@@ -514,6 +532,9 @@ def create_nx_schema_objects(
         # get validation rules for this attribute, if any are specified
         validation_rules = attribute["Validation Rules"]
 
+        if type(validation_rules) == float:
+            if np.isnan(validation_rules):
+                validation_rules = ""
         if not validation_rules == "":
             
             # TODO: make validation rules delimiter configurable parameter
@@ -570,6 +591,9 @@ def create_nx_schema_objects(
 
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["DependsOn"]
+        if type(requires_dependencies) == float:
+            if np.isnan(requires_dependencies):
+                requires_dependencies = ""
         if not requires_dependencies == "":
 
             for dep in requires_dependencies.strip().split(","):
@@ -670,6 +694,9 @@ def create_nx_schema_objects(
             # TODO check for cycles in attribute dependencies schema subgraph
 
         # check if the attribute requires any components
+        if type(attribute["DependsOn Component"]) == float:
+            if np.isnan(attribute["DependsOn Component"]):
+                attribute["DependsOn Component"] = ""
         if not attribute["DependsOn Component"] == "":
             component_dependencies = attribute["DependsOn Component"]
         else:
