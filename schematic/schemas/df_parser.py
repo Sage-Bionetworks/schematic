@@ -80,7 +80,7 @@ def get_class(
         "@id": "bts:" + class_name,
         "@type": "rdfs:Class",
         "rdfs:comment": description
-        if description and not pd.isnull(description)
+        if description and not description == ""
         else "TBD",
         "rdfs:label": class_name,
         "schema:isPartOf": {"@id": "http://schema.biothings.io"},
@@ -89,7 +89,7 @@ def get_class(
     # determine parent class of element and add subclass relationship to schema - required by biothings
     # if no subclass is provided, set a default to schema.org Thing
     if subclass_of:
-        if len(subclass_of) == 1 and pd.isnull(subclass_of[0]):
+        if len(subclass_of) == 1 and subclass_of[0] == "":
             parent = {"rdfs:subClassOf": [{"@id": "schema:Thing"}]}
         else:
             parent = {
@@ -179,7 +179,7 @@ def get_property(
         "@id": "bts:" + property_name,
         "@type": "rdf:Property",
         "rdfs:comment": description
-        if description and not pd.isnull(description)
+        if description and not description == ""
         else "TBD",
         "rdfs:label": property_name,
         "sms:displayName": property_display_name,
@@ -313,7 +313,7 @@ def create_nx_schema_objects(
     # property to class map
     prop_2_class = {}
     for record in properties:
-        if not pd.isnull(record["Properties"]):
+        if not record["Properties"] == "":
             props = record["Properties"].strip().split(",")
             for p in props:
                 prop_2_class[p.strip()] = record["Attribute"]
@@ -322,14 +322,14 @@ def create_nx_schema_objects(
     for attribute in attributes:
 
         required = None
-        if not pd.isnull(attribute["Required"]):
+        if not attribute["Required"] == "":
             required = attribute["Required"]
 
         if not attribute["Attribute"] in all_properties:
             display_name = attribute["Attribute"]
 
             subclass_of = None
-            if not pd.isnull(attribute["Parent"]):
+            if not attribute["Parent"] == "":
                 subclass_of = [
                     parent for parent in attribute["Parent"].strip().split(",")
                 ]
@@ -375,7 +375,7 @@ def create_nx_schema_objects(
     logger.debug("Adding and editing properties")
 
     for prop in properties:
-        if not pd.isnull(prop["Properties"]):  # a class may have or not have properties
+        if not prop["Properties"] == "":  # a class may have or not have properties
             for p in (
                 prop["Properties"].strip().split(",")
             ):  # a class may have multiple properties
@@ -435,7 +435,7 @@ def create_nx_schema_objects(
 
         # get values in range for this attribute, if any are specified
         range_values = attribute["Valid Values"]
-        if not pd.isnull(range_values):
+        if not range_values == "":
             # prepare the range values list and split based on appropriate delimiter
             # if the string "range_values" starts with double quotes, then extract all "valid values" within double quotes
             range_values_list = []
@@ -514,7 +514,7 @@ def create_nx_schema_objects(
         # get validation rules for this attribute, if any are specified
         validation_rules = attribute["Validation Rules"]
 
-        if not pd.isnull(validation_rules):
+        if not validation_rules == "":
             
             # TODO: make validation rules delimiter configurable parameter
            
@@ -570,7 +570,7 @@ def create_nx_schema_objects(
 
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["DependsOn"]
-        if not pd.isnull(requires_dependencies):
+        if not requires_dependencies == "":
 
             for dep in requires_dependencies.strip().split(","):
                 # check if dependency is a property or not
@@ -670,7 +670,7 @@ def create_nx_schema_objects(
             # TODO check for cycles in attribute dependencies schema subgraph
 
         # check if the attribute requires any components
-        if not pd.isnull(attribute["DependsOn Component"]):
+        if not attribute["DependsOn Component"] == "":
             component_dependencies = attribute["DependsOn Component"]
         else:
             continue
