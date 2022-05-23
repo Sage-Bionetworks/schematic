@@ -7,11 +7,12 @@ from copy import deepcopy
 logger = logging.getLogger(__name__)
 
 
-def load_df(file_path, preserve_raw_input=True, **kwargs):
+def load_df(file_path, preserve_raw_input=True, data_model=False, **kwargs):
     """
     Universal function to load CSVs and return DataFrames
     Args:
         file_path: path of csv to open
+        data_model: bool, indicates if importing a data model
         **kwargs: keyword arguments for pd.read_csv()
 
     Returns: a processed dataframe for manifests or unprocessed df for data models
@@ -22,7 +23,7 @@ def load_df(file_path, preserve_raw_input=True, **kwargs):
         org_df = pd.read_csv(file_path, encoding='utf8', **kwargs)
 
         #only trim if not data model csv
-        if 'model' not in file_path:
+        if not data_model:
             org_df=trim_commas_df(org_df)
 
         return org_df
