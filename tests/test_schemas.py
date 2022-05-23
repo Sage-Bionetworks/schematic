@@ -163,7 +163,7 @@ class TestDfParser:
         # namely, "Assay"
         extended_csv_model_path = helpers.get_data_path(extended_schema_path)
 
-        extended_model_df = load_df(extended_csv_model_path)
+        extended_model_df = load_df(extended_csv_model_path, data_model=True)
 
         extended_csv_model_se = df_parser.create_nx_schema_objects(
             extended_model_df, se_obj
