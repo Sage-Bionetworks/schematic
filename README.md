@@ -48,7 +48,7 @@ If you run into error: Failed building wheel for numpy, the error might be able 
 pip3 install --upgrade pip
 ```
 
-*Note*: If you will need to interact with synapse, please follow step 5 and step 6 in the section below to obtain credentials. 
+*Note*: If you will need to interact with synapse, please follow [step 5](#credential1) and [step 6](#credential2) in the section below to obtain credentials. 
 
 ## Installation guide for developers/contributors 
 
@@ -86,7 +86,7 @@ poetry install
 ```
 This command will install the dependencies based on what we specify in poetry.lock
 
-5. Fill in credential files: 
+<div id="credential1">5. Fill in credential files:</div>
 *Note*: If you won't interact with Synapse, please ignore this section.
 
 There are two main configuration files that need to be edited :
@@ -132,7 +132,7 @@ Description of `config.yml` attributes
 
 *Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
-6. Obtain Google credential Files
+<div id="credential2">6. Obtain Google credential Files:</div>
 
 To obtain ``credentials.json`` and ``token.pickle``, please run:
 
