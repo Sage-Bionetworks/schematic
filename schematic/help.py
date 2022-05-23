@@ -116,6 +116,9 @@ model_commands = {
                 "and Great Expectations rules and suite will not be utilized."
                 "If not, the Great Expectations suite will be utilized and all rules will be available."
             ),
+            "project_scope": (
+                "Specify a comma-separated list of projects to search through for cross manifest validation."
+            ),
         },
     }
 }

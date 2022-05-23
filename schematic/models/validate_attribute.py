@@ -362,7 +362,7 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def get_target_manifests(target_component):
+    def get_target_manifests(target_component, project_scope: List):
 
         target_manifest_IDs=[]
         target_dataset_IDs=[]
@@ -372,22 +372,17 @@ class ValidateAttribute(object):
         if access_token:
             synStore = SynapseStorage(access_token=access_token)
         else:
-            synStore = SynapseStorage()
-        #syn = synStore.login(access_token = access_token)
-        
+            synStore = SynapseStorage()        
 
         #Get list of all projects user has access to
-        projects = synStore.getStorageProjects()
+        projects = synStore.getStorageProjects(project_scope=project_scope)
         for project in projects:
-            #print('Project: ', str(project[0]))
             
             #get all manifests associated with datasets in the projects
             target_datasets=synStore.getProjectManifests(projectId=project[0])
-            #print(target_datasets)
 
             #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
-                #print(target_dataset)
 
                 if target_component == target_dataset[-1][0].replace(" ","").lower():
                     target_manifest_IDs.append(target_dataset[1][0])
@@ -652,7 +647,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List,
     ) -> List[List[str]]:
         """
         Purpose:
@@ -680,7 +675,7 @@ class ValidateAttribute(object):
 
         
         #Get IDs of manifests with target component
-        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
+        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
 
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
