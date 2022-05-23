@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import re
 import networkx as nx
-from jsonschema import Draft7Validator, exceptions, validate, ValidationError
+from jsonschema import Draft7Validator, exceptions, validate, ValidationError, FormatError
 from os.path import exists
 
 # allows specifying explicit variable types
@@ -73,7 +73,6 @@ class MetadataModel(object):
             raise ValueError(
                 f"The type '{inputMModelLocationType}' is currently not supported."
             )
-
 
     def getModelSubgraph(self, rootNode: str, subgraphType: str) -> nx.DiGraph:
         """Gets a schema subgraph from rootNode descendants based on edge/node properties of type subgraphType.
@@ -187,7 +186,7 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, 
+        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, project_scope: List = None,
     ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
@@ -248,7 +247,7 @@ class MetadataModel(object):
 
             return errors, warnings
 
-        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules)
+        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope)
         return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
@@ -283,6 +282,7 @@ class MetadataModel(object):
         use_schema_label: bool = True,
         hide_blanks: bool = False,
         input_token: str = None,
+        project_scope: List = None,
     ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -322,7 +322,7 @@ class MetadataModel(object):
 
             # automatic JSON schema generation and validation with that JSON schema
             val_errors, val_warnings = self.validateModelManifest(
-                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules
+                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules, project_scope=project_scope,
             )
 
             # if there are no errors in validation process

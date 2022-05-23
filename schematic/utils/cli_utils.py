@@ -3,8 +3,9 @@
 import inspect
 import logging
 
-from typing import Any, Mapping, Sequence, Union
+from typing import Any, Mapping, Sequence, Union, List
 from functools import reduce
+import re
 
 from schematic import CONFIG
 from schematic.exceptions import (
@@ -119,3 +120,42 @@ def fill_in_from_config(
     )
 
     return config_value
+
+def parse_synIDs(
+    ctx,
+    param,
+    synIDs,
+) -> List[str]:
+    """Parse and validate a comma separated string of synIDs
+
+    Args:
+        ctx:
+            click option context
+        param:
+            click option argument name
+        synIDs:
+            comma separated string of synIDs
+
+    Returns:
+        List of synID strings
+
+    Raises:
+        ValueError: If the entire string does not match a regex for 
+            a valid comma separated string of SynIDs
+    """
+    if synIDs:
+        project_regex = re.compile("(syn\d+\,?)+")
+        valid=project_regex.fullmatch(synIDs)
+
+        if valid:
+            synIDs = synIDs.split(",")
+
+            return synIDs
+
+        else:
+            raise ValueError(
+                        f"The provided list of project synID(s): {synIDs}, is not formatted correctly. "
+                        "\nPlease check your list of projects for errors."
+                    )
+    else:
+        return

@@ -158,7 +158,7 @@ class SynapseStorage(BaseStorage):
 
         return all_results
 
-    def getStorageProjects(self) -> List[str]:
+    def getStorageProjects(self, project_scope: List = None) -> List[str]:
         """Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
 
         Returns:
@@ -186,7 +186,16 @@ class SynapseStorage(BaseStorage):
 
         # find set of user projects that are also in this pipeline's storage projects set
         storageProjects = list(set(storageProjects) & set(currentUserProjects))
+        
+        # Limit projects to scope if specified
+        if project_scope:
+            storageProjects = list(set(storageProjects) & set(project_scope))
 
+            if not storageProjects:
+                raise Warning(
+                    f"There are no projects that the user has access to that match the criteria of the specified project scope: {project_scope}"
+                )
+        
         # prepare a return list of project IDs and names
         projects = []
         for projectId in storageProjects:
