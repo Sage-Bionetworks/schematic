@@ -734,9 +734,9 @@ class ValidateAttribute(object):
                         invalid_entry = str(missing_values.values.tolist()),
                     )
                 )
-            elif val_rule.__contains__('matchExactlyOne') and duplicated_values.any():
-                invalid_values=pd.merge(duplicated_values,missing_values,how='outer')
-                invalid_rows = invalid_values.index.to_numpy() + 2
+            elif val_rule.__contains__('matchExactlyOne') and (duplicated_values.any() or missing_values.any()):
+                invalid_values  = pd.merge(duplicated_values,missing_values,how='outer')
+                invalid_rows    = pd.merge(duplicated_values,missing_values,how='outer',left_index=True,right_index=True).index.to_numpy() + 2
                 errors.append(
                     GenerateError.generate_cross_error(
                         val_rule = val_rule,
