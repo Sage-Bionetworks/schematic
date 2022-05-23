@@ -166,7 +166,7 @@ class GenerateError:
             error_val = f"URL Error: Random Entry"
         return [error_row, error_col, error_message, error_val]
 
-    def generate_cross_error(
+    def generate_cross_warning(
         val_rule: str,
         attribute_name: str,
         matching_manifests = [],
@@ -211,7 +211,7 @@ class GenerateError:
                     f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. " 
                 )            
 
-        logging.error(cross_error_str)
+        logging.warning(cross_error_str)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = cross_error_str
@@ -726,8 +726,8 @@ class ValidateAttribute(object):
             
             if val_rule.__contains__('matchAtLeastOne') and not missing_values.empty:
                 missing_rows = missing_values.index.to_numpy() + 2
-                errors.append(
-                    GenerateError.generate_cross_error(
+                warnings.append(
+                    GenerateError.generate_cross_warning(
                         val_rule = val_rule,
                         row_num = str(missing_rows),
                         attribute_name = source_attribute,
@@ -737,8 +737,8 @@ class ValidateAttribute(object):
             elif val_rule.__contains__('matchExactlyOne') and (duplicated_values.any() or missing_values.any()):
                 invalid_values  = pd.merge(duplicated_values,missing_values,how='outer')
                 invalid_rows    = pd.merge(duplicated_values,missing_values,how='outer',left_index=True,right_index=True).index.to_numpy() + 2
-                errors.append(
-                    GenerateError.generate_cross_error(
+                warnings.append(
+                    GenerateError.generate_cross_warning(
                         val_rule = val_rule,
                         row_num = str(invalid_rows), 
                         attribute_name = source_attribute, 
@@ -748,7 +748,7 @@ class ValidateAttribute(object):
             
 
             
-        #generate errors if necessary
+        #generate warnings if necessary
         elif scope.__contains__('set'):
             if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:     
                 missing_entries = list(missing_manifest_log.values()) 
@@ -761,8 +761,8 @@ class ValidateAttribute(object):
                 missing_values=list(set(missing_values))
                 #print(missing_rows,missing_values)
 
-                errors.append(
-                    GenerateError.generate_cross_error(
+                warnings.append(
+                    GenerateError.generate_cross_warning(
                         val_rule = val_rule,
                         row_num = str(missing_rows),
                         attribute_name = source_attribute,
@@ -771,8 +771,8 @@ class ValidateAttribute(object):
                     )
                 )
             elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
-                errors.append(
-                    GenerateError.generate_cross_error(
+                warnings.append(
+                    GenerateError.generate_cross_warning(
                         val_rule = val_rule,
                         attribute_name = source_attribute,
                         matching_manifests = present_manifest_log,

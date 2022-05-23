@@ -38,8 +38,6 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode
             )
-        for error in errors:
-            print(error)
             
         assert errors == []
         assert warnings ==  []
@@ -103,41 +101,6 @@ class TestManifestValidation:
             invalid_entry = 'http://googlef.com/'
             ) in errors
 
-        assert GenerateError.generate_cross_error(
-            val_rule = 'matchAtLeastOne',
-            row_num = '[3]',
-            attribute_name='checkMatchatLeast',
-            invalid_entry = '[7163]',
-            missing_manifest_ID = ['syn27600110', 'syn29381803'],
-            ) in errors
-
-        assert  GenerateError.generate_cross_error(
-            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value',
-            row_num = '[3]',
-            attribute_name = 'checkMatchatLeastvalues',
-            invalid_entry = '[51100]',
-            ) in errors      
-
-        assert \
-            GenerateError.generate_cross_error(
-            val_rule = 'matchExactlyOne',
-            attribute_name='checkMatchExactly',
-            matching_manifests = ['syn29862078', 'syn27648165']
-            ) in errors \
-            or \
-            GenerateError.generate_cross_error(
-            val_rule = 'matchExactlyOne',
-            attribute_name='checkMatchExactly',
-            matching_manifests = ['syn29862066', 'syn27648165']
-            ) in errors
-                    
-        assert  GenerateError.generate_cross_error(
-            val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[2 3 4]',
-            attribute_name='checkMatchExactlyvalues',
-            invalid_entry = '[[71738], [98085], [210065]]',
-            ) in errors 
-
         assert GenerateError.generate_content_error(
             val_rule = 'unique error', 
             attribute_name = 'Check Unique',
@@ -168,6 +131,41 @@ class TestManifestValidation:
             row_num = [2,3],
             error_val = [6549,32851], 
             )[1] in warnings
+
+        assert GenerateError.generate_cross_warning(
+            val_rule = 'matchAtLeastOne',
+            row_num = '[3]',
+            attribute_name='checkMatchatLeast',
+            invalid_entry = '[7163]',
+            missing_manifest_ID = ['syn27600110', 'syn29381803'],
+            ) in warnings
+
+        assert  GenerateError.generate_cross_warning(
+            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value',
+            row_num = '[3]',
+            attribute_name = 'checkMatchatLeastvalues',
+            invalid_entry = '[51100]',
+            ) in warnings      
+
+        assert \
+            GenerateError.generate_cross_warning(
+            val_rule = 'matchExactlyOne',
+            attribute_name='checkMatchExactly',
+            matching_manifests = ['syn29862078', 'syn27648165']
+            ) in warnings \
+            or \
+            GenerateError.generate_cross_warning(
+            val_rule = 'matchExactlyOne',
+            attribute_name='checkMatchExactly',
+            matching_manifests = ['syn29862066', 'syn27648165']
+            ) in warnings
+                    
+        assert  GenerateError.generate_cross_warning(
+            val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
+            row_num = '[2 3 4]',
+            attribute_name='checkMatchExactlyvalues',
+            invalid_entry = '[[71738], [98085], [210065]]',
+            ) in warnings 
         
 
     def test_in_house_validation(self,helpers,sg,metadataModel):
@@ -229,39 +227,41 @@ class TestManifestValidation:
             invalid_entry = 'http://googlef.com/'
             ) in errors
 
-        assert GenerateError.generate_cross_error(
+        
+        #Check Warnings
+        assert GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne',
             row_num = '[3]',
             attribute_name='checkMatchatLeast',
             invalid_entry = '[7163]',
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
-            ) in errors
+            ) in warnings
 
-        assert  GenerateError.generate_cross_error(
+        assert  GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value',
             row_num = '[3]',
             attribute_name = 'checkMatchatLeastvalues',
             invalid_entry = '[51100]',
-            ) in errors      
+            ) in warnings      
 
         assert \
-            GenerateError.generate_cross_error(
+            GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
             matching_manifests = ['syn29862078', 'syn27648165']
-            ) in errors \
+            ) in warnings \
             or \
-            GenerateError.generate_cross_error(
+            GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
             matching_manifests = ['syn29862066', 'syn27648165']
-            ) in errors
+            ) in warnings
                     
-        assert  GenerateError.generate_cross_error(
+        assert  GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
             row_num = '[2 3 4]',
             attribute_name='checkMatchExactlyvalues',
             invalid_entry = '[[71738], [98085], [210065]]',
-            ) in errors 
+            ) in warnings 
         
 
