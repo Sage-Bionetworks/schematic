@@ -2706,7 +2706,7 @@
             "sms:displayName": "Check Match at Least",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID set"
+                "matchAtLeastOne Patient.PatientID set"
             ]
         },
         {
@@ -2725,7 +2725,7 @@
             "sms:displayName": "Check Match Exactly",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly set"
+                "matchExactlyOne MockComponent.checkMatchExactly set"
             ]
         },
         {
@@ -2744,7 +2744,7 @@
             "sms:displayName": "Check Match at Least values",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value"
+                "matchAtLeastOne MockComponent.checkMatchatLeastvalues value"
             ]
         },
         {
@@ -2763,7 +2763,7 @@
             "sms:displayName": "Check Match Exactly values",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value"
+                "matchExactlyOne MockComponent.checkMatchExactlyvalues value"
             ]
         },
         {

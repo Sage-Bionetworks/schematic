@@ -141,7 +141,7 @@ class TestManifestValidation:
             ) in warnings
 
         assert  GenerateError.generate_cross_warning(
-            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value',
+            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value',
             row_num = '[3]',
             attribute_name = 'checkMatchatLeastvalues',
             invalid_entry = '[51100]',
@@ -238,7 +238,7 @@ class TestManifestValidation:
             ) in warnings
 
         assert  GenerateError.generate_cross_warning(
-            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues MockComponent.checkMatchatLeastvalues value',
+            val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value',
             row_num = '[3]',
             attribute_name = 'checkMatchatLeastvalues',
             invalid_entry = '[51100]',
