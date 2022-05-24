@@ -63,6 +63,7 @@ sphinx-click = "^3.1.0"
 MarkupSafe = "2.0.1"
 itsdangerous = "1.1.0"
 Jinja2 = "2.11.3"
+openpyxl = "^3.0.9"
 
 
 [tool.poetry.dev-dependencies]

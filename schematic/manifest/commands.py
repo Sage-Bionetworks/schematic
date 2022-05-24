@@ -5,13 +5,13 @@ import click
 import click_log
 import logging
 import sys
-import pandas as pd
 
 from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict
 from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -77,6 +77,11 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "output_csv")),
 )
 @click.option(
+    "-o",
+    "--output_xlsx",
+    help=query_dict(manifest_commands, ("manifest", "get", "output_xlsx")),
+)
+@click.option(
     "-a",
     "--use_annotations",
     is_flag=True,
@@ -93,6 +98,12 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     "--json_schema",
     help=query_dict(manifest_commands, ("manifest", "get", "json_schema")),
 )
+@click.option(
+    "-av",
+    "--alphabetize_valid_values",
+    default = 'ascending',
+    help=query_dict(manifest_commands, ("manifest", "get", "alphabetize_valid_values")),
+)
 @click.pass_obj
 def get_manifest(
     ctx,
@@ -105,6 +116,8 @@ def get_manifest(
     use_annotations,
     oauth,
     json_schema,
+    output_xlsx,
+    alphabetize_valid_values,
 ):
     """
     Running CLI with manifest generation options.
@@ -120,8 +133,7 @@ def get_manifest(
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-
-    def create_single_manifest(data_type):
+    def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -129,6 +141,7 @@ def get_manifest(
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
+            alphabetize_valid_values=alphabetize_valid_values,
         )
 
         # call get_manifest() on manifest_generator
@@ -139,20 +152,22 @@ def get_manifest(
         if sheet_url:
             logger.info("Find the manifest template using this Google Sheet URL:")
             click.echo(result)
-
-        elif isinstance(result, pd.DataFrame):
-            if output_csv is None:
-                prefix, _ = os.path.splitext(jsonld)
-                prefix_root, prefix_ext = os.path.splitext(prefix)
-                if prefix_ext == ".model":
-                    prefix = prefix_root
-                output_csv = f"{prefix}.{data_type}.manifest.csv"
-
+        if output_csv is None and output_xlsx is None: 
+            prefix, _ = os.path.splitext(jsonld)
+            prefix_root, prefix_ext = os.path.splitext(prefix)
+            if prefix_ext == ".model":
+                prefix = prefix_root
+            output_csv = f"{prefix}.{data_type}.manifest.csv"
+        elif output_xlsx:
+            export_manifest_excel(output_excel=output_xlsx, manifest=result)
             logger.info(
+                f"Find the manifest template using this Excel file path: {output_xlsx}"
+            )
+            return result
+        export_manifest_csv(file_name=output_csv, manifest=result)
+        logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
-
-            result.to_csv(output_csv, index=False)
         return result
 
     if type(data_type) is str:
@@ -171,6 +186,6 @@ def get_manifest(
                 t = f'{title}.{dt}.manifest'
             else:
                 t = title
-            result = create_single_manifest(data_type = dt)
+            result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
 
     return result

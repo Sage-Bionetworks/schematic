@@ -2,7 +2,7 @@ import builtins
 from jsonschema import ValidationError
 import logging
 
-# import numpy as np
+import numpy as np
 import pandas as pd
 import re
 import sys
@@ -356,7 +356,7 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def get_target_manifests(target_component):
+    def get_target_manifests(target_component, project_scope: List):
 
         target_manifest_IDs=[]
         target_dataset_IDs=[]
@@ -366,22 +366,17 @@ class ValidateAttribute(object):
         if access_token:
             synStore = SynapseStorage(access_token=access_token)
         else:
-            synStore = SynapseStorage()
-        #syn = synStore.login(access_token = access_token)
-        
+            synStore = SynapseStorage()        
 
         #Get list of all projects user has access to
-        projects = synStore.getStorageProjects()
+        projects = synStore.getStorageProjects(project_scope=project_scope)
         for project in projects:
-            #print('Project: ', str(project[0]))
             
             #get all manifests associated with datasets in the projects
             target_datasets=synStore.getProjectManifests(projectId=project[0])
-            #print(target_datasets)
 
             #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
-                #print(target_dataset)
 
                 if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
                     target_manifest_IDs.append(target_dataset[1][0])
@@ -416,7 +411,7 @@ class ValidateAttribute(object):
                 errors.append(
                     GenerateError.generate_list_error(
                         list_string,
-                        row_num=str(i+2),
+                        row_num=str(i + 2),
                         attribute_name=manifest_col.name,
                         list_error=list_error,
                         invalid_entry=manifest_col[i]
@@ -527,30 +522,36 @@ class ValidateAttribute(object):
         TODO:
             Convert all inputs to .lower() just to prevent any entry errors.
         """
+        specified_type = {
+            'num': (int, np.int64, float),
+            'int': (int, np.int64),
+            'float': (float),
+            'str': (str),
+        }
 
         errors = []
         warnings = []
         # num indicates either a float or int.
         if val_rule == "num":
             for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, (int, float)):
+                if bool(value) and not isinstance(value, specified_type[val_rule]):
                     errors.append(
                         GenerateError.generate_type_error(
                             val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i]
+                            invalid_entry=str(manifest_col[i])
                         )
                     )
         elif val_rule in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
-                if bool(value) and type(value) != getattr(builtins, val_rule):
+                if bool(value) and not isinstance(value, specified_type[val_rule]):
                     errors.append(
                         GenerateError.generate_type_error(
                             val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i]
+                            invalid_entry=str(manifest_col[i])
                         )
                     )
         return errors, warnings
@@ -640,7 +641,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List,
     ) -> List[List[str]]:
         """
         Purpose:
@@ -665,7 +666,7 @@ class ValidateAttribute(object):
         [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
 
         #Get IDs of manifests with target component
-        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
+        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
 
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
@@ -692,18 +693,20 @@ class ValidateAttribute(object):
                     missing_manifest_log[target_manifest_ID] = missing_values
 
         #generate errors if necessary
-        if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:            
-            for row, value in zip (missing_values.keys(),missing_values):
-                row = row +2 
-                errors.append(
-                    GenerateError.generate_cross_error(
-                        val_rule = val_rule,
-                        row_num = str(row),
-                        attribute_name = source_attribute,
-                        missing_entry = str(value),
-                        missing_manifest_ID = target_manifest_ID,
+        if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:      
+            for missing_ID in missing_manifest_log:      
+                missing_dict=missing_manifest_log[missing_ID]
+                for row, value in zip (missing_dict.keys(),missing_dict): #wrong dict used, cause of not all errors being raised
+                    row = row +2 
+                    errors.append(
+                        GenerateError.generate_cross_error(
+                            val_rule = val_rule,
+                            row_num = str(row),
+                            attribute_name = source_attribute,
+                            missing_entry = str(value),
+                            missing_manifest_ID = missing_ID,
+                        )
                     )
-                )
         elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
             errors.append(
                 GenerateError.generate_cross_error(

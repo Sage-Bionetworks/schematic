@@ -67,7 +67,7 @@ class ValidateManifest(object):
         return ["NA", error_col, error_message, error_val]
 
     def validate_manifest_rules(
-        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator
+        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator, restrict_rules: bool, project_scope: List,
     ) -> (pd.core.frame.DataFrame, List[List[str]]):
         """
         Purpose:
@@ -126,49 +126,64 @@ class ValidateManifest(object):
             "matchExactlyOne.*",
             ]
 
-        unimplemented_expectations='|'.join(unimplemented_expectations)
+        in_house_rules = [
+            "int",
+            "float",
+            "num",
+            "str",
+            "regex.*",
+            "url",
+            "list",
+            "matchAtLeastOne.*",
+            "matchExactlyOne.*",
+        ]
 
-        #operations necessary to set up and run ge suite validation
-        ge_helpers=GreatExpectationsHelpers(
-            sg=sg,
-            unimplemented_expectations=unimplemented_expectations,
-            manifest = manifest,
-            manifestPath = self.manifestPath,
-            )
-
-        ge_helpers.build_context()
-        ge_helpers.build_expectation_suite()
-        ge_helpers.build_checkpoint()
-
-       #run GE validation
-        results = ge_helpers.context.run_checkpoint(
-            checkpoint_name="manifest_checkpoint",
-            batch_request={
-                "runtime_parameters": {"batch_data": manifest},
-                "batch_identifiers": {
-                    "default_identifier_name": "manifestID"
-                },
-            },
-            result_format={'result_format': 'COMPLETE'},
-        )        
-        
-        
         # initialize error and warning handling lists.
         errors = []   
         warnings = [] 
-        
-        #print(results)       
-        #results.list_validation_results()
-        validation_results = results.list_validation_results()
-        
 
-        #parse validation results dict and generate errors
-        errors, warnings = ge_helpers.generate_errors(
-            errors = errors,
-            warnings = warnings,
-            validation_results = validation_results,
-            validation_types = validation_types,
-            )                              
+        unimplemented_expectations='|'.join(unimplemented_expectations)
+        in_house_rules='|'.join(in_house_rules)
+
+        if not restrict_rules:
+            #operations necessary to set up and run ge suite validation
+            ge_helpers=GreatExpectationsHelpers(
+                sg=sg,
+                unimplemented_expectations=unimplemented_expectations,
+                manifest = manifest,
+                manifestPath = self.manifestPath,
+                )
+
+            ge_helpers.build_context()
+            ge_helpers.build_expectation_suite()
+            ge_helpers.build_checkpoint()
+
+        #run GE validation
+            results = ge_helpers.context.run_checkpoint(
+                checkpoint_name="manifest_checkpoint",
+                batch_request={
+                    "runtime_parameters": {"batch_data": manifest},
+                    "batch_identifiers": {
+                        "default_identifier_name": "manifestID"
+                    },
+                },
+                result_format={'result_format': 'COMPLETE'},
+            )        
+        
+            #print(results)       
+            #results.list_validation_results()
+            validation_results = results.list_validation_results()
+            
+
+            #parse validation results dict and generate errors
+            errors, warnings = ge_helpers.generate_errors(
+                errors = errors,
+                warnings = warnings,
+                validation_results = validation_results,
+                validation_types = validation_types,
+                )               
+        else:             
+            logging.info("Great Expetations suite will not be utilized.")  
 
 
         regex_re=re.compile('regex.*')
@@ -176,15 +191,60 @@ class ValidateManifest(object):
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
-            print(validation_rules)
-            #check if list and regex and in right format
-            
-            if 'list' in validation_rules and list(filter(regex_re.search,validation_rules)):
-                if not validation_rules[0] == "list":
-                    errors.append(
-                        self.get_multiple_types_error(
-                            validation_rules, col, error_type="list_not_first"
+
+            # Given a validation rule, run validation. Skip validations already performed by GE
+            if bool(validation_rules) and (restrict_rules or re.match(unimplemented_expectations,validation_rules[0])):
+                
+                if not re.match(in_house_rules,validation_rules[0]):
+                    logging.warning(f"Validation rule {validation_rules[0].split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
+                    continue
+
+                # Check for multiple validation types,
+                # If there are multiple types, validate them.
+                if len(validation_rules) == 2:
+                    # For multiple rules check that the first rule listed is 'list'
+                    # if not, throw an error (this is the only format currently supported).
+                    if not validation_rules[0] == "list":
+                        errors.append(
+                            get_multiple_types_error(
+                                validation_rules, col, error_type="list_not_first"
+                            )
                         )
+                    elif validation_rules[0] == "list":
+                        # Convert user input to list.
+                        validation_method = getattr(
+                            ValidateAttribute, validation_types["list"]
+                        )
+                        vr_errors, vr_warnings, manifest_col = validation_method(
+                            self, validation_rules[0], manifest[col]
+                        )
+                        manifest[col] = manifest_col
+
+                        # Continue to second validation rule
+                        second_rule = validation_rules[1].split(" ")
+                        second_type = second_rule[0]
+                        if second_type != "list":
+                            module_to_call = getattr(re, second_rule[1])
+                            regular_expression = second_rule[2]
+                            validation_method = getattr(
+                                ValidateAttribute, validation_types[second_type]
+                            )
+                            second_error, second_warning = validation_method(
+                                    self, validation_rules[1], manifest[col]
+                            )
+                            if second_error:
+                                vr_errors.append(
+                                    second_error
+                                )
+                            if second_warning:
+                                vr_warnings.append(
+                                    second_warning
+                                )
+                # Check for edge case that user has entered more than 2 rules,
+                # throw an error if they have.
+                elif len(validation_rules) > 2:
+                    get_multiple_types_error(
+                        validation_rules, col, error_type="too_many_rules"
                     )
 
             for rule in validation_rules:
@@ -200,6 +260,10 @@ class ValidateManifest(object):
                             self, rule, manifest[col]
                         )
                         manifest[col] = manifest_col
+                    elif validation_type.lower().startswith("match"):
+                        vr_errors, vr_warnings = validation_method(
+                            self, validation_rules[0], manifest[col], project_scope,
+                        )
                     else:
                         vr_errors, vr_warnings = validation_method(
                             self, rule, manifest[col]
@@ -216,6 +280,13 @@ class ValidateManifest(object):
         
         errors = []
         warnings = []
+        
+        # numerical values need to be type string for the jsonValidator
+        for col in manifest.select_dtypes(include=[int, np.int64, float]).columns:
+            manifest[col]=manifest[col].astype('string')
+
+        manifest.applymap(lambda x: str(x) if isinstance(x, (int, np.int64, float)) else x, na_action='ignore')
+
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
@@ -229,9 +300,9 @@ class ValidateManifest(object):
         return errors, warnings
 
 
-def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema):
+def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules, project_scope: List):
     vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema)
-    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg)
+    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg, restrict_rules, project_scope)
     if vmr_errors:
         errors.extend(vmr_errors)
     if vmr_warnings:

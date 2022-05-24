@@ -121,19 +121,21 @@ class GreatExpectationsHelpers(object):
             
         """
         validation_expectation = {
-            "list": "expect_column_values_to_match_regex_list",
-            "int": "expect_column_values_to_be_of_type",
-            "float": "expect_column_values_to_be_of_type",
+            "int": "expect_column_values_to_be_in_type_list",
+            "float": "expect_column_values_to_be_in_type_list",
             "str": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
-            "regex": "expect_column_values_to_match_regex",
-            "url": "expect_column_values_to_be_valid_urls",
-            "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
             "recommended": "expect_column_values_to_not_match_regex_list",
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
             "inRange": "expect_column_values_to_be_between",
+            
+            # To be implemented rules with possible expectations
+            #"regex": "expect_column_values_to_match_regex",
+            #"url": "expect_column_values_to_be_valid_urls",
+            #"list": "expect_column_values_to_follow_rule",
+            #"matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+            #"matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
         }
         
         #create blank expectation suite
@@ -163,184 +165,134 @@ class GreatExpectationsHelpers(object):
                     if re.match(self.unimplemented_expectations,rule):
                         continue
 
-                    
-                    args["column"] = col
-                    args["result_format"] = "COMPLETE"
+            
+            args["column"] = col
+            args["result_format"] = "COMPLETE"
+           
+            #Validate list
+            if rule=='list':                          
+                if 'int' in validation_rules: #Look for comma separated digits
+                    args["regex_list"]=['((\d+\,+)+((\d+\,?)+))']
+                elif 'float' in validation_rules: #Look for comma separated digits that have a decimal and at least one digit after
+                    args["regex_list"]=['((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
+                elif 'num' in validation_rules: #Look for comma separated ints or floats
+                    args["regex_list"]=['((\d+\,+)+((\d+\,?)+))','((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
+                else: #Just list rule: look for comma separated anything
+                    args["regex_list"]=['((.+\,+)+((.+\,?)+))']
 
+                args["mostly"]=1.0
+                args["match_on"]='any'
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expectat column values to be list type **Markdown** `Supported`"
+                    },
+                    "validation_rule": rule
+                }
 
-                        
-                    #Validate list
-                    if rule=='list':                          
-                        if 'int' in validation_rules: #Look for comma separated digits
-                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))']
-                        elif 'float' in validation_rules: #Look for comma separated digits that have a decimal and at least one digit after
-                            args["regex_list"]=['((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
-                        elif 'num' in validation_rules: #Look for comma separated ints or floats
-                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))','((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
-                        else: #Just list rule: look for comma separated anything
-                            args["regex_list"]=['((.+\,+)+((.+\,?)+))']
+            #Validate num
+            elif rule=='num':
+                args["mostly"]=1.0
+                args["type_list"]=['int','int64', 'float', 'float64']
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
+                    },
+                    "validation_rule": rule
+                }
+           
+            #Validate float
+            elif rule=='float':
+                args["mostly"]=1.0
+                args["type_list"]=['float', 'float64']
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be of float type. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
+           
+            #Validate int
+            elif rule=='int':
+                args["mostly"]=1.0
+                args["type_list"]=['int','int64']
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be of int type. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
+           
+            #Validate string
+            elif rule=='str':
+                args["mostly"]=1.0
+                args["type_"]='str'
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be of string type. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
 
-                        args["mostly"]=1.0
-                        args["match_on"]='any'
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expectat column values to be list type **Markdown** `Supported`"
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate regex
-                    elif rule.startswith('regex match'):
-                        
-                        args["mostly"]=1.0
-                        args["regex"]=rule.split(" ")[-1]
-                        rule='regex'
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expectat column values to match regex  **Markdown** `Supported`"
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate url
-                    elif rule=='url': #currently unused
-                        args["mostly"]=1.0
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expectat URLs in column to be valid. **Markdown** `Supported`"
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate num
-                    elif rule=='num':
-                        args["mostly"]=1.0
-                        args["type_list"]=['int64', "float64"]
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate float
-                    elif rule=='float':
-                        args["mostly"]=1.0
-                        args["type_"]='float64'
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of float type. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate int
-                    elif rule=='int':
-                        args["mostly"]=1.0
-                        args["type_"]='int64' 
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of int type. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate string
-                    elif rule=='str':
-                        args["mostly"]=1.0
-                        args["type_"]='str'
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of string type. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
+            elif rule.startswith("recommended"):
+                args["mostly"]=0.0000000001
+                args["regex_list"]=['^$']
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column to not be empty. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
 
-                    #validate cross manifest match
-                    elif rule.startswith("matchAtLeastOne" or "matchExactlyOne"):
-                        
-                        '''
-                        [source_component, source_attribute] = rule.split(" ")[1].split(".")
-                        [target_component, target_attribute] = rule.split(" ")[2].split(".")
-                        
+            elif rule.startswith("protectAges"):
+                #Function to convert to different age limit formats
+                min_age, max_age = self.get_age_limits()
 
-                        target_IDs=self.get_target_manifests(target_component)
-                        for target_manifest_ID in target_IDs:
-                            entity = syn.get(target_manifest_ID)
-                            target_manifest=pd.read_csv(entity.path)
-                            if target_attribute in target_manifest.columns:
-                                target_column = target_manifest[target_attribute]                       
-                                #Add Columns to dict to be added after all manifests are parsed
-                            
-                        
-                        self.add_expectation(
-                            rule=rule,
-                            args=args,
-                            meta=meta,
-                            validation_expectation=validation_expectation,
-                        )
-                        '''
-                    elif rule.startswith("recommended"):
-                        args["mostly"]=0.0000000001
-                        args["regex_list"]=['^$']
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column to not be empty. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                    elif rule.startswith("protectAges"):
-                        #Function to convert to different age limit formats
-                        min_age, max_age = self.get_age_limits()
+                args["mostly"]=1.0
+                args["min_value"]=min_age
+                args["max_value"]=max_age
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
 
-                        args["mostly"]=1.0
-                        args["min_value"]=min_age
-                        args["max_value"]=max_age
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                    elif rule.startswith("unique"):
-                        args["mostly"]=1.0
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-
-                    elif rule.startswith("inRange"):
-                        args["mostly"]=1.0
-                        args["min_value"]=float(rule.split(" ")[1])
-                        args["max_value"]=float(rule.split(" ")[2])
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                                        
-                    #add expectation for attribute to suite    
-                    if not rule.startswith("matchAtLeastOne" or "matchExactlyOne"):    
-                        self.add_expectation(
-                            rule=rule,
-                            args=args,
-                            meta=meta,
-                            validation_expectation=validation_expectation,
-                        )
+            elif rule.startswith("unique"):
+                args["mostly"]=1.0
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
+            
+            elif rule.startswith("inRange"):
+                args["mostly"]=1.0
+                args["min_value"]=float(rule.split(" ")[1])
+                args["max_value"]=float(rule.split(" ")[2])
+                meta={
+                    "notes": {
+                        "format": "markdown",
+                        "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                    },
+                    "validation_rule": rule
+                }
+                                   
+            #add expectation for attribute to suite        
+            self.add_expectation(
+                rule=rule,
+                args=args,
+                meta=meta,
+                validation_expectation=validation_expectation,
+            )
     
         
         self.context.save_expectation_suite(expectation_suite=self.suite, expectation_suite_name=expectation_suite_name)
@@ -470,7 +422,9 @@ class GreatExpectationsHelpers(object):
                     indices = result_dict['result']['unexpected_index_list']
                     values  = result_dict['result']['unexpected_list']
 
-                #because type validation is column aggregate expectation and not column map expectation, indices and values cannot be returned
+                # Technically, this shouldn't ever happen, but will keep as a failsafe in case many things go wrong
+                # because type validation is column aggregate expectation and not column map expectation when columns are not of object type, 
+                # indices and values cannot be returned
                 else:
                     for i, item in enumerate(self.manifest[errColumn]):
                         observed_type=result_dict['result']['observed_value']
@@ -579,6 +533,6 @@ class GreatExpectationsHelpers(object):
 
         # update the manifest file, so that ages are censored
         self.manifest.to_csv(self.manifestPath.replace('.csv','_censored.csv'), index=False)
-        logging.info("Sensitive ages have been censored and replaced with NaN values.")
+        logging.info("Sensitive ages have been censored.")
 
         return

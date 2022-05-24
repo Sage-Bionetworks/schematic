@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from gc import callbacks
 import logging
 import sys
 
@@ -9,7 +10,7 @@ import click_log
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict
+from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict, parse_synIDs
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
@@ -78,11 +79,25 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='table',
+    default='both',
+    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
+@click.option(
+    "-rr",
+    "--restrict_rules",
+    is_flag=True,
+    help=query_dict(model_commands,("model","validate","restrict_rules")),
+)
+@click.option(
+    "-ps",
+    "--project_scope",
+    default=None,
+    callback=parse_synIDs,
+    help=query_dict(model_commands, ("model", "validate", "project_scope")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -101,8 +116,10 @@ def submit_manifest(
             dataset_id=dataset_id,
             validate_component=validate_component,
             manifest_record_type=manifest_record_type,
+            restrict_rules=restrict_rules,
             use_schema_label=use_schema_label,
             hide_blanks=hide_blanks,
+            project_scope=project_scope,
         )
 
         '''
@@ -153,8 +170,21 @@ def submit_manifest(
     "--json_schema",
     help=query_dict(model_commands, ("model", "validate", "json_schema")),
 )
+@click.option(
+    "-rr",
+    "--restrict_rules",
+    is_flag=True,
+    help=query_dict(model_commands,("model","validate","restrict_rules")),
+)
+@click.option(
+    "-ps",
+    "--project_scope",
+    default=None,
+    callback=parse_synIDs,
+    help=query_dict(model_commands, ("model", "validate", "project_scope")),
+)
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema):
+def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope):
     """
     Running CLI for manifest validation.
     """
@@ -166,7 +196,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema):
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-
+    
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -176,7 +206,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema):
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema
+        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules, project_scope=project_scope,
     )
 
     if not errors:

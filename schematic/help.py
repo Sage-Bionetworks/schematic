@@ -36,6 +36,7 @@ manifest_commands = {
                 "to the metadata manifest file. If not it will produce a pandas dataframe for the same."
             ),
             "output_csv": ("Path to where the CSV manifest template should be stored."),
+            "output_xlsx": ("Path to where the Excel manifest template should be stored."),
             "use_annotations": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, it will prepopulate template "
                 "with existing annotations from Synapse."
@@ -48,6 +49,10 @@ manifest_commands = {
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
+            ),
+            "alphabetize_valid_values": (
+                "Specify to alphabetize valid attribute values either ascending (a) or descending (d)." 
+                "Optional"
             ),
         },
     }
@@ -105,6 +110,14 @@ model_commands = {
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
+            ),
+            "restrict_rules":(
+                "This is a boolean flag. If flag is provided when command line utility is executed, validation suite will only run with in-house validation rules, "
+                "and Great Expectations rules and suite will not be utilized."
+                "If not, the Great Expectations suite will be utilized and all rules will be available."
+            ),
+            "project_scope": (
+                "Specify a comma-separated list of projects to search through for cross manifest validation."
             ),
         },
     }

@@ -1,10 +1,54 @@
 import logging
 
 import pandas as pd
-
+import numpy as np
+from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
+
+def load_df(file_path, preserve_raw_input=True, **kwargs):
+    """
+    Universal function to load CSVs and return DataFrames
+    Args:
+        file_path: path of csv to open
+        **kwargs: keyword arguments for pd.read_csv()
+
+    Returns: a processed dataframe for manifests or unprocessed df for data models
+    """
+
+    #read as normal if not reading in for validation
+    if preserve_raw_input:
+        org_df = pd.read_csv(file_path, encoding='utf8', **kwargs)
+
+        #only trim if not data model csv
+        if 'model' not in file_path:
+            org_df=trim_commas_df(org_df)
+
+        return org_df
+
+    else:
+        #Read CSV to df as type string
+        org_df = pd.read_csv(file_path, dtype='string', encoding='utf8', **kwargs)
+
+        float_df=deepcopy(org_df)
+
+        #Find integers stored as strings 
+        ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+
+        #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
+        for col in org_df.columns:
+            float_df[col]=pd.to_numeric(float_df[col], errors='coerce')
+            float_df[col].fillna(org_df[col][float_df[col].isna()],inplace=True)
+        
+        #Trim nans and empty rows and columns
+        processed_df = trim_commas_df(float_df)
+        
+        #Store values that were entered as ints
+        processed_df=processed_df.mask(ints != False, other = ints)  
+        
+        
+        return processed_df
 
 def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
 
@@ -98,4 +142,7 @@ def trim_commas_df(df: pd.DataFrame):
 
     # remove all completely empty rows
     df = df.dropna(how="all", axis=0)
+
+    #Fill in nan cells with empty strings
+    df.fillna("", inplace=True)
     return df

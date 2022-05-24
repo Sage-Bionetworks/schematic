@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import re
 import networkx as nx
-from jsonschema import Draft7Validator, exceptions, validate, ValidationError
+from jsonschema import Draft7Validator, exceptions, validate, ValidationError, FormatError
 from os.path import exists
 
 # allows specifying explicit variable types
@@ -23,7 +23,7 @@ from schematic.schemas.generator import SchemaGenerator
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
-from schematic.utils.df_utils import trim_commas_df
+from schematic.utils.df_utils import load_df
 
 from schematic.models.validate_attribute import ValidateAttribute
 from schematic.models.validate_manifest import validate_all
@@ -73,7 +73,6 @@ class MetadataModel(object):
             raise ValueError(
                 f"The type '{inputMModelLocationType}' is currently not supported."
             )
-
 
     def getModelSubgraph(self, rootNode: str, subgraphType: str) -> nx.DiGraph:
         """Gets a schema subgraph from rootNode descendants based on edge/node properties of type subgraphType.
@@ -187,13 +186,14 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, jsonSchema: str = None
+        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, project_scope: List = None,
     ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
         Args:
             rootNode: a schema node label (i.e. term).
             manifestPath: a path to the manifest csv file containing annotations.
+            restrict_rules: bypass great expectations and restrict rule options to those implemented in house
 
         Returns:
             A validation status message; if there is an error the message.
@@ -212,12 +212,9 @@ class MetadataModel(object):
         warnings = []
 
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
-        manifest = pd.read_csv(
-            manifestPath
+        manifest = load_df(
+            manifestPath, preserve_raw_input=False,
         )  # read manifest csv file as is from manifest path
-        manifest = trim_commas_df(manifest).fillna(
-            ""
-        )  # apply cleaning logic as part of pre-processing step
 
         # handler for mismatched components/data types
         # throw TypeError if the value(s) in the "Component" column differ from the selected template type
@@ -248,9 +245,9 @@ class MetadataModel(object):
                     ]
                 )
 
-            return errors
+            return errors, warnings
 
-        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema)
+        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope)
         return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
@@ -280,10 +277,12 @@ class MetadataModel(object):
         manifest_path: str,
         dataset_id: str,
         manifest_record_type: str,
+        restrict_rules: bool,
         validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
-        input_token: str = None
+        input_token: str = None,
+        project_scope: List = None,
     ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -305,7 +304,7 @@ class MetadataModel(object):
         manifest_id=None
         censored_manifest_id=None
         restrict_maniest=False
-
+        censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
         # check if user wants to perform validation or not
         if validate_component is not None:
 
@@ -323,11 +322,8 @@ class MetadataModel(object):
 
             # automatic JSON schema generation and validation with that JSON schema
             val_errors, val_warnings = self.validateModelManifest(
-                manifestPath=manifest_path, rootNode=validate_component
+                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules, project_scope=project_scope,
             )
-
-            censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
-            
 
             # if there are no errors in validation process
             if val_errors == []:                
@@ -349,7 +345,7 @@ class MetadataModel(object):
                     restrict_manifest=restrict_maniest,
                 )
 
-                logger.info(f"No validation errors ocured during validation.")
+                logger.info(f"No validation errors occured during validation.")
                 return manifest_id
                 
             else:
