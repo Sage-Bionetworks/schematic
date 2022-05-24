@@ -578,7 +578,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, change_column_names: bool = False,):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
@@ -612,6 +612,9 @@ class SynapseStorage(BaseStorage):
         schema = Schema(name=table_name, columns=col_schema, parent=datasetId)
         table = self.syn.store(Table(schema, manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
+
+        if not change_column_names:
+            manifest.columns=manifest_columns
 
         return manifest_table_id, manifest
 
@@ -797,9 +800,12 @@ class SynapseStorage(BaseStorage):
             table_name = 'synapse_storage_manifest_table'
 
         # If specified, upload manifest as a table and get the SynID and manifest
-        if manifest_record_type == 'table' or manifest_record_type == 'both' and change_column_names:
+        if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest)
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, change_column_names=change_column_names)
+        elif manifest_record_type == 'entity' and change_column_names:
+            logging.warning("--change_column_names can only be used with manifest record types 'table' or 'both'.")
+            
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
