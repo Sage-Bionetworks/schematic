@@ -194,15 +194,13 @@ class ValidateManifest(object):
             validation_rules = sg.get_node_validation_rules(col)
 
             # Given a validation rule, run validation. Skip validations already performed by GE
-            if bool(validation_rules) and (restrict_rules or re.match(unimplemented_expectations,validation_rules[0])):
-                
-                if not re.match(in_house_rules,validation_rules[0]):
-                    logging.warning(f"Validation rule {validation_rules[0].split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
-                    continue
-                
             for rule in validation_rules:
                 validation_type = rule.split(" ")[0]
-                if re.match(unimplemented_expectations,rule) or (rule in in_house_rules and restrict_rules):
+                if re.match(unimplemented_expectations,rule) or (re.match(in_house_rules,rule) and restrict_rules):
+                    if not re.match(in_house_rules,rule):
+                        logging.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
+                        continue  
+
                     #Validate for each individual validation rule.
                     validation_method = getattr(
                             ValidateAttribute, validation_types[validation_type]
