@@ -198,7 +198,7 @@ class ValidateManifest(object):
                 if not re.match(in_house_rules,validation_rules[0]):
                     logging.warning(f"Validation rule {validation_rules[0].split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                     continue
-
+                '''
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
                 if len(validation_rules) == 2:
@@ -246,7 +246,7 @@ class ValidateManifest(object):
                     ValidateManifest.get_multiple_types_error(
                         validation_rules, col, error_type="too_many_rules"
                     )
-
+                '''
             for rule in validation_rules:
                 validation_type = rule.split(" ")[0]
                 if re.match(unimplemented_expectations,rule):
