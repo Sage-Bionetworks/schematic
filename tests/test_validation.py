@@ -67,6 +67,13 @@ class TestManifestValidation:
             invalid_entry = 5.63
             ) in errors
 
+        assert GenerateError.generate_type_error(
+            val_rule = 'str',
+            row_num = 3,
+            attribute_name = 'Check String', 
+            invalid_entry = 94
+            ) in errors
+
         assert GenerateError.generate_list_error(
             list_string = 'invalid list values',
             row_num = '3',
@@ -187,6 +194,13 @@ class TestManifestValidation:
             invalid_entry = '5.63'
             ) in errors
 
+        assert GenerateError.generate_type_error(
+            val_rule = 'str',
+            row_num = '3',
+            attribute_name = 'Check String', 
+            invalid_entry = '94'
+            ) in errors
+            
         assert GenerateError.generate_list_error(
             list_string = 'invalid list values',
             row_num = '3',
