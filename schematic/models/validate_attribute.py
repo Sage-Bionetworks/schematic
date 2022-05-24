@@ -712,6 +712,7 @@ class ValidateAttribute(object):
                         join = 'outer',
                         ignore_index= True,
                     )                
+                    target_column = target_column.astype('object')
                     #print(target_column)
                     target_column = target_column.squeeze()
         
