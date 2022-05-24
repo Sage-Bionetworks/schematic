@@ -124,6 +124,7 @@ class ValidateManifest(object):
             "regex.*",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
+            "list",
             ]
 
         in_house_rules = [
@@ -249,7 +250,7 @@ class ValidateManifest(object):
                 '''
             for rule in validation_rules:
                 validation_type = rule.split(" ")[0]
-                if re.match(unimplemented_expectations,rule):
+                if re.match(unimplemented_expectations,rule) or (rule in in_house_rules and restrict_rules):
                     #Validate for each individual validation rule.
                     validation_method = getattr(
                             ValidateAttribute, validation_types[validation_type]
