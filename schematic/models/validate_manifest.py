@@ -199,55 +199,7 @@ class ValidateManifest(object):
                 if not re.match(in_house_rules,validation_rules[0]):
                     logging.warning(f"Validation rule {validation_rules[0].split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                     continue
-                '''
-                # Check for multiple validation types,
-                # If there are multiple types, validate them.
-                if len(validation_rules) == 2:
-                    # For multiple rules check that the first rule listed is 'list'
-                    # if not, throw an error (this is the only format currently supported).
-                    if not validation_rules[0] == "list":
-                        errors.append(
-                            ValidateManifest.get_multiple_types_error(
-                                validation_rules, col, error_type="list_not_first"
-                            )
-                        )
-                    elif validation_rules[0] == "list":
-                        # Convert user input to list.
-                        validation_method = getattr(
-                            ValidateAttribute, validation_types["list"]
-                        )
-                        vr_errors, vr_warnings, manifest_col = validation_method(
-                            self, validation_rules[0], manifest[col]
-                        )
-                        manifest[col] = manifest_col
-
-                        # Continue to second validation rule
-                        second_rule = validation_rules[1].split(" ")
-                        second_type = second_rule[0]
-                        if second_type != "list":
-                            module_to_call = getattr(re, second_rule[1])
-                            regular_expression = second_rule[2]
-                            validation_method = getattr(
-                                ValidateAttribute, validation_types[second_type]
-                            )
-                            second_error, second_warning = validation_method(
-                                    self, validation_rules[1], manifest[col]
-                            )
-                            if second_error:
-                                vr_errors.append(
-                                    second_error
-                                )
-                            if second_warning:
-                                vr_warnings.append(
-                                    second_warning
-                                )
-                # Check for edge case that user has entered more than 2 rules,
-                # throw an error if they have.
-                elif len(validation_rules) > 2:
-                    ValidateManifest.get_multiple_types_error(
-                        validation_rules, col, error_type="too_many_rules"
-                    )
-                '''
+                
             for rule in validation_rules:
                 validation_type = rule.split(" ")[0]
                 if re.match(unimplemented_expectations,rule) or (rule in in_house_rules and restrict_rules):
