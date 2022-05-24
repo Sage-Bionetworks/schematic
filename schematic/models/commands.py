@@ -126,6 +126,7 @@ def submit_manifest(
             use_schema_label=use_schema_label,
             hide_blanks=hide_blanks,
             project_scope=project_scope,
+            change_column_names=change_column_names,
         )
 
         '''
