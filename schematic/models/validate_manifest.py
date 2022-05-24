@@ -206,7 +206,7 @@ class ValidateManifest(object):
                     # if not, throw an error (this is the only format currently supported).
                     if not validation_rules[0] == "list":
                         errors.append(
-                            get_multiple_types_error(
+                            ValidateManifest.get_multiple_types_error(
                                 validation_rules, col, error_type="list_not_first"
                             )
                         )
@@ -243,7 +243,7 @@ class ValidateManifest(object):
                 # Check for edge case that user has entered more than 2 rules,
                 # throw an error if they have.
                 elif len(validation_rules) > 2:
-                    get_multiple_types_error(
+                    ValidateManifest.get_multiple_types_error(
                         validation_rules, col, error_type="too_many_rules"
                     )
 

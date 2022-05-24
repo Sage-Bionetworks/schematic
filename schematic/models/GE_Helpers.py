@@ -121,6 +121,7 @@ class GreatExpectationsHelpers(object):
             
         """
         validation_expectation = {
+            "list": "expect_column_values_to_not_match_regex_list",
             "int": "expect_column_values_to_be_in_type_list",
             "float": "expect_column_values_to_be_in_type_list",
             "str": "expect_column_values_to_be_of_type",
@@ -133,7 +134,6 @@ class GreatExpectationsHelpers(object):
             # To be implemented rules with possible expectations
             #"regex": "expect_column_values_to_match_regex",
             #"url": "expect_column_values_to_be_valid_urls",
-            #"list": "expect_column_values_to_follow_rule",
             #"matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
             #"matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
         }
@@ -165,136 +165,136 @@ class GreatExpectationsHelpers(object):
                     if re.match(self.unimplemented_expectations,rule):
                         continue
 
-            
-            args["column"] = col
-            args["result_format"] = "COMPLETE"
-           
-            #Validate list
-            if rule=='list':                          
-                if 'int' in validation_rules: #Look for comma separated digits
-                    args["regex_list"]=['((\d+\,+)+((\d+\,?)+))']
-                elif 'float' in validation_rules: #Look for comma separated digits that have a decimal and at least one digit after
-                    args["regex_list"]=['((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
-                elif 'num' in validation_rules: #Look for comma separated ints or floats
-                    args["regex_list"]=['((\d+\,+)+((\d+\,?)+))','((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
-                else: #Just list rule: look for comma separated anything
-                    args["regex_list"]=['((.+\,+)+((.+\,?)+))']
+                
+                    args["column"] = col
+                    args["result_format"] = "COMPLETE"
+                
+                    #Validate list
+                    if rule=='list':                          
+                        if 'int' in validation_rules: #Look for comma separated digits
+                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))']
+                        elif 'float' in validation_rules: #Look for comma separated digits that have a decimal and at least one digit after
+                            args["regex_list"]=['((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
+                        elif 'num' in validation_rules: #Look for comma separated ints or floats
+                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))','((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
+                        else: #Just list rule: look for comma separated anything
+                            args["regex_list"]=['((.+\,+)+((.+\,?)+))']
 
-                args["mostly"]=1.0
-                args["match_on"]='any'
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expectat column values to be list type **Markdown** `Supported`"
-                    },
-                    "validation_rule": rule
-                }
+                        args["mostly"]=1.0
+                        args["match_on"]='any'
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expectat column values to be list type **Markdown** `Supported`"
+                            },
+                            "validation_rule": rule
+                        }
 
-            #Validate num
-            elif rule=='num':
-                args["mostly"]=1.0
-                args["type_list"]=['int','int64', 'float', 'float64']
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
-                    },
-                    "validation_rule": rule
-                }
-           
-            #Validate float
-            elif rule=='float':
-                args["mostly"]=1.0
-                args["type_list"]=['float', 'float64']
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be of float type. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-           
-            #Validate int
-            elif rule=='int':
-                args["mostly"]=1.0
-                args["type_list"]=['int','int64']
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be of int type. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-           
-            #Validate string
-            elif rule=='str':
-                args["mostly"]=1.0
-                args["type_"]='str'
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be of string type. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
+                    #Validate num
+                    elif rule=='num':
+                        args["mostly"]=1.0
+                        args["type_list"]=['int','int64', 'float', 'float64']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
+                            },
+                            "validation_rule": rule
+                        }
+                
+                    #Validate float
+                    elif rule=='float':
+                        args["mostly"]=1.0
+                        args["type_list"]=['float', 'float64']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be of float type. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                
+                    #Validate int
+                    elif rule=='int':
+                        args["mostly"]=1.0
+                        args["type_list"]=['int','int64']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be of int type. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                
+                    #Validate string
+                    elif rule=='str':
+                        args["mostly"]=1.0
+                        args["type_"]='str'
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be of string type. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
 
-            elif rule.startswith("recommended"):
-                args["mostly"]=0.0000000001
-                args["regex_list"]=['^$']
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column to not be empty. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
+                    elif rule.startswith("recommended"):
+                        args["mostly"]=0.0000000001
+                        args["regex_list"]=['^$']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column to not be empty. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
 
-            elif rule.startswith("protectAges"):
-                #Function to convert to different age limit formats
-                min_age, max_age = self.get_age_limits()
+                    elif rule.startswith("protectAges"):
+                        #Function to convert to different age limit formats
+                        min_age, max_age = self.get_age_limits()
 
-                args["mostly"]=1.0
-                args["min_value"]=min_age
-                args["max_value"]=max_age
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
+                        args["mostly"]=1.0
+                        args["min_value"]=min_age
+                        args["max_value"]=max_age
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
 
-            elif rule.startswith("unique"):
-                args["mostly"]=1.0
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be Unique. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-            
-            elif rule.startswith("inRange"):
-                args["mostly"]=1.0
-                args["min_value"]=float(rule.split(" ")[1])
-                args["max_value"]=float(rule.split(" ")[2])
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be Unique. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-                                   
-            #add expectation for attribute to suite        
-            self.add_expectation(
-                rule=rule,
-                args=args,
-                meta=meta,
-                validation_expectation=validation_expectation,
-            )
-    
+                    elif rule.startswith("unique"):
+                        args["mostly"]=1.0
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                    
+                    elif rule.startswith("inRange"):
+                        args["mostly"]=1.0
+                        args["min_value"]=float(rule.split(" ")[1])
+                        args["max_value"]=float(rule.split(" ")[2])
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                                        
+                    #add expectation for attribute to suite        
+                    self.add_expectation(
+                        rule=rule,
+                        args=args,
+                        meta=meta,
+                        validation_expectation=validation_expectation,
+                    )
         
+            
         self.context.save_expectation_suite(expectation_suite=self.suite, expectation_suite_name=expectation_suite_name)
         #print(self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name))
 
