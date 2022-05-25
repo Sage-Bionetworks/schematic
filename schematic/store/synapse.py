@@ -579,7 +579,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, change_column_names: bool = False,):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel, change_column_names: bool = False):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
@@ -616,7 +616,7 @@ class SynapseStorage(BaseStorage):
 
         table_manifest=deepcopy(manifest)
 
-        if not change_column_names:
+        if not useSchemaLabel:
             manifest.columns=manifest_columns
 
         return manifest_table_id, manifest, table_manifest
@@ -805,7 +805,7 @@ class SynapseStorage(BaseStorage):
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, change_column_names=change_column_names)
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel, change_column_names=change_column_names)
         elif manifest_record_type == 'entity' and change_column_names:
             logging.warning("--change_column_names can only be used with manifest record types 'table' or 'both'.")
             
