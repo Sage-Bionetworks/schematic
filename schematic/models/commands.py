@@ -108,6 +108,11 @@ def submit_manifest(
     """
     Running CLI with manifest validation (optional) and submission options.
     """
+    if change_column_names and manifest_record_type == 'entity':
+        raise ValueError(
+            "--change_column_names can only be used with manifest record types of type 'table' or 'both'."
+        )
+
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
