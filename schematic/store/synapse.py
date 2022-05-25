@@ -614,7 +614,7 @@ class SynapseStorage(BaseStorage):
                 col_schema[i]['maximumSize'] = 64
 
         # Put manifest onto synapse
-        schema = Schema(name=table_name, columns=col_schema, parent=datasetId)
+        schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
         table = self.syn.store(Table(schema, manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
 
