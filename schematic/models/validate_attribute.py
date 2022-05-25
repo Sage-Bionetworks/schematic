@@ -714,7 +714,7 @@ class ValidateAttribute(object):
                     )                
                     target_column = target_column.astype('object')
                     #print(target_column)
-                    target_column = target_column.squeeze()
+                    
         
         
         missing_rows=[]
