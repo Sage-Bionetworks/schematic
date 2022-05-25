@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import uuid  # used to generate unique names for entities
 import json
@@ -613,10 +614,12 @@ class SynapseStorage(BaseStorage):
         table = self.syn.store(Table(schema, manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
 
+        table_manifest=deepcopy(manifest)
+
         if not change_column_names:
             manifest.columns=manifest_columns
 
-        return manifest_table_id, manifest
+        return manifest_table_id, manifest, table_manifest
 
     def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest):
         # Update manifest to have the new entityId column
@@ -801,7 +804,7 @@ class SynapseStorage(BaseStorage):
 
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
-            manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
+            manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
                                                         se, manifest, datasetId, table_name, restrict = restrict_manifest, change_column_names=change_column_names)
         elif manifest_record_type == 'entity' and change_column_names:
             logging.warning("--change_column_names can only be used with manifest record types 'table' or 'both'.")
@@ -847,7 +850,7 @@ class SynapseStorage(BaseStorage):
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
             self.make_synapse_table(
-                table_to_load = manifest,
+                table_to_load = table_manifest,
                 dataset_id = datasetId,
                 existingTableId = manifest_synapse_table_id,
                 table_name = table_name,
