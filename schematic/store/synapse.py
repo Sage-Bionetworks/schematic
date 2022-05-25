@@ -56,6 +56,7 @@ class SynapseStorage(BaseStorage):
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
         input_token: str = None,
+        project_scope: List = None,
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -75,11 +76,15 @@ class SynapseStorage(BaseStorage):
         self.syn = self.login(token, access_token, input_token)
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
-
-            # get data in administrative fileview for this pipeline
-            self.storageFileviewTable = self.syn.tableQuery(
-                "SELECT * FROM " + self.storageFileview
-            ).asDataFrame()
+            if project_scope:
+                self.storageFileviewTable = self.syn.tableQuery(
+                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(project_scope + [''])}"
+                ).asDataFrame()
+            else:
+                # get data in administrative fileview for this pipeline
+                self.storageFileviewTable = self.syn.tableQuery(
+                    "SELECT * FROM " + self.storageFileview
+                ).asDataFrame()
 
             self.manifest = CONFIG["synapse"]["manifest_basename"]
         
