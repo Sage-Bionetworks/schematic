@@ -584,40 +584,39 @@ class SynapseStorage(BaseStorage):
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
 
-        cols = [
-            se.get_class_label_from_display_name(
-                str(col)
-                ).translate({ord(x): '' for x in blacklist_chars})
-            for col in manifest_columns
-        ]
+        table_manifest=deepcopy(manifest)
 
-        cols = list(map(lambda x: x.replace('EntityId', 'entityId'), cols))
+        if useSchemaLabel:
+            cols = [
+                se.get_class_label_from_display_name(
+                    str(col)
+                    ).translate({ord(x): '' for x in blacklist_chars})
+                for col in manifest_columns
+            ]
+
+            cols = list(map(lambda x: x.replace('EntityId', 'entityId'), cols))
 
 
-        # Reset column names in manifest
-        manifest.columns = cols
+            # Reset column names in table manifest
+            table_manifest.columns = cols
 
         #move entity id to end of df
-        entity_col = manifest.pop('entityId')
-        manifest.insert(len(manifest.columns), 'entityId', entity_col)
+        entity_col = table_manifest.pop('entityId')
+        table_manifest.insert(len(table_manifest.columns), 'entityId', entity_col)
 
         # Get the column schema
-        col_schema = as_table_columns(manifest)
+        col_schema = as_table_columns(table_manifest)
 
         # Set uuid column length to 64 (for some reason not being auto set.)
         for i, col in enumerate(col_schema):
             if col['name'] == 'Uuid':
                 col_schema[i]['maximumSize'] = 64
 
-        # Put manifest onto synapse
-        schema = Schema(name=table_name, columns=col_schema, parent=datasetId)
-        table = self.syn.store(Table(schema, manifest), isRestricted=restrict)
+        # Put table manifest onto synapse
+        schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
+        table = self.syn.store(Table(schema, table_manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
 
-        table_manifest=deepcopy(manifest)
-
-        if not useSchemaLabel:
-            manifest.columns=manifest_columns
 
         return manifest_table_id, manifest, table_manifest
 
