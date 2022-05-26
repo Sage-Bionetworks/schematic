@@ -357,8 +357,7 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def get_target_manifests(target_component
-    ) -> (SynapseStorage, List[str], List[str]):
+    def get_target_manifests(target_component, project_scope: List):
 
         target_manifest_IDs=[]
         target_dataset_IDs=[]
@@ -368,11 +367,12 @@ class ValidateAttribute(object):
         if access_token:
             synStore = SynapseStorage(access_token=access_token)
         else:
-            synStore = SynapseStorage()
-        
+            synStore = SynapseStorage()        
+
         #Get list of all projects user has access to
-        projects = synStore.getStorageProjects()
-        for project in projects:        
+        projects = synStore.getStorageProjects(project_scope=project_scope)
+        for project in projects:
+            
             #get all manifests associated with datasets in the projects
             target_datasets=synStore.getProjectManifests(projectId=project[0])
 
@@ -641,8 +641,8 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> (List[List[str]], List[List[str]]):
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List,
+    ) -> List[List[str]]:
         """
         Purpose:
             Do cross validation between the current manifest and all other manifests a user has access to on Synapse.
@@ -666,7 +666,7 @@ class ValidateAttribute(object):
         [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
 
         #Get IDs of manifests with target component
-        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component)
+        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
 
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):

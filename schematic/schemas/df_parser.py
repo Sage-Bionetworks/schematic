@@ -746,7 +746,7 @@ def _convert_csv_to_data_model(
                  (base_se.schema and base_se.schema_nx).
     """
     # create data model from provided RFC
-    rfc_df = load_df(schema_csv)
+    rfc_df = load_df(schema_csv, data_model=True)
 
     # instantiate schema explorer
     base_se = SchemaExplorer()

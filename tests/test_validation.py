@@ -38,7 +38,7 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode
             )
-
+        
         assert errors == []
         assert warnings ==  []
 
@@ -117,12 +117,19 @@ class TestManifestValidation:
             missing_manifest_ID = 'syn29381803',
             ) in errors
 
-        assert GenerateError.generate_cross_error(
+        assert \
+            GenerateError.generate_cross_error(
+            val_rule = 'matchExactlyOne',
+            attribute_name='checkMatchExactly',
+            matching_manifests = ['syn29862078', 'syn27648165']
+            ) in errors \
+            or \
+            GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
             matching_manifests = ['syn29862066', 'syn27648165']
             ) in errors
-        
+                    
         assert GenerateError.generate_content_error(
             val_rule = 'unique error', 
             attribute_name = 'Check Unique',
@@ -230,7 +237,14 @@ class TestManifestValidation:
             missing_manifest_ID = 'syn29381803',
             ) in errors
 
-        assert GenerateError.generate_cross_error(
+        assert \
+            GenerateError.generate_cross_error(
+            val_rule = 'matchExactlyOne',
+            attribute_name='checkMatchExactly',
+            matching_manifests = ['syn29862078', 'syn27648165']
+            ) in errors \
+            or \
+            GenerateError.generate_cross_error(
             val_rule = 'matchExactlyOne',
             attribute_name='checkMatchExactly',
             matching_manifests = ['syn29862066', 'syn27648165']

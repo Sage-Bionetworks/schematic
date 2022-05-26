@@ -67,8 +67,8 @@ class ValidateManifest(object):
         return ["NA", error_col, error_message, error_val]
 
     def validate_manifest_rules(
-        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator, restrict_rules: bool
-    ) -> (pd.core.frame.DataFrame, List[List[str]], List[List[str]]):
+        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator, restrict_rules: bool, project_scope: List,
+    ) -> (pd.core.frame.DataFrame, List[List[str]]):
         """
         Purpose:
             Take validation rules set for a particular attribute
@@ -258,6 +258,10 @@ class ValidateManifest(object):
                             self, validation_rules[0], manifest[col]
                         )
                         manifest[col] = manifest_col
+                    elif validation_type.lower().startswith("match"):
+                        vr_errors, vr_warnings = validation_method(
+                            self, validation_rules[0], manifest[col], project_scope,
+                        )
                     else:
                         vr_errors, vr_warnings = validation_method(
                             self, validation_rules[0], manifest[col]
@@ -274,7 +278,14 @@ class ValidateManifest(object):
         
         errors = []
         warnings = []
-        annotations = json.loads(manifest.astype('string').to_json(orient="records"))
+        
+        # numerical values need to be type string for the jsonValidator
+        for col in manifest.select_dtypes(include=[int, np.int64, float]).columns:
+            manifest[col]=manifest[col].astype('string')
+
+        manifest.applymap(lambda x: str(x) if isinstance(x, (int, np.int64, float)) else x, na_action='ignore')
+
+        annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
@@ -287,10 +298,9 @@ class ValidateManifest(object):
         return errors, warnings
 
 
-def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules
-) -> (List[List[str]], List[List[str]], pd.core.frame.DataFrame):
+def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules, project_scope: List):
     vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema)
-    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg, restrict_rules)
+    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg, restrict_rules, project_scope)
     if vmr_errors:
         errors.extend(vmr_errors)
     if vmr_warnings:

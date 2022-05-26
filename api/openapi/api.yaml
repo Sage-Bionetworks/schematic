@@ -63,11 +63,14 @@ paths:
           required: false
         - in: query
           name: dataset_id
+          style: form
           schema:
-            type: string
+            type: array
+            items: 
+              type: string
             nullable: true
           description: >
-            Dataset ID. If you want to get an existing manifest, this dataset_id should be the parent ID of the manifest.
+            Dataset ID. If you want to get an existing manifest, this dataset_id should be the parent ID of the manifest. Can enter multiple dataset_ids, corresponding to order of multiple data_types entered above. Do not enter multiple if calling 'all manifests' for data_type.
           required: false
         - in: query
           name: asset_view
@@ -121,6 +124,13 @@ paths:
             type: boolean
             default: false
           description: if True return the manifest in JSON format
+          required: false
+        - in: query
+          name: new_manifest_name
+          schema:
+            type: string
+            nullable: true
+          description: Fill in if you want to change the filename of the downloaded manifest.
           required: false
       operationId: api.routes.download_manifest
       responses:
@@ -227,6 +237,13 @@ paths:
             enum: [ "table", "entity", "both"]
           description: Manifest storage type.
           example: 'table'
+        - in: query
+          name: restrict_rules
+          schema:
+            type: boolean
+            default: false
+          description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
+          required: true
         - in: query
           name: input_token
           schema:
@@ -450,5 +467,34 @@ paths:
           description: A list of tuples
         "500":
           description: Check schematic log
+      tags:
+        - Synapse Storage
+  /storage/assets/tables:
+    get:
+      summary: Retrieve asset view table as a dataframe.
+      description: Retrieve asset view table as a dataframe.
+      operationId: api.routes.get_asset_view_table
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn23643253
+          required: true
+      responses:
+        "200":
+          description: A list of json
+        "500":
+          description: Check schematic log. If the fileview dataframe is too big, 
       tags:
         - Synapse Storage
