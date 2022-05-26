@@ -190,6 +190,7 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
+        attribute_name=attribute_name.lower()
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
                 f"Manifest {missing_manifest_ID} does not contain the value {missing_entry} "
@@ -662,8 +663,8 @@ class ValidateAttribute(object):
         present_manifest_log=[]
 
         #parse sources and targets
-        [source_component, source_attribute] = val_rule.split(" ")[1].split(".")
-        [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
+        [source_component, source_attribute] = val_rule.lower().split(" ")[1].split(".")
+        [target_component, target_attribute] = val_rule.lower().split(" ")[2].split(".")
 
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
@@ -696,7 +697,7 @@ class ValidateAttribute(object):
         if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:      
             for missing_ID in missing_manifest_log:      
                 missing_dict=missing_manifest_log[missing_ID]
-                for row, value in zip (missing_dict.keys(),missing_dict): #wrong dict used, cause of not all errors being raised
+                for row, value in zip (missing_dict.keys(),missing_dict): 
                     row = row +2 
                     errors.append(
                         GenerateError.generate_cross_error(
