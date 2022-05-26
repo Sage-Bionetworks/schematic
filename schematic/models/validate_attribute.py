@@ -189,6 +189,7 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
+        attribute_name=attribute_name.lower()
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
                 f"Manifest {missing_manifest_ID} does not contain the value {missing_entry} "
