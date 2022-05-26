@@ -95,15 +95,9 @@ def model(ctx, config):  # use as `schematic model ...`
     callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
-@click.option(
-    "-ccn",
-    "--change_column_names",
-    is_flag=True,
-    help=query_dict(model_commands,("model","submit","change_column_names")),
-)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope, change_column_names,
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -131,7 +125,6 @@ def submit_manifest(
             use_schema_label=use_schema_label,
             hide_blanks=hide_blanks,
             project_scope=project_scope,
-            change_column_names=change_column_names,
         )
 
         '''

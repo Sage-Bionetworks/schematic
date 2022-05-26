@@ -579,7 +579,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel, change_column_names: bool = False):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
@@ -727,7 +727,7 @@ class SynapseStorage(BaseStorage):
 
     def associateMetadataWithFiles(
         self, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
-        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False, change_column_names: bool = False,
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -805,9 +805,7 @@ class SynapseStorage(BaseStorage):
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel, change_column_names=change_column_names)
-        elif manifest_record_type == 'entity' and change_column_names:
-            logging.warning("--change_column_names can only be used with manifest record types 'table' or 'both'.")
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
             
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
