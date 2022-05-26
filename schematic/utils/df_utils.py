@@ -7,7 +7,7 @@ from copy import deepcopy
 logger = logging.getLogger(__name__)
 
 
-def load_df(file_path, preserve_raw_input=True, data_model=False, **kwargs):
+def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     """
     Universal function to load CSVs and return DataFrames
     Args:
@@ -18,7 +18,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **kwargs):
     Returns: a processed dataframe for manifests or unprocessed df for data models
     """
     #Read CSV to df as type specified in kwargs
-    org_df = pd.read_csv(file_path, encoding='utf8', **kwargs)
+    org_df = pd.read_csv(file_path, encoding='utf8', **load_args)
     
     if preserve_raw_input:
         #only trim if not data model csv

@@ -764,10 +764,10 @@ class SynapseStorage(BaseStorage):
 
         # read new manifest csv
         try:
-            kwargs={
+            load_args={
                 "dtype":"string"
             }
-            manifest = load_df(metadataManifestPath, preserve_raw_input=False, **kwargs)
+            manifest = load_df(metadataManifestPath, preserve_raw_input=False, **load_args)
         except FileNotFoundError as err:
             raise FileNotFoundError(
                 f"No manifest file was found at this path: {metadataManifestPath}"
