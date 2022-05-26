@@ -378,7 +378,7 @@ class ValidateAttribute(object):
             #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
 
-                if target_component.lower() == target_dataset[-1][0].replace(" ","").lower():
+                if target_component == target_dataset[-1][0].replace(" ","").lower() and target_dataset[1][0] != "":
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
 
