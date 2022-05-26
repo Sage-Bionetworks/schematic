@@ -378,7 +378,7 @@ class ValidateAttribute(object):
 
             #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
-
+                print(target_dataset)
                 if target_component == target_dataset[-1][0].replace(" ","").lower() and target_dataset[1][0] != "":
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
@@ -663,8 +663,8 @@ class ValidateAttribute(object):
         present_manifest_log=[]
 
         #parse sources and targets
-        [source_component, source_attribute] = val_rule.split(" ")[1].split(".")
-        [target_component, target_attribute] = val_rule.split(" ")[2].split(".")
+        [source_component, source_attribute] = val_rule.lower().split(" ")[1].split(".")
+        [target_component, target_attribute] = val_rule.lower().split(" ")[2].split(".")
 
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
