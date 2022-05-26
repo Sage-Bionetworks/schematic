@@ -227,7 +227,8 @@ class ValidateManifest(object):
 
         return manifest, errors, warnings
 
-    def validate_manifest_values(self, manifest, jsonSchema):
+    def validate_manifest_values(self, manifest, jsonSchema
+    ) -> (List[List[str]], List[List[str]]):
         
         errors = []
         warnings = []
