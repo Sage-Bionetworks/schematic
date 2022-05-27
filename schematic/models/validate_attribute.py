@@ -730,7 +730,7 @@ class ValidateAttribute(object):
                 warnings.append(
                     GenerateError.generate_cross_warning(
                         val_rule = val_rule,
-                        row_num = str(missing_rows),
+                        row_num = str(list(missing_rows)),
                         attribute_name = source_attribute,
                         invalid_entry = str(missing_values.values.tolist()),
                     )
@@ -741,7 +741,7 @@ class ValidateAttribute(object):
                 warnings.append(
                     GenerateError.generate_cross_warning(
                         val_rule = val_rule,
-                        row_num = str(invalid_rows), 
+                        row_num = str(list(invalid_rows)), 
                         attribute_name = source_attribute, 
                         invalid_entry = str(invalid_values.values.tolist()) 
                     )

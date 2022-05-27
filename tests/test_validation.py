@@ -162,7 +162,7 @@ class TestManifestValidation:
                     
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[2 3 4]',
+            row_num = '[2, 3, 4]',
             attribute_name='checkMatchExactlyvalues',
             invalid_entry = '[[71738], [98085], [210065]]',
             ) in warnings 
@@ -259,7 +259,7 @@ class TestManifestValidation:
                     
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[2 3 4]',
+            row_num = '[2, 3, 4]',
             attribute_name='checkMatchExactlyvalues',
             invalid_entry = '[[71738], [98085], [210065]]',
             ) in warnings 
