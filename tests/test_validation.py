@@ -1,5 +1,6 @@
 import os
 import logging
+from re import L
 import pytest
 from pathlib import Path
 
@@ -28,7 +29,81 @@ def metadataModel(helpers):
         )
 
     yield metadataModel
+@pytest.fixture
+def complementary_rules():
+    complementary_rules = {
+        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
+        "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
+        "regex": ['list','unique'],
+        "url": ['matchAtLeastOne','matchExactlyOne','unique'],
+        "matchAtLeastOne": ['int','float','num','str','list','url','unique'],
+        "matchExactlyOne": ['int','float','num','str','list','url','unique'],
+        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne','unique'],
+        "protectAges": ['int','float','num','recommended'],
+        "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
+        "inRange": ['int','float','num','unique'],
+    }
 
+    yield complementary_rules
+
+    
+
+def get_rules():
+    complementary_rules = {
+        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
+        "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
+        "regex": ['list','unique'],
+        "url": ['matchAtLeastOne','matchExactlyOne','unique'],
+        "matchAtLeastOne": ['int','float','num','str','list','url','unique'],
+        "matchExactlyOne": ['int','float','num','str','list','url','unique'],
+        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne','unique'],
+        "protectAges": ['int','float','num','recommended'],
+        "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
+        "inRange": ['int','float','num','unique'],
+    }
+    for base_rule, allowable_rules in complementary_rules.items():
+        for second_rule in allowable_rules:            
+            yield base_rule, second_rule
+
+'''
+@pytest.fixture(
+    params = {
+        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
+        "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
+        "regex": ['list','unique'],
+        "url": ['matchAtLeastOne','matchExactlyOne','unique'],
+        "matchAtLeastOne": ['int','float','num','str','list','url','unique'],
+        "matchExactlyOne": ['int','float','num','str','list','url','unique'],
+        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne','unique'],
+        "protectAges": ['int','float','num','recommended'],
+        "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
+        "inRange": ['int','float','num','unique'],
+    },
+    scope = 'module'
+)
+def base_rule(request):
+    base_rule, second_rule = request.param
+    #second_rule = complementary_rules[base_rule]
+    yield base_rule, second_rule
+
+@pytest.fixture(
+    params = second_rule
+)
+def rule_combo(request,base_rule,second_rule,complementary_rules):
+    second_rule = request.params
+    #second_rule=complementary_rules[base_rule]
+    print(base_rule,second_rule)
+    yield second_rule
+'''
 class TestManifestValidation:
     def test_valid_manifest(self,helpers,metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
@@ -263,5 +338,11 @@ class TestManifestValidation:
             attribute_name='checkMatchExactly',
             matching_manifests = ['syn29862066', 'syn27648165']
             ) in errors
-        
 
+    @pytest.mark.parametrize("rules",get_rules())
+    def test_rule_combinations(self,rules):
+        first_rule, second_rule = rules
+        print(first_rule,second_rule)
+        
+        assert 1 == True
+        pass
