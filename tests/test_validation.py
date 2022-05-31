@@ -34,7 +34,7 @@ def metadataModel(helpers):
 
 def get_rule_combinations():
     complementary_rules = {
-        "int": ['recommended','unique','inRange','matchAtLeastOne','matchExactlyOne',],
+        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange',],
         "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
         "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
         "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
@@ -294,11 +294,11 @@ class TestManifestValidation:
     def test_rule_combinations(self, sg, base_rule, second_rule):
        
         #print(base_rule,second_rule)
-        #r = re.compile(base_rule+'.*')
+        rule_regex = re.compile(base_rule+'.*')
 
         for attribute in sg.se.schema['@graph']:
             if 'sms:validationRules' in attribute and attribute['sms:validationRules']: 
-                if base_rule in attribute['sms:validationRules']: #or regex search for rules with args
+                if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]): #or regex search for rules with args
                     attribute['sms:validationRules'].append(second_rule)
                     sg.se.edit_class(attribute)
 
