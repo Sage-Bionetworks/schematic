@@ -138,13 +138,13 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
         "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
         "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
         "regex": ['list','unique'],
-        "url": ['matchAtLeastOne','matchExactlyOne'],
-        "matchAtLeastOne": ['int','float','num','str','list','url'],
-        "matchExactlyOne": ['int','float','num','str','list','url'],
-        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne'],
+        "url": ['matchAtLeastOne','matchExactlyOne','unique'],
+        "matchAtLeastOne": ['int','float','num','str','list','url','unique'],
+        "matchExactlyOne": ['int','float','num','str','list','url','unique'],
+        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne','unique'],
         "protectAges": ['int','float','num','recommended'],
-        "unique": ['int','float','num','str','regex'],
-        "inRange": ['int','float','num'],
+        "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
+        "inRange": ['int','float','num','unique'],
     }
      
     # Specify all the validation types and whether they currently
