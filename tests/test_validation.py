@@ -32,7 +32,7 @@ def metadataModel(helpers):
 
     
 
-def get_rules():
+def get_rule_combinations():
     complementary_rules = {
         "int": ['recommended','unique','inRange','matchAtLeastOne','matchExactlyOne',],
         "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
@@ -289,7 +289,7 @@ class TestManifestValidation:
 
     @pytest.mark.parametrize(
         "base_rule, second_rule",
-        get_rules(),
+        get_rule_combinations(),
         )
     def test_rule_combinations(self, sg, base_rule, second_rule):
        
