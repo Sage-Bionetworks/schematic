@@ -306,6 +306,7 @@ def get_asset_view_table(input_token, asset_view):
 
     return export_path
 
+
 def get_project_manifests(input_token, project_id):
     # use the default asset view from config
     config_handler()
