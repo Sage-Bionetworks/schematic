@@ -1,6 +1,6 @@
 import os
 import logging
-from re import L
+import re
 import pytest
 from pathlib import Path
 
@@ -29,31 +29,12 @@ def metadataModel(helpers):
         )
 
     yield metadataModel
-@pytest.fixture
-def complementary_rules():
-    complementary_rules = {
-        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
-        "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
-        "regex": ['list','unique'],
-        "url": ['matchAtLeastOne','matchExactlyOne','unique'],
-        "matchAtLeastOne": ['int','float','num','str','list','url','unique'],
-        "matchExactlyOne": ['int','float','num','str','list','url','unique'],
-        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne','unique'],
-        "protectAges": ['int','float','num','recommended'],
-        "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
-        "inRange": ['int','float','num','unique'],
-    }
-
-    yield complementary_rules
 
     
 
 def get_rules():
     complementary_rules = {
-        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
+        "int": ['recommended','unique','inRange','matchAtLeastOne','matchExactlyOne',],
         "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
         "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
         "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
@@ -310,9 +291,16 @@ class TestManifestValidation:
         "base_rule, second_rule",
         get_rules(),
         )
-    def test_rule_combinations(self, base_rule, second_rule):
+    def test_rule_combinations(self, sg, base_rule, second_rule):
        
-        print(base_rule,second_rule)
-        
+        #print(base_rule,second_rule)
+        #r = re.compile(base_rule+'.*')
+
+        for attribute in sg.se.schema['@graph']:
+            if 'sms:validationRules' in attribute and attribute['sms:validationRules']: 
+                if base_rule in attribute['sms:validationRules']: #or regex search for rules with args
+                    attribute['sms:validationRules'].append(second_rule)
+                    sg.se.edit_class(attribute)
+
         assert 1 == True
         pass
