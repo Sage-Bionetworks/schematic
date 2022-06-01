@@ -88,8 +88,12 @@ jobs:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
         run: >
           source .venv/bin/activate; 
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not google_credentials_needed"
+          if: ${{ github.event.head_commit.message }} == 'omni'
+            pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+            -m "not google_credentials_needed or omnibus"          
+          else:
+            pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+            -m "not google_credentials_needed"
     
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
