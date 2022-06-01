@@ -310,7 +310,7 @@ class TestManifestValidation:
                     sg.se.edit_class(attribute)
                     break
         
-        manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
+        manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
         manifest = helpers.get_data_frame(manifestPath)
         rootNode = 'MockComponent'
 
@@ -336,7 +336,10 @@ class TestManifestValidation:
                 project_scope = None,
                 )
         except:
-            assert False
+            if base_rule in ('matchAtLeastOne','matchExactlyOne') and second_rule == 'url':
+                pass
+            else:
+                assert False
 
         
         
