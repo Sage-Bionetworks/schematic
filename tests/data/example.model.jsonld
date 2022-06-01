@@ -2802,26 +2802,6 @@
             ]
         },
         {
-            "@id": "bts:CheckMultiple",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "CheckMultiple",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:DataProperty"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Check Multiple",
-            "sms:required": "sms:false",
-            "sms:validationRules": [
-                "int",
-                "unique error"
-            ]
-        },
-        {
             "@id": "bts:Component",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -3090,6 +3070,23 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "GRCm39",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:CheckMultiple",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckMultiple",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:MockComponent"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Multiple",
             "sms:required": "sms:false",
             "sms:validationRules": []
         }

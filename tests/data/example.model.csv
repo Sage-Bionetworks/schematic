@@ -33,4 +33,3 @@ Check Recommended,,,,,FALSE,DataProperty,,,recommended
 Check Ages,,,,,FALSE,DataProperty,,,protectAges
 Check Unique,,,,,FALSE,DataProperty,,,unique error
 Check Range,,,,,FALSE,DataProperty,,,inRange 50 100 error
-Check Multiple,,,,,FALSE,DataProperty,,,int::unique error
