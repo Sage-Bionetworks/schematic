@@ -4,6 +4,7 @@ import re
 import jsonschema
 import pytest
 from pathlib import Path
+import itertools
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.models.validate_manifest import ValidateManifest
@@ -47,10 +48,39 @@ def get_rule_combinations():
         "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
         "inRange": ['int','float','num','unique'],
     }
+
+
+    rule_combinations = list(itertools.combinations(complementary_rules,2))
+
+    prohibited_combinations=[
+        ('url', 'inRange'),
+        ('float', 'str'),
+        ('num', 'url'),
+        ('num', 'str'),
+        ('int', 'url'),
+        ('int', 'float'),
+        ('int', 'num'),
+        ('int', 'str'),
+        ('str', 'inRange'),
+    ]
+
+    for combo in prohibited_combinations:
+        rule_combinations.remove(combo)
+
+
+    '''
+    for item in rule_combinations:
+        print(item)
+        #print(base_rule,second_rule)
+    '''
+
+    for base_rule, second_rule in rule_combinations:
+        yield base_rule, second_rule
+    '''
     for base_rule, allowable_rules in complementary_rules.items():
         for second_rule in allowable_rules:            
             yield base_rule, second_rule
-
+    '''
 class TestManifestValidation:
     def test_valid_manifest(self,helpers,metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
