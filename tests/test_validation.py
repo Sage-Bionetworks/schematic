@@ -286,7 +286,7 @@ class TestManifestValidation:
             matching_manifests = ['syn29862066', 'syn27648165']
             ) in errors
 
-    @pytest.mark.omnibus
+    @pytest.mark.omnibus(reason = 'This introduces a great number of tests covering every possible rule combination that are only necessary on occasion.')
     @pytest.mark.parametrize("base_rule, second_rule", get_rule_combinations())
     def test_rule_combinations(self, helpers, sg, base_rule, second_rule, metadataModel):
         #print(base_rule,second_rule)
@@ -336,11 +336,7 @@ class TestManifestValidation:
                 project_scope = None,
                 )
         except:
-            if base_rule in ('matchAtLeastOne','matchExactlyOne') and second_rule == 'url':
-                pass
-            
-            else:
-                assert False
+            assert False
 
         
         
