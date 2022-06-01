@@ -93,7 +93,7 @@ model_commands = {
                 "'both'. 'entity' will store the manifest as a csv and create Synapse files for each row in the manifest. "
                 "'table' will store the manifest as a table and a csv on Synapse. 'both' will do both of the options specified above. "
                 "Default value is 'table'."
-            ),
+            ),      
         },
         "validate": {
             "short_help": ("Validation of manifest files."),

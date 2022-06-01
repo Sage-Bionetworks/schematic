@@ -336,6 +336,7 @@ class MetadataModel(object):
                         metadataManifestPath = censored_manifest_path,
                         datasetId = dataset_id, 
                         manifest_record_type = manifest_record_type,
+                        useSchemaLabel = use_schema_label,
                         hideBlanks = hide_blanks,
                     )
                     restrict_maniest = True
@@ -343,7 +344,8 @@ class MetadataModel(object):
                 manifest_id = syn_store.associateMetadataWithFiles(
                     metadataManifestPath = manifest_path, 
                     datasetId = dataset_id, 
-                    manifest_record_type = manifest_record_type, 
+                    manifest_record_type = manifest_record_type,
+                    useSchemaLabel = use_schema_label, 
                     hideBlanks = hide_blanks,
                     restrict_manifest=restrict_maniest,
                 )

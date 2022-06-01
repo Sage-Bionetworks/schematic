@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import uuid  # used to generate unique names for entities
 import json
@@ -583,42 +584,46 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
 
-        cols = [
-            se.get_class_label_from_display_name(
-                str(col)
-                ).translate({ord(x): '' for x in blacklist_chars})
-            for col in manifest_columns
-        ]
+        table_manifest=deepcopy(manifest)
 
-        cols = list(map(lambda x: x.replace('EntityId', 'entityId'), cols))
+        if useSchemaLabel:
+            cols = [
+                se.get_class_label_from_display_name(
+                    str(col)
+                    ).translate({ord(x): '' for x in blacklist_chars})
+                for col in manifest_columns
+            ]
+
+            cols = list(map(lambda x: x.replace('EntityId', 'entityId'), cols))
 
 
-        # Reset column names in manifest
-        manifest.columns = cols
+            # Reset column names in table manifest
+            table_manifest.columns = cols
 
         #move entity id to end of df
-        entity_col = manifest.pop('entityId')
-        manifest.insert(len(manifest.columns), 'entityId', entity_col)
+        entity_col = table_manifest.pop('entityId')
+        table_manifest.insert(len(table_manifest.columns), 'entityId', entity_col)
 
         # Get the column schema
-        col_schema = as_table_columns(manifest)
+        col_schema = as_table_columns(table_manifest)
 
         # Set uuid column length to 64 (for some reason not being auto set.)
         for i, col in enumerate(col_schema):
             if col['name'] == 'Uuid':
                 col_schema[i]['maximumSize'] = 64
 
-        # Put manifest onto synapse
-        schema = Schema(name=table_name, columns=col_schema, parent=datasetId)
-        table = self.syn.store(Table(schema, manifest), isRestricted=restrict)
+        # Put table manifest onto synapse
+        schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
+        table = self.syn.store(Table(schema, table_manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
 
-        return manifest_table_id, manifest
+
+        return manifest_table_id, manifest, table_manifest
 
     def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest):
         # Update manifest to have the new entityId column
@@ -806,8 +811,9 @@ class SynapseStorage(BaseStorage):
 
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
-            manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest)
+            manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
+            
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
@@ -849,7 +855,7 @@ class SynapseStorage(BaseStorage):
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
             self.make_synapse_table(
-                table_to_load = manifest,
+                table_to_load = table_manifest,
                 dataset_id = datasetId,
                 existingTableId = manifest_synapse_table_id,
                 table_name = table_name,
