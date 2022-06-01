@@ -83,17 +83,23 @@ jobs:
       #----------------------------------------------
       #              run test suite   
       #----------------------------------------------
-      - name: Run tests
+      - name: Run tests and long tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+        if: ${{ contains(github.event.head_commit.message, 'omni') }}
         run: >
-          source .venv/bin/activate; 
-          if: ${{ github.event.head_commit.message }} == 'omni'
-            pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-            -m "not google_credentials_needed or omnibus"          
-          else:
-            pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-            -m "not google_credentials_needed"
+          source .venv/bin/activate;
+          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+          -m "not google_credentials_needed"
+          
+      - name: Run tests
+        env:
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}          
+        if: ${{ false == contains(github.event.head_commit.message, 'omni') }}
+        run: >
+          source .venv/bin/activate;
+          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+          -m "not google_credentials_needed or omni"
     
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
