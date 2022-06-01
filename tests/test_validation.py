@@ -286,7 +286,7 @@ class TestManifestValidation:
             matching_manifests = ['syn29862066', 'syn27648165']
             ) in errors
 
-
+    @pytest.mark.omnibus
     @pytest.mark.parametrize("base_rule, second_rule", get_rule_combinations())
     def test_rule_combinations(self, helpers, sg, base_rule, second_rule, metadataModel):
         #print(base_rule,second_rule)
