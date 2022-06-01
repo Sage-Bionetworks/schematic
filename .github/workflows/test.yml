@@ -95,7 +95,7 @@ jobs:
       - name: Run tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}          
-        if: FALSE == "contains(github.event.head_commit.message, 'omni')"
+        if: "FALSE == contains(github.event.head_commit.message, 'omni')"
         run: >
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
