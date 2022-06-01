@@ -213,7 +213,7 @@ class ValidateManifest(object):
                         manifest[col] = manifest_col
                     elif validation_type.lower().startswith("match"):
                         vr_errors, vr_warnings = validation_method(
-                            self, validation_rules[0], manifest[col], project_scope,
+                            self, rule, manifest[col], project_scope,
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
