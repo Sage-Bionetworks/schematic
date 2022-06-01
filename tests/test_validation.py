@@ -1,11 +1,12 @@
 import os
 import logging
 import re
+import jsonschema
 import pytest
 from pathlib import Path
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
-from schematic.models.validate_manifest import validate_all
+from schematic.models.validate_manifest import ValidateManifest
 from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
 from schematic.schemas.generator import SchemaGenerator
@@ -29,8 +30,6 @@ def metadataModel(helpers):
         )
 
     yield metadataModel
-
-    
 
 def get_rule_combinations():
     complementary_rules = {
@@ -287,20 +286,57 @@ class TestManifestValidation:
             matching_manifests = ['syn29862066', 'syn27648165']
             ) in errors
 
-    @pytest.mark.parametrize(
-        "base_rule, second_rule",
-        get_rule_combinations(),
-        )
-    def test_rule_combinations(self, sg, base_rule, second_rule):
-       
+
+    @pytest.mark.parametrize("base_rule, second_rule", get_rule_combinations())
+    def test_rule_combinations(self, helpers, sg, base_rule, second_rule, metadataModel):
         #print(base_rule,second_rule)
         rule_regex = re.compile(base_rule+'.*')
 
-        for attribute in sg.se.schema['@graph']:
+        for attribute in sg.se.schema['@graph']: #Doing it in a loop becasue of sg.se.edit_class design
             if 'sms:validationRules' in attribute and attribute['sms:validationRules']: 
-                if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]): #or regex search for rules with args
-                    attribute['sms:validationRules'].append(second_rule)
+                if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
+                    
+                    #Add rule args if necessary
+                    if second_rule.startswith('matchAtLeastOne') or second_rule.startswith('matchExactlyOne'):
+                        rule_args = f" MockComponent.{attribute['rdfs:label']} Patient.PatientID"
+                    elif second_rule.startswith('inRange'):
+                        rule_args = ' 1 1000 warning'
+                    elif second_rule.startswith('regex'):
+                        rule_args = ' search [a-f]'
+                    else:
+                        rule_args = ''
+            
+                    attribute['sms:validationRules'].append(second_rule + rule_args)
                     sg.se.edit_class(attribute)
+                    break
+        
+        manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
+        manifest = helpers.get_data_frame(manifestPath)
+        rootNode = 'MockComponent'
 
-        assert 1 == True
-        pass
+        target_column=attribute['sms:displayName']
+        for col in manifest.columns:
+            if col not in ('Component', target_column):
+                manifest.drop(columns=col, inplace=True)
+
+
+        validateManifest = ValidateManifest(
+            errors = [],
+            manifest = manifest,
+            manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv"),
+            sg = sg,
+            jsonSchema = sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
+        )
+        
+        try: #perform validation with no exceptions raised
+            _, errors, warnings = validateManifest.validate_manifest_rules(
+                manifest = manifest, 
+                sg =  sg,
+                restrict_rules = False,
+                project_scope = None,
+                )
+        except:
+            assert False
+
+        
+        
