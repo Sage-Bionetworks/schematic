@@ -93,12 +93,7 @@ model_commands = {
                 "'both'. 'entity' will store the manifest as a csv and create Synapse files for each row in the manifest. "
                 "'table' will store the manifest as a table and a csv on Synapse. 'both' will do both of the options specified above. "
                 "Default value is 'table'."
-            ),
-            "change_column_names":(
-                "This is a boolean flag. If flag is provided when command line utility is executed, "
-                "manifest colum names will be changed during the submission process for record types that include tables. "
-                "If not, column names will be preserved."
-            ),            
+            ),      
         },
         "validate": {
             "short_help": ("Validation of manifest files."),
