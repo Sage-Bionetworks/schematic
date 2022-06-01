@@ -338,6 +338,7 @@ class TestManifestValidation:
         except:
             if base_rule in ('matchAtLeastOne','matchExactlyOne') and second_rule == 'url':
                 pass
+            
             else:
                 assert False
 
