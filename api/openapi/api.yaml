@@ -498,7 +498,7 @@ paths:
           description: Check schematic log. 
       tags:
         - Synapse Storage
-  /storage/project/manifest:
+  /storage/project/manifests:
     get:
       summary: Gets all metadata manifest files across all datasets in a specified project.
       description: Gets all metadata manifest files across all datasets in a specified project.
