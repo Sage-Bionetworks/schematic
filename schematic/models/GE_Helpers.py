@@ -444,7 +444,7 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                             )
                         )          
-                
+                    '''
                 elif validation_types[rule.split(" ")[0]]=='list_validation':
                     for row, value in zip(indices,values):   
                         errors.append(
@@ -456,7 +456,7 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                             )
                         )  
-                
+                    '''
                 elif validation_types[rule.split(" ")[0]]=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
 
