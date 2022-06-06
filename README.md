@@ -54,16 +54,6 @@ When contributing to this repository, please first discuss the change you wish t
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
-### General instructions
-1. Clone this repository to your local machine so that you can begin making changes. 
-2. Follow the [Github docs](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/making-changes-in-a-branch/managing-branches#creating-a-branch) to create a branch off the `develop` branch. Name the branch appropriately, either briefly summarizing the bug (ex., `spatil/add-restapi-layer`) or feature or simply use the issue number in the name (ex., `spatil/issue-414-fix`).
-3. Push all your changes to your develop branch. 
-4. When all changes are tested locally and ready to be merged, follow the [Github docs](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and create a pull request in GitHub.
-
-> A Sage Bionetworks engineer must review and accept your pull request. A code review (which happens with both the contributor and the reviewer present) is required for contributing.
-
-*Note*: Make sure you have the latest version of the `develop` branch on your local machine.
-
 ### Development environment setup
 1. Clone the `schematic` package repository.
 ```
@@ -160,8 +150,36 @@ Most Google sheet functionality could be authenticated with service account. How
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
 
+
+
+### Development process instruction
+
+For new features, bugs, enhancements
+
+1. Pull the latest code from [develop branch in the upstream repo](https://github.com/Sage-Bionetworks/schematic)
+2. Checkout a new branch develop-<feature/fix-name> from the develop branch
+3. Do development on branch develop-<feature/fix-name>
+   a. may need to ensure that schematic poetry toml and lock files are compatible with your local environment
+4. Add changed files for tracking and commit changes using [best practices](https://www.perforce.com/blog/vcs/git-best-practices-git-commit)
+5. Have granular commits: not “too many” file changes, and not hundreds of code lines of changes
+6. Commits with work in progress are encouraged:
+   a. add WIP to the beginning of the commit message for “Work In Progress” commits
+7. Keep commit messages descriptive but less than a page long, see best practices
+8. Push code to develop-<feature/fix-name> in upstream repo
+9. Branch out off develop-<feature/fix-name> if needed to work on multiple features associated with the same code base
+10. After feature work is complete and before creating a PR to the develop branch in upstream
+    a. ensure that code runs locally
+    b. test for logical correctness locally
+    c. wait for git workflow to complete (e.g. tests are run) on github
+11. Create a PR from develop-<feature/fix-name> into the develop branch of the upstream repo
+12. Request a code review on the PR
+13. Once code is approved merge in the develop branch
+14. Delete the develop-<feature/fix-name> branch
+
+*Note*: Make sure you have the latest version of the `develop` branch on your local machine.
+
 # Other Contribution Guidelines
-## Update readthedocs documentation
+## Updating readthedocs documentation
 1. `cd docs`
 2. After making relevant changes, you could run the `make html` command to re-generate the `build` folder.
 3. Please contact the dev team to publish your updates
