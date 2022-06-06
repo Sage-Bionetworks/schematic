@@ -125,7 +125,6 @@ class ValidateManifest(object):
             "regex.*",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
-            "list",
             ]
 
         in_house_rules = [
