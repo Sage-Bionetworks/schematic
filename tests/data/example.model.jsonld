@@ -2527,9 +2527,6 @@
                 },
                 {
                     "@id": "bts:CheckRange"
-                },
-                {
-                    "@id": "bts:CheckMultiple"
                 }
             ],
             "sms:validationRules": []
@@ -3070,23 +3067,6 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "GRCm39",
-            "sms:required": "sms:false",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:CheckMultiple",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "CheckMultiple",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:MockComponent"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Check Multiple",
             "sms:required": "sms:false",
             "sms:validationRules": []
         }
