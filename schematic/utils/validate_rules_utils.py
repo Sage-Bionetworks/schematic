@@ -131,6 +131,9 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     Single Rules:
         Additional arg
     '''
+
+    '''
+    Draft in progress of possible pairs of rules
     complementary_rules = {
         "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
         "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
@@ -146,11 +149,11 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
         "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
         "inRange": ['int','float','num','unique'],
     }
-     
+    '''
     # Specify all the validation types and whether they currently
     # allow users to pass additional arguments (when used on their own), and if there is
     # a set number of arguments required.
-    '''Temporary
+
     errors = []
 
     num_validation_rules = len(validation_rules)
@@ -174,7 +177,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
                 if ':' in second_type[-1]:
                     errors.append(get_error(validation_rules, attribute,
                         error_type = 'delimiter', input_filetype=input_filetype))
-                else:2
+                else:
                     errors.append(get_error(validation_rules, attribute,
                         error_type = 'second_rule', input_filetype=input_filetype))
                 
@@ -194,5 +197,5 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
                         f"for attribute {attribute}. "
                         f"Validation failed with the following errors: {errors}"
                     )
-    '''
+    
     return 

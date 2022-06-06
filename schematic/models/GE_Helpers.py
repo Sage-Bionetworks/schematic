@@ -121,7 +121,6 @@ class GreatExpectationsHelpers(object):
             
         """
         validation_expectation = {
-            "list": "expect_column_values_to_not_match_regex_list",
             "int": "expect_column_values_to_be_in_type_list",
             "float": "expect_column_values_to_be_in_type_list",
             "str": "expect_column_values_to_be_of_type",
@@ -132,6 +131,7 @@ class GreatExpectationsHelpers(object):
             "inRange": "expect_column_values_to_be_between",
             
             # To be implemented rules with possible expectations
+            #"list": "expect_column_values_to_not_match_regex_list",
             #"regex": "expect_column_values_to_match_regex",
             #"url": "expect_column_values_to_be_valid_urls",
             #"matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
@@ -168,30 +168,9 @@ class GreatExpectationsHelpers(object):
                 
                     args["column"] = col
                     args["result_format"] = "COMPLETE"
-                
-                    #Validate list
-                    if rule=='list':                          
-                        if 'int' in validation_rules: #Look for comma separated digits
-                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))']
-                        elif 'float' in validation_rules: #Look for comma separated digits that have a decimal and at least one digit after
-                            args["regex_list"]=['((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
-                        elif 'num' in validation_rules: #Look for comma separated ints or floats
-                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))','((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
-                        else: #Just list rule: look for comma separated anything
-                            args["regex_list"]=['((.+\,+)+((.+\,?)+))']
-
-                        args["mostly"]=1.0
-                        args["match_on"]='any'
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expectat column values to be list type **Markdown** `Supported`"
-                            },
-                            "validation_rule": rule
-                        }
 
                     #Validate num
-                    elif rule=='num':
+                    if rule=='num':
                         args["mostly"]=1.0
                         args["type_list"]=['int','int64', 'float', 'float64']
                         meta={
@@ -237,6 +216,29 @@ class GreatExpectationsHelpers(object):
                             },
                             "validation_rule": rule
                         }
+
+                        '''
+                    #Validate list
+                    elif rule=='list':                          
+                        if 'int' in validation_rules: #Look for comma separated digits
+                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))']
+                        elif 'float' in validation_rules: #Look for comma separated digits that have a decimal and at least one digit after
+                            args["regex_list"]=['((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
+                        elif 'num' in validation_rules: #Look for comma separated ints or floats
+                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))','((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
+                        else: #Just list rule: look for comma separated anything
+                            args["regex_list"]=['((.+\,+)+((.+\,?)+))']
+
+                        args["mostly"]=1.0
+                        args["match_on"]='any'
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expectat column values to be list type **Markdown** `Supported`"
+                            },
+                            "validation_rule": rule
+                        }
+                        '''
 
                     elif rule.startswith("recommended"):
                         args["mostly"]=0.0000000001
