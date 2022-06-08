@@ -41,7 +41,7 @@ class ValidateManifest(object):
         self.jsonSchema = jsonSchema       
 
     def get_multiple_types_error(
-        validation_rules: list, attribute_name: str, error_type: str
+        self, validation_rules: list, attribute_name: str, error_type: str
     ) -> List[str]:
         """
             Generate error message for errors when trying to specify 
@@ -192,6 +192,23 @@ class ValidateManifest(object):
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
+
+            # Check that attribute rules conform to limits:
+            # list first if included with multiple rules,
+            # and no more than two rules for an attribute. 
+            # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?
+            if len(validation_rules) > 1 and 'list' in validation_rules and not validation_rules[0] == 'list':
+                errors.append(
+                    self.get_multiple_types_error(
+                        validation_rules, col, error_type="list_not_first"
+                    )
+                )
+            elif len(validation_rules) > 2:
+                errors.append(
+                    self.get_multiple_types_error(
+                        validation_rules, col, error_type="too_many_rules"
+                    )
+                )
 
             # Given a validation rule, run validation. Skip validations already performed by GE
             for rule in validation_rules:
