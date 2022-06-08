@@ -325,7 +325,7 @@ class TestManifestValidation:
         validateManifest = ValidateManifest(
             errors = [],
             manifest = manifest,
-            manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv"),
+            manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv"),
             sg = sg,
             jsonSchema = sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
         )
