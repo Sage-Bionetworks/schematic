@@ -671,9 +671,8 @@ class SynapseStorage(BaseStorage):
 
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
-
+        csv_list_regex=re.compile('((.+\,+)+((.+\,?)+))')
         for anno_k, anno_v in metadataSyn.items():
-            
             #Do not save blank annotations as NaNs,
             #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
             if isinstance(anno_v,float) and np.isnan(anno_v):
@@ -681,8 +680,11 @@ class SynapseStorage(BaseStorage):
                     annos.pop(anno_k) if anno_k in annos.keys() else annos
                 else:
                     annos[anno_k] = ""
+            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v):
+                annos[anno_k] = anno_v.split(",")
             else:
                 annos[anno_k] = anno_v
+                
         return annos
 
     def format_manifest_annotations(self, manifest, manifest_synapse_id):
