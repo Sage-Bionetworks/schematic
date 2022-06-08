@@ -143,8 +143,7 @@ class GreatExpectationsHelpers(object):
         self.suite = self.context.create_expectation_suite(
             expectation_suite_name=expectation_suite_name,
             overwrite_existing=True
-        )
-        #print(f'Created ExpectationSuite "{suite.expectation_suite_name}".')        
+        )    
 
         #build expectation configurations for each expecation
         for col in self.manifest.columns:
@@ -217,29 +216,6 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
 
-                        '''
-                    #Validate list
-                    elif rule=='list':                          
-                        if 'int' in validation_rules: #Look for comma separated digits
-                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))']
-                        elif 'float' in validation_rules: #Look for comma separated digits that have a decimal and at least one digit after
-                            args["regex_list"]=['((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
-                        elif 'num' in validation_rules: #Look for comma separated ints or floats
-                            args["regex_list"]=['((\d+\,+)+((\d+\,?)+))','((\d+\.\d+\,+)+((\d+\.\d+\,?)+))']
-                        else: #Just list rule: look for comma separated anything
-                            args["regex_list"]=['((.+\,+)+((.+\,?)+))']
-
-                        args["mostly"]=1.0
-                        args["match_on"]='any'
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expectat column values to be list type **Markdown** `Supported`"
-                            },
-                            "validation_rule": rule
-                        }
-                        '''
-
                     elif rule.startswith("recommended"):
                         args["mostly"]=0.0000000001
                         args["regex_list"]=['^$']
@@ -298,7 +274,6 @@ class GreatExpectationsHelpers(object):
         
             
         self.context.save_expectation_suite(expectation_suite=self.suite, expectation_suite_name=expectation_suite_name)
-        #print(self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name))
 
         suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=expectation_suite_name)
         self.context.build_data_docs(resource_identifiers=[suite_identifier])
@@ -407,11 +382,6 @@ class GreatExpectationsHelpers(object):
             
             indices = []
             values = []
-
-            #print(result_dict)
-            #print(result_dict['expectation_config']['expectation_type'])
-            pass
-
             
             #if the expectaion failed, get infromation to generate error message
             if not result_dict['success']:
@@ -444,19 +414,6 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                             )
                         )          
-                    '''
-                elif validation_types[rule.split(" ")[0]]=='list_validation':
-                    for row, value in zip(indices,values):   
-                        errors.append(
-                            GenerateError.generate_list_error(
-                                list_string = value,
-                                row_num = str(row+2),
-                                attribute_name = errColumn,
-                                list_error="not_comma_delimited",
-                                invalid_entry = value,
-                            )
-                        )  
-                    '''
                 elif validation_types[rule.split(" ")[0]]=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
 

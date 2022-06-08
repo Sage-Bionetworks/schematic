@@ -48,51 +48,7 @@ def get_rule_combinations():
         "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
         "inRange": ['int','float','num','unique'],
     }
-
-    '''
-    for k, iterators in itertools.groupby(complementary_rules.items(), key = lambda x: x[0]): 
-        print(1,k,iterators)    
-        for val,iterator in iterators: 
-            print(2,val,iterator)
-
-
-
-    for k, iterators in itertools.groupby(complementary_rules,key=None): 
-        print(1,k,iterators)    
-        for k2, it in itertools.groupby(complementary_rules[k],key=None): 
-            print(2,k2,it)
-
-    for (k, _,), (_, iterators) in zip(itertools.groupby(complementary_rules,key=None),itertools.groupby(complementary_rules.values(),key=None)): 
-        print(1,k,iterators)        
-        for iterator in iterators: 
-            print(2,iterator)
-
-
-    rule_combinations = list(itertools.combinations(complementary_rules,2))
-
-    prohibited_combinations=[
-        ('url', 'inRange'),
-        ('float', 'str'),
-        ('float', 'url'),
-        ('num', 'url'),
-        ('num', 'str'),
-        ('int', 'url'),
-        ('int', 'float'),
-        ('int', 'num'),
-        ('int', 'str'),
-        ('str', 'inRange'),
-        ('str', 'protectAges'),
-        ('regex', 'inRagne'),
-        ()
-    ]
-
-    for combo in prohibited_combinations:
-        rule_combinations.remove(combo)
-        
-
-    for base_rule, second_rule in rule_combinations:
-        yield base_rule, second_rule
-    '''
+    
     for base_rule, allowable_rules in complementary_rules.items():
         for second_rule in allowable_rules:            
             yield base_rule, second_rule

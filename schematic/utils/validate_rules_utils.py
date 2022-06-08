@@ -131,25 +131,6 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     Single Rules:
         Additional arg
     '''
-
-    '''
-    Draft in progress of possible pairs of rules
-    complementary_rules = {
-        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
-        "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
-        "regex": ['list','unique'],
-        "url": ['matchAtLeastOne','matchExactlyOne','unique'],
-        "matchAtLeastOne": ['int','float','num','str','list','url','unique'],
-        "matchExactlyOne": ['int','float','num','str','list','url','unique'],
-        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne','unique'],
-        "protectAges": ['int','float','num','recommended'],
-        "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
-        "inRange": ['int','float','num','unique'],
-    }
-    '''
     # Specify all the validation types and whether they currently
     # allow users to pass additional arguments (when used on their own), and if there is
     # a set number of arguments required.
