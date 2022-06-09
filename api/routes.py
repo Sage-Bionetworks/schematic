@@ -307,9 +307,9 @@ def get_asset_view_table(input_token, asset_view):
     return export_path
 
 
-def get_project_manifests(input_token, project_id):
+def get_project_manifests(input_token, project_id, asset_view):
     # use the default asset view from config
-    config_handler()
+    config_handler(asset_view=asset_view)
 
     # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
