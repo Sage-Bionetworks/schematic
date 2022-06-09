@@ -671,7 +671,7 @@ class SynapseStorage(BaseStorage):
 
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
-        csv_list_regex=re.compile('((.+\,+)+((.+\,?)+))')
+        csv_list_regex=comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
             #Do not save blank annotations as NaNs,
             #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
