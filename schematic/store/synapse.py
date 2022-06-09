@@ -681,7 +681,7 @@ class SynapseStorage(BaseStorage):
                     annos.pop(anno_k) if anno_k in annos.keys() else annos
                 else:
                     annos[anno_k] = ""
-            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v):
+            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and 'list' in se.get_class_validation_rules(anno_k):
                 annos[anno_k] = anno_v.split(",")
             else:
                 annos[anno_k] = anno_v
