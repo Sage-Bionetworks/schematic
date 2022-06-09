@@ -36,6 +36,7 @@ import synapseutils
 import uuid
 
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.validate_utils import comma_separated_list_regex
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
