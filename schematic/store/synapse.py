@@ -36,6 +36,7 @@ import synapseutils
 import uuid
 
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.validate_utils import comma_separated_list_regex
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
@@ -671,9 +672,8 @@ class SynapseStorage(BaseStorage):
 
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
-
+        csv_list_regex=comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
-            
             #Do not save blank annotations as NaNs,
             #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
             if isinstance(anno_v,float) and np.isnan(anno_v):
@@ -681,8 +681,11 @@ class SynapseStorage(BaseStorage):
                     annos.pop(anno_k) if anno_k in annos.keys() else annos
                 else:
                     annos[anno_k] = ""
+            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and 'list' in se.get_class_validation_rules(anno_k):
+                annos[anno_k] = anno_v.split(",")
             else:
                 annos[anno_k] = anno_v
+                
         return annos
 
     def format_manifest_annotations(self, manifest, manifest_synapse_id):

@@ -426,6 +426,15 @@ class SchemaExplorer:
 
         return class_info
 
+    def get_class_validation_rules(self,class_label):
+        rules=[]
+        class_info = self.explore_class(class_label)
+        
+        if 'validation_rules' in class_info:
+            rules=class_info['validation_rules']
+
+        return rules
+
     def get_property_label_from_display_name(self, display_name):
         """Convert a given display name string into a proper property label string"""
         """
