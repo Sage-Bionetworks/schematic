@@ -16,6 +16,7 @@ from urllib.request import Request
 from urllib import error
 
 from schematic.store.synapse import SynapseStorage
+from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
 import time
 
@@ -190,7 +191,6 @@ class GenerateError:
                 Errors: List[str] Error details for further storage.
             """
         attribute_name=attribute_name.lower()
-        
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
                 f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing." )
@@ -225,7 +225,7 @@ class GenerateError:
         sg: SchemaGenerator,
         row_num = None,
         error_val = None,    
-    ) -> List[str]:
+    ) -> (List[str], List[str]):
         """
         Purpose:
             Generate an logging error or warning as well as a stored error/warning message when validating the content of a manifest attribute.
@@ -310,7 +310,7 @@ class GenerateError:
         val_rule: str,
         sg: SchemaGenerator,
         attribute_name: str,
-        ):
+        ) -> str:
         """
         Purpose:
             Determine whether an error or warning message should be logged and displayed
@@ -383,7 +383,6 @@ class ValidateAttribute(object):
 
             #If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
-
                 if target_component == target_dataset[-1][0].replace(" ","").lower() and target_dataset[1][0] != "":
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
@@ -392,7 +391,7 @@ class ValidateAttribute(object):
 
     def list_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> (List[List[str]], pd.core.frame.DataFrame):
+    ) -> (List[List[str]], List[List[str]], pd.core.series.Series):
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
@@ -432,7 +431,7 @@ class ValidateAttribute(object):
 
     def regex_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> List[List[str]]:
+    ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Check if values for a given manifest attribue conform to the reguar expression,
@@ -510,7 +509,7 @@ class ValidateAttribute(object):
 
     def type_validation(
         self, val_rule: str, manifest_col: pd.core.series.Series
-    ) -> List[List[str]]:
+    ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Check if values for a given manifest attribue are the same type
@@ -562,7 +561,7 @@ class ValidateAttribute(object):
                     )
         return errors, warnings
 
-    def url_validation(self, val_rule: str, manifest_col: str) -> List[List[str]]:
+    def url_validation(self, val_rule: str, manifest_col: str) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
