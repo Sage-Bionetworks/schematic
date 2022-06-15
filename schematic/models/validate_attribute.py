@@ -190,7 +190,7 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
-        attribute_name=attribute_name.lower()
+        
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
                 f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing." )
