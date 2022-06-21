@@ -19,6 +19,8 @@ from schematic.store.synapse import SynapseStorage
 import pandas as pd
 import json
 
+from schematic.schemas.explorer import SchemaExplorer
+
 
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
@@ -318,4 +320,20 @@ def get_project_manifests(input_token, project_id, asset_view):
     lst_manifest = store.getProjectManifests(projectId=project_id)
 
     return lst_manifest
-    
+
+def get_class_validation_rules(schema_url, class_label):
+    # initialize schema exploer 
+    se = SchemaExplorer()
+
+    # load schema
+    schema_file = get_temp_jsonld(schema_url)
+    se.load_schema(schema_file)
+
+    # get all available classes (useful for debugging)
+    #all_class = se.get_nx_schema()
+    #print(all_class.nodes)
+
+    # get rules associated with class
+    rules = se.get_class_validation_rules(class_label)
+
+    return rules

@@ -546,3 +546,37 @@ paths:
           description: Check schematic log. 
       tags:
         - Synapse Storage
+  /schema/attribute/type:
+    get:
+      summary: Retrieve validation rules and extract the actual attribute type 
+      description: Retrieve validation rules and extract the actual attribute type 
+      operationId: api.routes.get_class_validation_rules
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+            nullable: false
+          description: Schema URL
+          example: https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: class_label
+          schema:
+            type: string
+            nullable: false
+          description: class label
+          example: FamilyHistory
+          required: true
+      responses:
+        "200":
+          description: A list of tuples(json). 
+          content:
+            application/json:
+              schema:
+                type: array
+                example: ['list']
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Explorer
