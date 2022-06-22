@@ -1005,10 +1005,10 @@ class SynapseStorage(BaseStorage):
             table = pd.DataFrame.from_records(records)
 
         # Add filenames for the files that "survived" annotation retrieval
-        file_names = [dataset_files_map[i] for i in table["entityId"]]
+        filenames = [dataset_files_map[i] for i in table["entityId"]]
 
         #Change Name of column added
-        table.insert(0, "File_name", file_names)
+        table.insert(0, "Filename", filenames)
 
         # Ensure that entityId and eTag are at the end
         entity_ids = table.pop("entityId")
