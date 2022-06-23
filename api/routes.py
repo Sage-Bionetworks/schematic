@@ -329,11 +329,7 @@ def get_class_validation_rules(schema_url, class_label):
     schema_file = get_temp_jsonld(schema_url)
     se.load_schema(schema_file)
 
-    # get all available classes (useful for debugging)
-    #all_class = se.get_nx_schema()
-    #print(all_class.nodes)
+    # get attribute 
+    attribute = se.get_attribute_type(class_label)
 
-    # get rules associated with class
-    rules = se.get_class_validation_rules(class_label)
-
-    return rules
+    return attribute

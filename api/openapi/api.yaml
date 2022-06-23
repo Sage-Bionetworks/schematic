@@ -570,12 +570,12 @@ paths:
           required: true
       responses:
         "200":
-          description: A list of tuples(json). 
+          description: A string
           content:
             application/json:
               schema:
                 type: array
-                example: ['list']
+                example: 'list'
         "500":
           description: Check schematic log. 
       tags:

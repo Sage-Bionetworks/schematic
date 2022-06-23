@@ -435,6 +435,23 @@ class SchemaExplorer:
 
         return rules
 
+    def get_attribute_type(self, class_label):
+        try: 
+            rules = self.get_class_validation_rules(class_label)
+            if len(rules):
+                attribute = rules[0]
+                if attribute in ['num', 'float']:
+                    return "double"
+                elif attribute in ['int', 'list']:
+                    return attribute
+                else:
+                    return 'string'
+            else:
+                return ''
+        except:  
+            raise KeyError('this class does not exist in the data model')
+
+
     def get_property_label_from_display_name(self, display_name):
         """Convert a given display name string into a proper property label string"""
         """
