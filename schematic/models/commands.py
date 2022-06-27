@@ -102,6 +102,7 @@ def submit_manifest(
     """
     Running CLI with manifest validation (optional) and submission options.
     """
+
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))

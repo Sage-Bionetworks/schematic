@@ -441,7 +441,7 @@ class ManifestGenerator(object):
             # constructor (it's optional) if not, instantiate it
             if not self.additional_metadata:
                 self.additional_metadata = {}
-            if self.is_file_based:
+            if self.is_file_based and 'Filename' in self.additional_metadata:
                 self.additional_metadata["Component"] = [self.root] * max(
                     1, len(self.additional_metadata["Filename"])
                 )

@@ -251,10 +251,9 @@ class ValidateManifest(object):
         warnings = []
         
         # numerical values need to be type string for the jsonValidator
-        for col in manifest.select_dtypes(include=[int, np.int64, float]).columns:
+        for col in manifest.select_dtypes(include=[int, np.int64, float, np.float64]).columns:
             manifest[col]=manifest[col].astype('string')
-
-        manifest.applymap(lambda x: str(x) if isinstance(x, (int, np.int64, float)) else x, na_action='ignore')
+        manifest = manifest.applymap(lambda x: str(x) if isinstance(x, (int, np.int64, float, np.float64)) else x, na_action='ignore')
 
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):

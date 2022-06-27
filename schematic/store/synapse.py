@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import uuid  # used to generate unique names for entities
 import json
@@ -35,6 +36,7 @@ import synapseutils
 import uuid
 
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.validate_utils import comma_separated_list_regex
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
@@ -583,42 +585,46 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
 
-        cols = [
-            se.get_class_label_from_display_name(
-                str(col)
-                ).translate({ord(x): '' for x in blacklist_chars})
-            for col in manifest_columns
-        ]
+        table_manifest=deepcopy(manifest)
 
-        cols = list(map(lambda x: x.replace('EntityId', 'entityId'), cols))
+        if useSchemaLabel:
+            cols = [
+                se.get_class_label_from_display_name(
+                    str(col)
+                    ).translate({ord(x): '' for x in blacklist_chars})
+                for col in manifest_columns
+            ]
+
+            cols = list(map(lambda x: x.replace('EntityId', 'entityId'), cols))
 
 
-        # Reset column names in manifest
-        manifest.columns = cols
+            # Reset column names in table manifest
+            table_manifest.columns = cols
 
         #move entity id to end of df
-        entity_col = manifest.pop('entityId')
-        manifest.insert(len(manifest.columns), 'entityId', entity_col)
+        entity_col = table_manifest.pop('entityId')
+        table_manifest.insert(len(table_manifest.columns), 'entityId', entity_col)
 
         # Get the column schema
-        col_schema = as_table_columns(manifest)
+        col_schema = as_table_columns(table_manifest)
 
         # Set uuid column length to 64 (for some reason not being auto set.)
         for i, col in enumerate(col_schema):
             if col['name'] == 'Uuid':
                 col_schema[i]['maximumSize'] = 64
 
-        # Put manifest onto synapse
-        schema = Schema(name=table_name, columns=col_schema, parent=datasetId)
-        table = self.syn.store(Table(schema, manifest), isRestricted=restrict)
+        # Put table manifest onto synapse
+        schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
+        table = self.syn.store(Table(schema, table_manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
 
-        return manifest_table_id, manifest
+
+        return manifest_table_id, manifest, table_manifest
 
     def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest):
         # Update manifest to have the new entityId column
@@ -666,9 +672,8 @@ class SynapseStorage(BaseStorage):
 
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
-
+        csv_list_regex=comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
-            
             #Do not save blank annotations as NaNs,
             #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
             if isinstance(anno_v,float) and np.isnan(anno_v):
@@ -676,8 +681,11 @@ class SynapseStorage(BaseStorage):
                     annos.pop(anno_k) if anno_k in annos.keys() else annos
                 else:
                     annos[anno_k] = ""
+            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and 'list' in se.get_class_validation_rules(anno_k):
+                annos[anno_k] = anno_v.split(",")
             else:
                 annos[anno_k] = anno_v
+                
         return annos
 
     def format_manifest_annotations(self, manifest, manifest_synapse_id):
@@ -806,8 +814,9 @@ class SynapseStorage(BaseStorage):
 
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
-            manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest)
+            manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
+            
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
@@ -849,7 +858,7 @@ class SynapseStorage(BaseStorage):
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
             self.make_synapse_table(
-                table_to_load = manifest,
+                table_to_load = table_manifest,
                 dataset_id = datasetId,
                 existingTableId = manifest_synapse_table_id,
                 table_name = table_name,
@@ -1000,7 +1009,9 @@ class SynapseStorage(BaseStorage):
 
         # Add filenames for the files that "survived" annotation retrieval
         filenames = [dataset_files_map[i] for i in table["entityId"]]
-        table.insert(0, "Filename", filenames)
+
+        if 'Filename' not in table.columns:
+            table.insert(0, "Filename", filenames)
 
         # Ensure that entityId and eTag are at the end
         entity_ids = table.pop("entityId")
