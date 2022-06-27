@@ -11,6 +11,7 @@ from schematic.models.validate_manifest import ValidateManifest
 from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
 from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.validate_rules_utils import valid_rule_combinations
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -33,22 +34,7 @@ def metadataModel(helpers):
     yield metadataModel
 
 def get_rule_combinations():
-    complementary_rules = {
-        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange',],
-        "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
-        "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
-        "regex": ['list','unique'],
-        "url": ['matchAtLeastOne','matchExactlyOne','unique'],
-        "matchAtLeastOne": ['int','float','num','str','list','url','unique'],
-        "matchExactlyOne": ['int','float','num','str','list','url','unique'],
-        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne','unique'],
-        "protectAges": ['int','float','num','recommended'],
-        "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
-        "inRange": ['int','float','num','unique'],
-    }
-    
+    complementary_rules = valid_rule_combinations()
     for base_rule, allowable_rules in complementary_rules.items():
         for second_rule in allowable_rules:            
             yield base_rule, second_rule

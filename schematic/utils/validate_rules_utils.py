@@ -119,6 +119,18 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
                     error_type = 'args_not_allowed', input_filetype=input_filetype))
     return errors
 
+def valid_rule_combinations():
+    complementary_rules = {
+        "int": ['inRange',],
+        "float": ['inRange'],
+        "num": ['inRange'],
+        "protectAges": ['inrange'],
+        "inRange": ['int','float','num','protectAges'],
+    }
+
+    return complementary_rules
+
+
 def validate_schema_rules(validation_rules, attribute, input_filetype):
     '''
     validation_rules: list
@@ -139,6 +151,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
 
     num_validation_rules = len(validation_rules)
 
+    complementary_rules = valid_rule_combinations()
     # Validate for multiple rules
     if num_validation_rules == 2:
         # For multiple rules check that the first rule listed is 'list'
@@ -178,5 +191,4 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
                         f"for attribute {attribute}. "
                         f"Validation failed with the following errors: {errors}"
                     )
-    
     return 
