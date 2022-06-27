@@ -126,6 +126,7 @@ def valid_rule_combinations():
         "num": ['inRange'],
         "protectAges": ['inRange'],
         "inRange": ['int','float','num','protectAges'],
+        "list": ['regex']
     }
 
     return complementary_rules
