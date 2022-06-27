@@ -124,7 +124,7 @@ def valid_rule_combinations():
         "int": ['inRange',],
         "float": ['inRange'],
         "num": ['inRange'],
-        "protectAges": ['inrange'],
+        "protectAges": ['inRange'],
         "inRange": ['int','float','num','protectAges'],
     }
 
