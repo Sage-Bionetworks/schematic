@@ -73,11 +73,12 @@ def get_error(validation_rules: list,
         
     return ['NA', error_col, error_message, error_val]
 
-def validate_single_rule(validation_rule, errors, attribute, input_filetype):
+def validate_single_rule(validation_rule, attribute, input_filetype):
     '''
     TODO:reformat validation_types from validate_manifest to document the 
     arguments allowed. Keep in that location and pull into this function.
     '''
+    errors = []
     validation_types = {
             "int": {'arguments':(False, None)},
             "float": {'arguments':(False, None)},
@@ -163,7 +164,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
 
     num_validation_rules = len(validation_rules)
 
- 
+    print(validation_rules)
     # Check for edge case that user has entered more than 2 rules,
     # throw an error if they have.
     if num_validation_rules > 2:
@@ -175,20 +176,21 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
         first_type = first_rule.split(" ")[0]  
         second_type = second_rule.split(" ")[0]  
 
-        #validate rule combination and order
+        # validate rule combination
         if second_type not in complementary_rules[first_type]:
             errors.append(get_error(validation_rules, attribute, 
                 error_type = 'invalid_rule_combination', input_filetype=input_filetype))
+        
+        # validate order for combinations including list
         if 'list' in validation_rules:
             # For multiple rules include list check that the first rule is 'list', if not, throw an error
             if not first_rule == 'list':
                 errors.append(get_error(validation_rules, attribute, 
                     error_type = 'list_not_first', input_filetype=input_filetype))
         
-        
     # validate each rule individually in the combo
     for rule in validation_rules:
-        errors.extend(validate_single_rule(rule, errors,
+        errors.extend(validate_single_rule(rule,
             attribute, input_filetype))
                 
 
