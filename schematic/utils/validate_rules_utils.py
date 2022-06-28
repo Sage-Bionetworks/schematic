@@ -69,7 +69,7 @@ def get_error(validation_rules: list,
             f"a valid combination of rules. The validation rule [{first_type}] may only be used with rules of type {second_type}.")
         logging.error(error_str)
         error_message = error_str
-        error_val = f"Incorrect num arguments."
+        error_val = f"Invalid rule combinaion."
         
     return ['NA', error_col, error_message, error_val]
 
