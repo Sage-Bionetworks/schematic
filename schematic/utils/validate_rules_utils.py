@@ -22,14 +22,6 @@ def get_error(validation_rules: list,
         error_message = error_str
         error_val = f"Multiple Rules: too many rules"
     
-    if error_type == 'list_not_first':
-        error_str = (f"The {input_filetype}, has an error in the validation rule "
-            f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
-            f"specified. 'list' must be first.")
-        logging.error(error_str)
-        error_message = error_str
-        error_val = f"Multiple Rules: list not first"
-    
     if error_type == 'delimiter':
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
@@ -137,7 +129,7 @@ def valid_rule_combinations():
         "protectAges": ['inRange'],
         "inRange": ['int','float','num','protectAges'],
         "list": ['regex'],
-        #"regex": ['list']
+        "regex": ['list'],
     }
 
     return complementary_rules
@@ -152,7 +144,6 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     Validation Rules Formatting rules:
     Multiple Rules:
         max of 2 rules
-        if list and regex list must be first
     Single Rules:
         Additional arg
     '''
@@ -180,13 +171,6 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
         if second_type not in complementary_rules[first_type]:
             errors.append(get_error(validation_rules, attribute, 
                 error_type = 'invalid_rule_combination', input_filetype=input_filetype))
-        
-        # validate order for combinations including list
-        if 'list' in validation_rules:
-            # For multiple rules include list check that the first rule is 'list', if not, throw an error
-            if not first_rule == 'list':
-                errors.append(get_error(validation_rules, attribute, 
-                    error_type = 'list_not_first', input_filetype=input_filetype))
         
     # validate each rule individually in the combo
     for rule in validation_rules:
