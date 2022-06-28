@@ -17,7 +17,7 @@ def get_error(validation_rules: list,
     if error_type == 'too_many_rules':
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) ."
-        f"have too many entries. We currently only specify two rules ('list :: another_rule').")
+        f"have too many entries. We currently only allow for pairs of rules to be used at the same time.")
         logging.error(error_str)
         error_message = error_str
         error_val = f"Multiple Rules: too many rules"
@@ -64,12 +64,13 @@ def get_error(validation_rules: list,
     if error_type == 'invalid_rule_combination':
         first_type=validation_rules[0].split(' ')[0]
         second_type=valid_rule_combinations()[first_type]
+
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({'::'.join(validation_rules)}) are not "
             f"a valid combination of rules. The validation rule [{first_type}] may only be used with rules of type {second_type}.")
         logging.error(error_str)
         error_message = error_str
-        error_val = f"Invalid rule combinaion."
+        error_val = f"Invalid rule combination."
         
     return ['NA', error_col, error_message, error_val]
 
