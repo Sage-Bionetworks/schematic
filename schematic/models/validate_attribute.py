@@ -20,6 +20,8 @@ from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
 import time
 
+from schematic.utils.validate_utils import parse_str_series_to_list
+
 logger = logging.getLogger(__name__)
 
 class GenerateError:
@@ -418,10 +420,9 @@ class ValidateAttribute(object):
                         invalid_entry=manifest_col[i]
                     )
                 )
+
         # Convert string to list.
-        manifest_col = manifest_col.apply(
-            lambda x: [s.strip() for s in str(x).split(",")]
-        )
+        manifest_col = parse_str_series_to_list(manifest_col)
 
         return errors, warnings, manifest_col
 
@@ -469,9 +470,8 @@ class ValidateAttribute(object):
         # Handle case where validating re's within a list.
         if 'list' in validation_rules:
             if type(manifest_col[0]) == str:
-                manifest_col = manifest_col.apply(
-                    lambda x: [s.strip() for s in str(x).split(",")]
-                )
+                # Convert string to list.
+                manifest_col = parse_str_series_to_list(manifest_col)
 
             for i, row_values in enumerate(manifest_col):
                 for j, re_to_check in enumerate(row_values):
