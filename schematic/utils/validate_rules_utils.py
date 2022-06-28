@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_error(validation_rules: list, 
-        attribute_name: str, error_type: str, input_filetype:str, first_rule:str = None) -> List[str]:
+        attribute_name: str, error_type: str, input_filetype:str,) -> List[str]:
     '''
     Generate error message for errors when trying to specify 
     multiple validation rules.
@@ -70,9 +70,11 @@ def get_error(validation_rules: list,
         error_val = f"Incorrect num arguments."
 
     if error_type == 'invalid_rule_combination':
+        first_type=validation_rules[0].split(' ')[0]
+        second_type=valid_rule_combinations()[first_type]
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({'::'.join(validation_rules)}) are not "
-            f"a valid combination of rules. The validation rule class {first_rule} may only be used with rules of type {valid_rule_combinations()[first_rule]}")
+            f"a valid combination of rules. The validation rule [{first_type}] may only be used with rules of type {second_type}.")
         logging.error(error_str)
         error_message = error_str
         error_val = f"Incorrect num arguments."
@@ -181,7 +183,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
 
         if second_type not in complementary_rules[first_type]:
             errors.append(get_error(validation_rules, attribute, 
-                error_type = 'invalid_rule_combination', input_filetype=input_filetype, first_rule=first_type))
+                error_type = 'invalid_rule_combination', input_filetype=input_filetype))
 
 
         if 'list' in validation_rules:
