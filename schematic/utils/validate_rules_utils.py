@@ -30,14 +30,6 @@ def get_error(validation_rules: list,
         error_message = error_str
         error_val = f"Multiple Rules: list not first"
     
-    if error_type == 'second_rule':
-        error_str = (f"The {input_filetype}, has an error in the validation rule "
-            f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
-            f"specified. 'regex' must be the second rule.")
-        logging.error(error_str)
-        error_message = error_str
-        error_val = f"Multiple Rules: Second rule needs to be regex"
-    
     if error_type == 'delimiter':
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
@@ -128,6 +120,9 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
             else:
                 errors.append(get_error(validation_rules, attribute,
                     error_type = 'args_not_allowed', input_filetype=input_filetype))
+        if ':' in validation_rules:
+            errors.append(get_error(validation_rules, attribute,
+                error_type = 'delimiter', input_filetype=input_filetype))
     return errors
 
 def valid_rule_combinations():
@@ -181,35 +176,20 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
         first_type = first_rule.split(" ")[0]  
         second_type = second_rule.split(" ")[0]  
 
+        #validate rule combination and order
         if second_type not in complementary_rules[first_type]:
             errors.append(get_error(validation_rules, attribute, 
                 error_type = 'invalid_rule_combination', input_filetype=input_filetype))
-
-
         if 'list' in validation_rules:
-            # For multiple rules check that the first rule listed is 'list'
-            # if not, throw an error
+            # For multiple rules include list check that the first rule is 'list', if not, throw an error
             if not first_rule == 'list':
                 errors.append(get_error(validation_rules, attribute, 
                     error_type = 'list_not_first', input_filetype=input_filetype))
-            elif (first_rule == 'list'):
-                # for now we are only supporting multiple rules as 
-                # list and regex. Check that this is the case.
-                if second_type == 'regex':
-                    errors.extend(validate_single_rule(second_rule, errors, 
-                        attribute, input_filetype))
-                elif second_type != 'regex':
-                    if ':' in second_type[-1]:
-                        errors.append(get_error(validation_rules, attribute,
-                            error_type = 'delimiter', input_filetype=input_filetype))
-                    else:
-                        errors.append(get_error(validation_rules, attribute,
-                            error_type = 'second_rule', input_filetype=input_filetype))
-        #else validate each rule individually in the combo
-        else:
-            for rule in validation_rules:
-                errors.extend(validate_single_rule(rule, errors,
-                    attribute, input_filetype))
+        
+        # validate each rule individually in the combo
+        for rule in validation_rules:
+            errors.extend(validate_single_rule(rule, errors,
+                attribute, input_filetype))
                 
 
     if errors:
