@@ -340,15 +340,14 @@ class TestManifestValidation:
             jsonSchema = sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
         )
         
-        try: #perform validation with no exceptions raised
-            _, errors, warnings = validateManifest.validate_manifest_rules(
-                manifest = manifest, 
-                sg =  sg,
-                restrict_rules = False,
-                project_scope = None,
-                )
-        except:
-            assert False
+        #perform validation with no exceptions raised
+        _, errors, warnings = validateManifest.validate_manifest_rules(
+            manifest = manifest, 
+            sg =  sg,
+            restrict_rules = False,
+            project_scope = None,
+            )
+
 
         
         
