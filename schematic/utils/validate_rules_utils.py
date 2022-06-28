@@ -162,10 +162,9 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
 
     errors = []
     complementary_rules = valid_rule_combinations()
-
     num_validation_rules = len(validation_rules)
 
-    print(validation_rules)
+    
     # Check for edge case that user has entered more than 2 rules,
     # throw an error if they have.
     if num_validation_rules > 2:
