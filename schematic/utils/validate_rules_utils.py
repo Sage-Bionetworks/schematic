@@ -96,18 +96,20 @@ def validate_single_rule(validation_rule, errors, attribute, input_filetype):
     validation_rule_with_args = [
                 val_rule.strip() for val_rule in validation_rule.strip().split(" ")]
 
+    rule_type = validation_rule_with_args[0]
+
     # Check that the rule is actually a valid rule type.
-    if validation_rule_with_args[0] not in validation_types.keys():
+    if rule_type not in validation_types.keys():
         errors.append(get_error(validation_rule, attribute,
             error_type = 'not_rule', input_filetype=input_filetype))
     else:
-        if 'fixed_arg' in validation_types[validation_rule_with_args[0]].keys():
-            fixed_args = validation_types[validation_rule_with_args[0]]['fixed_arg']
+        if 'fixed_arg' in validation_types[rule_type].keys():
+            fixed_args = validation_types[rule_type]['fixed_arg']
             num_args = len([vr for vr in validation_rule_with_args if vr not in fixed_args])-1 
         else:
             num_args = len(validation_rule_with_args) - 1
         if num_args:
-            argument_allowed, num_allowed = validation_types[validation_rule_with_args[0]]['arguments']
+            argument_allowed, num_allowed = validation_types[rule_type]['arguments']
             # If arguments are allowed, check that the correct amount have been passed.
             if argument_allowed:
                 # Remove any fixed args from our calc.
