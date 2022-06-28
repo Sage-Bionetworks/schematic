@@ -465,8 +465,14 @@ class ValidateAttribute(object):
 
         errors = []
         warnings = []
+        validation_rules=self.sg.se.get_class_validation_rules(self.sg.se.get_class_label_from_display_name(manifest_col.name))
         # Handle case where validating re's within a list.
-        if type(manifest_col[0]) == list:
+        if 'list' in validation_rules:
+            if type(manifest_col[0]) == str:
+                manifest_col = manifest_col.apply(
+                    lambda x: [s.strip() for s in str(x).split(",")]
+                )
+
             for i, row_values in enumerate(manifest_col):
                 for j, re_to_check in enumerate(row_values):
                     re_to_check = str(re_to_check)
@@ -483,6 +489,7 @@ class ValidateAttribute(object):
                                 invalid_entry=manifest_col[i]
                             )
                         )
+
         # Validating single re's
         else:
             manifest_col = manifest_col.astype(str)
