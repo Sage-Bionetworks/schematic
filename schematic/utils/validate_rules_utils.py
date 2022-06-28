@@ -196,7 +196,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
                 # for now we are only supporting multiple rules as 
                 # list and regex. Check that this is the case.
                 if second_type == 'regex':
-                    errors.extend(validate_single_rule(validation_rules[1], errors, 
+                    errors.extend(validate_single_rule(second_rule, errors, 
                         attribute, input_filetype))
                 elif second_type != 'regex':
                     if ':' in second_type[-1]:
