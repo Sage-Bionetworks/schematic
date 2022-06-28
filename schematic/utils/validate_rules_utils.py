@@ -169,10 +169,6 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
             errors.append(get_error(validation_rules, attribute,
                 error_type = 'too_many_rules', input_filetype=input_filetype))
 
-    elif num_validation_rules == 1:
-        errors.extend(validate_single_rule(validation_rules[0], errors,
-            attribute, input_filetype))
-
     elif num_validation_rules == 2: 
         first_rule, second_rule = validation_rules
         first_type = first_rule.split(" ")[0]  
@@ -188,10 +184,11 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
                 errors.append(get_error(validation_rules, attribute, 
                     error_type = 'list_not_first', input_filetype=input_filetype))
         
-        # validate each rule individually in the combo
-        for rule in validation_rules:
-            errors.extend(validate_single_rule(rule, errors,
-                attribute, input_filetype))
+        
+    # validate each rule individually in the combo
+    for rule in validation_rules:
+        errors.extend(validate_single_rule(rule, errors,
+            attribute, input_filetype))
                 
 
     if errors:
