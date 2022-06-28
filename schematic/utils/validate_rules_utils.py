@@ -73,7 +73,7 @@ def get_error(validation_rules: list,
         
     return ['NA', error_col, error_message, error_val]
 
-def validate_single_rule(validation_rules, errors, attribute, input_filetype):
+def validate_single_rule(validation_rule, errors, attribute, input_filetype):
     '''
     TODO:reformat validation_types from validate_manifest to document the 
     arguments allowed. Keep in that location and pull into this function.
@@ -94,11 +94,11 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
             "inRange": {'arguments':(True, 3)},
             }
     validation_rule_with_args = [
-                val_rule.strip() for val_rule in validation_rules.strip().split(" ")]
+                val_rule.strip() for val_rule in validation_rule.strip().split(" ")]
 
     # Check that the rule is actually a valid rule type.
     if validation_rule_with_args[0] not in validation_types.keys():
-        errors.append(get_error(validation_rules, attribute,
+        errors.append(get_error(validation_rule, attribute,
             error_type = 'not_rule', input_filetype=input_filetype))
     else:
         if 'fixed_arg' in validation_types[validation_rule_with_args[0]].keys():
@@ -114,14 +114,14 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
                 
                 # Are limits placed on the number of arguments.
                 if num_allowed is not None and num_allowed != num_args:
-                    errors.append(get_error(validation_rules, attribute,
+                    errors.append(get_error(validation_rule, attribute,
                         error_type = 'incorrect_num_args', input_filetype=input_filetype))
             # If arguments are provided but not allowed raise an error.
             else:
-                errors.append(get_error(validation_rules, attribute,
+                errors.append(get_error(validation_rule, attribute,
                     error_type = 'args_not_allowed', input_filetype=input_filetype))
-        if ':' in validation_rules:
-            errors.append(get_error(validation_rules, attribute,
+        if ':' in validation_rule:
+            errors.append(get_error(validation_rule, attribute,
                 error_type = 'delimiter', input_filetype=input_filetype))
     return errors
 
