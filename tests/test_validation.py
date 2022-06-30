@@ -283,31 +283,6 @@ class TestManifestValidation:
         manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
         manifest = helpers.get_data_frame(manifestPath)
 
-        '''
-        for col in manifest.columns:
-            schema_label = sg.se.get_class_label_from_display_name(col)
-            class_info = sg.se.explore_class(schema_label)
-            col_rules = class_info['validation_rules']
-            node = sg.se.schema_nx.nodes[schema_label] 
-
-
-            if base_rule in col_rules:
-                #Add rule args if necessary
-                if second_rule.startswith('matchAtLeastOne') or second_rule.startswith('matchExactlyOne'):
-                    rule_args = f" MockComponent.{node['label']} Patient.PatientID"
-                elif second_rule.startswith('inRange'):
-                    rule_args = ' 1 1000 warning'
-                elif second_rule.startswith('regex'):
-                    rule_args = ' search [a-f]'
-                else:
-                    rule_args = ''
-
-                node['validationRules'].append(second_rule + rule_args)
-                class_info['validation_rules'].append(second_rule + rule_args)
-                sg.se.edit_class(node)
-                sg.se.edit_schema_object_nx(node)
-        '''
-
         for attribute in sg.se.schema['@graph']: #Doing it in a loop becasue of sg.se.edit_class design
             if 'sms:validationRules' in attribute and attribute['sms:validationRules']: 
                 if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
