@@ -18,6 +18,7 @@ from urllib import error
 from schematic.store.synapse import SynapseStorage
 from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.validate_utils import comma_separated_list_regex
 import time
 
 logger = logging.getLogger(__name__)
@@ -405,9 +406,11 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
         manifest_col = manifest_col.astype(str)
+        csv_re = comma_separated_list_regex()
+
         # This will capture any if an entry is not formatted properly.
         for i, list_string in enumerate(manifest_col):
-            if "," not in list_string and bool(list_string):
+            if not re.fullmatch(csv_re,list_string):
                 list_error = "not_comma_delimited"
                 errors.append(
                     GenerateError.generate_list_error(
