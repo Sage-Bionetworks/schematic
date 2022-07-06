@@ -204,13 +204,13 @@ class ValidateManifest(object):
                 if len(validation_rules) == 2:
                     # For multiple rules check that the first rule listed is 'list'
                     # if not, throw an error (this is the only format currently supported).
-                    if not validation_rules[0] == "list":
+                    if 'list' not in validation_rules[0]:
                         errors.append(
-                            get_multiple_types_error(
+                            self.get_multiple_types_error(
                                 validation_rules, col, error_type="list_not_first"
                             )
                         )
-                    elif validation_rules[0] == "list":
+                    elif 'list' in validation_rules[0]:
                         # Convert user input to list.
                         validation_method = getattr(
                             ValidateAttribute, validation_types["list"]
@@ -243,7 +243,7 @@ class ValidateManifest(object):
                 # Check for edge case that user has entered more than 2 rules,
                 # throw an error if they have.
                 elif len(validation_rules) > 2:
-                    get_multiple_types_error(
+                    self.get_multiple_types_error(
                         validation_rules, col, error_type="too_many_rules"
                     )
 
