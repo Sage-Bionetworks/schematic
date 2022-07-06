@@ -1,7 +1,7 @@
 import logging
+import json
 
 import pandas as pd
-
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,7 @@ def update_df(
     input_df_idx = input_df.set_index(index_col, inplace=False)
     updates_df_idx = updates_df.set_index(index_col, inplace=False)
 
+
     # Update manifest data frame and reset index
     input_df_idx.update(updates_df_idx, overwrite=True)
 
@@ -77,6 +78,9 @@ def update_df(
     input_df_idx.reset_index(inplace=True)
     input_df_idx = input_df_idx[input_df.columns]
 
+    # Sometimes pandas update can change the column datatype, recast
+    for col in input_df_idx.columns:
+        input_df_idx[col] = input_df_idx[col].astype(input_df.dtypes[col])
     return input_df_idx
 
 
@@ -94,4 +98,16 @@ def trim_commas_df(df: pd.DataFrame):
 
     # remove all completely empty rows
     df = df.dropna(how="all", axis=0)
+    return df
+
+def convert_string_cols_to_json(df: pd.DataFrame, cols_to_modify: list):
+    """Converts values in a column from strings to JSON list 
+    for upload to Synapse.
+    Args:
+
+    Returns:
+    """
+    for col in df.columns:
+        if col in cols_to_modify:
+            df[col] = df[col].apply(lambda x: json.dumps([y.strip() for y in x.replace('"', '').split(',')]) if x != "NaN" and x else x)
     return df

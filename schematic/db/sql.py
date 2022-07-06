@@ -1,9 +1,13 @@
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Text, List, TextIO
 import logging
 
 import os
 import pandas as pd
 import numpy as np
+
+import networkx as nx
+from schematic.utils.viz_utils import visualize
 
 import sqlalchemy as sa
 from sqlalchemy import  Table, Column, Text, Integer, String, ForeignKey, ForeignKeyConstraint, inspect
@@ -12,6 +16,8 @@ from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy_schemadisplay import create_schema_graph, create_uml_graph
 from sqlalchemy.orm import interfaces
 from sqlalchemy.orm import relationship, backref
+
+import time
 
 from schematic import schemas
 from schematic.schemas.explorer import SchemaExplorer
@@ -70,6 +76,7 @@ class SQL(object):
         #MD
         # get metadata model schema graph
         self.mm_graph = self.rdb.sg.se.get_nx_schema()
+        self.sg = self.rdb.sg
 
 
     def create_db_sa(self) -> None:
@@ -158,6 +165,13 @@ class SQL(object):
                 col = Column(attr, Text)
                 columns.append(col)
 
+        # if the table is resources add a UNIX Time Column.
+        # TODO: Move this to the data model, then hide it from the manifest.
+        '''
+        if table_label == 'Resource':
+            col = Column('updateTimeUnix', Text)
+            columns.append(col)
+        '''
         # set PK 
         pk = self.rdb.tables[table_label]['primary_key']
         col = Column(pk, String(128), primary_key = True, autoincrement = False, nullable = False)
@@ -278,6 +292,68 @@ class SQL(object):
 
         return table_label
 
+    def check_db_columns(self, table_label: str, column_name: str) -> str:
+        """ 
+        """
+
+        query = "SELECT {}{}{} FROM {}{}{}".format("`", column_name, "`", "`",table_label, "`")
+        column_value = self.run_sql_query(self.engine, [query])
+        if column_value.empty:
+            cols_present = False
+        else:
+            cols_present = True
+        return cols_present
+
+    def get_updated_rows(self, table_label, update_table, pk):
+        '''
+        Do a sql query for current table.
+        Compare to new table.
+        Find which rows are being updated and get the primary key ID.
+        
+        TODO: This part is very specific to how the NF database function and needs to be abstracted
+        out in some way
+
+        Returns a dictionary of rows that are updated 
+        '''
+        query = 'SELECT * FROM {}'.format(table_label)
+        current_db_table = self.run_sql_query(self.engine, [query])
+        current_db_table_cols = np.sort(current_db_table.columns)
+        update_table_columns = np.sort(update_table.columns)
+
+        #assert current_db_table_cols == update_table_columns
+
+        cols_to_compare = current_db_table_cols[current_db_table_cols != pk]
+        updated_row_pkids = {}
+        # This is very terribly done, but I could not find a succinct way to compare dfs if they didnt 
+        # have the same indices.
+        # For each Primary Key Id in the new update_table
+        for pk_id in update_table[pk]:
+            # If the id is not in the current table, add it to a dictionary of pk_ids that are being updated.
+            if pk_id not in current_db_table[pk].tolist():
+                updated_row_pkids[pk_id] = table_label
+            # if the id is in the current table, check to see if the values in the new update table match the 
+            # current table. If they dont add it to a dictionary of pk_ids that are being updated.
+            elif pk_id in current_db_table[pk].tolist():
+                current_row = current_db_table.loc[current_db_table[pk] == pk_id].reindex(columns=current_db_table_cols)
+                update_row = update_table.loc[update_table[pk] == pk_id].reindex(columns=current_db_table_cols)
+                if not np.array_equal(current_row.values, update_row.values):
+                    updated_row_pkids[pk_id] = table_label
+        return updated_row_pkids
+
+    def get_resource_ids(self, updated_row_pkids):
+        '''
+        Work back from primary key id to get back to the resource_id. should be able to use 
+        get_component_dependencies.
+        '''
+        cdg = self.sg.se.get_digraph_by_edge_type('requiresComponent')
+        for pkid, table_label in updated_row_pkids.items():
+            # Get component digraph
+            
+            paths = nx.all_simple_paths(self.mm_graph, source=table_label, target='Resource')            
+        return []
+
+    def update_date_modified(self, resource_ids):
+        return
 
     def update_db_tables(self, input_table:pd.DataFrame, validate: bool = False, full_validation: bool = False) -> List[str]: 
         """ Given an input table dataframe, that may be a denormalized view of data across multiple DB tables, 
@@ -309,6 +385,7 @@ class SQL(object):
         # update data frame
         
         updated_tables = []
+        updated_row_pkids = {}
         for table_label in target_tables:
 
             pk = self.rdb.tables[table_label]['primary_key']
@@ -336,18 +413,30 @@ class SQL(object):
                     continue
                 
                 # by default, fill in missing columns w/ None
-                update_table[missing_column] = None
+                # todo change way this is done to comply with warning
+                col_present = self.check_db_columns(table_label, missing_column)
+                if not col_present:
+                    update_table.loc[:, missing_column] = None
+            
+            # if resource is being explicitily update, update the UNIX times.
+            '''
+            if 'dateModified' in set(table_attributes):
+                update_table['dateModified'] = int(time.time())
+            '''
 
             # normalize update table
             update_table = df_utils.normalize_table(update_table, self.rdb.tables[table_label]['primary_key'])
 
+            #updated_row_pkids.update(self.get_updated_rows(table_label, update_table, pk))
             if validate:
                 pass # TODO: call json schema validator on update_table; do not generate table update statement if table doesn't match the schema
             if full_validation:
                 pass # TODO: change code logic to validate tableas and do not generate any table update statements if even a single table fails validation
-
             # get sql table replace query
             updated_tables.append(self.update_table_sa(table_label, update_table))
+
+        resource_ids = self.get_resource_ids(updated_row_pkids)
+        #self.update_date_modified(resource_ids)
         
         return updated_tables
 
@@ -370,14 +459,10 @@ class SQL(object):
 
         return table_label
 
-    def execute_and_save_query(self, sql_model, query, output_path):
-
-        output_file_path = os.path.join(output_path, query[1] + '.csv')
-
+    def run_sql_query(self, sql_model, query):
         df = pd.read_sql(query[0], self.connection)
         df = df.loc[:,~df.columns.duplicated()]
-
-        return df.to_csv(output_file_path)
+        return df
 
     def viz_sa_schema(self, output_path: str) -> str:
         """ From sqlalchemy recipes:
