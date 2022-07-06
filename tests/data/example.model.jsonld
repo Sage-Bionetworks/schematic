@@ -2185,7 +2185,7 @@
             "sms:displayName": "Family History",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "list"
+                "list strict"
             ]
         },
         {
@@ -2547,7 +2547,7 @@
             "sms:displayName": "Check List",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "list"
+                "list strict"
             ]
         },
         {
@@ -2566,7 +2566,7 @@
             "sms:displayName": "Check Regex List",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "list",
+                "list strict",
                 "regex match [a-f]"
             ]
         },
