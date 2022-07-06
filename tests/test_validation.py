@@ -11,6 +11,7 @@ from schematic.models.validate_manifest import ValidateManifest
 from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
 from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.validate_rules_utils import valid_rule_combinations
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -33,22 +34,7 @@ def metadataModel(helpers):
     yield metadataModel
 
 def get_rule_combinations():
-    complementary_rules = {
-        "int": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange',],
-        "float": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "num": ['matchAtLeastOne','matchExactlyOne','recommended','unique','inRange'],
-        "str": ['matchAtLeastOne','matchExactlyOne','recommended','unique'],
-        "list": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','unique'],
-        "regex": ['list','unique'],
-        "url": ['matchAtLeastOne','matchExactlyOne','unique'],
-        "matchAtLeastOne": ['int','float','num','str','list','url','unique'],
-        "matchExactlyOne": ['int','float','num','str','list','url','unique'],
-        "recommended": ['int','float','num','str','list','url','matchAtLeastOne','matchExactlyOne','unique'],
-        "protectAges": ['int','float','num','recommended'],
-        "unique": ['int','float','num','str','regex','matchAtLeastOne','matchExactlyOne','recommended','inRange'],
-        "inRange": ['int','float','num','unique'],
-    }
-    
+    complementary_rules = valid_rule_combinations()
     for base_rule, allowable_rules in complementary_rules.items():
         for second_rule in allowable_rules:            
             yield base_rule, second_rule
@@ -294,6 +280,9 @@ class TestManifestValidation:
         #print(base_rule,second_rule)
         rule_regex = re.compile(base_rule+'.*')
 
+        manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
+        manifest = helpers.get_data_frame(manifestPath)
+
         for attribute in sg.se.schema['@graph']: #Doing it in a loop becasue of sg.se.edit_class design
             if 'sms:validationRules' in attribute and attribute['sms:validationRules']: 
                 if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
@@ -311,17 +300,13 @@ class TestManifestValidation:
                     attribute['sms:validationRules'].append(second_rule + rule_args)
                     sg.se.edit_class(attribute)
                     break
-        
-        manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
-        manifest = helpers.get_data_frame(manifestPath)
-        rootNode = 'MockComponent'
 
         target_column=attribute['sms:displayName']
         for col in manifest.columns:
             if col not in ('Component', target_column):
                 manifest.drop(columns=col, inplace=True)
 
-
+        rootNode = 'MockComponent'
         validateManifest = ValidateManifest(
             errors = [],
             manifest = manifest,
@@ -330,15 +315,14 @@ class TestManifestValidation:
             jsonSchema = sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
         )
         
-        try: #perform validation with no exceptions raised
-            _, errors, warnings = validateManifest.validate_manifest_rules(
-                manifest = manifest, 
-                sg =  sg,
-                restrict_rules = False,
-                project_scope = None,
-                )
-        except:
-            assert False
+        #perform validation with no exceptions raised
+        _, errors, warnings = validateManifest.validate_manifest_rules(
+            manifest = manifest, 
+            sg =  sg,
+            restrict_rules = False,
+            project_scope = None,
+            )
+
 
         
         

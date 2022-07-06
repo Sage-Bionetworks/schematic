@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from jsonschema import validate
 from re import compile
 from schematic.utils.io_utils import load_json
@@ -29,10 +30,26 @@ def validate_class_schema(schema):
     return validate(schema, json_schema)
 
 def comma_separated_list_regex():
-    # Regex to match with comma separated list 
-    # Requires at least one element and a comma to be valid 
-    # Does not require a trailing comma
+    """
+    Regex to match with comma separated list 
+    Requires at least one element and a comma to be valid 
+    Does not require a trailing comma
+    """
     csv_list_regex=compile('((.+\,+)+((.+\,?)?))')
 
     return csv_list_regex
 
+def parse_str_series_to_list(col: pd.Series):
+    """
+    Parse a pandas series of comma delimited strings
+    into a series with values that are lists of strings 
+    ex. 
+        Input:  'a,b,c'
+        Output: ['a','b','c']     
+
+    """
+    col = col.apply(
+        lambda x: [s.strip() for s in str(x).split(",")]
+    )
+
+    return col
