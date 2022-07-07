@@ -392,6 +392,13 @@ class SynapseStorage(BaseStorage):
 
             return manifest_syn_id
 
+    def getDataTypeFromManifest(self, manifestId:str):
+        manifest_filepath = self.syn.get(manifestId).path
+        manifest = load_df(manifest_filepath)
+
+        return manifest
+
+
     def updateDatasetManifestFiles(self, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 

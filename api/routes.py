@@ -18,6 +18,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 import pandas as pd
 import json
+from schematic.utils.df_utils import load_df
 
 
 # def before_request(var1, var2):
@@ -318,4 +319,26 @@ def get_project_manifests(input_token, project_id, asset_view):
     lst_manifest = store.getProjectManifests(projectId=project_id)
 
     return lst_manifest
-    
+
+def get_manifest_datatype(input_token, manifest_id, asset_view):
+    # use the default asset view from config
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # get existing manifest Synapse ID
+    manifest= store.getDataTypeFromManifest(manifest_id)
+
+    # convert the DataFrame to use best possible dtypes.
+    manifest_new = manifest.convert_dtypes()
+
+    # get data types of columns
+    result = manifest_new.dtypes.to_frame('dtypes').reset_index()
+    result_dict = result.set_index('index')['dtypes'].astype(str).to_dict()
+
+
+    return result_dict
+
+
+
