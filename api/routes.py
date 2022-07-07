@@ -327,7 +327,7 @@ def get_manifest_datatype(input_token, manifest_id, asset_view):
     # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
 
-    # get existing manifest Synapse ID
+    # get existing manifest
     manifest= store.getDataTypeFromManifest(manifest_id)
 
     # convert the DataFrame to use best possible dtypes.
