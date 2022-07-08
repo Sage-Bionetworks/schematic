@@ -82,7 +82,7 @@ def validate_single_rule(validation_rules, errors, attribute, input_filetype):
             "str": {'arguments':(False, None)},
             "regex": {'arguments':(True, 2), 'fixed_arg': ['strict']},
             "url" : {'arguments':(True, None)},
-            "list": {'arguments':(False, None)},
+            "list": {'arguments':(True, 1)},
             "matchAtLeastOne": {'arguments':(True, 2)},
             "matchExactlyOne": {'arguments':(True, 2)},
             "recommended": {'arguments':(False, None)},
@@ -144,10 +144,10 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     if num_validation_rules == 2:
         # For multiple rules check that the first rule listed is 'list'
         # if not, throw an error (this is the only format currently supported).
-        if not validation_rules[0] == 'list':
+        if 'list' not in validation_rules[0]:
             errors.append(get_error(validation_rules, attribute, 
                 error_type = 'list_not_first', input_filetype=input_filetype))
-        elif (validation_rules[0] == 'list'):
+        elif ('list' in validation_rules[0]):
             second_rule = validation_rules[1].split(' ')
             second_type = second_rule[0]
             # for now we are only supporting multiple rules as 

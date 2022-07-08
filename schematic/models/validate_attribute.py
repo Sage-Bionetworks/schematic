@@ -18,6 +18,7 @@ from urllib import error
 from schematic.store.synapse import SynapseStorage
 from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.validate_utils import comma_separated_list_regex
 import time
 
 logger = logging.getLogger(__name__)
@@ -409,20 +410,31 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
         manifest_col = manifest_col.astype(str)
-        # This will capture any if an entry is not formatted properly.
-        for i, list_string in enumerate(manifest_col):
-            if "," not in list_string and bool(list_string):
-                list_error = "not_comma_delimited"
-                errors.append(
-                    GenerateError.generate_list_error(
-                        list_string,
-                        row_num=str(i + 2),
-                        attribute_name=manifest_col.name,
-                        list_error=list_error,
-                        invalid_entry=manifest_col[i]
+        csv_re = comma_separated_list_regex()
+
+        rule_parts=val_rule.lower().split(" ")
+        if len(rule_parts) > 1:
+            list_robustness=rule_parts[1]
+        else:
+            list_robustness = 'strict'
+
+
+        if list_robustness == 'strict':
+        # This will capture any if an entry is not formatted properly. Only for strict lists
+            for i, list_string in enumerate(manifest_col):
+                if not re.fullmatch(csv_re,list_string):
+                    list_error = "not_comma_delimited"
+                    errors.append(
+                        GenerateError.generate_list_error(
+                            list_string,
+                            row_num=str(i + 2),
+                            attribute_name=manifest_col.name,
+                            list_error=list_error,
+                            invalid_entry=manifest_col[i]
+                        )
                     )
-                )
-        # Convert string to list.
+
+        # Convert string to list. For 'list like' strings, just attempt casting to list of strings without validation
         manifest_col = manifest_col.apply(
             lambda x: [s.strip() for s in str(x).split(",")]
         )

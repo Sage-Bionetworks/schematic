@@ -6,7 +6,7 @@ Year of Birth,,,,,FALSE,DataProperty,,,
 Diagnosis,,"Healthy, Cancer",,,TRUE,DataProperty,,,
 Cancer,,,"Cancer Type, Family History",,FALSE,ValidValue,,,
 Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,
-Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list
+Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list strict
 Biospecimen,,,"Sample ID, Patient ID, Tissue Status, Component",,FALSE,DataType,Patient,,
 Sample ID,,,,,TRUE,DataProperty,,,
 Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,

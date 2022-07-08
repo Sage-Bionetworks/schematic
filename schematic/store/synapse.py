@@ -1009,7 +1009,9 @@ class SynapseStorage(BaseStorage):
 
         # Add filenames for the files that "survived" annotation retrieval
         filenames = [dataset_files_map[i] for i in table["entityId"]]
-        table.insert(0, "Filename", filenames)
+
+        if 'Filename' not in table.columns:
+            table.insert(0, "Filename", filenames)
 
         # Ensure that entityId and eTag are at the end
         entity_ids = table.pop("entityId")
