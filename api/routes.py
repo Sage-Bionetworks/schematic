@@ -327,18 +327,11 @@ def get_manifest_datatype(input_token, manifest_id, asset_view):
     # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
 
-    # get existing manifest
-    manifest= store.getDataTypeFromManifest(manifest_id)
-
-    # convert the DataFrame to use best possible dtypes.
-    manifest_new = manifest.convert_dtypes()
-
-    # get data types of columns
-    result = manifest_new.dtypes.to_frame('dtypes').reset_index()
-    result_dict = result.set_index('index')['dtypes'].astype(str).to_dict()
+    # get data types of an existing manifest
+    manifest_dtypes_dict= store.getDataTypeFromManifest(manifest_id)
 
 
-    return result_dict
+    return manifest_dtypes_dict
 
 
 
