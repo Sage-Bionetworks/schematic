@@ -480,7 +480,7 @@ class ValidateAttribute(object):
         warnings = []
         validation_rules=self.sg.se.get_class_validation_rules(self.sg.se.get_class_label_from_display_name(manifest_col.name))
         # Handle case where validating re's within a list.
-        if 'list' in validation_rules:
+        if 'list strict' in validation_rules or 'list like' in validation_rules:
             if type(manifest_col[0]) == str:
                 # Convert string to list.
                 manifest_col = parse_str_series_to_list(manifest_col)
