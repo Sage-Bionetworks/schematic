@@ -30,12 +30,10 @@ def validate_class_schema(schema):
     return validate(schema, json_schema)
 
 def comma_separated_list_regex():
-    """
-    Regex to match with comma separated list 
-    Requires at least one element and a comma to be valid 
-    Does not require a trailing comma
-    """
-    csv_list_regex=compile('((.+\,+)+((.+\,?)?))')
+    # Regex to match with comma separated list 
+    # Requires at least one element and a comma to be valid 
+    # Does not require a trailing comma
+    csv_list_regex=compile('([^\,]+\,)(([^\,]+\,?)*)')
 
     return csv_list_regex
 

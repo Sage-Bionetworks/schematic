@@ -77,7 +77,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "output_csv")),
 )
 @click.option(
-    "-o",
+    "-oxlsx",
     "--output_xlsx",
     help=query_dict(manifest_commands, ("manifest", "get", "output_xlsx")),
 )

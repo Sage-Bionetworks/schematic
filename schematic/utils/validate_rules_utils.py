@@ -79,7 +79,7 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
             "str": {'arguments':(False, None)},
             "regex": {'arguments':(True, 2), 'fixed_arg': ['strict']},
             "url" : {'arguments':(True, None)},
-            "list": {'arguments':(False, None)},
+            "list": {'arguments':(True, 1)},
             "matchAtLeastOne": {'arguments':(True, 2)},
             "matchExactlyOne": {'arguments':(True, 2)},
             "recommended": {'arguments':(False, None)},
