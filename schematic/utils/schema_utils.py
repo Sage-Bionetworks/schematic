@@ -11,8 +11,7 @@ def load_schema_into_networkx(schema):
     for record in schema["@graph"]:
 
         # TODO: clean up obsolete code
-        # if record["@type"] == "rdfs:Class":
-
+        
         # creation of nodes
         # adding nodes to the graph
         node = {}

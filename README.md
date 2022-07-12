@@ -229,7 +229,6 @@ pytest -vs tests/
 * Please consult the [Google Python style guide](http://google.github.io/styleguide/pyguide.html) prior to contributing code to this project.
 * Be consistent and follow existing code conventions and spirit.
 
-
 # Contributors
 
 Main contributors and developers:

@@ -2,12 +2,17 @@ import os
 import logging
 from typing import Dict, List, Tuple, Union
 from collections import OrderedDict
+import socket
 from tempfile import NamedTemporaryFile
 
 import pandas as pd
 import pygsheets as ps
 import json
 
+from schematic.db.rdb import RDB
+from schematic.db.sql import SQL
+
+from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import (
     build_credentials,
@@ -18,6 +23,9 @@ from schematic.utils.df_utils import update_df, load_df
 
 #TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
+
+from schematic.utils.io_utils import load_json
+from schematic.utils.df_utils import update_df
 from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
@@ -74,9 +82,10 @@ class ManifestGenerator(object):
                 "The `use_annotations` option is currently only supported "
                 "when there is no manifest file for the dataset in question."
             )
+        self.path_to_json_ld = path_to_json_ld
 
         # SchemaGenerator() object
-        self.sg = SchemaGenerator(path_to_json_ld)
+        self.sg = SchemaGenerator(self.path_to_json_ld)
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
@@ -86,6 +95,15 @@ class ManifestGenerator(object):
         if self.root:
             is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
         self.is_file_based = is_file_based
+
+        # Check if manifest is being used in an RDB
+        # Will want to check for central nodes with many foreign keys
+        # referencing many tables
+        self.rdb_root = False
+        if "rdb" in path_to_json_ld.split("/")[-1].split("."):
+            self.max_authority = self.sg.se.get_max_authority()
+            if self.max_authority == root:
+                self.rdb_root = True
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet"""
@@ -330,7 +348,6 @@ class ManifestGenerator(object):
         else:
             return []
 
-
     def _get_json_schema(self, json_schema_filepath: str) -> Dict:
         """Open json schema as a dictionary.
         Args:
@@ -349,10 +366,55 @@ class ManifestGenerator(object):
                 json_schema = json.load(jsonfile)
         return json_schema
 
+    def _get_required_fields_per_manifest(
+        self, primary_key: str, foreign_keys: list, json_schema: dict, prop_label_to_display_name: dict
+        ) -> list[list]:
+        """For a RDB root manifest, create a manifest per connected
+        foreign key table, that contains only attributes for the root table
+        and the foreign key. In this step gather the attributes/fields per manifest.
+
+        Args:
+            primary_key(str): primary key linked to the root node
+            foreign_keys(list): foreign keys linked to the root node
+            json_schema(dict): representing a handful of values
+                representing the data model, including: '$schema', '$id', 'title',
+                'type', 'properties', 'required'
+            prop_label_to_display_name(dict):
+                {property_label: display_name} for all property keys in
+                the json schema.
+        Returns:
+            req_fields_per_manifest(list[list]):
+                for each RDB root manifest that is generated, all the attributes/fields/cols
+                that it should contain.
+        """
+        # Gather just the attributes that we want per manifest
+        root_manifest_base_attributes = [
+            *self.rdb.tables["Resource"]["attributes"].keys()
+        ]
+        root_manifest_base_attributes.append(primary_key)
+        # Determine if component should be added to the manifest
+        if "Component" in json_schema["required"]:
+            add_component = True
+        req_fields_per_manifest = []
+        manifest_attributes = []
+        # Each of the foreign keys represents a separate table that will
+        # be linked to the root.
+        for key in foreign_keys:
+            manifest_attributes = root_manifest_base_attributes.copy()
+            manifest_attributes.append(key)
+            # Convert naming to property labels.
+            manifest_attributes = [
+                prop_label_to_display_name[attr] for attr in manifest_attributes
+            ]
+            if add_component:
+                manifest_attributes.append("Component")
+            req_fields_per_manifest.append(manifest_attributes)
+
+        return req_fields_per_manifest
+
     def _get_required_metadata_fields(self, json_schema, fields):
         """For the root node gather dependency requirements (all attributes linked to this node)
         and corresponding allowed values constraints (i.e. valid values).
-
         Args:
             json_schema(dict): representing a handful of values
                 representing the data model, including: '$schema', '$id', 'title',
@@ -447,7 +509,6 @@ class ManifestGenerator(object):
                 )
             else:
                 self.additional_metadata["Component"] = [self.root]
-
         return
 
     def _get_additional_metadata(self, required_metadata_fields: dict) -> dict:
@@ -833,7 +894,6 @@ class ManifestGenerator(object):
                 to add to the column header, about using multiselect.
                 This notes body will be added to a request.
         """            
-       
         if "list" in validation_rules and valid_values:
             note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
             notes_body = {
@@ -852,6 +912,7 @@ class ManifestGenerator(object):
                 ]
             }
             return notes_body["requests"]
+        
         elif "list" in validation_rules and not valid_values:
             note = "Please enter values as a comma separated list. For example: XX, YY, ZZ"
             notes_body = {
@@ -981,7 +1042,6 @@ class ManifestGenerator(object):
         """If there are additional attribute dependencies find the corresponding
         fields that need to be filled in and construct conditional formatting rules
         indicating the dependencies need to be filled in.
-
         set target ranges for this rule
         i.e. dependency attribute columns that will be formatted
 
@@ -1235,6 +1295,30 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
+
+    def _get_rdb_root_keys(self) -> list[str]:
+        """Get all foreign keys related to the root manifest.
+        Used only for relational databases.
+
+        Args:
+            None
+        Return:
+            primary_key(str): primary key for the root
+            foreign_keys List, of foreign keys (str)
+        """
+        # get foreign keys based on db schema graph
+        self.rdb = RDB(self.path_to_json_ld)
+
+        primary_key = self.sg.se.get_property_label_from_display_name(self.max_authority +'_id')
+
+        # Gather Foreign Key Ids so we know what values to keep per sheet.
+        foreign_keys = self.rdb.get_table_foreign_keys(
+            self.max_authority, table_prefix=False
+        )
+        foreign_keys.extend(self.rdb.get_additional_foreign_keys(self.max_authority))
+        
+        return primary_key, foreign_keys
+
     def get_empty_manifest(self, json_schema_filepath=None):
         """Create an empty manifest using specifications from the
         json schema.
@@ -1243,6 +1327,12 @@ class ManifestGenerator(object):
         Returns:
             manifest_url (str): url of the google sheet manifest.
         """
+        # Check if creating an empty manifest for the root node of
+        # a relational database. If so, construct them a different way.
+        if self.rdb_root:
+            manifest_urls = self.generate_empty_root_manifests()
+            return manifest_urls
+
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
         json_schema = self._get_json_schema(json_schema_filepath)
 
@@ -1255,6 +1345,54 @@ class ManifestGenerator(object):
         )
         return manifest_url
 
+
+    def generate_empty_root_manifests(self, json_schema_filepath=None):
+        """In the case of a RDB, when using FK/PKs and having nested dependecies
+        want to only pull relevant columns for the root directory.
+        Make a manifest for each table that is connected through a foreign key,
+        user feedback states this is an easier way to work with the data. Doing it
+        this way will also get through the issue of having many 'required'
+        foreign keys per row, which cannot possibly be supplied.
+
+        Keeping separate from get_empty_manifest since it would
+        require too many if statements to be easily readable.
+
+        Args:
+            json_schema_filepath (str): path to json schema file
+        Returns:
+            manifest_urls (list[str]):
+                list of individual manifest_url's.
+                Each of whom link to a gs manifest.
+        """
+        json_schema = self._get_json_schema(json_schema_filepath)
+        primary_key, foreign_keys = self._get_rdb_root_keys()
+        spreadsheet_ids = [
+            self._create_empty_manifest_spreadsheet(self.title) for i in foreign_keys
+        ]
+        prop_label_to_display_name = self.sg.se.property_label_to_display_dict(
+            json_schema["properties"].keys()
+        )
+        # Determine the fields/attributes to include per manifest
+        req_fields_per_manifest = self._get_required_fields_per_manifest(primary_key,
+            foreign_keys, json_schema, prop_label_to_display_name
+        )
+        # Gather all data for generating each manifest
+        required_metadata_fields_per_manifest = []
+        for fields in req_fields_per_manifest:
+            required_metadata_fields = self._gather_all_fields(fields, json_schema)
+            required_metadata_fields_per_manifest.append(required_metadata_fields)
+
+        # Create each manifest
+        manifest_urls = []
+        for ind, required_metadata_fields in enumerate(
+            required_metadata_fields_per_manifest
+        ):
+            manifest_urls.append(
+                self._create_empty_gs(
+                    required_metadata_fields, json_schema, spreadsheet_ids[ind]
+                )
+            )
+        return manifest_urls
 
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame
@@ -1326,6 +1464,7 @@ class ManifestGenerator(object):
             end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
        
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
+
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -1408,6 +1547,7 @@ class ManifestGenerator(object):
 
         # Generate empty manifest using `additional_metadata`
         manifest_url = self.get_empty_manifest()
+
         manifest_df = self.get_dataframe_by_url(manifest_url)
 
         # Annotations clashing with manifest attributes are skipped
@@ -1436,7 +1576,7 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
-        
+
         # Handle case when no dataset ID is provided
         if not dataset_id:
             return self.get_empty_manifest(json_schema_filepath=json_schema)

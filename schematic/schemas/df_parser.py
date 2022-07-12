@@ -266,7 +266,6 @@ def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
             "'DependsOn Component', respectively. Switch to the new column names."
         )
 
-
 def create_nx_schema_objects(
     schema_extension: pd.DataFrame, se: SchemaExplorer
 ) -> SchemaExplorer:
@@ -526,7 +525,6 @@ def create_nx_schema_objects(
                             validation_rules, 
                             attribute["Attribute"],
                             input_filetype = 'csv_schema')
-
 
             # update validation rules of attribute
             # if attribute is not a property, then assume it is a class

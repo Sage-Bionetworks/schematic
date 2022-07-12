@@ -1,0 +1,5 @@
+Patient_id,Biospecimen_id,Sex,Year of Birth,Diagnosis,Tissue Status,Cancer Type,Family History
+p1,b1,Female,,Healthy,Healthy,,
+p2,b2,Male,1976,Cancer,Malignant,Colorectal,Colorectal
+p3,b4,Other,NA,Healthy,Healthy,,
+,,,,Healthy,,,

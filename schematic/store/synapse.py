@@ -29,6 +29,7 @@ from synapseclient import (
 )
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
+from synapseclient import File, Folder, Table, Schema
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
 import synapseutils
@@ -582,7 +583,6 @@ class SynapseStorage(BaseStorage):
 
         results = self.syn.tableQuery("SELECT * FROM {}".format(synapse_id))
         df = results.asDataFrame(rowIdAndVersionInIndex=False)
-
         return df, results
 
     def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
@@ -1138,6 +1138,7 @@ class SynapseStorage(BaseStorage):
                 table = Table(schema, table_to_load)
                 table_id = self.syn.store(table)
                 return table.schema.id
+
             else:
                 # For just uploading the tables to synapse using default
                 # column types.
@@ -1145,6 +1146,39 @@ class SynapseStorage(BaseStorage):
                 table = self.syn.store(table)
                 return table.schema.id
 
+    
+    def remake_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, column_type_dictionary = {}, specify_schema=True):
+        '''Delete rows in a table and remake if necessary'''
+        results = self.syn.tableQuery(f"SELECT * FROM {existingTableId}")
+        self.syn.delete(results)
+        datasetParentProject = self.getDatasetProject(dataset_id)
+        if specify_schema:
+            #create list of columns:
+            cols = []
+            for col in table_to_load.columns:
+                if col in column_type_dictionary:
+                    col_type = column_type_dictionary[col]['column_type']
+                    max_size = column_type_dictionary[col]['maximum_size']
+                    max_list_len = column_type_dictionary[col]['maximum_list_length']
+                    if max_size and max_list_len:
+                        cols.append(Column(name=col, columnType=col_type, 
+                            maximumSize=max_size, maximumListLength=max_list_len))
+                    elif max_size:
+                        cols.append(Column(name=col, columnType=col_type, 
+                            maximumSize=max_size))
+                    else:
+                        cols.append(Column(name=col, columnType=col_type))
+                else:
+                    cols.append(Column(name=col, columnType='STRING', maximumSize=500))
+            schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
+            table = Table(schema, table_to_load)
+            table = self.syn.store(Table(existingTableId, table_to_load))
+        else:
+            # For just uploading the tables to synapse using default
+            # column types.
+            table = build_table(table_name, datasetParentProject, table_to_load)
+            table = self.syn.store(table)
+        return
 
 class DatasetFileView:
     """Helper class to create temporary dataset file views.
@@ -1288,3 +1322,5 @@ class DatasetFileView:
             to_int_fn = lambda x: "" if np.isnan(x) else str(int(x))
             self.table[col] = self.table[col].apply(to_int_fn)
         return self.table
+
+

@@ -221,7 +221,6 @@ class SchemaGenerator(object):
                 dependencies_display_names.append(mm_graph.nodes[req]["displayName"])
 
             return dependencies_display_names
-
         return required_dependencies
 
     def get_node_range(self, node_label: str, display_names: bool = True) -> List[str]:
@@ -252,7 +251,6 @@ class SchemaGenerator(object):
                 dependencies_display_names.append(mm_graph.nodes[req]["displayName"])
 
             return dependencies_display_names
-
         return required_range
 
     def get_node_label(self, node_display_name: str) -> str:
@@ -317,8 +315,10 @@ class SchemaGenerator(object):
             return []
 
         mm_graph = self.se.get_nx_schema()
-        node_validation_rules = mm_graph.nodes[node_label]["validationRules"]
-
+        try:
+            node_validation_rules = mm_graph.nodes[node_label]["validationRules"]
+        except:
+            breakpoint()
         return node_validation_rules
 
     def is_node_required(self, node_display_name: str) -> bool:
@@ -336,8 +336,10 @@ class SchemaGenerator(object):
         node_label = self.get_node_label(node_display_name)
 
         mm_graph = self.se.get_nx_schema()
-        node_required = mm_graph.nodes[node_label]["required"]
-
+        try:
+            node_required = mm_graph.nodes[node_label]["required"]
+        except:
+            breakpoint()
         return node_required
 
     def get_nodes_display_names(
@@ -540,7 +542,6 @@ class SchemaGenerator(object):
                                 schema_valid_vals = self.get_array_schema(
                                     node_range_d, node_display_name, blank=True
                                 )
-
                     else:
                         # otherwise, by default allow any values
                         schema_valid_vals = {node_display_name: {}}

@@ -10,6 +10,7 @@ import networkx as nx
 
 from rdflib import Graph, Namespace, plugin, query
 from networkx.algorithms.cycles import find_cycle
+from networkx.algorithms.link_analysis.hits_alg import hits_numpy
 from networkx.readwrite import json_graph
 
 from schematic.utils.curie_utils import (
@@ -62,6 +63,12 @@ class SchemaExplorer:
 
     def get_nx_schema(self):
         return self.schema_nx
+
+    def get_max_authority(self):
+        cdg = self.get_digraph_by_edge_type('requiresComponent')
+        hubs, authority = hits_numpy(cdg)
+        max_authority = max(authority, key=authority.get)
+        return max_authority
 
     def get_edges_by_relationship(
         self, class_label: str, relationship: str
@@ -293,8 +300,7 @@ class SchemaExplorer:
                     else:
                         content.append(
                             [_property, property_info["description"], record["class"]]
-                        )
-
+                        )  
             # TODO: Log content
 
     def find_class_usages(self, schema_class):
@@ -423,7 +429,6 @@ class SchemaExplorer:
             class_info["displayName"] = self.schema_nx.nodes[schema_class][
                 "displayName"
             ]
-
         return class_info
 
     def get_class_validation_rules(self,class_label):
@@ -434,6 +439,14 @@ class SchemaExplorer:
             rules=class_info['validation_rules']
 
         return rules
+
+    def property_label_to_display_dict(self, display_names):
+        property_label_dict = {}
+        for display_name in display_names:
+            name = display_name.translate({ord(c): None for c in string.whitespace})
+            label = inflection.camelize(name.strip(), uppercase_first_letter=False)
+            property_label_dict[label] = display_name
+        return property_label_dict
 
     def get_property_label_from_display_name(self, display_name, strict_camel_case = False):
         """Convert a given display name string into a proper property label string"""
@@ -540,7 +553,6 @@ class SchemaExplorer:
                     break
 
         # check if properties are added multiple times
-
         return property_info
 
     def generate_class_template(self):
