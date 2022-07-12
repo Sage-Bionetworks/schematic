@@ -1296,7 +1296,7 @@ class ManifestGenerator(object):
         return required_metadata_fields
 
 
-    def _get_rdb_root_keys(self) -> list[str]:
+    def _get_rdb_root_keys(self) -> list:
         """Get all foreign keys related to the root manifest.
         Used only for relational databases.
 
