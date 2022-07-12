@@ -119,6 +119,7 @@ class MetadataModel(object):
         filenames: list = None,
         useAnnotations: bool = False,
         sheetUrl: bool = True,
+        alphabetizeValidValues: bool = True,
     ) -> str:
         """Gets data from the annotations manifest file.
 
@@ -144,6 +145,7 @@ class MetadataModel(object):
             root=rootNode,
             additional_metadata=additionalMetadata,
             use_annotations=useAnnotations,
+            alphabetize_valid_values=alphabetizeValidValues,
         )
 
         if datasetId:
