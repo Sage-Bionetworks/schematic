@@ -368,7 +368,7 @@ class ManifestGenerator(object):
 
     def _get_required_fields_per_manifest(
         self, primary_key: str, foreign_keys: list, json_schema: dict, prop_label_to_display_name: dict
-        ) -> list[list]:
+        ) -> list:
         """For a RDB root manifest, create a manifest per connected
         foreign key table, that contains only attributes for the root table
         and the foreign key. In this step gather the attributes/fields per manifest.
