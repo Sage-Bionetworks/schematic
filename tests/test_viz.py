@@ -36,6 +36,7 @@ def tangled_tree(helpers):
 class TestVisualization:
     def test_ae(self, helpers, attributes_explorer):
         attributes_str = attributes_explorer.parse_attributes(save_file=False)
+        
         df = pd.read_csv(StringIO(attributes_str)).drop(columns=['Unnamed: 0'])
 
         # For the attributes df define expected columns
