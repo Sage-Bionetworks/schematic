@@ -1,7 +1,6 @@
 from io import StringIO
 import json
 import logging
-import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import os
@@ -26,8 +25,6 @@ from schematic.utils.io_utils import load_json
 logger = logging.getLogger(__name__)
 #OUTPUT_DATA_DIR = str(Path('tests/data/visualization/AMPAD').resolve())
 #DATA_DIR = str(Path('tests/data').resolve())
-
-# TODO: RENAME SOME VARIABLES: the whole component layers copy copy madness
 
 class TangledTree(object):
     """
@@ -452,9 +449,8 @@ class TangledTree(object):
                 represents initial layering of toplogical_gen
             base_layers_copy_copy: dict, key: component name, value: layer
                 represents the final layering after moving the components/attributes to
-                their desired layer.
+                their desired layer.c
         '''
-
         # Convert topological_gen to a dictionary
         base_layers = {com:i for i, lev in enumerate(topological_gen)
                                 for com in lev}
@@ -480,7 +476,7 @@ class TangledTree(object):
                         
                         # Get the max layer a parent of the node can be found.
                         max_parent_level = max(parent_levels)
-                        
+
                         # Move the node one layer beyond the max parent node position, so it will be downstream of its parents.
                         base_layers_copy[node] = max_parent_level + 1
         
@@ -510,7 +506,7 @@ class TangledTree(object):
                         if (par in source_nodes and 
                             (parent_levels.count(parent_levels[0]) != len(parent_levels))
                             and par != cn):
-                            
+
                             # If so, remove its position from parent_levels
                             parent_levels.remove(base_layers_copy[par])
                             
@@ -548,7 +544,7 @@ class TangledTree(object):
                 
                 # Check if node is not already in the proper layer
                 if node not in topological_gen[i]:
-                    
+
                     # If not put it in the appropriate layer
                     topological_gen[i].append(node)
                     
@@ -561,7 +557,7 @@ class TangledTree(object):
                 # Check if the location of the node is more than the number of 
                 # layers topological gen current handles
                 if i > len(topological_gen) - 1:
-                    
+
                     # If so, add node to new node at the end of topological_gen
                     topological_gen.append([node])
                     
@@ -570,7 +566,7 @@ class TangledTree(object):
                 
                 # Else, check if node is not already in the proper layer
                 elif node not in topological_gen[i]:
-                    
+
                     # If not put it in the appropriate layer
                     topological_gen[i].append(node)
                     
@@ -674,10 +670,9 @@ class TangledTree(object):
             with open(os.path.join(self.json_output_path, output_file_name), 'w') as outfile:
                 outfile.write(layers_json)
             logger.info(f"Tangled Tree JSON String saved to {os.path.join(self.json_output_path, output_file_name)}.")
-
+            all_layers = layers_json
         elif save_file == False:
             all_layers.append(layers_json)
-
         return all_layers
 
     def get_tangled_tree_layers(self, save_file=True):
@@ -739,7 +734,7 @@ class TangledTree(object):
 
                 # Remake topological_gen so it has only relevant nodes.
                 pruned_topological_gen = self.prune_expand_topological_gen(topological_gen, all_attributes, conditional_attributes)
-                
+
                 # Get the layers that each node belongs to.
                 layers_json = self.get_node_layers_json(pruned_topological_gen, source_nodes, child_parents, parent_children, cn)
 
