@@ -34,7 +34,6 @@ class RDB(object):
         Returns:
             None
         """
-
         self.path_to_json_ld = path_to_json_ld
         self.schema_name = path.basename(self.path_to_json_ld).split(".rdb.model.jsonld")[0]
 
@@ -109,7 +108,7 @@ class RDB(object):
             # for now assume all attributes are string; abstract a get_table method
 
             attributes = {}
-            primary_key = self.sg.se.get_property_label_from_display_name(table_label+'_id')
+            primary_key = self.sg.se.get_property_label_from_display_name(table_label+'_id', strict_camel_case = True)
 
             # get foreign keys based on db schema graph 
             foreign_keys = self.get_table_foreign_keys(table_label)
@@ -174,9 +173,9 @@ class RDB(object):
         connected_tables = self.db_schema_graph.neighbors(table_label)
 
         if table_prefix:
-            foreign_keys = [ct + "." + self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
+            foreign_keys = [ct + "." + self.sg.se.get_property_label_from_display_name(ct + '_id', strict_camel_case = True) for ct in connected_tables]
         else:
-            foreign_keys = [self.sg.se.get_property_label_from_display_name(ct + '_id') for ct in connected_tables]
+            foreign_keys = [self.sg.se.get_property_label_from_display_name(ct + '_id', strict_camel_case = True) for ct in connected_tables]
          
         return foreign_keys
 
@@ -219,7 +218,7 @@ class RDB(object):
         Returns:
             A dictionary of schema property labels corresponding to attributes
         """
-        attr_pl = {attr:self.sg.se.get_property_label_from_display_name(attr) for attr in attributes}
+        attr_pl = {attr:self.sg.se.get_property_label_from_display_name(attr, strict_camel_case = True) for attr in attributes}
 
         return attr_pl
 
