@@ -168,3 +168,7 @@ great_expectations/expectations/Manifest_test_suite.json
 
 tests/data/example.MockComponent.schema.json
 tests/data/mock_manifests/Invalid_Test_Manifest_censored.csv
+
+# RDB
+scripts/test_notebook.ipynb
+schematic_sql_outputs
