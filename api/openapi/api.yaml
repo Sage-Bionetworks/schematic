@@ -378,7 +378,7 @@ paths:
             type: string
             nullable: false
           description: Manifest ID
-          example: syn23643253
+          example: syn27600110
           required: true
       responses:
         "200":
