@@ -6,16 +6,16 @@ Once the code has been merged into the `develop` branch on this repo, there are 
 - You should push the package to [PyPI](https://pypi.org/). Schematic is on PyPI as [schematicpy](https://pypi.org/project/schematicpy/). You can go through the following two sections for that.
 
 ## Steps 
-- Step 1: Merge the `develop` branch into main branch: 
-    - Checkout the develop branch: `git checkout develop` and pull the latest version by doing: `git pull`
-    - Checkout the main branch `git checkout main`
-    - Merge develop to main: `git merge origin develop`
+- Step 1: Open a pull request to merge the `main` branch to the `develop` branch: 
+    - Click on the "Pull Request" tab on Github
+    - Click on the green button "New pull request"
+    - Select `main` as "base" and `develop` as "compare"
     - Resolve conflicts
 
 - Step 2: Create a tag
 `git tag <tag version> -m '<message>'`
 
-- Step 3: Push the tag to main
+- Step 3: Push the tag to main branch (this step assumes that you have checked out the main branch locally)
 `git push origin <tag version>`
 
 This should trigger the PYPI release workflow and release a new version of schematic to PYPI. You could check by cliking on the GitHub action log and login to your PYPI account (and select project `schematicpy`. Please note that you have to obtain access to `schematicpy` to be able to see it.)
