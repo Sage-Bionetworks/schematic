@@ -263,4 +263,4 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
     # Get tangled trees layers JSON.
     layers = tangled_tree.get_tangled_tree_layers(save_file=False)
 
-    return layers
+    return layers[0]
