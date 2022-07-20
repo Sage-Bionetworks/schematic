@@ -38,6 +38,7 @@ import uuid
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.validate_utils import comma_separated_list_regex
 from schematic.schemas.explorer import SchemaExplorer
+from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
@@ -392,7 +393,7 @@ class SynapseStorage(BaseStorage):
 
             return manifest_syn_id
 
-    def updateDatasetManifestFiles(self, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
+    def updateDatasetManifestFiles(self, sg: SchemaGenerator, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 
         Args:
@@ -445,7 +446,7 @@ class SynapseStorage(BaseStorage):
                 manifest.to_csv(manifest_filepath, index=False)
 
                 # store manifest and update associated metadata with manifest on Synapse
-                manifest_id = self.associateMetadataWithFiles(manifest_filepath, datasetId)
+                manifest_id = self.associateMetadataWithFiles(sg, manifest_filepath, datasetId)
 
         manifest = manifest.fillna("") 
         
@@ -641,7 +642,7 @@ class SynapseStorage(BaseStorage):
         
         return manifest_synapse_file_id
 
-    def format_row_annotations(self, se, row, entityId, useSchemaLabel, hideBlanks):
+    def format_row_annotations(self, se, sg, row, entityId, useSchemaLabel, hideBlanks):
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
@@ -669,7 +670,7 @@ class SynapseStorage(BaseStorage):
                 v = v[0:472] + "[truncatedByDataCuratorApp]"
 
             metadataSyn[keySyn] = v
-
+        
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
         csv_list_regex=comma_separated_list_regex()
@@ -681,7 +682,7 @@ class SynapseStorage(BaseStorage):
                     annos.pop(anno_k) if anno_k in annos.keys() else annos
                 else:
                     annos[anno_k] = ""
-            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and 'list' in se.get_class_validation_rules(anno_k):
+            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and 'list' in sg.get_node_validation_rules(anno_k):
                 annos[anno_k] = anno_v.split(",")
             else:
                 annos[anno_k] = anno_v
@@ -733,7 +734,7 @@ class SynapseStorage(BaseStorage):
         return annos
 
     def associateMetadataWithFiles(
-        self, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
+        self, schemaGenerator: SchemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
         useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
@@ -840,7 +841,7 @@ class SynapseStorage(BaseStorage):
             # Adding annotations to connected files.
             if entityId:
                 # Format annotations for Synapse
-                annos = self.format_row_annotations(se, row, entityId, useSchemaLabel, hideBlanks)
+                annos = self.format_row_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
 
                 # Store annotations for an entity folder
                 self.syn.set_annotations(annos)
