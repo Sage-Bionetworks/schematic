@@ -642,7 +642,7 @@ class SynapseStorage(BaseStorage):
         
         return manifest_synapse_file_id
 
-    def format_row_annotations(self, se, row, entityId, useSchemaLabel, hideBlanks):
+    def format_row_annotations(self, se, sg, row, entityId, useSchemaLabel, hideBlanks):
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
@@ -672,7 +672,7 @@ class SynapseStorage(BaseStorage):
             metadataSyn[keySyn] = v
 
         # Get networkx schema
-        g = sg.se.get_nx_schema()
+        #g = sg.se.get_nx_schema()
         
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
@@ -737,7 +737,7 @@ class SynapseStorage(BaseStorage):
         return annos
 
     def associateMetadataWithFiles(
-        self, sg, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
+        self, schemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
         useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
@@ -844,7 +844,7 @@ class SynapseStorage(BaseStorage):
             # Adding annotations to connected files.
             if entityId:
                 # Format annotations for Synapse
-                annos = self.format_row_annotations(se, sg, row, entityId, useSchemaLabel, hideBlanks)
+                annos = self.format_row_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
 
                 # Store annotations for an entity folder
                 self.syn.set_annotations(annos)
