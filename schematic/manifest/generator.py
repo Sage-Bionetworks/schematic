@@ -1450,7 +1450,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
-        manifest_record = store.updateDatasetManifestFiles(datasetId = dataset_id, store = False)
+        manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
        
         # Populate empty template with existing manifest
         if manifest_record:
