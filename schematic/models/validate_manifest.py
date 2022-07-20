@@ -201,7 +201,6 @@ class ValidateManifest(object):
 
                 # Check for multiple validation types,
                 # If there are multiple types, validate them.
-                breakpoint()
                 if len(validation_rules) == 2:
                     # For multiple rules check that the first rule listed is 'list'
                     # if not, throw an error (this is the only format currently supported).
