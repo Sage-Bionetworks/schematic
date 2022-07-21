@@ -11,6 +11,7 @@ Once the code has been merged into the `develop` branch on this repo, there are 
     - Click on the green button "New pull request"
     - Select `main` as "base" and `develop` as "compare"
     - Resolve conflicts
+    - Link all PRs and/or issues that are included in the release (example [here](https://github.com/Sage-Bionetworks/data_curator/pull/357))
 
 - Step 2: Create a tag
 `git tag <tag version> -m '<message>'`
