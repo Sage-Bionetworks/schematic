@@ -393,6 +393,29 @@ class SynapseStorage(BaseStorage):
 
             return manifest_syn_id
 
+    def getDataTypeFromManifest(self, manifestId:str):
+        """Fetch a manifest and return data types of all columns
+        Args: 
+            manifestId: synapse ID of a manifest
+        """
+        # get manifest file path 
+        manifest_filepath = self.syn.get(manifestId).path
+
+        # load manifest dataframe 
+        manifest = load_df(manifest_filepath, preserve_raw_input=False, data_model=False)
+
+        # convert the dataFrame to use best possible dtypes.
+        manifest_new = manifest.convert_dtypes()
+
+        # get data types of columns
+        result = manifest_new.dtypes.to_frame('dtypes').reset_index()
+
+        # return the result as a dictionary 
+        result_dict = result.set_index('index')['dtypes'].astype(str).to_dict()
+
+
+        return result_dict
+
     def updateDatasetManifestFiles(self, sg: SchemaGenerator, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 

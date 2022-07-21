@@ -29,7 +29,10 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
 
     else:
         float_df=deepcopy(org_df)
-        #Find integers stored as strings 
+        #Find integers stored as strings
+        #Cast the columns in dataframe to string while preserving NaN
+        null_cells = org_df.isnull() 
+        org_df = org_df.astype(str).mask(null_cells, np.NaN)
         ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
