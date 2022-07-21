@@ -113,6 +113,7 @@ def submit_manifest(
 
     try:
         manifest_id = metadata_model.submit_metadata_manifest(
+            path_to_json_ld = jsonld,
             manifest_path=manifest_path,
             dataset_id=dataset_id,
             validate_component=validate_component,
@@ -190,6 +191,15 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     Running CLI for manifest validation.
     """
     data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
+    
+    try:
+        len(data_type) == 1
+    except:
+        logger.error(
+            f"Can only validate a single data_type at a time. Please provide a single data_type"
+        )
+
+    data_type = data_type[0]
 
     json_schema = fill_in_from_config(
         "json_schema",

@@ -255,9 +255,9 @@ class ManifestGenerator(object):
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
         
         if self.alphabetize and self.alphabetize.lower().startswith('a'):
-            values.sort(reverse=False)
+            values.sort(reverse=False, key=str.lower)
         elif self.alphabetize and self.alphabetize.lower().startswith('d'):
-            values.sort(reverse=True)
+            values.sort(reverse=True, key=str.lower)
         
 
         if validation_type == "ONE_OF_RANGE":
@@ -1450,7 +1450,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
-        manifest_record = store.updateDatasetManifestFiles(datasetId = dataset_id, store = False)
+        manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
        
         # Populate empty template with existing manifest
         if manifest_record:

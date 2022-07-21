@@ -6,7 +6,7 @@ Year of Birth,,,,,FALSE,DataProperty,,,
 Diagnosis,,"Healthy, Cancer",,,TRUE,DataProperty,,,
 Cancer,,,"Cancer Type, Family History",,FALSE,ValidValue,,,
 Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,
-Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list
+Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list strict
 Biospecimen,,,"Sample ID, Patient ID, Tissue Status, Component",,FALSE,DataType,Patient,,
 Sample ID,,,,,TRUE,DataProperty,,,
 Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,
@@ -18,7 +18,7 @@ CRAM,,,"Genome Build, Genome FASTA",,FALSE,ValidValue,,,
 CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
 Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
-MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match Exactly, Check Recommended, Check Ages, Check Unique, Check Range",,FALSE,DataType,,,
+MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Recommended, Check Ages, Check Unique, Check Range",,FALSE,DataType,,,
 Check List,,,,,FALSE,DataProperty,,,list
 Check Regex List,,,,,FALSE,DataProperty,,,list::regex match [a-f]
 Check Regex Single,,,,,FALSE,DataProperty,,,regex search [a-f]
@@ -27,8 +27,10 @@ Check Float,,,,,FALSE,DataProperty,,,float
 Check Int,,,,,FALSE,DataProperty,,,int
 Check String,,,,,FALSE,DataProperty,,,str
 Check URL,,,,,FALSE,DataProperty,,,url
-Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeast Patient.PatientID 
-Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly MockComponent.checkMatchExactly 
+Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne Patient.PatientID set
+Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set
+Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value
+Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues value
 Check Recommended,,,,,FALSE,DataProperty,,,recommended
 Check Ages,,,,,FALSE,DataProperty,,,protectAges
 Check Unique,,,,,FALSE,DataProperty,,,unique error

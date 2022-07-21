@@ -200,7 +200,7 @@ def submit_manifest_route(schema_url, manifest_record_type=None):
         validate_component = data_type
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
+        path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
 
     return manifest_id
 

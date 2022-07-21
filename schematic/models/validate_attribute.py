@@ -18,6 +18,7 @@ from urllib import error
 from schematic.store.synapse import SynapseStorage
 from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.validate_utils import comma_separated_list_regex
 import time
 
 logger = logging.getLogger(__name__)
@@ -167,12 +168,12 @@ class GenerateError:
             error_val = f"URL Error: Random Entry"
         return [error_row, error_col, error_message, error_val]
 
-    def generate_cross_error(
+    def generate_cross_warning(
         val_rule: str,
         attribute_name: str,
         matching_manifests = [],
         missing_manifest_ID = None,
-        missing_entry = None,
+        invalid_entry = None,
         row_num = None,
     ) -> List[str]:
         """
@@ -184,34 +185,38 @@ class GenerateError:
                 matching_manifests: list of manifests with all values in the target attribute present
                 manifest_ID: str, synID of the target manifest missing the source value
                 attribute_name: str, attribute being validated
-                missing_entry: str, value present in source manifest that is missing in the target
+                invalid_entry: str, value present in source manifest that is missing in the target
                 row_num: row in source manifest with value missing in target manifests             
             Returns:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
-        attribute_name=attribute_name.lower()
+        
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
-                f"Manifest {missing_manifest_ID} does not contain the value {missing_entry} "
-                f"from row {row_num} of the attribute {attribute_name} in the source manifest."
-            )
+                f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing." )
+            cross_error_str += f" Manifest(s) {missing_manifest_ID} are missing the value(s)." if missing_manifest_ID else ""
+            
         elif val_rule.__contains__('matchExactly'):
             if matching_manifests != []:
                 cross_error_str = (
-                    f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1. "
-                    f"Manifests {matching_manifests} match the values in the source attribute."
-                )
-            else:
+                    f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1.")
+                cross_error_str += f" Manifests {matching_manifests} match the values in the source attribute." if matching_manifests else ""
+                    
+            elif val_rule.__contains__('set'):
                 cross_error_str = (
                     f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
                 )
+            elif val_rule.__contains__('value'):
+                cross_error_str = (
+                    f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. " 
+                )            
 
-        logging.error(cross_error_str)
+        logging.warning(cross_error_str)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = cross_error_str
-        error_val = missing_entry #Value from source manifest missing from targets
+        error_val = invalid_entry #Value from source manifest missing from targets
         
         return [error_row, error_col, error_message, error_val]
 
@@ -405,20 +410,31 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
         manifest_col = manifest_col.astype(str)
-        # This will capture any if an entry is not formatted properly.
-        for i, list_string in enumerate(manifest_col):
-            if "," not in list_string and bool(list_string):
-                list_error = "not_comma_delimited"
-                errors.append(
-                    GenerateError.generate_list_error(
-                        list_string,
-                        row_num=str(i + 2),
-                        attribute_name=manifest_col.name,
-                        list_error=list_error,
-                        invalid_entry=manifest_col[i]
+        csv_re = comma_separated_list_regex()
+
+        rule_parts=val_rule.lower().split(" ")
+        if len(rule_parts) > 1:
+            list_robustness=rule_parts[1]
+        else:
+            list_robustness = 'strict'
+
+
+        if list_robustness == 'strict':
+        # This will capture any if an entry is not formatted properly. Only for strict lists
+            for i, list_string in enumerate(manifest_col):
+                if not re.fullmatch(csv_re,list_string):
+                    list_error = "not_comma_delimited"
+                    errors.append(
+                        GenerateError.generate_list_error(
+                            list_string,
+                            row_num=str(i + 2),
+                            attribute_name=manifest_col.name,
+                            list_error=list_error,
+                            invalid_entry=manifest_col[i]
+                        )
                     )
-                )
-        # Convert string to list.
+
+        # Convert string to list. For 'list like' strings, just attempt casting to list of strings without validation
         manifest_col = manifest_col.apply(
             lambda x: [s.strip() for s in str(x).split(",")]
         )
@@ -661,11 +677,14 @@ class ValidateAttribute(object):
         missing_values = {}
         missing_manifest_log={}
         present_manifest_log=[]
-
+        target_column = pd.Series(dtype=object)
         #parse sources and targets
-        [source_component, source_attribute] = val_rule.lower().split(" ")[1].split(".")
-        [target_component, target_attribute] = val_rule.lower().split(" ")[2].split(".")
+        source_attribute=manifest_col.name
+        [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
+        scope=val_rule.lower().split(" ")[2]
+        target_column.name=target_attribute
 
+        
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
 
@@ -682,41 +701,96 @@ class ValidateAttribute(object):
             for name in target_manifest.columns:
                 column_names[name.replace(" ","").lower()]=name
 
-            #If the manifest has the target attribute for the component do the cross validation
-            if target_attribute.lower() in column_names:
-                target_column = target_manifest[column_names[target_attribute.lower()]]
+            if scope.__contains__('set'):
+                #If the manifest has the target attribute for the component do the cross validation
+                if target_attribute in column_names:                    
+                    target_column = target_manifest[column_names[target_attribute]]
 
-                #Do the validation on both columns
-                missing_values = manifest_col[~manifest_col.isin(target_column)]
-                if missing_values.empty:
-                    present_manifest_log.append(target_manifest_ID)
-                else:
-                    missing_manifest_log[target_manifest_ID] = missing_values
+                    #Do the validation on both columns
+                    missing_values = manifest_col[~manifest_col.isin(target_column)]
 
-        #generate errors if necessary
-        if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:      
-            for missing_ID in missing_manifest_log:      
-                missing_dict=missing_manifest_log[missing_ID]
-                for row, value in zip (missing_dict.keys(),missing_dict): 
-                    row = row +2 
-                    errors.append(
-                        GenerateError.generate_cross_error(
-                            val_rule = val_rule,
-                            row_num = str(row),
-                            attribute_name = source_attribute,
-                            missing_entry = str(value),
-                            missing_manifest_ID = missing_ID,
-                        )
-                    )
-        elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
-            errors.append(
-                GenerateError.generate_cross_error(
-                    val_rule = val_rule,
-                    attribute_name = source_attribute,
-                    matching_manifests = present_manifest_log,
-                )
-            )
+                    if missing_values.empty:
+                        present_manifest_log.append(target_manifest_ID)
+                    else:
+                        missing_manifest_log[target_manifest_ID] = missing_values
+
+            elif scope.__contains__('value'):
+                if target_attribute in column_names:
+                    target_manifest.rename(columns={column_names[target_attribute]: target_attribute}, inplace=True)
+                    
+                    target_column = pd.concat(
+                        objs = [target_column, target_manifest[target_attribute]],
+                        join = 'outer',
+                        ignore_index= True,
+                    )                
+                    target_column = target_column.astype('object')
+                    #print(target_column)
+                    
+        
+        
+        missing_rows=[]
+        missing_values=[]  
+
+
+        if scope.__contains__('value'):
+            missing_values = manifest_col[~manifest_col.isin(target_column)]
+            duplicated_values = manifest_col[manifest_col.isin(target_column[target_column.duplicated()])]
             
+            if val_rule.__contains__('matchAtLeastOne') and not missing_values.empty:
+                missing_rows = missing_values.index.to_numpy() + 2
+                warnings.append(
+                    GenerateError.generate_cross_warning(
+                        val_rule = val_rule,
+                        row_num = str(list(missing_rows)),
+                        attribute_name = source_attribute,
+                        invalid_entry = str(missing_values.values.tolist()),
+                    )
+                )
+            elif val_rule.__contains__('matchExactlyOne') and (duplicated_values.any() or missing_values.any()):
+                invalid_values  = pd.merge(duplicated_values,missing_values,how='outer')
+                invalid_rows    = pd.merge(duplicated_values,missing_values,how='outer',left_index=True,right_index=True).index.to_numpy() + 2
+                warnings.append(
+                    GenerateError.generate_cross_warning(
+                        val_rule = val_rule,
+                        row_num = str(list(invalid_rows)), 
+                        attribute_name = source_attribute, 
+                        invalid_entry = str(invalid_values.squeeze().values.tolist()) 
+                    )
+                )
+            
+
+            
+        #generate warnings if necessary
+        elif scope.__contains__('set'):
+            if val_rule.__contains__('matchAtLeastOne') and len(present_manifest_log) < 1:     
+                missing_entries = list(missing_manifest_log.values()) 
+                missing_manifest_IDs = list(missing_manifest_log.keys()) 
+                for missing_entry in missing_entries:
+                    missing_rows.append(missing_entry.index[0]+2)
+                    missing_values.append(missing_entry.values[0])
+                    
+                missing_rows=list(set(missing_rows))
+                missing_values=list(set(missing_values))
+                #print(missing_rows,missing_values)
+
+                warnings.append(
+                    GenerateError.generate_cross_warning(
+                        val_rule = val_rule,
+                        row_num = str(missing_rows),
+                        attribute_name = source_attribute,
+                        invalid_entry = str(missing_values),
+                        missing_manifest_ID = missing_manifest_IDs,
+                    )
+                )
+            elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
+                warnings.append(
+                    GenerateError.generate_cross_warning(
+                        val_rule = val_rule,
+                        attribute_name = source_attribute,
+                        matching_manifests = present_manifest_log,
+                    )
+                )
+                
 
         return errors, warnings
 

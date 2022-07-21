@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  test_pypi_release:
+  pypi_release:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     steps:
@@ -97,4 +97,4 @@ jobs:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
           PYPI_USERNAME: __token__
         run: |
-          poetry publish --username $PYPI_USERNAME --password $PYPI_TOKEN
+          poetry publish --build --username $PYPI_USERNAME --password $PYPI_TOKEN
