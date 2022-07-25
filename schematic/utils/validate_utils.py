@@ -1,6 +1,6 @@
 import os
 from jsonschema import validate
-from re import compile
+from re import compile, search, IGNORECASE
 from schematic.utils.io_utils import load_json
 from schematic import CONFIG, LOADER
 
@@ -36,3 +36,18 @@ def comma_separated_list_regex():
 
     return csv_list_regex
 
+
+def rule_in_rule_list(rule: str, rule_list: list[str]):
+    # Function to standardize 
+    # checking to see if a rule is contained in a list of rules. 
+    # Uses regex to avoid issues arising from validation rules with arguments 
+    # or rules that have arguments updated.
+
+    # seperate rule type if arguments are specified
+    rule_type = rule.split(" ")[0]
+
+    # Process string and list of strings for regex comparison
+    rule_type = rule_type + '[^\|]*'
+    rule_list = '|'.join(rule_list)
+
+    return search(rule_type, rule_list, flags=IGNORECASE)
