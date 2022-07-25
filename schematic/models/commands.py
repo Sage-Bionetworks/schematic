@@ -10,7 +10,7 @@ import click_log
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict, parse_synIDs
+from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict, parse_synIDs, parse_comma_str_to_list
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
@@ -165,6 +165,7 @@ def submit_manifest(
 @click.option(
     "-dt",
     "--data_type",
+    callback=parse_comma_str_to_list,
     help=query_dict(model_commands, ("model", "validate", "data_type")),
 )
 @click.option(
