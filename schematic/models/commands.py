@@ -193,15 +193,14 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     """
     data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
     
-    if isinstance(data_type,list):
-        try:
-            len(data_type) == 1
-        except:
-            logger.error(
-                f"Can only validate a single data_type at a time. Please provide a single data_type"
-            )
+    try:
+        len(data_type) == 1
+    except:
+        logger.error(
+            f"Can only validate a single data_type at a time. Please provide a single data_type"
+        )
 
-        data_type = data_type[0]
+    data_type = data_type[0]
 
     json_schema = fill_in_from_config(
         "json_schema",
