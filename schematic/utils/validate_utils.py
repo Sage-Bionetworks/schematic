@@ -3,7 +3,7 @@ from jsonschema import validate
 from re import compile, search, IGNORECASE
 from schematic.utils.io_utils import load_json
 from schematic import CONFIG, LOADER
-
+from typing import List
 
 def validate_schema(schema):
     """Validate schema against schema.org standard"""
@@ -37,7 +37,7 @@ def comma_separated_list_regex():
     return csv_list_regex
 
 
-def rule_in_rule_list(rule: str, rule_list: list[str]):
+def rule_in_rule_list(rule: str, rule_list: List[str]):
     # Function to standardize 
     # checking to see if a rule is contained in a list of rules. 
     # Uses regex to avoid issues arising from validation rules with arguments 
