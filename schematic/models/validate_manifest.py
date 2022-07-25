@@ -22,14 +22,6 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
 
-from ruamel import yaml
-
-import great_expectations as ge
-from great_expectations.core.expectation_configuration import ExpectationConfiguration
-from great_expectations.data_context import BaseDataContext
-from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
-from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
-
 logger = logging.getLogger(__name__)
 
 class ValidateManifest(object):
