@@ -9,7 +9,7 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic.utils.io_utils import load_json
 from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import load_schema_into_networkx
-from schematic.utils.validate_utils import validate_schema
+from schematic.utils.validate_utils import validate_schema, rule_in_rule_list
 
 from schematic import CONFIG
 
@@ -534,7 +534,7 @@ class SchemaGenerator(object):
                         if node_validation_rules:
                             # if this node has extra validation rules process them
                             # TODO: abstract this into its own validation rule constructor/generator module/class
-                            if "list" in node_validation_rules:
+                            if rule_in_rule_list("list", node_validation_rules):
                                 # if this node can be mapped to a list of nodes
                                 # set its schema accordingly
                                 schema_valid_vals = self.get_array_schema(
@@ -576,7 +576,7 @@ class SchemaGenerator(object):
                                     )
 
                                     if node_validation_rules:
-                                        if "list" in node_validation_rules:
+                                        if rule_in_rule_list("list", node_validation_rules):
                                             # TODO: get_range_schema and get_range_schema have similar behavior - combine in one module
                                             dependency_properties = self.get_array_schema(
                                                 node_range_d,
@@ -615,7 +615,7 @@ class SchemaGenerator(object):
                             if node_validation_rules:
                                 # If there are valid values AND they are expected to be a list,
                                 # reformat the Valid Values.
-                                if "list" in node_validation_rules:
+                                if rule_in_rule_list("list", node_validation_rules):
                                     schema_valid_vals = self.get_array_schema(
                                         node_range_d, node_display_name, blank=False
                                     )
@@ -637,7 +637,7 @@ class SchemaGenerator(object):
                             )
 
                             if node_validation_rules:
-                                if "list" in node_validation_rules:
+                                if rule_in_rule_list("list", node_validation_rules):
                                     schema_valid_vals = self.get_array_schema(
                                         node_range_d, node_display_name, blank=True
                                     )
