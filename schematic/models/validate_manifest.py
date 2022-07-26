@@ -136,9 +136,6 @@ class ValidateManifest(object):
         errors = []   
         warnings = [] 
 
-        unimplemented_expectations='|'.join(unimplemented_expectations)
-        in_house_rules='|'.join(in_house_rules)
-
         if not restrict_rules:
             #operations necessary to set up and run ge suite validation
             ge_helpers=GreatExpectationsHelpers(
@@ -199,8 +196,8 @@ class ValidateManifest(object):
             # Given a validation rule, run validation. Skip validations already performed by GE
             for rule in validation_rules:
                 validation_type = rule.split(" ")[0]
-                if re.match(unimplemented_expectations,rule) or (re.match(in_house_rules,rule) and restrict_rules):
-                    if not re.match(in_house_rules,rule):
+                if rule_in_rule_list(rule,unimplemented_expectations) or (rule_in_rule_list(rule,in_house_rules) and restrict_rules):
+                    if not rule_in_rule_list(rule,in_house_rules):
                         logging.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                         continue  
 
