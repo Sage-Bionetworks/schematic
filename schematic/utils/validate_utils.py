@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from jsonschema import validate
 from re import compile, search, IGNORECASE
 from schematic.utils.io_utils import load_json
@@ -35,7 +36,6 @@ def comma_separated_list_regex():
     csv_list_regex=compile('([^\,]+\,)(([^\,]+\,?)*)')
 
     return csv_list_regex
-
 
 def rule_in_rule_list(rule: str, rule_list: List[str]):
     # Function to standardize 
