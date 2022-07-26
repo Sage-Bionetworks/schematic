@@ -34,7 +34,7 @@ class ValidateManifest(object):
         self.jsonSchema = jsonSchema       
 
     def get_multiple_types_error(
-        validation_rules: list, attribute_name: str, error_type: str
+        self, validation_rules: list, attribute_name: str, error_type: str
     ) -> List[str]:
         """
             Generate error message for errors when trying to specify 
@@ -179,91 +179,55 @@ class ValidateManifest(object):
         else:             
             logging.info("Great Expetations suite will not be utilized.")  
 
+
+        regex_re=re.compile('regex.*')
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
 
-            
-            # Given a validation rule, run validation. Skip validations already performed by GE
-            if bool(validation_rules) and (restrict_rules or re.match(unimplemented_expectations,validation_rules[0])):
-                
-                if not re.match(in_house_rules,validation_rules[0]):
-                    logging.warning(f"Validation rule {validation_rules[0].split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
-                    continue
-
-                # Check for multiple validation types,
-                # If there are multiple types, validate them.
-                if len(validation_rules) == 2:
-                    # For multiple rules check that the first rule listed is 'list'
-                    # if not, throw an error (this is the only format currently supported).
-                    if 'list' not in validation_rules[0]:
-                        errors.append(
-                            self.get_multiple_types_error(
-                                validation_rules, col, error_type="list_not_first"
-                            )
-                        )
-                    elif 'list' in validation_rules[0]:
-                        # Convert user input to list.
-                        validation_method = getattr(
-                            ValidateAttribute, validation_types["list"]
-                        )
-                        vr_errors, vr_warnings, manifest_col = validation_method(
-                            self, validation_rules[0], manifest[col]
-                        )
-                        manifest[col] = manifest_col
-
-                        # Continue to second validation rule
-                        second_rule = validation_rules[1].split(" ")
-                        second_type = second_rule[0]
-                        if second_type != "list":
-                            module_to_call = getattr(re, second_rule[1])
-                            regular_expression = second_rule[2]
-                            validation_method = getattr(
-                                ValidateAttribute, validation_types[second_type]
-                            )
-                            second_error, second_warning = validation_method(
-                                    self, validation_rules[1], manifest[col]
-                            )
-                            if second_error:
-                                vr_errors.append(
-                                    second_error
-                                )
-                            if second_warning:
-                                vr_warnings.append(
-                                    second_warning
-                                )
-                # Check for edge case that user has entered more than 2 rules,
-                # throw an error if they have.
-                elif len(validation_rules) > 2:
+            # Check that attribute rules conform to limits:
+            # no more than two rules for an attribute. 
+            # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?
+            if len(validation_rules) > 2:
+                errors.append(
                     self.get_multiple_types_error(
                         validation_rules, col, error_type="too_many_rules"
                     )
+                )
 
-                # Validate for a single validation rule.
-                else:
-                    validation_type = validation_rules[0].split(" ")[0]
+            # Given a validation rule, run validation. Skip validations already performed by GE
+            for rule in validation_rules:
+                validation_type = rule.split(" ")[0]
+                if re.match(unimplemented_expectations,rule) or (re.match(in_house_rules,rule) and restrict_rules):
+                    if not re.match(in_house_rules,rule):
+                        logging.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
+                        continue  
+
+                    #Validate for each individual validation rule.
                     validation_method = getattr(
-                        ValidateAttribute, validation_types[validation_type]
-                    )
+                            ValidateAttribute, validation_types[validation_type]
+                        )
+
                     if validation_type == "list":
                         vr_errors, vr_warnings, manifest_col = validation_method(
-                            self, validation_rules[0], manifest[col]
+                            self, rule, manifest[col]
                         )
                         manifest[col] = manifest_col
                     elif validation_type.lower().startswith("match"):
                         vr_errors, vr_warnings = validation_method(
-                            self, validation_rules[0], manifest[col], project_scope,
+                            self, rule, manifest[col], project_scope,
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
-                            self, validation_rules[0], manifest[col]
+                            self, rule, manifest[col]
                         )
-                # Check for validation rule errors and add them to other errors.
-                if vr_errors:
-                    errors.extend(vr_errors)
-                if vr_warnings:
-                    warnings.extend(vr_warnings)
+                    # Check for validation rule errors and add them to other errors.
+                    if vr_errors:
+                        errors.extend(vr_errors)
+                    if vr_warnings:
+                        warnings.extend(vr_warnings)
+
         return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema
