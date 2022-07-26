@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from jsonschema import validate
 from re import compile
 from schematic.utils.io_utils import load_json
@@ -36,3 +37,17 @@ def comma_separated_list_regex():
 
     return csv_list_regex
 
+def parse_str_series_to_list(col: pd.Series):
+    """
+    Parse a pandas series of comma delimited strings
+    into a series with values that are lists of strings 
+    ex. 
+        Input:  'a,b,c'
+        Output: ['a','b','c']     
+
+    """
+    col = col.apply(
+        lambda x: [s.strip() for s in str(x).split(",")]
+    )
+
+    return col
