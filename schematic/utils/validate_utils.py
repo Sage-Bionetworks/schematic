@@ -51,3 +51,18 @@ def rule_in_rule_list(rule: str, rule_list: List[str]):
     rule_list = '|'.join(rule_list)
 
     return search(rule_type, rule_list, flags=IGNORECASE)
+
+def parse_str_series_to_list(col: pd.Series):
+    """
+    Parse a pandas series of comma delimited strings
+    into a series with values that are lists of strings 
+    ex. 
+        Input:  'a,b,c'
+        Output: ['a','b','c']     
+
+    """
+    col = col.apply(
+        lambda x: [s.strip() for s in str(x).split(",")]
+    )
+
+    return col
