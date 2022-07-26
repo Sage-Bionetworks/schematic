@@ -18,7 +18,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     Returns: a processed dataframe for manifests or unprocessed df for data models
     """
     #Read CSV to df as type specified in kwargs
-    org_df = pd.read_csv(file_path, keep_default_na = False, encoding='utf8', **load_args)
+    org_df = pd.read_csv(file_path, encoding='utf8', **load_args)
     if preserve_raw_input:
         #only trim if not data model csv
         if not data_model:
