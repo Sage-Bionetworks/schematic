@@ -21,8 +21,6 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.validate_utils import comma_separated_list_regex
 import time
 
-from schematic.utils.validate_utils import parse_str_series_to_list
-
 logger = logging.getLogger(__name__)
 
 class GenerateError:
@@ -435,10 +433,11 @@ class ValidateAttribute(object):
                             invalid_entry=manifest_col[i]
                         )
                     )
-                
 
-        # Convert string to list.
-        manifest_col = parse_str_series_to_list(manifest_col)
+        # Convert string to list. For 'list like' strings, just attempt casting to list of strings without validation
+        manifest_col = manifest_col.apply(
+            lambda x: [s.strip() for s in str(x).split(",")]
+        )
 
         return errors, warnings, manifest_col
 
@@ -482,13 +481,8 @@ class ValidateAttribute(object):
 
         errors = []
         warnings = []
-        validation_rules=self.sg.se.get_class_validation_rules(self.sg.se.get_class_label_from_display_name(manifest_col.name))
         # Handle case where validating re's within a list.
-        if re.search('list',"|".join(validation_rules)):
-            if type(manifest_col[0]) == str:
-                # Convert string to list.
-                manifest_col = parse_str_series_to_list(manifest_col)
-
+        if type(manifest_col[0]) == list:
             for i, row_values in enumerate(manifest_col):
                 for j, re_to_check in enumerate(row_values):
                     re_to_check = str(re_to_check)
@@ -505,7 +499,6 @@ class ValidateAttribute(object):
                                 invalid_entry=manifest_col[i]
                             )
                         )
-
         # Validating single re's
         else:
             manifest_col = manifest_col.astype(str)

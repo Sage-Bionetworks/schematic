@@ -1,17 +1,13 @@
 import os
 import logging
-import re
-import jsonschema
 import pytest
 from pathlib import Path
-import itertools
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
-from schematic.models.validate_manifest import ValidateManifest
+from schematic.models.validate_manifest import validate_all
 from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.validate_rules_utils import valid_rule_combinations
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -33,12 +29,6 @@ def metadataModel(helpers):
 
     yield metadataModel
 
-def get_rule_combinations():
-    complementary_rules = valid_rule_combinations()
-    for base_rule, allowable_rules in complementary_rules.items():
-        for second_rule in allowable_rules:            
-            yield base_rule, second_rule
-    
 class TestManifestValidation:
     def test_valid_manifest(self,helpers,metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
@@ -75,13 +65,6 @@ class TestManifestValidation:
             row_num = 3,
             attribute_name = 'Check Int', 
             invalid_entry = 5.63
-            ) in errors
-
-        assert GenerateError.generate_type_error(
-            val_rule = 'str',
-            row_num = 3,
-            attribute_name = 'Check String', 
-            invalid_entry = 94
             ) in errors
 
         assert GenerateError.generate_list_error(
@@ -211,13 +194,6 @@ class TestManifestValidation:
             invalid_entry = '5.63'
             ) in errors
 
-        assert GenerateError.generate_type_error(
-            val_rule = 'str',
-            row_num = '3',
-            attribute_name = 'Check String', 
-            invalid_entry = '94'
-            ) in errors
-            
         assert GenerateError.generate_list_error(
             list_string = 'invalid list values',
             row_num = '3',
@@ -290,55 +266,3 @@ class TestManifestValidation:
             ) in warnings 
         
 
-    @pytest.mark.rule_combos(reason = 'This introduces a great number of tests covering every possible rule combination that are only necessary on occasion.')
-    @pytest.mark.parametrize("base_rule, second_rule", get_rule_combinations())
-    def test_rule_combinations(self, helpers, sg, base_rule, second_rule, metadataModel):
-        #print(base_rule,second_rule)
-        rule_regex = re.compile(base_rule+'.*')
-
-        manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
-        manifest = helpers.get_data_frame(manifestPath)
-
-        for attribute in sg.se.schema['@graph']: #Doing it in a loop becasue of sg.se.edit_class design
-            if 'sms:validationRules' in attribute and attribute['sms:validationRules']: 
-                if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
-                    
-                    #Add rule args if necessary
-                    if second_rule.startswith('matchAtLeastOne') or second_rule.startswith('matchExactlyOne'):
-                        rule_args = f" MockComponent.{attribute['rdfs:label']} Patient.PatientID"
-                    elif second_rule.startswith('inRange'):
-                        rule_args = ' 1 1000 warning'
-                    elif second_rule.startswith('regex'):
-                        rule_args = ' search [a-f]'
-                    else:
-                        rule_args = ''
-            
-                    attribute['sms:validationRules'].append(second_rule + rule_args)
-                    sg.se.edit_class(attribute)
-                    break
-
-        target_column=attribute['sms:displayName']
-        for col in manifest.columns:
-            if col not in ('Component', target_column):
-                manifest.drop(columns=col, inplace=True)
-
-        rootNode = 'MockComponent'
-        validateManifest = ValidateManifest(
-            errors = [],
-            manifest = manifest,
-            manifestPath = manifestPath,
-            sg = sg,
-            jsonSchema = sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
-        )
-        
-        #perform validation with no exceptions raised
-        _, errors, warnings = validateManifest.validate_manifest_rules(
-            manifest = manifest, 
-            sg =  sg,
-            restrict_rules = False,
-            project_scope = None,
-            )
-
-
-        
-        

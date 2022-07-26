@@ -168,5 +168,3 @@ great_expectations/expectations/Manifest_test_suite.json
 
 tests/data/example.MockComponent.schema.json
 tests/data/mock_manifests/Invalid_Test_Manifest_censored.csv
-tests/data/mock_manifests/valid_test_manifest_censored.csv
-tests/data/mock_manifests/Rule_Combo_Manifest_censored.csv
