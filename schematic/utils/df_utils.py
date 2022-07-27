@@ -19,6 +19,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     """
     #Read CSV to df as type specified in kwargs
     org_df = pd.read_csv(file_path, encoding='utf8', **load_args)
+    
     if preserve_raw_input:
         #only trim if not data model csv
         if not data_model:
