@@ -6,6 +6,63 @@ from typing import Any, Dict, Optional, Text, List
 
 logger = logging.getLogger(__name__)
 
+def validation_type_dict():
+    type_dict = {
+            "int": {
+                'arguments':(False, None, None),
+                'type': "type_validation"},
+
+            "float": {
+                'arguments':(False, None, None), 
+                'type': "type_validation"},
+
+            "num": {
+                'arguments':(False, None, None), 
+                'type': "type_validation"},
+
+            "str": {
+                'arguments':(False, None, None), 
+                'type': "type_validation"},
+
+            "regex": {
+                'arguments':(True, 2, 2), 
+                'fixed_arg': ['strict'], 
+                'type': "regex_validation"},
+
+            "url" : {
+                'arguments':(True, None, None), 
+                'type': "url_validation"},
+
+            "list": {
+                'arguments':(True, 1, 0), 
+                'type': "list_validation"},
+                
+            "matchAtLeastOne": {
+                'arguments':(True, 2, 2), 
+                'type': "cross_validation"},
+
+            "matchExactlyOne": {
+                'arguments':(True, 2, 2), 
+                'type': "cross_validation"},
+                
+            "recommended": {
+                'arguments':(False, None, None), 
+                'type': "content_validation"},
+
+            "protectAges": {
+                'arguments':(True, 1, 0), 
+                'type': "content_validation"},
+
+            "unique": {
+                'arguments':(True, 1, 0), 
+                'type': "content_validation"},
+                
+            "inRange": {
+                'arguments':(True, 3, 2), 
+                'type': "content_validation"},
+            }
+
+    return type_dict
 
 def get_error(validation_rules: list, 
         attribute_name: str, error_type: str, input_filetype:str,) -> List[str]:
