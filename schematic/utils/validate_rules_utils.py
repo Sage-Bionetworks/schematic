@@ -136,7 +136,7 @@ def get_error(validation_rules: list,
 
     if error_type == 'invalid_rule_combination':
         first_type=validation_rules[0].split(' ')[0]
-        second_type=valid_rule_combinations()[first_type]
+        second_type=validation_rule_info()[first_type]['complementary_rules']
 
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({'::'.join(validation_rules)}) are not "
@@ -166,25 +166,26 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
 
     else:
         arguments_allowed, arguments_required = validation_types[rule_type]['arguments']
+        # Remove any fixed args from our calc.
         if 'fixed_arg' in validation_types[rule_type].keys():
             fixed_args = validation_types[rule_type]['fixed_arg']
             num_args = len([vr for vr in validation_rule_with_args if vr not in fixed_args])-1 
         else:
             num_args = len(validation_rule_with_args) - 1
             
+        # If arguments are provided but not allowed, raise an error.
+        if num_args and not arguments_allowed:
+            errors.append(get_error(validation_rule, attribute,
+                error_type = 'args_not_allowed', input_filetype=input_filetype))
+        
         # If arguments are allowed, check that the correct amount have been passed.
-        if num_args and arguments_allowed:
-            # Remove any fixed args from our calc.
-            
-            # Are limits placed on the number of arguments.
-            if num_args != arguments_allowed and num_args != arguments_required:
+        # There must be at least the number of args required,
+        # and not more than allowed
+        elif arguments_allowed:
+            if (num_args < arguments_required) or (num_args > arguments_allowed):
                 errors.append(get_error(validation_rule, attribute,
                     error_type = 'incorrect_num_args', input_filetype=input_filetype))
 
-            # If arguments are provided but not allowed raise an error.
-        elif num_args and not arguments_allowed:
-            errors.append(get_error(validation_rule, attribute,
-                error_type = 'args_not_allowed', input_filetype=input_filetype))
 
         if ':' in validation_rule:
             errors.append(get_error(validation_rule, attribute,
