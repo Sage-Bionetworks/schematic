@@ -15,7 +15,6 @@ def validation_rule_info():
         Rule:{
             'arguments':(<num arguments allowed>, <num arguments required>),
             'type': <rule type>,
-            'complementary_rules': <rules available for pairing>}
             'complementary_rules': [<rules available for pairing>]}
         }
     '''
@@ -223,7 +222,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     # a set number of arguments required.
 
     errors = []
-    complementary_rules = valid_rule_combinations()
+    complementary_rules = validation_rule_info()
     num_validation_rules = len(validation_rules)
 
     
@@ -239,7 +238,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
         second_type = second_rule.split(" ")[0]  
 
         # validate rule combination
-        if second_type not in complementary_rules[first_type]:
+        if second_type not in complementary_rules[first_type]['complementary_rules']:
             errors.append(get_error(validation_rules, attribute, 
                 error_type = 'invalid_rule_combination', input_filetype=input_filetype))
         
