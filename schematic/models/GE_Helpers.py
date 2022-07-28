@@ -404,7 +404,7 @@ class GreatExpectationsHelpers(object):
                         values.append(item) if isinstance(item,type_dict[observed_type]) else values
 
                 #call functions to generate error messages and add to error list
-                if validation_types[rule.split(" ")[0]]=='type_validation':
+                if validation_types[rule.split(" ")[0]]['type']=='type_validation':
                     for row, value in zip(indices,values):
                         errors.append(
                             GenerateError.generate_type_error(
@@ -414,7 +414,7 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                             )
                         )          
-                elif validation_types[rule.split(" ")[0]]=='regex_validation':
+                elif validation_types[rule.split(" ")[0]]['type']=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
 
                     for row, value in zip(indices,values):   
@@ -428,7 +428,7 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                             )
                         )    
-                elif validation_types[rule.split(" ")[0]]=='content_validation':     
+                elif validation_types[rule.split(" ")[0]]['type']=='content_validation':     
                     content_errors, content_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,

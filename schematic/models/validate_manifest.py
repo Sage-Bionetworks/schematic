@@ -21,6 +21,7 @@ from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
+from schematic.utils.validate_rules_utils import validation_type_dict
 
 from ruamel import yaml
 
@@ -97,21 +98,8 @@ class ValidateManifest(object):
 
         # for each type of rule that can be spefified (key) point
         # to the type of validation that will be run.
-        validation_types = {
-            "int": "type_validation",
-            "float": "type_validation",
-            "num": "type_validation",
-            "str": "type_validation",
-            "regex": "regex_validation",
-            "url": "url_validation",
-            "list": "list_validation",
-            "matchAtLeastOne": "cross_validation",
-            "matchExactlyOne": "cross_validation",
-            "recommended": "content_validation",
-            "protectAges": "content_validation",
-            "unique": "content_validation",
-            "inRange": "content_validation",
-        }
+
+        validation_types = validation_type_dict()
 
         type_dict={
             "float64": float,
@@ -213,7 +201,7 @@ class ValidateManifest(object):
 
                     #Validate for each individual validation rule.
                     validation_method = getattr(
-                            ValidateAttribute, validation_types[validation_type]
+                            ValidateAttribute, validation_types[validation_type]['type']
                         )
 
                     if validation_type == "list":
