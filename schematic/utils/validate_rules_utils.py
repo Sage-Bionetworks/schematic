@@ -7,72 +7,86 @@ from typing import Any, Dict, Optional, Text, List
 
 logger = logging.getLogger(__name__)
 
-def validation_type_dict():
+def validation_rule_info():
     '''
     Function to return dict that holds information about each rule
     Will be pulled into validate_single_rule and validate_manifest_rules
     Structure:    
         Rule:{
             'arguments':(<are arguments allowed>, <no arguments allowed>, <no arguments required>),
-            'type': <rule type>}
+            'type': <rule type>,
+            'complementary_rules': <rules available for pairing>}
         }
     '''
-    type_dict = {
+    rule_dict = {
             "int": {
                 'arguments':(None, None),
-                'type': "type_validation"},
+                'type': "type_validation",
+                'complementary_rules': ['inRange',]},
 
             "float": {
                 'arguments':(None, None), 
-                'type': "type_validation"},
+                'type': "type_validation",
+                'complementary_rules': ['inRange',]},
 
             "num": {
                 'arguments':(None, None), 
-                'type': "type_validation"},
+                'type': "type_validation",
+                'complementary_rules': ['inRange',]},
 
             "str": {
                 'arguments':(None, None), 
-                'type': "type_validation"},
+                'type': "type_validation",
+                'complementary_rules': None},
 
             "regex": {
                 'arguments':(2, 2), 
                 'fixed_arg': ['strict'], 
-                'type': "regex_validation"},
+                'type': "regex_validation",
+                'complementary_rules': ['list']},
 
             "url" : {
                 'arguments':(None, None), 
-                'type': "url_validation"},
+                'type': "url_validation",
+                'complementary_rules': None},
 
             "list": {
                 'arguments':(1, 0), 
-                'type': "list_validation"},
+                'type': "list_validation",
+                'complementary_rules': ['regex']},
                 
             "matchAtLeastOne": {
                 'arguments':(2, 2), 
-                'type': "cross_validation"},
+                'type': "cross_validation",
+                'complementary_rules': None},
 
             "matchExactlyOne": {
                 'arguments':(2, 2), 
-                'type': "cross_validation"},
+                'type': "cross_validation",
+                'complementary_rules': None},
                 
             "recommended": {
                 'arguments':(None, None), 
-                'type': "content_validation"},
+                'type': "content_validation",
+                'complementary_rules': None},
 
             "protectAges": {
                 'arguments':(1, 0), 
-                'type': "content_validation"},
+                'type': "content_validation",
+                'complementary_rules': ['inRange',]},
 
             "unique": {
                 'arguments':(1, 0), 
-                'type': "content_validation"},
+                'type': "content_validation",
+                'complementary_rules': None},
                 
             "inRange": {
                 'arguments':(3, 2), 
-                'type': "content_validation"},
+                'type': "content_validation",
+                'complementary_rules': ['int','float','num','protectAges']},
             }
 
-    return type_dict
+    return rule_dict
 
 def get_error(validation_rules: list, 
         attribute_name: str, error_type: str, input_filetype:str,) -> List[str]:
@@ -139,7 +153,7 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
     arguments allowed. Keep in that location and pull into this function.
     '''
     errors = []
-    validation_types = validation_type_dict()
+    validation_types = validation_rule_info()
     validation_rule_with_args = [
                 val_rule.strip() for val_rule in validation_rule.strip().split(" ")]
 

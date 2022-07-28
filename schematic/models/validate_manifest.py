@@ -21,7 +21,7 @@ from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
-from schematic.utils.validate_rules_utils import validation_type_dict
+from schematic.utils.validate_rules_utils import validation_rule_info
 
 from ruamel import yaml
 
@@ -99,7 +99,7 @@ class ValidateManifest(object):
         # for each type of rule that can be spefified (key) point
         # to the type of validation that will be run.
 
-        validation_types = validation_type_dict()
+        validation_types = validation_rule_info()
 
         type_dict={
             "float64": float,
