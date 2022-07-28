@@ -7,6 +7,15 @@ from typing import Any, Dict, Optional, Text, List
 logger = logging.getLogger(__name__)
 
 def validation_type_dict():
+    '''
+    Function to return dict that holds information about each rule
+    Will be pulled into validate_single_rule and validate_manifest_rules
+    Structure:    
+        Rule:{
+            'arguments':(<are arguments allowed>, <no arguments allowed>, <no arguments required>),
+            'type': <rule type>}
+        }
+    '''
     type_dict = {
             "int": {
                 'arguments':(False, None, None),
