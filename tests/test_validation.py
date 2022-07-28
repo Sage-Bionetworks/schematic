@@ -11,8 +11,7 @@ from schematic.models.validate_manifest import ValidateManifest
 from schematic.models.metadata import MetadataModel
 from schematic.store.synapse import SynapseStorage
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.validate_rules_utils import valid_rule_combinations
-
+from schematic.utils.validate_rules_utils import validation_rule_info
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -34,10 +33,14 @@ def metadataModel(helpers):
     yield metadataModel
 
 def get_rule_combinations():
-    complementary_rules = valid_rule_combinations()
-    for base_rule, allowable_rules in complementary_rules.items():
-        for second_rule in allowable_rules:            
-            yield base_rule, second_rule
+    rule_info = validation_rule_info()
+    for base_rule, indiv_info in rule_info.items():
+        complementary_rules = indiv_info['complementary_rules']
+        if complementary_rules:
+            for second_rule in complementary_rules:
+                yield base_rule, second_rule
+        else:
+            continue
     
 class TestManifestValidation:
     def test_valid_manifest(self,helpers,metadataModel):
