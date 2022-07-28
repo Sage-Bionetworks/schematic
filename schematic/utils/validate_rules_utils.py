@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def validation_rule_info():
     '''
     Function to return dict that holds information about each rule
-    Will be pulled into validate_single_rule and validate_manifest_rules
+    Will be pulled into validate_single_rule, validate_manifest_rules, validate_schema_rules
     Structure:    
         Rule:{
             'arguments':(<num arguments allowed>, <num arguments required>),
