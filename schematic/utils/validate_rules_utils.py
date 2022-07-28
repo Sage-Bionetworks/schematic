@@ -192,20 +192,6 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
                 error_type = 'delimiter', input_filetype=input_filetype))
     return errors
 
-def valid_rule_combinations():
-    complementary_rules = {
-        "int": ['inRange',],
-        "float": ['inRange'],
-        "num": ['inRange'],
-        "protectAges": ['inRange'],
-        "inRange": ['int','float','num','protectAges'],
-        "list": ['regex'],
-        "regex": ['list'],
-    }
-
-    return complementary_rules
-
-
 def validate_schema_rules(validation_rules, attribute, input_filetype):
     '''
     validation_rules: list
@@ -223,7 +209,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     # a set number of arguments required.
 
     errors = []
-    complementary_rules = validation_rule_info()
+    rule_info = validation_rule_info()
     num_validation_rules = len(validation_rules)
 
     
@@ -239,7 +225,7 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
         second_type = second_rule.split(" ")[0]  
 
         # validate rule combination
-        if second_type not in complementary_rules[first_type]['complementary_rules']:
+        if second_type not in rule_info[first_type]['complementary_rules']:
             errors.append(get_error(validation_rules, attribute, 
                 error_type = 'invalid_rule_combination', input_filetype=input_filetype))
         
