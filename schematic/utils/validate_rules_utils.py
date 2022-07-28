@@ -13,9 +13,10 @@ def validation_rule_info():
     Will be pulled into validate_single_rule and validate_manifest_rules
     Structure:    
         Rule:{
-            'arguments':(<are arguments allowed>, <no arguments allowed>, <no arguments required>),
+            'arguments':(<num arguments allowed>, <num arguments required>),
             'type': <rule type>,
             'complementary_rules': <rules available for pairing>}
+            'complementary_rules': [<rules available for pairing>]}
         }
     '''
     rule_dict = {
