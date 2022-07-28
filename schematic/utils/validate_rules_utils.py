@@ -1,3 +1,4 @@
+from ast import arg
 from jsonschema import ValidationError
 import logging
 import pandas as pd
@@ -18,56 +19,56 @@ def validation_type_dict():
     '''
     type_dict = {
             "int": {
-                'arguments':(False, None, None),
+                'arguments':(None, None),
                 'type': "type_validation"},
 
             "float": {
-                'arguments':(False, None, None), 
+                'arguments':(None, None), 
                 'type': "type_validation"},
 
             "num": {
-                'arguments':(False, None, None), 
+                'arguments':(None, None), 
                 'type': "type_validation"},
 
             "str": {
-                'arguments':(False, None, None), 
+                'arguments':(None, None), 
                 'type': "type_validation"},
 
             "regex": {
-                'arguments':(True, 2, 2), 
+                'arguments':(2, 2), 
                 'fixed_arg': ['strict'], 
                 'type': "regex_validation"},
 
             "url" : {
-                'arguments':(True, None, None), 
+                'arguments':(None, None), 
                 'type': "url_validation"},
 
             "list": {
-                'arguments':(True, 1, 0), 
+                'arguments':(1, 0), 
                 'type': "list_validation"},
                 
             "matchAtLeastOne": {
-                'arguments':(True, 2, 2), 
+                'arguments':(2, 2), 
                 'type': "cross_validation"},
 
             "matchExactlyOne": {
-                'arguments':(True, 2, 2), 
+                'arguments':(2, 2), 
                 'type': "cross_validation"},
                 
             "recommended": {
-                'arguments':(False, None, None), 
+                'arguments':(None, None), 
                 'type': "content_validation"},
 
             "protectAges": {
-                'arguments':(True, 1, 0), 
+                'arguments':(1, 0), 
                 'type': "content_validation"},
 
             "unique": {
-                'arguments':(True, 1, 0), 
+                'arguments':(1, 0), 
                 'type': "content_validation"},
                 
             "inRange": {
-                'arguments':(True, 3, 2), 
+                'arguments':(3, 2), 
                 'type': "content_validation"},
             }
 
@@ -138,21 +139,7 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
     arguments allowed. Keep in that location and pull into this function.
     '''
     errors = []
-    validation_types = {
-            "int": {'arguments':(False, None)},
-            "float": {'arguments':(False, None)},
-            "num": {'arguments':(False, None)},
-            "str": {'arguments':(False, None)},
-            "regex": {'arguments':(True, 2), 'fixed_arg': ['strict']},
-            "url" : {'arguments':(True, None)},
-            "list": {'arguments':(True, 1)},
-            "matchAtLeastOne": {'arguments':(True, 2)},
-            "matchExactlyOne": {'arguments':(True, 2)},
-            "recommended": {'arguments':(False, None)},
-            "protectAges": {'arguments':(True, 1)},
-            "unique": {'arguments':(True, 1)},
-            "inRange": {'arguments':(True, 3)},
-            }
+    validation_types = validation_type_dict()
     validation_rule_with_args = [
                 val_rule.strip() for val_rule in validation_rule.strip().split(" ")]
 
@@ -162,26 +149,29 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
     if rule_type not in validation_types.keys():
         errors.append(get_error(validation_rule, attribute,
             error_type = 'not_rule', input_filetype=input_filetype))
+
     else:
+        arguments_allowed, arguments_required = validation_types[rule_type]['arguments']
         if 'fixed_arg' in validation_types[rule_type].keys():
             fixed_args = validation_types[rule_type]['fixed_arg']
             num_args = len([vr for vr in validation_rule_with_args if vr not in fixed_args])-1 
         else:
             num_args = len(validation_rule_with_args) - 1
-        if num_args:
-            argument_allowed, num_allowed = validation_types[rule_type]['arguments']
-            # If arguments are allowed, check that the correct amount have been passed.
-            if argument_allowed:
-                # Remove any fixed args from our calc.
-                
-                # Are limits placed on the number of arguments.
-                if num_allowed is not None and num_allowed != num_args:
-                    errors.append(get_error(validation_rule, attribute,
-                        error_type = 'incorrect_num_args', input_filetype=input_filetype))
-            # If arguments are provided but not allowed raise an error.
-            else:
+            
+        # If arguments are allowed, check that the correct amount have been passed.
+        if num_args and arguments_allowed:
+            # Remove any fixed args from our calc.
+            
+            # Are limits placed on the number of arguments.
+            if num_args != arguments_allowed and num_args != arguments_required:
                 errors.append(get_error(validation_rule, attribute,
-                    error_type = 'args_not_allowed', input_filetype=input_filetype))
+                    error_type = 'incorrect_num_args', input_filetype=input_filetype))
+
+            # If arguments are provided but not allowed raise an error.
+        elif num_args and not arguments_allowed:
+            errors.append(get_error(validation_rule, attribute,
+                error_type = 'args_not_allowed', input_filetype=input_filetype))
+
         if ':' in validation_rule:
             errors.append(get_error(validation_rule, attribute,
                 error_type = 'delimiter', input_filetype=input_filetype))
