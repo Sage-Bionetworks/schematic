@@ -834,7 +834,8 @@ class ManifestGenerator(object):
                 This notes body will be added to a request.
         """            
        
-        if "list" in validation_rules and valid_values:
+        #if "list" in validation_rules and valid_values:
+        if validation_rules.find("list") and valid_values:
             note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
             notes_body = {
                 "requests": [
