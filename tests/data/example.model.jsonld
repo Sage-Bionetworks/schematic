@@ -2496,6 +2496,9 @@
                     "@id": "bts:CheckRegexSingle"
                 },
                 {
+                    "@id": "bts:CheckRegexFormat"
+                },
+                {
                     "@id": "bts:CheckNum"
                 },
                 {
