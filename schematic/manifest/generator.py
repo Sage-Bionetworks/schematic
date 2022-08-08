@@ -955,15 +955,16 @@ class ManifestGenerator(object):
             validation_body = self._get_column_data_validation_values(
                 spreadsheet_id, req_vals, i, strict=None, validation_type="ONE_OF_RANGE"
             )
-        elif ("list strict" in validation_rules) or ("list like" in validation_rules )and valid_values:
+        elif ("list strict" in validation_rules) or ("list like" in validation_rules) and valid_values:
             # if list is in validation rule attempt to create a multi-value
             # selection UI, which requires explicit valid values range in
             # the spreadsheet
+            # set "strict" parameter to false to allow users enter multiple values on google sheet
             validation_body = self._get_column_data_validation_values(
                 spreadsheet_id,
                 req_vals,
                 i,
-                strict=None,
+                strict=False,
                 custom_ui=False,
                 input_message="",
                 validation_type="ONE_OF_RANGE",

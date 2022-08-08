@@ -2586,7 +2586,7 @@
             "sms:displayName": "Check Regex List",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "list",
+                "list strict",
                 "regex match [a-f]"
             ]
         },
@@ -2607,6 +2607,25 @@
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "regex search [a-f]"
+            ]
+        },
+        {
+            "@id": "bts:CheckRegexFormat",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRegexFormat",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Regex Format",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "regex match [a-f]"
             ]
         },
         {

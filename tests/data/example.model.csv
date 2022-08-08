@@ -20,8 +20,9 @@ Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
 MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Recommended, Check Ages, Check Unique, Check Range",,FALSE,DataType,,,
 Check List,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list strict
-Check Regex List,,,,,FALSE,DataProperty,,,list::regex match [a-f]
+Check Regex List,,,,,FALSE,DataProperty,,,list strict::regex match [a-f]
 Check Regex Single,,,,,FALSE,DataProperty,,,regex search [a-f]
+Check Regex Format,,,,,FALSE,DataProperty,,,regex match [a-f]
 Check Num,,,,,FALSE,DataProperty,,,num
 Check Float,,,,,FALSE,DataProperty,,,float
 Check Int,,,,,FALSE,DataProperty,,,int
