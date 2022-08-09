@@ -127,9 +127,16 @@ def get_error(validation_rules: list,
         error_message = error_str
         error_val = f"Args not allowed."
     if error_type == 'incorrect_num_args':
+        rule_type=validation_rules.split(" ")[0]
+        
+        if rule_type in validation_rule_info():
+            no_allowed, no_required = validation_rule_info()[rule_type]['arguments']
+        else:
+            no_allowed, no_required = ('', '')
+
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) is not "
-            f"formatted properly. The number of provided arguments does not match the number required/allowed.")
+            f"formatted properly. The number of provided arguments does not match the number allowed({no_allowed}) or required({no_required}).")
         logging.error(error_str)
         error_message = error_str
         error_val = f"Incorrect num arguments."
