@@ -104,6 +104,15 @@ class TestManifestValidation:
             val_rule = 'regex',
             reg_expression = '[a-f]',
             row_num = '3',
+            attribute_name = 'Check Regex Format',
+            module_to_call = 'match',
+            invalid_entry = 'm'
+            ) in errors   
+
+        assert GenerateError.generate_regex_error(
+            val_rule = 'regex',
+            reg_expression = '[a-f]',
+            row_num = '3',
             attribute_name = 'Check Regex Single',
             module_to_call = 'search',
             invalid_entry = 'q'
