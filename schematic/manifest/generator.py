@@ -15,6 +15,7 @@ from schematic.utils.google_api_utils import (
     build_service_account_creds,
 )
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.validate_utils import rule_in_rule_list
 
 #TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
