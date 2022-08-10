@@ -213,7 +213,7 @@ class MetadataModel(object):
         warnings = []
 
         load_args={
-            "dtype":"string"
+            "dtype":"string",
             }
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
