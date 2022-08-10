@@ -23,8 +23,6 @@ from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
 
-from schematic.utils.validate_utils import rule_in_rule_list
-
 logger = logging.getLogger(__name__)
 
 
