@@ -23,6 +23,7 @@ from great_expectations.data_context.types.base import DataContextConfig, Dataso
 from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
 
 from schematic.models.validate_attribute import GenerateError
+from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +162,7 @@ class GreatExpectationsHelpers(object):
                     
             
                     #check if rule has an implemented expectation
-                    if re.match(self.unimplemented_expectations,rule):
+                    if rule_in_rule_list(rule,self.unimplemented_expectations):
                         continue
 
                 
