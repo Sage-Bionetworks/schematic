@@ -803,7 +803,6 @@ class SynapseStorage(BaseStorage):
         try:
             load_args={
                 "dtype":"string",
-                "keep_default_na": True
             }
             manifest = load_df(metadataManifestPath, preserve_raw_input=False, **load_args)
         except FileNotFoundError as err:

@@ -214,7 +214,6 @@ class MetadataModel(object):
 
         load_args={
             "dtype":"string",
-            "keep_default_na": True
             }
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
