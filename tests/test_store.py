@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import math
 import logging
@@ -8,7 +9,8 @@ from synapseclient import EntityViewSchema
 
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView
-
+from schematic.models.metadata import MetadataModel
+from schematic.utils.cli_utils import get_from_config
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -75,6 +77,38 @@ class TestSynapseStorage:
         del actual_dict["entityId"]
 
         assert expected_dict == actual_dict
+
+
+    @pytest.mark.parametrize("hide_blanks",[True, False],ids=["hide_blanks","show_blanks"])
+    def test_annotation_submission(self,helpers,config,synapse_store,hide_blanks):
+
+        manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
+        jsonld = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        model_file_type = get_from_config(config.DATA, ("model", "input", "file_type"))
+
+        mModel = MetadataModel(
+            inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
+        )
+
+        manifest_id = mModel.submit_metadata_manifest(
+            path_to_json_ld = jsonld,
+            manifest_path = manifest_path,
+            dataset_id = 'syn34295552',
+            manifest_record_type = 'entity',
+            restrict_rules = False,
+            use_schema_label = True,
+            hide_blanks = hide_blanks,
+        )
+
+        entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
+        annotations = synapse_store.getFileAnnotations(entity_id)
+
+        assert annotations['CheckInt'] == '7'
+        assert annotations['CheckList'] == 'valid, list, values'
+        if hide_blanks:
+            assert 'CheckRecommended' not in annotations.keys()
+        elif not hide_blanks:
+            assert annotations['CheckRecommended'] == ''
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
