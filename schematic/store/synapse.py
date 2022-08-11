@@ -698,17 +698,19 @@ class SynapseStorage(BaseStorage):
         annos = self.syn.get_annotations(entityId)
         csv_list_regex=comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
-            #Do not save blank annotations as NaNs,
-            #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
-            if isinstance(anno_v,float) and np.isnan(anno_v):
-                if hideBlanks:
-                    annos.pop(anno_k) if anno_k in annos.keys() else annos
-                else:
-                    annos[anno_k] = ""
-            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and rule_in_rule_list('list', sg.get_node_validation_rules(anno_k)):
-                annos[anno_k] = anno_v.split(",")
+            
+            # Remove keys with nan or empty string values from dict of annotations to be uploaded
+            # if present on current data annotation
+            if hideBlanks and (anno_v == '' or (isinstance(anno_v,float) and np.isnan(anno_v))):
+                annos.pop(anno_k) if anno_k in annos.keys() else annos
+            # Otherwise save annotation as approrpriate
             else:
-                annos[anno_k] = anno_v
+                if isinstance(anno_v,float) and np.isnan(anno_v):
+                        annos[anno_k] = ""
+                elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and rule_in_rule_list('list', sg.get_node_validation_rules(anno_k)):
+                    annos[anno_k] = anno_v.split(",")
+                else:
+                    annos[anno_k] = anno_v
                 
         return annos
 
