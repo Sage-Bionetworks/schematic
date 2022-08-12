@@ -18,6 +18,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 import pandas as pd
 import json
+from schematic.utils.df_utils import load_df
 
 
 # def before_request(var1, var2):
@@ -169,11 +170,13 @@ def validate_manifest_route(schema_url, data_type):
         inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
 
-    errors = metadata_model.validateModelManifest(
+    errors, warnings = metadata_model.validateModelManifest(
         manifestPath=temp_path, rootNode=data_type
     )
+    
+    res_dict = {"errors": errors, "warnings": warnings}
 
-    return errors
+    return res_dict
 
 
 def submit_manifest_route(schema_url, manifest_record_type=None):
@@ -199,7 +202,7 @@ def submit_manifest_route(schema_url, manifest_record_type=None):
         validate_component = data_type
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
+        path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
 
     return manifest_id
 
@@ -318,4 +321,19 @@ def get_project_manifests(input_token, project_id, asset_view):
     lst_manifest = store.getProjectManifests(projectId=project_id)
 
     return lst_manifest
-    
+
+def get_manifest_datatype(input_token, manifest_id, asset_view):
+    # use the default asset view from config
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # get data types of an existing manifest
+    manifest_dtypes_dict= store.getDataTypeFromManifest(manifest_id)
+
+
+    return manifest_dtypes_dict
+
+
+

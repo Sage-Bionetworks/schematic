@@ -2496,6 +2496,9 @@
                     "@id": "bts:CheckRegexSingle"
                 },
                 {
+                    "@id": "bts:CheckRegexFormat"
+                },
+                {
                     "@id": "bts:CheckNum"
                 },
                 {
@@ -2550,6 +2553,20 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
+            "schema:rangeIncludes": [
+                {
+                    "@id": "bts:Ab"
+                },
+                {
+                    "@id": "bts:Cd"
+                },
+                {
+                    "@id": "bts:Ef"
+                },
+                {
+                    "@id": "bts:Gh"
+                }
+            ],
             "sms:displayName": "Check List",
             "sms:required": "sms:false",
             "sms:validationRules": [
@@ -2593,6 +2610,25 @@
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "regex search [a-f]"
+            ]
+        },
+        {
+            "@id": "bts:CheckRegexFormat",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRegexFormat",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Regex Format",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "regex match [a-f]"
             ]
         },
         {
@@ -3111,6 +3147,74 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "GRCm39",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Ab",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Ab",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CheckList"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "ab",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Cd",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Cd",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CheckList"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "cd",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Ef",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Ef",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CheckList"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "ef",
+            "sms:required": "sms:false",
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:Gh",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Gh",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:CheckList"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "gh",
             "sms:required": "sms:false",
             "sms:validationRules": []
         }

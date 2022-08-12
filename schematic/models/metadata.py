@@ -203,6 +203,7 @@ class MetadataModel(object):
             ValueError: rootNode not found in metadata model.
         """
         # get validation schema for a given node in the data model, if the user has not provided input validation schema
+        
         if not jsonSchema:
             jsonSchema = self.sg.get_json_schema_requirements(
                 rootNode, rootNode + "_validation"
@@ -212,7 +213,7 @@ class MetadataModel(object):
         warnings = []
 
         load_args={
-            "dtype":"string"
+            "dtype":"string",
             }
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
@@ -278,6 +279,7 @@ class MetadataModel(object):
     def submit_metadata_manifest(
         self,
         manifest_path: str,
+        path_to_json_ld: str,
         dataset_id: str,
         manifest_record_type: str,
         restrict_rules: bool,
@@ -333,6 +335,7 @@ class MetadataModel(object):
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if exists(censored_manifest_path):
                     censored_manifest_id = syn_store.associateMetadataWithFiles(
+                        schemaGenerator = self.sg,
                         metadataManifestPath = censored_manifest_path,
                         datasetId = dataset_id, 
                         manifest_record_type = manifest_record_type,
@@ -342,6 +345,7 @@ class MetadataModel(object):
                     restrict_maniest = True
                 
                 manifest_id = syn_store.associateMetadataWithFiles(
+                    schemaGenerator = self.sg,
                     metadataManifestPath = manifest_path, 
                     datasetId = dataset_id, 
                     manifest_record_type = manifest_record_type,
@@ -362,6 +366,7 @@ class MetadataModel(object):
         # no need to perform validation, just submit/associate the metadata manifest file
         if exists(censored_manifest_path):
             censored_manifest_id = syn_store.associateMetadataWithFiles(
+                schemaGenerator = self.sg,
                 metadataManifestPath=censored_manifest_path,
                 datasetId=dataset_id,
                 manifest_record_type=manifest_record_type,
@@ -371,6 +376,7 @@ class MetadataModel(object):
             restrict_maniest = True
         
         manifest_id = syn_store.associateMetadataWithFiles(
+            schemaGenerator = self.sg,
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
