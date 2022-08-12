@@ -79,8 +79,6 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
-
-    @pytest.mark.parametrize("hide_blanks",[True, False],ids=["hide_blanks","show_blanks"])
     def test_annotation_submission(self, synapse_store, helpers, config, hide_blanks):
 
         manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
@@ -111,7 +109,7 @@ class TestSynapseStorage:
                 datasetId='syn34295552',
                 manifest_record_type = 'entity',
                 useSchemaLabel = True,
-                hideBlanks = hide_blanks,
+                hideBlanks = True,
                 restrict_manifest = False,
             )
 
