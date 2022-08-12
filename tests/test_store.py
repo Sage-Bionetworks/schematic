@@ -11,6 +11,7 @@ from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView
 from schematic.models.metadata import MetadataModel
 from schematic.utils.cli_utils import get_from_config
+from schematic.schemas.generator import SchemaGenerator
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -80,24 +81,21 @@ class TestSynapseStorage:
 
 
     @pytest.mark.parametrize("hide_blanks",[True, False],ids=["hide_blanks","show_blanks"])
-    def test_annotation_submission(self,helpers,config,synapse_store,hide_blanks):
+    def test_annotation_submission(self, synapse_store, helpers, config, hide_blanks):
 
         manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
-        jsonld = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
-        model_file_type = get_from_config(config.DATA, ("model", "input", "file_type"))
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
 
-        mModel = MetadataModel(
-            inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
-        )
+        sg = SchemaGenerator(inputModelLocaiton)
 
-        manifest_id = mModel.submit_metadata_manifest(
-            path_to_json_ld = jsonld,
-            manifest_path = manifest_path,
-            dataset_id = 'syn34295552',
+        manifest_id = synapse_store.associateMetadataWithFiles(
+            schemaGenerator=sg,
+            metadataManifestPath=manifest_path,
+            datasetId='syn34295552',
             manifest_record_type = 'entity',
-            restrict_rules = False,
-            use_schema_label = True,
-            hide_blanks = hide_blanks,
+            useSchemaLabel = True,
+            hideBlanks = hide_blanks,
+            restrict_manifest = False,
         )
 
         entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
@@ -109,6 +107,18 @@ class TestSynapseStorage:
             assert 'CheckRecommended' not in annotations.keys()
         elif not hide_blanks:
             assert annotations['CheckRecommended'] == ''
+
+        ## Clean up
+        # Remove uuid and entityId from manifest and save, 
+        # likely just necessary for when tests are run locally, including to be safe
+        manifest = helpers.get_data_frame(manifest_path)
+        manifest = manifest.drop(['Uuid','entityId'], axis=1)
+        manifest.to_csv(manifest_path)
+        # Remove manifest and entity from synapse to avoid file conflicts
+        synapse_store.syn.delete(entity_id)
+        synapse_store.syn.delete(manifest_id)
+
+
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
