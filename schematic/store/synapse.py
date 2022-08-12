@@ -27,6 +27,7 @@ from synapseclient import (
     Column,
     as_table_columns,
 )
+
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
@@ -597,13 +598,15 @@ class SynapseStorage(BaseStorage):
                 manifest_loaded.append(datasetName)
         return manifest_loaded
 
-    def upload_annotated_project_manifests_to_synapse(self, projectId:str) -> List[str]:
+    def upload_annotated_project_manifests_to_synapse(self, projectId:str, path_to_json_ld: str) -> List[str]:
         '''
         Purpose:
             For all manifests in a project, upload them as a table and add annotations manifest csv.
             Assumes the manifest is already present as a CSV in a dataset in the project.
 
         '''
+
+        sg = SchemaGenerator(path_to_json_ld)
         manifests = []
         manifest_loaded = []
         datasets = self.getStorageDatasetsInProject(projectId)
@@ -621,7 +624,7 @@ class SynapseStorage(BaseStorage):
                 manifest_path = manifest_info["path"]
                 manifest_df = load_df(manifest_path)
                 #manifest_syn_id = self.annotate_upload_manifest_table(manifest_df, datasetId, manifest_path)
-                manifest_syn_id = self.associateMetadataWithFiles(manifest_path, datasetId, manifest_record_type='table')
+                manifest_syn_id = self.associateMetadataWithFiles(sg, manifest_path, datasetId, manifest_record_type='table')
                 manifest_loaded.append(datasetName)
         return
 
