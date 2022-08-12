@@ -9,9 +9,9 @@ from synapseclient import EntityViewSchema
 
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView
-from schematic.models.metadata import MetadataModel
 from schematic.utils.cli_utils import get_from_config
 from schematic.schemas.generator import SchemaGenerator
+from synapseclient.core.exceptions import SynapseHTTPError
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -88,20 +88,32 @@ class TestSynapseStorage:
 
         sg = SchemaGenerator(inputModelLocaiton)
 
-        manifest = helpers.get_data_frame(manifest_path)
-        if 'Uuid' in manifest.columns:
-            manifest = manifest.drop(['Uuid','entityId'], axis=1)
-            manifest.to_csv(manifest_path)
+        try:
+            manifest_id = synapse_store.associateMetadataWithFiles(
+                schemaGenerator=sg,
+                metadataManifestPath=manifest_path,
+                datasetId='syn34295552',
+                manifest_record_type = 'entity',
+                useSchemaLabel = True,
+                hideBlanks = hide_blanks,
+                restrict_manifest = False,
+            )
 
-        manifest_id = synapse_store.associateMetadataWithFiles(
-            schemaGenerator=sg,
-            metadataManifestPath=manifest_path,
-            datasetId='syn34295552',
-            manifest_record_type = 'entity',
-            useSchemaLabel = True,
-            hideBlanks = hide_blanks,
-            restrict_manifest = False,
-        )
+        except(SynapseHTTPError):
+            manifest = helpers.get_data_frame(manifest_path)
+            if 'Uuid' in manifest.columns:
+                manifest = manifest.drop(['Uuid','entityId'], axis=1)
+                manifest.to_csv(manifest_path)
+
+            manifest_id = synapse_store.associateMetadataWithFiles(
+                schemaGenerator=sg,
+                metadataManifestPath=manifest_path,
+                datasetId='syn34295552',
+                manifest_record_type = 'entity',
+                useSchemaLabel = True,
+                hideBlanks = hide_blanks,
+                restrict_manifest = False,
+            )
 
         entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
         annotations = synapse_store.getFileAnnotations(entity_id)
