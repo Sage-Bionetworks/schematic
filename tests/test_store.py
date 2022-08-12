@@ -88,6 +88,11 @@ class TestSynapseStorage:
 
         sg = SchemaGenerator(inputModelLocaiton)
 
+        manifest = helpers.get_data_frame(manifest_path)
+        if 'Uuid' in manifest.columns:
+            manifest = manifest.drop(['Uuid','entityId'], axis=1)
+            manifest.to_csv(manifest_path)
+
         manifest_id = synapse_store.associateMetadataWithFiles(
             schemaGenerator=sg,
             metadataManifestPath=manifest_path,
