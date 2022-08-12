@@ -79,7 +79,7 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
-    def test_annotation_submission(self, synapse_store, helpers, config, hide_blanks):
+    def test_annotation_submission(self, synapse_store, helpers, config):
 
         manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
@@ -93,7 +93,7 @@ class TestSynapseStorage:
                 datasetId='syn34295552',
                 manifest_record_type = 'entity',
                 useSchemaLabel = True,
-                hideBlanks = hide_blanks,
+                hideBlanks = True,
                 restrict_manifest = False,
             )
 
