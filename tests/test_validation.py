@@ -107,6 +107,15 @@ class TestManifestValidation:
             val_rule = 'regex',
             reg_expression = '[a-f]',
             row_num = '3',
+            attribute_name = 'Check Regex Format',
+            module_to_call = 'match',
+            invalid_entry = 'm'
+            ) in errors   
+
+        assert GenerateError.generate_regex_error(
+            val_rule = 'regex',
+            reg_expression = '[a-f]',
+            row_num = '3',
             attribute_name = 'Check Regex Single',
             module_to_call = 'search',
             invalid_entry = 'q'
@@ -244,7 +253,16 @@ class TestManifestValidation:
             attribute_name = 'Check Regex Single',
             module_to_call = 'search',
             invalid_entry = 'q'
-            ) in errors   
+            ) in errors 
+
+        assert GenerateError.generate_regex_error(
+            val_rule = 'regex',
+            reg_expression = '[a-f]',
+            row_num = '3',
+            attribute_name = 'Check Regex Format',
+            module_to_call = 'match',
+            invalid_entry = 'm'
+            ) in errors     
 
         assert GenerateError.generate_url_error(
             url = 'http://googlef.com/',

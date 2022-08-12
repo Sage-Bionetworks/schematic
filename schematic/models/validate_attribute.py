@@ -602,7 +602,7 @@ class ValidateAttribute(object):
         for i, url in enumerate(manifest_col):
             # Check if a random phrase, string or number was added and
             # log the appropriate error.
-            if not (
+            if not isinstance(url,str) or not (
                 urlparse(url).scheme
                 + urlparse(url).netloc
                 + urlparse(url).params

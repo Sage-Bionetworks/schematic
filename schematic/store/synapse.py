@@ -36,7 +36,7 @@ import synapseutils
 import uuid
 
 from schematic.utils.df_utils import update_df, load_df
-from schematic.utils.validate_utils import comma_separated_list_regex
+from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
@@ -705,7 +705,7 @@ class SynapseStorage(BaseStorage):
                     annos.pop(anno_k) if anno_k in annos.keys() else annos
                 else:
                     annos[anno_k] = ""
-            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and 'list' in sg.get_node_validation_rules(anno_k):
+            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and rule_in_rule_list('list', sg.get_node_validation_rules(anno_k)):
                 annos[anno_k] = anno_v.split(",")
             else:
                 annos[anno_k] = anno_v
@@ -802,7 +802,7 @@ class SynapseStorage(BaseStorage):
         # read new manifest csv
         try:
             load_args={
-                "dtype":"string"
+                "dtype":"string",
             }
             manifest = load_df(metadataManifestPath, preserve_raw_input=False, **load_args)
         except FileNotFoundError as err:

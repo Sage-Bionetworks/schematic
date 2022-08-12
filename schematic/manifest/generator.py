@@ -15,6 +15,7 @@ from schematic.utils.google_api_utils import (
     build_service_account_creds,
 )
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.validate_utils import rule_in_rule_list
 
 #TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
@@ -23,6 +24,7 @@ from schematic.store.synapse import SynapseStorage
 from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
+
 
 
 class ManifestGenerator(object):
@@ -834,7 +836,7 @@ class ManifestGenerator(object):
                 This notes body will be added to a request.
         """            
        
-        if "list" in validation_rules and valid_values:
+        if rule_in_rule_list("list", validation_rules) and valid_values:
             note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
             notes_body = {
                 "requests": [
@@ -852,7 +854,7 @@ class ManifestGenerator(object):
                 ]
             }
             return notes_body["requests"]
-        elif "list" in validation_rules and not valid_values:
+        elif rule_in_rule_list("list", validation_rules) and not valid_values:
             note = "Please enter values as a comma separated list. For example: XX, YY, ZZ"
             notes_body = {
                 "requests": [
@@ -946,7 +948,7 @@ class ManifestGenerator(object):
         Returns:
             validation_body: dict
         """
-        if len(req_vals) > 0 and not "list" in validation_rules:
+        if len(req_vals) > 0 and not rule_in_rule_list("list", validation_rules):
             # if more than 0 values in dropdown use ONE_OF_RANGE type of validation
             # since excel and openoffice
             # do not support other kinds of data validation for
@@ -955,15 +957,16 @@ class ManifestGenerator(object):
             validation_body = self._get_column_data_validation_values(
                 spreadsheet_id, req_vals, i, strict=None, validation_type="ONE_OF_RANGE"
             )
-        elif "list" in validation_rules and valid_values:
+        elif rule_in_rule_list("list", validation_rules) and valid_values:
             # if list is in validation rule attempt to create a multi-value
             # selection UI, which requires explicit valid values range in
             # the spreadsheet
+            # set "strict" parameter to false to allow users enter multiple values on google sheet
             validation_body = self._get_column_data_validation_values(
                 spreadsheet_id,
                 req_vals,
                 i,
-                strict=None,
+                strict=False,
                 custom_ui=False,
                 input_message="",
                 validation_type="ONE_OF_RANGE",

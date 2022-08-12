@@ -22,14 +22,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from schematic.utils.validate_rules_utils import validation_rule_info
-
-from ruamel import yaml
-
-import great_expectations as ge
-from great_expectations.core.expectation_configuration import ExpectationConfiguration
-from great_expectations.data_context import BaseDataContext
-from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
-from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
+from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
 
@@ -131,9 +124,6 @@ class ValidateManifest(object):
         errors = []   
         warnings = [] 
 
-        unimplemented_expectations='|'.join(unimplemented_expectations)
-        in_house_rules='|'.join(in_house_rules)
-
         if not restrict_rules:
             #operations necessary to set up and run ge suite validation
             ge_helpers=GreatExpectationsHelpers(
@@ -194,8 +184,8 @@ class ValidateManifest(object):
             # Given a validation rule, run validation. Skip validations already performed by GE
             for rule in validation_rules:
                 validation_type = rule.split(" ")[0]
-                if re.match(unimplemented_expectations,rule) or (re.match(in_house_rules,rule) and restrict_rules):
-                    if not re.match(in_house_rules,rule):
+                if rule_in_rule_list(rule,unimplemented_expectations) or (rule_in_rule_list(rule,in_house_rules) and restrict_rules):
+                    if not rule_in_rule_list(rule,in_house_rules):
                         logging.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                         continue  
 

@@ -170,11 +170,13 @@ def validate_manifest_route(schema_url, data_type):
         inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
 
-    errors = metadata_model.validateModelManifest(
+    errors, warnings = metadata_model.validateModelManifest(
         manifestPath=temp_path, rootNode=data_type
     )
+    
+    res_dict = {"errors": errors, "warnings": warnings}
 
-    return errors
+    return res_dict
 
 
 def submit_manifest_route(schema_url, manifest_record_type=None):
