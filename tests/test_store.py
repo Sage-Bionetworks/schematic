@@ -118,10 +118,7 @@ class TestSynapseStorage:
 
         assert annotations['CheckInt'] == '7'
         assert annotations['CheckList'] == 'valid, list, values'
-        if hide_blanks:
-            assert 'CheckRecommended' not in annotations.keys()
-        elif not hide_blanks:
-            assert annotations['CheckRecommended'] == ''
+        assert 'CheckRecommended' not in annotations.keys()
 
         ## Clean up
         # Remove uuid and entityId from manifest and save, 
