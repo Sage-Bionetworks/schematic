@@ -45,24 +45,6 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     table = dataset_fileview.tidy_table()
     yield table
 
-@pytest.fixture
-def manfifest_and_path(helpers):
-    manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
-
-    manifest = helpers.get_data_frame(manifest_path)
-    if 'Uuid' in manifest.columns:
-        manifest = manifest.drop(['Uuid','entityId'], axis=1)
-        manifest.to_csv(manifest_path)
-
-    yield manifest, manifest_path
-
-@pytest.fixture
-def schemagenerator(helpers):
-    inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
-    sg = SchemaGenerator(inputModelLocaiton)
-
-    yield sg
-
 
 class TestBaseStorage:
     def test_init(self):
@@ -99,8 +81,17 @@ class TestSynapseStorage:
 
 
     @pytest.mark.parametrize("hide_blanks",[True, False],ids=["hide_blanks","show_blanks"])
-    def test_annotation_submission(self, synapse_store, helpers, config, manifest, manifest_path, sg, hide_blanks):
+    def test_annotation_submission(self, synapse_store, helpers, config, hide_blanks):
 
+        manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+
+        sg = SchemaGenerator(inputModelLocaiton)
+
+        manifest = helpers.get_data_frame(manifest_path)
+        if 'Uuid' in manifest.columns:
+            manifest = manifest.drop(['Uuid','entityId'], axis=1)
+            manifest.to_csv(manifest_path)
 
         manifest_id = synapse_store.associateMetadataWithFiles(
             schemaGenerator=sg,
