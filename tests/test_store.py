@@ -113,7 +113,7 @@ class TestSynapseStorage:
                 restrict_manifest = False,
             )
 
-        entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
+        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         assert annotations['CheckInt'] == '7'
@@ -128,6 +128,7 @@ class TestSynapseStorage:
         manifest.to_csv(manifest_path)
         # Remove manifest and entity from synapse to avoid file conflicts
         synapse_store.syn.delete(entity_id)
+        synapse_store.syn.delete(entity_id_spare)
         synapse_store.syn.delete(manifest_id)
 
 
