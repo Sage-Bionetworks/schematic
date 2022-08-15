@@ -3,6 +3,8 @@ import os
 import math
 import logging
 import pytest
+import platform
+import shutil
 
 import pandas as pd
 from synapseclient import EntityViewSchema
@@ -12,6 +14,7 @@ from schematic.store.synapse import SynapseStorage, DatasetFileView
 from schematic.utils.cli_utils import get_from_config
 from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
+from csv import QUOTE_NONNUMERIC
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -80,56 +83,43 @@ class TestSynapseStorage:
         assert expected_dict == actual_dict
 
     def test_annotation_submission(self, synapse_store, helpers, config):
-
+        # Duplicate base file to avoid conflicts
+        version=platform.python_version()
         manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        temp_manifest_path = manifest_path.replace('.csv',version+'.csv')
+        shutil.copyfile(manifest_path,temp_manifest_path)
 
+        # Upload dataset annotations
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
         sg = SchemaGenerator(inputModelLocaiton)
 
-        try:
-            manifest_id = synapse_store.associateMetadataWithFiles(
-                schemaGenerator=sg,
-                metadataManifestPath=manifest_path,
-                datasetId='syn34295552',
-                manifest_record_type = 'entity',
-                useSchemaLabel = True,
-                hideBlanks = True,
-                restrict_manifest = False,
-            )
+        manifest_id = synapse_store.associateMetadataWithFiles(
+            schemaGenerator=sg,
+            metadataManifestPath=temp_manifest_path,
+            datasetId='syn34295552',
+            manifest_record_type = 'entity',
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+        )
 
-        except(SynapseHTTPError):
-            manifest = helpers.get_data_frame(manifest_path)
-            if 'Uuid' in manifest.columns:
-                manifest = manifest.drop(['Uuid','entityId'], axis=1)
-                manifest.to_csv(manifest_path)
-
-            manifest_id = synapse_store.associateMetadataWithFiles(
-                schemaGenerator=sg,
-                metadataManifestPath=manifest_path,
-                datasetId='syn34295552',
-                manifest_record_type = 'entity',
-                useSchemaLabel = True,
-                hideBlanks = True,
-                restrict_manifest = False,
-            )
-
-        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
+        # Retrive annotations
+        entity_id, entity_id_spare = helpers.get_data_frame(temp_manifest_path)["entityId"][0:2]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
+        ## Clean up
+        os.remove(temp_manifest_path)
+        # Remove manifest and entities from synapse to avoid file conflicts
+        synapse_store.syn.delete(entity_id)
+        synapse_store.syn.delete(entity_id_spare)
+        synapse_store.syn.delete(manifest_id)
+
+        # Check annotations of interest
         assert annotations['CheckInt'] == '7'
         assert annotations['CheckList'] == 'valid, list, values'
         assert 'CheckRecommended' not in annotations.keys()
 
-        ## Clean up
-        # Remove uuid and entityId from manifest and save, 
-        # likely just necessary for when tests are run locally, including to be safe
-        manifest = helpers.get_data_frame(manifest_path)
-        manifest = manifest.drop(['Uuid','entityId'], axis=1)
-        manifest.to_csv(manifest_path)
-        # Remove manifest and entity from synapse to avoid file conflicts
-        synapse_store.syn.delete(entity_id)
-        synapse_store.syn.delete(entity_id_spare)
-        synapse_store.syn.delete(manifest_id)
+
 
 
 
