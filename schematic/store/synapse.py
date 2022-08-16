@@ -130,6 +130,16 @@ class SynapseStorage(BaseStorage):
             
         return syn
 
+    def missing_entity_handler(method):
+        def wrapper(*args, **kwargs):
+            try:
+                method(*args, **kwargs)
+            except(SynapseHTTPError) as ex:
+                str_message = str(ex).replace("\n","")
+                logging.warning(str_message)
+        return wrapper
+
+
     def getStorageFileviewTable(self):
         """ Returns the storageFileviewTable obtained during initialization.
         """
@@ -665,6 +675,7 @@ class SynapseStorage(BaseStorage):
         
         return manifest_synapse_file_id
 
+    @missing_entity_handler
     def format_row_annotations(self, se, sg, row, entityId, useSchemaLabel, hideBlanks):
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
@@ -866,8 +877,9 @@ class SynapseStorage(BaseStorage):
                 # Format annotations for Synapse
                 annos = self.format_row_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
 
+                if annos:
                 # Store annotations for an entity folder
-                self.syn.set_annotations(annos)
+                    self.syn.set_annotations(annos)
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
