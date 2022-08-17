@@ -92,7 +92,7 @@ paths:
   /manifest/download:
     get:
       summary: Endpoint to download an existing manifest
-      description: Endpoint to download an existing manifest
+      description: Endpoint to download an existing manifest. For synapse user, please update config.yml. For example, if you want to download "data_flow_status_manifest.csv", change default the value of key "manifest_basename" from "synapse_storage_manifest" to "data_flow_status_manifest"
       parameters:
         - in: query
           name: input_token
