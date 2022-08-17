@@ -84,7 +84,7 @@ class TestSynapseStorage:
 
     def test_annotation_submission(self, synapse_store, helpers, config):
         # Duplicate base file to avoid conflicts
-        version=platform.python_version()
+        version=helpers.get_python_verion()
         manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
         temp_manifest_path = manifest_path.replace('.csv',version+'.csv')
         shutil.copyfile(manifest_path,temp_manifest_path)

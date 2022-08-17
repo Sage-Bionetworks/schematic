@@ -1,5 +1,6 @@
 import os
 import logging
+import platform
 
 import pytest
 import pandas as pd
@@ -62,6 +63,9 @@ class Helpers:
         se.load_schema(fullpath)
         return se
 
+    @staticmethod
+    def get_python_verion():
+        return platform.python_version()
 
 @pytest.fixture
 def helpers():
