@@ -3,8 +3,6 @@ import os
 import math
 import logging
 import pytest
-import platform
-import shutil
 
 import pandas as pd
 from synapseclient import EntityViewSchema
@@ -84,10 +82,8 @@ class TestSynapseStorage:
 
     def test_annotation_submission(self, synapse_store, helpers, config):
         # Duplicate base file to avoid conflicts
-        version=helpers.get_python_verion()
-        manifest_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
-        temp_manifest_path = manifest_path.replace('.csv',version+'.csv')
-        shutil.copyfile(manifest_path,temp_manifest_path)
+        manifest_path = "mock_manifests/annotations_test_manifest.csv"
+        temp_manifest_path = helpers.duplicate_unique_manifest(helpers, manifest_path)
 
         # Upload dataset annotations
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))

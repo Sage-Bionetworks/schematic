@@ -2,6 +2,7 @@ import os
 import logging
 import platform
 
+import shutil
 import pytest
 import pandas as pd
 from dotenv import load_dotenv, find_dotenv
@@ -64,8 +65,12 @@ class Helpers:
         return se
 
     @staticmethod
-    def get_python_verion():
-        return platform.python_version()
+    def duplicate_unique_manifest(self, path):
+        version=platform.python_version()
+        manifest_path = self.get_data_path(path)
+        temp_manifest_path = manifest_path.replace('.csv',version+'.csv')
+        shutil.copyfile(manifest_path,temp_manifest_path)
+        return temp_manifest_path
 
 @pytest.fixture
 def helpers():
