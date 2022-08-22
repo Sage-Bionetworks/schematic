@@ -255,10 +255,7 @@ class ValidateManifest(object):
                 attribute_name = error[1]
                 row_num = error[0]
                 errorMsg = error[3]
-                arg_error_string = (
-                f"For the attribute '{attribute_name}', on row {row_num}, {errorMsg}."
-            )
-                logging.error(arg_error_string)
+                GenerateError.generate_schema_error(row_num = row_num, attribute_name = attribute_name, error_msg = errorMsg)
 
         return errors, warnings
 

@@ -26,6 +26,20 @@ from schematic.utils.validate_utils import parse_str_series_to_list
 logger = logging.getLogger(__name__)
 
 class GenerateError:
+    def generate_schema_error(row_num: str, attribute_name: str, error_msg: str)-> List[str]:
+        '''
+        Purpose: Process error messages generated from schema
+        Input:
+            - row_num: the row the error occurred on.
+            - attribute_name: the attribute the error occurred on.
+            - error_msg: Error message
+        '''
+        arg_error_string = (
+                f"For the attribute '{attribute_name}', on row {row_num}, {error_msg}."
+            )
+        logging.error(arg_error_string)
+        return [row_num, attribute_name, arg_error_string]
+
     def generate_list_error(
         list_string: str, row_num: str, attribute_name: str, list_error: str,
         invalid_entry:str,
