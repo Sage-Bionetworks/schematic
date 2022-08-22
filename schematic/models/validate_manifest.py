@@ -244,10 +244,22 @@ class ValidateManifest(object):
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
                 errorRow = i + 2
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema"
+                errorColName = error.path[0] if len(error.path) > 0 else "Wrong schema"
                 errorMsg = error.message[0:500]
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
-                errors.append([errorRow, errorCol, errorMsg, errorVal])
+                errors.append([errorRow, errorColName, errorCol, errorMsg, errorVal])
+            
+        if errors: 
+            for error in errors: 
+                attribute_name = error[1]
+                row_num = error[0]
+                errorMsg = error[3]
+                arg_error_string = (
+                f"For the attribute '{attribute_name}', on row {row_num}, {errorMsg}."
+            )
+                logging.error(arg_error_string)
+
         return errors, warnings
 
 
