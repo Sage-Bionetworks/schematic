@@ -3,6 +3,7 @@ import os
 import math
 import logging
 import pytest
+import time
 
 import pandas as pd
 from synapseclient import EntityViewSchema
@@ -89,16 +90,28 @@ class TestSynapseStorage:
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
         sg = SchemaGenerator(inputModelLocaiton)
 
-        
-        manifest_id = synapse_store.associateMetadataWithFiles(
-            schemaGenerator=sg,
-            metadataManifestPath=temp_manifest_path,
-            datasetId=helpers.get_version_specific_syn_dataset(),
-            manifest_record_type = 'entity',
-            useSchemaLabel = True,
-            hideBlanks = True,
-            restrict_manifest = False,
-        )
+        try:        
+            manifest_id = synapse_store.associateMetadataWithFiles(
+                schemaGenerator=sg,
+                metadataManifestPath=temp_manifest_path,
+                datasetId=helpers.get_version_specific_syn_dataset(),
+                manifest_record_type = 'entity',
+                useSchemaLabel = True,
+                hideBlanks = True,
+                restrict_manifest = False,
+            )
+        except(SynapseHTTPError):
+            time.sleep(30)
+            
+            manifest_id = synapse_store.associateMetadataWithFiles(
+                schemaGenerator=sg,
+                metadataManifestPath=temp_manifest_path,
+                datasetId=helpers.get_version_specific_syn_dataset(),
+                manifest_record_type = 'entity',
+                useSchemaLabel = True,
+                hideBlanks = True,
+                restrict_manifest = False,
+            )
         
 
         # Retrive annotations
