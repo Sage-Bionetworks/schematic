@@ -619,6 +619,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
+    @missing_entity_handler
     def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
@@ -723,6 +724,7 @@ class SynapseStorage(BaseStorage):
                 
         return annos
 
+    @missing_entity_handler
     def format_manifest_annotations(self, manifest, manifest_synapse_id):
         '''
         Set annotations for the manifest (as a whole) so they can be applied to the manifest table or csv.
