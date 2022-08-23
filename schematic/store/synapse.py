@@ -609,7 +609,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
+    def upload_format_manifest_table(self, se, manifest, table_name, restrict, useSchemaLabel, projectId):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
@@ -642,8 +642,7 @@ class SynapseStorage(BaseStorage):
             if col['name'] == 'Uuid':
                 col_schema[i]['maximumSize'] = 64
 
-        # Put table manifest onto synapse
-        schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
+        schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(projectId))
         table = self.syn.store(Table(schema, table_manifest), isRestricted=restrict)
         manifest_table_id = table.schema.id
 
@@ -758,7 +757,7 @@ class SynapseStorage(BaseStorage):
 
     def associateMetadataWithFiles(
         self, schemaGenerator: SchemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
-        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False,
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False, projectId: str = None
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -838,9 +837,11 @@ class SynapseStorage(BaseStorage):
 
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
-            manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
-            
+            try:
+                projectId = self.getDatasetProject(projectId)
+            except: 
+                raise TypeError(f'{projectId} is not a valid project ID.')
+            manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(se, manifest, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel, projectId=projectId)
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():

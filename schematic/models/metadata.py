@@ -283,6 +283,7 @@ class MetadataModel(object):
         dataset_id: str,
         manifest_record_type: str,
         restrict_rules: bool,
+        project_id: str = None,
         validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
@@ -294,6 +295,7 @@ class MetadataModel(object):
         Args:
             manifest_path: Path to the manifest file, which contains the metadata.
             dataset_id: Synapse ID of the dataset on Synapse containing the metadata manifest file.
+            project_id: Synapse ID of the project on Synapse. Only relevant when submitting manifest as a table. 
             validate_component: Component from the schema.org schema based on which the manifest template has been generated.
         Returns:
             Manifest ID: If both validation and association were successful.
@@ -312,7 +314,6 @@ class MetadataModel(object):
         censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
         # check if user wants to perform validation or not
         if validate_component is not None:
-
             try:
                 # check if the component ("class" in schema) passed as argument is valid (present in schema) or not
                 self.sg.se.is_class_in_schema(validate_component)
@@ -348,6 +349,7 @@ class MetadataModel(object):
                     schemaGenerator = self.sg,
                     metadataManifestPath = manifest_path, 
                     datasetId = dataset_id, 
+                    projectId = project_id,
                     manifest_record_type = manifest_record_type,
                     useSchemaLabel = use_schema_label, 
                     hideBlanks = hide_blanks,
@@ -362,7 +364,6 @@ class MetadataModel(object):
                     "Manifest could not be validated under provided data model. "
                     f"Validation failed with the following errors: {val_errors}"
                 )
-
         # no need to perform validation, just submit/associate the metadata manifest file
         if exists(censored_manifest_path):
             censored_manifest_id = syn_store.associateMetadataWithFiles(
@@ -372,6 +373,7 @@ class MetadataModel(object):
                 manifest_record_type=manifest_record_type,
                 useSchemaLabel=use_schema_label,
                 hideBlanks=hide_blanks,
+                projectId=project_id
             )
             restrict_maniest = True
         
@@ -383,6 +385,7 @@ class MetadataModel(object):
             useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
             restrict_manifest=restrict_maniest,
+            projectId=project_id
         )
 
         logger.debug(

@@ -80,8 +80,8 @@ def model(ctx, config):  # use as `schematic model ...`
     "--manifest_record_type",
     "-mrt",
     default='both',
-    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
-    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
+    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True)
+)
 @click.option(
     "-rr",
     "--restrict_rules",
@@ -95,9 +95,15 @@ def model(ctx, config):  # use as `schematic model ...`
     callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
+@click.option(
+    "-pj",
+    "--project_id",
+    default=None,
+    help=query_dict(model_commands, ("model", "submit", "project_id")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope,
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope, project_id
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -116,6 +122,7 @@ def submit_manifest(
             path_to_json_ld = jsonld,
             manifest_path=manifest_path,
             dataset_id=dataset_id,
+            project_id = project_id, 
             validate_component=validate_component,
             manifest_record_type=manifest_record_type,
             restrict_rules=restrict_rules,
@@ -142,6 +149,10 @@ def submit_manifest(
     except ValueError:
         logger.error(
             f"Component '{validate_component}' is not present in '{jsonld}', or is invalid."
+        )
+    except TypeError: 
+        logger.error(
+            f"{project_id} is not a valid project folder. Please provide a valid project ID when submitting your manifest as a table"
         )
     except ValidationError:
         logger.error(
