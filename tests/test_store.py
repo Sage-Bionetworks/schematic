@@ -83,7 +83,7 @@ class TestSynapseStorage:
     def test_annotation_submission(self, synapse_store, helpers, config):
         # Duplicate base file to avoid conflicts
         manifest_path = "mock_manifests/annotations_test_manifest.csv"
-        temp_manifest_path = helpers.duplicate_unique_manifest(helpers, manifest_path)
+        temp_manifest_path = helpers.duplicate_version_specific_manifest(helpers, manifest_path)
 
         # Upload dataset annotations
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
@@ -92,7 +92,7 @@ class TestSynapseStorage:
         manifest_id = synapse_store.associateMetadataWithFiles(
             schemaGenerator=sg,
             metadataManifestPath=temp_manifest_path,
-            datasetId='syn34295552',
+            datasetId=helpers.get_version_specific_syn_dataset(),
             manifest_record_type = 'entity',
             useSchemaLabel = True,
             hideBlanks = True,

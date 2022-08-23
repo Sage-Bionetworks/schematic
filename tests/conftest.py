@@ -1,3 +1,4 @@
+from multiprocessing.sharedctypes import Value
 import os
 import logging
 import platform
@@ -65,12 +66,32 @@ class Helpers:
         return se
 
     @staticmethod
-    def duplicate_unique_manifest(self, path):
+    def duplicate_version_specific_manifest(self, path):
         version=platform.python_version()
         manifest_path = self.get_data_path(path)
         temp_manifest_path = manifest_path.replace('.csv',version+'.csv')
         shutil.copyfile(manifest_path,temp_manifest_path)
         return temp_manifest_path
+
+    @staticmethod
+    def get_version_specific_syn_dataset():
+        version=platform.python_version()
+
+        synId = None
+
+        if version.startswith('3.7'):
+            synId = 'syn34999062'
+        elif version.startswith('3.8'):
+            synId = 'syn34999080'
+        elif version.startswith('3.9'):
+            synId = 'syn34999096'
+
+        if not synId:
+            raise OSError(
+                "Unsupported Version of Python"
+            )
+        else:
+            return synId
 
 @pytest.fixture
 def helpers():
