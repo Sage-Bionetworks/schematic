@@ -66,11 +66,10 @@ class Helpers:
         return se
 
     @staticmethod
-    def duplicate_version_specific_manifest(self, path):
+    def get_version_specific_manifest_path(self, path):
         version=platform.python_version()
         manifest_path = self.get_data_path(path)
-        temp_manifest_path = manifest_path.replace('.csv',version+'.csv')
-        shutil.copyfile(manifest_path,temp_manifest_path)
+        temp_manifest_path = manifest_path.replace('.csv',version[0:3]+'.csv')
         return temp_manifest_path
 
     @staticmethod

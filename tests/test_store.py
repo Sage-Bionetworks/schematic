@@ -83,12 +83,13 @@ class TestSynapseStorage:
     def test_annotation_submission(self, synapse_store, helpers, config):
         # Duplicate base file to avoid conflicts
         manifest_path = "mock_manifests/annotations_test_manifest.csv"
-        temp_manifest_path = helpers.duplicate_version_specific_manifest(helpers, manifest_path)
+        temp_manifest_path = helpers.get_version_specific_manifest_path(helpers, manifest_path)
 
         # Upload dataset annotations
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
         sg = SchemaGenerator(inputModelLocaiton)
 
+        
         manifest_id = synapse_store.associateMetadataWithFiles(
             schemaGenerator=sg,
             metadataManifestPath=temp_manifest_path,
@@ -98,17 +99,11 @@ class TestSynapseStorage:
             hideBlanks = True,
             restrict_manifest = False,
         )
+        
 
         # Retrive annotations
         entity_id, entity_id_spare = helpers.get_data_frame(temp_manifest_path)["entityId"][0:2]
         annotations = synapse_store.getFileAnnotations(entity_id)
-
-        ## Clean up
-        os.remove(temp_manifest_path)
-        # Remove manifest and entities from synapse to avoid file conflicts
-        synapse_store.syn.delete(entity_id)
-        synapse_store.syn.delete(entity_id_spare)
-        synapse_store.syn.delete(manifest_id)
 
         # Check annotations of interest
         assert annotations['CheckInt'] == '7'
