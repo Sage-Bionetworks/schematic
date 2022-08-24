@@ -1,0 +1,3 @@
+Component,CheckList,CheckRegexList,CheckRegexSingle,CheckNum,CheckFloat,CheckInt,CheckString,CheckURL,CheckMatchatLeast,CheckMatchatLeastvalues,CheckMatchExactly,CheckMatchExactlyvalues,CheckRecommended,CheckAges,CheckUnique
+MockComponent,"valid,list,values","a,c,f",a,6,99.65,7,valid,https://www.google.com/,1985,4891,23487492,24323472834,,6571,str1
+MockComponent,"valid,list,values","a,c,f",a,6,99.65,8.52,valid,https://www.google.com/,1985,4891,23487492,24323472834,,6571,str1

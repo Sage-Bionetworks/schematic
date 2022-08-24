@@ -9,6 +9,11 @@ synapse:
   master_fileview: "syn23643253"
   manifest_basename: "data/manifests/synapse_storage_manifest"
 
+model:
+  input:
+    location: 'example.model.jsonld'
+    file_type: 'local'
+
 style:
   google_manifest:
     master_template_id: '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU'

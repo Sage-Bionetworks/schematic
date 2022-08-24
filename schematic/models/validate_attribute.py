@@ -761,7 +761,7 @@ class ValidateAttribute(object):
                         val_rule = val_rule,
                         row_num = str(list(invalid_rows)), 
                         attribute_name = source_attribute, 
-                        invalid_entry = str(invalid_values.squeeze().values.tolist()) 
+                        invalid_entry = str(pd.Series(invalid_values.squeeze()).values.tolist()) 
                     )
                 )
             
