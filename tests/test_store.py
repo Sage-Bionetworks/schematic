@@ -13,7 +13,6 @@ from schematic.store.synapse import SynapseStorage, DatasetFileView
 from schematic.utils.cli_utils import get_from_config
 from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
-from csv import QUOTE_NONNUMERIC
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
