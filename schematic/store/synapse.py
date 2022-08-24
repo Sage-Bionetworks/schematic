@@ -662,15 +662,21 @@ class SynapseStorage(BaseStorage):
 
         return manifest_table_id, manifest, table_manifest
 
-    def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest):
+    def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = ''):
         # Update manifest to have the new entityId column
         manifest.to_csv(metadataManifestPath, index=False)
 
         # store manifest to Synapse as a CSV
+        # update file name
+        file_name_full = metadataManifestPath.split('/')[-1]
+        file_extension = file_name_full.split('.')[-1]
+        file_name_new = 'synapse_storage_manifest_' + component_name + '.' + file_extension
+
         manifestSynapseFile = File(
             metadataManifestPath,
             description="Manifest for dataset " + datasetId,
             parent=datasetId,
+            name=file_name_new
         )
 
         manifest_synapse_file_id = self.syn.store(manifestSynapseFile, isRestricted = restrict_manifest).id
@@ -848,8 +854,10 @@ class SynapseStorage(BaseStorage):
 
         # Create table name here.
         if 'Component' in manifest.columns:
-            table_name = manifest['Component'][0].lower() + '_synapse_storage_manifest_table'
+            component_name = manifest['Component'][0].lower()
+            table_name = component_name + '_synapse_storage_manifest_table'
         else:
+            component_name = ''
             table_name = 'synapse_storage_manifest_table'
 
         # If specified, upload manifest as a table and get the SynID and manifest
@@ -887,7 +895,7 @@ class SynapseStorage(BaseStorage):
                     self.syn.set_annotations(annos)
 
         # Load manifest to synapse as a CSV File
-        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
+        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = component_name)
         
         # Get annotations for the file manifest.
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
