@@ -1077,13 +1077,13 @@ class SynapseStorage(BaseStorage):
             if syn_object.properties["concreteType"].endswith("Project"):
                 return datasetId
         except SynapseHTTPError:
-            raise ValueError(
+            raise PermissionError(
                 f"The given dataset ({datasetId}) isn't accessible with this "
                 "user. This might be caused by a typo in the dataset Synapse ID."
             )
 
         # If not, then assume dataset not in file view
-        raise AssertionError (
+        raise AttributeError (
             f"The given dataset ({datasetId}) doesn't appear in the "
             f"configured file view ({self.storageFileview}). This might "
             "mean that the file view's scope needs to be updated."
