@@ -34,11 +34,15 @@ class GenerateError:
             - attribute_name: the attribute the error occurred on.
             - error_msg: Error message
         '''
+        error_col = attribute_name  # Attribute name
+        error_row = row_num  # index row of the manifest where the error presented.
+        error_message = error_msg
+
         arg_error_string = (
-                f"For the attribute '{attribute_name}', on row {row_num}, {error_msg}."
-            )
+                f"For the attribute '{error_col}', on row {error_row}, {error_message}."
+        )
         logging.error(arg_error_string)
-        return [row_num, attribute_name, arg_error_string]
+        return [error_row, error_col, error_message]
 
     def generate_list_error(
         list_string: str, row_num: str, attribute_name: str, list_error: str,

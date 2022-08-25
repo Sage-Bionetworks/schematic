@@ -232,6 +232,7 @@ class ValidateManifest(object):
         
         errors = []
         warnings = []
+        col_attr = {} # save the mapping between column index and attribute name
         
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(include=[int, np.int64, float, np.float64]).columns:
@@ -248,14 +249,15 @@ class ValidateManifest(object):
                 errorMsg = error.message[0:500]
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
-                errors.append([errorRow, errorColName, errorCol, errorMsg, errorVal])
-            
+                errors.append([errorRow, errorCol, errorMsg, errorVal])
+                col_attr[errorCol] = errorColName
         if errors: 
             for error in errors: 
-                attribute_name = error[1]
                 row_num = error[0]
-                errorMsg = error[3]
-                GenerateError.generate_schema_error(row_num = row_num, attribute_name = attribute_name, error_msg = errorMsg)
+                col_index = error[1]
+                attr_name = col_attr[col_index]
+                errorMsg = error[2]
+                GenerateError.generate_schema_error(row_num = row_num, attribute_name = attr_name, error_msg = errorMsg)
 
         return errors, warnings
 
