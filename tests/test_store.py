@@ -124,7 +124,7 @@ class TestSynapseStorage:
         assert synapse_store.getDatasetProject("syn24992812") == "syn24992754"
         assert synapse_store.getDatasetProject("syn24992754") == "syn24992754"
 
-        with pytest.raises(ValueError):
+        with pytest.raises(PermissionError):
             synapse_store.getDatasetProject("syn12345678")
 
 
