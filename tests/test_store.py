@@ -100,7 +100,7 @@ class TestSynapseStorage:
                 restrict_manifest = False,
             )
         except(SynapseHTTPError):
-            time.sleep(30)
+            time.sleep(60)
             
             manifest_id = synapse_store.associateMetadataWithFiles(
                 schemaGenerator=sg,
