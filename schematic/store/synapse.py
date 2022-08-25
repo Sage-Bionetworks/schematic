@@ -46,7 +46,6 @@ from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 
-
 class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
     Provides utilities to list files in a specific project; update files annotations, create fileviews, etc.
@@ -1084,11 +1083,11 @@ class SynapseStorage(BaseStorage):
             )
 
         # If not, then assume dataset not in file view
-        raise ValueError(
+        raise AssertionError (
             f"The given dataset ({datasetId}) doesn't appear in the "
             f"configured file view ({self.storageFileview}). This might "
             "mean that the file view's scope needs to be updated."
-        )
+        )     
 
     def getDatasetAnnotationsBatch(
         self, datasetId: str, dataset_file_ids: Sequence[str] = None
