@@ -100,6 +100,9 @@ class TestSynapseStorage:
                 restrict_manifest = False,
             )
         except(SynapseHTTPError):
+            # When two instances of the tests are running, 
+            # an error can arise if they try to modify the same entity concurrently. 
+            # Waiting before trying again resolves
             time.sleep(60)
             
             manifest_id = synapse_store.associateMetadataWithFiles(
