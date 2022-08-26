@@ -84,6 +84,8 @@ class Helpers:
             synId = 'syn34999080'
         elif version.startswith('3.9'):
             synId = 'syn34999096'
+        elif version.startswith('3.10'):
+            synId = 'syn35357286'
 
         if not synId:
             raise OSError(
