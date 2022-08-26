@@ -85,9 +85,7 @@ class TestSynapseStorage:
         assert expected_dict == actual_dict
 
     def test_annotation_submission(self, synapse_store, helpers, config):
-        # Duplicate base file to avoid conflicts
         manifest_path = "mock_manifests/annotations_test_manifest.csv"
-        temp_manifest_path = helpers.get_version_specific_manifest_path(helpers, manifest_path)
 
         # Upload dataset annotations
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
@@ -109,7 +107,6 @@ class TestSynapseStorage:
                         hideBlanks = True,
                         restrict_manifest = False,
                     )
-                    
         except RetryError:
             pass
 
