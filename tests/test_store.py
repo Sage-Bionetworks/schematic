@@ -114,7 +114,7 @@ class TestSynapseStorage:
             pass
 
         # Retrive annotations
-        entity_id, entity_id_spare = helpers.get_data_frame(temp_manifest_path)["entityId"][0:2]
+        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         # Check annotations of interest
