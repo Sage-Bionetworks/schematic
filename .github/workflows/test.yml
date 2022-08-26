@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.10]
 
     steps:
 
@@ -34,6 +34,7 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1.1.1
         with:
+          version: 1.2.0rc1
           virtualenvs-create: true
           virtualenvs-in-project: true
 
