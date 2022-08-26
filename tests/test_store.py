@@ -80,6 +80,55 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
+    def test_annotation_submission(self, synapse_store, helpers, config):
+        # Duplicate base file to avoid conflicts
+        manifest_path = "mock_manifests/annotations_test_manifest.csv"
+        temp_manifest_path = helpers.get_version_specific_manifest_path(helpers, manifest_path)
+
+        # Upload dataset annotations
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        sg = SchemaGenerator(inputModelLocaiton)
+
+        try:        
+            manifest_id = synapse_store.associateMetadataWithFiles(
+                schemaGenerator=sg,
+                metadataManifestPath=temp_manifest_path,
+                datasetId=helpers.get_version_specific_syn_dataset(),
+                manifest_record_type = 'entity',
+                useSchemaLabel = True,
+                hideBlanks = True,
+                restrict_manifest = False,
+            )
+        except(SynapseHTTPError):
+            # When two instances of the tests are running, 
+            # an error can arise if they try to modify the same entity concurrently. 
+            # Waiting before trying again resolves
+            time.sleep(60)
+            
+            manifest_id = synapse_store.associateMetadataWithFiles(
+                schemaGenerator=sg,
+                metadataManifestPath=temp_manifest_path,
+                datasetId=helpers.get_version_specific_syn_dataset(),
+                manifest_record_type = 'entity',
+                useSchemaLabel = True,
+                hideBlanks = True,
+                restrict_manifest = False,
+            )
+        
+
+        # Retrive annotations
+        entity_id, entity_id_spare = helpers.get_data_frame(temp_manifest_path)["entityId"][0:2]
+        annotations = synapse_store.getFileAnnotations(entity_id)
+
+        # Check annotations of interest
+        assert annotations['CheckInt'] == '7'
+        assert annotations['CheckList'] == 'valid, list, values'
+        assert 'CheckRecommended' not in annotations.keys()
+
+
+
+
+
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
         expected_df = pd.DataFrame.from_records(
