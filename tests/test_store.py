@@ -4,6 +4,7 @@ import math
 import logging
 import pytest
 import time
+from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
 
 import pandas as pd
 from synapseclient import EntityViewSchema
@@ -46,6 +47,9 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     table = dataset_fileview.tidy_table()
     yield table
 
+
+def raise_final_error(retry_state):
+    return retry_state.outcome.result()
 
 class TestBaseStorage:
     def test_init(self):
@@ -90,31 +94,24 @@ class TestSynapseStorage:
         sg = SchemaGenerator(inputModelLocaiton)
 
         try:        
-            manifest_id = synapse_store.associateMetadataWithFiles(
-                schemaGenerator=sg,
-                metadataManifestPath=temp_manifest_path,
-                datasetId=helpers.get_version_specific_syn_dataset(helpers),
-                manifest_record_type = 'entity',
-                useSchemaLabel = True,
-                hideBlanks = True,
-                restrict_manifest = False,
-            )
-        except(SynapseHTTPError):
-            # When two instances of the tests are running, 
-            # an error can arise if they try to modify the same entity concurrently. 
-            # Waiting before trying again resolves
-            time.sleep(60)
-            
-            manifest_id = synapse_store.associateMetadataWithFiles(
-                schemaGenerator=sg,
-                metadataManifestPath=temp_manifest_path,
-                datasetId=helpers.get_version_specific_syn_dataset(),
-                manifest_record_type = 'entity',
-                useSchemaLabel = True,
-                hideBlanks = True,
-                restrict_manifest = False,
-            )
-        
+            for attempt in Retrying(
+                stop = stop_after_attempt(15),
+                wait = wait_random_exponential(multiplier=1,min=10,max=120),
+                retry_error_callback = raise_final_error
+                ):
+                with attempt:         
+                    manifest_id = synapse_store.associateMetadataWithFiles(
+                        schemaGenerator = sg,
+                        metadataManifestPath = helpers.get_data_path(manifest_path),
+                        datasetId = 'syn34295552',
+                        manifest_record_type = 'entity',
+                        useSchemaLabel = True,
+                        hideBlanks = True,
+                        restrict_manifest = False,
+                    )
+                    
+        except RetryError:
+            pass
 
         # Retrive annotations
         entity_id, entity_id_spare = helpers.get_data_frame(temp_manifest_path)["entityId"][0:2]
