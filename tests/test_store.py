@@ -93,7 +93,7 @@ class TestSynapseStorage:
             manifest_id = synapse_store.associateMetadataWithFiles(
                 schemaGenerator=sg,
                 metadataManifestPath=temp_manifest_path,
-                datasetId=helpers.get_version_specific_syn_dataset(),
+                datasetId=helpers.get_version_specific_syn_dataset(helpers),
                 manifest_record_type = 'entity',
                 useSchemaLabel = True,
                 hideBlanks = True,

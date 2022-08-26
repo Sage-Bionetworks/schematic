@@ -66,24 +66,34 @@ class Helpers:
         return se
 
     @staticmethod
-    def get_version_specific_manifest_path(self, path):
+    def get_python_version(self):
         version=platform.python_version()
+        base_version=".".join(version.split('.')[0:2])
+        
+        return base_version
+
+    @staticmethod
+    def get_version_specific_manifest_path(self, path):
+        version=self.get_python_version(self)
+        
         manifest_path = self.get_data_path(path)
-        temp_manifest_path = manifest_path.replace('.csv',version[0:3]+'.csv')
+        temp_manifest_path = manifest_path.replace('.csv',version+'.csv')
         return temp_manifest_path
 
     @staticmethod
-    def get_version_specific_syn_dataset():
-        version=platform.python_version()
+    def get_version_specific_syn_dataset(self):
+        version=self.get_python_version(self)
 
         synId = None
 
-        if version.startswith('3.7'):
+        if version == ('3.7'):
             synId = 'syn34999062'
-        elif version.startswith('3.8'):
+        elif version == ('3.8'):
             synId = 'syn34999080'
-        elif version.startswith('3.9'):
+        elif version == ('3.9'):
             synId = 'syn34999096'
+        elif version == ('3.10'):
+            synId = 'syn35357286'        
 
         if not synId:
             raise OSError(
