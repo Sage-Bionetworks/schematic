@@ -1,3 +1,0 @@
-Component,CheckList,CheckRegexList,CheckRegexSingle,CheckNum,CheckFloat,CheckInt,CheckString,CheckURL,CheckMatchatLeast,CheckMatchatLeastvalues,CheckMatchExactly,CheckMatchExactlyvalues,CheckRecommended,CheckAges,CheckUnique,Uuid,entityId
-MockComponent,"valid,list,values","a,c,f",a,6,99.65,7,valid,https://www.google.com/,1985,4891,23487492,24323472834,,6571,str1,c1effded-549d-4a9a-9436-d8c1709e5695,syn35005002
-MockComponent,"valid,list,values","a,c,f",a,6,99.65,8.52,valid,https://www.google.com/,1985,4891,23487492,24323472834,,6571,str1,cdd85e6d-347f-489e-be81-ebc711f5db7d,syn35005007

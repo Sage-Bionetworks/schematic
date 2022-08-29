@@ -66,31 +66,11 @@ class Helpers:
         return se
 
     @staticmethod
-    def get_version_specific_manifest_path(self, path):
+    def get_python_version(self):
         version=platform.python_version()
-        manifest_path = self.get_data_path(path)
-        temp_manifest_path = manifest_path.replace('.csv',version[0:3]+'.csv')
-        return temp_manifest_path
-
-    @staticmethod
-    def get_version_specific_syn_dataset():
-        version=platform.python_version()
-
-        synId = None
-
-        if version.startswith('3.7'):
-            synId = 'syn34999062'
-        elif version.startswith('3.8'):
-            synId = 'syn34999080'
-        elif version.startswith('3.9'):
-            synId = 'syn34999096'
-
-        if not synId:
-            raise OSError(
-                "Unsupported Version of Python"
-            )
-        else:
-            return synId
+        base_version=".".join(version.split('.')[0:2])
+        
+        return base_version
 
 @pytest.fixture
 def helpers():

@@ -4,6 +4,7 @@ import math
 import logging
 import pytest
 import time
+from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
 
 import pandas as pd
 from synapseclient import EntityViewSchema
@@ -47,6 +48,9 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     yield table
 
 
+def raise_final_error(retry_state):
+    return retry_state.outcome.result()
+
 class TestBaseStorage:
     def test_init(self):
 
@@ -81,40 +85,33 @@ class TestSynapseStorage:
         assert expected_dict == actual_dict
 
     def test_annotation_submission(self, synapse_store, helpers, config):
-        # Duplicate base file to avoid conflicts
         manifest_path = "mock_manifests/annotations_test_manifest.csv"
-        temp_manifest_path = helpers.get_version_specific_manifest_path(helpers, manifest_path)
 
         # Upload dataset annotations
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
         sg = SchemaGenerator(inputModelLocaiton)
 
         try:        
-            manifest_id = synapse_store.associateMetadataWithFiles(
-                schemaGenerator=sg,
-                metadataManifestPath=temp_manifest_path,
-                datasetId=helpers.get_version_specific_syn_dataset(),
-                manifest_record_type = 'entity',
-                useSchemaLabel = True,
-                hideBlanks = True,
-                restrict_manifest = False,
-            )
-        except(SynapseHTTPError):
-            time.sleep(30)
-            
-            manifest_id = synapse_store.associateMetadataWithFiles(
-                schemaGenerator=sg,
-                metadataManifestPath=temp_manifest_path,
-                datasetId=helpers.get_version_specific_syn_dataset(),
-                manifest_record_type = 'entity',
-                useSchemaLabel = True,
-                hideBlanks = True,
-                restrict_manifest = False,
-            )
-        
+            for attempt in Retrying(
+                stop = stop_after_attempt(15),
+                wait = wait_random_exponential(multiplier=1,min=10,max=120),
+                retry_error_callback = raise_final_error
+                ):
+                with attempt:         
+                    manifest_id = synapse_store.associateMetadataWithFiles(
+                        schemaGenerator = sg,
+                        metadataManifestPath = helpers.get_data_path(manifest_path),
+                        datasetId = 'syn34295552',
+                        manifest_record_type = 'entity',
+                        useSchemaLabel = True,
+                        hideBlanks = True,
+                        restrict_manifest = False,
+                    )
+        except RetryError:
+            pass
 
         # Retrive annotations
-        entity_id, entity_id_spare = helpers.get_data_frame(temp_manifest_path)["entityId"][0:2]
+        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         # Check annotations of interest
