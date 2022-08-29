@@ -122,9 +122,7 @@ def fill_in_from_config(
     return config_value
 
 def parse_synIDs(
-    ctx,
-    param,
-    synIDs,
+    ctx, param, synIDs,
 ) -> List[str]:
     """Parse and validate a comma separated string of synIDs
 
@@ -159,3 +157,9 @@ def parse_synIDs(
                     )
     else:
         return
+
+def parse_comma_str_to_list(
+    ctx, param, comma_string,
+) -> List[str]:
+
+    return comma_string.split(",")

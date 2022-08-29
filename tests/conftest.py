@@ -1,6 +1,9 @@
+from multiprocessing.sharedctypes import Value
 import os
 import logging
+import platform
 
+import shutil
 import pytest
 import pandas as pd
 from dotenv import load_dotenv, find_dotenv
@@ -62,6 +65,12 @@ class Helpers:
         se.load_schema(fullpath)
         return se
 
+    @staticmethod
+    def get_python_version(self):
+        version=platform.python_version()
+        base_version=".".join(version.split('.')[0:2])
+        
+        return base_version
 
 @pytest.fixture
 def helpers():

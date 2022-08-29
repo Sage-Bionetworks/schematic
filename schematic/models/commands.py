@@ -10,7 +10,7 @@ import click_log
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict, parse_synIDs
+from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict, parse_synIDs, parse_comma_str_to_list
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
@@ -113,6 +113,7 @@ def submit_manifest(
 
     try:
         manifest_id = metadata_model.submit_metadata_manifest(
+            path_to_json_ld = jsonld,
             manifest_path=manifest_path,
             dataset_id=dataset_id,
             validate_component=validate_component,
@@ -146,6 +147,10 @@ def submit_manifest(
         logger.error(
             f"Validation errors resulted while validating with '{validate_component}'."
         )
+    except AttributeError:
+        logger.error(
+            f"'{dataset_id}' is not in the asset view (or file view for Synapse user)"
+        )
 
 
 # prototype based on validateModelManifest()
@@ -164,6 +169,7 @@ def submit_manifest(
 @click.option(
     "-dt",
     "--data_type",
+    callback=parse_comma_str_to_list,
     help=query_dict(model_commands, ("model", "validate", "data_type")),
 )
 @click.option(
@@ -190,6 +196,15 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     Running CLI for manifest validation.
     """
     data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
+    
+    try:
+        len(data_type) == 1
+    except:
+        logger.error(
+            f"Can only validate a single data_type at a time. Please provide a single data_type"
+        )
+
+    data_type = data_type[0]
 
     json_schema = fill_in_from_config(
         "json_schema",

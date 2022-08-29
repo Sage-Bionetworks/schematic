@@ -1,14 +1,19 @@
+from __future__ import annotations
 import os
 import math
 import logging
 import pytest
+import time
+from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
 
 import pandas as pd
 from synapseclient import EntityViewSchema
 
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView
-
+from schematic.utils.cli_utils import get_from_config
+from schematic.schemas.generator import SchemaGenerator
+from synapseclient.core.exceptions import SynapseHTTPError
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -43,6 +48,9 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     yield table
 
 
+def raise_final_error(retry_state):
+    return retry_state.outcome.result()
+
 class TestBaseStorage:
     def test_init(self):
 
@@ -75,6 +83,45 @@ class TestSynapseStorage:
         del actual_dict["entityId"]
 
         assert expected_dict == actual_dict
+
+    def test_annotation_submission(self, synapse_store, helpers, config):
+        manifest_path = "mock_manifests/annotations_test_manifest.csv"
+
+        # Upload dataset annotations
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        sg = SchemaGenerator(inputModelLocaiton)
+
+        try:        
+            for attempt in Retrying(
+                stop = stop_after_attempt(15),
+                wait = wait_random_exponential(multiplier=1,min=10,max=120),
+                retry_error_callback = raise_final_error
+                ):
+                with attempt:         
+                    manifest_id = synapse_store.associateMetadataWithFiles(
+                        schemaGenerator = sg,
+                        metadataManifestPath = helpers.get_data_path(manifest_path),
+                        datasetId = 'syn34295552',
+                        manifest_record_type = 'entity',
+                        useSchemaLabel = True,
+                        hideBlanks = True,
+                        restrict_manifest = False,
+                    )
+        except RetryError:
+            pass
+
+        # Retrive annotations
+        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
+        annotations = synapse_store.getFileAnnotations(entity_id)
+
+        # Check annotations of interest
+        assert annotations['CheckInt'] == '7'
+        assert annotations['CheckList'] == 'valid, list, values'
+        assert 'CheckRecommended' not in annotations.keys()
+
+
+
+
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
@@ -124,7 +171,7 @@ class TestSynapseStorage:
         assert synapse_store.getDatasetProject("syn24992812") == "syn24992754"
         assert synapse_store.getDatasetProject("syn24992754") == "syn24992754"
 
-        with pytest.raises(ValueError):
+        with pytest.raises(PermissionError):
             synapse_store.getDatasetProject("syn12345678")
 
 
