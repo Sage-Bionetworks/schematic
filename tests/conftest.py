@@ -69,7 +69,7 @@ class Helpers:
     def get_python_version(self):
         version=platform.python_version()
         base_version=".".join(version.split('.')[0:2])
-        
+
         return base_version
 
 @pytest.fixture
