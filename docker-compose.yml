@@ -3,13 +3,14 @@ services:
   schematic:
     build: .
     container_name: schematic
-    entrypoint: python run_api.py
+    entrypoint: python /usr/src/app/run_api.py
     ports:
       - "3001:3001"
     volumes:
-      - .:/work
-    working_dir: /work
+      - .:/schematic
+    working_dir: /schematic
     environment:
       APP_HOST: "0.0.0.0"
       APP_PORT: "3001"
-      SCHEMATIC_CONFIG: /work/config.yml
+      SCHEMATIC_CONFIG: /schematic/config.yml
+      GE_HOME: /usr/src/app/great_expectations/
