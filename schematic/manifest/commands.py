@@ -227,5 +227,14 @@ def migrate_manifests(
     print(project_scope,archive_project)
     jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
 
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synStore = SynapseStorage(access_token=access_token,project_scope=project_scope)
+    else:
+        synStore = SynapseStorage(project_scope=project_scope)  
+
+    for project in project_scope:
+        synStore.upload_annotated_project_manifests_to_synapse(project, jsonld)
+
 
     return 
