@@ -337,7 +337,7 @@ def get_manifest_datatype(input_token, manifest_id, asset_view):
     return manifest_dtypes_dict
 
 def get_subgraph_by_edge_type(schema_url, relationship):
-    # use schema generator
+    # use schema generator and schema explorer
     sg = SchemaGenerator(path_to_json_ld=schema_url)
     se = SchemaExplorer()
     se.load_schema(schema_url)
