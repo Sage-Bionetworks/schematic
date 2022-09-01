@@ -665,6 +665,32 @@ class SynapseStorage(BaseStorage):
 
         return
 
+    def return_entities_to_old_project(self, projectId, newProjectId):
+        """
+        For each manifest csv in a project, look for all the entitiy ids that are associated.
+        Look up the entitiy in the files, move the entity to new project.
+        """
+
+        manifests = []
+        manifest_loaded = []
+        datasets = self.getStorageDatasetsInProject(projectId)
+        for (datasetId, datasetName) in datasets:
+            # encode information about the manifest in a simple list (so that R clients can unpack it)
+            # eventually can serialize differently
+
+            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+
+            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
+            if manifest_info:
+                manifest_id = manifest_info["properties"]["id"]
+                manifest_name = manifest_info["properties"]["name"]
+                manifest_path = manifest_info["path"]
+                manifest_df = load_df(manifest_path)
+                for entityId in manifest_df['entityId']:
+                    self.syn.move(entityId, datasetId)
+
+        return
+
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
 
