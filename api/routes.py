@@ -337,8 +337,13 @@ def get_manifest_datatype(input_token, manifest_id, asset_view):
     return manifest_dtypes_dict
 
 def find_class_specific_properties(schema_url, schema_class):
+    # use schema explorer
     se = SchemaExplorer()
+
+    # load schema
     se.load_schema(schema_url)
+
+    # return properties
     properties = se.find_class_specific_properties(schema_class)
 
     return properties
