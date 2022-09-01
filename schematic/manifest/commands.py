@@ -7,7 +7,7 @@ import logging
 import sys
 
 from schematic.manifest.generator import ManifestGenerator
-from schematic.utils.cli_utils import fill_in_from_config, query_dict
+from schematic.utils.cli_utils import fill_in_from_config, query_dict, parse_synIDs
 from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
@@ -189,3 +189,35 @@ def get_manifest(
             result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
 
     return result
+
+@manifest.command(
+    "migrate", short_help=query_dict(manifest_commands, ("manifest", "migrate", "short_help"))
+)
+@click_log.simple_verbosity_option(logger)
+# define the optional arguments
+@click.option(
+    "-ps",
+    "--project_scope",
+    default=None,
+    callback=parse_synIDs,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "project_scope")),
+)
+@click.option(
+    "-ap",
+    "--archive_project",
+    default=None,
+    callback=parse_synIDs,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "archive_project")),
+)
+@click.pass_obj
+def migrate_manifests(
+    ctx,
+    project_scope,
+    archive_project,
+):
+    """
+    Running CLI with manifest migration options.
+    """
+    print(project_scope,archive_project)
+
+    return 
