@@ -209,15 +209,22 @@ def get_manifest(
     callback=parse_synIDs,
     help=query_dict(manifest_commands, ("manifest", "migrate", "archive_project")),
 )
+@click.option(
+    "-p", "--jsonld", help=query_dict(manifest_commands, ("manifest", "get", "jsonld"))
+)
 @click.pass_obj
 def migrate_manifests(
     ctx,
     project_scope,
     archive_project,
+    jsonld,
 ):
     """
     Running CLI with manifest migration options.
     """
+
     print(project_scope,archive_project)
+    jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
+
 
     return 
