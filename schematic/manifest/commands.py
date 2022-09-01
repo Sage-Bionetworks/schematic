@@ -12,6 +12,7 @@ from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel
+from schematic.store.synapse import SynapseStorage
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
