@@ -608,3 +608,7 @@ paths:
       responses:
         "200":
           description: A list of properties of a given class. 
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Explorer
