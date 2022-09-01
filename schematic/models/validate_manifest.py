@@ -21,6 +21,7 @@ from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
+from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
@@ -90,21 +91,8 @@ class ValidateManifest(object):
 
         # for each type of rule that can be spefified (key) point
         # to the type of validation that will be run.
-        validation_types = {
-            "int": "type_validation",
-            "float": "type_validation",
-            "num": "type_validation",
-            "str": "type_validation",
-            "regex": "regex_validation",
-            "url": "url_validation",
-            "list": "list_validation",
-            "matchAtLeastOne": "cross_validation",
-            "matchExactlyOne": "cross_validation",
-            "recommended": "content_validation",
-            "protectAges": "content_validation",
-            "unique": "content_validation",
-            "inRange": "content_validation",
-        }
+
+        validation_types = validation_rule_info()
 
         type_dict={
             "float64": float,
@@ -203,7 +191,7 @@ class ValidateManifest(object):
 
                     #Validate for each individual validation rule.
                     validation_method = getattr(
-                            ValidateAttribute, validation_types[validation_type]
+                            ValidateAttribute, validation_types[validation_type]['type']
                         )
 
                     if validation_type == "list":
@@ -232,6 +220,7 @@ class ValidateManifest(object):
         
         errors = []
         warnings = []
+        col_attr = {} # save the mapping between column index and attribute name
         
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(include=[int, np.int64, float, np.float64]).columns:
@@ -244,10 +233,20 @@ class ValidateManifest(object):
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
                 errorRow = i + 2
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema"
+                errorColName = error.path[0] if len(error.path) > 0 else "Wrong schema"
                 errorMsg = error.message[0:500]
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
                 errors.append([errorRow, errorCol, errorMsg, errorVal])
+                col_attr[errorCol] = errorColName
+        if errors: 
+            for error in errors: 
+                row_num = error[0]
+                col_index = error[1]
+                attr_name = col_attr[col_index]
+                errorMsg = error[2]
+                GenerateError.generate_schema_error(row_num = row_num, attribute_name = attr_name, error_msg = errorMsg)
+
         return errors, warnings
 
 

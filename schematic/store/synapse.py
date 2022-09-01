@@ -47,7 +47,6 @@ from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 
-
 class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
     Provides utilities to list files in a specific project; update files annotations, create fileviews, etc.
@@ -130,6 +129,17 @@ class SynapseStorage(BaseStorage):
             syn.login(silent=True)
             
         return syn
+
+    def missing_entity_handler(method):
+        def wrapper(*args, **kwargs):
+            try:
+                return method(*args, **kwargs)
+            except(SynapseHTTPError) as ex:
+                str_message = str(ex).replace("\n","")
+                logging.warning(str_message)
+                return None
+        return wrapper
+
 
     def getStorageFileviewTable(self):
         """ Returns the storageFileviewTable obtained during initialization.
@@ -667,6 +677,7 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
+    @missing_entity_handler
     def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
         # Rename the manifest columns to display names to match fileview
         blacklist_chars = ['(', ')', '.', ' ']
@@ -708,21 +719,28 @@ class SynapseStorage(BaseStorage):
 
         return manifest_table_id, manifest, table_manifest
 
-    def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest):
+    def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = ''):
         # Update manifest to have the new entityId column
         manifest.to_csv(metadataManifestPath, index=False)
 
         # store manifest to Synapse as a CSV
+        # update file name
+        file_name_full = metadataManifestPath.split('/')[-1]
+        file_extension = file_name_full.split('.')[-1]
+        file_name_new = 'synapse_storage_manifest_' + component_name + '.' + file_extension
+
         manifestSynapseFile = File(
             metadataManifestPath,
             description="Manifest for dataset " + datasetId,
             parent=datasetId,
+            name=file_name_new
         )
 
         manifest_synapse_file_id = self.syn.store(manifestSynapseFile, isRestricted = restrict_manifest).id
         
         return manifest_synapse_file_id
 
+    @missing_entity_handler
     def format_row_annotations(self, se, sg, row, entityId, useSchemaLabel, hideBlanks):
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
@@ -756,20 +774,23 @@ class SynapseStorage(BaseStorage):
         annos = self.syn.get_annotations(entityId)
         csv_list_regex=comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
-            #Do not save blank annotations as NaNs,
-            #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
-            if isinstance(anno_v,float) and np.isnan(anno_v):
-                if hideBlanks:
-                    annos.pop(anno_k) if anno_k in annos.keys() else annos
-                else:
-                    annos[anno_k] = ""
-            elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and rule_in_rule_list('list', sg.get_node_validation_rules(anno_k)):
-                annos[anno_k] = anno_v.split(",")
+            
+            # Remove keys with nan or empty string values from dict of annotations to be uploaded
+            # if present on current data annotation
+            if hideBlanks and (anno_v == '' or (isinstance(anno_v,float) and np.isnan(anno_v))):
+                annos.pop(anno_k) if anno_k in annos.keys() else annos
+            # Otherwise save annotation as approrpriate
             else:
-                annos[anno_k] = anno_v
+                if isinstance(anno_v,float) and np.isnan(anno_v):
+                        annos[anno_k] = ""
+                elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and rule_in_rule_list('list', sg.get_node_validation_rules(anno_k)):
+                    annos[anno_k] = anno_v.split(",")
+                else:
+                    annos[anno_k] = anno_v
                 
         return annos
 
+    @missing_entity_handler
     def format_manifest_annotations(self, manifest, manifest_synapse_id):
         '''
         Set annotations for the manifest (as a whole) so they can be applied to the manifest table or csv.
@@ -966,8 +987,10 @@ class SynapseStorage(BaseStorage):
 
         # Create table name here.
         if 'Component' in manifest.columns:
-            table_name = manifest['Component'][0].lower() + '_synapse_storage_manifest_table'
+            component_name = manifest['Component'][0].lower()
+            table_name = component_name + '_synapse_storage_manifest_table'
         else:
+            component_name = ''
             table_name = 'synapse_storage_manifest_table'
 
         # If specified, upload manifest as a table and get the SynID and manifest
@@ -1000,11 +1023,12 @@ class SynapseStorage(BaseStorage):
                 # Format annotations for Synapse
                 annos = self.format_row_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
 
+                if annos:
                 # Store annotations for an entity folder
-                self.syn.set_annotations(annos)
+                    self.syn.set_annotations(annos)
 
         # Load manifest to synapse as a CSV File
-        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
+        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = component_name)
         
         # Get annotations for the file manifest.
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
@@ -1212,17 +1236,17 @@ class SynapseStorage(BaseStorage):
             if syn_object.properties["concreteType"].endswith("Project"):
                 return datasetId
         except SynapseHTTPError:
-            raise ValueError(
+            raise PermissionError(
                 f"The given dataset ({datasetId}) isn't accessible with this "
                 "user. This might be caused by a typo in the dataset Synapse ID."
             )
 
         # If not, then assume dataset not in file view
-        raise ValueError(
+        raise AttributeError (
             f"The given dataset ({datasetId}) doesn't appear in the "
             f"configured file view ({self.storageFileview}). This might "
             "mean that the file view's scope needs to be updated."
-        )
+        )     
 
     def getDatasetAnnotationsBatch(
         self, datasetId: str, dataset_file_ids: Sequence[str] = None

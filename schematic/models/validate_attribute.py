@@ -26,6 +26,24 @@ from schematic.utils.validate_utils import parse_str_series_to_list
 logger = logging.getLogger(__name__)
 
 class GenerateError:
+    def generate_schema_error(row_num: str, attribute_name: str, error_msg: str)-> List[str]:
+        '''
+        Purpose: Process error messages generated from schema
+        Input:
+            - row_num: the row the error occurred on.
+            - attribute_name: the attribute the error occurred on.
+            - error_msg: Error message
+        '''
+        error_col = attribute_name  # Attribute name
+        error_row = row_num  # index row of the manifest where the error presented.
+        error_message = error_msg
+
+        arg_error_string = (
+                f"For the attribute '{error_col}', on row {error_row}, {error_message}."
+        )
+        logging.error(arg_error_string)
+        return [error_row, error_col, error_message]
+
     def generate_list_error(
         list_string: str, row_num: str, attribute_name: str, list_error: str,
         invalid_entry:str,
@@ -761,7 +779,7 @@ class ValidateAttribute(object):
                         val_rule = val_rule,
                         row_num = str(list(invalid_rows)), 
                         attribute_name = source_attribute, 
-                        invalid_entry = str(invalid_values.squeeze().values.tolist()) 
+                        invalid_entry = str(pd.Series(invalid_values.squeeze()).values.tolist()) 
                     )
                 )
             

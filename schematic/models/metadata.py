@@ -321,8 +321,8 @@ class MetadataModel(object):
                 # here, we are suppressing the KeyError exception and replacing it with a more
                 # descriptive ValueError exception
                 raise ValueError(
-                    "The component {} could not be found "
-                    "in the schema.".format(validate_component)
+                    f"The component '{validate_component}' could not be found "
+                    f"in the schema here '{path_to_json_ld}'"
                 )
 
             # automatic JSON schema generation and validation with that JSON schema
