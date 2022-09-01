@@ -16,6 +16,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 
 from schematic.store.synapse import SynapseStorage
+from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
 import json
 from schematic.utils.df_utils import load_df
@@ -335,5 +336,9 @@ def get_manifest_datatype(input_token, manifest_id, asset_view):
 
     return manifest_dtypes_dict
 
+def find_class_specific_properties(schema_url, schema_class):
+    se = SchemaExplorer()
+    se.load_schema(schema_url)
+    properties = se.find_class_specific_properties(schema_class)
 
-
+    return properties
