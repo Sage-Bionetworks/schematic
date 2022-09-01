@@ -66,6 +66,10 @@ manifest_commands = {
             "archive_project": (
                 "Specify a single project where legacy manifest entities will be stored after migration to table."
             ),
+            "return_entities": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, "
+                "entities that have been transferred to an archive project will be returned to their original folders."
+            ),
         },
     }
 }

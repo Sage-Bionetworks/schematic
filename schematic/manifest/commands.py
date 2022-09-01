@@ -5,6 +5,7 @@ import click
 import click_log
 import logging
 import sys
+from typing import List
 
 from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import fill_in_from_config, query_dict, parse_synIDs
@@ -207,24 +208,37 @@ def get_manifest(
     "-ap",
     "--archive_project",
     default=None,
-    callback=parse_synIDs,
     help=query_dict(manifest_commands, ("manifest", "migrate", "archive_project")),
 )
 @click.option(
     "-p", "--jsonld", help=query_dict(manifest_commands, ("manifest", "get", "jsonld"))
 )
+@click.option(
+    "-re",
+    "--return_entities",
+    is_flag=True,
+    default=False,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "return_entities")),
+)
 @click.pass_obj
 def migrate_manifests(
     ctx,
-    project_scope,
-    archive_project,
-    jsonld,
+    project_scope: List,
+    archive_project: str,
+    jsonld: str,
+    return_entities: bool,
 ):
     """
     Running CLI with manifest migration options.
     """
-
     print(project_scope,archive_project)
+
+    
+    if return_entities:
+        synStore.return_entities_to_old_project(project, archive_project)
+        return
+
+    
     jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
 
     access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
@@ -236,5 +250,8 @@ def migrate_manifests(
     for project in project_scope:
         synStore.upload_annotated_project_manifests_to_synapse(project, jsonld)
 
+        if archive_project:
+            synStore.move_entities_to_new_project(project, archive_project)
+        
 
     return 
