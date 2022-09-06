@@ -639,7 +639,7 @@ class SynapseStorage(BaseStorage):
         return
 
 
-    def move_entities_to_new_project(self, projectId, newProjectId):
+    def move_entities_to_new_project(self, projectId: str, newProjectId: str, returnEntities: bool = False):
         """
         For each manifest csv in a project, look for all the entitiy ids that are associated.
         Look up the entitiy in the files, move the entity to new project.
@@ -666,34 +666,12 @@ class SynapseStorage(BaseStorage):
                         & (self.storageFileviewTable['type'] == 'folder')
                     ]['id']
 
-                for entityId in annotation_entities:
-                    self.syn.move(entityId, newProjectId)
-
-        return
-
-    def return_entities_to_old_project(self, projectId, newProjectId):
-        """
-        For each manifest csv in a project, look for all the entitiy ids that are associated.
-        Look up the entitiy in the files, move the entity to new project.
-        """
-
-        manifests = []
-        manifest_loaded = []
-        datasets = self.getStorageDatasetsInProject(projectId)
-        for (datasetId, datasetName) in datasets:
-            # encode information about the manifest in a simple list (so that R clients can unpack it)
-            # eventually can serialize differently
-
-            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
-
-            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
-            if manifest_info:
-                manifest_id = manifest_info["properties"]["id"]
-                manifest_name = manifest_info["properties"]["name"]
-                manifest_path = manifest_info["path"]
-                manifest_df = load_df(manifest_path)
-                for entityId in manifest_df['entityId']:
-                    self.syn.move(entityId, datasetId)
+                if returnEntities:
+                    for entityId in annotation_entities:
+                        self.syn.move(entityId, datasetId)
+                else:
+                    for entityId in annotation_entities:
+                        self.syn.move(entityId, newProjectId)
 
         return
 
