@@ -232,12 +232,6 @@ def migrate_manifests(
     Running CLI with manifest migration options.
     """
     print(project_scope,archive_project)
-
-    
-    if return_entities:
-        synStore.return_entities_to_old_project(project, archive_project)
-        return
-
     
     jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
 
@@ -251,7 +245,6 @@ def migrate_manifests(
         synStore.upload_annotated_project_manifests_to_synapse(project, jsonld)
 
         if archive_project:
-            synStore.move_entities_to_new_project(project, archive_project)
+            synStore.move_entities_to_new_project(project, archive_project, return_entities)
         
-
     return 
