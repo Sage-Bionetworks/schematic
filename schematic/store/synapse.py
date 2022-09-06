@@ -669,9 +669,23 @@ class SynapseStorage(BaseStorage):
                 if returnEntities:
                     for entityId in annotation_entities:
                         self.syn.move(entityId, datasetId)
+                        pass
                 else:
+                    existing_datasets = self.getStorageDatasetsInProject(newProjectId)
+                
+                    # generate project folder
+                    archive_project_folder = Folder(projectId+'_archive', parent = newProjectId)
+                    archive_project_folder = self.syn.store(archive_project_folder)
+    
+                    # generate dataset folder
+                    dataset_archive_folder = Folder("_".join([datasetId,datasetName,'archive']), parent = archive_project_folder.id)
+                    dataset_archive_folder = self.syn.store(dataset_archive_folder)                    
+
+
                     for entityId in annotation_entities:
-                        self.syn.move(entityId, newProjectId)
+                        # move entities to folder
+                        self.syn.move(entityId, dataset_archive_folder.id)
+                        pass
 
         return
 

@@ -231,20 +231,21 @@ def migrate_manifests(
     """
     Running CLI with manifest migration options.
     """
-    print(project_scope,archive_project)
-    
     jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
 
     access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    full_scope = project_scope + [archive_project]
     if access_token:
-        synStore = SynapseStorage(access_token=access_token,project_scope=project_scope)
+        synStore = SynapseStorage(access_token = access_token, project_scope = full_scope)
     else:
-        synStore = SynapseStorage(project_scope=project_scope)  
+        synStore = SynapseStorage(project_scope = full_scope)  
 
     for project in project_scope:
-        synStore.upload_annotated_project_manifests_to_synapse(project, jsonld)
-
+        if not return_entities:
+            logging.info("Re-uploading manifests as tables")
+            synStore.upload_annotated_project_manifests_to_synapse(project, jsonld)
         if archive_project:
+            logging.info("Migrating entitites")
             synStore.move_entities_to_new_project(project, archive_project, return_entities)
         
     return 
