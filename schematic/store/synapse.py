@@ -660,7 +660,13 @@ class SynapseStorage(BaseStorage):
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
                 manifest_df = load_df(manifest_path)
-                for entityId in manifest_df['entityId']:
+
+                annotation_entities = self.storageFileviewTable[
+                        (self.storageFileviewTable['id'].isin(manifest_df['entityId']))
+                        & (self.storageFileviewTable['type'] == 'folder')
+                    ]['id']
+
+                for entityId in annotation_entities:
                     self.syn.move(entityId, newProjectId)
 
         return
