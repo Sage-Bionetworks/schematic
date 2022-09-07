@@ -17,7 +17,7 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
 from schematic import LOADER
 from schematic.utils.io_utils import load_json
-
+from copy import deepcopy
 
 # Make sure to have newest version of decorator
 
@@ -157,7 +157,7 @@ class TangledTree(object):
             edges = rev_digraph.edges()
             topological_gen = list(nx.topological_generations(subg))
         
-        return topological_gen, nodes, edges
+        return topological_gen, nodes, edges, subg
 
     def get_ca_alias(self, conditional_requirements: list) -> dict:
         '''Get the alias for each conditional attribute. 
@@ -592,7 +592,7 @@ class TangledTree(object):
                 node_layers[i].append(node)
         return node_layers
 
-    def get_layers_dict_list(self, node_layers, child_parents, parent_children):
+    def get_layers_dict_list(self, node_layers, child_parents, parent_children, all_parent_children):
         '''Convert node_layers to a list of lists of dictionaries that specifies each node and its parents (if applicable).
         Inputs:
             node_layers: list of lists of each layer and the nodes contained in that layer as strings.
@@ -610,12 +610,23 @@ class TangledTree(object):
         for i, layer in enumerate(node_layers):
             for node in layer:
                 if node in child_parents.keys():
-                    layers_list[i].append({'id': node, 'parents': child_parents[node]})
-                else:
-                    layers_list[i].append({'id': node})
+                    parents = child_parents[node]
+                else: 
+                    parents = []
+
+                if node in parent_children.keys():
+                    direct_children = parent_children[node]
+                else: 
+                    direct_children = []
+                if node in all_parent_children.keys():
+                    all_children = all_parent_children[node]
+                else: 
+                    all_children = []
+                layers_list[i].append({'id': node, 'parents': parents, 'direct_children': direct_children, 'children': all_children})
+
         return layers_list
 
-    def get_node_layers_json(self, topological_gen, source_nodes, child_parents, parent_children, cn=''):
+    def get_node_layers_json(self, topological_gen, source_nodes, child_parents, parent_children, all_parent_children, cn=''):
         '''Return all the layers of a single tangled tree as a JSON String.
         Inputs:
             topological_gen:list of lists. Indicates layers of nodes.
@@ -641,7 +652,7 @@ class TangledTree(object):
         node_layers = self.move_source_nodes_to_bottom_of_layer(node_layers, source_nodes)
 
         # Convert layers to a list of dictionaries
-        layers_dicts = self.get_layers_dict_list(node_layers, child_parents, parent_children)
+        layers_dicts = self.get_layers_dict_list(node_layers, child_parents, parent_children, all_parent_children)
 
         # Convert dictionary to a JSON string
         layers_json = json.dumps(layers_dicts)
@@ -675,6 +686,21 @@ class TangledTree(object):
             all_layers.append(layers_json)
         return all_layers
 
+    def get_ancestors_nodes(self, subgraph, components):
+        """
+        Inputs: 
+            subgraph: networkX graph object
+            components: a list of nodes 
+        outputs: 
+            all_parent_children: a dictionary that indicates a list of children (including all the intermediate children) of a given node
+        """
+        all_parent_children = {}
+        for component in components: 
+            all_ancestors = self.sg.se.get_nodes_ancestors(subgraph, component)
+            all_parent_children[component] = all_ancestors
+
+        return all_parent_children
+
     def get_tangled_tree_layers(self, save_file=True):
         '''Based on user indicated figure type, construct the layers of nodes of a tangled tree.
         Inputs:
@@ -691,7 +717,7 @@ class TangledTree(object):
         
         '''
         # Gather the data model's, topological generations, nodes and edges
-        topological_gen, nodes, edges = self.get_topological_generations()
+        topological_gen, nodes, edges, subg = self.get_topological_generations()
 
         if self.figure_type == 'component':
             # Gather all source nodes
@@ -699,12 +725,15 @@ class TangledTree(object):
             
             # Map all children to their parents and vice versa
             child_parents, parent_children = self.get_parent_child_dictionary(nodes, edges)
+
+            # find all the downstream nodes
+            all_parent_children = self.get_ancestors_nodes(subg, parent_children.keys())
             
             # Get the layers that each node belongs to.
-            layers_json = self.get_node_layers_json(topological_gen, source_nodes, child_parents, parent_children)
+            layers_json = self.get_node_layers_json(topological_gen, source_nodes, child_parents, parent_children, all_parent_children)
 
             # If indicated save outputs locally else gather all layers.
-            all_layers = self.save_outputs(save_file, layers_json)            
+            all_layers = self.save_outputs(save_file, layers_json)         
 
         if self.figure_type == 'dependency':
             # Get component digraph and nodes.

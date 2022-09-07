@@ -594,6 +594,26 @@ class SchemaExplorer:
         validate_schema(self.schema)
         logger.info(f"Updated the property {property_info['rdfs:label']} successfully.")
 
+    def get_nodes_descendants(self, graph, component):
+        """
+        Return a list of nodes reachable from source in graph 
+        graph: networkx graph object
+        component: any given node
+        """
+        all_descendants = list(nx.descendants(graph, component))
+
+        return all_descendants
+
+    def get_nodes_ancestors(self, graph, component):
+        """
+        Return a list of nodes reachable from source in graph 
+        graph: networkx graph object
+        component: any given node
+        """
+        all_ancestors = list(nx.ancestors(graph, component))
+
+        return all_ancestors
+
     def get_digraph_by_edge_type(self, edge_type):
 
         multi_digraph = self.schema_nx
