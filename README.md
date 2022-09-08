@@ -60,7 +60,7 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
 2. Follow the [instructions](https://python-poetry.org/docs/) here to install `poetry`
-> Note: We recommend install poetry via `pipx`. (See detail instruction [here](https://github.com/pypa/pipx#:~:text=Other%20Tools.-,Install%20pipx,-On%20macOS))Then use pipx to installl poetry. Your poetry version should be >= 1.2.0. If you have previously installed poetry, try follow the instructions [here](https://python-poetry.org/docs/#:~:text=methods%20above.-,Uninstall%20Poetry,-If%20you%20decide) to unistall it before installing a new version (Or you could try updating poetry by following the instructions [here](https://python-poetry.org/docs/#:~:text=ready%20to%20use!-,Update%20Poetry,-Poetry%20is%20able)) 
+> Note: We recommend installing poetry via `pipx`. (See detail instruction [here](https://github.com/pypa/pipx#:~:text=Other%20Tools.-,Install%20pipx,-On%20macOS))Then use pipx to installl poetry. Your poetry version should be >= 1.2.0. If you have previously installed poetry, try follow the instructions [here](https://python-poetry.org/docs/#:~:text=methods%20above.-,Uninstall%20Poetry,-If%20you%20decide) to unistall it before installing a new version (Or you could try updating poetry by following the instructions [here](https://python-poetry.org/docs/#:~:text=ready%20to%20use!-,Update%20Poetry,-Poetry%20is%20able)) 
 
 3. Start the virtual environment by doing: 
 ```
