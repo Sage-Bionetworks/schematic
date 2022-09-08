@@ -17,6 +17,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
 
 from schematic.store.synapse import SynapseStorage
+from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
 import json
 from schematic.utils.df_utils import load_df
@@ -357,5 +358,14 @@ def get_subgraph_by_edge_type(schema_url, relationship):
     return Arr
 
 
+def find_class_specific_properties(schema_url, schema_class):
+    # use schema explorer
+    se = SchemaExplorer()
 
+    # load schema
+    se.load_schema(schema_url)
 
+    # return properties
+    properties = se.find_class_specific_properties(schema_class)
+
+    return properties
