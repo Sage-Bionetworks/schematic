@@ -16,6 +16,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage
+from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
 import json
 from schematic.utils.df_utils import load_df
@@ -353,5 +354,35 @@ def get_schema_pickle(schema_url):
     return export_path
 
 
+def get_subgraph_by_edge_type(schema_url, relationship):
+    # use schema generator and schema explorer
+    sg = SchemaGenerator(path_to_json_ld=schema_url)
+    se = SchemaExplorer()
+    se.load_schema(schema_url)
+
+    # get the schema graph 
+    schema_graph = se.get_nx_schema()
+
+    # relationship subgraph
+    relationship_subgraph = sg.get_subgraph_by_edge_type(schema_graph, relationship)
+
+    # return relationship 
+    Arr = []
+    for t in relationship_subgraph.edges:
+        lst = list(t)
+        Arr.append(lst)
+
+    return Arr
 
 
+def find_class_specific_properties(schema_url, schema_class):
+    # use schema explorer
+    se = SchemaExplorer()
+
+    # load schema
+    se.load_schema(schema_url)
+
+    # return properties
+    properties = se.find_class_specific_properties(schema_class)
+
+    return properties
