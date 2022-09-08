@@ -12,6 +12,7 @@ on:
     branches: ['*']
   workflow_dispatch:  # Allow manually triggering the workflow
 concurrency:
+  ## testing and see if it works
   # cancel the current running workflow from the same branch, PR when a new workflow is triggered 
   # when the trigger is not a PR but a push, it will use the commit sha to generate the concurrency group
   # {{ github.workflow }}: the workflow name is used to generate the concurrency group. This allows you to have more than one workflows
