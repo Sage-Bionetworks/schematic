@@ -15,13 +15,12 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
-
 from schematic.store.synapse import SynapseStorage
 from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
 import json
 from schematic.utils.df_utils import load_df
-
+import pickle
 
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
@@ -336,6 +335,24 @@ def get_manifest_datatype(input_token, manifest_id, asset_view):
 
 
     return manifest_dtypes_dict
+
+def get_schema_pickle(schema_url):
+    # load schema
+    se = SchemaExplorer()
+
+    se.load_schema(schema_url)
+
+    # get schema
+    schema_graph = se.get_nx_schema()
+
+    # write to local pickle file
+    path = os.getcwd()
+    export_path = os.path.join(path, 'tests/data/schema.gpickle')
+
+    with open(export_path, 'wb') as file:
+        pickle.dump(schema_graph, file)
+    return export_path
+
 
 def get_subgraph_by_edge_type(schema_url, relationship):
     # use schema generator and schema explorer
