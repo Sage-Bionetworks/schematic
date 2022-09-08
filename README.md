@@ -60,6 +60,8 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
 2. Follow the [instructions](https://python-poetry.org/docs/) here to install `poetry`
+> Note: We recommend install poetry via `pipx`. (See detail instruction [here](https://github.com/pypa/pipx#:~:text=Other%20Tools.-,Install%20pipx,-On%20macOS))Then use pipx to installl poetry. Your poetry version should be >= 1.2.0. If you have previously installed poetry, try follow the instructions [here](https://python-poetry.org/docs/#:~:text=methods%20above.-,Uninstall%20Poetry,-If%20you%20decide) to unistall it. 
+
 3. Start the virtual environment by doing: 
 ```
 poetry shell
@@ -68,7 +70,7 @@ poetry shell
 ```
 poetry install
 ```
-This command will install the dependencies based on what we specify in poetry.lock
+This command will install the dependencies based on what we specify in poetry.lock. If this step is taking a long time, try to go back to step 2 and check your version of poetry. Alternatively, you could also try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
 
 5. Fill in credential files: 
 *Note*: If you won't interact with Synapse, please ignore this section.
