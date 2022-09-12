@@ -17,6 +17,9 @@ def load_schema_into_networkx(schema):
         # adding nodes to the graph
         node = {}
         for (k, value) in record.items():
+            #print(k,value)
+            if isinstance(value,dict) and "@language" in value.keys():
+                record[k] = record[k]["@value"]
             if ":" in k:
                 key = k.split(":")[1]
                 node[key] = value
