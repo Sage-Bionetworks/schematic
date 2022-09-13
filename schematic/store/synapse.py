@@ -650,50 +650,54 @@ class SynapseStorage(BaseStorage):
         manifests = []
         manifest_loaded = []
         datasets = self.getStorageDatasetsInProject(projectId)
-        for (datasetId, datasetName) in datasets:
-            # encode information about the manifest in a simple list (so that R clients can unpack it)
-            # eventually can serialize differently
+        if datasets:
+            for (datasetId, datasetName) in datasets:
+                # encode information about the manifest in a simple list (so that R clients can unpack it)
+                # eventually can serialize differently
 
-            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
-            manifests.append(manifest)
+                manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+                manifests.append(manifest)
 
-            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
-            if manifest_info:
-                manifest_id = manifest_info["properties"]["id"]
-                manifest_name = manifest_info["properties"]["name"]
-                manifest_path = manifest_info["path"]
-                manifest_df = load_df(manifest_path)
+                manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
+                if manifest_info:
+                    manifest_id = manifest_info["properties"]["id"]
+                    manifest_name = manifest_info["properties"]["name"]
+                    manifest_path = manifest_info["path"]
+                    manifest_df = load_df(manifest_path)
 
-                manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
-                manifest_loaded.append(manifest)
+                    manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
+                    manifest_loaded.append(manifest)
 
-                annotation_entities = self.storageFileviewTable[
-                        (self.storageFileviewTable['id'].isin(manifest_df['entityId']))
-                        & (self.storageFileviewTable['type'] == 'folder')
-                    ]['id']
+                    annotation_entities = self.storageFileviewTable[
+                            (self.storageFileviewTable['id'].isin(manifest_df['entityId']))
+                            & (self.storageFileviewTable['type'] == 'folder')
+                        ]['id']
 
-                if returnEntities:
-                    for entityId in annotation_entities: 
-                        if not dry_run:
-                            self.syn.move(entityId, datasetId)
-                        else:
-                            logging.info(f"{entityId} will be moved to folder {datasetId}.")
-                else:                
-                    # generate project folder
-                    archive_project_folder = Folder(projectId+'_archive', parent = newProjectId)
-                    archive_project_folder = self.syn.store(archive_project_folder)
-    
-                    # generate dataset folder
-                    dataset_archive_folder = Folder("_".join([datasetId,datasetName,'archive']), parent = archive_project_folder.id)
-                    dataset_archive_folder = self.syn.store(dataset_archive_folder)                    
+                    if returnEntities:
+                        for entityId in annotation_entities: 
+                            if not dry_run:
+                                self.syn.move(entityId, datasetId)
+                            else:
+                                logging.info(f"{entityId} will be moved to folder {datasetId}.")
+                    else:                
+                        # generate project folder
+                        archive_project_folder = Folder(projectId+'_archive', parent = newProjectId)
+                        archive_project_folder = self.syn.store(archive_project_folder)
+        
+                        # generate dataset folder
+                        dataset_archive_folder = Folder("_".join([datasetId,datasetName,'archive']), parent = archive_project_folder.id)
+                        dataset_archive_folder = self.syn.store(dataset_archive_folder)                    
 
-                    for entityId in annotation_entities:
-                        # move entities to folder
-                        if not dry_run:
-                            self.syn.move(entityId, dataset_archive_folder.id)
-                        else:
-                            logging.info(f"{entityId} will be moved to folder {dataset_archive_folder.id}.")
-                        
+                        for entityId in annotation_entities:
+                            # move entities to folder
+                            if not dry_run:
+                                self.syn.move(entityId, dataset_archive_folder.id)
+                            else:
+                                logging.info(f"{entityId} will be moved to folder {dataset_archive_folder.id}.")
+        else:
+            raise LookupError(
+                f"No datasets were found in the specified project: {projectId}. Re-check specified master_fileview in CONFIG and retry."
+            )
         return manifests, manifest_loaded
 
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
