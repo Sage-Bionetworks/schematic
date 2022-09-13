@@ -608,7 +608,7 @@ class SynapseStorage(BaseStorage):
                 manifest_loaded.append(datasetName)
         return manifest_loaded
 
-    def upload_annotated_project_manifests_to_synapse(self, projectId:str, path_to_json_ld: str) -> List[str]:
+    def upload_annotated_project_manifests_to_synapse(self, projectId:str, path_to_json_ld: str, dry_run: bool = False) -> List[str]:
         '''
         Purpose:
             For all manifests in a project, upload them as a table and add annotations manifest csv.
@@ -634,12 +634,13 @@ class SynapseStorage(BaseStorage):
                 manifest_path = manifest_info["path"]
                 manifest_df = load_df(manifest_path)
                 #manifest_syn_id = self.annotate_upload_manifest_table(manifest_df, datasetId, manifest_path)
-                manifest_syn_id = self.associateMetadataWithFiles(sg, manifest_path, datasetId, manifest_record_type='table')
+                if not dry_run:
+                    manifest_syn_id = self.associateMetadataWithFiles(sg, manifest_path, datasetId, manifest_record_type='table')
                 manifest_loaded.append(datasetName)
         return
 
 
-    def move_entities_to_new_project(self, projectId: str, newProjectId: str, returnEntities: bool = False):
+    def move_entities_to_new_project(self, projectId: str, newProjectId: str, returnEntities: bool = False, dry_run: bool = False):
         """
         For each manifest csv in a project, look for all the entitiy ids that are associated.
         Look up the entitiy in the files, move the entity to new project.
@@ -668,8 +669,11 @@ class SynapseStorage(BaseStorage):
                     ]['id']
 
                 if returnEntities:
-                    for entityId in annotation_entities:
-                        self.syn.move(entityId, datasetId)
+                    for entityId in annotation_entities: 
+                        if not dry_run:
+                            self.syn.move(entityId, datasetId)
+                        else:
+                            logging.info(f"{entityId} will be moved to folder {datasetId}.")
                 else:                
                     # generate project folder
                     archive_project_folder = Folder(projectId+'_archive', parent = newProjectId)
@@ -681,7 +685,10 @@ class SynapseStorage(BaseStorage):
 
                     for entityId in annotation_entities:
                         # move entities to folder
-                        self.syn.move(entityId, dataset_archive_folder.id)
+                        if not dry_run:
+                            self.syn.move(entityId, dataset_archive_folder.id)
+                        else:
+                            logging.info(f"{entityId} will be moved to folder {dataset_archive_folder.id}.")
                         
         return manifests
 

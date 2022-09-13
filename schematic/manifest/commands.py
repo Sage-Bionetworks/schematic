@@ -220,6 +220,13 @@ def get_manifest(
     default=False,
     help=query_dict(manifest_commands, ("manifest", "migrate", "return_entities")),
 )
+@click.option(
+    "-dr",
+    "--dry_run",
+    is_flag=True,
+    default=False,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "dry_run")),
+)
 @click.pass_obj
 def migrate_manifests(
     ctx,
@@ -227,6 +234,7 @@ def migrate_manifests(
     archive_project: str,
     jsonld: str,
     return_entities: bool,
+    dry_run: bool,
 ):
     """
     Running CLI with manifest migration options.
@@ -243,9 +251,9 @@ def migrate_manifests(
     for project in project_scope:
         if not return_entities:
             logging.info("Re-uploading manifests as tables")
-            synStore.upload_annotated_project_manifests_to_synapse(project, jsonld)
+            synStore.upload_annotated_project_manifests_to_synapse(project, jsonld, dry_run)
         if archive_project:
             logging.info("Migrating entitites")
-            synStore.move_entities_to_new_project(project, archive_project, return_entities)
+            synStore.move_entities_to_new_project(project, archive_project, return_entities, dry_run)
         
     return 

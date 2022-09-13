@@ -70,6 +70,12 @@ manifest_commands = {
                 "This is a boolean flag. If flag is provided when command line utility is executed, "
                 "entities that have been transferred to an archive project will be returned to their original folders."
             ),
+            "dry_run": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, "
+                "a dry run will be performed. No manifests will be re-uploaded and no entities will be migrated, "
+                "but archival folders will still be created. "
+                "Migration information for testing purposes will be logged to the INFO level."
+            ),
         },
     }
 }
