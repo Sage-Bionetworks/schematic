@@ -652,14 +652,15 @@ class SynapseStorage(BaseStorage):
             # encode information about the manifest in a simple list (so that R clients can unpack it)
             # eventually can serialize differently
 
-            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
-
             manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
             if manifest_info:
                 manifest_id = manifest_info["properties"]["id"]
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
                 manifest_df = load_df(manifest_path)
+
+                manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
+                manifests.append(manifest)
 
                 annotation_entities = self.storageFileviewTable[
                         (self.storageFileviewTable['id'].isin(manifest_df['entityId']))
@@ -669,10 +670,7 @@ class SynapseStorage(BaseStorage):
                 if returnEntities:
                     for entityId in annotation_entities:
                         self.syn.move(entityId, datasetId)
-                        pass
-                else:
-                    existing_datasets = self.getStorageDatasetsInProject(newProjectId)
-                
+                else:                
                     # generate project folder
                     archive_project_folder = Folder(projectId+'_archive', parent = newProjectId)
                     archive_project_folder = self.syn.store(archive_project_folder)
@@ -681,13 +679,11 @@ class SynapseStorage(BaseStorage):
                     dataset_archive_folder = Folder("_".join([datasetId,datasetName,'archive']), parent = archive_project_folder.id)
                     dataset_archive_folder = self.syn.store(dataset_archive_folder)                    
 
-
                     for entityId in annotation_entities:
                         # move entities to folder
                         self.syn.move(entityId, dataset_archive_folder.id)
-                        pass
-
-        return
+                        
+        return manifests
 
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
