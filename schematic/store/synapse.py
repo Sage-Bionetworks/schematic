@@ -1277,7 +1277,7 @@ class SynapseStorage(BaseStorage):
             )
 
         # If not, then assume dataset not in file view
-        raise AttributeError (
+        raise LookupError (
             f"The given dataset ({datasetId}) doesn't appear in the "
             f"configured file view ({self.storageFileview}). This might "
             "mean that the file view's scope needs to be updated."
