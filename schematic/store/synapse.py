@@ -625,6 +625,7 @@ class SynapseStorage(BaseStorage):
             # eventually can serialize differently
 
             manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+            manifests.append(manifest)
 
             manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
 
@@ -632,12 +633,12 @@ class SynapseStorage(BaseStorage):
                 manifest_id = manifest_info["properties"]["id"]
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
-                manifest_df = load_df(manifest_path)
-                #manifest_syn_id = self.annotate_upload_manifest_table(manifest_df, datasetId, manifest_path)
+                manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
                 if not dry_run:
                     manifest_syn_id = self.associateMetadataWithFiles(sg, manifest_path, datasetId, manifest_record_type='table')
-                manifest_loaded.append(datasetName)
-        return
+                manifest_loaded.append(manifest)
+            
+        return manifests, manifest_loaded
 
 
     def move_entities_to_new_project(self, projectId: str, newProjectId: str, returnEntities: bool = False, dry_run: bool = False):
@@ -653,6 +654,9 @@ class SynapseStorage(BaseStorage):
             # encode information about the manifest in a simple list (so that R clients can unpack it)
             # eventually can serialize differently
 
+            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+            manifests.append(manifest)
+
             manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
             if manifest_info:
                 manifest_id = manifest_info["properties"]["id"]
@@ -661,7 +665,7 @@ class SynapseStorage(BaseStorage):
                 manifest_df = load_df(manifest_path)
 
                 manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
-                manifests.append(manifest)
+                manifest_loaded.append(manifest)
 
                 annotation_entities = self.storageFileviewTable[
                         (self.storageFileviewTable['id'].isin(manifest_df['entityId']))
@@ -690,7 +694,7 @@ class SynapseStorage(BaseStorage):
                         else:
                             logging.info(f"{entityId} will be moved to folder {dataset_archive_folder.id}.")
                         
-        return manifests
+        return manifests, manifest_loaded
 
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
