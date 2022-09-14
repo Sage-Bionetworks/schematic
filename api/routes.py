@@ -403,6 +403,6 @@ def get_node_range(
     Returns:
         list[str]: A list of nodes
     """
-    generator = SchemaGenerator(path_to_json_ld=schema_url)
-    node_range = generator.get_node_range(node_label, return_display_names)
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    node_range = gen.get_node_range(node_label, return_display_names)
     return node_range
