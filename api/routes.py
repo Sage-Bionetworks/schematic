@@ -386,3 +386,24 @@ def find_class_specific_properties(schema_url, schema_class):
     properties = se.find_class_specific_properties(schema_class)
 
     return properties
+
+def get_property_label_from_display_name(
+    schema_url: str,
+    display_name: str,
+    strict_camel_case: bool = False
+) -> str:
+    """Converts a given display name string into a proper property label string
+
+    Args:
+        schema_url (str): Data Model URL
+        display_name (str): The display name to be converted
+        strict_camel_case (bool, optional): If true the more strict way of
+            converting to camel case is used.
+
+    Returns:
+        str: The property label of the display name
+    """
+    explorer = SchemaExplorer()
+    explorer.load_schema(schema_url)
+    label = explorer.get_property_label_from_display_name(display_name, strict_camel_case)
+    return label
