@@ -386,3 +386,23 @@ def find_class_specific_properties(schema_url, schema_class):
     properties = se.find_class_specific_properties(schema_class)
 
     return properties
+
+def get_node_range(
+    schema_url: str,
+    node_label: str,
+    return_display_names: bool = True
+) -> list[str]:
+    """Get the range, i.e., all the valid values that are associated with a node label.
+
+    Args:
+        schema_url (str): Data Model URL
+        node_label (str): Node / term for which you need to retrieve the range.
+        return_display_names (bool, optional): If true returns the display names of the nodes.
+            Defaults to True.
+
+    Returns:
+        list[str]: A list of nodes
+    """
+    generator = SchemaGenerator(path_to_json_ld=schema_url)
+    node_range = generator.get_node_range(node_label, return_display_names)
+    return node_range
