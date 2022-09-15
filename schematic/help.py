@@ -55,6 +55,28 @@ manifest_commands = {
                 "Optional"
             ),
         },
+        "migrate": {
+            "short_help": (
+                "Specify the path to the `config.yml` using this option. "
+                "This is a required argument."
+            ),
+            "project_scope": (
+                "Specify a comma-separated list of projects where manifest entities will be migrated to tables."
+            ),
+            "archive_project": (
+                "Specify a single project where legacy manifest entities will be stored after migration to table."
+            ),
+            "return_entities": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, "
+                "entities that have been transferred to an archive project will be returned to their original folders."
+            ),
+            "dry_run": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, "
+                "a dry run will be performed. No manifests will be re-uploaded and no entities will be migrated, "
+                "but archival folders will still be created. "
+                "Migration information for testing purposes will be logged to the INFO level."
+            ),
+        },
     }
 }
 
