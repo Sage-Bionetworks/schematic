@@ -27,6 +27,7 @@ from synapseclient import (
     Column,
     as_table_columns,
 )
+
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
@@ -603,9 +604,101 @@ class SynapseStorage(BaseStorage):
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
                 manifest_df = load_df(manifest_path)
-                manifest_table_id = upload_format_manifest_table(manifest, dataset_id, datasetName)
+                manifest_table_id = upload_format_manifest_table(manifest, datasetId, datasetName)
                 manifest_loaded.append(datasetName)
         return manifest_loaded
+
+    def upload_annotated_project_manifests_to_synapse(self, projectId:str, path_to_json_ld: str, dry_run: bool = False) -> List[str]:
+        '''
+        Purpose:
+            For all manifests in a project, upload them as a table and add annotations manifest csv.
+            Assumes the manifest is already present as a CSV in a dataset in the project.
+
+        '''
+
+        sg = SchemaGenerator(path_to_json_ld)
+        manifests = []
+        manifest_loaded = []
+        datasets = self.getStorageDatasetsInProject(projectId)
+        for (datasetId, datasetName) in datasets:
+            # encode information about the manifest in a simple list (so that R clients can unpack it)
+            # eventually can serialize differently
+
+            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+            manifests.append(manifest)
+
+            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
+
+            if manifest_info:
+                manifest_id = manifest_info["properties"]["id"]
+                manifest_name = manifest_info["properties"]["name"]
+                manifest_path = manifest_info["path"]
+                manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
+                if not dry_run:
+                    manifest_syn_id = self.associateMetadataWithFiles(sg, manifest_path, datasetId, manifest_record_type='table')
+                manifest_loaded.append(manifest)
+            
+        return manifests, manifest_loaded
+
+
+    def move_entities_to_new_project(self, projectId: str, newProjectId: str, returnEntities: bool = False, dry_run: bool = False):
+        """
+        For each manifest csv in a project, look for all the entitiy ids that are associated.
+        Look up the entitiy in the files, move the entity to new project.
+        """
+
+        manifests = []
+        manifest_loaded = []
+        datasets = self.getStorageDatasetsInProject(projectId)
+        if datasets:
+            for (datasetId, datasetName) in datasets:
+                # encode information about the manifest in a simple list (so that R clients can unpack it)
+                # eventually can serialize differently
+
+                manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+                manifests.append(manifest)
+
+                manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
+                if manifest_info:
+                    manifest_id = manifest_info["properties"]["id"]
+                    manifest_name = manifest_info["properties"]["name"]
+                    manifest_path = manifest_info["path"]
+                    manifest_df = load_df(manifest_path)
+
+                    manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
+                    manifest_loaded.append(manifest)
+
+                    annotation_entities = self.storageFileviewTable[
+                            (self.storageFileviewTable['id'].isin(manifest_df['entityId']))
+                            & (self.storageFileviewTable['type'] == 'folder')
+                        ]['id']
+
+                    if returnEntities:
+                        for entityId in annotation_entities: 
+                            if not dry_run:
+                                self.syn.move(entityId, datasetId)
+                            else:
+                                logging.info(f"{entityId} will be moved to folder {datasetId}.")
+                    else:                
+                        # generate project folder
+                        archive_project_folder = Folder(projectId+'_archive', parent = newProjectId)
+                        archive_project_folder = self.syn.store(archive_project_folder)
+        
+                        # generate dataset folder
+                        dataset_archive_folder = Folder("_".join([datasetId,datasetName,'archive']), parent = archive_project_folder.id)
+                        dataset_archive_folder = self.syn.store(dataset_archive_folder)                    
+
+                        for entityId in annotation_entities:
+                            # move entities to folder
+                            if not dry_run:
+                                self.syn.move(entityId, dataset_archive_folder.id)
+                            else:
+                                logging.info(f"{entityId} will be moved to folder {dataset_archive_folder.id}.")
+        else:
+            raise LookupError(
+                f"No datasets were found in the specified project: {projectId}. Re-check specified master_fileview in CONFIG and retry."
+            )
+        return manifests, manifest_loaded
 
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
@@ -776,6 +869,82 @@ class SynapseStorage(BaseStorage):
             annos[annos_k] = annos_v
 
         return annos
+    '''
+    def annotate_upload_manifest_table(self, manifest, datasetId, metadataManifestPath,
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False):
+        """
+        Purpose:
+            Works very similarly to associateMetadataWithFiles except takes in the manifest
+            rather than the manifest path
+
+        """
+        
+        # Add uuid for table updates and fill.
+        if not "Uuid" in manifest.columns:
+            manifest["Uuid"] = ''
+
+        for idx,row in manifest.iterrows():
+            if not row["Uuid"]:
+                gen_uuid = uuid.uuid4()
+                row["Uuid"] = gen_uuid
+                manifest.loc[idx, 'Uuid'] = gen_uuid
+
+        # add entityId as a column if not already there or
+        # fill any blanks with an empty string.
+        if not "entityId" in manifest.columns:
+            manifest["entityId"] = ""
+        else:
+            manifest["entityId"].fillna("", inplace=True)
+
+        # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
+        se = SchemaExplorer()
+
+        # Create table name here.
+        if 'Component' in manifest.columns:
+            table_name = manifest['Component'][0].lower() + '_synapse_storage_manifest_table'
+        else:
+            table_name = 'synapse_storage_manifest_table'
+
+        # Upload manifest as a table and get the SynID and manifest
+        manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
+                                                    se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
+            
+        # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
+        # also set metadata for each synapse entity as Synapse annotations
+        for idx, row in manifest.iterrows():
+            if not row["entityId"]:
+                # If not using entityIds, fill with manifest_table_id so 
+                row["entityId"] = manifest_synapse_table_id
+                entityId = ''
+            else:
+                # get the entity id corresponding to this row
+                entityId = row["entityId"]
+
+        # Load manifest to synapse as a CSV File
+        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
+        
+        # Get annotations for the file manifest.
+        manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
+        
+        self.syn.set_annotations(manifest_annotations)
+
+        logger.info("Associated manifest file with dataset on Synapse.")
+        
+        # Update manifest Synapse table with new entity id column.
+        self.make_synapse_table(
+            table_to_load = table_manifest,
+            dataset_id = datasetId,
+            existingTableId = manifest_synapse_table_id,
+            table_name = table_name,
+            update_col = 'Uuid',
+            specify_schema = False,
+            )
+        
+        # Get annotations for the table manifest
+        manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
+        self.syn.set_annotations(manifest_annotations)
+        return manifest_synapse_table_id
+    '''
 
     def associateMetadataWithFiles(
         self, schemaGenerator: SchemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
