@@ -192,8 +192,9 @@ def validate_manifest_route(schema_url, data_type):
     # call config_handler()
     config_handler()
 
-    #Get path to temp file where manifest file contents will be saved
-    temp_path = file_path_handler()
+    # convert Json file to CSV if applicable
+    # get temporary CSV file path
+    temp_path = convert_json_to_csv()
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
