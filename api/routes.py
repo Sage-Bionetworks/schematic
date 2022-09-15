@@ -293,7 +293,7 @@ def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest
 
     return manifest_local_file_path
 
-def get_asset_view_table(input_token, asset_view):
+def get_asset_view_table(input_token, asset_view, return_type):
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -303,12 +303,15 @@ def get_asset_view_table(input_token, asset_view):
     # get file view table
     file_view_table_df = store.getStorageFileviewTable()
 
-    # convert pandas dataframe to csv
-    path = os.getcwd()
-    export_path = os.path.join(path, 'tests/data/file_view_table.csv')
-    file_view_table_df.to_csv(export_path, index=False)
-
-    return export_path
+    # return different results based on parameter
+    if return_type == "json":
+        json_res = file_view_table_df.to_json()
+        return json_res
+    else:
+        path = os.getcwd()
+        export_path = os.path.join(path, 'tests/data/file_view_table.csv')
+        file_view_table_df.to_csv(export_path, index=False)
+        return export_path
 
 
 def get_project_manifests(input_token, project_id, asset_view):
