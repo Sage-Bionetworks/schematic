@@ -705,9 +705,8 @@ paths:
           name: return_display_names
           schema:
             type: boolean
-            nullable: false
           description: If true returns the display names of the nodes.
-          required: true
+          required: false
       responses:
         "200":
           description: A list of nodes.
