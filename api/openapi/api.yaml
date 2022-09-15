@@ -679,11 +679,11 @@ paths:
       tags:
         - Schema Operation
 
-  /explorer/get_node_ranges:
+  /explorer/get_node_range:
     get:
       summary: Get all the valid values that are associated with a node label.
       description: Get all the valid values that are associated with a node label.
-      operationId: api.routes.get_node_ranges
+      operationId: api.routes.get_node_range
       parameters:
         - in: query
           name: schema_url
