@@ -42,8 +42,38 @@ def config_handler(asset_view=None):
             f"No configuration file was found at this path: {path_to_config}"
         )
 
-def csv_path_handler():
-    manifest_file = connexion.request.files["csv_file"]
+def convert_json_to_csv():
+    '''
+    convert an incoming json file to a csv
+    Return: a temporary CSV file path
+    '''
+
+    manifest_file = connexion.request.files["file_name"]
+    file_type = manifest_file.content_type
+
+    if file_type == 'application/json':
+        # convert json file to a dataframe
+        df = pd.read_json(manifest_file.read())
+        # get base file name
+        base = os.path.splitext(manifest_file.filename)[0]
+        # name the new csv file 
+        new_file_name = base + '.csv'
+        # convert dataframe to a temporary csv file
+        temp_dir = tempfile.gettempdir()
+        temp_path = os.path.join(temp_dir, new_file_name)
+        # convert to csv
+        df.to_csv(temp_path, encoding = 'utf-8', index=False)
+    else: 
+        temp_path = file_path_handler('file_name')
+    return temp_path
+        
+def file_path_handler(request_file_key):
+    '''
+    input: 
+        request_file_key: Defined in api.yaml. This key refers to the files uploaded 
+    Return a temporary file path for the uploaded a given file
+    '''
+    manifest_file = connexion.request.files[request_file_key]
 
     # save contents of incoming manifest CSV file to temp file
     temp_dir = tempfile.gettempdir()
@@ -162,7 +192,7 @@ def validate_manifest_route(schema_url, data_type):
     config_handler()
 
     #Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    temp_path = file_path_handler("csv_file")
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
@@ -184,8 +214,8 @@ def submit_manifest_route(schema_url, manifest_record_type=None):
     # call config_handler()
     config_handler()
 
-    # Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    # convert Json file to CSV if applicable
+    temp_path = convert_json_to_csv()
 
     dataset_id = connexion.request.args["dataset_id"]
 
@@ -215,7 +245,7 @@ def populate_manifest_route(schema_url, title=None, data_type=None):
     jsonld = get_temp_jsonld(schema_url)
 
     # Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    temp_path = file_path_handler("csv_file")
    
     #Initalize MetadataModel
     metadata_model = MetadataModel(inputMModelLocation=jsonld, inputMModelLocationType='local')

@@ -203,7 +203,8 @@ paths:
             schema:
               type: object
               properties:
-                csv_file:
+                file_name:
+                  description: Upload a json or a csv file. 
                   type: string
                   format: binary
       parameters:
