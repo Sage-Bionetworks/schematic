@@ -994,7 +994,7 @@ class SynapseStorage(BaseStorage):
             load_args={
                 "dtype":"string",
             }
-            manifest = load_df(metadataManifestPath, preserve_raw_input=False, **load_args)
+            manifest = load_df(metadataManifestPath, preserve_raw_input = True, **load_args) #HOTFIX: set preserve_raw_input to true to allow mixed type cols in table uploads schematic#870
         except FileNotFoundError as err:
             raise FileNotFoundError(
                 f"No manifest file was found at this path: {metadataManifestPath}"
@@ -1277,7 +1277,7 @@ class SynapseStorage(BaseStorage):
             )
 
         # If not, then assume dataset not in file view
-        raise AttributeError (
+        raise LookupError (
             f"The given dataset ({datasetId}) doesn't appear in the "
             f"configured file view ({self.storageFileview}). This might "
             "mean that the file view's scope needs to be updated."
