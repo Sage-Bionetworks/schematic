@@ -699,7 +699,7 @@ paths:
             type: string
             nullable: false
           description: Node / term for which you need to retrieve the range.
-          example: MolecularEntity
+          example: FamilyHistory
           required: true
         - in: query
           name: return_display_names
