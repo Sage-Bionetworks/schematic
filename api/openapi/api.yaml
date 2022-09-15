@@ -704,13 +704,14 @@ paths:
         - in: query
           name: strict_camel_case
           schema:
-            type: bool
+            type: boolean
             nullable: false
           description: If true the more strict way of
             converting to camel case is used.
       responses:
         "200":
           description: The property label of the display name.
-          description: Check schematic log.
+        "500":
+          description: Check schematic log. 
       tags:
         - Schema Operation
