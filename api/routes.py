@@ -216,6 +216,7 @@ def submit_manifest_route(schema_url, manifest_record_type=None):
     config_handler()
 
     # convert Json file to CSV if applicable
+    # get temporary CSV file path
     temp_path = convert_json_to_csv()
 
     dataset_id = connexion.request.args["dataset_id"]
