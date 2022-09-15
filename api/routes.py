@@ -42,12 +42,14 @@ def config_handler(asset_view=None):
             f"No configuration file was found at this path: {path_to_config}"
         )
 
-def convert_json_to_csv():
+def convert_json_to_csv(file_key="file_name"):
     '''
     convert an incoming json file to a csv
+    input: 
+        file_key: Defined in api.yaml. This key refers to the files uploaded. By default, set to "file_name"
     Return: a temporary CSV file path
     '''
-    manifest_file = connexion.request.files["file_name"]
+    manifest_file = connexion.request.files[file_key]
     file_type = manifest_file.content_type
 
     if file_type == 'application/json':
@@ -63,16 +65,16 @@ def convert_json_to_csv():
         # convert to csv
         df.to_csv(temp_path, encoding = 'utf-8', index=False)
     else: 
-        temp_path = file_path_handler(request_file_key='file_name')
+        temp_path = file_path_handler(file_key='file_name')
     return temp_path
         
-def file_path_handler(request_file_key="csv_file"):
+def file_path_handler(file_key="csv_file"):
     '''
     input: 
-        request_file_key: Defined in api.yaml. This key refers to the files uploaded. By default, set to "csv_file"
+        file_key: Defined in api.yaml. This key refers to the files uploaded. By default, set to "csv_file"
     Return a temporary file path for the uploaded a given file
     '''
-    manifest_file = connexion.request.files[request_file_key]
+    manifest_file = connexion.request.files[file_key]
 
     # save contents of incoming manifest CSV file to temp file
     temp_dir = tempfile.gettempdir()
