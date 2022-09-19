@@ -77,11 +77,12 @@ class SynapseStorage(BaseStorage):
         """
 
         self.syn = self.login(token, access_token, input_token)
+        self.project_scope = project_scope
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
-            if project_scope:
+            if self.project_scope:
                 self.storageFileviewTable = self.syn.tableQuery(
-                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(project_scope + [''])}"
+                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
                 ).asDataFrame()
             else:
                 # get data in administrative fileview for this pipeline
@@ -712,9 +713,23 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
+    def _get_tables(self) -> list[Table]:
+        project = self.syn.get(self.project_scope[0])
+        return list(self.syn.getChildren(project, includeTypes=["table"]))
+
+    def get_table_info(self) -> list[str]:
+        """Gets the names of the tables in the schema
+        Returns:
+            list[str]: A list of table names
+        """
+        tables = self._get_tables()
+        return {table["name"]: table["id"] for table in tables}
+
     @missing_entity_handler
     def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
         # Rename the manifest columns to display names to match fileview
+        table_info = self.get_table_info()
+
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
 
