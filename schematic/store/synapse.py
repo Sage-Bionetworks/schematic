@@ -723,7 +723,10 @@ class SynapseStorage(BaseStorage):
             list[str]: A list of table names
         """
         tables = self._get_tables()
-        return {table["name"]: table["id"] for table in tables}
+        if tables:
+            return {table["name"]: table["id"] for table in tables}
+        else: 
+            return {None:None}
 
     @missing_entity_handler
     def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
@@ -763,8 +766,28 @@ class SynapseStorage(BaseStorage):
 
         # Put table manifest onto synapse
         schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
-        table = self.syn.store(Table(schema, table_manifest), isRestricted=restrict)
-        manifest_table_id = table.schema.id
+        if table_name not in table_info.keys():
+            manifest_table_id = self.make_synapse_table(table_to_load = table_manifest, 
+                                    dataset_id = datasetId,
+                                    existingTableId = None, 
+                                    table_name = table_name, 
+                                    update_col = 'Uuid',
+                                    column_type_dictionary = col_schema, 
+                                    restrict = restrict,
+                                    manipulation = 'replace')
+            #table = self.syn.store(Table(schema, table_manifest), isRestricted=restrict)
+        else:
+            manifest_table_id = self.make_synapse_table(table_to_load = table_manifest, 
+                                    dataset_id = datasetId,
+                                    existingTableId = table_info[table_name], 
+                                    table_name = table_name, 
+                                    update_col = 'Uuid',
+                                    column_type_dictionary = col_schema,
+                                    restrict = restrict,
+                                    manipulation = 'replace')
+            pass
+
+        #manifest_table_id = table.schema.id
 
 
         return manifest_table_id, manifest, table_manifest
@@ -1327,7 +1350,7 @@ class SynapseStorage(BaseStorage):
         return table
 
     def make_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, 
-            update_col = 'entityId', column_type_dictionary = {}, specify_schema=True):
+            update_col = 'entityId', column_type_dictionary = {}, specify_schema=True, restrict = False, manipulation = 'update'):
         '''
         Record based data
         '''
@@ -1336,10 +1359,35 @@ class SynapseStorage(BaseStorage):
         # locate its position in the old and new table.
         if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
-            table_to_load = update_df(existing_table, table_to_load, update_col)
-            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag))
+            if manipulation.lower() == 'update':
+                table_to_load = update_df(existing_table, table_to_load, update_col)
+            elif manipulation.lower() == 'replace':
+                self.syn.delete(existing_results)
+
+                # removes all current columns
+                current_table = self.syn.get(existingTableId)
+                current_columns = self.syn.getTableColumns(current_table)
+                for col in current_columns:
+                    current_table.removeColumn(col)
+
+                # adds new columns to schema
+                new_columns = as_table_columns(table_to_load)
+                for col in new_columns:
+                    current_table.addColumn(col)
+                self.syn.store(current_table)
+
+                #existing_table = self.syn.get(existingTableId)
+
+                # inserts new rows
+                #self.insert_table_rows(table_name, table_to_load)
+                pass
+
+
+
+            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
             # remove system metadata from manifest
             existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
+            return existingTableId
         else:
             datasetEntity = self.syn.get(dataset_id, downloadFile = False)
             datasetName = datasetEntity.name
@@ -1368,13 +1416,13 @@ class SynapseStorage(BaseStorage):
                         cols.append(Column(name=col, columnType='STRING', maximumSize=500))
                 schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
                 table = Table(schema, table_to_load)
-                table_id = self.syn.store(table)
+                table = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
             else:
                 # For just uploading the tables to synapse using default
                 # column types.
                 table = build_table(table_name, datasetParentProject, table_to_load)
-                table = self.syn.store(table)
+                table = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
 
 
