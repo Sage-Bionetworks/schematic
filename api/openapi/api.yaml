@@ -528,9 +528,17 @@ paths:
           description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           example: syn23643253
           required: true
+        - in: query
+          name: return_type
+          schema:
+            type: string
+            enum: ["json", "csv"]
+          description: Type of return
+          example: 'json'
+          required: true
       responses:
         "200":
-          description: A list of json
+          description: csv file path or json
         "500":
           description: Check schematic log. 
       tags:
@@ -713,5 +721,41 @@ paths:
           description: The property label of the display name.
         "500":
           description: Check schematic log. 
+      tags:
+        - Schema Operation
+      
+  /explorer/get_node_range:
+    get:
+      summary: Get all the valid values that are associated with a node label.
+      description: Get all the valid values that are associated with a node label.
+      operationId: api.routes.get_node_range
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_label
+          schema:
+            type: string
+            nullable: false
+          description: Node / term for which you need to retrieve the range.
+          example: FamilyHistory
+          required: true
+        - in: query
+          name: return_display_names
+          schema:
+            type: boolean
+          description: If true returns the display names of the nodes.
+          required: false
+      responses:
+        "200":
+          description: A list of nodes.
+        "500":
+          description: Check schematic log.
       tags:
         - Schema Operation

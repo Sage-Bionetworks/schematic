@@ -12,7 +12,9 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     Universal function to load CSVs and return DataFrames
     Args:
         file_path: path of csv to open
+        preserve_raw_input: Bool. If false, convert cell datatypes to an inferred type
         data_model: bool, indicates if importing a data model
+        load_args: dict of key value pairs to be passed to the pd.read_csv function
         **kwargs: keyword arguments for pd.read_csv()
 
     Returns: a processed dataframe for manifests or unprocessed df for data models

@@ -293,7 +293,7 @@ def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest
 
     return manifest_local_file_path
 
-def get_asset_view_table(input_token, asset_view):
+def get_asset_view_table(input_token, asset_view, return_type):
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -303,12 +303,15 @@ def get_asset_view_table(input_token, asset_view):
     # get file view table
     file_view_table_df = store.getStorageFileviewTable()
 
-    # convert pandas dataframe to csv
-    path = os.getcwd()
-    export_path = os.path.join(path, 'tests/data/file_view_table.csv')
-    file_view_table_df.to_csv(export_path, index=False)
-
-    return export_path
+    # return different results based on parameter
+    if return_type == "json":
+        json_res = file_view_table_df.to_json()
+        return json_res
+    else:
+        path = os.getcwd()
+        export_path = os.path.join(path, 'tests/data/file_view_table.csv')
+        file_view_table_df.to_csv(export_path, index=False)
+        return export_path
 
 
 def get_project_manifests(input_token, project_id, asset_view):
@@ -407,3 +410,23 @@ def get_property_label_from_display_name(
     explorer.load_schema(schema_url)
     label = explorer.get_property_label_from_display_name(display_name, strict_camel_case)
     return label
+
+def get_node_range(
+    schema_url: str,
+    node_label: str,
+    return_display_names: bool = True
+) -> list[str]:
+    """Get the range, i.e., all the valid values that are associated with a node label.
+
+    Args:
+        schema_url (str): Data Model URL
+        node_label (str): Node / term for which you need to retrieve the range.
+        return_display_names (bool, optional): If true returns the display names of the nodes.
+            Defaults to True.
+
+    Returns:
+        list[str]: A list of nodes
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    node_range = gen.get_node_range(node_label, return_display_names)
+    return node_range
