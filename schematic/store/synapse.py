@@ -775,7 +775,6 @@ class SynapseStorage(BaseStorage):
                                     column_type_dictionary = col_schema, 
                                     restrict = restrict,
                                     manipulation = 'replace')
-            #table = self.syn.store(Table(schema, table_manifest), isRestricted=restrict)
         else:
             manifest_table_id = self.make_synapse_table(table_to_load = table_manifest, 
                                     dataset_id = datasetId,
@@ -785,9 +784,6 @@ class SynapseStorage(BaseStorage):
                                     column_type_dictionary = col_schema,
                                     restrict = restrict,
                                     manipulation = 'replace')
-            pass
-
-        #manifest_table_id = table.schema.id
 
 
         return manifest_table_id, manifest, table_manifest
@@ -1359,11 +1355,12 @@ class SynapseStorage(BaseStorage):
         # locate its position in the old and new table.
         if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
+
             if manipulation.lower() == 'update':
                 table_to_load = update_df(existing_table, table_to_load, update_col)
+            
             elif manipulation.lower() == 'replace':
                 self.syn.delete(existing_results)
-
                 # removes all current columns
                 current_table = self.syn.get(existingTableId)
                 current_columns = self.syn.getTableColumns(current_table)
@@ -1376,15 +1373,8 @@ class SynapseStorage(BaseStorage):
                     current_table.addColumn(col)
                 self.syn.store(current_table)
 
-                #existing_table = self.syn.get(existingTableId)
-
-                # inserts new rows
-                #self.insert_table_rows(table_name, table_to_load)
-                pass
-
-
-
             self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
+
             # remove system metadata from manifest
             existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
             return existingTableId
