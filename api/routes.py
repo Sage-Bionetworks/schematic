@@ -1,3 +1,4 @@
+from email import generator
 import os
 import shutil
 import tempfile
@@ -390,6 +391,37 @@ def find_class_specific_properties(schema_url, schema_class):
 
     return properties
 
+
+def get_node_dependencies(
+    schema_url: str,
+    source_node: str,
+    return_display_names: bool = True,
+    return_schema_ordered: bool = True
+) -> list[str]:
+    """Get the immediate dependencies that are related to a given source node.
+
+    Args:
+        schema_url (str): Data Model URL
+        source_node (str): The node whose dependencies are needed.
+        return_display_names (bool, optional):
+            If True, return list of display names of each of the dependencies.
+            If False, return list of node labels of each of the dependencies.
+            Defaults to True.
+        return_schema_ordered (bool, optional):
+            If True, return the dependencies of the node following the order of the schema (slower).
+            If False, return dependencies from graph without guaranteeing schema order (faster).
+            Defaults to True.
+
+    Returns:
+        list[str]: List of nodes that are dependent on the source node.
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    dependencies = gen.get_node_dependencies(
+        source_node, return_display_names, return_schema_ordered
+    )
+    return dependencies
+
+
 def get_property_label_from_display_name(
     schema_url: str,
     display_name: str,
@@ -410,6 +442,7 @@ def get_property_label_from_display_name(
     explorer.load_schema(schema_url)
     label = explorer.get_property_label_from_display_name(display_name, strict_camel_case)
     return label
+
 
 def get_node_range(
     schema_url: str,
