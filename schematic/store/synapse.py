@@ -713,11 +713,11 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def _get_tables(self) -> list[Table]:
+    def _get_tables(self) -> List[Table]:
         project = self.syn.get(self.project_scope[0])
         return list(self.syn.getChildren(project, includeTypes=["table"]))
 
-    def get_table_info(self) -> list[str]:
+    def get_table_info(self) -> List[str]:
         """Gets the names of the tables in the schema
         Returns:
             list[str]: A list of table names
