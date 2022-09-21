@@ -252,6 +252,13 @@ paths:
             nullable: false
           description: Token
           required: true
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
