@@ -1,13 +1,13 @@
 definitions:
   creds_path: "../../credentials.json"
   token_pickle: "token.pickle"
-  synapse_config: "../../.synapseConfig"
+  #synapse_config: "../../.synapseConfig"
   ### Note: this key is required for people who use Synapse token authentication approach. 
   ### If you run into errors similar to KeyError: 'synpase_config', you might want to consider adding this key. 
 
 synapse:
   master_fileview: "syn23643253"
-  manifest_basename: "synapse_storage_manifest"
+  manifest_basename: "data/manifests/synapse_storage_manifest"
 
 model:
   input:
