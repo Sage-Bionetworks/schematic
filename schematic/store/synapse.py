@@ -1081,6 +1081,7 @@ class SynapseStorage(BaseStorage):
                 table_name = table_name,
                 update_col = 'Uuid',
                 specify_schema = False,
+                restrict = restrict_manifest
                 )
             
             # Get annotations for the table manifest
@@ -1312,7 +1313,7 @@ class SynapseStorage(BaseStorage):
         return table
 
     def make_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, 
-            update_col = 'entityId', column_type_dictionary = {}, specify_schema=True):
+            update_col = 'entityId', column_type_dictionary = {}, specify_schema=True, restrict = False):
         '''
         Record based data
         '''
@@ -1322,7 +1323,7 @@ class SynapseStorage(BaseStorage):
         if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
             table_to_load = update_df(existing_table, table_to_load, update_col)
-            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag))
+            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
             # remove system metadata from manifest
             existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
         else:
@@ -1353,13 +1354,13 @@ class SynapseStorage(BaseStorage):
                         cols.append(Column(name=col, columnType='STRING', maximumSize=500))
                 schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
                 table = Table(schema, table_to_load)
-                table_id = self.syn.store(table)
+                table_id = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
             else:
                 # For just uploading the tables to synapse using default
                 # column types.
                 table = build_table(table_name, datasetParentProject, table_to_load)
-                table = self.syn.store(table)
+                table = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
 
 
