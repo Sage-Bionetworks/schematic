@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 import shutil
+from urllib.parse import non_hierarchical
 import urllib.request
 
 import connexion
@@ -211,7 +212,7 @@ def validate_manifest_route(schema_url, data_type):
     return res_dict
 
 
-def submit_manifest_route(schema_url, manifest_record_type=None):
+def submit_manifest_route(schema_url, manifest_record_type=None, json_str=None):
     # call config_handler()
     config_handler()
 
