@@ -1356,10 +1356,16 @@ class SynapseStorage(BaseStorage):
         if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
 
-            if manipulation.lower() == 'update':
+            manipulation = manipulation.lower()
+            if manipulation not in ['update', 'replace']:
+                raise NotImplementedError(
+                    "Currently, only 'update' and 'replace' table operations are supported."
+                )
+
+            if manipulation == 'update':
                 table_to_load = update_df(existing_table, table_to_load, update_col)
             
-            elif manipulation.lower() == 'replace':
+            elif manipulation == 'replace':
                 self.syn.delete(existing_results)
                 # removes all current columns
                 current_table = self.syn.get(existingTableId)
