@@ -1366,7 +1366,9 @@ class SynapseStorage(BaseStorage):
                 table_to_load = update_df(existing_table, table_to_load, update_col)
             
             elif manipulation == 'replace':
+                # remove rows
                 self.syn.delete(existing_results)
+
                 # removes all current columns
                 current_table = self.syn.get(existingTableId)
                 current_columns = self.syn.getTableColumns(current_table)
