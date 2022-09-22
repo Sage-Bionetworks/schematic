@@ -5,13 +5,15 @@ import click
 import click_log
 import logging
 import sys
+from typing import List
 
 from schematic.manifest.generator import ManifestGenerator
-from schematic.utils.cli_utils import fill_in_from_config, query_dict
+from schematic.utils.cli_utils import fill_in_from_config, query_dict, parse_synIDs
 from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel
+from schematic.store.synapse import SynapseStorage
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -189,3 +191,69 @@ def get_manifest(
             result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
 
     return result
+
+@manifest.command(
+    "migrate", short_help=query_dict(manifest_commands, ("manifest", "migrate", "short_help"))
+)
+@click_log.simple_verbosity_option(logger)
+# define the optional arguments
+@click.option(
+    "-ps",
+    "--project_scope",
+    default=None,
+    callback=parse_synIDs,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "project_scope")),
+)
+@click.option(
+    "-ap",
+    "--archive_project",
+    default=None,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "archive_project")),
+)
+@click.option(
+    "-p", "--jsonld", help=query_dict(manifest_commands, ("manifest", "get", "jsonld"))
+)
+@click.option(
+    "-re",
+    "--return_entities",
+    is_flag=True,
+    default=False,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "return_entities")),
+)
+@click.option(
+    "-dr",
+    "--dry_run",
+    is_flag=True,
+    default=False,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "dry_run")),
+)
+@click.pass_obj
+def migrate_manifests(
+    ctx,
+    project_scope: List,
+    archive_project: str,
+    jsonld: str,
+    return_entities: bool,
+    dry_run: bool,
+):
+    """
+    Running CLI with manifest migration options.
+    """
+    jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
+
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    full_scope = project_scope + [archive_project]
+    if access_token:
+        synStore = SynapseStorage(access_token = access_token, project_scope = full_scope)
+    else:
+        synStore = SynapseStorage(project_scope = full_scope)  
+
+    for project in project_scope:
+        if not return_entities:
+            logging.info("Re-uploading manifests as tables")
+            synStore.upload_annotated_project_manifests_to_synapse(project, jsonld, dry_run)
+        if archive_project:
+            logging.info("Migrating entitites")
+            synStore.move_entities_to_new_project(project, archive_project, return_entities, dry_run)
+        
+    return 
