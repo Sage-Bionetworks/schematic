@@ -300,17 +300,16 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     return res_dict
 
 
-def submit_manifest_route(schema_url, manifest_record_type=None, json_str=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
     # call config_handler()
-    config_handler()
+    config_handler(asset_view = asset_view)
 
     # convert Json file to CSV if applicable
     jsc = JsonConverter()
     if json_str:
-        temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json")
+        temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json.csv")
     else: 
         temp_path = jsc.convert_json_file_to_csv("file_name")
-
 
     dataset_id = connexion.request.args["dataset_id"]
 
