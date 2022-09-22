@@ -43,6 +43,15 @@ def config_handler(asset_view=None):
             f"No configuration file was found at this path: {path_to_config}"
         )
 
+def convert_json_str(json_str):
+    # read json str as dataframe
+    df = pd.read_json(json_str)
+    # convert dataframe to a temporary csv file
+    temp_dir = tempfile.gettempdir()
+    temp_path = os.path.join(temp_dir, "example_json")
+    df.to_csv(temp_path, encoding = 'utf-8', index=False)
+    return temp_path
+
 def convert_json_to_csv(file_key="file_name"):
     '''
     convert an incoming json file to a csv
@@ -218,8 +227,11 @@ def submit_manifest_route(schema_url, manifest_record_type=None, json_str=None):
 
     # convert Json file to CSV if applicable
     # get temporary CSV file path
-    temp_path = convert_json_to_csv()
-
+    if json_str:
+        temp_path = convert_json_str(json_str)
+    else:
+        temp_path = convert_json_to_csv()
+    
     dataset_id = connexion.request.args["dataset_id"]
 
     data_type = connexion.request.args["data_type"]
