@@ -15,6 +15,7 @@ import pandas as pd
 import re
 import synapseclient
 import synapseutils
+from time import sleep
 
 from synapseclient import (
     Synapse,
@@ -729,7 +730,7 @@ class SynapseStorage(BaseStorage):
             return {None:None}
 
     @missing_entity_handler
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel):
         # Rename the manifest columns to display names to match fileview
         table_info = self.get_table_info()
 
@@ -771,7 +772,6 @@ class SynapseStorage(BaseStorage):
                                     dataset_id = datasetId,
                                     existingTableId = None, 
                                     table_name = table_name, 
-                                    update_col = 'Uuid',
                                     column_type_dictionary = col_schema, 
                                     restrict = restrict,
                                     manipulation = 'replace')
@@ -780,7 +780,6 @@ class SynapseStorage(BaseStorage):
                                     dataset_id = datasetId,
                                     existingTableId = table_info[table_name], 
                                     table_name = table_name, 
-                                    update_col = 'Uuid',
                                     column_type_dictionary = col_schema,
                                     restrict = restrict,
                                     manipulation = 'replace')
@@ -1065,7 +1064,7 @@ class SynapseStorage(BaseStorage):
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel)
             
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
@@ -1115,6 +1114,7 @@ class SynapseStorage(BaseStorage):
                 table_name = table_name,
                 update_col = 'Uuid',
                 specify_schema = False,
+                restrict = restrict_manifest
                 )
             
             # Get annotations for the table manifest
@@ -1368,7 +1368,7 @@ class SynapseStorage(BaseStorage):
             elif manipulation == 'replace':
                 # remove rows
                 self.syn.delete(existing_results)
-
+                sleep(1)
                 # removes all current columns
                 current_table = self.syn.get(existingTableId)
                 current_columns = self.syn.getTableColumns(current_table)
@@ -1379,7 +1379,7 @@ class SynapseStorage(BaseStorage):
                 new_columns = as_table_columns(table_to_load)
                 for col in new_columns:
                     current_table.addColumn(col)
-                self.syn.store(current_table)
+                self.syn.store(current_table, isRestricted = restrict)
 
             self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
 
