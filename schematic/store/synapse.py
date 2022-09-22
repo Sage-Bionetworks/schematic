@@ -1345,14 +1345,34 @@ class SynapseStorage(BaseStorage):
 
         return table
 
-    def make_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, 
-            update_col = 'entityId', column_type_dictionary = {}, specify_schema=True, restrict = False, manipulation = 'update'):
+    def make_synapse_table(self, 
+            table_to_load: pd.DataFrame, 
+            dataset_id: str, table_name: str, 
+            existingTableId: str = None,
+            update_col: str = 'entityId', 
+            column_type_dictionary: Dict = {}, 
+            specify_schema: bool = True, 
+            restrict: bool = False, 
+            manipulation: str = 'update') -> str:
         '''
-        Record based data
+        Make a synapse table for record based data
+
+        Args:
+            table_to_load (pd.DataFrame): table to upload to synapse
+            dataset_id (str): synID for dataset related to manifest to be uploaded as table
+            existingTableId (str): Optional, synID of existing table to upload to
+            table_name (str): Name of the table that will be displayed on synapse
+            update_col (str): Optional, if updating a table by aligning on index, column to use as indices
+            column_type_dictionary (Dict): dictionary of column types
+            specify_schema (bool):  specify a schema for the table at upload according to types in column_type_dictionary
+            restrict (bool): set to True if access restrictions need to be imposed on table when stored on synapse, False otherwise 
+            manipulation (str): type of manipulation to do if a table exists already. Can be either "update" or "replace". 
+                Defaults to "update" to preserve old behavior
+
+        Returns:
+            str: synId of table uploaded to synapse
+
         '''
-        # create/update a table corresponding to this dataset in this dataset's parent project
-        # update_col is the column in the table that has a unique code that will allow Synapse to
-        # locate its position in the old and new table.
         if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
 
@@ -1362,12 +1382,17 @@ class SynapseStorage(BaseStorage):
                     "Currently, only 'update' and 'replace' table operations are supported."
                 )
 
+            # create/update a table corresponding to this dataset in this dataset's parent project
+            # update_col is the column in the table that has a unique code that will allow Synapse to
+            # locate its position in the old and new table.
             if manipulation == 'update':
                 table_to_load = update_df(existing_table, table_to_load, update_col)
             
             elif manipulation == 'replace':
                 # remove rows
                 self.syn.delete(existing_results)
+
+                # wait for row deletion to finish on synapse before getting empty table
                 sleep(1)
                 # removes all current columns
                 current_table = self.syn.get(existingTableId)
@@ -1381,6 +1406,7 @@ class SynapseStorage(BaseStorage):
                     current_table.addColumn(col)
                 self.syn.store(current_table, isRestricted = restrict)
 
+            # store table with existing etag data and impose restrictions as appropriate
             self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
 
             # remove system metadata from manifest
