@@ -300,11 +300,6 @@ def submit_manifest_route(schema_url, manifest_record_type=None, json_str=None):
     config_handler()
 
     # convert Json file to CSV if applicable
-    # get temporary CSV file path
-    # if json_str:
-    #     temp_path = convert_json_str(json_str)
-    # else:
-    #     temp_path = convert_json_to_csv()
     jsc = JsonConverter()
     if json_str:
         temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json")
