@@ -295,9 +295,9 @@ def validate_manifest_route(schema_url, data_type):
     return res_dict
 
 
-def submit_manifest_route(schema_url, manifest_record_type=None, json_str=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
     # call config_handler()
-    config_handler()
+    config_handler(asset_view = asset_view)
 
     # convert Json file to CSV if applicable
     jsc = JsonConverter()

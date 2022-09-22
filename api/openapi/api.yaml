@@ -253,6 +253,14 @@ paths:
           description: Token
           required: true
         - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn28559058
+          required: true
+        - in: query
           name: json_str
           required: false
           schema:
