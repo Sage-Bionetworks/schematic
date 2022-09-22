@@ -175,6 +175,23 @@ paths:
           description: Data Model Component
           example: Patient
           required: true
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
+          example: '[{
+          "Patient ID": 123,
+          "Sex": "Female",
+          "Year of Birth": "",
+          "Diagnosis": "Healthy",
+          "Component": "Patient",
+          "Cancer Type": "Breast",
+          "Family History": "Breast, Lung",
+          }]'
+
       operationId: api.routes.validate_manifest_route
       responses:
         "200":
