@@ -2,7 +2,6 @@ import os
 import shutil
 import tempfile
 import shutil
-from urllib.parse import non_hierarchical
 import urllib.request
 
 import connexion
