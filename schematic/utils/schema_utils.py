@@ -17,7 +17,7 @@ def load_schema_into_networkx(schema):
         # adding nodes to the graph
         node = {}
         for (k, value) in record.items():
-            # Some keys current schema.org schema have a dictionary entry for their value that includes keys @language and @value, 
+            # Some keys in the current schema.org schema have a dictionary entry for their value that includes keys @language and @value, 
             # for parity with other schemas, we just want the value
             if isinstance(value,dict) and "@language" in value.keys():
                 record[k] = record[k]["@value"]
