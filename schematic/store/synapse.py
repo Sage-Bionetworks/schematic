@@ -762,7 +762,10 @@ class SynapseStorage(BaseStorage):
         # update file name
         file_name_full = metadataManifestPath.split('/')[-1]
         file_extension = file_name_full.split('.')[-1]
-        file_name_new = 'synapse_storage_manifest_' + component_name + '.' + file_extension
+        if restrict_manifest: 
+            file_name_new = os.path.basename(CONFIG["synapse"]["manifest_basename"]) + "_" + component_name + '_censored' + '.' + file_extension
+        else: 
+            file_name_new = os.path.basename(CONFIG["synapse"]["manifest_basename"]) + "_" + component_name + '.' + file_extension
 
         manifestSynapseFile = File(
             metadataManifestPath,
