@@ -175,7 +175,21 @@ def export_manifest_csv(file_name, manifest):
         with open(file_name, 'wb') as f:
             f.write(data)
         f.close
-    
+
+def export_excel_sheet(manifest_url, output_excel, ):
+    # intialize drive service 
+    services_creds = build_service_account_creds()
+    drive_service = services_creds["drive_service"]
+
+    # get spreadsheet id from url 
+    spreadsheet_id = manifest_url.split('/')[-1]
+    data = drive_service.files().export(fileId=spreadsheet_id, mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').execute()
+
+    # open file and write data
+    with open(output_excel, 'wb') as f:
+        f.write(data)
+    f.close
+
 def export_manifest_excel(manifest, output_excel=None):
     # intialize drive service 
     services_creds = build_service_account_creds()

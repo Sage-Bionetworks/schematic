@@ -254,7 +254,7 @@ class MetadataModel(object):
         errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope)
         return errors, warnings
 
-    def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
+    def populateModelManifest(self, title, manifestPath: str, rootNode: str, return_excel = False) -> str:
         """Populate an existing annotations manifest based on a dataframe.
             TODO: Remove this method; always use getModelManifest instead
 
@@ -274,7 +274,7 @@ class MetadataModel(object):
 
         emptyManifestURL = mg.get_manifest()
 
-        return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
+        return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL, return_excel = return_excel, title=title)
 
     def submit_metadata_manifest(
         self,

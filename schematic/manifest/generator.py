@@ -22,6 +22,8 @@ from schematic.utils.validate_utils import rule_in_rule_list
 from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
+from schematic.utils.google_api_utils import export_excel_sheet
+from openpyxl import load_workbook
 
 logger = logging.getLogger(__name__)
 
@@ -1258,9 +1260,20 @@ class ManifestGenerator(object):
         )
         return manifest_url
 
+    # def set_empty_google_sheet(self, manifest_url: str, manifest_df: pd.DataFrame):
+    #     # authorize pygsheets to read from the given URL
+    #     gc = ps.authorize(custom_credentials=self.creds)
+
+    #     # open google sheets and extract first sheet
+    #     sh = gc.open_by_url(manifest_url)
+    #     wb = sh[0]
+        
+    #     # manifest df header 
+    #     manifest_df_header = manifest_df.columns        
+
 
     def set_dataframe_by_url(
-        self, manifest_url: str, manifest_df: pd.DataFrame
+        self, manifest_url: str, manifest_df: pd.DataFrame, populate_df = True
     ) -> ps.Spreadsheet:
         """Update Google Sheets using given pandas DataFrame.
 
@@ -1319,7 +1332,8 @@ class ManifestGenerator(object):
         sh.default_parse = False
 
         # update spreadsheet with given manifest starting at top-left cell
-        wb.set_dataframe(manifest_df, (1, 1))
+        if populate_df:
+            wb.set_dataframe(manifest_df, (1, 1))
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
@@ -1426,6 +1440,16 @@ class ManifestGenerator(object):
 
         return manifest_url, manifest_df
 
+    # def get_manifest_new(self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, return_excel=False):
+    #     # Handle case when no dataset ID is provided
+    #     if not dataset_id and not return_excel:
+    #         return self.get_empty_manifest(json_schema_filepath=json_schema, return_excel=False)
+    #     elif not dataset_id and return_excel:
+    #         print(self.get_empty_manifest(json_schema_filepath=json_schema, return_excel=True))
+        
+
+
+
     def get_manifest(
         self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None
     ) -> Union[str, pd.DataFrame]:
@@ -1499,8 +1523,22 @@ class ManifestGenerator(object):
             else:
                 return manifest_df
 
+    def populate_existing_excel_spreadsheet(self, existing_excel_path, additional_df):
+        #existing_df = pd.read_excel(existing_excel_path, index_col = 0)
 
-    def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
+        # with pd.ExcelWriter(existing_excel_path, mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
+        #     additional_df.to_excel(writer, sheet_name = "Sheet1")
+
+        # load workbook
+        workbook = load_workbook(existing_excel_path)
+        writer = pd.ExcelWriter(existing_excel_path, engine='openpyxl')
+        writer.book = workbook
+        writer.sheets = {ws.title: ws for ws in workbook.worksheets}
+        additional_df.to_excel(writer, sheet_name = "Sheet1", startrow=1, index = False, header= False)
+        writer.close()
+
+
+    def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url, return_excel=False, title=None):
         """Creates a google sheet manifest based on existing manifest.
 
         Args:
@@ -1510,10 +1548,31 @@ class ManifestGenerator(object):
 
         # read existing manifest
         manifest = load_df(existing_manifest_path)
+        
+        if return_excel: 
+            '''if we are returning an Excel spreadsheet, do not populate dataframe to google'''
+            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest, populate_df = False)
+            # construct output excel file path 
+            output_excel_file = os.path.basename("tests/data/" + title + ".xlsx")
+            # export the manifest to excel
+            export_excel_sheet(manifest_sh.url, output_excel=output_excel_file)
+            self.populate_existing_excel_spreadsheet(output_excel_file, manifest)
+            # open it again to populate additional data
+            # use xlwings package
+            # with xw.App(visible=False) as app:
+            #     wb = app.books[output_excel_file]
+            #     ws = wb.sheets['Sheet1']
 
-        manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
+            #     # update existing workbook
+            #     ws.range('A2').options(index=False).value = manifest
 
-        return manifest_sh.url
+            #     wb.save()
+            #     wb.close()
+            #     app.quit()
+
+        else: 
+            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest, populate_df = True)
+            return manifest_sh.url
 
     def sort_manifest_fields(self, manifest_fields, order="schema"):
         # order manifest fields alphabetically (base order)

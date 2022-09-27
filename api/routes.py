@@ -208,7 +208,7 @@ def submit_manifest_route(schema_url, manifest_record_type=None):
 
     return manifest_id
 
-def populate_manifest_route(schema_url, title=None, data_type=None):
+def populate_manifest_route(schema_url, title=None, data_type=None, return_excel=None):
     # call config_handler()
     config_handler()
 
@@ -222,7 +222,7 @@ def populate_manifest_route(schema_url, title=None, data_type=None):
     metadata_model = MetadataModel(inputMModelLocation=jsonld, inputMModelLocationType='local')
 
     #Call populateModelManifest class
-    populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type)
+    populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type, return_excel=return_excel)
 
     return populated_manifest_link
 
