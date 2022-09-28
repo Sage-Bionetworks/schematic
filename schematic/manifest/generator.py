@@ -1524,7 +1524,7 @@ class ManifestGenerator(object):
 
         #get missing columns and sort manifest 
         #get existing headers
-        existing_df = pd.read_excel(existing_excel_path)
+        existing_df = pd.read_excel(existing_excel_path, sheet_name="Sheet1")
         workbook_headers = existing_df.columns
 
         # get new column headers
@@ -1545,13 +1545,13 @@ class ManifestGenerator(object):
             for i, col_name in enumerate(out_of_schema_columns_lst):
                 col_index = len(workbook_headers) + 1 + i
                 worksheet.cell(row=1, column=col_index).value = col_name
-
+        
+        # save and close
         writer.save()
         writer.close()
 
     def populate_manifest_spreadsheet(self, existing_manifest_path: str = None, empty_manifest_url: str = None, return_excel: bool = False, title: str = None):
         """Creates a google sheet manifest based on existing manifest.
-
         Args:
             existing_manifest_path: the location of the manifest containing metadata presently stored
             empty_manifest_url: the path to a manifest template to be prepopulated with existing's manifest metadata
