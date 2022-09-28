@@ -338,6 +338,13 @@ paths:
           description: Title of Manifest
           example: Example
           required: false
+        - in: query
+          name: return_excel
+          schema:
+            type: boolean
+            nullable: false
+          description: If true, this would return an Excel spreadsheet.(This approach would avoid sending metadata to Google sheet APIs)
+          required: true
       operationId: api.routes.populate_manifest_route
       responses:
         "200":
