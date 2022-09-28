@@ -1308,12 +1308,12 @@ class ManifestGenerator(object):
         # find missing columns in existing manifest
         new_columns = set(wb_header) - set(manifest_df.columns)
 
-        # # clean empty columns if any are present (there should be none)
-        # # TODO: Remove this line once we start preventing empty column names
+        # clean empty columns if any are present (there should be none)
+        # TODO: Remove this line once we start preventing empty column names
         if '' in new_columns:
             new_columns = new_columns.remove('')
 
-        # # update existing manifest w/ missing columns, if any
+        # update existing manifest w/ missing columns, if any
         if new_columns:
             manifest_df = manifest_df.assign(
                 **dict(zip(new_columns, len(new_columns) * [""]))
