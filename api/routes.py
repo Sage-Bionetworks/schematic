@@ -1,3 +1,4 @@
+from email import generator
 import os
 import shutil
 import tempfile
@@ -14,12 +15,13 @@ from schematic import CONFIG
 from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
-
+from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage
+from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
 import json
 from schematic.utils.df_utils import load_df
-
+import pickle
 
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
@@ -292,7 +294,7 @@ def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest
 
     return manifest_local_file_path
 
-def get_asset_view_table(input_token, asset_view):
+def get_asset_view_table(input_token, asset_view, return_type):
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -302,12 +304,15 @@ def get_asset_view_table(input_token, asset_view):
     # get file view table
     file_view_table_df = store.getStorageFileviewTable()
 
-    # convert pandas dataframe to csv
-    path = os.getcwd()
-    export_path = os.path.join(path, 'tests/data/file_view_table.csv')
-    file_view_table_df.to_csv(export_path, index=False)
-
-    return export_path
+    # return different results based on parameter
+    if return_type == "json":
+        json_res = file_view_table_df.to_json()
+        return json_res
+    else:
+        path = os.getcwd()
+        export_path = os.path.join(path, 'tests/data/file_view_table.csv')
+        file_view_table_df.to_csv(export_path, index=False)
+        return export_path
 
 
 def get_project_manifests(input_token, project_id, asset_view):
@@ -335,5 +340,126 @@ def get_manifest_datatype(input_token, manifest_id, asset_view):
 
     return manifest_dtypes_dict
 
+def get_schema_pickle(schema_url):
+    # load schema
+    se = SchemaExplorer()
+
+    se.load_schema(schema_url)
+
+    # get schema
+    schema_graph = se.get_nx_schema()
+
+    # write to local pickle file
+    path = os.getcwd()
+    export_path = os.path.join(path, 'tests/data/schema.gpickle')
+
+    with open(export_path, 'wb') as file:
+        pickle.dump(schema_graph, file)
+    return export_path
 
 
+def get_subgraph_by_edge_type(schema_url, relationship):
+    # use schema generator and schema explorer
+    sg = SchemaGenerator(path_to_json_ld=schema_url)
+    se = SchemaExplorer()
+    se.load_schema(schema_url)
+
+    # get the schema graph 
+    schema_graph = se.get_nx_schema()
+
+    # relationship subgraph
+    relationship_subgraph = sg.get_subgraph_by_edge_type(schema_graph, relationship)
+
+    # return relationship 
+    Arr = []
+    for t in relationship_subgraph.edges:
+        lst = list(t)
+        Arr.append(lst)
+
+    return Arr
+
+
+def find_class_specific_properties(schema_url, schema_class):
+    # use schema explorer
+    se = SchemaExplorer()
+
+    # load schema
+    se.load_schema(schema_url)
+
+    # return properties
+    properties = se.find_class_specific_properties(schema_class)
+
+    return properties
+
+
+def get_node_dependencies(
+    schema_url: str,
+    source_node: str,
+    return_display_names: bool = True,
+    return_schema_ordered: bool = True
+) -> list[str]:
+    """Get the immediate dependencies that are related to a given source node.
+
+    Args:
+        schema_url (str): Data Model URL
+        source_node (str): The node whose dependencies are needed.
+        return_display_names (bool, optional):
+            If True, return list of display names of each of the dependencies.
+            If False, return list of node labels of each of the dependencies.
+            Defaults to True.
+        return_schema_ordered (bool, optional):
+            If True, return the dependencies of the node following the order of the schema (slower).
+            If False, return dependencies from graph without guaranteeing schema order (faster).
+            Defaults to True.
+
+    Returns:
+        list[str]: List of nodes that are dependent on the source node.
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    dependencies = gen.get_node_dependencies(
+        source_node, return_display_names, return_schema_ordered
+    )
+    return dependencies
+
+
+def get_property_label_from_display_name(
+    schema_url: str,
+    display_name: str,
+    strict_camel_case: bool = False
+) -> str:
+    """Converts a given display name string into a proper property label string
+
+    Args:
+        schema_url (str): Data Model URL
+        display_name (str): The display name to be converted
+        strict_camel_case (bool, optional): If true the more strict way of
+            converting to camel case is used.
+
+    Returns:
+        str: The property label of the display name
+    """
+    explorer = SchemaExplorer()
+    explorer.load_schema(schema_url)
+    label = explorer.get_property_label_from_display_name(display_name, strict_camel_case)
+    return label
+
+
+def get_node_range(
+    schema_url: str,
+    node_label: str,
+    return_display_names: bool = True
+) -> list[str]:
+    """Get the range, i.e., all the valid values that are associated with a node label.
+
+    Args:
+        schema_url (str): Data Model URL
+        node_label (str): Node / term for which you need to retrieve the range.
+        return_display_names (bool, optional): If true returns the display names of the nodes.
+            Defaults to True.
+
+    Returns:
+        list[str]: A list of nodes
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    node_range = gen.get_node_range(node_label, return_display_names)
+    return node_range
