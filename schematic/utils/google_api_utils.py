@@ -155,42 +155,58 @@ def execute_google_api_requests(service, requests_body, **kwargs):
 
         return response
 
-def export_manifest_csv(file_name, manifest):
+def export_manifest_drive_service(manifest_url, file_name, mimeType):
+    '''
+    Export manifest by using google drive api. 
+    Args:
+        manifest_url: google sheet manifest url
+        file_name: name of the exported manifest
+        mimeType: exporting mimetype
 
+    result: Google sheet gets exported in desired format
+
+    '''
     # intialize drive service 
     services_creds = build_service_account_creds()
     drive_service = services_creds["drive_service"]
+
+    # get spreadsheet id
+    spreadsheet_id = manifest_url.split('/')[-1]
+
+    # use google drive 
+    data = drive_service.files().export(fileId=spreadsheet_id, mimeType=mimeType).execute()
+
+    # open file and write data
+    with open(file_name, 'wb') as f:
+        f.write(data)
+    f.close
+   
+
+def export_manifest_csv(file_name, manifest):
+    '''
+    Export manifest as a CSV by using google drive api
+    Args:
+        manifest: could be a dataframe or a manifest url
+        file_name: name of the exported manifest
+        mimeType: exporting mimetype
+
+    result: Google sheet gets exported as a CSV
+    '''
 
     if isinstance(manifest, pd.DataFrame):
         manifest.to_csv(file_name, index=False)
     else: 
-        # get spreadsheet id from url 
-        spreadsheet_id = manifest.split('/')[-1]
+        export_manifest_drive_service(manifest, file_name, mimeType = 'text/csv')
 
-        # use google drive
-        # if successful, this method returns the file content as bytes
-        data = drive_service.files().export(fileId=spreadsheet_id, mimeType='text/csv').execute()
-
-        # open file and write data
-        with open(file_name, 'wb') as f:
-            f.write(data)
-        f.close
-
-def export_excel_sheet(manifest_url, output_excel, ):
-    # intialize drive service 
-    services_creds = build_service_account_creds()
-    drive_service = services_creds["drive_service"]
-
-    # get spreadsheet id from url 
-    spreadsheet_id = manifest_url.split('/')[-1]
-    data = drive_service.files().export(fileId=spreadsheet_id, mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').execute()
-
-    # open file and write data
-    with open(output_excel, 'wb') as f:
-        f.write(data)
-    f.close
 
 def export_manifest_excel(manifest, output_excel=None):
+    '''
+    Export manifest as an Excel spreadsheet by using google sheet API. This approach could export hidden sheet
+    Args:
+        manifest: could be a dataframe or a manifest url 
+        output_excel: name of the exported manifest sheet
+    result: Google sheet gets exported as an excel spreadsheet. If there's a hidden sheet, the hidden sheet also gets exported. 
+    '''
     # intialize drive service 
     services_creds = build_service_account_creds()
     sheet_service = services_creds["sheet_service"]
