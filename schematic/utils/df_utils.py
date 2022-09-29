@@ -1,10 +1,54 @@
 import logging
 
 import pandas as pd
-
+import numpy as np
+from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
+
+def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
+    """
+    Universal function to load CSVs and return DataFrames
+    Args:
+        file_path: path of csv to open
+        preserve_raw_input: Bool. If false, convert cell datatypes to an inferred type
+        data_model: bool, indicates if importing a data model
+        load_args: dict of key value pairs to be passed to the pd.read_csv function
+        **kwargs: keyword arguments for pd.read_csv()
+
+    Returns: a processed dataframe for manifests or unprocessed df for data models
+    """
+    #Read CSV to df as type specified in kwargs
+    org_df = pd.read_csv(file_path, keep_default_na = True, encoding='utf8', **load_args)
+    
+    if preserve_raw_input:
+        #only trim if not data model csv
+        if not data_model:
+            org_df=trim_commas_df(org_df)
+
+        return org_df
+
+    else:
+        float_df=deepcopy(org_df)
+        #Find integers stored as strings
+        #Cast the columns in dataframe to string while preserving NaN
+        null_cells = org_df.isnull() 
+        org_df = org_df.astype(str).mask(null_cells, '')
+        ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+
+        #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
+        for col in org_df.columns:
+            float_df[col]=pd.to_numeric(float_df[col], errors='coerce')
+            float_df[col].fillna(org_df[col][float_df[col].isna()],inplace=True)
+        
+        #Trim nans and empty rows and columns
+        processed_df = trim_commas_df(float_df)
+        
+        #Store values that were entered as ints
+        processed_df=processed_df.mask(ints != False, other = ints)  
+
+        return processed_df
 
 def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
 
@@ -98,4 +142,7 @@ def trim_commas_df(df: pd.DataFrame):
 
     # remove all completely empty rows
     df = df.dropna(how="all", axis=0)
+
+    #Fill in nan cells with empty strings
+    df.fillna("", inplace=True)
     return df

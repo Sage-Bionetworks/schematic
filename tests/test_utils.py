@@ -176,37 +176,13 @@ class TestIOUtils:
 
         schema_org_schema = io_utils.load_schemaorg()
 
-        expected_ctx_keys = ["rdf", "rdfs", "xsd"]
+        expected_ctx_keys = ['brick', 'csvw', 'dc', 'dcam', 'dcat', 'dcmitype', 'dcterms', 'doap', 'foaf', 'odrl', 'org', 'owl', 'prof', 'prov', 'qb', 'rdf', 'rdfs', 'schema', 'sh', 'skos', 'sosa', 'ssn', 'time', 'vann', 'void', 'xsd']
         actual_ctx_keys = list(schema_org_schema["@context"].keys())
         assert expected_ctx_keys == actual_ctx_keys
 
-        expected_no_of_graphs = 6
-        actual_no_of_graphs = len(schema_org_schema["@graph"])
-        assert expected_no_of_graphs == actual_no_of_graphs
-
-        expected_no_of_keys_G1 = 1621
-        actual_no_of_keys_G1 = len(schema_org_schema["@graph"][0]["@graph"])
-        assert expected_no_of_keys_G1 == actual_no_of_keys_G1
-
-        expected_no_of_keys_G2 = 405
-        actual_no_of_keys_G2 = len(schema_org_schema["@graph"][1]["@graph"])
-        assert expected_no_of_keys_G2 == actual_no_of_keys_G2
-
-        expected_no_of_keys_G3 = 7
-        actual_no_of_keys_G3 = len(schema_org_schema["@graph"][2]["@graph"])
-        assert expected_no_of_keys_G3 == actual_no_of_keys_G3
-
-        expected_no_of_keys_G4 = 223
-        actual_no_of_keys_G4 = len(schema_org_schema["@graph"][3]["@graph"])
-        assert expected_no_of_keys_G4 == actual_no_of_keys_G4
-
-        expected_no_of_keys_G5 = 31
-        actual_no_of_keys_G5 = len(schema_org_schema["@graph"][4]["@graph"])
-        assert expected_no_of_keys_G5 == actual_no_of_keys_G5
-
-        expected_no_of_keys_G6 = 27
-        actual_no_of_keys_G6 = len(schema_org_schema["@graph"][5]["@graph"])
-        assert expected_no_of_keys_G6 == actual_no_of_keys_G6
+        expected_graph_keys = 2801
+        actual_graph_keys = len(schema_org_schema["@graph"])
+        assert expected_graph_keys == actual_graph_keys
 
 
 class TestDfUtils:

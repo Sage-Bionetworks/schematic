@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import uuid  # used to generate unique names for entities
 import json
@@ -11,9 +12,10 @@ from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-
+import re
 import synapseclient
 import synapseutils
+from time import sleep
 
 from synapseclient import (
     Synapse,
@@ -26,23 +28,25 @@ from synapseclient import (
     Column,
     as_table_columns,
 )
+
 from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
-from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError
+from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
 import synapseutils
 
 import uuid
 
-from schematic.utils.df_utils import update_df
+from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.schemas.explorer import SchemaExplorer
+from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
-
 
 class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -56,6 +60,7 @@ class SynapseStorage(BaseStorage):
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
         input_token: str = None,
+        project_scope: List = None,
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -73,15 +78,20 @@ class SynapseStorage(BaseStorage):
         """
 
         self.syn = self.login(token, access_token, input_token)
+        self.project_scope = project_scope
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
+            if self.project_scope:
+                self.storageFileviewTable = self.syn.tableQuery(
+                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
+                ).asDataFrame()
+            else:
+                # get data in administrative fileview for this pipeline
+                self.storageFileviewTable = self.syn.tableQuery(
+                    "SELECT * FROM " + self.storageFileview
+                ).asDataFrame()
 
-            # get data in administrative fileview for this pipeline
-            self.storageFileviewTable = self.syn.tableQuery(
-                "SELECT * FROM " + self.storageFileview
-            ).asDataFrame()
-
-            self.manifest = CONFIG["synapse"]["manifest_filename"]
+            self.manifest = CONFIG["synapse"]["manifest_basename"]
         
         except KeyError:
             raise MissingConfigValueError(("synapse", "master_fileview"))
@@ -122,6 +132,21 @@ class SynapseStorage(BaseStorage):
             
         return syn
 
+    def missing_entity_handler(method):
+        def wrapper(*args, **kwargs):
+            try:
+                return method(*args, **kwargs)
+            except(SynapseHTTPError) as ex:
+                str_message = str(ex).replace("\n","")
+                logging.warning(str_message)
+                return None
+        return wrapper
+
+
+    def getStorageFileviewTable(self):
+        """ Returns the storageFileviewTable obtained during initialization.
+        """
+        return self.storageFileviewTable
 
     def getPaginatedRestResults(self, currentUserId: str) -> Dict[str, str]:
         """Gets the paginated results of the REST call to Synapse to check what projects the current user has access to.
@@ -154,7 +179,7 @@ class SynapseStorage(BaseStorage):
 
         return all_results
 
-    def getStorageProjects(self) -> List[str]:
+    def getStorageProjects(self, project_scope: List = None) -> List[str]:
         """Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
 
         Returns:
@@ -182,7 +207,16 @@ class SynapseStorage(BaseStorage):
 
         # find set of user projects that are also in this pipeline's storage projects set
         storageProjects = list(set(storageProjects) & set(currentUserProjects))
+        
+        # Limit projects to scope if specified
+        if project_scope:
+            storageProjects = list(set(storageProjects) & set(project_scope))
 
+            if not storageProjects:
+                raise Warning(
+                    f"There are no projects that the user has access to that match the criteria of the specified project scope: {project_scope}"
+                )
+        
         # prepare a return list of project IDs and names
         projects = []
         for projectId in storageProjects:
@@ -284,7 +318,7 @@ class SynapseStorage(BaseStorage):
         return file_list
 
     def getDatasetManifest(
-        self, datasetId: str, downloadFile: bool = False
+        self, datasetId: str, downloadFile: bool = False, newManifestName: str='',
     ) -> List[str]:
         """Gets the manifest associated with a given dataset.
 
@@ -300,37 +334,102 @@ class SynapseStorage(BaseStorage):
 
         # get a list of files containing the manifest for this dataset (if any)
         all_files = self.storageFileviewTable
+
+        manifest_re=re.compile(os.path.basename(self.manifest)+".*.[tc]sv")
         manifest = all_files[
-            (all_files["name"] == os.path.basename(self.manifest))
+            (all_files['name'].str.contains(manifest_re,regex=True))
             & (all_files["parentId"] == datasetId)
         ]
-        manifest = manifest[["id", "name"]]
 
+        manifest = manifest[["id", "name"]]
+        censored_regex=re.compile('.*censored.*')
+        
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
             return ""
+
         # if there is an exisiting manifest
         else:
-            # if the downloadFile option is set to True
-            if downloadFile:
-                # retrieve data from synapse
+            # retrieve data from synapse
+
+            # if a censored manifest exists for this dataset
+            censored = manifest['name'].str.contains(censored_regex)
+            if any(censored):
+                # Try to use uncensored manifest first
+                not_censored=~censored
+                if any(not_censored):
+                    manifest_syn_id=manifest[not_censored]["id"][0]
+
+            #otherwise, use the first (implied only) version that exists
+            else:
                 manifest_syn_id = manifest["id"][0]
 
-                # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                manifest_data = self.syn.get(
-                    manifest_syn_id,
-                    downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                    ifcollision="overwrite.local",
-                )
+
+            # if the downloadFile option is set to True
+            if downloadFile:
+                # enables retrying if user does not have access to uncensored manifest
+                while True:
+                    # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+                    try:
+                        if 'manifest_folder' in CONFIG['synapse'].keys():
+                            manifest_data = self.syn.get(
+                                manifest_syn_id,
+                                downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                                ifcollision="overwrite.local",
+                            )
+                            break
+                        # if no manifest folder is set, download to cache
+                        else:
+                            manifest_data = self.syn.get(
+                                manifest_syn_id,
+                            )
+                            break
+                    # If user does not have access to uncensored manifest, use censored instead
+                    except(SynapseUnmetAccessRestrictions):
+                            manifest_syn_id=manifest[censored]["id"][0]
+                    
+                # Rename manifest file if indicated by user.
+                if newManifestName:
+                    if os.path.exists(manifest_data['path']):
+                        # Rename the file we just made to the new name
+                        new_manifest_filename = newManifestName + '.csv'
+                        new_manifest_path_name = manifest_data['path'].replace(manifest['name'][0], new_manifest_filename)
+                        os.rename(manifest_data['path'], new_manifest_path_name)
+
+                        # Update file names/paths in manifest_data
+                        manifest_data['name'] = new_manifest_filename
+                        manifest_data['filename'] = new_manifest_filename
+                        manifest_data['path'] = new_manifest_path_name
 
                 return manifest_data
 
-            # extract synapse ID of exisiting dataset manifest
-            manifest_syn_id = manifest.to_records(index=False)[0][0]
 
             return manifest_syn_id
 
-    def updateDatasetManifestFiles(self, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
+    def getDataTypeFromManifest(self, manifestId:str):
+        """Fetch a manifest and return data types of all columns
+        Args: 
+            manifestId: synapse ID of a manifest
+        """
+        # get manifest file path 
+        manifest_filepath = self.syn.get(manifestId).path
+
+        # load manifest dataframe 
+        manifest = load_df(manifest_filepath, preserve_raw_input=False, data_model=False)
+
+        # convert the dataFrame to use best possible dtypes.
+        manifest_new = manifest.convert_dtypes()
+
+        # get data types of columns
+        result = manifest_new.dtypes.to_frame('dtypes').reset_index()
+
+        # return the result as a dictionary 
+        result_dict = result.set_index('index')['dtypes'].astype(str).to_dict()
+
+
+        return result_dict
+
+    def updateDatasetManifestFiles(self, sg: SchemaGenerator, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 
         Args:
@@ -352,7 +451,7 @@ class SynapseStorage(BaseStorage):
             return None
 
         manifest_filepath = self.syn.get(manifest_id).path
-        manifest = pd.read_csv(manifest_filepath)
+        manifest = load_df(manifest_filepath)
 
         # get current list of files
         dataset_files = self.getFilesInStorageDataset(datasetId)
@@ -383,12 +482,11 @@ class SynapseStorage(BaseStorage):
                 manifest.to_csv(manifest_filepath, index=False)
 
                 # store manifest and update associated metadata with manifest on Synapse
-                manifest_id = self.associateMetadataWithFiles(manifest_filepath, datasetId)
+                manifest_id = self.associateMetadataWithFiles(sg, manifest_filepath, datasetId)
 
         manifest = manifest.fillna("") 
         
         return manifest_id, manifest
-
 
     def getProjectManifests(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
@@ -406,7 +504,8 @@ class SynapseStorage(BaseStorage):
 
         TODO: Return manifest URI instead of Synapse ID for interoperability with other implementations of a store interface
         """
-
+        component=None
+        entity=None
         manifests = []
 
         datasets = self.getStorageDatasetsInProject(projectId)
@@ -414,34 +513,75 @@ class SynapseStorage(BaseStorage):
         for (datasetId, datasetName) in datasets:
             # encode information about the manifest in a simple list (so that R clients can unpack it)
             # eventually can serialize differently
+                
+            # Get synID of manifest for a dataset
+            manifestId = self.getDatasetManifest(datasetId)
 
-            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+            # If a manifest exists, get the annotations for it, else return base 'manifest' tuple
+            if manifestId:
+                annotations = self.getFileAnnotations(manifestId)
 
-            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
-            if manifest_info:
-                manifest_id = manifest_info["properties"]["id"]
-                manifest_name = manifest_info["properties"]["name"]
-                manifest_path = manifest_info["path"]
+                # If manifest has annotations specifying component, use that
+                if 'Component' in annotations:
+                    component = annotations['Component']
+                    entity = self.syn.get(manifestId, downloadFile=False)
+                    manifest_name = entity["properties"]["name"]
 
-                manifest_df = pd.read_csv(manifest_path)
+                # otherwise download the manifest and parse for information
+                elif 'Component' not in annotations or not annotations:
+                    logging.debug(
+                        f"No component annotations have been found for manifest {manifestId}. "
+                        "The manifest will be downloaded and parsed instead. "
+                        "For increased speed, add component annotations to manifest."
+                        )
 
-                if "Component" in manifest_df and not manifest_df["Component"].empty:
-                    manifest_component = manifest_df["Component"][0]
+                    manifest_info = self.getDatasetManifest(datasetId,downloadFile=True)
+                    manifest_name = manifest_info["properties"]["name"]
+                    manifest_path = manifest_info["path"]
 
-                    manifest = (
-                        (datasetId, datasetName),
-                        (manifest_id, manifest_name),
-                        (manifest_component, manifest_component),
-                    )
-                else:
-                    manifest = (
-                        (datasetId, datasetName),
-                        (manifest_id, manifest_name),
-                        ("", ""),
-                    )
+                    manifest_df = load_df(manifest_path)
 
-            manifests.append(manifest)
+                    # Get component from component column if it exists
+                    if "Component" in manifest_df and not manifest_df["Component"].empty:
+                        list(set(manifest_df['Component']))
+                        component = list(set(manifest_df["Component"]))
 
+                        #Added to address issues raised during DCA testing
+                        if '' in component:
+                            component.remove('')
+
+                        if len(component) == 1:
+                            component = component[0]
+                        elif len(component) > 1:
+                            logging.warning(
+                            f"Manifest {manifestId} is composed of multiple components. Schematic does not support mulit-component manifests at this time."
+                            "Behavior of manifests with multiple components is undefined"
+                            )              
+
+            #save manifest list with applicable informaiton
+            if component:
+                manifest = (
+                    (datasetId, datasetName),
+                    (manifestId, manifest_name),
+                    (component, component),
+                )
+            elif manifestId:
+                logging.debug(f"Manifest {manifestId} does not have an associated Component")
+                manifest = (
+                    (datasetId, datasetName),
+                    (manifestId, manifest_name),
+                    ("", ""),
+                )
+            else:
+                manifest = (
+                    (datasetId, datasetName),
+                    ("", ""),
+                    ("", ""),
+                )
+
+            if manifest:
+                manifests.append(manifest)
+                
         return manifests
 
     def upload_project_manifests_to_synapse(self, projectId: str) -> List[str]:
@@ -465,10 +605,102 @@ class SynapseStorage(BaseStorage):
                 manifest_id = manifest_info["properties"]["id"]
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
-                manifest_df = pd.read_csv(manifest_path)
-                manifest_table_id = upload_format_manifest_table(manifest, dataset_id, datasetName)
+                manifest_df = load_df(manifest_path)
+                manifest_table_id = upload_format_manifest_table(manifest, datasetId, datasetName)
                 manifest_loaded.append(datasetName)
         return manifest_loaded
+
+    def upload_annotated_project_manifests_to_synapse(self, projectId:str, path_to_json_ld: str, dry_run: bool = False) -> List[str]:
+        '''
+        Purpose:
+            For all manifests in a project, upload them as a table and add annotations manifest csv.
+            Assumes the manifest is already present as a CSV in a dataset in the project.
+
+        '''
+
+        sg = SchemaGenerator(path_to_json_ld)
+        manifests = []
+        manifest_loaded = []
+        datasets = self.getStorageDatasetsInProject(projectId)
+        for (datasetId, datasetName) in datasets:
+            # encode information about the manifest in a simple list (so that R clients can unpack it)
+            # eventually can serialize differently
+
+            manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+            manifests.append(manifest)
+
+            manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
+
+            if manifest_info:
+                manifest_id = manifest_info["properties"]["id"]
+                manifest_name = manifest_info["properties"]["name"]
+                manifest_path = manifest_info["path"]
+                manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
+                if not dry_run:
+                    manifest_syn_id = self.associateMetadataWithFiles(sg, manifest_path, datasetId, manifest_record_type='table')
+                manifest_loaded.append(manifest)
+            
+        return manifests, manifest_loaded
+
+
+    def move_entities_to_new_project(self, projectId: str, newProjectId: str, returnEntities: bool = False, dry_run: bool = False):
+        """
+        For each manifest csv in a project, look for all the entitiy ids that are associated.
+        Look up the entitiy in the files, move the entity to new project.
+        """
+
+        manifests = []
+        manifest_loaded = []
+        datasets = self.getStorageDatasetsInProject(projectId)
+        if datasets:
+            for (datasetId, datasetName) in datasets:
+                # encode information about the manifest in a simple list (so that R clients can unpack it)
+                # eventually can serialize differently
+
+                manifest = ((datasetId, datasetName), ("", ""), ("", ""))
+                manifests.append(manifest)
+
+                manifest_info = self.getDatasetManifest(datasetId, downloadFile=True)
+                if manifest_info:
+                    manifest_id = manifest_info["properties"]["id"]
+                    manifest_name = manifest_info["properties"]["name"]
+                    manifest_path = manifest_info["path"]
+                    manifest_df = load_df(manifest_path)
+
+                    manifest = ((datasetId, datasetName), (manifest_id, manifest_name), ("", ""))
+                    manifest_loaded.append(manifest)
+
+                    annotation_entities = self.storageFileviewTable[
+                            (self.storageFileviewTable['id'].isin(manifest_df['entityId']))
+                            & (self.storageFileviewTable['type'] == 'folder')
+                        ]['id']
+
+                    if returnEntities:
+                        for entityId in annotation_entities: 
+                            if not dry_run:
+                                self.syn.move(entityId, datasetId)
+                            else:
+                                logging.info(f"{entityId} will be moved to folder {datasetId}.")
+                    else:                
+                        # generate project folder
+                        archive_project_folder = Folder(projectId+'_archive', parent = newProjectId)
+                        archive_project_folder = self.syn.store(archive_project_folder)
+        
+                        # generate dataset folder
+                        dataset_archive_folder = Folder("_".join([datasetId,datasetName,'archive']), parent = archive_project_folder.id)
+                        dataset_archive_folder = self.syn.store(dataset_archive_folder)                    
+
+                        for entityId in annotation_entities:
+                            # move entities to folder
+                            if not dry_run:
+                                self.syn.move(entityId, dataset_archive_folder.id)
+                            else:
+                                logging.info(f"{entityId} will be moved to folder {dataset_archive_folder.id}.")
+        else:
+            raise LookupError(
+                f"No datasets were found in the specified project: {projectId}. Re-check specified master_fileview in CONFIG and retry."
+            )
+        return manifests, manifest_loaded
 
     def get_synapse_table(self, synapse_id: str) -> Tuple[pd.DataFrame, CsvFileTable]:
         """Download synapse table as a pd dataframe; return table schema and etags as results too
@@ -482,54 +714,107 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_prefix):
+    def _get_tables(self) -> List[Table]:
+        project = self.syn.get(self.project_scope[0])
+        return list(self.syn.getChildren(project, includeTypes=["table"]))
+
+    def get_table_info(self) -> List[str]:
+        """Gets the names of the tables in the schema
+        Returns:
+            list[str]: A list of table names
+        """
+        tables = self._get_tables()
+        if tables:
+            return {table["name"]: table["id"] for table in tables}
+        else: 
+            return {None:None}
+
+    @missing_entity_handler
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel):
         # Rename the manifest columns to display names to match fileview
+        table_info = self.get_table_info()
+
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
-        manifest_columns.remove('entityId')
-        
-        cols = [
-            se.get_class_label_from_display_name(
-                str(col)
-                ).translate({ord(x): '' for x in blacklist_chars})
-            for col in manifest_columns
-        ]
 
-        cols.append('entityId')
+        table_manifest=deepcopy(manifest)
 
-        # Reset column names in manifest
-        manifest.columns = cols
+        if useSchemaLabel:
+            cols = [
+                se.get_class_label_from_display_name(
+                    str(col)
+                    ).translate({ord(x): '' for x in blacklist_chars})
+                for col in manifest_columns
+            ]
+
+            cols = list(map(lambda x: x.replace('EntityId', 'entityId'), cols))
+
+
+            # Reset column names in table manifest
+            table_manifest.columns = cols
+
+        #move entity id to end of df
+        entity_col = table_manifest.pop('entityId')
+        table_manifest.insert(len(table_manifest.columns), 'entityId', entity_col)
 
         # Get the column schema
-        col_schema = as_table_columns(manifest)
+        col_schema = as_table_columns(table_manifest)
 
         # Set uuid column length to 64 (for some reason not being auto set.)
         for i, col in enumerate(col_schema):
             if col['name'] == 'Uuid':
                 col_schema[i]['maximumSize'] = 64
 
-        # Put manifest onto synapse
-        schema = Schema(name=table_prefix + '_manifest_table', columns=col_schema, parent=datasetId)
-        table = self.syn.store(Table(schema, manifest))
-        manifest_table_id = table.schema.id
+        # Put table manifest onto synapse
+        schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
+        if table_name not in table_info.keys():
+            manifest_table_id = self.make_synapse_table(table_to_load = table_manifest, 
+                                    dataset_id = datasetId,
+                                    existingTableId = None, 
+                                    table_name = table_name, 
+                                    column_type_dictionary = col_schema, 
+                                    restrict = restrict,
+                                    manipulation = 'replace')
+        else:
+            manifest_table_id = self.make_synapse_table(table_to_load = table_manifest, 
+                                    dataset_id = datasetId,
+                                    existingTableId = table_info[table_name], 
+                                    table_name = table_name, 
+                                    column_type_dictionary = col_schema,
+                                    restrict = restrict,
+                                    manipulation = 'replace')
 
-        return manifest_table_id, manifest
 
-    def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId):
+        return manifest_table_id, manifest, table_manifest
+
+    def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = ''):
         # Update manifest to have the new entityId column
         manifest.to_csv(metadataManifestPath, index=False)
 
         # store manifest to Synapse as a CSV
+        # update file name
+        file_name_full = metadataManifestPath.split('/')[-1]
+        file_extension = file_name_full.split('.')[-1]
+
+        # Differentiate "censored" and "uncensored" manifest
+        if "censored" in file_name_full: 
+            file_name_new = os.path.basename(CONFIG["synapse"]["manifest_basename"]) + "_" + component_name + "_censored" + '.' + file_extension
+        else: 
+            file_name_new = os.path.basename(CONFIG["synapse"]["manifest_basename"]) + "_" + component_name + '.' + file_extension
+
         manifestSynapseFile = File(
             metadataManifestPath,
             description="Manifest for dataset " + datasetId,
             parent=datasetId,
+            name=file_name_new
         )
-        manifest_synapse_file_id = self.syn.store(manifestSynapseFile).id
-    
+
+        manifest_synapse_file_id = self.syn.store(manifestSynapseFile, isRestricted = restrict_manifest).id
+        
         return manifest_synapse_file_id
 
-    def format_annotations(self, se, row, entityId, useSchemaLabel, hideBlanks):
+    @missing_entity_handler
+    def format_row_annotations(self, se, sg, row, entityId, useSchemaLabel, hideBlanks):
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
@@ -557,26 +842,151 @@ class SynapseStorage(BaseStorage):
                 v = v[0:472] + "[truncatedByDataCuratorApp]"
 
             metadataSyn[keySyn] = v
-
+        
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
-
+        csv_list_regex=comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
             
-            #Do not save blank annotations as NaNs,
-            #remove keys with nan/blank values from dict of annotations to be uploaded if present on current data annotation
-            if isinstance(anno_v,float) and np.isnan(anno_v):
-                if hideBlanks:
-                    annos.pop(anno_k) if anno_k in annos.keys() else annos
-                else:
-                    annos[anno_k] = ""
+            # Remove keys with nan or empty string values from dict of annotations to be uploaded
+            # if present on current data annotation
+            if hideBlanks and (anno_v == '' or (isinstance(anno_v,float) and np.isnan(anno_v))):
+                annos.pop(anno_k) if anno_k in annos.keys() else annos
+            # Otherwise save annotation as approrpriate
             else:
-                annos[anno_k] = anno_v
+                if isinstance(anno_v,float) and np.isnan(anno_v):
+                        annos[anno_k] = ""
+                elif isinstance(anno_v,str) and re.fullmatch(csv_list_regex, anno_v) and rule_in_rule_list('list', sg.get_node_validation_rules(anno_k)):
+                    annos[anno_k] = anno_v.split(",")
+                else:
+                    annos[anno_k] = anno_v
+                
         return annos
 
+    @missing_entity_handler
+    def format_manifest_annotations(self, manifest, manifest_synapse_id):
+        '''
+        Set annotations for the manifest (as a whole) so they can be applied to the manifest table or csv.
+        For now just getting the Component.
+        '''
+        
+        entity = self.syn.get(manifest_synapse_id, downloadFile=False)
+        is_file = entity.concreteType.endswith(".FileEntity")
+        is_table = entity.concreteType.endswith(".TableEntity")
+
+        if is_file:
+
+            # Get file metadata
+            metadata = self.getFileAnnotations(manifest_synapse_id)
+
+            # If there is a defined component add it to the metadata.
+            if 'Component' in manifest.columns:
+                # Gather component information
+                component = manifest['Component'].unique()
+                
+                # Double check that only a single component is listed, else raise an error.
+                try:
+                    len(component) == 1
+                except ValueError as err:
+                    raise ValueError(
+                        f"Manifest has more than one component. Please check manifest and resubmit."
+                    ) from err
+
+                # Add component to metadata
+                metadata['Component'] = component[0]
+        
+        elif is_table:
+            # Get table metadata
+            metadata = self.getTableAnnotations(manifest_synapse_id)
+        
+        # Get annotations
+        annos = self.syn.get_annotations(manifest_synapse_id)
+
+        # Add metadata to the annotations
+        for annos_k, annos_v in metadata.items():
+            annos[annos_k] = annos_v
+
+        return annos
+    '''
+    def annotate_upload_manifest_table(self, manifest, datasetId, metadataManifestPath,
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False):
+        """
+        Purpose:
+            Works very similarly to associateMetadataWithFiles except takes in the manifest
+            rather than the manifest path
+
+        """
+        
+        # Add uuid for table updates and fill.
+        if not "Uuid" in manifest.columns:
+            manifest["Uuid"] = ''
+
+        for idx,row in manifest.iterrows():
+            if not row["Uuid"]:
+                gen_uuid = uuid.uuid4()
+                row["Uuid"] = gen_uuid
+                manifest.loc[idx, 'Uuid'] = gen_uuid
+
+        # add entityId as a column if not already there or
+        # fill any blanks with an empty string.
+        if not "entityId" in manifest.columns:
+            manifest["entityId"] = ""
+        else:
+            manifest["entityId"].fillna("", inplace=True)
+
+        # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
+        se = SchemaExplorer()
+
+        # Create table name here.
+        if 'Component' in manifest.columns:
+            table_name = manifest['Component'][0].lower() + '_synapse_storage_manifest_table'
+        else:
+            table_name = 'synapse_storage_manifest_table'
+
+        # Upload manifest as a table and get the SynID and manifest
+        manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
+                                                    se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
+            
+        # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
+        # also set metadata for each synapse entity as Synapse annotations
+        for idx, row in manifest.iterrows():
+            if not row["entityId"]:
+                # If not using entityIds, fill with manifest_table_id so 
+                row["entityId"] = manifest_synapse_table_id
+                entityId = ''
+            else:
+                # get the entity id corresponding to this row
+                entityId = row["entityId"]
+
+        # Load manifest to synapse as a CSV File
+        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
+        
+        # Get annotations for the file manifest.
+        manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
+        
+        self.syn.set_annotations(manifest_annotations)
+
+        logger.info("Associated manifest file with dataset on Synapse.")
+        
+        # Update manifest Synapse table with new entity id column.
+        self.make_synapse_table(
+            table_to_load = table_manifest,
+            dataset_id = datasetId,
+            existingTableId = manifest_synapse_table_id,
+            table_name = table_name,
+            update_col = 'Uuid',
+            specify_schema = False,
+            )
+        
+        # Get annotations for the table manifest
+        manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
+        self.syn.set_annotations(manifest_annotations)
+        return manifest_synapse_table_id
+    '''
+
     def associateMetadataWithFiles(
-        self, metadataManifestPath: str, datasetId: str, manifest_record_type: str, 
-        useSchemaLabel: bool = True, hideBlanks: bool = False,
+        self, schemaGenerator: SchemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -619,7 +1029,10 @@ class SynapseStorage(BaseStorage):
 
         # read new manifest csv
         try:
-            manifest = pd.read_csv(metadataManifestPath)
+            load_args={
+                "dtype":"string",
+            }
+            manifest = load_df(metadataManifestPath, preserve_raw_input = True, **load_args) #HOTFIX: set preserve_raw_input to true to allow mixed type cols in table uploads schematic#870
         except FileNotFoundError as err:
             raise FileNotFoundError(
                 f"No manifest file was found at this path: {metadataManifestPath}"
@@ -645,10 +1058,19 @@ class SynapseStorage(BaseStorage):
         # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
         se = SchemaExplorer()
 
+        # Create table name here.
+        if 'Component' in manifest.columns:
+            component_name = manifest['Component'][0].lower()
+            table_name = component_name + '_synapse_storage_manifest_table'
+        else:
+            component_name = ''
+            table_name = 'synapse_storage_manifest_table'
+
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
-            manifest_synapse_table_id, manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, manifest['Component'][0].lower())
+            manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel)
+            
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
         for idx, row in manifest.iterrows():
@@ -669,28 +1091,72 @@ class SynapseStorage(BaseStorage):
                 # get the entity id corresponding to this row
                 entityId = row["entityId"]
 
+            # Adding annotations to connected files.
             if entityId:
                 # Format annotations for Synapse
-                annos = self.format_annotations(se, row, entityId, useSchemaLabel, hideBlanks)
-                # Store annotations for an entity
-                self.syn.set_annotations(annos)
-        
+                annos = self.format_row_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
+
+                if annos:
+                # Store annotations for an entity folder
+                    self.syn.set_annotations(annos)
+
         # Load manifest to synapse as a CSV File
-        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId)
+        manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = component_name)
+        
+        # Get annotations for the file manifest.
+        manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
+        
+        self.syn.set_annotations(manifest_annotations)
+
         logger.info("Associated manifest file with dataset on Synapse.")
-            
+        
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
             self.make_synapse_table(
-                table_to_load = manifest,
+                table_to_load = table_manifest,
                 dataset_id = datasetId,
                 existingTableId = manifest_synapse_table_id,
-                table_name = manifest['Component'][0].lower() + '_manifest_table',
+                table_name = table_name,
                 update_col = 'Uuid',
                 specify_schema = False,
+                restrict = restrict_manifest
                 )
+            
+            # Get annotations for the table manifest
+            manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
+            self.syn.set_annotations(manifest_annotations)
 
         return manifest_synapse_file_id
+
+    def getTableAnnotations(self, table_id:str):
+        """Generate dictionary of annotations for the given Synapse file.
+        Synapse returns all custom annotations as lists since they
+        can contain multiple values. In all cases, the values will
+        be converted into strings and concatenated with ", ".
+
+        Args:
+            fileId (str): Synapse ID for dataset file.
+
+        Returns:
+            dict: Annotations as comma-separated strings.
+        """
+        try:
+            entity = self.syn.get(table_id, downloadFile=False)
+            is_table = entity.concreteType.endswith(".TableEntity")
+            annotations_raw = entity.annotations
+        except SynapseHTTPError:
+            # If an error occurs with retrieving entity, skip it
+            # This could be caused by a temporary file view that
+            # was deleted since its ID was retrieved
+            is_file, is_table = False, False
+
+        # Skip anything that isn't a file or folder
+        if not (is_table):
+            return None
+
+        annotations = self.getEntityAnnotations(table_id, entity, annotations_raw)
+
+        return annotations
 
     def getFileAnnotations(self, fileId: str) -> Dict[str, str]:
         """Generate dictionary of annotations for the given Synapse file.
@@ -721,6 +1187,11 @@ class SynapseStorage(BaseStorage):
         if not (is_file or is_folder):
             return None
 
+        annotations = self.getEntityAnnotations(fileId, entity, annotations_raw)
+
+        return annotations
+
+    def getEntityAnnotations(self, fileId, entity, annotations_raw):
         # Extract annotations from their lists and stringify. For example:
         # {'YearofBirth': [1980], 'author': ['bruno', 'milen', 'sujay']}
         annotations = dict()
@@ -794,7 +1265,9 @@ class SynapseStorage(BaseStorage):
 
         # Add filenames for the files that "survived" annotation retrieval
         filenames = [dataset_files_map[i] for i in table["entityId"]]
-        table.insert(0, "Filename", filenames)
+
+        if 'Filename' not in table.columns:
+            table.insert(0, "Filename", filenames)
 
         # Ensure that entityId and eTag are at the end
         entity_ids = table.pop("entityId")
@@ -837,17 +1310,17 @@ class SynapseStorage(BaseStorage):
             if syn_object.properties["concreteType"].endswith("Project"):
                 return datasetId
         except SynapseHTTPError:
-            raise ValueError(
+            raise PermissionError(
                 f"The given dataset ({datasetId}) isn't accessible with this "
                 "user. This might be caused by a typo in the dataset Synapse ID."
             )
 
         # If not, then assume dataset not in file view
-        raise ValueError(
+        raise LookupError (
             f"The given dataset ({datasetId}) doesn't appear in the "
             f"configured file view ({self.storageFileview}). This might "
             "mean that the file view's scope needs to be updated."
-        )
+        )     
 
     def getDatasetAnnotationsBatch(
         self, datasetId: str, dataset_file_ids: Sequence[str] = None
@@ -877,20 +1350,73 @@ class SynapseStorage(BaseStorage):
 
         return table
 
-    def make_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, 
-            update_col = 'entityId', column_type_dictionary = {}, specify_schema=True):
+    def make_synapse_table(self, 
+            table_to_load: pd.DataFrame, 
+            dataset_id: str, table_name: str, 
+            existingTableId: str = None,
+            update_col: str = 'entityId', 
+            column_type_dictionary: Dict = {}, 
+            specify_schema: bool = True, 
+            restrict: bool = False, 
+            manipulation: str = 'update') -> str:
         '''
-        Record based data
+        Make a synapse table for record based data
+
+        Args:
+            table_to_load (pd.DataFrame): table to upload to synapse
+            dataset_id (str): synID for dataset related to manifest to be uploaded as table
+            existingTableId (str): Optional, synID of existing table to upload to
+            table_name (str): Name of the table that will be displayed on synapse
+            update_col (str): Optional, if updating a table by aligning on index, column to use as indices
+            column_type_dictionary (Dict): dictionary of column types
+            specify_schema (bool):  specify a schema for the table at upload according to types in column_type_dictionary
+            restrict (bool): set to True if access restrictions need to be imposed on table when stored on synapse, False otherwise 
+            manipulation (str): type of manipulation to do if a table exists already. Can be either "update" or "replace". 
+                Defaults to "update" to preserve old behavior
+
+        Returns:
+            str: synId of table uploaded to synapse
+
         '''
-        # create/update a table corresponding to this dataset in this dataset's parent project
-        # update_col is the column in the table that has a unique code that will allow Synapse to
-        # locate its position in the old and new table.
         if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
-            table_to_load = update_df(existing_table, table_to_load, update_col)
-            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag))
+
+            manipulation = manipulation.lower()
+            if manipulation not in ['update', 'replace']:
+                raise NotImplementedError(
+                    "Currently, only 'update' and 'replace' table operations are supported."
+                )
+
+            # create/update a table corresponding to this dataset in this dataset's parent project
+            # update_col is the column in the table that has a unique code that will allow Synapse to
+            # locate its position in the old and new table.
+            if manipulation == 'update':
+                table_to_load = update_df(existing_table, table_to_load, update_col)
+            
+            elif manipulation == 'replace':
+                # remove rows
+                self.syn.delete(existing_results)
+
+                # wait for row deletion to finish on synapse before getting empty table
+                sleep(5)
+                # removes all current columns
+                current_table = self.syn.get(existingTableId)
+                current_columns = self.syn.getTableColumns(current_table)
+                for col in current_columns:
+                    current_table.removeColumn(col)
+
+                # adds new columns to schema
+                new_columns = as_table_columns(table_to_load)
+                for col in new_columns:
+                    current_table.addColumn(col)
+                self.syn.store(current_table, isRestricted = restrict)
+
+            # store table with existing etag data and impose restrictions as appropriate
+            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
+
             # remove system metadata from manifest
             existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
+            return existingTableId
         else:
             datasetEntity = self.syn.get(dataset_id, downloadFile = False)
             datasetName = datasetEntity.name
@@ -919,13 +1445,13 @@ class SynapseStorage(BaseStorage):
                         cols.append(Column(name=col, columnType='STRING', maximumSize=500))
                 schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
                 table = Table(schema, table_to_load)
-                table_id = self.syn.store(table)
+                table = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
             else:
                 # For just uploading the tables to synapse using default
                 # column types.
                 table = build_table(table_name, datasetParentProject, table_to_load)
-                table = self.syn.store(table)
+                table = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
 
 

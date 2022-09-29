@@ -36,6 +36,7 @@ manifest_commands = {
                 "to the metadata manifest file. If not it will produce a pandas dataframe for the same."
             ),
             "output_csv": ("Path to where the CSV manifest template should be stored."),
+            "output_xlsx": ("Path to where the Excel manifest template should be stored."),
             "use_annotations": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, it will prepopulate template "
                 "with existing annotations from Synapse."
@@ -48,6 +49,32 @@ manifest_commands = {
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
+            ),
+            "alphabetize_valid_values": (
+                "Specify to alphabetize valid attribute values either ascending (a) or descending (d)." 
+                "Optional"
+            ),
+        },
+        "migrate": {
+            "short_help": (
+                "Specify the path to the `config.yml` using this option. "
+                "This is a required argument."
+            ),
+            "project_scope": (
+                "Specify a comma-separated list of projects where manifest entities will be migrated to tables."
+            ),
+            "archive_project": (
+                "Specify a single project where legacy manifest entities will be stored after migration to table."
+            ),
+            "return_entities": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, "
+                "entities that have been transferred to an archive project will be returned to their original folders."
+            ),
+            "dry_run": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, "
+                "a dry run will be performed. No manifests will be re-uploaded and no entities will be migrated, "
+                "but archival folders will still be created. "
+                "Migration information for testing purposes will be logged to the INFO level."
             ),
         },
     }
@@ -88,7 +115,7 @@ model_commands = {
                 "'both'. 'entity' will store the manifest as a csv and create Synapse files for each row in the manifest. "
                 "'table' will store the manifest as a table and a csv on Synapse. 'both' will do both of the options specified above. "
                 "Default value is 'table'."
-            ),
+            ),      
         },
         "validate": {
             "short_help": ("Validation of manifest files."),
@@ -105,6 +132,14 @@ model_commands = {
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
+            ),
+            "restrict_rules":(
+                "This is a boolean flag. If flag is provided when command line utility is executed, validation suite will only run with in-house validation rules, "
+                "and Great Expectations rules and suite will not be utilized."
+                "If not, the Great Expectations suite will be utilized and all rules will be available."
+            ),
+            "project_scope": (
+                "Specify a comma-separated list of projects to search through for cross manifest validation."
             ),
         },
     }

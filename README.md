@@ -7,6 +7,8 @@
   - [Installation Requirements](#installation-requirements)
   - [Installation guide for data curator app](#installation-guide-for-data-curator-app)
   - [Installation guide for developers/contributors](#installation-guide-for-developerscontributors)
+- [Other Contribution Guidelines](#other-contribution-guidelines)
+    - [Update readthedocs documentation](#update-readthedocs-documentation)
 - [Command Line Usage](#command-line-usage)
 - [Testing](#testing)
   - [Updating Synapse test resources](#updating-synapse-test-resources)
@@ -52,22 +54,13 @@ When contributing to this repository, please first discuss the change you wish t
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
-### General instructions
-1. Clone this repository to your local machine so that you can begin making changes. 
-2. Follow the [Github docs](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/making-changes-in-a-branch/managing-branches#creating-a-branch) to create a branch off the `develop` branch. Name the branch appropriately, either briefly summarizing the bug (ex., `spatil/add-restapi-layer`) or feature or simply use the issue number in the name (ex., `spatil/issue-414-fix`).
-3. Push all your changes to your develop branch. 
-4. When all changes are tested locally and ready to be merged, follow the [Github docs](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and create a pull request in GitHub.
-
-> A Sage Bionetworks engineer must review and accept your pull request. A code review (which happens with both the contributor and the reviewer present) is required for contributing.
-
-*Note*: Make sure you have the latest version of the `develop` branch on your local machine.
-
 ### Development environment setup
 1. Clone the `schematic` package repository.
 ```
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
-2. Follow the [instructions](https://python-poetry.org/docs/) here to install `poetry`
+2. Install `poetry` (version 1.2 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
+
 3. Start the virtual environment by doing: 
 ```
 poetry shell
@@ -76,7 +69,7 @@ poetry shell
 ```
 poetry install
 ```
-This command will install the dependencies based on what we specify in poetry.lock
+This command will install the dependencies based on what we specify in poetry.lock. If this step is taking a long time, try to go back to step 2 and check your version of poetry. Alternatively, you could also try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
 
 5. Fill in credential files: 
 *Note*: If you won't interact with Synapse, please ignore this section.
@@ -106,7 +99,7 @@ Description of `config.yml` attributes
     synapse:
         master_fileview: "syn23643253" # fileview of project with datasets on Synapse
         manifest_folder: "~/path/to/manifest_folder/" # manifests will be downloaded to this folder
-        manifest_filename: "filename.ext" # name of the manifest file in the project dataset
+        manifest_basename: "filename" # base name of the manifest file in the project dataset, without extension
         token_creds: "syn23643259" # synapse ID of credentials.json file
         service_acct_creds: "syn25171627" # synapse ID of service_account_creds.json file
 
@@ -158,8 +151,49 @@ Most Google sheet functionality could be authenticated with service account. How
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
 
+
+
+### Development process instruction
+
+For new features, bugs, enhancements
+
+1. Pull the latest code from [develop branch in the upstream repo](https://github.com/Sage-Bionetworks/schematic)
+2. Checkout a new branch develop-<feature/fix-name> from the develop branch
+3. Do development on branch develop-<feature/fix-name>
+   a. may need to ensure that schematic poetry toml and lock files are compatible with your local environment
+4. Add changed files for tracking and commit changes using [best practices](https://www.perforce.com/blog/vcs/git-best-practices-git-commit)
+5. Have granular commits: not “too many” file changes, and not hundreds of code lines of changes
+6. Commits with work in progress are encouraged:
+   a. add WIP to the beginning of the commit message for “Work In Progress” commits
+7. Keep commit messages descriptive but less than a page long, see best practices
+8. Push code to develop-<feature/fix-name> in upstream repo
+9. Branch out off develop-<feature/fix-name> if needed to work on multiple features associated with the same code base
+10. After feature work is complete and before creating a PR to the develop branch in upstream
+    a. ensure that code runs locally
+    b. test for logical correctness locally
+    c. wait for git workflow to complete (e.g. tests are run) on github
+11. Create a PR from develop-<feature/fix-name> into the develop branch of the upstream repo
+12. Request a code review on the PR
+13. Once code is approved merge in the develop branch
+14. Delete the develop-<feature/fix-name> branch
+
+*Note*: Make sure you have the latest version of the `develop` branch on your local machine.
+
 # Other Contribution Guidelines
-### Reporting bugs or feature requests
+## Updating readthedocs documentation
+1. `cd docs`
+2. After making relevant changes, you could run the `make html` command to re-generate the `build` folder.
+3. Please contact the dev team to publish your updates
+
+*Other helpful resources*:
+
+1. [Getting started with Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
+2. [Installing Sphinx](https://haha.readthedocs.io/en/latest/intro/getting-started-with-sphinx.html)
+
+## Update toml file and lock file
+If you install external libraries by using `poetry add <name of library>`, please make sure that you include `pyproject.toml` and `poetry.lock` file in your commit.
+
+## Reporting bugs or feature requests
 You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues) tab to **create bug and feature requests**. Providing enough details to the developers to verify and troubleshoot your issue is paramount:
 - **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
 - **Describe the exact steps which reproduce the problem** in as many details as possible.

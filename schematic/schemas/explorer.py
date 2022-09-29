@@ -426,23 +426,46 @@ class SchemaExplorer:
 
         return class_info
 
-    def get_property_label_from_display_name(self, display_name):
+    def get_class_validation_rules(self,class_label):
+        rules=[]
+        class_info = self.explore_class(class_label)
+        
+        if 'validation_rules' in class_info:
+            rules=class_info['validation_rules']
+
+        return rules
+
+    def get_property_label_from_display_name(self, display_name, strict_camel_case = False):
         """Convert a given display name string into a proper property label string"""
         """
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
         label = label[:1].lower() + label[1:] if label else ''
         """
-        display_name = display_name.translate({ord(c): None for c in string.whitespace})
+        # This is the newer more strict method
+        if strict_camel_case:
+            display_name = display_name.strip().translate({ord(c): "_" for c in string.whitespace})
+            label = inflection.camelize(display_name, uppercase_first_letter=False)
 
-        label = inflection.camelize(display_name.strip(), uppercase_first_letter=False)
+        # This method remains for backwards compatibility
+        else:
+            display_name = display_name.translate({ord(c): None for c in string.whitespace})
+            label = inflection.camelize(display_name.strip(), uppercase_first_letter=False)
+
         return label
 
-    def get_class_label_from_display_name(self, display_name):
+    def get_class_label_from_display_name(self, display_name, strict_camel_case = False):
         """Convert a given display name string into a proper class label string"""
         """
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))"""
-        display_name = display_name.translate({ord(c): None for c in string.whitespace})
-        label = inflection.camelize(display_name.strip(), uppercase_first_letter=True)
+        # This is the newer more strict method
+        if strict_camel_case:
+            display_name = display_name.strip().translate({ord(c): "_" for c in string.whitespace})
+            label = inflection.camelize(display_name, uppercase_first_letter=True)
+
+        # This method remains for backwards compatibility
+        else:
+            display_name = display_name.translate({ord(c): None for c in string.whitespace})
+            label = inflection.camelize(display_name.strip(), uppercase_first_letter=True)
 
         return label
 

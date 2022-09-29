@@ -14,7 +14,8 @@ from schematic.utils.google_api_utils import (
     execute_google_api_requests,
     build_service_account_creds,
 )
-from schematic.utils.df_utils import update_df
+from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.validate_utils import rule_in_rule_list
 
 #TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
@@ -25,10 +26,12 @@ from schematic import CONFIG
 logger = logging.getLogger(__name__)
 
 
+
 class ManifestGenerator(object):
     def __init__(
         self,
         path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
+        alphabetize_valid_values: str = 'ascending',
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
@@ -55,6 +58,9 @@ class ManifestGenerator(object):
 
         # schema root
         self.root = root
+
+        # alphabetize valid values
+        self.alphabetize = alphabetize_valid_values
 
         # manifest title
         self.title = title
@@ -249,6 +255,12 @@ class ManifestGenerator(object):
 
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
+        
+        if self.alphabetize and self.alphabetize.lower().startswith('a'):
+            values.sort(reverse=False, key=str.lower)
+        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
+            values.sort(reverse=True, key=str.lower)
+        
 
         if validation_type == "ONE_OF_RANGE":
 
@@ -426,13 +438,18 @@ class ManifestGenerator(object):
             updates self.additional_metadata if appropriate to
             contain {'Component': [self.root]}
         """
-
         if "Component" in required_metadata_fields.keys():
             # check if additional metadata has actually been instantiated in the
             # constructor (it's optional) if not, instantiate it
             if not self.additional_metadata:
                 self.additional_metadata = {}
-            self.additional_metadata["Component"] = [self.root]
+            if self.is_file_based and 'Filename' in self.additional_metadata:
+                self.additional_metadata["Component"] = [self.root] * max(
+                    1, len(self.additional_metadata["Filename"])
+                )
+            else:
+                self.additional_metadata["Component"] = [self.root]
+
         return
 
     def _get_additional_metadata(self, required_metadata_fields: dict) -> dict:
@@ -819,7 +836,7 @@ class ManifestGenerator(object):
                 This notes body will be added to a request.
         """            
        
-        if "list" in validation_rules and valid_values:
+        if rule_in_rule_list("list", validation_rules) and valid_values:
             note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
             notes_body = {
                 "requests": [
@@ -837,7 +854,7 @@ class ManifestGenerator(object):
                 ]
             }
             return notes_body["requests"]
-        elif "list" in validation_rules and not valid_values:
+        elif rule_in_rule_list("list", validation_rules) and not valid_values:
             note = "Please enter values as a comma separated list. For example: XX, YY, ZZ"
             notes_body = {
                 "requests": [
@@ -931,7 +948,7 @@ class ManifestGenerator(object):
         Returns:
             validation_body: dict
         """
-        if len(req_vals) > 0 and not "list" in validation_rules:
+        if len(req_vals) > 0 and not rule_in_rule_list("list", validation_rules):
             # if more than 0 values in dropdown use ONE_OF_RANGE type of validation
             # since excel and openoffice
             # do not support other kinds of data validation for
@@ -940,15 +957,16 @@ class ManifestGenerator(object):
             validation_body = self._get_column_data_validation_values(
                 spreadsheet_id, req_vals, i, strict=None, validation_type="ONE_OF_RANGE"
             )
-        elif "list" in validation_rules and valid_values:
+        elif rule_in_rule_list("list", validation_rules) and valid_values:
             # if list is in validation rule attempt to create a multi-value
             # selection UI, which requires explicit valid values range in
             # the spreadsheet
+            # set "strict" parameter to false to allow users enter multiple values on google sheet
             validation_body = self._get_column_data_validation_values(
                 spreadsheet_id,
                 req_vals,
                 i,
-                strict=None,
+                strict=False,
                 custom_ui=False,
                 input_message="",
                 validation_type="ONE_OF_RANGE",
@@ -1228,7 +1246,6 @@ class ManifestGenerator(object):
         Returns:
             manifest_url (str): url of the google sheet manifest.
         """
-
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
         json_schema = self._get_json_schema(json_schema_filepath)
 
@@ -1422,7 +1439,7 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
-
+        
         # Handle case when no dataset ID is provided
         if not dataset_id:
             return self.get_empty_manifest(json_schema_filepath=json_schema)
@@ -1436,7 +1453,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
-        manifest_record = store.updateDatasetManifestFiles(datasetId = dataset_id, store = False)
+        manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
        
         # Populate empty template with existing manifest
         if manifest_record:
@@ -1492,7 +1509,7 @@ class ManifestGenerator(object):
         """
 
         # read existing manifest
-        manifest = pd.read_csv(existing_manifest_path).fillna("")
+        manifest = load_df(existing_manifest_path)
 
         manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
 
