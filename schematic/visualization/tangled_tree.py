@@ -618,6 +618,7 @@ class TangledTree(object):
                     direct_children = parent_children[node]
                 else: 
                     direct_children = []
+
                 if node in all_parent_children.keys():
                     all_children = all_parent_children[node]
                 else: 
@@ -626,7 +627,7 @@ class TangledTree(object):
 
         return layers_list
 
-    def get_node_layers_json(self, topological_gen, source_nodes, child_parents, parent_children, all_parent_children, cn=''):
+    def get_node_layers_json(self, topological_gen, source_nodes, child_parents, parent_children, cn='', all_parent_children=None):
         '''Return all the layers of a single tangled tree as a JSON String.
         Inputs:
             topological_gen:list of lists. Indicates layers of nodes.
@@ -637,6 +638,9 @@ class TangledTree(object):
             parent_children (dict):
                 key: parent
                 value: list of the parents children
+            all_parent_children (dict):
+                key: parent
+                value: list of the parents children (including all downstream nodes). Default to an empty dictionary
         Outputs:
             layers_json (JSON String): Layers of nodes in the tangled tree as a json string.
         '''
@@ -652,6 +656,10 @@ class TangledTree(object):
         node_layers = self.move_source_nodes_to_bottom_of_layer(node_layers, source_nodes)
 
         # Convert layers to a list of dictionaries
+        if not all_parent_children:
+            # default to an empty dictionary 
+            all_parent_children = dict()
+            
         layers_dicts = self.get_layers_dict_list(node_layers, child_parents, parent_children, all_parent_children)
 
         # Convert dictionary to a JSON string
@@ -730,7 +738,7 @@ class TangledTree(object):
             all_parent_children = self.get_ancestors_nodes(subg, parent_children.keys())
             
             # Get the layers that each node belongs to.
-            layers_json = self.get_node_layers_json(topological_gen, source_nodes, child_parents, parent_children, all_parent_children)
+            layers_json = self.get_node_layers_json(topological_gen, source_nodes, child_parents, parent_children, all_parent_children=all_parent_children)
 
             # If indicated save outputs locally else gather all layers.
             all_layers = self.save_outputs(save_file, layers_json)         
