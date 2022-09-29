@@ -152,9 +152,10 @@ paths:
             schema:
               type: object
               properties:
-                # csv_file will be the field name in
+                # file_name will be the field name in
                 # this multipart request
-                csv_file:
+                file_name:
+                  description: Upload a json or a csv file. 
                   type: string
                   format: binary
       parameters:
@@ -174,6 +175,23 @@ paths:
           description: Data Model Component
           example: Patient
           required: true
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
+          example: '[{
+          "Patient ID": 123,
+          "Sex": "Female",
+          "Year of Birth": "",
+          "Diagnosis": "Healthy",
+          "Component": "Patient",
+          "Cancer Type": "Breast",
+          "Family History": "Breast, Lung",
+          }]'
+
       operationId: api.routes.validate_manifest_route
       responses:
         "200":

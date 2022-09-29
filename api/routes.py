@@ -272,12 +272,17 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
     return all_results
 
 
-def validate_manifest_route(schema_url, data_type):
+def validate_manifest_route(schema_url, data_type, json_str=None):
     # call config_handler()
     config_handler()
 
     #Get path to temp file where manifest file contents will be saved
-    temp_path = save_file()
+    jsc = JsonConverter()
+
+    if json_str:
+        temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json")
+    else: 
+        temp_path = jsc.convert_json_file_to_csv("file_name")
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
