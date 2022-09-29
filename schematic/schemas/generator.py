@@ -434,7 +434,7 @@ class SchemaGenerator(object):
         """
         return mm_graph.nodes[node_name]["required"]
 
-    def get_json_schema_requirements(self, source_node: str, schema_name: str, store_json:str = True) -> Dict:
+    def get_json_schema_requirements(self, source_node: str, schema_name: str) -> Dict:
         """Consolidated method that aims to gather dependencies and value constraints across terms / nodes in a schema.org schema and store them in a jsonschema /JSON Schema schema.
 
         It does so for any given node in the schema.org schema (recursively) using the given node as starting point in the following manner:
@@ -689,11 +689,24 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
 
-        if store_json == True:
+        # Check if config value is provided; otherwise, set to None
+        json_schema_log_file = query_dict(
+            CONFIG.DATA, ("model", "input", "log_location")
+        )
 
-            # Check if config value is provided; otherwise, set to None
-            json_schema_log_file = query_dict(
-                CONFIG.DATA, ("model", "input", "log_location")
+        # If no config value and SchemaGenerator was initialized with
+        # a JSON-LD path, construct
+        if json_schema_log_file is None and self.jsonld_path is not None:
+            prefix = self.jsonld_path_root
+            prefix_root, prefix_ext = os.path.splitext(prefix)
+            if prefix_ext == ".model":
+                prefix = prefix_root
+            json_schema_log_file = f"{prefix}.{source_node}.schema.json"
+
+        if json_schema_log_file is None:
+            logger.info(
+                "The JSON schema file can be inspected by setting the following "
+                "nested key in the configuration: (model > input > log_location)."
             )
         else:
             json_schema_dirname = os.path.dirname(json_schema_log_file)
@@ -702,25 +715,6 @@ class SchemaGenerator(object):
             with open(json_schema_log_file, "w") as js_f:
                 json.dump(json_schema, js_f, indent=2)
 
-            # If no config value and SchemaGenerator was initialized with
-            # a JSON-LD path, construct
-            if json_schema_log_file is None and self.jsonld_path is not None:
-                prefix = self.jsonld_path_root
-                prefix_root, prefix_ext = os.path.splitext(prefix)
-                if prefix_ext == ".model":
-                    prefix = prefix_root
-                json_schema_log_file = f"{prefix}.{source_node}.schema.json"
-
-            if json_schema_log_file is None:
-                logger.info(
-                    "The JSON schema file can be inspected by setting the following "
-                    "nested key in the configuration: (model > input > log_location)."
-                )
-            else:
-                os.makedirs(os.path.dirname(json_schema_log_file), exist_ok=True)
-                with open(json_schema_log_file, "w") as js_f:
-                    json.dump(json_schema, js_f, indent=2)
-
-            logger.info(f"JSON schema file log stored as {json_schema_log_file}")
+        logger.info(f"JSON schema file log stored as {json_schema_log_file}")
 
         return json_schema

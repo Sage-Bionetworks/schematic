@@ -77,7 +77,7 @@ class AttributesExplorer():
             data_dict = {}
             # get the json schema
             json_schema = self.sg.get_json_schema_requirements(
-                source_node=component, schema_name=self.path_to_jsonld, store_json=False)
+                source_node=component, schema_name=self.path_to_jsonld)
 
             # Gather all attribues, their valid values and requirements
             for key, value in json_schema['properties'].items():
