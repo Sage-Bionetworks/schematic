@@ -1428,22 +1428,7 @@ class SynapseStorage(BaseStorage):
                         logger.error("Did not provide a column_type_dictionary.")
                     #create list of columns:
                     
-                    cols = []
-                    for col in table_to_load.columns:
-                        if col in column_type_dictionary:
-                            col_type = column_type_dictionary[col]['column_type']
-                            max_size = column_type_dictionary[col]['maximum_size']
-                            max_list_len = column_type_dictionary[col]['maximum_list_length']
-                            if max_size and max_list_len:
-                                cols.append(Column(name=col, columnType=col_type, 
-                                    maximumSize=max_size, maximumListLength=max_list_len))
-                            elif max_size:
-                                cols.append(Column(name=col, columnType=col_type, 
-                                    maximumSize=max_size))
-                            else:
-                                cols.append(Column(name=col, columnType=col_type))
-                        else:
-                            cols.append(Column(name=col, columnType='STRING', maximumSize=500))
+                    cols = self.process_schema_cols(table_to_load, column_type_dictionary)
                     
                     schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
                     schema.id = existingTableId
@@ -1465,22 +1450,7 @@ class SynapseStorage(BaseStorage):
                     logger.error("Did not provide a column_type_dictionary.")
                 #create list of columns:
                 
-                cols = []
-                for col in table_to_load.columns:
-                    if col in column_type_dictionary:
-                        col_type = column_type_dictionary[col]['column_type']
-                        max_size = column_type_dictionary[col]['maximum_size']
-                        max_list_len = column_type_dictionary[col]['maximum_list_length']
-                        if max_size and max_list_len:
-                            cols.append(Column(name=col, columnType=col_type, 
-                                maximumSize=max_size, maximumListLength=max_list_len))
-                        elif max_size:
-                            cols.append(Column(name=col, columnType=col_type, 
-                                maximumSize=max_size))
-                        else:
-                            cols.append(Column(name=col, columnType=col_type))
-                    else:
-                        cols.append(Column(name=col, columnType='STRING', maximumSize=500))
+                cols = self.process_schema_cols(table_to_load, column_type_dictionary)
                 
                 schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
                 table = Table(schema, table_to_load)
@@ -1492,6 +1462,45 @@ class SynapseStorage(BaseStorage):
                 table = build_table(table_name, datasetParentProject, table_to_load)
                 table = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
+
+
+    def process_schema_cols(
+        self,
+        table_to_load: pd.DataFrame = None,
+        column_type_dictionary: Dict = None,
+    ) -> list:
+        """
+            Process the dictionary of column types and information into list that can be passed onto schema creation
+            Generally Schema() will be called after processing columns
+
+            Inputs:
+                table_to_load: Dataframe of table to be uploaded
+                column_type_dictionary: Dict with information of table columns such as
+                    column_type
+                    maximum_size
+                    maximum_list_length
+            Returns:
+                cols: list of columns processed to be used in schema generation
+        """
+        
+        cols = []
+        for col in table_to_load.columns:
+            if col in column_type_dictionary:
+                col_type = column_type_dictionary[col]['column_type']
+                max_size = column_type_dictionary[col]['maximum_size']
+                max_list_len = column_type_dictionary[col]['maximum_list_length']
+                if max_size and max_list_len:
+                    cols.append(Column(name=col, columnType=col_type, 
+                        maximumSize=max_size, maximumListLength=max_list_len))
+                elif max_size:
+                    cols.append(Column(name=col, columnType=col_type, 
+                        maximumSize=max_size))
+                else:
+                    cols.append(Column(name=col, columnType=col_type))
+            else:
+                cols.append(Column(name=col, columnType='STRING', maximumSize=500))   
+
+        return cols
 
 
 class DatasetFileView:
