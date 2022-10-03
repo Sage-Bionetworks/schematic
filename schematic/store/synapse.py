@@ -1449,6 +1449,8 @@ class SynapseStorage(BaseStorage):
                     schema.id = existingTableId
                     table = Table(schema, table_to_load, etag = existing_results.etag)
                     table = self.syn.store(table, isRestricted = restrict)
+                else:
+                    logging.error("Must specify a schema for table replacements")
 
             # remove system metadata from manifest
             existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
