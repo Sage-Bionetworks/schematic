@@ -139,8 +139,6 @@ class SynapseStorage(BaseStorage):
             except(SynapseHTTPError) as ex:
                 
                 str_message = str(ex).replace("\n","")
-                logging.warning(str_message)
-                return None
                 if 'missing' in str_message:
                     logging.warning(str_message)
                 
