@@ -1410,7 +1410,7 @@ class SynapseStorage(BaseStorage):
                 sleep(1)
 
                 datasetParentProject = self.getDatasetProject(dataset_id)
-                
+                if specify_schema:
                     if column_type_dictionary == {}:
                         logger.error("Did not provide a column_type_dictionary.")
                     #create list of columns:
@@ -1421,6 +1421,10 @@ class SynapseStorage(BaseStorage):
                     schema.id = existingTableId
                     table = Table(schema, table_to_load, etag = existing_results.etag)
                     table = self.syn.store(table, isRestricted = restrict)
+                else:
+                    logger.error("Must specify schema when replacing table")
+
+                
 
 
             # remove system metadata from manifest
