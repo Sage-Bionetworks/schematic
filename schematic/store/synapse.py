@@ -765,6 +765,7 @@ class SynapseStorage(BaseStorage):
 
         # Set uuid column length to 64 (for some reason not being auto set.)
         for i, col in enumerate(col_schema):
+            col_schema[i]['maximumSize'] = 100
             if col['name'] == 'Uuid':
                 col_schema[i]['maximumSize'] = 64
 
@@ -1406,7 +1407,9 @@ class SynapseStorage(BaseStorage):
             # locate its position in the old and new table.
             if manipulation == 'update':
                 table_to_load = update_df(existing_table, table_to_load, update_col)
-            
+                # store table with existing etag data and impose restrictions as appropriate
+                self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
+
             elif manipulation == 'replace':
                 # remove rows
                 self.syn.delete(existing_results)
@@ -1423,10 +1426,43 @@ class SynapseStorage(BaseStorage):
                 new_columns = as_table_columns(table_to_load)
                 for col in new_columns:
                     current_table.addColumn(col)
-                self.syn.store(current_table, isRestricted = restrict)
+                #self.syn.store(current_table, isRestricted = restrict)
 
-            # store table with existing etag data and impose restrictions as appropriate
-            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
+
+
+                table_schema_by_cname = self._get_table_schema_by_cname(column_type_dictionary) 
+
+                if not table_name:
+                    table_name = datasetName + 'table'
+                datasetParentProject = self.getDatasetProject(dataset_id)
+                if specify_schema:
+                    if column_type_dictionary == {}:
+                        logger.error("Did not provide a column_type_dictionary.")
+                    #create list of columns:
+                    cols = []
+                    
+                    for col in table_to_load.columns:
+                        
+                        if col in table_schema_by_cname:
+                            col_type = table_schema_by_cname[col]['columnType']
+                            max_size = table_schema_by_cname[col]['maximumSize']
+                            max_list_len = 250
+                            if max_size and max_list_len:
+                                cols.append(Column(name=col, columnType=col_type, 
+                                    maximumSize=max_size, maximumListLength=max_list_len))
+                            elif max_size:
+                                cols.append(Column(name=col, columnType=col_type, 
+                                    maximumSize=max_size))
+                            else:
+                                cols.append(Column(name=col, columnType=col_type))
+                        else:
+                            
+                            #TODO add warning that the given col was not found and it's max size is set to 100
+                            cols.append(Column(name=col, columnType='STRING', maximumSize=100))
+                    schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
+                    schema.id = existingTableId
+                    table = Table(schema, table_to_load, etag = existing_results.etag)
+                    table = self.syn.store(table, isRestricted = restrict)
 
             # remove system metadata from manifest
             existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
