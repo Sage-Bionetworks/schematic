@@ -1414,22 +1414,9 @@ class SynapseStorage(BaseStorage):
                 # remove rows
                 self.syn.delete(existing_results)
 
-                # wait for row deletion to finish on synapse before getting empty table
+                # wait for row deletion to finish on synapse
                 sleep(1)
-                # removes all current columns
-                current_table = self.syn.get(existingTableId)
-                current_columns = self.syn.getTableColumns(current_table)
-                for col in current_columns:
-                    current_table.removeColumn(col)
-
-                # adds new columns to schema
-                new_columns = as_table_columns(table_to_load)
-                for col in new_columns:
-                    current_table.addColumn(col)
-                #self.syn.store(current_table, isRestricted = restrict)
-
-
-
+                
                 table_schema_by_cname = self._get_table_schema_by_cname(column_type_dictionary) 
 
                 if not table_name:
