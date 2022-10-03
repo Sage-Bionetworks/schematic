@@ -1446,6 +1446,7 @@ class SynapseStorage(BaseStorage):
                             cols.append(Column(name=col, columnType='STRING', maximumSize=500))
                     
                     schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
+                    schema.id = existingTableId
                     table = Table(schema, table_to_load, etag = existing_results.etag)
                     table = self.syn.store(table, isRestricted = restrict)
 
