@@ -1406,24 +1406,11 @@ class SynapseStorage(BaseStorage):
                 # remove rows
                 self.syn.delete(existing_results)
 
-                # wait for row deletion to finish on synapse before getting empty table
+                # wait for row deletion to finish on synapse 
                 sleep(1)
-                # removes all current columns
-                current_table = self.syn.get(existingTableId)
-                current_columns = self.syn.getTableColumns(current_table)
-                for col in current_columns:
-                    current_table.removeColumn(col)
-
-                # adds new columns to schema
-                new_columns = as_table_columns(table_to_load)
-                for col in new_columns:
-                    current_table.addColumn(col)
-                #self.syn.store(current_table, isRestricted = restrict)
-
-
 
                 datasetParentProject = self.getDatasetProject(dataset_id)
-                if specify_schema:
+                
                     if column_type_dictionary == {}:
                         logger.error("Did not provide a column_type_dictionary.")
                     #create list of columns:
@@ -1482,7 +1469,7 @@ class SynapseStorage(BaseStorage):
             Returns:
                 cols: list of columns processed to be used in schema generation
         """
-        
+
         cols = []
         for col in table_to_load.columns:
             if col in column_type_dictionary:
