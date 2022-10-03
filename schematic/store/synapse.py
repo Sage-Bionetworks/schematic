@@ -765,7 +765,6 @@ class SynapseStorage(BaseStorage):
 
         # Set uuid column length to 64 (for some reason not being auto set.)
         for i, col in enumerate(col_schema):
-            col_schema[i]['maximumSize'] = 100
             if col['name'] == 'Uuid':
                 col_schema[i]['maximumSize'] = 64
 
