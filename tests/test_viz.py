@@ -82,8 +82,7 @@ class TestVisualization:
         layers_str = tangled_tree.get_tangled_tree_layers(save_file=False)[0]
 
         # Define what we expect the layers list to be.
-        expected_layers_list = [
-                                    [
+        expected_layers_list = [[
                                         {
                                         "id": "Patient",
                                         "parents": [],
@@ -91,8 +90,8 @@ class TestVisualization:
                                             "Biospecimen"
                                         ],
                                         "children": [
+                                            "BulkRNA-seqAssay",
                                             "Biospecimen",
-                                            "BulkRNA-seqAssay"
                                         ]
                                         }
                                     ],
@@ -122,8 +121,15 @@ class TestVisualization:
                                     ]
                                 ]
 
+                                
         # Get actual layers.
         actual_layers_list = json.loads(layers_str)
 
-        # Check.
-        assert actual_layers_list == expected_layers_list
+        # compare
+        for index, item in enumerate(actual_layers_list):
+            assert item[0]["id"] == expected_layers_list[index][0]["id"]
+            assert item[0]["parents"] == expected_layers_list[index][0]["parents"]
+            assert item[0]["direct_children"] == expected_layers_list[index][0]["direct_children"]
+
+            # ensure that order of children doesn't matterß
+            assert set(item[0]["children"]) == set(expected_layers_list[index][0]["children"])
