@@ -43,8 +43,122 @@ def config_handler(asset_view=None):
             f"No configuration file was found at this path: {path_to_config}"
         )
 
-def csv_path_handler():
-    manifest_file = connexion.request.files["csv_file"]
+class JsonConverter:
+    '''
+    Mainly handle converting json str or json file to csv
+    '''
+    def readJson(self, json_str=None, manifest_file=None):
+        '''
+        The purpose of this function is to read either json str or json file
+        input: 
+            json_str: json object
+            manifest_file: manifest file object 
+        output: 
+            return a dataframe
+        '''
+        if json_str:
+            df = pd.read_json(json_str)
+        elif manifest_file: 
+            df = pd.read_json(manifest_file.read())
+        return df
+    
+    def get_file(self, file_key):
+        '''
+        The purpose of this function is to get the file uploaded by user
+        input: 
+            file_key: Defined in api.yaml. This key refers to the files uploaded. 
+            manifest_file: manifest file object 
+        output: 
+            return file object
+        '''
+
+        manifest_file = connexion.request.files[file_key]
+        return manifest_file
+
+    def IsJsonFile(self, manifest_file):
+        '''
+        The purpose of this function is check if the manifest file that gets uploaded is a json or not
+        input: 
+            manifest_file: manifest file object 
+        output: 
+            return True if it is json
+        '''
+
+        file_type = manifest_file.content_type
+        if file_type == 'application/json':
+            return True
+        else: 
+            return False
+
+    def convert_df_to_csv(self, df, file_name):
+        '''
+        The purpose of this function is to convert dataframe to a temporary CSV file
+        input: 
+            df: dataframe
+            file_name: file name of the output csv
+        output: 
+            return temporary file path of the output csv
+        '''
+
+        # convert dataframe to a temporary csv file
+        temp_dir = tempfile.gettempdir()
+        temp_path = os.path.join(temp_dir, file_name)
+        df.to_csv(temp_path, encoding = 'utf-8', index=False)
+        return temp_path
+
+    def convert_json_str_to_csv(self, json_str, file_name):
+        '''
+        The purpose of this function is to convert json str to a temporary csv file
+        input: 
+            json_str: json object
+            file_name: file name of the output csv
+        output: 
+            return temporary file path of the output csv
+        '''
+
+        # convert json to df
+        df = self.readJson(json_str = json_str)
+
+        # convert dataframe to a temporary csv file
+        temp_path = self.convert_df_to_csv(df, file_name)
+
+        return temp_path
+
+    def convert_json_file_to_csv(self, file_key):
+        '''
+        The purpose of this function is to convert json str to a temporary csv file
+        input: 
+            file_key: Defined in api.yaml. This key refers to the files uploaded. 
+        output: 
+            return temporary file path of the output csv
+        '''
+
+        # get manifest file
+        manifest_file = self.get_file(file_key)
+
+        if self.IsJsonFile(manifest_file):
+            # read json as dataframe
+            df = self.readJson(manifest_file = manifest_file)
+            # get base file name
+            base = os.path.splitext(manifest_file.filename)[0]
+            # name the new csv file 
+            new_file_name = base + '.csv'
+            # convert to csv
+            temp_path = self.convert_df_to_csv(df, new_file_name)
+            return temp_path
+        else: 
+            temp_path = save_file(file_key='file_name')
+            return temp_path
+        
+
+        
+def save_file(file_key="csv_file"):
+    '''
+    input: 
+        file_key: Defined in api.yaml. This key refers to the files uploaded. By default, set to "csv_file"
+    Return a temporary file path for the uploaded a given file
+    '''
+    manifest_file = connexion.request.files[file_key]
 
     # save contents of incoming manifest CSV file to temp file
     temp_dir = tempfile.gettempdir()
@@ -158,12 +272,17 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
     return all_results
 
 
-def validate_manifest_route(schema_url, data_type):
+def validate_manifest_route(schema_url, data_type, json_str=None):
     # call config_handler()
     config_handler()
 
     #Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    jsc = JsonConverter()
+
+    if json_str:
+        temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json")
+    else: 
+        temp_path = jsc.convert_json_file_to_csv("file_name")
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
@@ -181,12 +300,16 @@ def validate_manifest_route(schema_url, data_type):
     return res_dict
 
 
-def submit_manifest_route(schema_url, manifest_record_type=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
     # call config_handler()
-    config_handler()
+    config_handler(asset_view = asset_view)
 
-    # Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    # convert Json file to CSV if applicable
+    jsc = JsonConverter()
+    if json_str:
+        temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json.csv")
+    else: 
+        temp_path = jsc.convert_json_file_to_csv("file_name")
 
     dataset_id = connexion.request.args["dataset_id"]
 
@@ -216,7 +339,7 @@ def populate_manifest_route(schema_url, title=None, data_type=None):
     jsonld = get_temp_jsonld(schema_url)
 
     # Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    temp_path = save_file()
    
     #Initalize MetadataModel
     metadata_model = MetadataModel(inputMModelLocation=jsonld, inputMModelLocationType='local')
