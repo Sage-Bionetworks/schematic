@@ -1278,6 +1278,7 @@ class ManifestGenerator(object):
         Args:
             manifest_url (str): Google Sheets URL.
             manifest_df (pd.DataFrame): Data frame to "upload".
+            populate_df: if true, populate google sheet with dataframe.
 
         Returns:
             ps.Spreadsheet: A Google Sheet object.
