@@ -157,7 +157,7 @@ def execute_google_api_requests(service, requests_body, **kwargs):
 
 def export_manifest_drive_service(manifest_url, file_name, mimeType):
     '''
-    Export manifest by using google drive api. 
+    Export manifest by using google drive api. If export as an Excel spreadsheet, the exported spreasheet would also include a hidden sheet 
     Args:
         manifest_url: google sheet manifest url
         file_name: name of the exported manifest

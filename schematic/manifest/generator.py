@@ -1566,11 +1566,13 @@ class ManifestGenerator(object):
             '''if we are returning an Excel spreadsheet, do not populate dataframe to google'''
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest, populate_df = False)
             # construct output excel file path 
-            output_excel_file = os.path.basename("tests/data/" + title + ".xlsx")
+            file_name = title + ".xlsx"
+            output_excel_file_path = os.path.join("tests/data/", file_name)
             # export the manifest to excel
-            export_manifest_drive_service(manifest_url = manifest_sh.url, file_name=output_excel_file, mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            export_manifest_drive_service(manifest_url = manifest_sh.url, file_name=output_excel_file_path, mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             # populate exported sheet 
-            self.populate_existing_excel_spreadsheet(output_excel_file, manifest)
+            self.populate_existing_excel_spreadsheet(output_excel_file_path, manifest)
+            return output_excel_file_path
         else: 
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest, populate_df = True)
             return manifest_sh.url
