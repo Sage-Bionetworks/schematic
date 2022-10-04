@@ -399,6 +399,8 @@ def get_component_requirements(schema_url, source_component, as_graph):
     return req_components
 
 def get_viz_attributes_explorer(schema_url):
+    # call config_handler()
+    config_handler()
 
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
 
