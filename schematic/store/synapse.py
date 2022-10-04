@@ -1412,14 +1412,20 @@ class SynapseStorage(BaseStorage):
             elif manipulation == 'replace':
                 # remove rows
                 self.syn.delete(existing_results)
-
-                # wait for row deletion to finish on synapse
+                # wait for row deletion to finish on synapse before getting empty table
                 sleep(1)
                 
-                table_schema_by_cname = self._get_table_schema_by_cname(column_type_dictionary) 
+                # removes all current columns
+                current_table = self.syn.get(existingTableId)
+                current_columns = self.syn.getTableColumns(current_table)
+                for col in current_columns:
+                    current_table.removeColumn(col)
 
                 if not table_name:
                     table_name = datasetName + 'table'
+                
+                # Process columns according to manifest entries
+                table_schema_by_cname = self._get_table_schema_by_cname(column_type_dictionary) 
                 datasetParentProject = self.getDatasetProject(dataset_id)
                 if specify_schema:
                     if column_type_dictionary == {}:
@@ -1445,6 +1451,16 @@ class SynapseStorage(BaseStorage):
                             
                             #TODO add warning that the given col was not found and it's max size is set to 100
                             cols.append(Column(name=col, columnType='STRING', maximumSize=100))
+                    
+                    # adds new columns to schema
+                    for col in cols:
+                        current_table.addColumn(col)
+                    self.syn.store(current_table, isRestricted = restrict)
+
+                    # wait for synapse store to finish
+                    sleep(1)
+
+                    # build schema and table from columns and store with necessary restrictions
                     schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
                     schema.id = existingTableId
                     table = Table(schema, table_to_load, etag = existing_results.etag)
