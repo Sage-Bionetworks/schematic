@@ -67,7 +67,6 @@ class TestVisualization:
         
         # Get actual text
         actual_patient_text = df.loc[df['Component'] == 'Patient']['name'].tolist()
-        print('actual patient text', actual_patient_text)
 
         actual_Biospecimen_text = df.loc[df['Component'] == 'Biospecimen']['name'].tolist()
         
