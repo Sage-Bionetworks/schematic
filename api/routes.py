@@ -12,11 +12,14 @@ from werkzeug.debug import DebuggedApplication
 
 from schematic import CONFIG
 
+from schematic.visualization.attributes_explorer import AttributesExplorer
+from schematic.visualization.tangled_tree import TangledTree
 from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage
+from flask_cors import CORS, cross_origin
 from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
 import json
@@ -349,7 +352,6 @@ def populate_manifest_route(schema_url, title=None, data_type=None):
 
     return populated_manifest_link
 
-
 def get_storage_projects(input_token, asset_view):
     # call config handler 
     config_handler(asset_view=asset_view)
@@ -374,7 +376,6 @@ def get_storage_projects_datasets(input_token, asset_view, project_id):
     
     return sorted_dataset_lst
 
-
 def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, file_names=None):
     # call config handler
     config_handler(asset_view=asset_view)
@@ -389,6 +390,7 @@ def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, fi
     # call getFilesInStorageDataset function
     file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
     return file_lst
+
 def get_component_requirements(schema_url, source_component, as_graph):
     metadata_model = initalize_metadata_model(schema_url)
 
@@ -396,6 +398,40 @@ def get_component_requirements(schema_url, source_component, as_graph):
 
     return req_components
 
+def get_viz_attributes_explorer(schema_url):
+    # call config_handler()
+    config_handler()
+
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+    attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_attributes(save_file=False)
+
+    return attributes_csv
+
+def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
+   
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+    # Initialize TangledTree
+    tangled_tree = TangledTree(temp_path_to_jsonld, figure_type)
+
+    # Get text for tangled tree.
+    text_df = tangled_tree.get_text_for_tangled_tree(text_format, save_file=False)
+    
+    return text_df
+
+def get_viz_tangled_tree_layers(schema_url, figure_type):
+  
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+    # Initialize Tangled Tree
+    tangled_tree = TangledTree(temp_path_to_jsonld, figure_type)
+    
+    # Get tangled trees layers JSON.
+    layers = tangled_tree.get_tangled_tree_layers(save_file=False)
+
+    return layers[0]
+    
 def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)

@@ -65,6 +65,7 @@ itsdangerous = "1.1.0"
 Jinja2 = "2.11.3"
 openpyxl = "^3.0.9"
 "backports.zoneinfo" = {markers = "python_version < \"3.9\"", version = "^0.2.1"}
+Flask-Cors = "^3.0.10"
 
 
 [tool.poetry.dev-dependencies]
