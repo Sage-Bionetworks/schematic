@@ -179,6 +179,40 @@ For new features, bugs, enhancements
 
 *Note*: Make sure you have the latest version of the `develop` branch on your local machine.
 
+## Installation guide - Docker 
+
+1. Install docker from https://www.docker.com/ . <br>
+    Or, run `docker compose up` after cloning the schematic repo 
+2.  Identify docker container of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags)
+    Ex `docker pull sagebionetworks/schematic:latest` from the CLI 
+3. Run Command
+ For REST API <br>
+`docker run --rm -p 3001:3001 \
+  -v $(pwd):/schematic -w /schematic --name schematic \
+  -e SCHEMATIC_CONFIG=/schematic/schematic_config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic:commit-d833dd3 \
+  python /usr/src/app/run_api.py` 
+
+For Schematic on mac/linux <br>
+`docker run -v $(pwd):/schematic \
+  -v ~/Downloads/biospecimen-example.csv:/schematic/test.csv \
+  -w /schematic \
+  -e SCHEMATIC_CONFIG=/schematic/schematic_config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic model \
+  -c schematic_config.yml validate \
+  -mp test.csv -dt Biospecimen \
+  -js /schematic/data/example.model.jsonld` 
+
+For schematic on Windows <br>
+`docker run -v %cd%:/schematic \
+  -w /schematic \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic \
+  schematic model \
+  -c config.yml validate -mp tests/data/mock_manifests/inValid_Test_Manifest.csv -dt MockComponent -js /schematic/data/example.model.jsonld`
+
 # Other Contribution Guidelines
 ## Updating readthedocs documentation
 1. `cd docs`
