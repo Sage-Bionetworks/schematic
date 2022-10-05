@@ -182,36 +182,45 @@ For new features, bugs, enhancements
 ## Installation guide - Docker 
 
 1. Install docker from https://www.docker.com/ . <br>
-    Or, run `docker compose up` after cloning the schematic repo 
 2.  Identify docker container of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags)
     Ex `docker pull sagebionetworks/schematic:latest` from the CLI 
-3. Run Command
+    Or, run `docker compose up` after cloning the schematic github repo 
+3. Run Schematic Command with `docker run`.
  For REST API <br>
-`docker run --rm -p 3001:3001 \
+```
+docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
   -e SCHEMATIC_CONFIG=/schematic/schematic_config.yml \
   -e GE_HOME=/usr/src/app/great_expectations/ \
   sagebionetworks/schematic:commit-d833dd3 \
-  python /usr/src/app/run_api.py` 
+  python /usr/src/app/run_api.py
+``` 
 
 For Schematic on mac/linux <br>
-`docker run -v $(pwd):/schematic \
-  -v ~/Downloads/biospecimen-example.csv:/schematic/test.csv \
+To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic`
+Then update .synapseConfig with their credentials
+```
+docker run \
+  -v ~/schematic:/schematic \
   -w /schematic \
-  -e SCHEMATIC_CONFIG=/schematic/schematic_config.yml \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
   -e GE_HOME=/usr/src/app/great_expectations/ \
-  sagebionetworks/schematic model \
-  -c schematic_config.yml validate \
-  -mp test.csv -dt Biospecimen \
-  -js /schematic/data/example.model.jsonld` 
+  aws_dca_schematic_deploy-schematic schematic model \
+  -c /schematic/config.yml validate \
+  -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
+  -dt MockComponent \
+  -js /schematic/tests/data/example.model.jsonld
+``` 
 
 For schematic on Windows <br>
-`docker run -v %cd%:/schematic \
+```
+docker run -v %cd%:/schematic \
   -w /schematic \
   -e GE_HOME=/usr/src/app/great_expectations/ \
   sagebionetworks/schematic \
   schematic model \
-  -c config.yml validate -mp tests/data/mock_manifests/inValid_Test_Manifest.csv -dt MockComponent -js /schematic/data/example.model.jsonld`
+  -c config.yml validate -mp tests/data/mock_manifests/inValid_Test_Manifest.csv -dt MockComponent -js /schematic/data/example.model.jsonld
+```
 
 # Other Contribution Guidelines
 ## Updating readthedocs documentation
