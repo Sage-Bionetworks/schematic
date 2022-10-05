@@ -185,7 +185,7 @@ For new features, bugs, enhancements
 2.  Identify docker container of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags)
     Ex `docker pull sagebionetworks/schematic:latest` from the CLI 
     Or, run `docker compose up` after cloning the schematic github repo 
-3. Run Schematic Command with `docker run`.
+3. Run Schematic Command with `docker run`. <br>
  For REST API <br>
 ```
 docker run --rm -p 3001:3001 \
@@ -197,8 +197,8 @@ docker run --rm -p 3001:3001 \
 ``` 
 
 For Schematic on mac/linux <br>
-To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic`
-Then update .synapseConfig with their credentials
+To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic` <br>
+Then update .synapseConfig with your credentials
 ```
 docker run \
   -v ~/schematic:/schematic \
