@@ -182,11 +182,11 @@ For new features, bugs, enhancements
 ## Installation guide - Docker 
 
 1. Install docker from https://www.docker.com/ . <br>
-2.  Identify docker container of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags)
-    Ex `docker pull sagebionetworks/schematic:latest` from the CLI 
+2.  Identify docker container of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
+    Ex `docker pull sagebionetworks/schematic:latest` from the CLI <br>
     Or, run `docker compose up` after cloning the schematic github repo 
 3. Run Schematic Command with `docker run`. <br>
- For REST API <br>
+### Example For REST API <br>
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
@@ -196,7 +196,7 @@ docker run --rm -p 3001:3001 \
   python /usr/src/app/run_api.py
 ``` 
 
-For Schematic on mac/linux <br>
+### Example For Schematic on mac/linux <br>
 To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic` <br>
 Then update .synapseConfig with your credentials
 ```
@@ -212,7 +212,7 @@ docker run \
   -js /schematic/tests/data/example.model.jsonld
 ``` 
 
-For schematic on Windows <br>
+### Example For schematic on Windows <br>
 ```
 docker run -v %cd%:/schematic \
   -w /schematic \
