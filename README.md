@@ -179,20 +179,22 @@ For new features, bugs, enhancements
 
 *Note*: Make sure you have the latest version of the `develop` branch on your local machine.
 
-## Installation guide - Docker 
+## Installation Guide - Docker 
 
 1. Install docker from https://www.docker.com/ . <br>
 2.  Identify docker container of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
-    Ex `docker pull sagebionetworks/schematic:latest` from the CLI <br>
-    Or, run `docker compose up` after cloning the schematic github repo 
-3. Run Schematic Command with `docker run`. <br>
+    Ex `docker pull sagebionetworks/schematic:latest` from the CLI or, run `docker compose up` after cloning the schematic github repo 
+3. Run Schematic Command with `docker run <flags> <schematic command and args>`. <br>
+<t> - For more information on flags for `docker run` and what they do, visit the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) <br>
+<t> - These example commands assume that you have navigated to the directory you want to run schematic from. To specify your working directory, use `$(pwd)` on MacOS/Linux or `%cd%` on Windows.  <br>
+<t> - If not using the latest image, then the full name should be specified: ie `sagebionetworks/schematic:commit-e611e4a`
 ### Example For REST API <br>
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
   -e SCHEMATIC_CONFIG=/schematic/schematic_config.yml \
   -e GE_HOME=/usr/src/app/great_expectations/ \
-  sagebionetworks/schematic:commit-d833dd3 \
+  sagebionetworks/schematic \
   python /usr/src/app/run_api.py
 ``` 
 
@@ -212,7 +214,7 @@ docker run \
   -js /schematic/tests/data/example.model.jsonld
 ``` 
 
-### Example For schematic on Windows <br>
+### Example For Schematic on Windows <br>
 ```
 docker run -v %cd%:/schematic \
   -w /schematic \
