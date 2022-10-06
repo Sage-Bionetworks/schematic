@@ -1437,7 +1437,7 @@ class SynapseStorage(BaseStorage):
                         
                         if col in table_schema_by_cname:
                             col_type = table_schema_by_cname[col]['columnType']
-                            max_size = table_schema_by_cname[col]['maximumSize']
+                            max_size = table_schema_by_cname[col]['maximumSize'] if 'maximumSize' in table_schema_by_cname[col].keys() else 100
                             max_list_len = 250
                             if max_size and max_list_len:
                                 cols.append(Column(name=col, columnType=col_type, 
@@ -1487,7 +1487,7 @@ class SynapseStorage(BaseStorage):
                 for col in table_to_load.columns:
                     if col in table_schema_by_cname:
                         col_type = table_schema_by_cname[col]['columnType']
-                        max_size = table_schema_by_cname[col]['maximumSize']
+                        max_size = table_schema_by_cname[col]['maximumSize'] if 'maximumSize' in table_schema_by_cname[col].keys() else 100
                         max_list_len = 250
                         if max_size and max_list_len:
                             cols.append(Column(name=col, columnType=col_type, 
