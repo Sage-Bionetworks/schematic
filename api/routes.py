@@ -74,9 +74,6 @@ def get_temp_jsonld(schema_url):
 # @before_request
 def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, return_excel=False):
     """Get the immediate dependencies that are related to a given source node.
-
-    Args:
-        '''Gets manifest for a given dataset on Synapse.
         Args:
             schema_url: link to data model in json ld format
             title: title of a given manifest. 
@@ -84,10 +81,9 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
             return_excel: if true, return an Excel spreadsheet; else, return a google sheet url.
             use_annotations: Whether to use existing annotations during manifest generation
-
+            asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
-        '''
     """
 
     # call config_handler()
@@ -131,7 +127,7 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
                 )
 
 
-    def create_single_manifest(data_type, dataset_id=None):
+    def create_single_manifest(data_type, dataset_id=None, return_excel=False):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -142,8 +138,14 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
             alphabetize_valid_values = 'ascending',
         )
 
+        # if returning an excel spreadsheet
+        if return_excel: 
+            sheet_url = False
+        else: 
+            sheet_url = True
+
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True,
+            dataset_id=dataset_id, sheet_url=sheet_url, return_excel = return_excel
         )
                
         return result
@@ -156,7 +158,7 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
         components = component_digraph.nodes()
         for component in components:
             t = f'{title}.{component}.manifest'
-            result = create_single_manifest(data_type = component)
+            result = create_single_manifest(data_type = component, return_excel=return_excel)
             all_results.append(result)
     else:
         for i, dt in enumerate(data_type):
@@ -167,9 +169,9 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
 
             if dataset_ids:
                 # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i])
+                result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i], return_excel=return_excel)
             else:
-                result = create_single_manifest(data_type = dt)
+                result = create_single_manifest(data_type = dt, return_excel=return_excel)
             all_results.append(result)
 
     return all_results

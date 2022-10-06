@@ -1441,8 +1441,24 @@ class ManifestGenerator(object):
 
         return manifest_url, manifest_df
 
+    def export_sheet_to_excel(self, title: str = None, manifest_url : str = None) -> str:
+        """
+        export manifest as an Excel spreadsheet and return local file path
+        Args:
+            title: title of the exported excel spreadsheet
+            manifest_url: manifest google sheet url 
+        """
+        # construct file name
+        file_name = title + ".xlsx"
+        output_excel_file_path = os.path.join("tests/data/", file_name)
+        # export the manifest to excel
+        export_manifest_drive_service(manifest_url, file_name=output_excel_file_path, mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        
+        return output_excel_file_path
+
+
     def get_manifest(
-        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None
+        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, return_excel: bool = False
     ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
            TODO: move this function to class MetadatModel (after MetadataModel is refactored)
@@ -1454,10 +1470,16 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
-        
+
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            return self.get_empty_manifest(json_schema_filepath=json_schema)
+            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema)
+            if sheet_url:
+                return manifest_url
+            else: 
+                # return an excel spreadsheet
+                output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url)
+                return output_file_path
 
         # Otherwise, create manifest using the given dataset
         #TODO: avoid explicitly exposing Synapse store functionality
@@ -1469,28 +1491,38 @@ class ManifestGenerator(object):
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
         manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
-       
+    
         # Populate empty template with existing manifest
         if manifest_record:
 
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
-
-            # If the sheet URL isn't requested, simply return a pandas DataFrame
-            if not sheet_url:
-                return manifest_record[1]
-
+            
             # get URL of an empty manifest file created based on schema component
             empty_manifest_url = self.get_empty_manifest()
-            
+                
             # populate empty manifest with content from downloaded/existing manifest
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest_record[1])
 
-            return manifest_sh.url
+            # if sheet url is not requesting, return an excel spreadsheet or a dataframe
+            if not sheet_url:
+                # if returning an excel spreadsheet
+                if return_excel:                    
+                    # export to excel
+                    output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url)
+
+                    # populate existing excel spreadsheet
+                    self.populate_existing_excel_spreadsheet(output_file_path, manifest_record[1])
+                    return output_file_path
+                # if not, returning a dataframe
+                else: 
+                    return manifest_record[1]
+            else: 
+                # returning a spreadsheet url 
+                return manifest_sh.url
 
         # Generate empty template and optionally fill in with annotations
         else:
-            
             # Using getDatasetAnnotations() to retrieve file names and subset
             # entities to files and folders (ignoring tables/views)
             annotations = pd.DataFrame()
@@ -1510,9 +1542,19 @@ class ManifestGenerator(object):
                 manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
 
             if sheet_url:
+                # return spreadsheet url 
                 return manifest_url
-            else:
-                return manifest_df
+            else: 
+                if return_excel:
+                    # return an excel spreadsheet
+                    output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url)
+
+                    # populate existing excel spreadsheet
+                    self.populate_existing_excel_spreadsheet(output_file_path, manifest_df)
+                    return output_file_path
+                else: 
+                    # return a dataframe
+                    return manifest_df
 
     def populate_existing_excel_spreadsheet(self, existing_excel_path, additional_df):
         '''Populate an existing excel spreadsheet by using an additional dataframe (to avoid sending metadata directly to Google APIs)
@@ -1566,11 +1608,9 @@ class ManifestGenerator(object):
         if return_excel: 
             '''if we are returning an Excel spreadsheet, do not populate dataframe to google'''
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest, populate_df = False)
-            # construct output excel file path 
-            file_name = title + ".xlsx"
-            output_excel_file_path = os.path.join("tests/data/", file_name)
-            # export the manifest to excel
-            export_manifest_drive_service(manifest_url = manifest_sh.url, file_name=output_excel_file_path, mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            # # export the manifest to excel
+            manifest_url = manifest_sh.url
+            output_excel_file_path = self.export_sheet_to_excel(manifest_url = manifest_url, title=title)
             # populate exported sheet 
             self.populate_existing_excel_spreadsheet(output_excel_file_path, manifest)
             return output_excel_file_path
