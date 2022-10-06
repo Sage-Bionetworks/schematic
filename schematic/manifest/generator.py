@@ -1466,6 +1466,7 @@ class ManifestGenerator(object):
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
             sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
+            return_excel: Determines if returning an Excel spreadsheet 
 
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
@@ -1474,12 +1475,13 @@ class ManifestGenerator(object):
         # Handle case when no dataset ID is provided
         if not dataset_id:
             manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema)
-            if sheet_url:
+            if sheet_url or sheet_url == None:
                 return manifest_url
             else: 
                 # return an excel spreadsheet
-                output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url)
-                return output_file_path
+                if return_excel: 
+                    output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url)
+                    return output_file_path
 
         # Otherwise, create manifest using the given dataset
         #TODO: avoid explicitly exposing Synapse store functionality
@@ -1509,7 +1511,7 @@ class ManifestGenerator(object):
                 # if returning an excel spreadsheet
                 if return_excel:                    
                     # export to excel
-                    output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url)
+                    output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = empty_manifest_url)
 
                     # populate existing excel spreadsheet
                     self.populate_existing_excel_spreadsheet(output_file_path, manifest_record[1])
