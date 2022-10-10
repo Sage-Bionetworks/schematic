@@ -37,10 +37,10 @@ jobs:
       #       check-out repo and set-up python     
       #----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       
@@ -71,8 +71,9 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
 
-      # create documentation 
-      - run: pdoc --docformat google -o docs/api api/routes.py
+      # create documentation
+      - run: poetry show pdoc
+      - run: poetry run pdoc --docformat google -o docs/api api/routes.py
 
       - uses: actions/upload-pages-artifact@v1
         with:
