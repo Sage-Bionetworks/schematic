@@ -24,8 +24,7 @@ concurrency:
     ${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 jobs:
-  test:
-
+  build:
     runs-on: ubuntu-latest
     env:
       POETRY_VERSION:  1.2.0
