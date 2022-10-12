@@ -186,10 +186,9 @@ class TestManifestGenerator:
                     assert manifest.startswith("https://docs.google.com/spreadsheets/")
         
         # Clean-up
-        try:
-            os.remove(helpers.get_data_path(f"example.{data_type}.schema.json"))
-        except FileNotFoundError:
-            pass
+    
+        if type(manifest) is str and os.path.exists(manifest): 
+            os.remove(manifest)
 
 
 

@@ -178,8 +178,12 @@ def export_manifest_drive_service(manifest_url, file_path, mimeType):
     data = drive_service.files().export(fileId=spreadsheet_id, mimeType=mimeType).execute()
 
     # open file and write data
-    with open(file_path, 'wb') as f:
-        f.write(data)
+    with open(os.path.abspath(file_path), 'wb') as f:
+        try: 
+            f.write(data)
+        except FileNotFoundError as not_found: 
+            logger.error(f"{not_found.filename} could not be found")
+
     f.close
    
 

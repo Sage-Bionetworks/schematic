@@ -24,6 +24,7 @@ from schematic.store.synapse import SynapseStorage
 from schematic import CONFIG
 from schematic.utils.google_api_utils import export_manifest_drive_service
 from openpyxl import load_workbook
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -1271,15 +1272,12 @@ class ManifestGenerator(object):
 
 
     def set_dataframe_by_url(
-        self, manifest_url: str, manifest_df: pd.DataFrame, populate_df = True
+        self, manifest_url: str, manifest_df: pd.DataFrame
     ) -> ps.Spreadsheet:
         """Update Google Sheets using given pandas DataFrame.
-
         Args:
             manifest_url (str): Google Sheets URL.
             manifest_df (pd.DataFrame): Data frame to "upload".
-            populate_df: if true, populate google sheet with dataframe.
-
         Returns:
             ps.Spreadsheet: A Google Sheet object.
         """
@@ -1302,17 +1300,18 @@ class ManifestGenerator(object):
 
         # get headers from existing manifest and sheet 
         wb_header = wb.get_row(1)
-
-        # find missing columns in google sheet
-        out_of_schema_columns = self._get_missing_columns(wb_header, manifest_df)
+        manifest_df_header = manifest_df.columns
 
         # find missing columns in existing manifest
-        new_columns = set(wb_header) - set(manifest_df.columns)
+        new_columns = set(wb_header) - set(manifest_df_header)
 
         # clean empty columns if any are present (there should be none)
         # TODO: Remove this line once we start preventing empty column names
         if '' in new_columns:
             new_columns = new_columns.remove('')
+
+        # find missing columns present in existing manifest but missing in latest schema
+        out_of_schema_columns = set(manifest_df_header) - set(wb_header)
 
         # update existing manifest w/ missing columns, if any
         if new_columns:
@@ -1320,21 +1319,17 @@ class ManifestGenerator(object):
                 **dict(zip(new_columns, len(new_columns) * [""]))
             )
 
-        # # sort columns in the updated manifest:
-        # # match latest schema order
-        # # move obsolete columns at the end
+        # sort columns in the updated manifest:
+        # match latest schema order
+        # move obsolete columns at the end
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
         manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
-        # get heaers of existing workbook
-        wb_header = wb.get_row(1)
-        out_of_schema_columns = self._get_missing_columns(wb_header, manifest_df)
-
+    
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
         # update spreadsheet with given manifest starting at top-left cell
-        if populate_df:
-            wb.set_dataframe(manifest_df, (1, 1))
+        wb.set_dataframe(manifest_df, (1, 1))
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
@@ -1449,14 +1444,14 @@ class ManifestGenerator(object):
             manifest_url: manifest google sheet url 
             output_location: the location where the exported excel file would live
         return: 
-            output_location
+            Export manifest to a desired location. 
         """
         # construct file name
         file_name = title + ".xlsx"
         #if file path exists and it contains a file name: 
         if output_location: 
             if os.path.exists(output_location):
-                if output_location.endswith('.xlsx') or output_location.endswith('.xls'):
+                if Path(output_location).suffix == '.xlsx' or Path(output_location).suffix == '.xls':
                     output_excel_file_path = output_location
                 # if users define the location but it doesn't contain a file name, we should add the file name:
                 else:
@@ -1464,11 +1459,11 @@ class ManifestGenerator(object):
     
         # trigger a warning if file path is provided but does not exist
         elif output_location and not os.path.exists(output_location):
-            logger.warning(f'{output_location} does not exist. Using default file path.')
-            output_excel_file_path = os.path.join("tests/data/", file_name)
+            output_excel_file_path = os.path.abspath(os.path.join(os.getcwd(), file_name))
+            logger.warning(f'{output_location} does not exist. Using current working directory {output_excel_file_path}')
         # otherwise, use the default location
         else:
-            output_excel_file_path = os.path.join("tests/data/", file_name)
+            output_excel_file_path = os.path.abspath(os.path.join(os.getcwd(), file_name))
         # export the manifest to excel
         export_manifest_drive_service(manifest_url, file_path=output_excel_file_path, mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         
@@ -1537,7 +1532,7 @@ class ManifestGenerator(object):
 
             # if output_form parameter is set to "excel", return an excel spreadsheet
             if output_form == "excel": 
-                output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url)
+                output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url, output_location = output_path)
                 return output_file_path
             # since we are not going to return an empty dataframe for an empty manifest, here we will just return a google sheet url for all other cases
             else: 
@@ -1645,15 +1640,16 @@ class ManifestGenerator(object):
         
         if return_excel: 
             '''if we are returning an Excel spreadsheet, do not populate dataframe to google'''
-            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest, populate_df = False)
-            # # export the manifest to excel
-            manifest_url = manifest_sh.url
+            # get an empty manifest 
+            manifest_url = empty_manifest_url
+
+            # export the manifest to excel
             output_excel_file_path = self.export_sheet_to_excel(manifest_url = manifest_url, title=title)
             # populate exported sheet 
             self.populate_existing_excel_spreadsheet(output_excel_file_path, manifest)
             return output_excel_file_path
         else: 
-            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest, populate_df = True)
+            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
             return manifest_sh.url
 
     def sort_manifest_fields(self, manifest_fields, order="schema"):
