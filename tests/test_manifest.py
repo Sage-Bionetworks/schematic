@@ -136,13 +136,13 @@ class TestManifestGenerator:
         if use_annotations:
             assert output["File Format"].tolist() == ["txt", "csv", "fastq"]
       
-    @pytest.mark.parametrize("return_excel", [None, True, False])
+    @pytest.mark.parametrize("output_form", [None, "dataframe", "excel", "google_sheet"])
     @pytest.mark.parametrize("sheet_url", [None, True, False])
     @pytest.mark.parametrize("dataset_id", [None, "syn27600056"])
     @pytest.mark.google_credentials_needed
-    def test_get_manifest_excel(self, helpers, sheet_url, return_excel, dataset_id):
+    def test_get_manifest_excel(self, helpers, sheet_url, output_form, dataset_id):
         '''
-        Purpose: the goal of this test is to make sure that return_excel parameter and sheet_url parameter could function well; 
+        Purpose: the goal of this test is to make sure that output_form parameter and sheet_url parameter could function well; 
         In addition, this test also makes sure that getting a manifest with an existing dataset_id is working
         "use_annotations" and "data_type" are hard-coded to fixed values to avoid long run time
         '''
@@ -156,34 +156,34 @@ class TestManifestGenerator:
         )
 
 
-        manifest= generator.get_manifest(dataset_id=dataset_id, sheet_url = sheet_url, return_excel= return_excel)
+        manifest= generator.get_manifest(dataset_id=dataset_id, sheet_url = sheet_url, output_form = output_form)
 
         # if dataset id exists, it could return pandas dataframe, google spreadsheet, or an excel spreadsheet
         if dataset_id: 
-            if sheet_url: 
-                assert type(manifest) is str
-                assert manifest.startswith("https://docs.google.com/spreadsheets/")
+            if output_form: 
 
+                if output_form == "dataframe":
+                    assert isinstance(manifest, pd.DataFrame)
+                elif output_form == "excel":
+                    assert os.path.exists(manifest) == True
+                else: 
+                    assert type(manifest) is str
+                    assert manifest.startswith("https://docs.google.com/spreadsheets/")
             else: 
-                if return_excel: 
-                    assert os.path.exists(manifest) == True                
+                if sheet_url: 
+                    assert type(manifest) is str
+                    assert manifest.startswith("https://docs.google.com/spreadsheets/")
                 else: 
                     assert isinstance(manifest, pd.DataFrame)
-                    assert "Male" in manifest["Sex"].to_list()
-                    assert "Healthy" in manifest["Diagnosis"].to_list()
-
-                    if data_type == "Patient":
-                        assert "Patient" in manifest["Component"].to_list()
-                        assert "Patient ID" in manifest.columns
         
         # if dataset id does not exist, it could return an empty google sheet or an empty excel spreadsheet exported from google
         else:
-            if sheet_url or sheet_url == None: 
-                assert type(manifest) is str
-                assert manifest.startswith("https://docs.google.com/spreadsheets/")
-            else:
-                if return_excel:
-                    assert os.path.exists(manifest) == True 
+            if output_form: 
+                if output_form == "excel":
+                    assert os.path.exists(manifest) == True
+                else: 
+                    assert type(manifest) is str
+                    assert manifest.startswith("https://docs.google.com/spreadsheets/")
         
         # Clean-up
         try:

@@ -161,18 +161,9 @@ def get_manifest(
 
             else: 
                 output_path = output_xlsx
-
-
-        #     if ".xlsx" or ".xls" in output_xlsx:
-        #         # get the location of file location 
-        #         #output_path = os.path.abspath(os.path.join(output_xlsx, os.pardir))
-        #         path = Path(output_xlsx)
-        #         output_path = path.parent.absolute()
-        #         #print(path.parent.absolute())
-        #     else: 
-        #         output_path = output_xlsx
-        # else: 
-        #     output_form = None
+        else: 
+            output_form = None
+            output_path = None
 
         result = manifest_generator.get_manifest(
             dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema, output_form = output_form, output_path = output_path
