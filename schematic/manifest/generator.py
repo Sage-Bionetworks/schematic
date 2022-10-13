@@ -1469,11 +1469,11 @@ class ManifestGenerator(object):
         
         return output_excel_file_path
 
-    def handle_output_format_logic(self, output_form: str = None, output_path: str = None, sheet_url: bool = None, manifest_url: str = None, empty_manifest_url: str = None, dataframe: pd.DataFrame = None):
+    def _handle_output_format_logic(self, output_format: str = None, output_path: str = None, sheet_url: bool = None, manifest_url: str = None, empty_manifest_url: str = None, dataframe: pd.DataFrame = None):
         """
-        handle the logic between sheet_url parameter and output_form parameter to determine the type of output to return
+        handle the logic between sheet_url parameter and output_format parameter to determine the type of output to return
         Args: 
-            output_form: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
+            output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
             manifest_url: Google sheet URL populated with metadata
             empty_manifest_url: Google sheet URL that leads to an empty manifest 
@@ -1482,8 +1482,8 @@ class ManifestGenerator(object):
         return: a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL 
         """
 
-        # check if output_form parameter gets set. If not, check the sheet_url parameter
-        if not output_form: 
+        # check if output_format parameter gets set. If not, check the sheet_url parameter
+        if not output_format: 
             # if the sheet_url parameter gets set to True, return a google sheet url 
             if sheet_url: 
                 return manifest_url
@@ -1492,10 +1492,10 @@ class ManifestGenerator(object):
                 return dataframe
         else:
             # if the output type gets set to "dataframe", return a data frame 
-            if output_form == "dataframe":
+            if output_format == "dataframe":
                 return dataframe
             # if the output type gets set to "excel", return an excel spreadsheet
-            elif output_form == "excel":                 
+            elif output_format == "excel":                 
                 # export the manifest url to excel
                 output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = empty_manifest_url, output_location = output_path)
 
@@ -1511,7 +1511,7 @@ class ManifestGenerator(object):
                 return manifest_url  
 
     def get_manifest(
-        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_form: str = None, output_path: str = None
+        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None
     ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
            TODO: move this function to class MetadatModel (after MetadataModel is refactored)
@@ -1519,11 +1519,11 @@ class ManifestGenerator(object):
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
             sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
-            output_form: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
+            output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             output_path: Determines the output path of the exported manifest
 
         Returns:
-            Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
+            Googlesheet URL, pandas dataframe, or an Excel spreadsheet 
         """
 
         # Handle case when no dataset ID is provided
@@ -1531,7 +1531,7 @@ class ManifestGenerator(object):
             manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema)
 
             # if output_form parameter is set to "excel", return an excel spreadsheet
-            if output_form == "excel": 
+            if output_format == "excel": 
                 output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url, output_location = output_path)
                 return output_file_path
             # since we are not going to return an empty dataframe for an empty manifest, here we will just return a google sheet url for all other cases
@@ -1562,7 +1562,7 @@ class ManifestGenerator(object):
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest_record[1])
 
             # determine the format of manifest
-            result = self.handle_output_format_logic(output_form = output_form, output_path = output_path, sheet_url = sheet_url, manifest_url = manifest_sh.url, empty_manifest_url=empty_manifest_url, dataframe = manifest_record[1])
+            result = self._handle_output_format_logic(output_format = output_format, output_path = output_path, sheet_url = sheet_url, manifest_url = manifest_sh.url, empty_manifest_url=empty_manifest_url, dataframe = manifest_record[1])
             return result
 
         # Generate empty template and optionally fill in with annotations
@@ -1586,10 +1586,10 @@ class ManifestGenerator(object):
                 manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
             
             # determine the format of manifest that gets return 
-            result = self.handle_output_format_logic(output_form = output_form, output_path = output_path, sheet_url = sheet_url, manifest_url = manifest_url, empty_manifest_url=empty_manifest_url, dataframe = manifest_df)
+            result = self._handle_output_format_logic(output_format = output_format, output_path = output_path, sheet_url = sheet_url, manifest_url = manifest_url, empty_manifest_url=empty_manifest_url, dataframe = manifest_df)
             return result
 
-    def populate_existing_excel_spreadsheet(self, existing_excel_path, additional_df):
+    def populate_existing_excel_spreadsheet(self, existing_excel_path: str = None, additional_df: pd.DataFrame = None):
         '''Populate an existing excel spreadsheet by using an additional dataframe (to avoid sending metadata directly to Google APIs)
         Args:
             existing_excel_path: path of an existing excel spreadsheet

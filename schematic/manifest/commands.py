@@ -147,9 +147,9 @@ def get_manifest(
         )
 
         # call get_manifest() on manifest_generator
-        # if output_xlsx gets specified, output_form = "excel"
+        # if output_xlsx gets specified, output_format = "excel"
         if output_xlsx: 
-            output_form = "excel"
+            output_format = "excel"
 
             # if file name is in the path, and that file does not exist
             if not os.path.exists(output_xlsx):
@@ -162,11 +162,11 @@ def get_manifest(
             else: 
                 output_path = output_xlsx
         else: 
-            output_form = None
+            output_format = None
             output_path = None
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema, output_form = output_form, output_path = output_path
+            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema, output_format = output_format, output_path = output_path
         )
 
         if sheet_url:

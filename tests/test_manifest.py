@@ -136,13 +136,13 @@ class TestManifestGenerator:
         if use_annotations:
             assert output["File Format"].tolist() == ["txt", "csv", "fastq"]
       
-    @pytest.mark.parametrize("output_form", [None, "dataframe", "excel", "google_sheet"])
+    @pytest.mark.parametrize("output_format", [None, "dataframe", "excel", "google_sheet"])
     @pytest.mark.parametrize("sheet_url", [None, True, False])
     @pytest.mark.parametrize("dataset_id", [None, "syn27600056"])
     @pytest.mark.google_credentials_needed
-    def test_get_manifest_excel(self, helpers, sheet_url, output_form, dataset_id):
+    def test_get_manifest_excel(self, helpers, sheet_url, output_format, dataset_id):
         '''
-        Purpose: the goal of this test is to make sure that output_form parameter and sheet_url parameter could function well; 
+        Purpose: the goal of this test is to make sure that output_format parameter and sheet_url parameter could function well; 
         In addition, this test also makes sure that getting a manifest with an existing dataset_id is working
         "use_annotations" and "data_type" are hard-coded to fixed values to avoid long run time
         '''
@@ -156,15 +156,15 @@ class TestManifestGenerator:
         )
 
 
-        manifest= generator.get_manifest(dataset_id=dataset_id, sheet_url = sheet_url, output_form = output_form)
+        manifest= generator.get_manifest(dataset_id=dataset_id, sheet_url = sheet_url, output_format = output_format)
 
         # if dataset id exists, it could return pandas dataframe, google spreadsheet, or an excel spreadsheet
         if dataset_id: 
-            if output_form: 
+            if output_format: 
 
-                if output_form == "dataframe":
+                if output_format == "dataframe":
                     assert isinstance(manifest, pd.DataFrame)
-                elif output_form == "excel":
+                elif output_format == "excel":
                     assert os.path.exists(manifest) == True
                 else: 
                     assert type(manifest) is str
@@ -178,8 +178,8 @@ class TestManifestGenerator:
         
         # if dataset id does not exist, it could return an empty google sheet or an empty excel spreadsheet exported from google
         else:
-            if output_form: 
-                if output_form == "excel":
+            if output_format: 
+                if output_format == "excel":
                     assert os.path.exists(manifest) == True
                 else: 
                     assert type(manifest) is str

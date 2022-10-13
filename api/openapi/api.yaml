@@ -80,7 +80,7 @@ paths:
           description: ID of view listing all project data assets. E.g. for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           required: false
         - in: query
-          name: output_form
+          name: output_format
           schema:
             type: string
             enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]

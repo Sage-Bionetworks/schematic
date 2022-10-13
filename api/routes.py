@@ -72,7 +72,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, output_form=None):
+def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -127,7 +127,7 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
                 )
 
 
-    def create_single_manifest(data_type, dataset_id=None, output_form = None):
+    def create_single_manifest(data_type, dataset_id=None, output_format = None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -139,12 +139,12 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
         )
 
         # if returning a dataframe
-        if output_form:
-            if "dataframe" in output_form:
-                output_form = "dataframe"
+        if output_format:
+            if "dataframe" in output_format:
+                output_format = "dataframe"
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_form = output_form
+            dataset_id=dataset_id, sheet_url=True, output_format = output_format
         )
                
         return result
@@ -157,7 +157,7 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
         components = component_digraph.nodes()
         for component in components:
             t = f'{title}.{component}.manifest'
-            result = create_single_manifest(data_type = component, output_form = output_form)
+            result = create_single_manifest(data_type = component, output_format = output_format)
             all_results.append(result)
     else:
         for i, dt in enumerate(data_type):
@@ -168,9 +168,9 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
 
             if dataset_ids:
                 # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i], output_form = output_form)
+                result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i], output_format = output_format)
             else:
-                result = create_single_manifest(data_type = dt, output_form = output_form)
+                result = create_single_manifest(data_type = dt, output_format = output_format)
             all_results.append(result)
 
     return all_results
