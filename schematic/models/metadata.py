@@ -305,7 +305,7 @@ class MetadataModel(object):
         #TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-        syn_store = SynapseStorage(input_token=input_token)
+        syn_store = SynapseStorage(input_token = input_token, project_scope = project_scope)
         manifest_id=None
         censored_manifest_id=None
         restrict_maniest=False

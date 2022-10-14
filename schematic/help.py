@@ -178,3 +178,18 @@ init_command = {
         ),
     }
 }
+
+viz_commands = {
+    "visualization": {
+        "config": (
+            "Specify the path to the `config.yml` using this option. This is a required argument."
+        ),
+        "tangled_tree": {
+            "figure_type": ("Specify the type of schema visualization to make. Either 'dependency' or 'component'."
+                ),
+            "text_format": ("Specify the type of text to gather for tangled tree visualization, either 'plain' or 'highlighted'."
+                ),
+        }
+    }
+    
+}

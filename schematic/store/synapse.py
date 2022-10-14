@@ -15,6 +15,7 @@ import pandas as pd
 import re
 import synapseclient
 import synapseutils
+from time import sleep
 
 from synapseclient import (
     Synapse,
@@ -77,11 +78,12 @@ class SynapseStorage(BaseStorage):
         """
 
         self.syn = self.login(token, access_token, input_token)
+        self.project_scope = project_scope
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
-            if project_scope:
+            if self.project_scope:
                 self.storageFileviewTable = self.syn.tableQuery(
-                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(project_scope + [''])}"
+                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
                 ).asDataFrame()
             else:
                 # get data in administrative fileview for this pipeline
@@ -136,8 +138,11 @@ class SynapseStorage(BaseStorage):
                 return method(*args, **kwargs)
             except(SynapseHTTPError) as ex:
                 str_message = str(ex).replace("\n","")
-                logging.warning(str_message)
-                return None
+                if 'missing' in str_message:
+                    logging.warning(str_message)
+                    return None
+                else:
+                    raise ex
         return wrapper
 
 
@@ -712,9 +717,26 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
+    def _get_tables(self) -> List[Table]:
+        project = self.syn.get(self.project_scope[0])
+        return list(self.syn.getChildren(project, includeTypes=["table"]))
+
+    def get_table_info(self) -> List[str]:
+        """Gets the names of the tables in the schema
+        Returns:
+            list[str]: A list of table names
+        """
+        tables = self._get_tables()
+        if tables:
+            return {table["name"]: table["id"] for table in tables}
+        else: 
+            return {None:None}
+
     @missing_entity_handler
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel,):
+    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel):
         # Rename the manifest columns to display names to match fileview
+        table_info = self.get_table_info()
+
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
 
@@ -748,8 +770,22 @@ class SynapseStorage(BaseStorage):
 
         # Put table manifest onto synapse
         schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
-        table = self.syn.store(Table(schema, table_manifest), isRestricted=restrict)
-        manifest_table_id = table.schema.id
+        if table_name not in table_info.keys():
+            manifest_table_id = self.make_synapse_table(table_to_load = table_manifest, 
+                                    dataset_id = datasetId,
+                                    existingTableId = None, 
+                                    table_name = table_name, 
+                                    column_type_dictionary = col_schema, 
+                                    restrict = restrict,
+                                    manipulation = 'replace')
+        else:
+            manifest_table_id = self.make_synapse_table(table_to_load = table_manifest, 
+                                    dataset_id = datasetId,
+                                    existingTableId = table_info[table_name], 
+                                    table_name = table_name, 
+                                    column_type_dictionary = col_schema,
+                                    restrict = restrict,
+                                    manipulation = 'replace')
 
 
         return manifest_table_id, manifest, table_manifest
@@ -1036,7 +1072,7 @@ class SynapseStorage(BaseStorage):
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
+                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel)
             
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
@@ -1070,9 +1106,8 @@ class SynapseStorage(BaseStorage):
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = component_name)
         
-        # Get annotations for the file manifest.
+        # Set annotations for the file manifest.
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
-        
         self.syn.set_annotations(manifest_annotations)
 
         logger.info("Associated manifest file with dataset on Synapse.")
@@ -1086,9 +1121,10 @@ class SynapseStorage(BaseStorage):
                 table_name = table_name,
                 update_col = 'Uuid',
                 specify_schema = False,
+                restrict = restrict_manifest
                 )
             
-            # Get annotations for the table manifest
+            # Set annotations for the table manifest
             manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
             self.syn.set_annotations(manifest_annotations)
 
@@ -1316,23 +1352,130 @@ class SynapseStorage(BaseStorage):
 
         return table
 
-    def make_synapse_table(self, table_to_load, dataset_id, existingTableId, table_name, 
-            update_col = 'entityId', column_type_dictionary = {}, specify_schema=True):
+    def _get_table_schema_by_cname(self, table_schema):
+
+        # assume no duplicate column names in the table
+        table_schema_by_cname = {}
+
+        for col_record in table_schema:
+
+            #TODO clean up dictionary for compactness (e.g. remove redundant 'name' key)
+            table_schema_by_cname[col_record["name"]] = col_record
+
+        return table_schema_by_cname
+
+    def make_synapse_table(self, 
+            table_to_load: pd.DataFrame, 
+            dataset_id: str, table_name: str, 
+            existingTableId: str = None,
+            update_col: str = 'entityId', 
+            column_type_dictionary: Dict = {}, 
+            specify_schema: bool = True, 
+            restrict: bool = False, 
+            manipulation: str = 'update') -> str:
         '''
-        Record based data
+        Make a synapse table for record based data
+
+        Args:
+            table_to_load (pd.DataFrame): table to upload to synapse
+            dataset_id (str): synID for dataset related to manifest to be uploaded as table
+            existingTableId (str): Optional, synID of existing table to upload to
+            table_name (str): Name of the table that will be displayed on synapse
+            update_col (str): Optional, if updating a table by aligning on index, column to use as indices
+            column_type_dictionary (Dict): dictionary of column types
+            specify_schema (bool):  specify a schema for the table at upload according to types in column_type_dictionary
+            restrict (bool): set to True if access restrictions need to be imposed on table when stored on synapse, False otherwise 
+            manipulation (str): type of manipulation to do if a table exists already. Can be either "update" or "replace". 
+                Defaults to "update" to preserve old behavior
+
+        Returns:
+            str: synId of table uploaded to synapse
+
         '''
-        # create/update a table corresponding to this dataset in this dataset's parent project
-        # update_col is the column in the table that has a unique code that will allow Synapse to
-        # locate its position in the old and new table.
         if existingTableId:
             existing_table, existing_results = self.get_synapse_table(existingTableId)
-            table_to_load = update_df(existing_table, table_to_load, update_col)
-            self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag))
+
+            manipulation = manipulation.lower()
+            if manipulation not in ['update', 'replace']:
+                raise NotImplementedError(
+                    "Currently, only 'update' and 'replace' table operations are supported."
+                )
+
+            # create/update a table corresponding to this dataset in this dataset's parent project
+            # update_col is the column in the table that has a unique code that will allow Synapse to
+            # locate its position in the old and new table.
+            if manipulation == 'update':
+                table_to_load = update_df(existing_table, table_to_load, update_col)
+                # store table with existing etag data and impose restrictions as appropriate
+                self.syn.store(Table(existingTableId, table_to_load, etag = existing_results.etag), isRestricted = restrict)
+
+            elif manipulation == 'replace':
+                # remove rows
+                self.syn.delete(existing_results)
+                # wait for row deletion to finish on synapse before getting empty table
+                sleep(1)
+                
+                # removes all current columns
+                current_table = self.syn.get(existingTableId)
+                current_columns = self.syn.getTableColumns(current_table)
+                for col in current_columns:
+                    current_table.removeColumn(col)
+
+                if not table_name:
+                    table_name = datasetName + 'table'
+                
+                # Process columns according to manifest entries
+                table_schema_by_cname = self._get_table_schema_by_cname(column_type_dictionary) 
+                datasetParentProject = self.getDatasetProject(dataset_id)
+                if specify_schema:
+                    if column_type_dictionary == {}:
+                        logger.error("Did not provide a column_type_dictionary.")
+                    #create list of columns:
+                    cols = []
+                    
+                    for col in table_to_load.columns:
+                        
+                        if col in table_schema_by_cname:
+                            col_type = table_schema_by_cname[col]['columnType']
+                            max_size = table_schema_by_cname[col]['maximumSize'] if 'maximumSize' in table_schema_by_cname[col].keys() else 100
+                            max_list_len = 250
+                            if max_size and max_list_len:
+                                cols.append(Column(name=col, columnType=col_type, 
+                                    maximumSize=max_size, maximumListLength=max_list_len))
+                            elif max_size:
+                                cols.append(Column(name=col, columnType=col_type, 
+                                    maximumSize=max_size))
+                            else:
+                                cols.append(Column(name=col, columnType=col_type))
+                        else:
+                            
+                            #TODO add warning that the given col was not found and it's max size is set to 100
+                            cols.append(Column(name=col, columnType='STRING', maximumSize=100))
+                    
+                    # adds new columns to schema
+                    for col in cols:
+                        current_table.addColumn(col)
+                    self.syn.store(current_table, isRestricted = restrict)
+
+                    # wait for synapse store to finish
+                    sleep(1)
+
+                    # build schema and table from columns and store with necessary restrictions
+                    schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
+                    schema.id = existingTableId
+                    table = Table(schema, table_to_load, etag = existing_results.etag)
+                    table = self.syn.store(table, isRestricted = restrict)
+                else:
+                    logging.error("Must specify a schema for table replacements")
+
             # remove system metadata from manifest
             existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
+            return existingTableId
         else:
             datasetEntity = self.syn.get(dataset_id, downloadFile = False)
             datasetName = datasetEntity.name
+            table_schema_by_cname = self._get_table_schema_by_cname(column_type_dictionary) 
+
             if not table_name:
                 table_name = datasetName + 'table'
             datasetParentProject = self.getDatasetProject(dataset_id)
@@ -1342,10 +1485,10 @@ class SynapseStorage(BaseStorage):
                 #create list of columns:
                 cols = []
                 for col in table_to_load.columns:
-                    if col in column_type_dictionary:
-                        col_type = column_type_dictionary[col]['column_type']
-                        max_size = column_type_dictionary[col]['maximum_size']
-                        max_list_len = column_type_dictionary[col]['maximum_list_length']
+                    if col in table_schema_by_cname:
+                        col_type = table_schema_by_cname[col]['columnType']
+                        max_size = table_schema_by_cname[col]['maximumSize'] if 'maximumSize' in table_schema_by_cname[col].keys() else 100
+                        max_list_len = 250
                         if max_size and max_list_len:
                             cols.append(Column(name=col, columnType=col_type, 
                                 maximumSize=max_size, maximumListLength=max_list_len))
@@ -1355,16 +1498,17 @@ class SynapseStorage(BaseStorage):
                         else:
                             cols.append(Column(name=col, columnType=col_type))
                     else:
-                        cols.append(Column(name=col, columnType='STRING', maximumSize=500))
+                        #TODO add warning that the given col was not found and it's max size is set to 100
+                        cols.append(Column(name=col, columnType='STRING', maximumSize=100))
                 schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
                 table = Table(schema, table_to_load)
-                table_id = self.syn.store(table)
+                table = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
             else:
                 # For just uploading the tables to synapse using default
                 # column types.
                 table = build_table(table_name, datasetParentProject, table_to_load)
-                table = self.syn.store(table)
+                table = self.syn.store(table, isRestricted = restrict)
                 return table.schema.id
 
 

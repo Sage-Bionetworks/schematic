@@ -2189,6 +2189,28 @@
             ]
         },
         {
+            "@id": "bts:ClinicalData",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "ClinicalData",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:ValidValue"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Clinical Data",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+                {
+                    "@id": "bts:FamilyHistory"
+                }
+            ],
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:Biospecimen",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",

@@ -12,11 +12,14 @@ from werkzeug.debug import DebuggedApplication
 
 from schematic import CONFIG
 
+from schematic.visualization.attributes_explorer import AttributesExplorer
+from schematic.visualization.tangled_tree import TangledTree
 from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage
+from flask_cors import CORS, cross_origin
 from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
 import json
@@ -43,8 +46,122 @@ def config_handler(asset_view=None):
             f"No configuration file was found at this path: {path_to_config}"
         )
 
-def csv_path_handler():
-    manifest_file = connexion.request.files["csv_file"]
+class JsonConverter:
+    '''
+    Mainly handle converting json str or json file to csv
+    '''
+    def readJson(self, json_str=None, manifest_file=None):
+        '''
+        The purpose of this function is to read either json str or json file
+        input: 
+            json_str: json object
+            manifest_file: manifest file object 
+        output: 
+            return a dataframe
+        '''
+        if json_str:
+            df = pd.read_json(json_str)
+        elif manifest_file: 
+            df = pd.read_json(manifest_file.read())
+        return df
+    
+    def get_file(self, file_key):
+        '''
+        The purpose of this function is to get the file uploaded by user
+        input: 
+            file_key: Defined in api.yaml. This key refers to the files uploaded. 
+            manifest_file: manifest file object 
+        output: 
+            return file object
+        '''
+
+        manifest_file = connexion.request.files[file_key]
+        return manifest_file
+
+    def IsJsonFile(self, manifest_file):
+        '''
+        The purpose of this function is check if the manifest file that gets uploaded is a json or not
+        input: 
+            manifest_file: manifest file object 
+        output: 
+            return True if it is json
+        '''
+
+        file_type = manifest_file.content_type
+        if file_type == 'application/json':
+            return True
+        else: 
+            return False
+
+    def convert_df_to_csv(self, df, file_name):
+        '''
+        The purpose of this function is to convert dataframe to a temporary CSV file
+        input: 
+            df: dataframe
+            file_name: file name of the output csv
+        output: 
+            return temporary file path of the output csv
+        '''
+
+        # convert dataframe to a temporary csv file
+        temp_dir = tempfile.gettempdir()
+        temp_path = os.path.join(temp_dir, file_name)
+        df.to_csv(temp_path, encoding = 'utf-8', index=False)
+        return temp_path
+
+    def convert_json_str_to_csv(self, json_str, file_name):
+        '''
+        The purpose of this function is to convert json str to a temporary csv file
+        input: 
+            json_str: json object
+            file_name: file name of the output csv
+        output: 
+            return temporary file path of the output csv
+        '''
+
+        # convert json to df
+        df = self.readJson(json_str = json_str)
+
+        # convert dataframe to a temporary csv file
+        temp_path = self.convert_df_to_csv(df, file_name)
+
+        return temp_path
+
+    def convert_json_file_to_csv(self, file_key):
+        '''
+        The purpose of this function is to convert json str to a temporary csv file
+        input: 
+            file_key: Defined in api.yaml. This key refers to the files uploaded. 
+        output: 
+            return temporary file path of the output csv
+        '''
+
+        # get manifest file
+        manifest_file = self.get_file(file_key)
+
+        if self.IsJsonFile(manifest_file):
+            # read json as dataframe
+            df = self.readJson(manifest_file = manifest_file)
+            # get base file name
+            base = os.path.splitext(manifest_file.filename)[0]
+            # name the new csv file 
+            new_file_name = base + '.csv'
+            # convert to csv
+            temp_path = self.convert_df_to_csv(df, new_file_name)
+            return temp_path
+        else: 
+            temp_path = save_file(file_key='file_name')
+            return temp_path
+        
+
+        
+def save_file(file_key="csv_file"):
+    '''
+    input: 
+        file_key: Defined in api.yaml. This key refers to the files uploaded. By default, set to "csv_file"
+    Return a temporary file path for the uploaded a given file
+    '''
+    manifest_file = connexion.request.files[file_key]
 
     # save contents of incoming manifest CSV file to temp file
     temp_dir = tempfile.gettempdir()
@@ -176,12 +293,17 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
     return all_results
 
 
-def validate_manifest_route(schema_url, data_type):
+def validate_manifest_route(schema_url, data_type, json_str=None):
     # call config_handler()
     config_handler()
 
     #Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    jsc = JsonConverter()
+
+    if json_str:
+        temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json")
+    else: 
+        temp_path = jsc.convert_json_file_to_csv("file_name")
 
     # get path to temporary JSON-LD file
     jsonld = get_temp_jsonld(schema_url)
@@ -199,12 +321,16 @@ def validate_manifest_route(schema_url, data_type):
     return res_dict
 
 
-def submit_manifest_route(schema_url, manifest_record_type=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
     # call config_handler()
-    config_handler()
+    config_handler(asset_view = asset_view)
 
-    # Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    # convert Json file to CSV if applicable
+    jsc = JsonConverter()
+    if json_str:
+        temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json.csv")
+    else: 
+        temp_path = jsc.convert_json_file_to_csv("file_name")
 
     dataset_id = connexion.request.args["dataset_id"]
 
@@ -234,7 +360,7 @@ def populate_manifest_route(schema_url, title=None, data_type=None, return_excel
     jsonld = get_temp_jsonld(schema_url)
 
     # Get path to temp file where manifest file contents will be saved
-    temp_path = csv_path_handler()
+    temp_path = save_file()
    
     #Initalize MetadataModel
     metadata_model = MetadataModel(inputMModelLocation=jsonld, inputMModelLocationType='local')
@@ -243,7 +369,6 @@ def populate_manifest_route(schema_url, title=None, data_type=None, return_excel
     populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type, return_excel=return_excel)
 
     return populated_manifest_link
-
 
 def get_storage_projects(input_token, asset_view):
     # call config handler 
@@ -269,7 +394,6 @@ def get_storage_projects_datasets(input_token, asset_view, project_id):
     
     return sorted_dataset_lst
 
-
 def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, file_names=None):
     # call config handler
     config_handler(asset_view=asset_view)
@@ -284,6 +408,7 @@ def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, fi
     # call getFilesInStorageDataset function
     file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
     return file_lst
+
 def get_component_requirements(schema_url, source_component, as_graph):
     metadata_model = initalize_metadata_model(schema_url)
 
@@ -291,6 +416,40 @@ def get_component_requirements(schema_url, source_component, as_graph):
 
     return req_components
 
+def get_viz_attributes_explorer(schema_url):
+    # call config_handler()
+    config_handler()
+
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+    attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_attributes(save_file=False)
+
+    return attributes_csv
+
+def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
+   
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+    # Initialize TangledTree
+    tangled_tree = TangledTree(temp_path_to_jsonld, figure_type)
+
+    # Get text for tangled tree.
+    text_df = tangled_tree.get_text_for_tangled_tree(text_format, save_file=False)
+    
+    return text_df
+
+def get_viz_tangled_tree_layers(schema_url, figure_type):
+  
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+    # Initialize Tangled Tree
+    tangled_tree = TangledTree(temp_path_to_jsonld, figure_type)
+    
+    # Get tangled trees layers JSON.
+    layers = tangled_tree.get_tangled_tree_layers(save_file=False)
+
+    return layers[0]
+    
 def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)

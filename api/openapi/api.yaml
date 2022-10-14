@@ -159,9 +159,10 @@ paths:
             schema:
               type: object
               properties:
-                # csv_file will be the field name in
+                # file_name will be the field name in
                 # this multipart request
-                csv_file:
+                file_name:
+                  description: Upload a json or a csv file. 
                   type: string
                   format: binary
       parameters:
@@ -181,6 +182,23 @@ paths:
           description: Data Model Component
           example: Patient
           required: true
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
+          example: '[{
+          "Patient ID": 123,
+          "Sex": "Female",
+          "Year of Birth": "",
+          "Diagnosis": "Healthy",
+          "Component": "Patient",
+          "Cancer Type": "Breast",
+          "Family History": "Breast, Lung",
+          }]'
+
       operationId: api.routes.validate_manifest_route
       responses:
         "200":
@@ -210,7 +228,8 @@ paths:
             schema:
               type: object
               properties:
-                csv_file:
+                file_name:
+                  description: Upload a json or a csv file. 
                   type: string
                   format: binary
       parameters:
@@ -258,6 +277,30 @@ paths:
             nullable: false
           description: Token
           required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn28559058
+          required: true
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
+          example: '[{
+          "Patient ID": 123,
+          "Sex": "Female",
+          "Year of Birth": "",
+          "Diagnosis": "Healthy",
+          "Component": "Patient",
+          "Cancer Type": "Breast",
+          "Family History": "Breast, Lung",
+          }]'
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
@@ -820,3 +863,100 @@ paths:
           description: Check schematic log.
       tags:
         - Schema Operation
+  /visualize/tangled_tree/layers:
+    get:
+      summary: Get layers of tangled tree.
+      description: >-
+        Get tangled tree node layers to display for a given data model and figure type
+      operationId: api.routes.get_viz_tangled_tree_layers
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: figure_type
+          schema:
+            type: string
+            enum: ["component", "dependency"]
+          description: Figure type to generate.
+          example: 'component'
+          required: true
+      responses:
+        "200":
+          description: Returns a dataframe as a JSON String.
+          content:
+            text/json:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
+  /visualize/tangled_tree/text:
+    get:
+      summary: Get text to display on tangled tree.
+      description: >-
+        Get tangled tree plain or higlighted text to display for a given data model, text formatting and figure type
+      operationId: api.routes.get_viz_tangled_tree_text
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: figure_type
+          schema:
+            type: string
+            enum: ["component", "dependency"]
+          description: Figure type to generate.
+          example: 'component'
+          required: true
+        - in: query
+          name: text_format
+          schema:
+            type: string
+            enum: ["plain", "highlighted"]
+          description: Text formatting type.
+          example: 'plain'
+          required: true
+      responses:
+        "200":
+          description: Returns a dataframe as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
+  /visualize/attributes:
+    get:
+      summary: Get an attributes table for a data model, as a CSV (JSON String)
+      description: >-
+        Get all the attributes associated with a data model formatted as a
+        dataframe (stored as a JSON String) for use in Observable visualization.
+      operationId: api.routes.get_viz_attributes_explorer
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+      responses:
+        "200":
+          description: Returns a CSV as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
