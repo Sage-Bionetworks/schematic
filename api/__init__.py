@@ -15,7 +15,11 @@ def create_app():
     # path to config.yml file saved as a Flask config variable
     default_config = os.path.abspath(os.path.join(__file__, "../../config.yml"))
     schematic_config = os.environ.get("SCHEMATIC_CONFIG", default_config)
+
     app.config["SCHEMATIC_CONFIG"] = schematic_config
+    # schematic_config_content = os.environ.get("SCHEMATIC_CONFIG_CONTENT")
+    # print('schematic_config_content', schematic_config_content)
+    # app.config["SCHEMATIC_CONFIG"] = schematic_config_content
 
     # Configure flask app
     # app.config[] = schematic[]

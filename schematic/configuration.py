@@ -34,6 +34,14 @@ class Configuration(object):
             value = default
         return value
 
+    def load_config_content(str_yaml: str) -> dict:
+        try: 
+            config_data = yaml.safe_load(str_yaml)
+        except yaml.YAMLError as exc:
+            print(exc)
+            return None
+        return config_data
+
     @staticmethod
     def load_yaml(file_path: str) -> dict:
         with open(file_path, "r") as stream:
@@ -61,7 +69,7 @@ class Configuration(object):
         )
         return self.load_config(schematic_config)
 
-    def load_config(self, config_path=None, asset_view=None):
+    def load_config(self, config_path=None, asset_view=None): 
         # If config_path is None, try loading from environment
         if config_path is None and "SCHEMATIC_CONFIG" in os.environ:
             return self.load_config_from_env()
@@ -76,6 +84,13 @@ class Configuration(object):
         config_path = os.path.expanduser(config_path)
         config_path = os.path.abspath(config_path)
         self.DATA = self.load_yaml(config_path)
+
+        # test
+        if "SCHEMATIC_CONFIG_CONTENT" in os.environ:
+            config_content = self.load_config_content(os.environ["SCHEMATIC_CONFIG_CONTENT"])
+            self.DATA = config_content
+
+
         self.CONFIG_PATH = config_path
         # handle user input (for API endpoints)
         if asset_view: 
