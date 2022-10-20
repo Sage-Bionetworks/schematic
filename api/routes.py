@@ -39,7 +39,9 @@ def config_handler(asset_view=None):
 
     # if content of the config file is provided: 
     content_of_config = app.config["SCHEMATIC_CONFIG_CONTENT"]
-    if len(content_of_config) > 0:
+
+    # if the environment variable exists
+    if content_of_config:
         CONFIG.load_config_content_from_env()
     
     # check if path to config is provided
