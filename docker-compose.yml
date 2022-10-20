@@ -13,5 +13,5 @@ services:
       APP_HOST: "0.0.0.0"
       APP_PORT: "3001"
       SCHEMATIC_CONFIG: /schematic/config.yml
-      #SCHEMATIC_CONFIG_CONTENT: "${SCHEMATIC_CONFIG_CONTENT}"
+      SCHEMATIC_CONFIG_CONTENT: "${SCHEMATIC_CONFIG_CONTENT}"
       GE_HOME: /usr/src/app/great_expectations/
