@@ -106,9 +106,6 @@ class Configuration(object):
         config_path = os.path.expanduser(config_path)
         config_path = os.path.abspath(config_path)
         self.DATA = self.load_yaml(config_path)
-
-
-
         self.CONFIG_PATH = config_path
         # handle user input (for API endpoints)
         if asset_view: 
