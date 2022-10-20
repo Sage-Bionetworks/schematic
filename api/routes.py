@@ -37,7 +37,12 @@ import pickle
 def config_handler(asset_view=None):
     path_to_config = app.config["SCHEMATIC_CONFIG"]
 
-    # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
+    # if content of the config file is provided: 
+    content_of_config = app.config["SCHEMATIC_CONFIG_CONTENT"]
+    if len(content_of_config) > 0:
+        CONFIG.load_config_content_from_env()
+    
+    # check if path to config is provided
     if os.path.isfile(path_to_config):
         CONFIG.load_config(path_to_config, asset_view = asset_view)
 

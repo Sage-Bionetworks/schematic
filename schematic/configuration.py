@@ -9,12 +9,18 @@ class Configuration(object):
         # entire configuration data
         self.DATA = None
 
+
     def __getattribute__(self, name):
         value = super().__getattribute__(name)
         if value is None and "SCHEMATIC_CONFIG" in os.environ:
             self.load_config_from_env()
             value = super().__getattribute__(name)
-        elif value is None and "SCHEMATIC_CONFIG" not in os.environ:
+
+        elif value is None and "SCHEMATIC_CONFIG_CONTENT" in os.environ:
+            self.load_config_content_from_env()
+            value = super().__getattribute__(name)
+
+        elif value is None and "SCHEMATIC_CONFIG" not in os.environ and "SCHEMATIC_CONFIG_CONTENT" not in os.environ:
             raise AttributeError(
                 "The '%s' configuration field was accessed, but it hasn't been "
                 "set yet, presumably because the schematic.CONFIG.load_config() "
@@ -34,7 +40,7 @@ class Configuration(object):
             value = default
         return value
 
-    def load_config_content(str_yaml: str) -> dict:
+    def load_config_content(self, str_yaml: str) -> dict:
         try: 
             config_data = yaml.safe_load(str_yaml)
         except yaml.YAMLError as exc:
@@ -53,9 +59,16 @@ class Configuration(object):
         return config_data
 
     def normalize_path(self, path):
-        # Retrieve parent directory of the config to decode relative paths
-        parent_dir = os.path.dirname(self.CONFIG_PATH)
-        # Ensure absolute file paths
+
+        if self.CONFIG_PATH:
+            # Retrieve parent directory of the config to decode relative paths
+            parent_dir = os.path.dirname(self.CONFIG_PATH)
+        else:
+            # not sure if this is going to work
+            # but assume the parent dir would be the current work dir
+            parent_dir = os.getcwd()
+
+            # Ensure absolute file paths
         if not os.path.isabs(path):
             path = os.path.join(parent_dir, path)
         # And lastly, normalize file paths
@@ -68,6 +81,18 @@ class Configuration(object):
             "environment variable: %s" % schematic_config
         )
         return self.load_config(schematic_config)
+
+    def load_config_content_from_env(self):
+        schematic_config_content = os.environ["SCHEMATIC_CONFIG_CONTENT"]
+
+        print(
+            'Loading content of config file. The environment variable is:  %s' % schematic_config_content
+        )
+
+        config_content_yaml = self.load_config_content(schematic_config_content)
+        self.DATA = config_content_yaml
+
+        return self.DATA
 
     def load_config(self, config_path=None, asset_view=None): 
         # If config_path is None, try loading from environment
@@ -85,10 +110,6 @@ class Configuration(object):
         config_path = os.path.abspath(config_path)
         self.DATA = self.load_yaml(config_path)
 
-        # test
-        if "SCHEMATIC_CONFIG_CONTENT" in os.environ:
-            config_content = self.load_config_content(os.environ["SCHEMATIC_CONFIG_CONTENT"])
-            self.DATA = config_content
 
 
         self.CONFIG_PATH = config_path
