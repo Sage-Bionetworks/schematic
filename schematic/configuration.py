@@ -12,14 +12,12 @@ class Configuration(object):
 
     def __getattribute__(self, name):
         value = super().__getattribute__(name)
-        if value is None and "SCHEMATIC_CONFIG" in os.environ:
-            self.load_config_from_env()
-            value = super().__getattribute__(name)
-
-        elif value is None and "SCHEMATIC_CONFIG_CONTENT" in os.environ:
+        if value is None and "SCHEMATIC_CONFIG_CONTENT" in os.environ:
             self.load_config_content_from_env()
             value = super().__getattribute__(name)
-
+        elif value is None and "SCHEMATIC_CONFIG" in os.environ:
+            self.load_config_from_env()
+            value = super().__getattribute__(name)
         elif value is None and "SCHEMATIC_CONFIG" not in os.environ and "SCHEMATIC_CONFIG_CONTENT" not in os.environ:
             raise AttributeError(
                 "The '%s' configuration field was accessed, but it hasn't been "
@@ -64,8 +62,7 @@ class Configuration(object):
             # Retrieve parent directory of the config to decode relative paths
             parent_dir = os.path.dirname(self.CONFIG_PATH)
         else:
-            # not sure if this is going to work
-            # but assume the parent dir would be the current work dir
+            # assume the parent dir would be the current work dir
             parent_dir = os.getcwd()
 
             # Ensure absolute file paths
@@ -86,7 +83,7 @@ class Configuration(object):
         schematic_config_content = os.environ["SCHEMATIC_CONFIG_CONTENT"]
 
         print(
-            'Loading content of config file. The environment variable is:  %s' % schematic_config_content
+            'Loading content of config file:  %s' % schematic_config_content
         )
 
         config_content_yaml = self.load_config_content(schematic_config_content)
