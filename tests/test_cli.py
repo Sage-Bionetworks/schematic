@@ -21,12 +21,6 @@ def data_model_jsonld(helpers):
     data_model_jsonld =helpers.get_data_path("example.model.jsonld")
     yield data_model_jsonld
 
-@pytest.fixture
-def test_config(helpers):
-    config_path = helpers.get_data_path("test_config.yml")
-    yield config_path
-
-
 
 class TestSchemaCli:
     def test_schema_convert_cli(self, runner, helpers, data_model_jsonld):
@@ -46,6 +40,7 @@ class TestSchemaCli:
         assert expected_substr in result.output
 
     # get manifest by default
+    @pytest.mark.google_credentials_needed
     def test_get_manifest_cli(self, runner, helpers, config, data_model_jsonld):
         output_path = helpers.get_data_path("example.Patient.manifest.csv")
 
