@@ -65,6 +65,8 @@ class TestSchemaCli:
         helpers.clean_up_file(helpers, file_name=output_path)
     
     # get manifest as a csv
+    # use google drive to export
+    @pytest.mark.google_credentials_needed
     def test_get_manifest_csv(self, runner, helpers, config, data_model_jsonld):
         output_path = helpers.get_data_path("test.csv")
 
