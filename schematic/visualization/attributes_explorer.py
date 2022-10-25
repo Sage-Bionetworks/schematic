@@ -123,7 +123,7 @@ class AttributesExplorer():
                             if "Type" in value[0]:
                                 value[0] = value[0].split(" ")[0]
 
-                            conditional_statement = f'{attribute} IS "{value[0]}"'
+                            conditional_statement = f'{attribute} is "{value[0]}"'
                             if conditional_statement not in data_dict[key]['Conditional Requirements']:
                                 data_dict[key]['Cond_Req'] = True
                                 data_dict[key]['Conditional Requirements'].extend([conditional_statement])
@@ -139,14 +139,14 @@ class AttributesExplorer():
                     ## reformat conditional requirement 
 
                     # get all attributes 
-                    attr_lst = [i.split(" IS ")[-1] for i in data_dict[key]['Conditional Requirements']]
+                    attr_lst = [i.split(" is ")[-1] for i in data_dict[key]['Conditional Requirements']]
                     
                     # join a list of attributes by using OR 
                     attr_str = " OR ".join(attr_lst)
 
                     # reformat the conditional requirement 
-                    component_name = data_dict[key]['Conditional Requirements'][0].split(' IS ')[0]
-                    conditional_statement_str = component_name + " IS " + attr_str
+                    component_name = data_dict[key]['Conditional Requirements'][0].split(' is ')[0]
+                    conditional_statement_str = f" If {component_name} is {attr_str} then {key} is required"
 
                     data_dict[key]['Conditional Requirements'] = conditional_statement_str
             df = pd.DataFrame(data_dict)
