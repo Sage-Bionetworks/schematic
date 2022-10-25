@@ -131,7 +131,6 @@ class AttributesExplorer():
                             "to the attribute: {key}. The error is likely caused by naming inconsistencies (e.g. uppercase, camelcase, ...)"
                         )
 
-            # print('data_dict', data_dict)
             for key, value in data_dict.items():
                 if 'Conditional Requirements' in value.keys():
 
