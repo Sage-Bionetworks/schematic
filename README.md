@@ -188,15 +188,35 @@ For new features, bugs, enhancements
 <t> - For more information on flags for `docker run` and what they do, visit the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) <br>
 <t> - These example commands assume that you have navigated to the directory you want to run schematic from. To specify your working directory, use `$(pwd)` on MacOS/Linux or `%cd%` on Windows.  <br>
 <t> - If not using the latest image, then the full name should be specified: ie `sagebionetworks/schematic:commit-e611e4a`
+<t> - If using local image created by `docker compose up`, then the docker image name should be changed: i.e. `schematic_schematic`
+
 ### Example For REST API <br>
+
+#### Use file path of `config.yml` to run API endpoints: 
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
-  -e SCHEMATIC_CONFIG=/schematic/schematic_config.yml \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
   -e GE_HOME=/usr/src/app/great_expectations/ \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
 ``` 
+
+#### Use content of `config.yml` as an environment variable to run API endpoints: 
+1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat config.yml)`
+
+2. Pass `SCHEMATIC_CONFIG_CONTENT` as an environment variable by using `docker run`
+
+```
+docker run --rm -p 3001:3001 \
+  -v $(pwd):/schematic -w /schematic --name schematic \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  -e SCHEMATIC_CONFIG_CONTENT=$SCHEMATIC_CONFIG_CONTENT \
+  sagebionetworks/schematic \
+  python /usr/src/app/run_api.py
+``` 
+
 
 ### Example For Schematic on mac/linux <br>
 To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic` <br>
