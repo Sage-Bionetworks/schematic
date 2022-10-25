@@ -115,9 +115,11 @@ class AttributesExplorer():
                             if attribute[0].islower():
                                 attribute = attribute.capitalize()
 
+                            # Remove "Type" (i.e. turn "Biospecimen Type" to "Biospcimen")
                             if "Type" in attribute: 
                                 attribute = attribute.split(" ")[0]
                             
+                            # Remove "Type" (i.e. turn "Tissue Type" to "Tissue")
                             if "Type" in value[0]:
                                 value[0] = value[0].split(" ")[0]
 
