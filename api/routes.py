@@ -439,7 +439,10 @@ def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
     return text_df
 
 def get_viz_tangled_tree_layers(schema_url, figure_type):
-  
+
+    # call config_handler()
+    config_handler()
+
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
 
     # Initialize Tangled Tree

@@ -173,14 +173,32 @@ class TangledTree(object):
                 value: attribute
         '''
         ca_alias = {}
+
         for i, req in enumerate(conditional_requirements):
-            req = req.split(' || ')
-            for r in req:
-                attr, ali = r.split(' -is- ')
+            if "OR" not in req:
+                attr, ali = req.split(' -is- ')
                 attr = "".join(attr.split())
                 ali = self.strip_double_quotes(ali)
                 ca_alias[ali] = attr
+            else:
+                attr, alias_str = req.split(' -is- ')
+                alias_lst = alias_str.split(' OR  ')
+                for elem in alias_lst:
+                    elem = self.strip_double_quotes(elem)
+                    ca_alias[elem] = attr
         return ca_alias
+
+
+        # print('conditional requirement', conditional_requirements)
+        # for i, req in enumerate(conditional_requirements):
+        #     req = req.split(' || ')
+        #     for r in req:
+        #         attr, ali = r.split(' -is- ')
+        #         attr = "".join(attr.split())
+        #         ali = self.strip_double_quotes(ali)
+        #         ca_alias[ali] = attr
+        # print('ca_alias', ca_alias)
+        # return ca_alias
 
     def gather_component_dependency_info(self, cn, attributes_df):
         '''Gather all component dependency information.
@@ -213,7 +231,9 @@ class TangledTree(object):
             ca_df = attributes_df[(attributes_df['Cond_Req']==True)&(attributes_df['Component']==cn)]
             conditional_requirements = list(attributes_df[(attributes_df['Cond_Req']==True)
                 &(attributes_df['Component']==cn)]['Conditional Requirements'])
+            print('conditional requirement', conditional_requirements)
             ca_alias = self.get_ca_alias(conditional_requirements)
+            print('ca alias', ca_alias)
         else:
             # If there are no conditional attributes/requirements, initialize blank lists.
             conditional_attributes = []
