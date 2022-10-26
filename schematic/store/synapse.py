@@ -138,7 +138,7 @@ class SynapseStorage(BaseStorage):
                 return method(*args, **kwargs)
             except(SynapseHTTPError) as ex:
                 str_message = str(ex).replace("\n","")
-                if 'missing' in str_message:
+                if 'trash' in str_message or 'does not exist' in str_message:
                     logging.warning(str_message)
                     return None
                 else:
