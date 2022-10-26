@@ -57,7 +57,5 @@ class TestMetadataModel:
             assert os.path.exists(populated_manifest_route) == True
 
         # clean up 
-        try:
-            os.remove(helpers.get_data_path(f"mock_manifests/mock_title.xlsx"))
-        except FileNotFoundError:
-            pass
+        output_path = os.path.join(os.getcwd(), "mock_title.xlsx")
+        helpers.clean_up_file(helpers, output_path)
