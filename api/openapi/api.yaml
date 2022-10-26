@@ -88,9 +88,13 @@ paths:
           required: false
       operationId: api.routes.get_manifest_route
       responses:
-        "201":
-          description: Googlesheet link created
+        "200":
+          description: Googlesheet link created OR an excel file gets returned OR pandas dataframe gets returned
           content:
+            application/vnd.ms-excel:
+              schema:
+                type: string
+                format: binary
             application/json:
               schema:
                 type: string

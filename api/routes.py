@@ -1,4 +1,5 @@
 from email import generator
+from email.headerregistry import ContentTypeHeader
 import os
 import shutil
 import tempfile
@@ -25,7 +26,7 @@ import pandas as pd
 import json
 from schematic.utils.df_utils import load_df
 import pickle
-
+from flask import send_from_directory
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
 #     pass
@@ -196,7 +197,7 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
             title: title of a given manifest. 
             oauth: if user wants to use OAuth for Google authentication
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
-            return_excel: if true, return an Excel spreadsheet; else, return a google sheet url.
+            output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
             use_annotations: Whether to use existing annotations during manifest generation
             asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
         Returns:
@@ -263,6 +264,13 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
         result = manifest_generator.get_manifest(
             dataset_id=dataset_id, sheet_url=True, output_format = output_format
         )
+
+        # return an excel file if output_format is set to "excel"
+        if output_format == "excel":
+            dir_name = os.path.dirname(result)
+            file_name = os.path.basename(result)
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            return send_from_directory(directory=dir_name, filename=file_name, as_attachment=True, mimetype=mimetype, cache_timeout=0)
                
         return result
 
@@ -271,25 +279,33 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
     if data_type[0] == 'all manifests':
         sg = SchemaGenerator(path_to_json_ld=jsonld)
         component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
-        components = component_digraph.nodes()
-        for component in components:
-            t = f'{title}.{component}.manifest'
-            result = create_single_manifest(data_type = component, output_format = output_format)
+        data_type = component_digraph.nodes()
+
+        # if data type = "all manifests", then users should not provide dataset ids
+        # if they provide dataset ids, this should be a mistake
+        # override dataset id here
+        dataset_ids = None
+
+    for i, dt in enumerate(data_type):
+        if len(data_type) > 1:
+            t = f'{title}.{dt}.manifest'
+        else:
+            t = title
+        
+        # if dataset ids are provided
+        if dataset_ids:
+            # if a dataset_id is provided add this to the function call.
+            result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i], output_format = output_format)
+        else:
+            result = create_single_manifest(data_type = dt, output_format = output_format)
+
+        # if output is pandas dataframe or google sheet url
+        if isinstance(result, str) or isinstance(result, pd.DataFrame):
             all_results.append(result)
-    else:
-        for i, dt in enumerate(data_type):
+        else:
             if len(data_type) > 1:
-                t = f'{title}.{dt}.manifest'
-            else:
-                t = title
-
-            if dataset_ids:
-                # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i], output_format = output_format)
-            else:
-                result = create_single_manifest(data_type = dt, output_format = output_format)
-            all_results.append(result)
-
+                app.logger.warning(f'Only {title}.{dt}.manifest would get returned. ')
+            return result
     return all_results
 
 
