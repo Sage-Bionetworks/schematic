@@ -73,11 +73,11 @@ jobs:
 
       # create documentation
       - run: poetry show pdoc
-      - run: poetry run pdoc --docformat google -o docs/api api/routes.py
+      - run: poetry run pdoc --docformat google -o docs schematic/manifest schematic/models schematic/schemas schematic/store schematic/utils schematic/visualization
 
       - uses: actions/upload-pages-artifact@v1
         with:
-          path: docs/api
+          path: docs/schematic
 
   # Deploy the artifact to GitHub pages.
   # This is a separate job so that only actions/deploy-pages has the necessary permissions.
