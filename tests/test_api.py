@@ -1,16 +1,21 @@
 
 import os
 import pytest
-from run_api import create_app
+from api import create_app
 from pathlib import Path
+import configparser
 
 @pytest.fixture
-def client(config):
+def app():
     app = create_app()
-    app.config['SCHEMATIC_CONFIG'] = config
-    with app.app_context():
-        with app.test_client() as client:
-            yield client
+    return app
+
+@pytest.fixture
+def client(app, config_path):
+    app.config['SCHEMATIC_CONFIG'] = config_path
+
+    with app.test_client() as client:
+        yield client
 
 @pytest.fixture
 def data_model_jsonld(helpers):
@@ -19,25 +24,22 @@ def data_model_jsonld(helpers):
 
 
 @pytest.fixture
-def get_token(config):
-    synapse_config_path = config["synapse_config"]
-    with open(synapse_config_path) as f:
-        text = f.read()
-        print(text)
+def syn_token(config):
+    synapse_config_path = config.SYNAPSE_CONFIG_PATH
+    config_parser = configparser.ConfigParser()
+    config_parser.read(synapse_config_path)
+    token = config_parser["authentication"]["authtoken"]
+    yield token
 
+@pytest.mark.schematic_api
+def test_get_storage_assets_tables(client, syn_token):
+    params = {
+        "input_token": syn_token,
+        "asset_view": "syn23643253",
+        "return_type": "json"
+    }
 
+    response = client.get('http://localhost:3001/v1/storage/assets/tables', query_string=params)
 
-# def test_populate_manifest_route(client, data_model_json_ld):
-#     client.get('/manifest/populate')
-
-# @pytest.fixture
-# def config_env(config):
-#     os.environ['SCHEMATIC_CONFIG'] = config
-#     return os.environ.get('SCHEMATIC_CONFIG')
-
-# @pytest.fixture
-# def mock_manifest
-
-# class TestJsonConverter:
-#     def test_read_json():
+    assert response.status_code == 200
 
