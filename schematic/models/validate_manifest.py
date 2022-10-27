@@ -160,6 +160,7 @@ class ValidateManifest(object):
                 warnings = warnings,
                 validation_results = validation_results,
                 validation_types = validation_types,
+                sg = sg,
                 )               
         else:             
             logging.info("Great Expetations suite will not be utilized.")  
@@ -196,16 +197,16 @@ class ValidateManifest(object):
 
                     if validation_type == "list":
                         vr_errors, vr_warnings, manifest_col = validation_method(
-                            self, rule, manifest[col]
+                            self, rule, manifest[col], sg,
                         )
                         manifest[col] = manifest_col
                     elif validation_type.lower().startswith("match"):
                         vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], project_scope,
+                            self, rule, manifest[col], project_scope, sg,
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col]
+                            self, rule, manifest[col], sg,
                         )
                     # Check for validation rule errors and add them to other errors.
                     if vr_errors:
@@ -215,7 +216,7 @@ class ValidateManifest(object):
 
         return manifest, errors, warnings
 
-    def validate_manifest_values(self, manifest, jsonSchema
+    def validate_manifest_values(self, manifest, jsonSchema, sg
     ) -> (List[List[str]], List[List[str]]):
         
         errors = []
@@ -245,7 +246,7 @@ class ValidateManifest(object):
                 col_index = error[1]
                 attr_name = col_attr[col_index]
                 errorMsg = error[2]
-                GenerateError.generate_schema_error(row_num = row_num, attribute_name = attr_name, error_msg = errorMsg)
+                GenerateError.generate_schema_error(row_num = row_num, attribute_name = attr_name, error_msg = errorMsg, sg = sg)
 
         return errors, warnings
 
@@ -258,7 +259,7 @@ def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema,
     if vmr_warnings:
         warnings.extend(vmr_warnings)
 
-    vmv_errors, vmv_warnings = vm.validate_manifest_values(manifest, jsonSchema)
+    vmv_errors, vmv_warnings = vm.validate_manifest_values(manifest, jsonSchema, sg)
     if vmv_errors:
         errors.extend(vmv_errors)
     if vmv_warnings:

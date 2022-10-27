@@ -23,6 +23,7 @@ from great_expectations.data_context.types.base import DataContextConfig, Dataso
 from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
 
 from schematic.models.validate_attribute import GenerateError
+from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
@@ -350,7 +351,8 @@ class GreatExpectationsHelpers(object):
         validation_results: Dict,
         validation_types: Dict,
         errors: List,
-        warnings: List
+        warnings: List,
+        sg: SchemaGenerator,
         ):
         """
             Purpose:
@@ -413,6 +415,7 @@ class GreatExpectationsHelpers(object):
                                 row_num = row+2,
                                 attribute_name = errColumn,
                                 invalid_entry = value,
+                                sg = sg,
                             )
                         )          
                 elif validation_types[rule.split(" ")[0]]['type']=='regex_validation':
@@ -427,6 +430,7 @@ class GreatExpectationsHelpers(object):
                                 module_to_call = 'match',
                                 attribute_name = errColumn,
                                 invalid_entry = value,
+                                sg = sg,
                             )
                         )    
                 elif validation_types[rule.split(" ")[0]]['type']=='content_validation':     
