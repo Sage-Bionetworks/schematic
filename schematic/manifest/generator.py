@@ -22,6 +22,9 @@ from schematic.utils.validate_utils import rule_in_rule_list
 from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
+from schematic.utils.google_api_utils import export_manifest_drive_service
+from openpyxl import load_workbook
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -1258,16 +1261,23 @@ class ManifestGenerator(object):
         )
         return manifest_url
 
+    def _get_missing_columns(self, wb_header, manifest_df):
+        # get headers from sheet 
+        manifest_df_header = manifest_df.columns
+
+        # find missing columns present in existing manifest but missing in latest schema
+        out_of_schema_columns = set(manifest_df_header) - set(wb_header)
+
+        return out_of_schema_columns
+
 
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame
     ) -> ps.Spreadsheet:
         """Update Google Sheets using given pandas DataFrame.
-
         Args:
             manifest_url (str): Google Sheets URL.
             manifest_df (pd.DataFrame): Data frame to "upload".
-
         Returns:
             ps.Spreadsheet: A Google Sheet object.
         """
@@ -1426,8 +1436,82 @@ class ManifestGenerator(object):
 
         return manifest_url, manifest_df
 
+    def export_sheet_to_excel(self, title: str = None, manifest_url : str = None, output_location: str = None) -> str:
+        """
+        export manifest as an Excel spreadsheet and return local file path
+        Args:
+            title: title of the exported excel spreadsheet
+            manifest_url: manifest google sheet url 
+            output_location: the location where the exported excel file would live
+        return: 
+            Export manifest to a desired location. 
+        """
+        # construct file name
+        file_name = title + ".xlsx"
+        #if file path exists and it contains a file name: 
+        if output_location: 
+            if os.path.exists(output_location):
+                if Path(output_location).suffix == '.xlsx' or Path(output_location).suffix == '.xls':
+                    output_excel_file_path = output_location
+                # if users define the location but it doesn't contain a file name, we should add the file name:
+                else:
+                    output_excel_file_path = os.path.join(output_location, file_name)
+    
+        # trigger a warning if file path is provided but does not exist
+        elif output_location and not os.path.exists(output_location):
+            output_excel_file_path = os.path.abspath(os.path.join(os.getcwd(), file_name))
+            logger.warning(f'{output_location} does not exist. Using current working directory {output_excel_file_path}')
+        # otherwise, use the default location
+        else:
+            output_excel_file_path = os.path.abspath(os.path.join(os.getcwd(), file_name))
+        # export the manifest to excel
+        export_manifest_drive_service(manifest_url, file_path=output_excel_file_path, mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        
+        return output_excel_file_path
+
+    def _handle_output_format_logic(self, output_format: str = None, output_path: str = None, sheet_url: bool = None, manifest_url: str = None, empty_manifest_url: str = None, dataframe: pd.DataFrame = None):
+        """
+        handle the logic between sheet_url parameter and output_format parameter to determine the type of output to return
+        Args: 
+            output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
+            manifest_url: Google sheet URL populated with metadata
+            empty_manifest_url: Google sheet URL that leads to an empty manifest 
+            dataframe: the pandas dataframe that contains the metadata that needs to be populated to an empty manifest
+            output_path: Determines the output path of the exported manifest (only relevant if returning an excel spreadsheet)
+        return: a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL 
+        """
+
+        # check if output_format parameter gets set. If not, check the sheet_url parameter
+        if not output_format: 
+            # if the sheet_url parameter gets set to True, return a google sheet url 
+            if sheet_url: 
+                return manifest_url
+                # else, return a pandas dataframe
+            else: 
+                return dataframe
+        else:
+            # if the output type gets set to "dataframe", return a data frame 
+            if output_format == "dataframe":
+                return dataframe
+            # if the output type gets set to "excel", return an excel spreadsheet
+            elif output_format == "excel":                 
+                # export the manifest url to excel
+                output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = empty_manifest_url, output_location = output_path)
+
+                if not os.path.exists(output_file_path): 
+                    logger.error(f'Export to Excel spreadsheet fail. Please make sure that file path {output_file_path} is valid')
+
+                # populate an excel spreadsheet with the existing dataframe
+                self.populate_existing_excel_spreadsheet(output_file_path, dataframe)
+
+                return output_file_path
+            # for all other cases, return a google sheet url 
+            else: 
+                return manifest_url  
+
     def get_manifest(
-        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None
+        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None
     ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
            TODO: move this function to class MetadatModel (after MetadataModel is refactored)
@@ -1435,14 +1519,24 @@ class ManifestGenerator(object):
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
             sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
+            output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
+            output_path: Determines the output path of the exported manifest
 
         Returns:
-            Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
+            Googlesheet URL, pandas dataframe, or an Excel spreadsheet 
         """
-        
+
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            return self.get_empty_manifest(json_schema_filepath=json_schema)
+            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema)
+
+            # if output_form parameter is set to "excel", return an excel spreadsheet
+            if output_format == "excel": 
+                output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url, output_location = output_path)
+                return output_file_path
+            # since we are not going to return an empty dataframe for an empty manifest, here we will just return a google sheet url for all other cases
+            else: 
+                return manifest_url
 
         # Otherwise, create manifest using the given dataset
         #TODO: avoid explicitly exposing Synapse store functionality
@@ -1454,28 +1548,25 @@ class ManifestGenerator(object):
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
         manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
-       
+
+        # get URL of an empty manifest file created based on schema component
+        empty_manifest_url = self.get_empty_manifest()
+
         # Populate empty template with existing manifest
         if manifest_record:
 
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
-
-            # If the sheet URL isn't requested, simply return a pandas DataFrame
-            if not sheet_url:
-                return manifest_record[1]
-
-            # get URL of an empty manifest file created based on schema component
-            empty_manifest_url = self.get_empty_manifest()
-            
+                            
             # populate empty manifest with content from downloaded/existing manifest
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest_record[1])
 
-            return manifest_sh.url
+            # determine the format of manifest
+            result = self._handle_output_format_logic(output_format = output_format, output_path = output_path, sheet_url = sheet_url, manifest_url = manifest_sh.url, empty_manifest_url=empty_manifest_url, dataframe = manifest_record[1])
+            return result
 
         # Generate empty template and optionally fill in with annotations
         else:
-            
             # Using getDatasetAnnotations() to retrieve file names and subset
             # entities to files and folders (ignoring tables/views)
             annotations = pd.DataFrame()
@@ -1493,27 +1584,73 @@ class ManifestGenerator(object):
 
                 # Update `additional_metadata` and generate manifest
                 manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
+            
+            # determine the format of manifest that gets return 
+            result = self._handle_output_format_logic(output_format = output_format, output_path = output_path, sheet_url = sheet_url, manifest_url = manifest_url, empty_manifest_url=empty_manifest_url, dataframe = manifest_df)
+            return result
 
-            if sheet_url:
-                return manifest_url
-            else:
-                return manifest_df
+    def populate_existing_excel_spreadsheet(self, existing_excel_path: str = None, additional_df: pd.DataFrame = None):
+        '''Populate an existing excel spreadsheet by using an additional dataframe (to avoid sending metadata directly to Google APIs)
+        Args:
+            existing_excel_path: path of an existing excel spreadsheet
+            additional_df: additional dataframe
+        '''
+        # load workbook
+        workbook = load_workbook(existing_excel_path)
 
+        #get missing columns and sort manifest 
+        #get existing headers
+        existing_df = pd.read_excel(existing_excel_path, sheet_name="Sheet1")
+        workbook_headers = existing_df.columns
 
-    def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
+        # get new column headers
+        out_of_schema_columns = self._get_missing_columns(workbook_headers, additional_df)
+        out_of_schema_columns_lst = list(out_of_schema_columns)
+        
+        # initalize excel writer
+        writer = pd.ExcelWriter(existing_excel_path, engine='openpyxl')
+        writer.book = workbook
+        writer.sheets = {ws.title: ws for ws in workbook.worksheets}
+        worksheet = writer.sheets["Sheet1"]
+
+        # add additional content to the existing spreadsheet
+        additional_df.to_excel(writer, sheet_name = "Sheet1", startrow=1, index = False, header=False)
+
+        # if there are new columns, add them to the end of spreadsheet
+        if len(out_of_schema_columns_lst) > 0:
+            for i, col_name in enumerate(out_of_schema_columns_lst):
+                col_index = len(workbook_headers) + 1 + i
+                worksheet.cell(row=1, column=col_index).value = col_name
+        
+        # save and close
+        writer.save()
+        writer.close()
+
+    def populate_manifest_spreadsheet(self, existing_manifest_path: str = None, empty_manifest_url: str = None, return_excel: bool = False, title: str = None):
         """Creates a google sheet manifest based on existing manifest.
-
         Args:
             existing_manifest_path: the location of the manifest containing metadata presently stored
             empty_manifest_url: the path to a manifest template to be prepopulated with existing's manifest metadata
+            return_excel: if true, return an Excel spreadsheet instead of Google sheet
+            title: title of output manifest 
         """
 
         # read existing manifest
         manifest = load_df(existing_manifest_path)
+        
+        if return_excel: 
+            '''if we are returning an Excel spreadsheet, do not populate dataframe to google'''
+            # get an empty manifest 
+            manifest_url = empty_manifest_url
 
-        manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
-
-        return manifest_sh.url
+            # export the manifest to excel
+            output_excel_file_path = self.export_sheet_to_excel(manifest_url = manifest_url, title=title)
+            # populate exported sheet 
+            self.populate_existing_excel_spreadsheet(output_excel_file_path, manifest)
+            return output_excel_file_path
+        else: 
+            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
+            return manifest_sh.url
 
     def sort_manifest_fields(self, manifest_fields, order="schema"):
         # order manifest fields alphabetically (base order)
