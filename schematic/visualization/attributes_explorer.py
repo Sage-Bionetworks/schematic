@@ -4,12 +4,10 @@ import logging
 import numpy as np
 import os
 import pandas as pd
-import resource
 from typing import Any, Dict, Optional, Text, List
 
 from schematic.schemas import SchemaGenerator
 from schematic.utils.io_utils import load_json
-from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 

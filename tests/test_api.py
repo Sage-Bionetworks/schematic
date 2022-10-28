@@ -53,4 +53,3 @@ def test_get_storage_assets_tables(client, syn_token, return_type):
         assert isinstance(response_dt, str)
     else:
         assert response_dt.endswith("file_view_table.csv")
-
