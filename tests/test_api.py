@@ -1,9 +1,12 @@
 
-import os
 import pytest
 from api import create_app
-from pathlib import Path
 import configparser
+import json
+
+'''
+To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
+'''
 
 @pytest.fixture
 def app():
@@ -32,14 +35,22 @@ def syn_token(config):
     yield token
 
 @pytest.mark.schematic_api
-def test_get_storage_assets_tables(client, syn_token):
+@pytest.mark.parametrize("return_type", ["json", "csv"])
+def test_get_storage_assets_tables(client, syn_token, return_type):
     params = {
         "input_token": syn_token,
         "asset_view": "syn23643253",
-        "return_type": "json"
+        "return_type": return_type
     }
 
     response = client.get('http://localhost:3001/v1/storage/assets/tables', query_string=params)
 
     assert response.status_code == 200
+
+    response_dt = json.loads(response.data)
+
+    if return_type == "json":
+        assert isinstance(response_dt, str)
+    else:
+        assert response_dt.endswith("file_view_table.csv")
 
