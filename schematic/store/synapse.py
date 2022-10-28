@@ -138,7 +138,7 @@ class SynapseStorage(BaseStorage):
                 return method(*args, **kwargs)
             except(SynapseHTTPError) as ex:
                 str_message = str(ex).replace("\n","")
-                if 'missing' in str_message:
+                if 'trash' in str_message or 'does not exist' in str_message:
                     logging.warning(str_message)
                     return None
                 else:
@@ -717,16 +717,16 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def _get_tables(self) -> List[Table]:
-        project = self.syn.get(self.project_scope[0])
+    def _get_tables(self, datasetId: str = None) -> List[Table]:
+        project = self.syn.get(self.getDatasetProject(datasetId))
         return list(self.syn.getChildren(project, includeTypes=["table"]))
 
-    def get_table_info(self) -> List[str]:
+    def get_table_info(self, datasetId: str = None) -> List[str]:
         """Gets the names of the tables in the schema
         Returns:
             list[str]: A list of table names
         """
-        tables = self._get_tables()
+        tables = self._get_tables(datasetId)
         if tables:
             return {table["name"]: table["id"] for table in tables}
         else: 
@@ -735,7 +735,7 @@ class SynapseStorage(BaseStorage):
     @missing_entity_handler
     def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel):
         # Rename the manifest columns to display names to match fileview
-        table_info = self.get_table_info()
+        table_info = self.get_table_info(datasetId)
 
         blacklist_chars = ['(', ')', '.', ' ']
         manifest_columns = manifest.columns.tolist()
