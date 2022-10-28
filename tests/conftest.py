@@ -72,13 +72,6 @@ class Helpers:
 
         return base_version
 
-    @staticmethod
-    def clean_up_file(self, file_name):
-        try:
-            os.remove(self.get_data_path(file_name))
-        except FileNotFoundError:
-            pass
-
 @pytest.fixture
 def helpers():
     yield Helpers
