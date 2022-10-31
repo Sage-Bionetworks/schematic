@@ -22,10 +22,14 @@ def client(app, config_path):
         yield client
 
 @pytest.fixture
-def test_manifest(helpers):
+def test_manifest_csv(helpers):
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
     yield test_manifest_path
     
+@pytest.fixture
+def test_manifest_json(helpers):
+    test_manifest_path = helpers.get_data_path("mock_manifests/Example.Patient.manifest.json")
+    yield test_manifest_path
 
 @pytest.fixture
 def data_model_jsonld():
@@ -99,9 +103,9 @@ class TestManifestOperation:
         else: 
             assert len(response_dt) == 1
 
-    def test_populate_manifest(self, client, data_model_jsonld, test_manifest):
+    def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
-        test_manifest_data = open(test_manifest, "rb")
+        test_manifest_data = open(test_manifest_csv, "rb")
         
         params = {
             "data_type": "MockComponent",
@@ -113,35 +117,49 @@ class TestManifestOperation:
         response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
 
         assert response.status_code == 200
+        response_dt = json.loads(response.data)
+    
+        # should return a list with one google sheet link 
+        assert isinstance(response_dt[0], str)
+        assert response_dt[0].startswith("https://docs.google.com/")
     
     @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
-    def test_validate_manifest(self, data_model_jsonld, client, json_str, test_manifest):
+    def test_validate_manifest(self, data_model_jsonld, client, json_str, test_manifest_csv, test_manifest_json):
 
         params = {
             "schema_url": data_model_jsonld,
         }
 
         if json_str:
-            data_type = "Patient"
             params["json_str"] = json_str
-            params["data_type"] = data_type
+            params["data_type"] = "Patient"
             response = client.post('http://localhost:3001/v1/model/validate', query_string=params)
+            response_dt = json.loads(response.data)
             assert response.status_code == 200
 
-        #test_manifest_data = open(test_manifest, "rb")
+        else: 
+            params["data_type"] = "MockComponent"
 
-        #print('test manifest data', test_manifest_data)
-        # else: 
-        #     data_type = "MockComponent"
-        #     params["file_name"] = test_manifest_data
-        #     response = client.post('http://localhost:3001/v1/model/validate', query_string=params)
-        #     assert response.status_code == 200
+            headers = {
+            'Content-Type': "multipart/form-data",
+            'Accept': "application/json"
+            }
 
+            # test uploading a csv file
+            response_csv = client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
+            response_dt = json.loads(response_csv.data)
+            assert response_csv.status_code == 200
+            
 
-        print('params', params)
+            # test uploading a json file
+            # change data type to patient since the testing json manifest is using Patient component
+            params["data_type"] = "Patient"
+            response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
+            response_dt = json.loads(response_json.data)
+            assert response_json.status_code == 200
 
-
-        #assert response.status_code == 200
+        assert "errors" in response_dt.keys()
+        assert "warnings" in response_dt.keys()
 
 
 
