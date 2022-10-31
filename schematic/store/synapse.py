@@ -84,13 +84,13 @@ class SynapseStorage(BaseStorage):
         # check if "master_fileview" has been set
         try: 
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
-        except: 
+        except KeyError: 
             raise MissingConfigValueError(("synapse", "master_fileview"))
 
         # check if "master_basename" has been set
         try: 
             self.manifest = CONFIG["synapse"]["manifest_basename"]
-        except: 
+        except KeyError: 
             raise MissingConfigValueError(("synapse", "master_basename"))
 
         try:
