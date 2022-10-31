@@ -92,14 +92,14 @@ extend-exclude = '''
     | dist
     | tests
     | schematic
-    | /schematic/etc
-    | /schematic/manifest
-    | /schematic/models
-    | /schematic/schemas
-    | /schematic/store 
-    | /schematic/utils
-    | /schematic/visualization      
-    | /run_api.py
+    | schematic/etc
+    | schematic/manifest
+    | schematic/models
+    | schematic/schemas
+    | schematic/store 
+    | schematic/utils
+    | schematic/visualization      
+    | run_api.py
     | api
     | docs
     | docs/source/conf.py
