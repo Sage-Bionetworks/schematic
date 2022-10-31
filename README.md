@@ -171,7 +171,7 @@ For new features, bugs, enhancements
 10. After feature work is complete and before creating a PR to the develop branch in upstream
     a. ensure that code runs locally
     b. test for logical correctness locally
-    c. We set up styling checks which run after you make a PR. If your virtual environment does not have `pre-commit` install, start by installing `pre-commit` by doing: `pip install pre-commit`. To automatically fix formatting errors, please install `pre-commit` by doing `pre-commit install`. Now all of the styling checks will be run each time you commit changes without your needing to run each one manually.
+    c. We set up styling checks which run after you make a PR. If your virtual environment does not have `pre-commit` install, start by installing `pre-commit` by doing: `pip install pre-commit`. To automatically fix formatting errors, please install `pre-commit` by doing `pre-commit install`. Now all of the styling checks will be run each time you commit changes without your needing to run each one manually. (If you want to uninstall `pre-commit` after contributing, you could simply do: `pre-commit uninstall`)
     d. wait for git workflow to complete (e.g. tests are run) on github
 11. Create a PR from develop-<feature/fix-name> into the develop branch of the upstream repo
 12. Request a code review on the PR
