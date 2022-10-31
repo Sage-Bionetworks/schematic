@@ -103,7 +103,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
 @click.option(
     "-av",
     "--alphabetize_valid_values",
-    default = 'ascending',
+    default="ascending",
     help=query_dict(manifest_commands, ("manifest", "get", "alphabetize_valid_values")),
 )
 @click.pass_obj
@@ -135,6 +135,7 @@ def get_manifest(
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
+
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -148,13 +149,15 @@ def get_manifest(
 
         # call get_manifest() on manifest_generator
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema,
+            dataset_id=dataset_id,
+            sheet_url=sheet_url,
+            json_schema=json_schema,
         )
 
         if sheet_url:
             logger.info("Find the manifest template using this Google Sheet URL:")
             click.echo(result)
-        if output_csv is None and output_xlsx is None: 
+        if output_csv is None and output_xlsx is None:
             prefix, _ = os.path.splitext(jsonld)
             prefix_root, prefix_ext = os.path.splitext(prefix)
             if prefix_ext == ".model":
@@ -168,32 +171,36 @@ def get_manifest(
             return result
         export_manifest_csv(file_name=output_csv, manifest=result)
         logger.info(
-                f"Find the manifest template using this CSV file path: {output_csv}"
-            )
+            f"Find the manifest template using this CSV file path: {output_csv}"
+        )
         return result
 
     if type(data_type) is str:
         data_type = [data_type]
 
-    if data_type[0] == 'all manifests':
+    if data_type[0] == "all manifests":
         sg = SchemaGenerator(path_to_json_ld=jsonld)
-        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+        component_digraph = sg.se.get_digraph_by_edge_type("requiresComponent")
         components = component_digraph.nodes()
         for component in components:
-            t = f'{title}.{component}.manifest'
-            result = create_single_manifest(data_type = component)
+            t = f"{title}.{component}.manifest"
+            result = create_single_manifest(data_type=component)
     else:
         for dt in data_type:
             if len(data_type) > 1:
-                t = f'{title}.{dt}.manifest'
+                t = f"{title}.{dt}.manifest"
             else:
                 t = title
-            result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
+            result = create_single_manifest(
+                data_type=dt, output_csv=output_csv, output_xlsx=output_xlsx
+            )
 
     return result
 
+
 @manifest.command(
-    "migrate", short_help=query_dict(manifest_commands, ("manifest", "migrate", "short_help"))
+    "migrate",
+    short_help=query_dict(manifest_commands, ("manifest", "migrate", "short_help")),
 )
 @click_log.simple_verbosity_option(logger)
 # define the optional arguments
@@ -244,16 +251,20 @@ def migrate_manifests(
     access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
     full_scope = project_scope + [archive_project]
     if access_token:
-        synStore = SynapseStorage(access_token = access_token, project_scope = full_scope)
+        synStore = SynapseStorage(access_token=access_token, project_scope=full_scope)
     else:
-        synStore = SynapseStorage(project_scope = full_scope)  
+        synStore = SynapseStorage(project_scope=full_scope)
 
     for project in project_scope:
         if not return_entities:
             logging.info("Re-uploading manifests as tables")
-            synStore.upload_annotated_project_manifests_to_synapse(project, jsonld, dry_run)
+            synStore.upload_annotated_project_manifests_to_synapse(
+                project, jsonld, dry_run
+            )
         if archive_project:
             logging.info("Migrating entitites")
-            synStore.move_entities_to_new_project(project, archive_project, return_entities, dry_run)
-        
-    return 
+            synStore.move_entities_to_new_project(
+                project, archive_project, return_entities, dry_run
+            )
+
+    return

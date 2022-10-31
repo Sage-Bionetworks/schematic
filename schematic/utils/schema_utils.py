@@ -17,9 +17,9 @@ def load_schema_into_networkx(schema):
         # adding nodes to the graph
         node = {}
         for (k, value) in record.items():
-            # Some keys in the current schema.org schema have a dictionary entry for their value that includes keys @language and @value, 
+            # Some keys in the current schema.org schema have a dictionary entry for their value that includes keys @language and @value,
             # for parity with other schemas, we just want the value
-            if isinstance(value,dict) and "@language" in value.keys():
+            if isinstance(value, dict) and "@language" in value.keys():
                 record[k] = record[k]["@value"]
             if ":" in k:
                 key = k.split(":")[1]
@@ -121,9 +121,10 @@ def load_schema_into_networkx(schema):
             node["validationRules"] = record["sms:validationRules"]
             if node["validationRules"]:
                 validate_vr = validate_schema_rules(
-                                record["sms:validationRules"],
-                                record["rdfs:label"],
-                                input_filetype = 'json_schema')
+                    record["sms:validationRules"],
+                    record["rdfs:label"],
+                    input_filetype="json_schema",
+                )
         else:
             node["validationRules"] = []
 

@@ -41,46 +41,41 @@ def viz(ctx, config):  # use as `schematic model ...`
         logger.exception(e)
         sys.exit(1)
 
+
 @viz.command(
     "attributes",
 )
 @click_log.simple_verbosity_option(logger)
-
 @click.pass_obj
 def get_attributes(ctx):
-    """
-    
-    """
+    """"""
     # Get JSONLD file path
     path_to_jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
     # Run attributes explorer
     AttributesExplorer(path_to_jsonld).parse_attributes(save_file=True)
     return
 
-@viz.command(
-    "tangled_tree_text"
-)
+
+@viz.command("tangled_tree_text")
 @click_log.simple_verbosity_option(logger)
 @click.option(
     "-ft",
     "--figure_type",
-    type=click.Choice(['component', 'dependency'], case_sensitive=False),
+    type=click.Choice(["component", "dependency"], case_sensitive=False),
     help=query_dict(viz_commands, ("visualization", "tangled_tree", "figure_type")),
 )
 @click.option(
     "-tf",
     "--text_format",
-    type=click.Choice(['plain', 'highlighted'], case_sensitive=False),
+    type=click.Choice(["plain", "highlighted"], case_sensitive=False),
     help=query_dict(viz_commands, ("visualization", "tangled_tree", "text_format")),
 )
-
 @click.pass_obj
 def get_tangled_tree_text(ctx, figure_type, text_format):
-    """ Get text to be placed on the tangled tree visualization.
-    """
+    """Get text to be placed on the tangled tree visualization."""
     # Get JSONLD file path
     path_to_jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
-    
+
     # Initialize TangledTree
     tangled_tree = TangledTree(path_to_jsonld, figure_type)
 
@@ -88,27 +83,24 @@ def get_tangled_tree_text(ctx, figure_type, text_format):
     text_df = tangled_tree.get_text_for_tangled_tree(text_format, save_file=True)
     return
 
-@viz.command(
-    "tangled_tree_layers"
-)
+
+@viz.command("tangled_tree_layers")
 @click_log.simple_verbosity_option(logger)
 @click.option(
     "-ft",
     "--figure_type",
-    type=click.Choice(['component', 'dependency'], case_sensitive=False),
+    type=click.Choice(["component", "dependency"], case_sensitive=False),
     help=query_dict(viz_commands, ("visualization", "tangled_tree", "figure_type")),
 )
-
 @click.pass_obj
 def get_tangled_tree_component_layers(ctx, figure_type):
-    ''' Get the components that belong in each layer of the tangled tree visualization.
-    '''
+    """Get the components that belong in each layer of the tangled tree visualization."""
     # Get JSONLD file path
     path_to_jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
-    
+
     # Initialize Tangled Tree
     tangled_tree = TangledTree(path_to_jsonld, figure_type)
-    
+
     # Get tangled trees layers JSON.
     layers = tangled_tree.get_tangled_tree_layers(save_file=True)
 

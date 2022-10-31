@@ -40,6 +40,5 @@ main.add_command(schema_cli)  # add schema commands
 main.add_command(viz_cli)  # add viz commands
 
 
-
 if __name__ == "__main__":
     main()

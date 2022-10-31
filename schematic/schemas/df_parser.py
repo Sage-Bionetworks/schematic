@@ -515,18 +515,16 @@ def create_nx_schema_objects(
         validation_rules = attribute["Validation Rules"]
 
         if not pd.isnull(validation_rules):
-            
+
             # TODO: make validation rules delimiter configurable parameter
-           
+
             validation_rules = [
                 val_rule.strip() for val_rule in validation_rules.strip().split("::")
             ]
 
             validate_vr = validate_schema_rules(
-                            validation_rules, 
-                            attribute["Attribute"],
-                            input_filetype = 'csv_schema')
-
+                validation_rules, attribute["Attribute"], input_filetype="csv_schema"
+            )
 
             # update validation rules of attribute
             # if attribute is not a property, then assume it is a class

@@ -17,7 +17,7 @@ from schematic.utils.google_api_utils import (
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.validate_utils import rule_in_rule_list
 
-#TODO: This module should only be aware of the store interface
+# TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
@@ -26,12 +26,11 @@ from schematic import CONFIG
 logger = logging.getLogger(__name__)
 
 
-
 class ManifestGenerator(object):
     def __init__(
         self,
         path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
-        alphabetize_valid_values: str = 'ascending',
+        alphabetize_valid_values: str = "ascending",
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
@@ -133,11 +132,21 @@ class ManifestGenerator(object):
 
         if not required:
             bg_color = CONFIG["style"]["google_manifest"].get(
-                "opt_bg_color", {"red": 1.0, "green": 1.0, "blue": 0.9019,},
+                "opt_bg_color",
+                {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 0.9019,
+                },
             )
         else:
             bg_color = CONFIG["style"]["google_manifest"].get(
-                "req_bg_color", {"red": 0.9215, "green": 0.9725, "blue": 0.9803,},
+                "req_bg_color",
+                {
+                    "red": 0.9215,
+                    "green": 0.9725,
+                    "blue": 0.9803,
+                },
             )
 
         boolean_rule = {
@@ -233,7 +242,9 @@ class ManifestGenerator(object):
 
         batch.add(
             self.drive_service.permissions().create(
-                fileId=fileId, body=worldPermission, fields="id",
+                fileId=fileId,
+                body=worldPermission,
+                fields="id",
             )
         )
         batch.execute()
@@ -255,12 +266,11 @@ class ManifestGenerator(object):
 
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
-        
-        if self.alphabetize and self.alphabetize.lower().startswith('a'):
+
+        if self.alphabetize and self.alphabetize.lower().startswith("a"):
             values.sort(reverse=False, key=str.lower)
-        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
+        elif self.alphabetize and self.alphabetize.lower().startswith("d"):
             values.sort(reverse=True, key=str.lower)
-        
 
         if validation_type == "ONE_OF_RANGE":
 
@@ -331,7 +341,6 @@ class ManifestGenerator(object):
             return prop["items"]["enum"]
         else:
             return []
-
 
     def _get_json_schema(self, json_schema_filepath: str) -> Dict:
         """Open json schema as a dictionary.
@@ -443,7 +452,7 @@ class ManifestGenerator(object):
             # constructor (it's optional) if not, instantiate it
             if not self.additional_metadata:
                 self.additional_metadata = {}
-            if self.is_file_based and 'Filename' in self.additional_metadata:
+            if self.is_file_based and "Filename" in self.additional_metadata:
                 self.additional_metadata["Component"] = [self.root] * max(
                     1, len(self.additional_metadata["Filename"])
                 )
@@ -658,7 +667,7 @@ class ManifestGenerator(object):
         }
         return vr_format_body
 
-    def _request_regex_vr(self, gs_formula, i:int, text_color={"red": 1}):
+    def _request_regex_vr(self, gs_formula, i: int, text_color={"red": 1}):
         """
         Generate request to change font color to black upon corretly formatted
         user entry.
@@ -679,9 +688,7 @@ class ManifestGenerator(object):
                                     "values": gs_formula,
                                 },
                                 "format": {
-                                    "textFormat": {
-                                        "foregroundColor": text_color
-                                    }
+                                    "textFormat": {"foregroundColor": text_color}
                                 },
                             },
                         },
@@ -692,9 +699,13 @@ class ManifestGenerator(object):
         }
         return requests_vr
 
-    def _request_regex_match_vr_formatting(self, validation_rules: List[str], i: int,
-        spreadsheet_id: str, requests_body: dict,
-        ):
+    def _request_regex_match_vr_formatting(
+        self,
+        validation_rules: List[str],
+        i: int,
+        spreadsheet_id: str,
+        requests_body: dict,
+    ):
         """
         Purpose:
             - Apply regular expression validaiton rules to google sheets.
@@ -753,7 +764,7 @@ class ManifestGenerator(object):
                     "red": 232.0 / 255.0,
                     "green": 80.0 / 255.0,
                     "blue": 70.0 / 255.0,
-                }
+                },
             )
 
             ## Create request to for conditionally formatting user input.
@@ -770,15 +781,10 @@ class ManifestGenerator(object):
                 validation_type="CUSTOM_FORMULA",
             )
 
-            requests_body["requests"].append(
-                requests_vr_format_body["requests"]
-            )
+            requests_body["requests"].append(requests_vr_format_body["requests"])
             requests_body["requests"].append(requests_vr["requests"])
-            requests_body["requests"].append(
-                requests_data_validation_vr["requests"]
-            )
+            requests_body["requests"].append(requests_data_validation_vr["requests"])
         return requests_body
-
 
     def _request_row_format(self, i, req):
         """Adding description to headers, this is not executed if
@@ -834,8 +840,8 @@ class ManifestGenerator(object):
             notes_body["requests"] (dict): with information on note
                 to add to the column header, about using multiselect.
                 This notes body will be added to a request.
-        """            
-       
+        """
+
         if rule_in_rule_list("list", validation_rules) and valid_values:
             note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
             notes_body = {
@@ -855,7 +861,9 @@ class ManifestGenerator(object):
             }
             return notes_body["requests"]
         elif rule_in_rule_list("list", validation_rules) and not valid_values:
-            note = "Please enter values as a comma separated list. For example: XX, YY, ZZ"
+            note = (
+                "Please enter values as a comma separated list. For example: XX, YY, ZZ"
+            )
             notes_body = {
                 "requests": [
                     {
@@ -978,8 +986,12 @@ class ManifestGenerator(object):
         return validation_body["requests"]
 
     def _dependency_formatting(
-        self, i, req_val, ordered_metadata_fields, val_dependencies,
-        dependency_formatting_body
+        self,
+        i,
+        req_val,
+        ordered_metadata_fields,
+        val_dependencies,
+        dependency_formatting_body,
     ):
         """If there are additional attribute dependencies find the corresponding
         fields that need to be filled in and construct conditional formatting rules
@@ -1033,9 +1045,7 @@ class ManifestGenerator(object):
                     "index": 0,
                 }
             }
-            dependency_formatting_body["requests"].append(
-                            conditional_format_rule
-                        )
+            dependency_formatting_body["requests"].append(conditional_format_rule)
         return dependency_formatting_body["requests"]
 
     def _request_dependency_formatting(
@@ -1072,14 +1082,15 @@ class ManifestGenerator(object):
             # set conditiaon formatting for dependencies.
             if val_dependencies:
                 dependency_formatting_body["requests"] = self._dependency_formatting(
-                    i, req_val, ordered_metadata_fields, val_dependencies,
-                    dependency_formatting_body
+                    i,
+                    req_val,
+                    ordered_metadata_fields,
+                    val_dependencies,
+                    dependency_formatting_body,
                 )
 
             if dependency_formatting_body["requests"]:
-                requests_body["requests"].append(
-                    dependency_formatting_body["requests"]
-                )
+                requests_body["requests"].append(dependency_formatting_body["requests"])
         return requests_body
 
     def _create_requests_body(
@@ -1114,9 +1125,9 @@ class ManifestGenerator(object):
             validation_rules = self.sg.get_node_validation_rules(req)
 
             if validation_rules:
-                requests_body =self._request_regex_match_vr_formatting(
-                        validation_rules, i, spreadsheet_id, requests_body
-                        )
+                requests_body = self._request_regex_match_vr_formatting(
+                    validation_rules, i, spreadsheet_id, requests_body
+                )
 
             if req in json_schema["properties"].keys():
                 valid_values = self._get_valid_values_from_jsonschema_property(
@@ -1158,8 +1169,10 @@ class ManifestGenerator(object):
             # for this field (i.e. if this field is set to a valid value that may require additional
             # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
 
-            requests_body = self._request_dependency_formatting(i, req_vals, ordered_metadata_fields, requests_body)
-           
+            requests_body = self._request_dependency_formatting(
+                i, req_vals, ordered_metadata_fields, requests_body
+            )
+
         # Set borders formatting
         borders_formatting = self._request_cell_borders()
         if borders_formatting:
@@ -1258,7 +1271,6 @@ class ManifestGenerator(object):
         )
         return manifest_url
 
-
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame
     ) -> ps.Spreadsheet:
@@ -1288,7 +1300,7 @@ class ManifestGenerator(object):
         # column-set of the existing manifest so that the user can modify their data if needed
         # to comply with the latest schema
 
-        # get headers from existing manifest and sheet 
+        # get headers from existing manifest and sheet
         wb_header = wb.get_row(1)
         manifest_df_header = manifest_df.columns
 
@@ -1297,8 +1309,8 @@ class ManifestGenerator(object):
 
         # clean empty columns if any are present (there should be none)
         # TODO: Remove this line once we start preventing empty column names
-        if '' in new_columns:
-            new_columns = new_columns.remove('')
+        if "" in new_columns:
+            new_columns = new_columns.remove("")
 
         # find missing columns present in existing manifest but missing in latest schema
         out_of_schema_columns = set(manifest_df_header) - set(wb_header)
@@ -1313,8 +1325,11 @@ class ManifestGenerator(object):
         # match latest schema order
         # move obsolete columns at the end
         manifest_df = manifest_df[self.sort_manifest_fields(manifest_df.columns)]
-        manifest_df = manifest_df[[c for c in manifest_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
-    
+        manifest_df = manifest_df[
+            [c for c in manifest_df if c not in out_of_schema_columns]
+            + list(out_of_schema_columns)
+        ]
+
         # The following line sets `valueInputOption = "RAW"` in pygsheets
         sh.default_parse = False
 
@@ -1324,11 +1339,15 @@ class ManifestGenerator(object):
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
         num_out_of_schema_columns = len(out_of_schema_columns)
-        if num_out_of_schema_columns > 0: 
-            start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
-            end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
-       
-            wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
+        if num_out_of_schema_columns > 0:
+            start_col = self._column_to_letter(
+                len(manifest_df.columns) - num_out_of_schema_columns
+            )  # find start of out of schema columns
+            end_col = self._column_to_letter(
+                len(manifest_df.columns) + 1
+            )  # find end of out of schema columns
+
+            wb.set_data_validation(start=start_col, end=end_col, condition_type=None)
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -1439,13 +1458,13 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
         """
-        
+
         # Handle case when no dataset ID is provided
         if not dataset_id:
             return self.get_empty_manifest(json_schema_filepath=json_schema)
 
         # Otherwise, create manifest using the given dataset
-        #TODO: avoid explicitly exposing Synapse store functionality
+        # TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
 
@@ -1453,8 +1472,10 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
-        manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
-       
+        manifest_record = store.updateDatasetManifestFiles(
+            self.sg, datasetId=dataset_id, store=False
+        )
+
         # Populate empty template with existing manifest
         if manifest_record:
 
@@ -1467,15 +1488,17 @@ class ManifestGenerator(object):
 
             # get URL of an empty manifest file created based on schema component
             empty_manifest_url = self.get_empty_manifest()
-            
+
             # populate empty manifest with content from downloaded/existing manifest
-            manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest_record[1])
+            manifest_sh = self.set_dataframe_by_url(
+                empty_manifest_url, manifest_record[1]
+            )
 
             return manifest_sh.url
 
         # Generate empty template and optionally fill in with annotations
         else:
-            
+
             # Using getDatasetAnnotations() to retrieve file names and subset
             # entities to files and folders (ignoring tables/views)
             annotations = pd.DataFrame()
@@ -1484,7 +1507,7 @@ class ManifestGenerator(object):
 
             # if there are no files with annotations just generate an empty manifest
             if annotations.empty:
-                manifest_url = self.get_empty_manifest() 
+                manifest_url = self.get_empty_manifest()
                 manifest_df = self.get_dataframe_by_url(manifest_url)
             else:
                 # Subset columns if no interested in user-defined annotations and there are files present
@@ -1492,13 +1515,14 @@ class ManifestGenerator(object):
                     annotations = annotations[["Filename", "eTag", "entityId"]]
 
                 # Update `additional_metadata` and generate manifest
-                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
+                manifest_url, manifest_df = self.get_manifest_with_annotations(
+                    annotations
+                )
 
             if sheet_url:
                 return manifest_url
             else:
                 return manifest_df
-
 
     def populate_manifest_spreadsheet(self, existing_manifest_path, empty_manifest_url):
         """Creates a google sheet manifest based on existing manifest.

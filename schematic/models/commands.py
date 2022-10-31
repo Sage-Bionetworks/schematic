@@ -10,7 +10,13 @@ import click_log
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict, parse_synIDs, parse_comma_str_to_list
+from schematic.utils.cli_utils import (
+    get_from_config,
+    fill_in_from_config,
+    query_dict,
+    parse_synIDs,
+    parse_comma_str_to_list,
+)
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
@@ -74,19 +80,20 @@ def model(ctx, config):  # use as `schematic model ...`
     "--hide_blanks",
     "-hb",
     is_flag=True,
-    help=query_dict(model_commands,("model","submit","hide_blanks")),
+    help=query_dict(model_commands, ("model", "submit", "hide_blanks")),
 )
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='both',
-    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
-    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
+    default="both",
+    type=click.Choice(["table", "entity", "both"], case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")),
+)
 @click.option(
     "-rr",
     "--restrict_rules",
     is_flag=True,
-    help=query_dict(model_commands,("model","validate","restrict_rules")),
+    help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.option(
     "-ps",
@@ -97,7 +104,15 @@ def model(ctx, config):  # use as `schematic model ...`
 )
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope,
+    ctx,
+    manifest_path,
+    dataset_id,
+    validate_component,
+    manifest_record_type,
+    use_schema_label,
+    hide_blanks,
+    restrict_rules,
+    project_scope,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -113,7 +128,7 @@ def submit_manifest(
 
     try:
         manifest_id = metadata_model.submit_metadata_manifest(
-            path_to_json_ld = jsonld,
+            path_to_json_ld=jsonld,
             manifest_path=manifest_path,
             dataset_id=dataset_id,
             validate_component=validate_component,
@@ -124,7 +139,7 @@ def submit_manifest(
             project_scope=project_scope,
         )
 
-        '''
+        """
         if censored_manifest_id:
             logger.info(
                 f"File at '{manifest_path}' was censored and successfully associated "
@@ -133,7 +148,7 @@ def submit_manifest(
                 f"and submitted to the Synapse Access Control Team to begin the process "
                 f"of adding terms of use or review board approval."
             )
-        '''
+        """
         if manifest_id:
             logger.info(
                 f"File at '{manifest_path}' was successfully associated "
@@ -181,7 +196,7 @@ def submit_manifest(
     "-rr",
     "--restrict_rules",
     is_flag=True,
-    help=query_dict(model_commands,("model","validate","restrict_rules")),
+    help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.option(
     "-ps",
@@ -191,12 +206,14 @@ def submit_manifest(
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope):
+def validate_manifest(
+    ctx, manifest_path, data_type, json_schema, restrict_rules, project_scope
+):
     """
     Running CLI for manifest validation.
     """
     data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
-    
+
     try:
         len(data_type) == 1
     except:
@@ -212,7 +229,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-    
+
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -222,7 +239,11 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules, project_scope=project_scope,
+        manifestPath=manifest_path,
+        rootNode=data_type,
+        jsonSchema=json_schema,
+        restrict_rules=restrict_rules,
+        project_scope=project_scope,
     )
 
     if not errors:

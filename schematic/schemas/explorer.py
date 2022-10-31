@@ -52,7 +52,7 @@ class SchemaExplorer:
         self.schema_nx = load_schema_into_networkx(self.schema)
 
     def export_schema(self, file_path):
-        with open(file_path, "w",encoding="utf8") as f:
+        with open(file_path, "w", encoding="utf8") as f:
             json.dump(self.schema, f, sort_keys=True, indent=4, ensure_ascii=False)
 
     def load_default_schema(self):
@@ -426,16 +426,18 @@ class SchemaExplorer:
 
         return class_info
 
-    def get_class_validation_rules(self,class_label):
-        rules=[]
+    def get_class_validation_rules(self, class_label):
+        rules = []
         class_info = self.explore_class(class_label)
-        
-        if 'validation_rules' in class_info:
-            rules=class_info['validation_rules']
+
+        if "validation_rules" in class_info:
+            rules = class_info["validation_rules"]
 
         return rules
 
-    def get_property_label_from_display_name(self, display_name, strict_camel_case = False):
+    def get_property_label_from_display_name(
+        self, display_name, strict_camel_case=False
+    ):
         """Convert a given display name string into a proper property label string"""
         """
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
@@ -443,29 +445,41 @@ class SchemaExplorer:
         """
         # This is the newer more strict method
         if strict_camel_case:
-            display_name = display_name.strip().translate({ord(c): "_" for c in string.whitespace})
+            display_name = display_name.strip().translate(
+                {ord(c): "_" for c in string.whitespace}
+            )
             label = inflection.camelize(display_name, uppercase_first_letter=False)
 
         # This method remains for backwards compatibility
         else:
-            display_name = display_name.translate({ord(c): None for c in string.whitespace})
-            label = inflection.camelize(display_name.strip(), uppercase_first_letter=False)
+            display_name = display_name.translate(
+                {ord(c): None for c in string.whitespace}
+            )
+            label = inflection.camelize(
+                display_name.strip(), uppercase_first_letter=False
+            )
 
         return label
 
-    def get_class_label_from_display_name(self, display_name, strict_camel_case = False):
+    def get_class_label_from_display_name(self, display_name, strict_camel_case=False):
         """Convert a given display name string into a proper class label string"""
         """
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))"""
         # This is the newer more strict method
         if strict_camel_case:
-            display_name = display_name.strip().translate({ord(c): "_" for c in string.whitespace})
+            display_name = display_name.strip().translate(
+                {ord(c): "_" for c in string.whitespace}
+            )
             label = inflection.camelize(display_name, uppercase_first_letter=True)
 
         # This method remains for backwards compatibility
         else:
-            display_name = display_name.translate({ord(c): None for c in string.whitespace})
-            label = inflection.camelize(display_name.strip(), uppercase_first_letter=True)
+            display_name = display_name.translate(
+                {ord(c): None for c in string.whitespace}
+            )
+            label = inflection.camelize(
+                display_name.strip(), uppercase_first_letter=True
+            )
 
         return label
 
@@ -619,7 +633,7 @@ class SchemaExplorer:
 
     def get_nodes_descendants(self, graph, component):
         """
-        Return a list of nodes reachable from source in graph 
+        Return a list of nodes reachable from source in graph
         graph: networkx graph object
         component: any given node
         """
@@ -629,7 +643,7 @@ class SchemaExplorer:
 
     def get_nodes_ancestors(self, graph, component):
         """
-        Return a list of nodes reachable from source in graph 
+        Return a list of nodes reachable from source in graph
         graph: networkx graph object
         component: any given node
         """

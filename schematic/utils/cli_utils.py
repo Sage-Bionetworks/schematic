@@ -121,8 +121,11 @@ def fill_in_from_config(
 
     return config_value
 
+
 def parse_synIDs(
-    ctx, param, synIDs,
+    ctx,
+    param,
+    synIDs,
 ) -> List[str]:
     """Parse and validate a comma separated string of synIDs
 
@@ -138,12 +141,12 @@ def parse_synIDs(
         List of synID strings
 
     Raises:
-        ValueError: If the entire string does not match a regex for 
+        ValueError: If the entire string does not match a regex for
             a valid comma separated string of SynIDs
     """
     if synIDs:
         project_regex = re.compile("(syn\d+\,?)+")
-        valid=project_regex.fullmatch(synIDs)
+        valid = project_regex.fullmatch(synIDs)
 
         if valid:
             synIDs = synIDs.split(",")
@@ -152,14 +155,17 @@ def parse_synIDs(
 
         else:
             raise ValueError(
-                        f"The provided list of project synID(s): {synIDs}, is not formatted correctly. "
-                        "\nPlease check your list of projects for errors."
-                    )
+                f"The provided list of project synID(s): {synIDs}, is not formatted correctly. "
+                "\nPlease check your list of projects for errors."
+            )
     else:
         return
 
+
 def parse_comma_str_to_list(
-    ctx, param, comma_string,
+    ctx,
+    param,
+    comma_string,
 ) -> List[str]:
 
     return comma_string.split(",")
