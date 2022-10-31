@@ -66,6 +66,7 @@ Jinja2 = "2.11.3"
 openpyxl = "^3.0.9"
 "backports.zoneinfo" = {markers = "python_version < \"3.9\"", version = "^0.2.1"}
 Flask-Cors = "^3.0.10"
+pre-commit = "^2.20.0"
 
 
 [tool.poetry.dev-dependencies]
@@ -102,7 +103,7 @@ extend-exclude = '''
     | api
     | docs
     | override_version.py
-    | schematic_cli_examples.ipynb
+    | Dockerfile
 
   )/
 )
