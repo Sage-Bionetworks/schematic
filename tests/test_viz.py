@@ -12,67 +12,79 @@ from schematic.visualization.tangled_tree import TangledTree
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
 @pytest.fixture
 def attributes_explorer(helpers):
 
     # Get JSONLD file path
     path_to_jsonld = helpers.get_data_path("example.model.jsonld")
-    
+
     # Initialize TangledTree
     attributes_explorer = AttributesExplorer(path_to_jsonld)
     yield attributes_explorer
 
+
 @pytest.fixture
 def tangled_tree(helpers):
-    figure_type = 'component'
+    figure_type = "component"
 
     # Get JSONLD file path
     path_to_jsonld = helpers.get_data_path("example.model.jsonld")
-    
+
     # Initialize TangledTree
     tangled_tree = TangledTree(path_to_jsonld, figure_type)
     yield tangled_tree
 
+
 class TestVisualization:
     def test_ae(self, helpers, attributes_explorer):
         attributes_str = attributes_explorer.parse_attributes(save_file=False)
-        
-        df = pd.read_csv(StringIO(attributes_str)).drop(columns=['Unnamed: 0'])
+
+        df = pd.read_csv(StringIO(attributes_str)).drop(columns=["Unnamed: 0"])
 
         # For the attributes df define expected columns
-        expect_col_names = ['Attribute', 'Label', 'Description',
-                            'Required', 'Cond_Req', 'Valid Values', 'Conditional Requirements',
-                            'Component']
-        expected_components = ['Biospecimen', 'Patient', 'BulkRNA-seqAssay']
-        
+        expect_col_names = [
+            "Attribute",
+            "Label",
+            "Description",
+            "Required",
+            "Cond_Req",
+            "Valid Values",
+            "Conditional Requirements",
+            "Component",
+        ]
+        expected_components = ["Biospecimen", "Patient", "BulkRNA-seqAssay"]
+
         # Get actual values
         actual_column_names = df.columns.tolist()
-        actual_components = df.loc[df['Attribute']== 'Component']['Component'].tolist()
+        actual_components = df.loc[df["Attribute"] == "Component"]["Component"].tolist()
 
         assert actual_column_names == expect_col_names
         assert actual_components == expected_components
 
     def test_text(self, helpers, tangled_tree):
-        text_format = 'plain'
+        text_format = "plain"
 
         # Get text for tangled tree.
         text_str = tangled_tree.get_text_for_tangled_tree(text_format, save_file=False)
-        
-        df= pd.read_csv(StringIO(text_str)).drop(columns=['Unnamed: 0'])
-        
+
+        df = pd.read_csv(StringIO(text_str)).drop(columns=["Unnamed: 0"])
+
         # Define expected text associated with 'Patient' and 'Imaging' tree
-        expected_patient_text = ['Biospecimen', 'BulkRNA-seqAssay']
+        expected_patient_text = ["Biospecimen", "BulkRNA-seqAssay"]
 
-        expected_Biospecimen_text = ['BulkRNA-seqAssay']
-        
+        expected_Biospecimen_text = ["BulkRNA-seqAssay"]
+
         # Get actual text
-        actual_patient_text = df.loc[df['Component'] == 'Patient']['name'].tolist()
+        actual_patient_text = df.loc[df["Component"] == "Patient"]["name"].tolist()
 
-        actual_Biospecimen_text = df.loc[df['Component'] == 'Biospecimen']['name'].tolist()
-        
+        actual_Biospecimen_text = df.loc[df["Component"] == "Biospecimen"][
+            "name"
+        ].tolist()
+
         # Check some random pieces of text we would assume to be in the plain text.
-        assert ((df['Component'] == 'Patient') & (df['name'] == 'Biospecimen')).any()
-        
+        assert ((df["Component"] == "Patient") & (df["name"] == "Biospecimen")).any()
+
         # Check the extracted text matches expected text.
         assert actual_patient_text == expected_patient_text
         assert actual_Biospecimen_text == expected_Biospecimen_text
@@ -81,46 +93,36 @@ class TestVisualization:
         layers_str = tangled_tree.get_tangled_tree_layers(save_file=False)[0]
 
         # Define what we expect the layers list to be.
-        expected_layers_list = [[
-                                        {
-                                        "id": "Patient",
-                                        "parents": [],
-                                        "direct_children": [
-                                            "Biospecimen"
-                                        ],
-                                        "children": [
-                                            "BulkRNA-seqAssay",
-                                            "Biospecimen",
-                                        ]
-                                        }
-                                    ],
-                                    [
-                                        {
-                                        "id": "Biospecimen",
-                                        "parents": [
-                                            "Patient"
-                                        ],
-                                        "direct_children": [
-                                            "BulkRNA-seqAssay"
-                                        ],
-                                        "children": [
-                                            "BulkRNA-seqAssay"
-                                        ]
-                                        }
-                                    ],
-                                    [
-                                        {
-                                        "id": "BulkRNA-seqAssay",
-                                        "parents": [
-                                            "Biospecimen"
-                                        ],
-                                        "direct_children": [],
-                                        "children": []
-                                        }
-                                    ]
-                                ]
+        expected_layers_list = [
+            [
+                {
+                    "id": "Patient",
+                    "parents": [],
+                    "direct_children": ["Biospecimen"],
+                    "children": [
+                        "BulkRNA-seqAssay",
+                        "Biospecimen",
+                    ],
+                }
+            ],
+            [
+                {
+                    "id": "Biospecimen",
+                    "parents": ["Patient"],
+                    "direct_children": ["BulkRNA-seqAssay"],
+                    "children": ["BulkRNA-seqAssay"],
+                }
+            ],
+            [
+                {
+                    "id": "BulkRNA-seqAssay",
+                    "parents": ["Biospecimen"],
+                    "direct_children": [],
+                    "children": [],
+                }
+            ],
+        ]
 
-                                
         # Get actual layers.
         actual_layers_list = json.loads(layers_str)
 
@@ -128,7 +130,12 @@ class TestVisualization:
         for index, item in enumerate(actual_layers_list):
             assert item[0]["id"] == expected_layers_list[index][0]["id"]
             assert item[0]["parents"] == expected_layers_list[index][0]["parents"]
-            assert item[0]["direct_children"] == expected_layers_list[index][0]["direct_children"]
+            assert (
+                item[0]["direct_children"]
+                == expected_layers_list[index][0]["direct_children"]
+            )
 
             # ensure that order of children doesn't matterß
-            assert set(item[0]["children"]) == set(expected_layers_list[index][0]["children"])
+            assert set(item[0]["children"]) == set(
+                expected_layers_list[index][0]["children"]
+            )

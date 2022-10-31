@@ -51,6 +51,7 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
 
+
 class TestBaseStorage:
     def test_init(self):
 
@@ -88,40 +89,40 @@ class TestSynapseStorage:
         manifest_path = "mock_manifests/annotations_test_manifest.csv"
 
         # Upload dataset annotations
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        inputModelLocaiton = helpers.get_data_path(
+            get_from_config(config.DATA, ("model", "input", "location"))
+        )
         sg = SchemaGenerator(inputModelLocaiton)
 
-        try:        
+        try:
             for attempt in Retrying(
-                stop = stop_after_attempt(15),
-                wait = wait_random_exponential(multiplier=1,min=10,max=120),
-                retry_error_callback = raise_final_error
-                ):
-                with attempt:         
+                stop=stop_after_attempt(15),
+                wait=wait_random_exponential(multiplier=1, min=10, max=120),
+                retry_error_callback=raise_final_error,
+            ):
+                with attempt:
                     manifest_id = synapse_store.associateMetadataWithFiles(
-                        schemaGenerator = sg,
-                        metadataManifestPath = helpers.get_data_path(manifest_path),
-                        datasetId = 'syn34295552',
-                        manifest_record_type = 'entity',
-                        useSchemaLabel = True,
-                        hideBlanks = True,
-                        restrict_manifest = False,
+                        schemaGenerator=sg,
+                        metadataManifestPath=helpers.get_data_path(manifest_path),
+                        datasetId="syn34295552",
+                        manifest_record_type="entity",
+                        useSchemaLabel=True,
+                        hideBlanks=True,
+                        restrict_manifest=False,
                     )
         except RetryError:
             pass
 
         # Retrive annotations
-        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
+        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][
+            0:2
+        ]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         # Check annotations of interest
-        assert annotations['CheckInt'] == '7'
-        assert annotations['CheckList'] == 'valid, list, values'
-        assert 'CheckRecommended' not in annotations.keys()
-
-
-
-
+        assert annotations["CheckInt"] == "7"
+        assert annotations["CheckList"] == "valid, list, values"
+        assert "CheckRecommended" not in annotations.keys()
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):

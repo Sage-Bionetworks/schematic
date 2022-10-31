@@ -81,7 +81,7 @@ black = {version = "^20.8b1", allow-prereleases = true}
 line-length = 88
 target-version = ['py37']
 include = '\.pyi?$'
-exclude = '''
+extend-exclude = '''
 
 (
   /(
@@ -89,6 +89,21 @@ exclude = '''
     | \.git
     | \.venv
     | dist
+    | tests
+    | schematic
+    | /schematic/etc
+    | /schematic/manifest
+    | /schematic/models
+    | /schematic/schemas
+    | /schematic/store 
+    | /schematic/utils
+    | /schematic/visualization      
+    | /run_api.py
+    | api
+    | docs
+    | override_version.py
+    | schematic_cli_examples.ipynb
+
   )/
 )
 '''

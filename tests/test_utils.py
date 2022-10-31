@@ -176,7 +176,34 @@ class TestIOUtils:
 
         schema_org_schema = io_utils.load_schemaorg()
 
-        expected_ctx_keys = ['brick', 'csvw', 'dc', 'dcam', 'dcat', 'dcmitype', 'dcterms', 'doap', 'foaf', 'odrl', 'org', 'owl', 'prof', 'prov', 'qb', 'rdf', 'rdfs', 'schema', 'sh', 'skos', 'sosa', 'ssn', 'time', 'vann', 'void', 'xsd']
+        expected_ctx_keys = [
+            "brick",
+            "csvw",
+            "dc",
+            "dcam",
+            "dcat",
+            "dcmitype",
+            "dcterms",
+            "doap",
+            "foaf",
+            "odrl",
+            "org",
+            "owl",
+            "prof",
+            "prov",
+            "qb",
+            "rdf",
+            "rdfs",
+            "schema",
+            "sh",
+            "skos",
+            "sosa",
+            "ssn",
+            "time",
+            "vann",
+            "void",
+            "xsd",
+        ]
         actual_ctx_keys = list(schema_org_schema["@context"].keys())
         assert expected_ctx_keys == actual_ctx_keys
 
