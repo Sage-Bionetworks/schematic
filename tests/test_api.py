@@ -3,7 +3,7 @@ import pytest
 from api import create_app
 import configparser
 import json
-from flask import jsonify
+import os
 
 '''
 To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
@@ -60,10 +60,18 @@ def test_get_storage_assets_tables(client, syn_token, return_type):
 
     response_dt = json.loads(response.data)
 
+    # if return type == json, returning json str
     if return_type == "json":
         assert isinstance(response_dt, str)
+    # if return type == csv, returning a csv file
     else:
         assert response_dt.endswith("file_view_table.csv")
+    # clean up 
+    if os.path.exists(response_dt):
+        os.remove(response_dt)
+    else: 
+        pass
+
 
 
 @pytest.mark.schematic_api
