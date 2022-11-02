@@ -72,6 +72,28 @@ def test_get_storage_assets_tables(client, syn_token, return_type):
     else: 
         pass
 
+@pytest.mark.schematic_api
+class TestSchemaGeneratorOperation:
+    @pytest.mark.parametrize("return_display_names", [True, False])
+    @pytest.mark.parametrize("node_label", ["FamilyHistory", "TissueStatus"])
+    def test_get_node_range(self, client, data_model_jsonld, return_display_names, node_label):
+        params = {
+            "schema_url": data_model_jsonld,
+            "return_display_names": return_display_names,
+            "node_label": node_label
+        }
+
+        response = client.get('http://localhost:3001/v1/explorer/get_node_range', query_string=params)
+        response_dt = json.loads(response.data)
+        assert response.status_code == 200
+
+        if "node_label" == "FamilyHistory": 
+            assert "Breast" in response_dt
+            assert "Lung" in response_dt
+
+        elif "node_label" == "TissueStatus":
+            assert "Healthy" in response_dt
+            assert "Malignant" in response_dt
 
 
 @pytest.mark.schematic_api
@@ -131,6 +153,8 @@ class TestManifestOperation:
         assert isinstance(response_dt[0], str)
         assert response_dt[0].startswith("https://docs.google.com/")
     
+
+
     @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
     def test_validate_manifest(self, data_model_jsonld, client, json_str, test_manifest_csv, test_manifest_json):
 
