@@ -4,6 +4,7 @@ from api import create_app
 import configparser
 import json
 import os
+import time
 
 '''
 To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
@@ -94,6 +95,54 @@ class TestSchemaGeneratorOperation:
         elif "node_label" == "TissueStatus":
             assert "Healthy" in response_dt
             assert "Malignant" in response_dt
+
+    @pytest.mark.parametrize("return_display_names", [None, True, False])
+    @pytest.mark.parametrize("return_schema_ordered", [None, True, False])
+    @pytest.mark.parametrize("source_node", ["Patient", "Biospecimen"])
+    def test_node_dependencies(self, client, data_model_jsonld, source_node, return_display_names, return_schema_ordered):
+
+        return_display_names = True
+        return_schema_ordered = False
+
+        params = {
+            "schema_url": data_model_jsonld,
+            "source_node": source_node,
+            "return_display_names": return_display_names,
+            "return_schema_ordered": return_schema_ordered
+        }
+
+        response = client.get('http://localhost:3001/v1/explorer/get_node_dependencies', query_string=params)
+        response_dt = json.loads(response.data)
+        assert response.status_code == 200
+
+        if source_node == "Patient":
+            # if doesn't get set, return_display_names == True
+            if return_display_names == True or return_display_names == None:
+                assert "Sex" and "Year of Birth" in response_dt
+
+                # by default, return_schema_ordered is set to True
+                if return_schema_ordered == True or return_schema_ordered == None:
+                    assert response_dt == ["Patient ID","Sex","Year of Birth","Diagnosis","Component"]
+                else: 
+                    assert "Year of Birth" in response_dt
+                    assert "Diagnosis" in response_dt
+                    assert "Patient ID" in response_dt            
+            else:
+                assert "YearofBirth" in response_dt
+
+        elif source_node == "Biospecimen":
+            if return_display_names == True or return_display_names == None:
+                assert "Tissue Status" in response_dt
+            else: 
+                assert "TissueStatus" in response_dt
+
+        
+
+        
+
+
+
+
 
 
 @pytest.mark.schematic_api
