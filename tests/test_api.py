@@ -75,6 +75,17 @@ def test_get_storage_assets_tables(client, syn_token, return_type):
 
 @pytest.mark.schematic_api
 class TestSchemaGeneratorOperation:
+    @pytest.mark.parametrize("relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"])
+    def test_get_subgraph_by_edge(self, client, data_model_jsonld, relationship):
+        params = {
+            "schema_url": data_model_jsonld,
+            "relationship": relationship
+        }
+
+        response = client.get("http://localhost:3001/v1/schemas/get/graph_by_edge_type", query_string=params)
+        assert response.status_code == 200
+
+
     @pytest.mark.parametrize("return_display_names", [True, False])
     @pytest.mark.parametrize("node_label", ["FamilyHistory", "TissueStatus"])
     def test_get_node_range(self, client, data_model_jsonld, return_display_names, node_label):
@@ -135,15 +146,6 @@ class TestSchemaGeneratorOperation:
                 assert "Tissue Status" in response_dt
             else: 
                 assert "TissueStatus" in response_dt
-
-        
-
-        
-
-
-
-
-
 
 @pytest.mark.schematic_api
 class TestManifestOperation:
