@@ -1413,7 +1413,7 @@ class SynapseStorage(BaseStorage):
                 # remove rows
                 self.syn.delete(existing_results)
                 # wait for row deletion to finish on synapse before getting empty table
-                sleep(1)
+                sleep(10)
                 
                 # removes all current columns
                 current_table = self.syn.get(existingTableId)
