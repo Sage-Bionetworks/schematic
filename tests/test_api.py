@@ -75,12 +75,34 @@ def test_get_storage_assets_tables(client, syn_token, return_type):
 
 
 @pytest.mark.schematic_api
+class TestMetadataModelOperation:
+    @pytest.mark.parametrize("as_graph", [True, False]) 
+    def test_component_requirement(self, client, data_model_jsonld, as_graph):
+        params = {
+            "schema_url": data_model_jsonld,
+            "source_component": "BulkRNA-seqAssay", 
+            "as_graph": as_graph
+        }
+
+        response = client.get("http://localhost:3001/v1/model/component-requirements", query_string = params)
+
+        assert response.status_code == 200
+
+        response_dt = json.loads(response.data)
+
+        if as_graph:
+            assert response_dt == [['Biospecimen','Patient'],['BulkRNA-seqAssay','Biospecimen']]
+        else: 
+            assert response_dt == ['Patient','Biospecimen','BulkRNA-seqAssay']
+
+
+@pytest.mark.schematic_api
 class TestSchemaExplorerOperation:
     @pytest.mark.parametrize("strict_camel_case", [True, False]) 
     def test_get_property_label_from_display_name(self, client, data_model_jsonld, strict_camel_case):
         params = {
             "schema_url": data_model_jsonld,
-            "display_name": "Mocular entity",
+            "display_name": "mocular entity",
             "strict_camel_case": strict_camel_case
         }
 
@@ -93,6 +115,7 @@ class TestSchemaExplorerOperation:
             assert response_dt == "mocularEntity"
         else:
             assert response_dt == "mocularentity"
+            
     def test_get_schema(self, client, data_model_jsonld):
         params = {
             "schema_url": data_model_jsonld
