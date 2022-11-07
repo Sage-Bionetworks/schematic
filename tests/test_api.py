@@ -4,6 +4,7 @@ from api import create_app
 import configparser
 import json
 import os
+from pathlib import Path
 
 
 '''
@@ -115,7 +116,7 @@ class TestSchemaExplorerOperation:
             assert response_dt == "mocularEntity"
         else:
             assert response_dt == "mocularentity"
-            
+
     def test_get_schema(self, client, data_model_jsonld):
         params = {
             "schema_url": data_model_jsonld
@@ -262,8 +263,6 @@ class TestManifestOperation:
         assert isinstance(response_dt[0], str)
         assert response_dt[0].startswith("https://docs.google.com/")
     
-
-
     @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
     def test_validate_manifest(self, data_model_jsonld, client, json_str, test_manifest_csv, test_manifest_json):
 
@@ -301,6 +300,53 @@ class TestManifestOperation:
 
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
+
+    def test_get_datatype_manifest(self, client, syn_token):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn23643253",
+            "manifest_id": "syn27600110"
+        }
+
+        response = client.get('http://localhost:3001/v1/get/datatype/manifest', query_string=params)  
+
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+        assert response_dt =={
+                "Cancer Type": "string",
+                "Component": "string",
+                "Diagnosis": "string",
+                "Family History": "string",
+                "Patient ID": "Int64",
+                "Sex": "string",
+                "Year of Birth": "Int64",
+                "entityId": "string"}
+
+    @pytest.mark.parametrize("as_json", [None, True, False])
+    @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
+    def test_manifest_download(self, client, as_json, syn_token, new_manifest_name):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn28559058",
+            "dataset_id": "syn28268700",
+            "as_json": as_json,
+            "new_manifest_name": new_manifest_name
+        }
+
+        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        assert response.status_code == 200
+        response_dt = response.data
+
+        if as_json: 
+            response_json = json.loads(response_dt)
+            assert response_json == [{'Component': 'BulkRNA-seqAssay', 'File Format': 'CSV/TSV', 'Filename': 'Sample_A', 'Genome Build': 'GRCm38', 'Genome FASTA': None, 'Sample ID': 2022, 'entityId': 'syn28278954'}]
+        else:
+            # return a file path
+            response_path = response_dt.decode('utf-8')
+
+            assert isinstance(response_path, str)
+            assert response_path.endswith(".csv")
+
 
 
 
