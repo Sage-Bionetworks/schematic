@@ -93,6 +93,20 @@ class TestSchemaExplorerOperation:
             assert response_dt == "mocularEntity"
         else:
             assert response_dt == "mocularentity"
+    def test_get_schema(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld
+        }
+        response = client.get("http://localhost:3001/v1/schemas/get/schema", query_string = params)
+
+        response_dt = response.data
+        assert response.status_code == 200
+        assert os.path.exists(response_dt)
+
+        # if path exists, remove the file
+        if os.path.exists(response_dt):
+            os.remove(response_dt)
+
 
 
 @pytest.mark.schematic_api
