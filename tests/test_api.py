@@ -4,7 +4,7 @@ from api import create_app
 import configparser
 import json
 import os
-import time
+
 
 '''
 To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
@@ -72,6 +72,28 @@ def test_get_storage_assets_tables(client, syn_token, return_type):
         os.remove(response_dt)
     else: 
         pass
+
+
+@pytest.mark.schematic_api
+class TestSchemaExplorerOperation:
+    @pytest.mark.parametrize("strict_camel_case", [True, False]) 
+    def test_get_property_label_from_display_name(self, client, data_model_jsonld, strict_camel_case):
+        params = {
+            "schema_url": data_model_jsonld,
+            "display_name": "Mocular entity",
+            "strict_camel_case": strict_camel_case
+        }
+
+        response = client.get("http://localhost:3001/v1/explorer/get_property_label_from_display_name", query_string = params)
+        assert response.status_code == 200
+
+        response_dt = json.loads(response.data)
+
+        if strict_camel_case:
+            assert response_dt == "mocularEntity"
+        else:
+            assert response_dt == "mocularentity"
+
 
 @pytest.mark.schematic_api
 class TestSchemaGeneratorOperation:
@@ -149,7 +171,6 @@ class TestSchemaGeneratorOperation:
 
 @pytest.mark.schematic_api
 class TestManifestOperation:
-
     @pytest.mark.parametrize("data_type", ["Patient", "all manifests", ["Biospecimen", "Patient"]])
     def test_generate_manifest(self, client, data_model_jsonld, data_type):
         # set dataset
