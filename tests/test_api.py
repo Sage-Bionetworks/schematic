@@ -4,7 +4,6 @@ from api import create_app
 import configparser
 import json
 import os
-from pathlib import Path
 
 
 '''
