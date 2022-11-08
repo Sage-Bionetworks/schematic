@@ -506,7 +506,7 @@ class GenerateError:
             # If not required or recommended raise nothing. 
             ## Redundant setting to None here again but including for clarity
             else:
-                level = None 
+                level = 'warning' 
                 return level
 
         
