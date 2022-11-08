@@ -160,7 +160,7 @@ class GreatExpectationsHelpers(object):
             if validation_rules:
                 #iterate through all validation rules for an attribute
                 for rule in validation_rules:
-                    
+                    base_rule = rule.split(" ")[0]
             
                     #check if rule has an implemented expectation
                     if rule_in_rule_list(rule,self.unimplemented_expectations):
@@ -170,8 +170,9 @@ class GreatExpectationsHelpers(object):
                     args["column"] = col
                     args["result_format"] = "COMPLETE"
 
+
                     #Validate num
-                    if rule=='num':
+                    if base_rule=='num':
                         args["mostly"]=1.0
                         args["type_list"]=['int','int64', 'float', 'float64']
                         meta={
@@ -183,7 +184,7 @@ class GreatExpectationsHelpers(object):
                         }
                 
                     #Validate float
-                    elif rule=='float':
+                    elif base_rule=='float':
                         args["mostly"]=1.0
                         args["type_list"]=['float', 'float64']
                         meta={
@@ -195,7 +196,7 @@ class GreatExpectationsHelpers(object):
                         }
                 
                     #Validate int
-                    elif rule=='int':
+                    elif base_rule=='int':
                         args["mostly"]=1.0
                         args["type_list"]=['int','int64']
                         meta={
@@ -207,7 +208,7 @@ class GreatExpectationsHelpers(object):
                         }
                 
                     #Validate string
-                    elif rule=='str':
+                    elif base_rule=='str':
                         args["mostly"]=1.0
                         args["type_"]='str'
                         meta={
@@ -218,7 +219,7 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
 
-                    elif rule.startswith("recommended"):
+                    elif base_rule==("recommended"):
                         args["mostly"]=0.0000000001
                         args["regex_list"]=['^$']
                         meta={
@@ -229,7 +230,7 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
 
-                    elif rule.startswith("protectAges"):
+                    elif base_rule==("protectAges"):
                         #Function to convert to different age limit formats
                         min_age, max_age = self.get_age_limits()
 
@@ -244,7 +245,7 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
 
-                    elif rule.startswith("unique"):
+                    elif base_rule==("unique"):
                         args["mostly"]=1.0
                         meta={
                             "notes": {
@@ -254,7 +255,7 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
                     
-                    elif rule.startswith("inRange"):
+                    elif base_rule==("inRange"):
                         args["mostly"]=1.0
                         args["min_value"]=float(rule.split(" ")[1])
                         args["max_value"]=float(rule.split(" ")[2])
