@@ -1,6 +1,6 @@
 import os
 import logging
-from pathlib import Path
+
 import click
 import click_log
 import logging
@@ -12,7 +12,7 @@ from schematic.utils.cli_utils import fill_in_from_config, query_dict, parse_syn
 from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel, export_manifest_drive_service
+from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel
 from schematic.store.synapse import SynapseStorage
 
 logger = logging.getLogger(__name__)
@@ -147,26 +147,8 @@ def get_manifest(
         )
 
         # call get_manifest() on manifest_generator
-        # if output_xlsx gets specified, output_format = "excel"
-        if output_xlsx: 
-            output_format = "excel"
-
-            # if file name is in the path, and that file does not exist
-            if not os.path.exists(output_xlsx):
-                if ".xlsx" or ".xls" in output_xlsx:
-                    path = Path(output_xlsx)
-                    output_path = path.parent.absolute()
-                else: 
-                    logger.error(f"{output_xlsx} does not exists. Please try a valid file path")
-
-            else: 
-                output_path = output_xlsx
-        else: 
-            output_format = None
-            output_path = None
-
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema, output_format = output_format, output_path = output_path
+            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema,
         )
 
         if sheet_url:
@@ -178,13 +160,13 @@ def get_manifest(
             if prefix_ext == ".model":
                 prefix = prefix_root
             output_csv = f"{prefix}.{data_type}.manifest.csv"
-
         elif output_xlsx:
+            export_manifest_excel(output_excel=output_xlsx, manifest=result)
             logger.info(
                 f"Find the manifest template using this Excel file path: {output_xlsx}"
             )
             return result
-        export_manifest_csv(file_path=output_csv, manifest=result)
+        export_manifest_csv(file_name=output_csv, manifest=result)
         logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
@@ -202,12 +184,8 @@ def get_manifest(
             result = create_single_manifest(data_type = component)
     else:
         for dt in data_type:
-            if len(data_type) > 1 and not output_xlsx:
+            if len(data_type) > 1:
                 t = f'{title}.{dt}.manifest'
-            elif output_xlsx: 
-                if ".xlsx" or ".xls" in output_xlsx:
-                    title_with_extension = os.path.basename(output_xlsx)
-                    t = title_with_extension.split('.')[0]
             else:
                 t = title
             result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
