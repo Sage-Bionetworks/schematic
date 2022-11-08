@@ -22,68 +22,81 @@ def validation_rule_info():
             "int": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',]},
+                'complementary_rules': ['inRange',],
+                'default_message_level': 'error'},
 
             "float": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',]},
+                'complementary_rules': ['inRange',],
+                'default_message_level': 'error'},
 
             "num": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',]},
+                'complementary_rules': ['inRange',],
+                'default_message_level': 'error'},
 
             "str": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'error'},
 
             "regex": {
                 'arguments':(3, 2), 
                 'fixed_arg': ['strict'], 
                 'type': "regex_validation",
-                'complementary_rules': ['list']},
+                'complementary_rules': ['list'],
+                'default_message_level': 'error'},
 
             "url" : {
                 'arguments':(101, 0), 
                 'type': "url_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'error'},
 
             "list": {
                 'arguments':(2, 0), 
                 'type': "list_validation",
-                'complementary_rules': ['regex']},
+                'complementary_rules': ['regex'],
+                'default_message_level': 'error'},
                 
             "matchAtLeastOne": {
                 'arguments':(3, 2), 
                 'type': "cross_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'warning'},
 
             "matchExactlyOne": {
                 'arguments':(3, 2), 
                 'type': "cross_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'warning'},
                 
             "recommended": {
                 'arguments':(1, 0), 
                 'type': "content_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'warning'},
 
             "protectAges": {
                 'arguments':(1, 0), 
                 'type': "content_validation",
-                'complementary_rules': ['inRange',]},
+                'complementary_rules': ['inRange',],
+                'default_message_level': 'warning'},
 
             "unique": {
                 'arguments':(1, 0), 
                 'type': "content_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'error'},
                 
             "inRange": {
                 'arguments':(3, 2), 
                 'type': "content_validation",
-                'complementary_rules': ['int','float','num','protectAges']},
+                'complementary_rules': ['int','float','num','protectAges'],
+                'default_message_level': 'error'},
             }
 
     return rule_dict
