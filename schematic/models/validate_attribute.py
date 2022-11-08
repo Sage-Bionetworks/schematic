@@ -492,6 +492,8 @@ class GenerateError:
             else:
                 level = 'warning' 
                 return level
+        elif sg.is_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
+            level = None
         
         
         # Parse rule for level, set to default if not specified
