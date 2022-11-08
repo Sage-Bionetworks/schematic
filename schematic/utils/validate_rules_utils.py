@@ -20,53 +20,53 @@ def validation_rule_info():
     '''
     rule_dict = {
             "int": {
-                'arguments':(None, None),
+                'arguments':(1, 0),
                 'type': "type_validation",
                 'complementary_rules': ['inRange',]},
 
             "float": {
-                'arguments':(None, None), 
+                'arguments':(1, 0),
                 'type': "type_validation",
                 'complementary_rules': ['inRange',]},
 
             "num": {
-                'arguments':(None, None), 
+                'arguments':(1, 0),
                 'type': "type_validation",
                 'complementary_rules': ['inRange',]},
 
             "str": {
-                'arguments':(None, None), 
+                'arguments':(1, 0),
                 'type': "type_validation",
                 'complementary_rules': None},
 
             "regex": {
-                'arguments':(2, 2), 
+                'arguments':(3, 2), 
                 'fixed_arg': ['strict'], 
                 'type': "regex_validation",
                 'complementary_rules': ['list']},
 
             "url" : {
-                'arguments':(None, None), 
+                'arguments':(101, 0), 
                 'type': "url_validation",
                 'complementary_rules': None},
 
             "list": {
-                'arguments':(1, 0), 
+                'arguments':(2, 0), 
                 'type': "list_validation",
                 'complementary_rules': ['regex']},
                 
             "matchAtLeastOne": {
-                'arguments':(2, 2), 
+                'arguments':(3, 2), 
                 'type': "cross_validation",
                 'complementary_rules': None},
 
             "matchExactlyOne": {
-                'arguments':(2, 2), 
+                'arguments':(3, 2), 
                 'type': "cross_validation",
                 'complementary_rules': None},
                 
             "recommended": {
-                'arguments':(None, None), 
+                'arguments':(1, 0), 
                 'type': "content_validation",
                 'complementary_rules': None},
 
