@@ -47,31 +47,99 @@ def syn_token(config):
     yield token
 
 @pytest.mark.schematic_api
-@pytest.mark.parametrize("return_type", ["json", "csv"])
-def test_get_storage_assets_tables(client, syn_token, return_type):
-    params = {
+class TestSynapseStorage:
+    @pytest.mark.parametrize("return_type", ["json", "csv"])
+    def test_get_storage_assets_tables(self, client, syn_token, return_type):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn23643253",
+            "return_type": return_type
+        }
+
+        response = client.get('http://localhost:3001/v1/storage/assets/tables', query_string=params)
+
+        assert response.status_code == 200
+
+        response_dt = json.loads(response.data)
+
+        # if return type == json, returning json str
+        if return_type == "json":
+            assert isinstance(response_dt, str)
+        # if return type == csv, returning a csv file
+        else:
+            assert response_dt.endswith("file_view_table.csv")
+        # clean up 
+        if os.path.exists(response_dt):
+            os.remove(response_dt)
+        else: 
+            pass
+    @pytest.mark.parametrize("full_path", [True, False])
+    @pytest.mark.parametrize("file_names", [None, "Sample_A.txt"])
+    def test_get_dataset_files(self, client, syn_token, full_path, file_names):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn23643253",
+            "dataset_id": "syn23643250",
+            "full_path": full_path,
+        }
+
+        if file_names:
+            params["file_names"] = file_names
+        
+        response = client.get('http://localhost:3001/v1/storage/dataset/files', query_string=params)
+
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+
+        # would show full file path .txt in result
+        if full_path:
+            if file_names: 
+                assert ["syn23643255","schematic - main/DataTypeX/Sample_A.txt"] and ["syn24226530","schematic - main/TestDatasets/TestDataset-Annotations/Sample_A.txt"] and ["syn25057024","schematic - main/TestDatasets/TestDataset-Annotations-v2/Sample_A.txt"] in response_dt
+            else: 
+                assert   ["syn23643255","schematic - main/DataTypeX/Sample_A.txt"] in response_dt
+        else: 
+            if file_names: 
+                assert ["syn23643255","Sample_A.txt"] and ["syn24226530","Sample_A.txt"] and ["syn25057024","Sample_A.txt"] in response_dt
+            else: 
+                assert ["syn25705259","Boolean Test"] and ["syn23667202","DataTypeX_table"] in response_dt
+        
+    def test_get_storage_project_dataset(self, client, syn_token):
+        params = {
         "input_token": syn_token,
         "asset_view": "syn23643253",
-        "return_type": return_type
-    }
+        "project_id": "syn26251192"
+        }
 
-    response = client.get('http://localhost:3001/v1/storage/assets/tables', query_string=params)
+        response = client.get("http://localhost:3001/v1/storage/project/datasets", query_string = params)
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+        assert ["syn26251193","Issue522"] in response_dt
 
-    assert response.status_code == 200
+    def test_get_storage_project_manifests(self, client, syn_token):
 
-    response_dt = json.loads(response.data)
+        params = {
+        "input_token": syn_token,
+        "asset_view": "syn23643253",
+        "project_id": "syn30988314"
+        }
 
-    # if return type == json, returning json str
-    if return_type == "json":
-        assert isinstance(response_dt, str)
-    # if return type == csv, returning a csv file
-    else:
-        assert response_dt.endswith("file_view_table.csv")
-    # clean up 
-    if os.path.exists(response_dt):
-        os.remove(response_dt)
-    else: 
-        pass
+        response = client.get("http://localhost:3001/v1/storage/project/manifests", query_string=params)
+
+        assert response.status_code == 200
+
+    def test_get_storage_projects(self, client, syn_token):
+
+        params = {
+        "input_token": syn_token,
+        "asset_view": "syn23643253"
+        }
+
+        response = client.get("http://localhost:3001/v1/storage/projects", query_string = params)
+
+        assert response.status_code == 200
+    
+
+        
 
 
 @pytest.mark.schematic_api
@@ -374,6 +442,27 @@ class TestManifestOperation:
             assert response_csv.status_code == 200     
 
 
+@pytest.mark.schematic_api
+class TestSchemaVisualization:
+    def test_visualize_attributes(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld
+        }
+
+        response = client.get("http://localhost:3001/v1/visualize/attributes", query_string = params)
+
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("figure_type", ["component", "dependency"])
+    def test_visualize_tangled_tree_layers(self, client, figure_type, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "figure_type": figure_type
+        }
+
+        response = client.get("http://localhost:3001/v1/visualize/tangled_tree/layers", query_string = params)
+
+        assert response.status_code == 200
 
 
 
