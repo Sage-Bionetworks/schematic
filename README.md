@@ -212,7 +212,6 @@ docker run --rm -p 3001:3001 \
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
-  -e SCHEMATIC_CONFIG=/schematic/config.yml \
   -e GE_HOME=/usr/src/app/great_expectations/ \
   -e SCHEMATIC_CONFIG_CONTENT=$SCHEMATIC_CONFIG_CONTENT \
   sagebionetworks/schematic \
