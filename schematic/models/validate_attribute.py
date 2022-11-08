@@ -19,6 +19,7 @@ from schematic.store.synapse import SynapseStorage
 from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.validate_utils import comma_separated_list_regex
+from schematic.utils.validate_rules_utils import validation_rule_info
 import time
 
 from schematic.utils.validate_utils import parse_str_series_to_list
@@ -480,29 +481,44 @@ class GenerateError:
                 sg: schemaGenerator object
                 attribute_name: str, attribute being validated
         Returns:
-            'error' or 'warning'
+            'error', 'warning' or None
         """
 
-        if val_rule:
-            rule_parts = val_rule.split(" ")
-            
-            #See if the node is required, if it is and the column is missing then a requirement error will be raised later; no error or waring logged here if recommended and required but missing        
-            if val_rule.startswith('recommended') and sg.is_node_required(node_display_name=attribute_name):
-                level = None
-            
-            #if not required, use the message level specified in the rule
-            elif rule_parts[-1].lower() == 'error':
-                level = 'error'
+        level = None
+        rule_parts = val_rule.split(" ")
+        # if node is not required, return None
+        # if node is recommended and requried, return None
+            # TODO: recommended and other rules
+        # if validion type is cross manifest, default to warning but parse
+        # if validation type is content, default to warning but parse
+        # if validation rule is other, default to error but parse
 
-            elif rule_parts[-1].lower() == 'warning':
+
+        print(rule_parts) 
+
+
+        rule_info = validation_rule_info()
+
+        if not sg.is_node_required(node_display_name=attribute_name):
+            # raise warning if recommended but not required
+            if 'recommended' in val_rule:
                 level = 'warning'
-            
-            #if no level specified, the default level is warning
+            # If not required or recommended raise nothing. 
+            ## Redundant setting to None here again but including for clarity
             else:
-                level = 'warning'
-        else:
+                level = None 
+                return level
+
+        
+        # Parse rule for level, set to default if not specified
+        if rule_parts[-1].lower() == 'error':
             level = 'error'
+        elif rule_parts[-1].lower() == 'warning':
+            level = 'warning'
+        else:
+            level = rule_info[rule_parts[0]]['default_message_level']
             
+        print(level)
         return level
 
 class ValidateAttribute(object):
