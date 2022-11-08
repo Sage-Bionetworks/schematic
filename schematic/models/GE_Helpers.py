@@ -409,15 +409,17 @@ class GreatExpectationsHelpers(object):
                 #call functions to generate error messages and add to error list
                 if validation_types[rule.split(" ")[0]]['type']=='type_validation':
                     for row, value in zip(indices,values):
-                        errors.append(
-                            GenerateError.generate_type_error(
+                        vr_errors, vr_warnings = GenerateError.generate_type_error(
                                 val_rule = rule,
                                 row_num = row+2,
                                 attribute_name = errColumn,
                                 invalid_entry = value,
                                 sg = sg,
                             )
-                        )          
+                    if vr_errors:
+                        errors.append(vr_errors)  
+                    if vr_warnings:
+                        warnings.append(vr_warnings) 
                 elif validation_types[rule.split(" ")[0]]['type']=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
 
@@ -434,22 +436,22 @@ class GreatExpectationsHelpers(object):
                             )
                         )    
                 elif validation_types[rule.split(" ")[0]]['type']=='content_validation':     
-                    content_errors, content_warnings = GenerateError.generate_content_error(
+                    vr_errors, vr_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,
                                                             row_num = list(np.array(indices)+2),
                                                             error_val = values,  
                                                             sg = self.sg
                                                         )       
-                    if content_errors:
-                        errors.append(content_errors)  
+                    if vr_errors:
+                        errors.append(vr_errors)  
                         if rule.startswith('protectAges'):
-                            self.censor_ages(content_errors,errColumn)
+                            self.censor_ages(vr_errors,errColumn)
                             pass
-                    elif content_warnings:
-                        warnings.append(content_warnings)  
+                    if vr_warnings:
+                        warnings.append(vr_warnings)  
                         if rule.startswith('protectAges'):
-                            self.censor_ages(content_warnings,errColumn)
+                            self.censor_ages(vr_warnings,errColumn)
                             pass
 
         return errors, warnings
