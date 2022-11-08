@@ -71,7 +71,6 @@ class GenerateError:
             val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
-            invalid_entry = invalid_entry,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -132,7 +131,6 @@ class GenerateError:
             val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
-            invalid_entry = invalid_entry,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -184,7 +182,6 @@ class GenerateError:
             val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
-            invalid_entry = invalid_entry,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -249,7 +246,6 @@ class GenerateError:
             val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
-            invalid_entry = invalid_entry,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -329,7 +325,6 @@ class GenerateError:
             val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
-            invalid_entry = invalid_entry,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -409,7 +404,6 @@ class GenerateError:
             val_rule=val_rule,
             attribute_name = attribute_name,
             sg = sg,
-            invalid_entry = error_val,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -465,7 +459,6 @@ class GenerateError:
     def get_message_level(
         sg: SchemaGenerator,
         attribute_name: str,
-        invalid_entry,
         val_rule: str,
         ) -> str:
         """
