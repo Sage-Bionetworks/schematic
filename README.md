@@ -182,13 +182,15 @@ For new features, bugs, enhancements
 ## Installation Guide - Docker 
 
 1. Install docker from https://www.docker.com/ . <br>
-2.  Identify docker container of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
-    Ex `docker pull sagebionetworks/schematic:latest` from the CLI or, run `docker compose up` after cloning the schematic github repo 
+2.  Identify docker image of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
+    Ex `docker pull sagebionetworks/schematic:latest` from the CLI or, run `docker compose up` after cloning the schematic github repo <br>
+    in this case, `sagebionetworks/schematic:latest` is the name of the image chosen
 3. Run Schematic Command with `docker run <flags> <schematic command and args>`. <br>
 <t> - For more information on flags for `docker run` and what they do, visit the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) <br>
 <t> - These example commands assume that you have navigated to the directory you want to run schematic from. To specify your working directory, use `$(pwd)` on MacOS/Linux or `%cd%` on Windows.  <br>
-<t> - If not using the latest image, then the full name should be specified: ie `sagebionetworks/schematic:commit-e611e4a`
-<t> - If using local image created by `docker compose up`, then the docker image name should be changed: i.e. `schematic_schematic`
+<t> - If not using the latest image, then the full name should be specified: ie `sagebionetworks/schematic:commit-e611e4a` <br>
+<t> - If using local image created by `docker compose up`, then the docker image name should be changed: i.e. `schematic_schematic` <br>
+<t> - Using the `--name` flag sets the name of the container running locally on your machine <br>
 
 ### Example For REST API <br>
 
@@ -227,7 +229,7 @@ docker run \
   -w /schematic \
   -e SCHEMATIC_CONFIG=/schematic/config.yml \
   -e GE_HOME=/usr/src/app/great_expectations/ \
-  aws_dca_schematic_deploy-schematic schematic model \
+  sagebionetworks/schematic schematic model \
   -c /schematic/config.yml validate \
   -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
   -dt MockComponent \
