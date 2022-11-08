@@ -843,6 +843,7 @@ class ValidateAttribute(object):
                                     argument=arg,
                                     invalid_entry=manifest_col[i],
                                     sg = sg,
+                                    val_rule = val_rule,
                                 )
                             if vr_errors:
                                 errors.append(vr_errors)
