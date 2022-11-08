@@ -47,7 +47,7 @@ class GenerateError:
 
     def generate_list_error(
         list_string: str, row_num: str, attribute_name: str, list_error: str,
-        invalid_entry:str, sg: SchemaGenerator,
+        invalid_entry:str, sg: SchemaGenerator, val_rule: str,
     ) -> List[str]:
         """
             Purpose:
@@ -67,6 +67,7 @@ class GenerateError:
         
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
+            val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
             invalid_entry = invalid_entry,
@@ -127,6 +128,7 @@ class GenerateError:
         
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
+            val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
             invalid_entry = invalid_entry,
@@ -178,6 +180,7 @@ class GenerateError:
         
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
+            val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
             invalid_entry = invalid_entry,
@@ -211,7 +214,7 @@ class GenerateError:
 
     def generate_url_error(
         url: str, url_error: str, row_num: str, attribute_name: str, argument: str,
-        invalid_entry:str, sg: SchemaGenerator,
+        invalid_entry:str, sg: SchemaGenerator, val_rule: str,
     ) -> List[str]:
         """
             Purpose:
@@ -242,6 +245,7 @@ class GenerateError:
         
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
+            val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
             invalid_entry = invalid_entry,
@@ -321,7 +325,7 @@ class GenerateError:
         
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
-            val_rule=val_rule,
+            val_rule = val_rule,
             attribute_name = attribute_name,
             sg = sg,
             invalid_entry = invalid_entry,
@@ -461,7 +465,7 @@ class GenerateError:
         sg: SchemaGenerator,
         attribute_name: str,
         invalid_entry,
-        val_rule: str = None,
+        val_rule: str,
         ) -> str:
         """
         Purpose:
@@ -584,6 +588,7 @@ class ValidateAttribute(object):
                             list_error=list_error,
                             invalid_entry=manifest_col[i],
                             sg = sg,
+                            val_rule = val_rule, 
                         )
                     if vr_errors:
                         errors.append(vr_errors)
@@ -652,6 +657,8 @@ class ValidateAttribute(object):
                         vr_errors, vr_warnings = GenerateError.generate_regex_error(
                                 val_rule,
                                 reg_expression,
+                                val_rule = val_rule,
+                                reg_expression = reg_expression,
                                 row_num=str(i + 2),
                                 module_to_call=reg_exp_rules[1],
                                 attribute_name=manifest_col.name,
@@ -673,6 +680,8 @@ class ValidateAttribute(object):
                     vr_errors, vr_warnings = GenerateError.generate_regex_error(
                             val_rule,
                             reg_expression,
+                            val_rule = val_rule,
+                            reg_expression = reg_expression,
                             row_num=str(i + 2),
                             module_to_call=reg_exp_rules[1],
                             attribute_name=manifest_col.name,
@@ -720,7 +729,7 @@ class ValidateAttribute(object):
             for i, value in enumerate(manifest_col):
                 if bool(value) and not isinstance(value, specified_type[val_rule]):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
-                            val_rule,
+                            val_rule = val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             invalid_entry=str(manifest_col[i]),
@@ -734,7 +743,7 @@ class ValidateAttribute(object):
             for i, value in enumerate(manifest_col):
                 if bool(value) and not isinstance(value, specified_type[val_rule]):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
-                            val_rule,
+                            val_rule = val_rule ,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             invalid_entry=str(manifest_col[i]),
@@ -786,6 +795,7 @@ class ValidateAttribute(object):
                         argument=url_args,
                         invalid_entry=manifest_col[i],
                         sg = sg,
+                        val_rule = val_rule,
                     )
                 if vr_errors:
                     errors.append(vr_errors)
@@ -813,6 +823,7 @@ class ValidateAttribute(object):
                             argument=url_args,
                             invalid_entry=manifest_col[i],
                             sg = sg,
+                            val_rule = val_rule,
                         )
                     if vr_errors:
                         errors.append(vr_errors)
