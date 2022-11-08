@@ -655,8 +655,6 @@ class ValidateAttribute(object):
                         re_to_check
                     ):
                         vr_errors, vr_warnings = GenerateError.generate_regex_error(
-                                val_rule,
-                                reg_expression,
                                 val_rule = val_rule,
                                 reg_expression = reg_expression,
                                 row_num=str(i + 2),
@@ -678,8 +676,6 @@ class ValidateAttribute(object):
                     re_to_check
                 ):
                     vr_errors, vr_warnings = GenerateError.generate_regex_error(
-                            val_rule,
-                            reg_expression,
                             val_rule = val_rule,
                             reg_expression = reg_expression,
                             row_num=str(i + 2),
@@ -729,7 +725,7 @@ class ValidateAttribute(object):
             for i, value in enumerate(manifest_col):
                 if bool(value) and not isinstance(value, specified_type[val_rule]):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
-                            val_rule = val_rule,
+                            val_rule = val_rule ,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             invalid_entry=str(manifest_col[i]),
@@ -743,7 +739,7 @@ class ValidateAttribute(object):
             for i, value in enumerate(manifest_col):
                 if bool(value) and not isinstance(value, specified_type[val_rule]):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
-                            val_rule = val_rule ,
+                            val_rule = val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             invalid_entry=str(manifest_col[i]),
