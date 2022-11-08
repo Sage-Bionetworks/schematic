@@ -91,6 +91,7 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
+            val_rule = 'list strict',
             list_string = 'invalid list values',
             row_num = '3',
             attribute_name = 'Check List',
@@ -100,6 +101,7 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
+            val_rule = 'list strict',
             list_string = 'ab cd ef',
             row_num = '3',
             attribute_name = 'Check Regex List',
@@ -129,6 +131,7 @@ class TestManifestValidation:
             )[0] in errors   
 
         assert GenerateError.generate_url_error(
+            val_rule = 'url',
             url = 'http://googlef.com/',
             url_error = 'invalid_url',
             row_num = '3',
@@ -247,6 +250,7 @@ class TestManifestValidation:
             )[0] in errors
             
         assert GenerateError.generate_list_error(
+            val_rule = 'list strict',
             list_string = 'invalid list values',
             row_num = '3',
             attribute_name = 'Check List',
@@ -256,6 +260,7 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
+            val_rule = 'list strict',
             list_string = 'ab cd ef',
             row_num = '3',
             attribute_name = 'Check Regex List',
@@ -285,6 +290,7 @@ class TestManifestValidation:
             )[0] in errors     
 
         assert GenerateError.generate_url_error(
+            val_rule = 'url',
             url = 'http://googlef.com/',
             url_error = 'invalid_url',
             row_num = '3',
