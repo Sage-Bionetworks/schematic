@@ -10,35 +10,34 @@ import os
 To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
 '''
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def app():
     app = create_app()
-    return app
+    yield app
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def client(app, config_path):
     app.config['SCHEMATIC_CONFIG'] = config_path
 
     with app.test_client() as client:
         yield client
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def test_manifest_csv(helpers):
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
     yield test_manifest_path
     
-@pytest.fixture
+@pytest.fixture(scope="class")
 def test_manifest_json(helpers):
     test_manifest_path = helpers.get_data_path("mock_manifests/Example.Patient.manifest.json")
     yield test_manifest_path
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def data_model_jsonld():
     data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
     yield data_model_jsonld
 
-
-@pytest.fixture
+@pytest.fixture(scope="class")
 def syn_token(config):
     synapse_config_path = config.SYNAPSE_CONFIG_PATH
     config_parser = configparser.ConfigParser()
@@ -75,7 +74,7 @@ class TestSynapseStorage:
             pass
     @pytest.mark.parametrize("full_path", [True, False])
     @pytest.mark.parametrize("file_names", [None, "Sample_A.txt"])
-    def test_get_dataset_files(self, client, syn_token, full_path, file_names):
+    def test_get_dataset_files(self,full_path, file_names, syn_token, client):
         params = {
             "input_token": syn_token,
             "asset_view": "syn23643253",
@@ -103,7 +102,7 @@ class TestSynapseStorage:
             else: 
                 assert ["syn25705259","Boolean Test"] and ["syn23667202","DataTypeX_table"] in response_dt
         
-    def test_get_storage_project_dataset(self, client, syn_token):
+    def test_get_storage_project_dataset(self, syn_token, client):
         params = {
         "input_token": syn_token,
         "asset_view": "syn23643253",
@@ -115,7 +114,7 @@ class TestSynapseStorage:
         response_dt = json.loads(response.data)
         assert ["syn26251193","Issue522"] in response_dt
 
-    def test_get_storage_project_manifests(self, client, syn_token):
+    def test_get_storage_project_manifests(self, syn_token, client):
 
         params = {
         "input_token": syn_token,
@@ -127,7 +126,7 @@ class TestSynapseStorage:
 
         assert response.status_code == 200
 
-    def test_get_storage_projects(self, client, syn_token):
+    def test_get_storage_projects(self, syn_token, client):
 
         params = {
         "input_token": syn_token,
