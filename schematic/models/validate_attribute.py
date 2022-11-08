@@ -464,44 +464,35 @@ class GenerateError:
         """
         Purpose:
             Determine whether an error or warning message should be logged and displayed
+            
+            if node is not required, 
+                return warning
+            if node is recommended and requried, 
+                return None    
+            for other rules, parse possible, if not use default specified in validation_rule_info
 
-            Types of error/warning included:
-                - recommended - Raised when an attribute is empty and recommended but not required.
-                - unique - Raised when attribute values are not unique.
-                - protectAges - Raised when an attribute contains ages below 18YO or over 90YO that should be censored.
         Input:
                 val_rule: str, defined in the schema.
                 sg: schemaGenerator object
                 attribute_name: str, attribute being validated
         Returns:
             'error', 'warning' or None
+        # TODO: recommended and other rules
         """
 
         level = None
         rule_parts = val_rule.split(" ")
-        # if node is not required, return None
-        # if node is recommended and requried, return None
-            # TODO: recommended and other rules
-        # if validion type is cross manifest, default to warning but parse
-        # if validation type is content, default to warning but parse
-        # if validation rule is other, default to error but parse
-
-
-        print(rule_parts) 
-
-
         rule_info = validation_rule_info()
 
         if not sg.is_node_required(node_display_name=attribute_name):
             # raise warning if recommended but not required
             if 'recommended' in val_rule:
                 level = 'warning'
-            # If not required or recommended raise nothing. 
-            ## Redundant setting to None here again but including for clarity
+            # If not required or recommended raise warnings to notify
             else:
                 level = 'warning' 
                 return level
-
+        
         
         # Parse rule for level, set to default if not specified
         if rule_parts[-1].lower() == 'error':
@@ -511,7 +502,6 @@ class GenerateError:
         else:
             level = rule_info[rule_parts[0]]['default_message_level']
             
-        print(level)
         return level
 
 class ValidateAttribute(object):
