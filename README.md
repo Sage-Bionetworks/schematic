@@ -229,7 +229,7 @@ docker run \
   -w /schematic \
   -e SCHEMATIC_CONFIG=/schematic/config.yml \
   -e GE_HOME=/usr/src/app/great_expectations/ \
-  aws_dca_schematic_deploy-schematic schematic model \
+  sagebionetworks/schematic schematic model \
   -c /schematic/config.yml validate \
   -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
   -dt MockComponent \
