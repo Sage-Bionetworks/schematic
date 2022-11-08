@@ -1,8 +1,8 @@
 definitions:
   creds_path: "../../credentials.json"
   token_pickle: "token.pickle"
-  synapse_config: "../../.synapseConfig" ### Note: this key is required for people who use Synapse token authentication approach. 
-  service_acct_creds: "../../schematic_service_account_creds.json" ## Note: this key is required for google drive services 
+  synapse_config: "../../.synapseConfig"
+  ### Note: this key is required for people who use Synapse token authentication approach. 
 
 synapse:
   master_fileview: "syn23643253"

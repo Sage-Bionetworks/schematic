@@ -6,7 +6,6 @@ import numpy as np
 import os
 from os import path
 import pandas as pd
-from pathlib import Path
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -159,6 +158,19 @@ class TangledTree(object):
         
         return topological_gen, nodes, edges, subg
 
+    def remove_unwanted_characters_from_conditional_statement(self, cond_req: str) -> str:
+        '''Remove unwanted characters from conditional statement
+        Example of conditional requirement: If File Format IS "BAM" OR "CRAM" OR "CSV/TSV" then Genome Build is required
+        Example output: File Format IS "BAM" OR "CRAM" OR "CSV/TSV"
+        '''
+        if "then" in cond_req:
+            # remove everything after "then"
+            cond_req_new = cond_req.split('then')[0]
+
+            # remove "If" and empty space
+            cond_req = cond_req_new.replace("If", "").lstrip().rstrip()
+        return cond_req
+
     def get_ca_alias(self, conditional_requirements: list) -> dict:
         '''Get the alias for each conditional attribute. 
 
@@ -173,13 +185,22 @@ class TangledTree(object):
                 value: attribute
         '''
         ca_alias = {}
+
+        # clean up conditional requirements
+        conditional_requirements = [self.remove_unwanted_characters_from_conditional_statement(req) for req in conditional_requirements]
+
         for i, req in enumerate(conditional_requirements):
-            req = req.split(' || ')
-            for r in req:
-                attr, ali = r.split(' -is- ')
+            if "OR" not in req:
+                attr, ali = req.split(' is ')
                 attr = "".join(attr.split())
                 ali = self.strip_double_quotes(ali)
                 ca_alias[ali] = attr
+            else:
+                attr, alias_str = req.split(' is ')
+                alias_lst = alias_str.split(' OR ')
+                for elem in alias_lst:
+                    elem = self.strip_double_quotes(elem)
+                    ca_alias[elem] = attr
         return ca_alias
 
     def gather_component_dependency_info(self, cn, attributes_df):
