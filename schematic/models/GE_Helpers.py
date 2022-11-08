@@ -416,16 +416,14 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                                 sg = sg,
                             )
-                    if vr_errors:
-                        errors.append(vr_errors)  
-                    if vr_warnings:
-                        warnings.append(vr_warnings) 
+                        if vr_errors:
+                            errors.append(vr_errors)  
+                        if vr_warnings:
+                            warnings.append(vr_warnings) 
                 elif validation_types[rule.split(" ")[0]]['type']=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
-
                     for row, value in zip(indices,values):   
-                        errors.append(
-                            GenerateError.generate_regex_error(
+                        vr_errors, vr_warnings = GenerateError.generate_regex_error(
                                 val_rule= rule,
                                 reg_expression = expression,
                                 row_num = row+2,
@@ -434,7 +432,10 @@ class GreatExpectationsHelpers(object):
                                 invalid_entry = value,
                                 sg = sg,
                             )
-                        )    
+                        if vr_errors:
+                            errors.append(vr_errors)  
+                        if vr_warnings:
+                            warnings.append(vr_warnings)                          
                 elif validation_types[rule.split(" ")[0]]['type']=='content_validation':     
                     vr_errors, vr_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
