@@ -27,7 +27,7 @@ from schematic.utils.validate_utils import parse_str_series_to_list
 logger = logging.getLogger(__name__)
 
 class GenerateError:
-    def generate_schema_error(row_num: str, attribute_name: str, error_msg: str, sg: SchemaGenerator,)-> List[str]:
+    def generate_schema_error(row_num: str, attribute_name: str, error_msg: str, invalid_entry: str, sg: SchemaGenerator,)-> List[str]:
         '''
         Purpose: Process error messages generated from schema
         Input:
@@ -35,6 +35,22 @@ class GenerateError:
             - attribute_name: the attribute the error occurred on.
             - error_msg: Error message
         '''
+        error_list = []
+        warning_list = []
+        
+        #Determine which, if any, message to raise
+        raises = GenerateError.get_message_level(
+            val_rule = 'schema',
+            attribute_name = attribute_name,
+            sg = sg,
+            )
+
+        #if a message needs to be raised, get the approrpiate function to do so
+        if raises:
+            logLevel = getattr(logging,raises)  
+        else:
+            return error_list, warning_list
+
 
         error_col = attribute_name  # Attribute name
         error_row = row_num  # index row of the manifest where the error presented.
@@ -43,8 +59,14 @@ class GenerateError:
         arg_error_string = (
                 f"For the attribute '{error_col}', on row {error_row}, {error_message}."
         )
-        logging.error(arg_error_string)
-        return [error_row, error_col, error_message]
+        logLevel(arg_error_string)
+
+        if raises == 'error':
+            error_list = [error_row, error_col, error_message, invalid_entry]
+        elif raises == 'warning':
+            warning_list = [error_row, error_col, error_message, invalid_entry]
+
+        return error_list, warning_list 
 
     def generate_list_error(
         list_string: str, row_num: str, attribute_name: str, list_error: str,
@@ -497,7 +519,7 @@ class GenerateError:
         
         
         # Parse rule for level, set to default if not specified
-        if rule_parts[-1].lower() == 'error':
+        if rule_parts[-1].lower() == 'error' or rule_parts[0] == 'schema':
             level = 'error'
         elif rule_parts[-1].lower() == 'warning':
             level = 'warning'

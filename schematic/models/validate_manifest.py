@@ -238,15 +238,12 @@ class ValidateManifest(object):
                 errorMsg = error.message[0:500]
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
-                errors.append([errorRow, errorCol, errorMsg, errorVal])
-                col_attr[errorCol] = errorColName
-        if errors: 
-            for error in errors: 
-                row_num = error[0]
-                col_index = error[1]
-                attr_name = col_attr[col_index]
-                errorMsg = error[2]
-                GenerateError.generate_schema_error(row_num = row_num, attribute_name = attr_name, error_msg = errorMsg, sg = sg)
+                val_errors, val_warnings =  GenerateError.generate_schema_error(row_num = errorRow, attribute_name = errorColName, error_msg = errorMsg, invalid_entry = errorVal, sg = sg)
+
+                if val_errors:
+                    errors.append(val_errors)
+                if val_warnings:
+                    warnings.append(val_warnings)
 
         return errors, warnings
 
