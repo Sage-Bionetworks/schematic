@@ -83,6 +83,9 @@ and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePy
 Download a copy of the ``.synapseConfig`` file, open the file in the
 editor of your choice and edit the `username` and `authtoken` attribute under the `authentication` section 
 
+Also on the CLI in your virtual environment, run the following command: 
+`synapse login -u <synapse username> -p <synapse password> --rememberMe`
+
 *Note*: You could also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
 >[authentication]<br> username = ABC <br> authtoken = abc
 
