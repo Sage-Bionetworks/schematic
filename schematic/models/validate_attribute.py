@@ -1,28 +1,26 @@
 import builtins
-from jsonschema import ValidationError
 import logging
+import re
+import sys
+import time
+from os import getenv
+# allows specifying explicit variable types
+from typing import Any, Dict, List, Optional, Text
+from urllib import error
+from urllib.parse import urlparse
+from urllib.request import (HTTPDefaultErrorHandler, OpenerDirector, Request,
+                            urlopen)
 
 import numpy as np
 import pandas as pd
-import re
-import sys
-from os import getenv
+from jsonschema import ValidationError
 
-# allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List
-from urllib.parse import urlparse
-from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
-from urllib.request import Request
-from urllib import error
-
-from schematic.store.synapse import SynapseStorage
-from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.validate_utils import comma_separated_list_regex
+from schematic.store.base import BaseStorage
+from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
-import time
-
-from schematic.utils.validate_utils import parse_str_series_to_list
+from schematic.utils.validate_utils import (comma_separated_list_regex,
+                                            parse_str_series_to_list)
 
 logger = logging.getLogger(__name__)
 
