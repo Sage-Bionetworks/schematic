@@ -79,8 +79,23 @@ class SynapseStorage(BaseStorage):
 
         self.syn = self.login(token, access_token, input_token)
         self.project_scope = project_scope
+
+
+        # check if "master_fileview" has been set
+        try: 
+            self.storageFileview = CONFIG["synapse"]["master_fileview"]
+        except KeyError: 
+            raise MissingConfigValueError(("synapse", "master_fileview"))
+
+        # check if "manifest_basename" has been set
+        try: 
+            self.manifest = CONFIG["synapse"]["manifest_basename"]
+        except KeyError: 
+            raise MissingConfigValueError(("synapse", "manifest_basename"))
+
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
+            self.manifest = CONFIG["synapse"]["manifest_basename"]
             if self.project_scope:
                 self.storageFileviewTable = self.syn.tableQuery(
                     f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
@@ -90,17 +105,10 @@ class SynapseStorage(BaseStorage):
                 self.storageFileviewTable = self.syn.tableQuery(
                     "SELECT * FROM " + self.storageFileview
                 ).asDataFrame()
-
-            self.manifest = CONFIG["synapse"]["manifest_basename"]
-        
-        except KeyError:
-            raise MissingConfigValueError(("synapse", "master_fileview"))
         except AttributeError:
             raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
             raise AccessCredentialsError(self.storageFileview)
-        except ValueError:
-            raise MissingConfigValueError(("synapse", "master_fileview"))
 
     @staticmethod
     def login(token=None, access_token=None, input_token=None):
@@ -1413,7 +1421,7 @@ class SynapseStorage(BaseStorage):
                 # remove rows
                 self.syn.delete(existing_results)
                 # wait for row deletion to finish on synapse before getting empty table
-                sleep(1)
+                sleep(10)
                 
                 # removes all current columns
                 current_table = self.syn.get(existingTableId)

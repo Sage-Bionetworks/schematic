@@ -74,6 +74,18 @@ dev = ["cogapp", "pre-commit", "pytest", "wheel"]
 tests = ["pytest"]
 
 [[package]]
+name = "astunparse"
+version = "1.6.3"
+description = "An AST unparser for Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+six = ">=1.6.1,<2.0"
+wheel = ">=0.23.0,<1.0"
+
+[[package]]
 name = "atomicwrites"
 version = "1.4.1"
 description = "Atomic file writes."
@@ -1161,6 +1173,23 @@ optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [[package]]
+name = "pdoc"
+version = "12.2.0"
+description = "API Documentation for Python Projects"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+astunparse = {version = "*", markers = "python_version < \"3.9\""}
+Jinja2 = ">=2.11.0"
+MarkupSafe = "*"
+pygments = ">=2.12.0"
+
+[package.extras]
+dev = ["flake8", "hypothesis", "mypy", "pytest", "pytest-cov", "pytest-timeout", "tox"]
+
+[[package]]
 name = "pexpect"
 version = "4.8.0"
 description = "Pexpect allows easy control of interactive console applications."
@@ -1971,6 +2000,17 @@ dev = ["coverage", "pallets-sphinx-themes", "pytest", "pytest-timeout", "sphinx"
 watchdog = ["watchdog"]
 
 [[package]]
+name = "wheel"
+version = "0.37.1"
+description = "A built-package format for Python"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
+
+[package.extras]
+test = ["pytest (>=3.0.0)", "pytest-cov"]
+
+[[package]]
 name = "widgetsnbextension"
 version = "4.0.2"
 description = "Jupyter interactive widgets for Jupyter Notebook"
@@ -2001,7 +2041,7 @@ testing = ["func-timeout", "jaraco-itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "77f2068fe6df8f020fe207e2f6ce49d8850e3b507d11288f7f7e0bdc69dc0c0d"
+content-hash = "4546028400d18ed2c6b6de3057a5537db284b8d2e9263b320f1f823280a900b1"
 
 [metadata.files]
 alabaster = [
@@ -2046,6 +2086,10 @@ argon2-cffi-bindings = [
     {file = "argon2_cffi_bindings-21.2.0-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:20ef543a89dee4db46a1a6e206cd015360e5a75822f76df533845c3cbaf72670"},
     {file = "argon2_cffi_bindings-21.2.0-pp38-pypy38_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ed2937d286e2ad0cc79a7087d3c272832865f779430e0cc2b4f3718d3159b0cb"},
     {file = "argon2_cffi_bindings-21.2.0-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:5e00316dabdaea0b2dd82d141cc66889ced0cdcbfa599e8b471cf22c620c329a"},
+]
+astunparse = [
+    {file = "astunparse-1.6.3-py2.py3-none-any.whl", hash = "sha256:c2652417f2c8b5bb325c885ae329bdf3f86424075c4fd1a128674bc6fba4b8e8"},
+    {file = "astunparse-1.6.3.tar.gz", hash = "sha256:5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.1.tar.gz", hash = "sha256:81b2c9071a49367a7f770170e5eec8cb66567cfbbc8c73d20ce5ca4a8d71cf11"},
@@ -2642,6 +2686,10 @@ parso = [
 pathspec = [
     {file = "pathspec-0.9.0-py2.py3-none-any.whl", hash = "sha256:7d15c4ddb0b5c802d161efc417ec1a2558ea2653c2e8ad9c19098201dc1c993a"},
     {file = "pathspec-0.9.0.tar.gz", hash = "sha256:e564499435a2673d586f6b2130bb5b95f04a3ba06f81b8f895b651a3c76aabb1"},
+]
+pdoc = [
+    {file = "pdoc-12.2.0-py3-none-any.whl", hash = "sha256:043ab59983ea166ba15c9950eca3683194e5fbc7bbcdd61595f95d18fdc5c05c"},
+    {file = "pdoc-12.2.0.tar.gz", hash = "sha256:1a4f2ca3f02772941b7b7fe85cb50b9b0c86ed4c2417bcf7d0bd7ad189ae1ba8"},
 ]
 pexpect = [
     {file = "pexpect-4.8.0-py2.py3-none-any.whl", hash = "sha256:0b48a55dcb3c05f3329815901ea4fc1537514d6ba867a152b581d69ae3710937"},
@@ -3279,6 +3327,10 @@ webencodings = [
 werkzeug = [
     {file = "Werkzeug-1.0.1-py2.py3-none-any.whl", hash = "sha256:2de2a5db0baeae7b2d2664949077c2ac63fbd16d98da0ff71837f7d1dea3fd43"},
     {file = "Werkzeug-1.0.1.tar.gz", hash = "sha256:6c80b1e5ad3665290ea39320b91e1be1e0d5f60652b964a3070216de83d2e47c"},
+]
+wheel = [
+    {file = "wheel-0.37.1-py2.py3-none-any.whl", hash = "sha256:4bdcd7d840138086126cd09254dc6195fb4fc6f01c050a1d7236f2630db1d22a"},
+    {file = "wheel-0.37.1.tar.gz", hash = "sha256:e9a504e793efbca1b8e0e9cb979a249cf4a0a7b5b8c9e8b65a5e39d49529c1c4"},
 ]
 widgetsnbextension = [
     {file = "widgetsnbextension-4.0.2-py3-none-any.whl", hash = "sha256:966bd61443926b6adcc0abef9f499c48bdeda181c333b0f49842d7385d440579"},
