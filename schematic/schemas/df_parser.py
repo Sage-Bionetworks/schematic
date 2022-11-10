@@ -162,13 +162,13 @@ def get_property(
     """Constructs a new schema.org compliant property of an existing schema.org object/class; note that the property itself is a schema.org object class.
 
     Args:
-    se: a schema explorer object allowing the traversal and modification of a schema graph
-    property_display_name: human readable label for the schema object/attribute: key characteristic X of the assay, related protocol, or downstream data that we want to record as metadata feature
-    property_class_name: *schema* label of the class/object that this is a property of
-    description: definition or a reference containing the definition of attribute X. Preferably provide a source ontology link or code in addition to the definition.
-    requires_range: what is the set/domain of values that this attribute can be assigned to; currently only used to specify primitive types. TODO: extend to reg exp patterns
-    requires_dependencies: important characteristics, if any, of property X that need to be recorded as metadata features given property X is specified. These characteristics are attributes themselves and need to pre-exist in the schema as such
-    validation_rules: a list of validation rules defined for this class (e.g. defining what is a valid object of this property)
+        se: a schema explorer object allowing the traversal and modification of a schema graph
+        property_display_name: human readable label for the schema object/attribute: key characteristic X of the assay, related protocol, or downstream data that we want to record as metadata feature
+        property_class_name: *schema* label of the class/object that this is a property of
+        description: definition or a reference containing the definition of attribute X. Preferably provide a source ontology link or code in addition to the definition.
+        requires_range: what is the set/domain of values that this attribute can be assigned to; currently only used to specify primitive types. TODO: extend to reg exp patterns
+        requires_dependencies: important characteristics, if any, of property X that need to be recorded as metadata features given property X is specified. These characteristics are attributes themselves and need to pre-exist in the schema as such
+        validation_rules: a list of validation rules defined for this class (e.g. defining what is a valid object of this property)
 
 
     Returns: a json schema.org  property object
