@@ -144,7 +144,7 @@ class AttributesExplorer():
 
                     # reformat the conditional requirement 
                     component_name = data_dict[key]['Conditional Requirements'][0].split(' is ')[0]
-                    conditional_statement_str = f" If {component_name} is {attr_str} then {key} is required"
+                    conditional_statement_str = f' If {component_name} is {attr_str} then "{key}" is required'
 
                     data_dict[key]['Conditional Requirements'] = conditional_statement_str
             df = pd.DataFrame(data_dict)
