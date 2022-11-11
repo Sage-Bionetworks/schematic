@@ -1,0 +1,472 @@
+
+import pytest
+from api import create_app
+import configparser
+import json
+import os
+
+
+'''
+To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
+'''
+
+@pytest.fixture(scope="class")
+def app():
+    app = create_app()
+    yield app
+
+@pytest.fixture(scope="class")
+def client(app, config_path):
+    app.config['SCHEMATIC_CONFIG'] = config_path
+
+    with app.test_client() as client:
+        yield client
+
+@pytest.fixture(scope="class")
+def test_manifest_csv(helpers):
+    test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
+    yield test_manifest_path
+    
+@pytest.fixture(scope="class")
+def test_manifest_json(helpers):
+    test_manifest_path = helpers.get_data_path("mock_manifests/Example.Patient.manifest.json")
+    yield test_manifest_path
+
+@pytest.fixture(scope="class")
+def data_model_jsonld():
+    data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
+    yield data_model_jsonld
+
+@pytest.fixture(scope="class")
+def syn_token(config):
+    synapse_config_path = config.SYNAPSE_CONFIG_PATH
+    config_parser = configparser.ConfigParser()
+    config_parser.read(synapse_config_path)
+    token = config_parser["authentication"]["authtoken"]
+    yield token
+
+@pytest.mark.schematic_api
+class TestSynapseStorage:
+    @pytest.mark.parametrize("return_type", ["json", "csv"])
+    def test_get_storage_assets_tables(self, client, syn_token, return_type):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn23643253",
+            "return_type": return_type
+        }
+
+        response = client.get('http://localhost:3001/v1/storage/assets/tables', query_string=params)
+
+        assert response.status_code == 200
+
+        response_dt = json.loads(response.data)
+
+        # if return type == json, returning json str
+        if return_type == "json":
+            assert isinstance(response_dt, str)
+        # if return type == csv, returning a csv file
+        else:
+            assert response_dt.endswith("file_view_table.csv")
+        # clean up 
+        if os.path.exists(response_dt):
+            os.remove(response_dt)
+        else: 
+            pass
+    @pytest.mark.parametrize("full_path", [True, False])
+    @pytest.mark.parametrize("file_names", [None, "Sample_A.txt"])
+    def test_get_dataset_files(self,full_path, file_names, syn_token, client):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn23643253",
+            "dataset_id": "syn23643250",
+            "full_path": full_path,
+        }
+
+        if file_names:
+            params["file_names"] = file_names
+        
+        response = client.get('http://localhost:3001/v1/storage/dataset/files', query_string=params)
+
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+
+        # would show full file path .txt in result
+        if full_path:
+            if file_names: 
+                assert ["syn23643255","schematic - main/DataTypeX/Sample_A.txt"] and ["syn24226530","schematic - main/TestDatasets/TestDataset-Annotations/Sample_A.txt"] and ["syn25057024","schematic - main/TestDatasets/TestDataset-Annotations-v2/Sample_A.txt"] in response_dt
+            else: 
+                assert   ["syn23643255","schematic - main/DataTypeX/Sample_A.txt"] in response_dt
+        else: 
+            if file_names: 
+                assert ["syn23643255","Sample_A.txt"] and ["syn24226530","Sample_A.txt"] and ["syn25057024","Sample_A.txt"] in response_dt
+            else: 
+                assert ["syn25705259","Boolean Test"] and ["syn23667202","DataTypeX_table"] in response_dt
+        
+    def test_get_storage_project_dataset(self, syn_token, client):
+        params = {
+        "input_token": syn_token,
+        "asset_view": "syn23643253",
+        "project_id": "syn26251192"
+        }
+
+        response = client.get("http://localhost:3001/v1/storage/project/datasets", query_string = params)
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+        assert ["syn26251193","Issue522"] in response_dt
+
+    def test_get_storage_project_manifests(self, syn_token, client):
+
+        params = {
+        "input_token": syn_token,
+        "asset_view": "syn23643253",
+        "project_id": "syn30988314"
+        }
+
+        response = client.get("http://localhost:3001/v1/storage/project/manifests", query_string=params)
+
+        assert response.status_code == 200
+
+    def test_get_storage_projects(self, syn_token, client):
+
+        params = {
+        "input_token": syn_token,
+        "asset_view": "syn23643253"
+        }
+
+        response = client.get("http://localhost:3001/v1/storage/projects", query_string = params)
+
+        assert response.status_code == 200
+    
+
+        
+
+
+@pytest.mark.schematic_api
+class TestMetadataModelOperation:
+    @pytest.mark.parametrize("as_graph", [True, False]) 
+    def test_component_requirement(self, client, data_model_jsonld, as_graph):
+        params = {
+            "schema_url": data_model_jsonld,
+            "source_component": "BulkRNA-seqAssay", 
+            "as_graph": as_graph
+        }
+
+        response = client.get("http://localhost:3001/v1/model/component-requirements", query_string = params)
+
+        assert response.status_code == 200
+
+        response_dt = json.loads(response.data)
+
+        if as_graph:
+            assert response_dt == [['Biospecimen','Patient'],['BulkRNA-seqAssay','Biospecimen']]
+        else: 
+            assert response_dt == ['Patient','Biospecimen','BulkRNA-seqAssay']
+
+
+@pytest.mark.schematic_api
+class TestSchemaExplorerOperation:
+    @pytest.mark.parametrize("strict_camel_case", [True, False]) 
+    def test_get_property_label_from_display_name(self, client, data_model_jsonld, strict_camel_case):
+        params = {
+            "schema_url": data_model_jsonld,
+            "display_name": "mocular entity",
+            "strict_camel_case": strict_camel_case
+        }
+
+        response = client.get("http://localhost:3001/v1/explorer/get_property_label_from_display_name", query_string = params)
+        assert response.status_code == 200
+
+        response_dt = json.loads(response.data)
+
+        if strict_camel_case:
+            assert response_dt == "mocularEntity"
+        else:
+            assert response_dt == "mocularentity"
+
+    def test_get_schema(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld
+        }
+        response = client.get("http://localhost:3001/v1/schemas/get/schema", query_string = params)
+
+        response_dt = response.data
+        assert response.status_code == 200
+        assert os.path.exists(response_dt)
+
+        # if path exists, remove the file
+        if os.path.exists(response_dt):
+            os.remove(response_dt)
+
+
+
+@pytest.mark.schematic_api
+class TestSchemaGeneratorOperation:
+    @pytest.mark.parametrize("relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"])
+    def test_get_subgraph_by_edge(self, client, data_model_jsonld, relationship):
+        params = {
+            "schema_url": data_model_jsonld,
+            "relationship": relationship
+        }
+
+        response = client.get("http://localhost:3001/v1/schemas/get/graph_by_edge_type", query_string=params)
+        assert response.status_code == 200
+
+
+    @pytest.mark.parametrize("return_display_names", [True, False])
+    @pytest.mark.parametrize("node_label", ["FamilyHistory", "TissueStatus"])
+    def test_get_node_range(self, client, data_model_jsonld, return_display_names, node_label):
+        params = {
+            "schema_url": data_model_jsonld,
+            "return_display_names": return_display_names,
+            "node_label": node_label
+        }
+
+        response = client.get('http://localhost:3001/v1/explorer/get_node_range', query_string=params)
+        response_dt = json.loads(response.data)
+        assert response.status_code == 200
+
+        if "node_label" == "FamilyHistory": 
+            assert "Breast" in response_dt
+            assert "Lung" in response_dt
+
+        elif "node_label" == "TissueStatus":
+            assert "Healthy" in response_dt
+            assert "Malignant" in response_dt
+
+    @pytest.mark.parametrize("return_display_names", [None, True, False])
+    @pytest.mark.parametrize("return_schema_ordered", [None, True, False])
+    @pytest.mark.parametrize("source_node", ["Patient", "Biospecimen"])
+    def test_node_dependencies(self, client, data_model_jsonld, source_node, return_display_names, return_schema_ordered):
+
+        return_display_names = True
+        return_schema_ordered = False
+
+        params = {
+            "schema_url": data_model_jsonld,
+            "source_node": source_node,
+            "return_display_names": return_display_names,
+            "return_schema_ordered": return_schema_ordered
+        }
+
+        response = client.get('http://localhost:3001/v1/explorer/get_node_dependencies', query_string=params)
+        response_dt = json.loads(response.data)
+        assert response.status_code == 200
+
+        if source_node == "Patient":
+            # if doesn't get set, return_display_names == True
+            if return_display_names == True or return_display_names == None:
+                assert "Sex" and "Year of Birth" in response_dt
+
+                # by default, return_schema_ordered is set to True
+                if return_schema_ordered == True or return_schema_ordered == None:
+                    assert response_dt == ["Patient ID","Sex","Year of Birth","Diagnosis","Component"]
+                else: 
+                    assert "Year of Birth" in response_dt
+                    assert "Diagnosis" in response_dt
+                    assert "Patient ID" in response_dt            
+            else:
+                assert "YearofBirth" in response_dt
+
+        elif source_node == "Biospecimen":
+            if return_display_names == True or return_display_names == None:
+                assert "Tissue Status" in response_dt
+            else: 
+                assert "TissueStatus" in response_dt
+
+@pytest.mark.schematic_api
+class TestManifestOperation:
+    @pytest.mark.parametrize("data_type", ["Patient", "all manifests", ["Biospecimen", "Patient"]])
+    def test_generate_manifest(self, client, data_model_jsonld, data_type):
+        # set dataset
+        if data_type == "Patient":
+            dataset_id = "syn42171373" #Mock Patient Manifest folder on synapse
+        elif data_type == "Biospecimen":
+            dataset_id = "syn42171508" #Mock biospecimen manifest folder on synapse
+        else: 
+            dataset_id = None
+
+        params = {
+            "schema_url": data_model_jsonld,
+            "asset_view": "syn23643253",
+            "title": "Example",
+            "data_type": data_type,
+            "use_annotations": False,
+            "dataset_id": dataset_id
+        }
+
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+        assert isinstance(response_dt, list)
+
+        # return three google sheet link
+        if data_type == "all manifests":
+            assert len(response_dt) == 3
+        # only return two links
+        elif isinstance(data_type, list):
+            assert len(response_dt) == 2
+        # return one link
+        else: 
+            assert len(response_dt) == 1
+
+    def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
+        # test manifest
+        test_manifest_data = open(test_manifest_csv, "rb")
+        
+        params = {
+            "data_type": "MockComponent",
+            "schema_url": data_model_jsonld,
+            "title": "Example",
+            "csv_file": test_manifest_data
+        }
+
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+    
+        # should return a list with one google sheet link 
+        assert isinstance(response_dt[0], str)
+        assert response_dt[0].startswith("https://docs.google.com/")
+    
+    @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
+    def test_validate_manifest(self, data_model_jsonld, client, json_str, test_manifest_csv, test_manifest_json):
+
+        params = {
+            "schema_url": data_model_jsonld,
+        }
+
+        if json_str:
+            params["json_str"] = json_str
+            params["data_type"] = "Patient"
+            response = client.post('http://localhost:3001/v1/model/validate', query_string=params)
+            response_dt = json.loads(response.data)
+            assert response.status_code == 200
+
+        else: 
+            params["data_type"] = "MockComponent"
+
+            headers = {
+            'Content-Type': "multipart/form-data",
+            'Accept': "application/json"
+            }
+
+            # test uploading a csv file
+            response_csv = client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
+            response_dt = json.loads(response_csv.data)
+            assert response_csv.status_code == 200
+            
+
+            # test uploading a json file
+            # change data type to patient since the testing json manifest is using Patient component
+            params["data_type"] = "Patient"
+            response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
+            response_dt = json.loads(response_json.data)
+            assert response_json.status_code == 200
+
+        assert "errors" in response_dt.keys()
+        assert "warnings" in response_dt.keys()
+
+    def test_get_datatype_manifest(self, client, syn_token):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn23643253",
+            "manifest_id": "syn27600110"
+        }
+
+        response = client.get('http://localhost:3001/v1/get/datatype/manifest', query_string=params)  
+
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+        assert response_dt =={
+                "Cancer Type": "string",
+                "Component": "string",
+                "Diagnosis": "string",
+                "Family History": "string",
+                "Patient ID": "Int64",
+                "Sex": "string",
+                "Year of Birth": "Int64",
+                "entityId": "string"}
+
+    @pytest.mark.parametrize("as_json", [None, True, False])
+    @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
+    def test_manifest_download(self, client, as_json, syn_token, new_manifest_name):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn28559058",
+            "dataset_id": "syn28268700",
+            "as_json": as_json,
+            "new_manifest_name": new_manifest_name
+        }
+
+        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        assert response.status_code == 200
+        response_dt = response.data
+
+        if as_json: 
+            response_json = json.loads(response_dt)
+            assert response_json == [{'Component': 'BulkRNA-seqAssay', 'File Format': 'CSV/TSV', 'Filename': 'Sample_A', 'Genome Build': 'GRCm38', 'Genome FASTA': None, 'Sample ID': 2022, 'entityId': 'syn28278954'}]
+        else:
+            # return a file path
+            response_path = response_dt.decode('utf-8')
+
+            assert isinstance(response_path, str)
+            assert response_path.endswith(".csv")
+
+    @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
+    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv):
+        params = {
+            "input_token": syn_token,
+            "schema_url": data_model_jsonld,
+            "data_type": "Patient",
+            "restrict_rules": False, 
+            "manifest_record_type": "table",
+            "asset_view": "syn44259375",
+            "dataset_id": "syn44259313",
+        }
+
+        if json_str:
+            params["json_str"] = json_str
+            response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
+            assert response.status_code == 200
+        else: 
+            headers = {
+            'Content-Type': "multipart/form-data",
+            'Accept': "application/json"
+            }
+            params["data_type"] = "MockComponent"
+
+            # test uploading a csv file
+            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
+            assert response_csv.status_code == 200     
+
+
+@pytest.mark.schematic_api
+class TestSchemaVisualization:
+    def test_visualize_attributes(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld
+        }
+
+        response = client.get("http://localhost:3001/v1/visualize/attributes", query_string = params)
+
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("figure_type", ["component", "dependency"])
+    def test_visualize_tangled_tree_layers(self, client, figure_type, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "figure_type": figure_type
+        }
+
+        response = client.get("http://localhost:3001/v1/visualize/tangled_tree/layers", query_string = params)
+
+        assert response.status_code == 200
+
+
+
+
+
+
+
+
