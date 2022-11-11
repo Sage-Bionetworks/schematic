@@ -196,7 +196,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None):
+def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -251,11 +251,11 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
                 )
 
 
-    def create_single_manifest(data_type, dataset_id=None, output_format = None):
+    def create_single_manifest(data_type, dataset_id=None, output_format = None, title=title):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
-            title=t,
+            title=title,
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
@@ -280,21 +280,26 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
         component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
         components = component_digraph.nodes()
         for component in components:
-            t = f'{title}.{component}.manifest'
-            result = create_single_manifest(data_type = component, output_format = output_format)
+            if title:
+                t = f'{title}.{component}.manifest'
+            else: 
+                t = f'Example.{component}.manifest'
+            result = create_single_manifest(data_type=component, output_format=output_format, title=t)
             all_results.append(result)
     else:
         for i, dt in enumerate(data_type):
-            if len(data_type) > 1:
-                t = f'{title}.{dt}.manifest'
-            else:
-                t = title
-
+            if not title: 
+                t = f'Example.{dt}.manifest'
+            else: 
+                if len(data_type) > 1:
+                    t = f'{title}.{dt}.manifest'
+                else: 
+                    t = title
             if dataset_ids:
                 # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i], output_format = output_format)
+                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t)
             else:
-                result = create_single_manifest(data_type = dt, output_format = output_format)
+                result = create_single_manifest(data_type=dt, output_format=output_format, title=t)
             all_results.append(result)
 
     return all_results
