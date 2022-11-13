@@ -58,4 +58,7 @@ class TestMetadataModel:
 
         # clean up 
         output_path = os.path.join(os.getcwd(), "mock_title.xlsx")
-        helpers.clean_up_file(helpers, output_path)
+        try:
+            os.remove(output_path)
+        except: 
+            pass
