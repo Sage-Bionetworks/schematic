@@ -4,6 +4,7 @@ from api import create_app
 import configparser
 import json
 import os
+import pandas as pd
 
 
 '''
@@ -275,39 +276,107 @@ class TestSchemaGeneratorOperation:
 
 @pytest.mark.schematic_api
 class TestManifestOperation:
-    @pytest.mark.parametrize("data_type", ["Patient", "all manifests", ["Biospecimen", "Patient"]])
-    def test_generate_manifest(self, client, data_model_jsonld, data_type):
+
+    def ifExcelPathExists(self, response_dt):
+        # return excel file paths
+        for i in response_dt:
+            assert os.path.exists(i)
+            assert i.endswith('.xlsx')
+
+        # clean up
+        try: 
+            os.remove(i)
+        except: 
+            pass
+    
+    def ifGoogleSheetExists(self, response_dt):
+        for i in response_dt: 
+            assert i.startswith("https://docs.google.com/")
+    def ifPandasDataframe(self, response_dt):
+        for i in response_dt:
+            print('response dt', i)
+            df = pd.read_json(i)
+            assert isinstance(df, pd.DataFrame)
+
+
+    @pytest.mark.parametrize("output_format", [None, "google_sheet", "dataframe (only if getting existing manifests)"])
+    @pytest.mark.parametrize("data_type", [["Biospecimen"], ["Patient"], "all manifests", ["Biospecimen", "Patient"]])
+    def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format):
         # set dataset
-        if data_type == "Patient":
-            dataset_id = "syn42171373" #Mock Patient Manifest folder on synapse
-        elif data_type == "Biospecimen":
-            dataset_id = "syn42171508" #Mock biospecimen manifest folder on synapse
+        if data_type == ["Patient"]:
+            dataset_id = ["syn42171373"] #Mock Patient Manifest folder on synapse
+        elif data_type == ["Biospecimen"]:
+            dataset_id = ["syn42171508"] #Mock biospecimen manifest folder
+        elif data_type == ["Biospecimen", "Patient"]:
+            dataset_id = ["syn42171508", "syn42171373"]
         else: 
-            dataset_id = None
+            dataset_id = None #if "all manifests", dataset id is None
 
         params = {
             "schema_url": data_model_jsonld,
             "asset_view": "syn23643253",
             "title": "Example",
             "data_type": data_type,
+            "use_annotations": False, 
+            }
+        if dataset_id: 
+            params['dataset_id'] = dataset_id
+        
+        if output_format: 
+            params['output_format'] = output_format
+
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+
+        if dataset_id and output_format:
+            if "dataframe" in output_format:
+                self.ifPandasDataframe(response_dt)
+                assert len(response_dt) == len(dataset_id)
+
+
+    @pytest.mark.parametrize("output_format", ["excel",  "google_sheet", "dataframe (only if getting existing manifests)"])
+    @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
+    def test_generate_new_manifest(self, client, data_model_jsonld, data_type, output_format):
+        params = {
+            "schema_url": data_model_jsonld,
+            "asset_view": "syn23643253",
+            "title": "Example",
+            "data_type": data_type,
             "use_annotations": False,
-            "dataset_id": dataset_id
+            "dataset_id": None,
         }
+
+        if output_format: 
+            params["output_format"] = output_format
+    
 
         response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
         assert response.status_code == 200
         response_dt = json.loads(response.data)
         assert isinstance(response_dt, list)
 
-        # return three google sheet link
+        # since data_type = "all manifest", there shouldn't be multiple data types
         if data_type == "all manifests":
             assert len(response_dt) == 3
-        # only return two links
+            if output_format == "excel":
+                # return excel file paths
+                self.ifExcelPathExists(response_dt)
+            else: 
+                self.ifGoogleSheetExists(response_dt)
         elif isinstance(data_type, list):
             assert len(response_dt) == 2
-        # return one link
+            if output_format and output_format == "excel":
+                # return excel file paths
+                self.ifExcelPathExists(response_dt)
+
+            # all other cases would return google sheet because dataset id is None
+            else:
+                self.ifGoogleSheetExists(response_dt)
         else: 
             assert len(response_dt) == 1
+
 
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
