@@ -298,13 +298,13 @@ class TestManifestOperation:
             assert isinstance(df, pd.DataFrame)
 
 
-    @pytest.mark.parametrize("output_format", [None, "google_sheet", "dataframe (only if getting existing manifests)"])
-    @pytest.mark.parametrize("data_type", [["Biospecimen"], ["Patient"], "all manifests", ["Biospecimen", "Patient"]])
+    @pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
+    @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
     def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format):
         # set dataset
-        if data_type == ["Patient"]:
+        if data_type == "Patient":
             dataset_id = ["syn42171373"] #Mock Patient Manifest folder on synapse
-        elif data_type == ["Biospecimen"]:
+        elif data_type == "Biospecimen":
             dataset_id = ["syn42171508"] #Mock biospecimen manifest folder
         elif data_type == ["Biospecimen", "Patient"]:
             dataset_id = ["syn42171508", "syn42171373"]
@@ -333,6 +333,10 @@ class TestManifestOperation:
             if "dataframe" in output_format:
                 self.ifPandasDataframe(response_dt)
                 assert len(response_dt) == len(dataset_id)
+            elif output_format == "excel":
+                self.ifExcelPathExists(response_dt)
+            else: 
+                self.ifGoogleSheetExists(response_dt)
 
 
     @pytest.mark.parametrize("output_format", ["excel",  None, "google_sheet", "dataframe (only if getting existing manifests)"])
