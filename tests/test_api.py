@@ -294,7 +294,6 @@ class TestManifestOperation:
             assert i.startswith("https://docs.google.com/")
     def ifPandasDataframe(self, response_dt):
         for i in response_dt:
-            print('response dt', i)
             df = pd.read_json(i)
             assert isinstance(df, pd.DataFrame)
 
@@ -336,7 +335,7 @@ class TestManifestOperation:
                 assert len(response_dt) == len(dataset_id)
 
 
-    @pytest.mark.parametrize("output_format", ["excel",  "google_sheet", "dataframe (only if getting existing manifests)"])
+    @pytest.mark.parametrize("output_format", ["excel",  None, "google_sheet", "dataframe (only if getting existing manifests)"])
     @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
     def test_generate_new_manifest(self, client, data_model_jsonld, data_type, output_format):
         params = {
@@ -370,6 +369,7 @@ class TestManifestOperation:
             if output_format and output_format == "excel":
                 # return excel file paths
                 self.ifExcelPathExists(response_dt)
+
 
             # all other cases would return google sheet because dataset id is None
             else:
