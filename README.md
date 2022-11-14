@@ -119,8 +119,9 @@ Description of `config.yml` attributes
 
 6. Login to Synapse by using the command line
 On the CLI in your virtual environment, run the following command: 
-`synapse login -u <synapse username> -p <synapse password> --rememberMe`
-
+```
+synapse login -u <synapse username> -p <synapse password> --rememberMe
+```
 Please make sure that you run the command before running `schematic init` below
 
 7. Obtain Google credential Files
