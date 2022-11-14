@@ -74,7 +74,7 @@ This command will install the dependencies based on what we specify in poetry.lo
 5. Fill in credential files: 
 *Note*: If you won't interact with Synapse, please ignore this section.
 
-There are two main configuration files that need to be edited :
+There are two main configuration files that need to be edited:
 [config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml)
 and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig)
 
@@ -87,6 +87,7 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 >[authentication]<br> username = ABC <br> authtoken = abc
 
 <strong>Configure config.yml File</strong>
+*Note*: Below is only a brief explanation of some attributes in `config.yml`. <strong>Please use the link [here](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml) to get the latest version in the `develop`</strong>.
 
 Description of `config.yml` attributes
     definitions:
