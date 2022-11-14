@@ -117,7 +117,14 @@ Description of `config.yml` attributes
 
 *Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
-6. Obtain Google credential Files
+6. Login to Synapse by using the command line
+On the CLI in your virtual environment, run the following command: 
+```
+synapse login -u <synapse username> -p <synapse password> --rememberMe
+```
+Please make sure that you run the command before running `schematic init` below
+
+7. Obtain Google credential Files
 
 To obtain ``credentials.json`` and ``token.pickle``, please run:
 
@@ -150,7 +157,6 @@ human authorization.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
-
 
 
 ### Development process instruction
