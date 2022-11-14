@@ -251,7 +251,7 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
                 )
 
 
-    def create_single_manifest(data_type, dataset_id=None, output_format = None, title=title):
+    def create_single_manifest(data_type, title, dataset_id=None, output_format=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -268,7 +268,7 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
                 output_format = "dataframe"
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format = output_format
+            dataset_id=dataset_id, sheet_url=True, output_format=output_format
         )
                
         return result
