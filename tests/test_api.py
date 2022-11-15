@@ -295,7 +295,7 @@ class TestManifestOperation:
 
     @pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
     @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
-    def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format):
+    def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog):
         # set dataset
         if data_type == "Patient":
             dataset_id = ["syn42171373"] #Mock Patient Manifest folder on synapse
@@ -322,19 +322,32 @@ class TestManifestOperation:
         response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
 
         assert response.status_code == 200
-        response_dt = json.loads(response.data)
 
         if dataset_id and output_format:
-            if "dataframe" in output_format:
-                self.ifPandasDataframe(response_dt)
-                assert len(response_dt) == len(dataset_id)
-            elif output_format == "excel":
-                self.ifExcelPathExists(response_dt)
-            else: 
-                self.ifGoogleSheetExists(response_dt)
+            if output_format == "excel":
+                # for multiple data_types
+                if isinstance(data_type, list) and len(data_type) > 1:
+                    # return warning message
+                    for record in caplog.records:
+                        assert record.levelname == "WARNING"
+                    assert "Currently we do not support returning multiple files as Excel format at once." in caplog.text
+                    self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
+                # for single data type
+                else: 
+                    self.ifExcelExists(response, "Example.xlsx")
+            else:
+                response_dt = json.loads(response.data)
+                if "dataframe" in output_format:
+                    self.ifPandasDataframe(response_dt)
+                    assert len(response_dt) == len(dataset_id)
+                else: 
+                    self.ifGoogleSheetExists(response_dt)
+        else:
+            response_dt = json.loads(response.data)
+            self.ifGoogleSheetExists(response_dt)
 
 
-    @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)"])
+    @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)", None])
     @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
     def test_generate_new_manifest(self, caplog, client, data_model_jsonld, data_type, output_format):
         params = {
