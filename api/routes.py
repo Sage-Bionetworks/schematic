@@ -196,7 +196,20 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=None, asset_view = None):
+def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None):
+    """Get the immediate dependencies that are related to a given source node.
+        Args:
+            schema_url: link to data model in json ld format
+            title: title of a given manifest. 
+            oauth: if user wants to use OAuth for Google authentication
+            dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
+            return_excel: if true, return an Excel spreadsheet; else, return a google sheet url.
+            use_annotations: Whether to use existing annotations during manifest generation
+            asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
+        Returns:
+            Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
+    """
+
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -238,19 +251,24 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
                 )
 
 
-    def create_single_manifest(data_type, dataset_id=None):
+    def create_single_manifest(data_type, title, dataset_id=None, output_format=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
-            title=t,
+            title=title,
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
             alphabetize_valid_values = 'ascending',
         )
 
+        # if returning a dataframe
+        if output_format:
+            if "dataframe" in output_format:
+                output_format = "dataframe"
+
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True,
+            dataset_id=dataset_id, sheet_url=True, output_format=output_format
         )
                
         return result
@@ -262,21 +280,26 @@ def get_manifest_route(schema_url, title, oauth, use_annotations, dataset_ids=No
         component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
         components = component_digraph.nodes()
         for component in components:
-            t = f'{title}.{component}.manifest'
-            result = create_single_manifest(data_type = component)
+            if title:
+                t = f'{title}.{component}.manifest'
+            else: 
+                t = f'Example.{component}.manifest'
+            result = create_single_manifest(data_type=component, output_format=output_format, title=t)
             all_results.append(result)
     else:
         for i, dt in enumerate(data_type):
-            if len(data_type) > 1:
-                t = f'{title}.{dt}.manifest'
-            else:
-                t = title
-
+            if not title: 
+                t = f'Example.{dt}.manifest'
+            else: 
+                if len(data_type) > 1:
+                    t = f'{title}.{dt}.manifest'
+                else: 
+                    t = title
             if dataset_ids:
                 # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i])
+                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t)
             else:
-                result = create_single_manifest(data_type = dt)
+                result = create_single_manifest(data_type=dt, output_format=output_format, title=t)
             all_results.append(result)
 
     return all_results
@@ -341,7 +364,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     return manifest_id
 
-def populate_manifest_route(schema_url, title=None, data_type=None):
+def populate_manifest_route(schema_url, title=None, data_type=None, return_excel=None):
     # call config_handler()
     config_handler()
 
@@ -355,7 +378,7 @@ def populate_manifest_route(schema_url, title=None, data_type=None):
     metadata_model = MetadataModel(inputMModelLocation=jsonld, inputMModelLocationType='local')
 
     #Call populateModelManifest class
-    populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type)
+    populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type, return_excel=return_excel)
 
     return populated_manifest_link
 

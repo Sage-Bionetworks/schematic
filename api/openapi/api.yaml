@@ -79,6 +79,13 @@ paths:
             nullable: true
           description: ID of view listing all project data assets. E.g. for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           required: false
+        - in: query
+          name: output_format
+          schema:
+            type: string
+            enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]
+          description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
+          required: false
       operationId: api.routes.get_manifest_route
       responses:
         "201":
@@ -380,6 +387,13 @@ paths:
             type: string
           description: Title of Manifest
           example: Example
+          required: false
+        - in: query
+          name: return_excel
+          schema:
+            type: boolean
+            nullable: true
+          description: If true, this would return an Excel spreadsheet.(This approach would avoid sending metadata to Google sheet APIs)
           required: false
       operationId: api.routes.populate_manifest_route
       responses:
