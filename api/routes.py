@@ -292,8 +292,11 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
                 t = f'{title}.{component}.manifest'
             else: 
                 t = f'Example.{component}.manifest'
-            result = create_single_manifest(data_type=component, output_format=output_format, title=t)
-            all_results.append(result)
+            if output_format != "excel":
+                result = create_single_manifest(data_type=component, output_format=output_format, title=t)
+                all_results.append(result)
+            else: 
+                app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
     else:
         for i, dt in enumerate(data_type):
             if not title: 
@@ -314,7 +317,7 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
                 all_results.append(result)
             else: 
                 if len(data_type) > 1:
-                    app.logger.warning(f'Only {t} would get returned. ')
+                    app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
                 return result
 
     return all_results
