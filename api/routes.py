@@ -1,5 +1,4 @@
 from email import generator
-from email.headerregistry import ContentTypeHeader
 import os
 import shutil
 import tempfile
@@ -8,7 +7,7 @@ import urllib.request
 
 import connexion
 from connexion.decorators.uri_parsing import Swagger2URIParser
-from flask import current_app as app, request, g, jsonify
+from flask import current_app as app
 from werkzeug.debug import DebuggedApplication
 
 from schematic import CONFIG
@@ -27,6 +26,7 @@ import json
 from schematic.utils.df_utils import load_df
 import pickle
 from flask import send_from_directory
+
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
 #     pass
@@ -38,7 +38,14 @@ from flask import send_from_directory
 def config_handler(asset_view=None):
     path_to_config = app.config["SCHEMATIC_CONFIG"]
 
-    # check if file exists at the path created, i.e., app.config['SCHEMATIC_CONFIG']
+    # if content of the config file is provided: 
+    content_of_config = app.config["SCHEMATIC_CONFIG_CONTENT"]
+
+    # if the environment variable exists
+    if content_of_config:
+        CONFIG.load_config_content_from_env()
+    
+    # check if path to config is provided
     if os.path.isfile(path_to_config):
         CONFIG.load_config(path_to_config, asset_view = asset_view)
 
@@ -190,7 +197,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None):
+def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -245,11 +252,11 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
                 )
 
 
-    def create_single_manifest(data_type, dataset_id=None, output_format = None):
+    def create_single_manifest(data_type, title, dataset_id=None, output_format=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
-            title=t,
+            title=title,
             root=data_type,
             oauth=oauth,
             use_annotations=use_annotations,
@@ -262,7 +269,7 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
                 output_format = "dataframe"
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format = output_format
+            dataset_id=dataset_id, sheet_url=True, output_format=output_format
         )
 
         # return an excel file if output_format is set to "excel"
@@ -279,33 +286,37 @@ def get_manifest_route(schema_url: str, title: str, oauth: bool, use_annotations
     if data_type[0] == 'all manifests':
         sg = SchemaGenerator(path_to_json_ld=jsonld)
         component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
-        data_type = component_digraph.nodes()
-
-        # if data type = "all manifests", then users should not provide dataset ids
-        # if they provide dataset ids, this should be a mistake
-        # override dataset id here
-        dataset_ids = None
-
-    for i, dt in enumerate(data_type):
-        if len(data_type) > 1:
-            t = f'{title}.{dt}.manifest'
-        else:
-            t = title
-        
-        # if dataset ids are provided
-        if dataset_ids:
-            # if a dataset_id is provided add this to the function call.
-            result = create_single_manifest(data_type = dt, dataset_id = dataset_ids[i], output_format = output_format)
-        else:
-            result = create_single_manifest(data_type = dt, output_format = output_format)
-
-        # if output is pandas dataframe or google sheet url
-        if isinstance(result, str) or isinstance(result, pd.DataFrame):
+        components = component_digraph.nodes()
+        for component in components:
+            if title:
+                t = f'{title}.{component}.manifest'
+            else: 
+                t = f'Example.{component}.manifest'
+            result = create_single_manifest(data_type=component, output_format=output_format, title=t)
             all_results.append(result)
-        else:
-            if len(data_type) > 1:
-                app.logger.warning(f'Only {title}.{dt}.manifest would get returned. ')
-            return result
+    else:
+        for i, dt in enumerate(data_type):
+            if not title: 
+                t = f'Example.{dt}.manifest'
+            else: 
+                if len(data_type) > 1:
+                    t = f'{title}.{dt}.manifest'
+                else: 
+                    t = title
+            if dataset_ids:
+                # if a dataset_id is provided add this to the function call.
+                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t)
+            else:
+                result = create_single_manifest(data_type=dt, output_format=output_format, title=t)
+
+            # if output is pandas dataframe or google sheet url
+            if isinstance(result, str) or isinstance(result, pd.DataFrame):
+                all_results.append(result)
+            else: 
+                if len(data_type) > 1:
+                    app.logger.warning(f'Only {t} would get returned. ')
+                return result
+
     return all_results
 
 
@@ -455,7 +466,10 @@ def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
     return text_df
 
 def get_viz_tangled_tree_layers(schema_url, figure_type):
-  
+
+    # call config_handler()
+    config_handler()
+
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
 
     # Initialize Tangled Tree

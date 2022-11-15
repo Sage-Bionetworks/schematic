@@ -396,9 +396,9 @@ paths:
           name: return_excel
           schema:
             type: boolean
-            nullable: false
+            nullable: true
           description: If true, this would return an Excel spreadsheet.(This approach would avoid sending metadata to Google sheet APIs)
-          required: true
+          required: false
       operationId: api.routes.populate_manifest_route
       responses:
         "200":

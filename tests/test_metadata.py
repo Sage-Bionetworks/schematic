@@ -39,7 +39,7 @@ class TestMetadataModel:
             assert "Patient" in output
             assert "BulkRNA-seqAssay" in output
 
-    @pytest.mark.parametrize("return_excel", [True, False])
+    @pytest.mark.parametrize("return_excel", [None, True, False])
     @pytest.mark.google_credentials_needed
     def test_populate_manifest(self, metadata_model, helpers, return_excel):
         #Get path of manifest 
@@ -57,7 +57,8 @@ class TestMetadataModel:
             assert os.path.exists(populated_manifest_route) == True
 
         # clean up 
+        output_path = os.path.join(os.getcwd(), "mock_title.xlsx")
         try:
-            os.remove(helpers.get_data_path(f"mock_manifests/mock_title.xlsx"))
-        except FileNotFoundError:
+            os.remove(output_path)
+        except: 
             pass

@@ -4,12 +4,10 @@ import logging
 import numpy as np
 import os
 import pandas as pd
-import resource
 from typing import Any, Dict, Optional, Text, List
 
 from schematic.schemas import SchemaGenerator
 from schematic.utils.io_utils import load_json
-from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +112,16 @@ class AttributesExplorer():
                             # Capitalize attribute if it begins with a lowercase letter, for aesthetics.
                             if attribute[0].islower():
                                 attribute = attribute.capitalize()
-                            conditional_statement = f'{attribute} -is- "{value[0]}"'
+
+                            # Remove "Type" (i.e. turn "Biospecimen Type" to "Biospcimen")
+                            if "Type" in attribute: 
+                                attribute = attribute.split(" ")[0]
+                            
+                            # Remove "Type" (i.e. turn "Tissue Type" to "Tissue")
+                            if "Type" in value[0]:
+                                value[0] = value[0].split(" ")[0]
+
+                            conditional_statement = f'{attribute} is "{value[0]}"'
                             if conditional_statement not in data_dict[key]['Conditional Requirements']:
                                 data_dict[key]['Cond_Req'] = True
                                 data_dict[key]['Conditional Requirements'].extend([conditional_statement])
@@ -123,9 +130,23 @@ class AttributesExplorer():
                             f"There is an error getting conditional requirements related "
                             "to the attribute: {key}. The error is likely caused by naming inconsistencies (e.g. uppercase, camelcase, ...)"
                         )
+
             for key, value in data_dict.items():
                 if 'Conditional Requirements' in value.keys():
-                    data_dict[key]['Conditional Requirements'] = ' || '.join(data_dict[key]['Conditional Requirements'])
+
+                    ## reformat conditional requirement 
+
+                    # get all attributes 
+                    attr_lst = [i.split(" is ")[-1] for i in data_dict[key]['Conditional Requirements']]
+                    
+                    # join a list of attributes by using OR 
+                    attr_str = " OR ".join(attr_lst)
+
+                    # reformat the conditional requirement 
+                    component_name = data_dict[key]['Conditional Requirements'][0].split(' is ')[0]
+                    conditional_statement_str = f' If {component_name} is {attr_str} then "{key}" is required'
+
+                    data_dict[key]['Conditional Requirements'] = conditional_statement_str
             df = pd.DataFrame(data_dict)
             df = df.T
             cols = ['Attribute', 'Label', 'Description', 'Required', 'Cond_Req', 'Valid Values', 'Conditional Requirements', 'Validation Rules', 'Component']

@@ -66,6 +66,7 @@ Jinja2 = "2.11.3"
 openpyxl = "^3.0.9"
 "backports.zoneinfo" = {markers = "python_version < \"3.9\"", version = "^0.2.1"}
 Flask-Cors = "^3.0.10"
+pdoc = "^12.2.0"
 
 
 [tool.poetry.dev-dependencies]
@@ -111,6 +112,10 @@ filterwarnings = [
 markers = [
     """\
     google_credentials_needed: marks tests requiring \
-    Google credentials (skipped on GitHub CI)\
+    Google credentials (skipped on GitHub CI) \
     """,
+    """\
+    schematic_api: marks tests requiring \
+    running API locally (skipped on GitHub CI)   
+    """
 ]

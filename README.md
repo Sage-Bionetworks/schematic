@@ -117,7 +117,14 @@ Description of `config.yml` attributes
 
 *Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
-6. Obtain Google credential Files
+6. Login to Synapse by using the command line
+On the CLI in your virtual environment, run the following command: 
+```
+synapse login -u <synapse username> -p <synapse password> --rememberMe
+```
+Please make sure that you run the command before running `schematic init` below
+
+7. Obtain Google credential Files
 
 To obtain ``credentials.json`` and ``token.pickle``, please run:
 
@@ -152,7 +159,6 @@ requires token-based authentication. As browser support that requires the token-
 token-based authentication and keep only service account authentication in the future. 
 
 
-
 ### Development process instruction
 
 For new features, bugs, enhancements
@@ -178,6 +184,72 @@ For new features, bugs, enhancements
 14. Delete the develop-<feature/fix-name> branch
 
 *Note*: Make sure you have the latest version of the `develop` branch on your local machine.
+
+## Installation Guide - Docker 
+
+1. Install docker from https://www.docker.com/ . <br>
+2.  Identify docker image of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
+    Ex `docker pull sagebionetworks/schematic:latest` from the CLI or, run `docker compose up` after cloning the schematic github repo <br>
+    in this case, `sagebionetworks/schematic:latest` is the name of the image chosen
+3. Run Schematic Command with `docker run <flags> <schematic command and args>`. <br>
+<t> - For more information on flags for `docker run` and what they do, visit the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) <br>
+<t> - These example commands assume that you have navigated to the directory you want to run schematic from. To specify your working directory, use `$(pwd)` on MacOS/Linux or `%cd%` on Windows.  <br>
+<t> - If not using the latest image, then the full name should be specified: ie `sagebionetworks/schematic:commit-e611e4a` <br>
+<t> - If using local image created by `docker compose up`, then the docker image name should be changed: i.e. `schematic_schematic` <br>
+<t> - Using the `--name` flag sets the name of the container running locally on your machine <br>
+
+### Example For REST API <br>
+
+#### Use file path of `config.yml` to run API endpoints: 
+```
+docker run --rm -p 3001:3001 \
+  -v $(pwd):/schematic -w /schematic --name schematic \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic \
+  python /usr/src/app/run_api.py
+``` 
+
+#### Use content of `config.yml` as an environment variable to run API endpoints: 
+1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat config.yml)`
+
+2. Pass `SCHEMATIC_CONFIG_CONTENT` as an environment variable by using `docker run`
+
+```
+docker run --rm -p 3001:3001 \
+  -v $(pwd):/schematic -w /schematic --name schematic \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  -e SCHEMATIC_CONFIG_CONTENT=$SCHEMATIC_CONFIG_CONTENT \
+  sagebionetworks/schematic \
+  python /usr/src/app/run_api.py
+``` 
+
+
+### Example For Schematic on mac/linux <br>
+To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic` <br>
+Then update .synapseConfig with your credentials
+```
+docker run \
+  -v ~/schematic:/schematic \
+  -w /schematic \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic schematic model \
+  -c /schematic/config.yml validate \
+  -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
+  -dt MockComponent \
+  -js /schematic/tests/data/example.model.jsonld
+``` 
+
+### Example For Schematic on Windows <br>
+```
+docker run -v %cd%:/schematic \
+  -w /schematic \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic \
+  schematic model \
+  -c config.yml validate -mp tests/data/mock_manifests/inValid_Test_Manifest.csv -dt MockComponent -js /schematic/data/example.model.jsonld
+```
 
 # Other Contribution Guidelines
 ## Updating readthedocs documentation
