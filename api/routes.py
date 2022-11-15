@@ -7,7 +7,7 @@ import urllib.request
 
 import connexion
 from connexion.decorators.uri_parsing import Swagger2URIParser
-from flask import current_app as app, request, g, jsonify
+from flask import current_app as app
 from werkzeug.debug import DebuggedApplication
 
 from schematic import CONFIG
@@ -25,6 +25,7 @@ import pandas as pd
 import json
 from schematic.utils.df_utils import load_df
 import pickle
+from flask import send_from_directory
 
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
@@ -203,7 +204,7 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
             title: title of a given manifest. 
             oauth: if user wants to use OAuth for Google authentication
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
-            return_excel: if true, return an Excel spreadsheet; else, return a google sheet url.
+            output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
             use_annotations: Whether to use existing annotations during manifest generation
             asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
         Returns:
@@ -270,6 +271,13 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
         result = manifest_generator.get_manifest(
             dataset_id=dataset_id, sheet_url=True, output_format=output_format
         )
+
+        # return an excel file if output_format is set to "excel"
+        if output_format == "excel":
+            dir_name = os.path.dirname(result)
+            file_name = os.path.basename(result)
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            return send_from_directory(directory=dir_name, filename=file_name, as_attachment=True, mimetype=mimetype, cache_timeout=0)
                
         return result
 
@@ -284,8 +292,11 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
                 t = f'{title}.{component}.manifest'
             else: 
                 t = f'Example.{component}.manifest'
-            result = create_single_manifest(data_type=component, output_format=output_format, title=t)
-            all_results.append(result)
+            if output_format != "excel":
+                result = create_single_manifest(data_type=component, output_format=output_format, title=t)
+                all_results.append(result)
+            else: 
+                app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
     else:
         for i, dt in enumerate(data_type):
             if not title: 
@@ -300,7 +311,14 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
                 result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t)
             else:
                 result = create_single_manifest(data_type=dt, output_format=output_format, title=t)
-            all_results.append(result)
+
+            # if output is pandas dataframe or google sheet url
+            if isinstance(result, str) or isinstance(result, pd.DataFrame):
+                all_results.append(result)
+            else: 
+                if len(data_type) > 1:
+                    app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
+                return result
 
     return all_results
 
