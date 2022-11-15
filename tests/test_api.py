@@ -5,6 +5,7 @@ import configparser
 import json
 import os
 import pandas as pd
+import re
 
 
 '''
@@ -277,17 +278,11 @@ class TestSchemaGeneratorOperation:
 @pytest.mark.schematic_api
 class TestManifestOperation:
 
-    def ifExcelPathExists(self, response_dt):
-        # return excel file paths
-        for i in response_dt:
-            assert os.path.exists(i)
-            assert i.endswith('.xlsx')
-
-        # clean up
-        try: 
-            os.remove(i)
-        except: 
-            pass
+    def ifExcelExists(self, response, file_name):
+        # return one excel file
+        d = response.headers['content-disposition']
+        fname = re.findall("filename=(.+)", d)[0]
+        assert fname == file_name
     
     def ifGoogleSheetExists(self, response_dt):
         for i in response_dt: 
@@ -339,9 +334,9 @@ class TestManifestOperation:
                 self.ifGoogleSheetExists(response_dt)
 
 
-    @pytest.mark.parametrize("output_format", ["excel",  None, "google_sheet", "dataframe (only if getting existing manifests)"])
+    @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)"])
     @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
-    def test_generate_new_manifest(self, client, data_model_jsonld, data_type, output_format):
+    def test_generate_new_manifest(self, caplog, client, data_model_jsonld, data_type, output_format):
         params = {
             "schema_url": data_model_jsonld,
             "asset_view": "syn23643253",
@@ -357,30 +352,35 @@ class TestManifestOperation:
 
         response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
         assert response.status_code == 200
-        response_dt = json.loads(response.data)
-        assert isinstance(response_dt, list)
-
-        # since data_type = "all manifest", there shouldn't be multiple data types
-        if data_type == "all manifests":
-            assert len(response_dt) == 3
-            if output_format == "excel":
-                # return excel file paths
-                self.ifExcelPathExists(response_dt)
-            else: 
-                self.ifGoogleSheetExists(response_dt)
-        elif isinstance(data_type, list):
-            assert len(response_dt) == 2
-            if output_format and output_format == "excel":
-                # return excel file paths
-                self.ifExcelPathExists(response_dt)
 
 
-            # all other cases would return google sheet because dataset id is None
+        if output_format and output_format == "excel":
+            if data_type == "all manifests":
+                # return error message
+                for record in caplog.records:
+                    assert record.levelname == "ERROR"
+                assert "Currently we do not support returning multiple files as Excel format at once. Please choose a different output format." in caplog.text
+            elif isinstance(data_type, list) and len(data_type) > 1:
+                # return warning message
+                for record in caplog.records:
+                    assert record.levelname == "WARNING"
+                assert "Currently we do not support returning multiple files as Excel format at once." in caplog.text
+                self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
             else:
-                self.ifGoogleSheetExists(response_dt)
-        else: 
-            assert len(response_dt) == 1
+                self.ifExcelExists(response, "Example.xlsx")
+        
+        # return one or multiple google sheet links in all other cases
+        # note: output_format == dataframe only matters when dataset_id is not None
+        else:
+            response_dt = json.loads(response.data)
+            self.ifGoogleSheetExists(response_dt)
 
+            if data_type == "all manifests":
+                assert len(response_dt) == 3
+            elif isinstance(data_type, list) and len(data_type) >1:
+                assert len(response_dt) == 2
+            else: 
+                assert len(response_dt) == 1
 
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
