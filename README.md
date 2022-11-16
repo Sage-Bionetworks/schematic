@@ -74,7 +74,7 @@ This command will install the dependencies based on what we specify in poetry.lo
 5. Fill in credential files: 
 *Note*: If you won't interact with Synapse, please ignore this section.
 
-There are two main configuration files that need to be edited :
+There are two main configuration files that need to be edited:
 [config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml)
 and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig)
 
@@ -87,6 +87,8 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 >[authentication]<br> username = ABC <br> authtoken = abc
 
 <strong>Configure config.yml File</strong>
+
+*Note*: Below is only a brief explanation of some attributes in `config.yml`. <strong>Please use the link [here](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml) to get the latest version of `config.yml` in `develop` branch</strong>.
 
 Description of `config.yml` attributes
 
@@ -104,16 +106,28 @@ Description of `config.yml` attributes
         service_acct_creds: "syn25171627" # synapse ID of service_account_creds.json file
 
     manifest:
-        title: "Patient Manifest " # title of metadata manifest file
-        data_type: "Patient" # component or data type from the data model
+        title: "example" # title of metadata manifest file
+        # to make all manifests enter only 'all manifests'
+        data_type: 
+          - "Biospecimen"
+          - "Patient"
 
     model:
         input:
             location: "data/schema_org_schemas/example.jsonld" # path to JSON-LD data model
             file_type: "local" # only type "local" is supported currently
-            validation_schema: "~/path/to/validation_schema.json" # path to custom JSON Validation Schema JSON file
-            log_location: "~/path/to/log_folder/validation_schema.json" # auto-generated JSON Validation Schemas can be logged
-        
+    style: # configuration of google sheet
+        google_manifest:
+          req_bg_color:
+            red: 0.9215
+            green: 0.9725
+            blue: 0.9803
+          opt_bg_color:
+            red: 1.0
+            green: 1.0
+            blue: 0.9019
+          master_template_id: '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU'
+          strict_validation: true
 
 *Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
