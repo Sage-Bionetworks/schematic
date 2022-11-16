@@ -38,7 +38,7 @@ class ManifestGenerator(object):
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
-        oauth: bool = True,
+        oauth: bool = False, # set the default to use service account credentials
         use_annotations: bool = False,
     ) -> None:
 

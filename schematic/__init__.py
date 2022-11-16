@@ -30,7 +30,7 @@ click_log.basic_config(logger)
 @click.option(
     "-a",
     "--auth",
-    default="token",
+    default="service_account",
     type=click.Choice(["token", "service_account"], case_sensitive=False),
     help=query_dict(init_command, ("init", "auth")),
 )
