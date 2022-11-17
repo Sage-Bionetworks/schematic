@@ -112,10 +112,9 @@ filterwarnings = [
 markers = [
     """\
     google_credentials_needed: marks tests requiring \
-    Google credentials (skipped on GitHub CI) \
+    Google credentials \
     """,
     """\
-    schematic_api: marks tests requiring \
-    running API locally (skipped on GitHub CI)   
+    schematic_api: marks api tests \
     """
 ]

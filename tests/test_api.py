@@ -8,10 +8,6 @@ import pandas as pd
 import re
 
 
-'''
-To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
-'''
-
 @pytest.fixture(scope="class")
 def app():
     app = create_app()

@@ -99,27 +99,29 @@ jobs:
       #     # if files are not formatted correctly, the build will not go through
       #     black . --check
       #----------------------------------------------
+      #              run all api test suite   
+      #----------------------------------------------
+      - name: Run API tests
+        env:
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+        run: >
+          source .venv/bin/activate;
+          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/api
+          -m "schematic_api"
+
+      #----------------------------------------------
       #              run test suite   
       #----------------------------------------------
-      - name: Run tests that require google creds
+      - name: Run other tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         if: ${{ false == contains(github.event.head_commit.message, 'runcombos') }}
         run: >
           source .venv/bin/activate;
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "google_credentials_needed"
-
-      # - name: Run tests
-      #   env:
-      #     SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
-      #     SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-      #   if: ${{ false == contains(github.event.head_commit.message, 'runcombos') }}
-      #   run: >
-      #     source .venv/bin/activate;
-      #     pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-      #     -m "not (google_credentials_needed or rule_combos or schematic_api)"
+          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic
+          -m "not schematic_api"
 
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
