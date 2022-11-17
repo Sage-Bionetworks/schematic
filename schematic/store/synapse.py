@@ -14,7 +14,6 @@ import numpy as np
 import pandas as pd
 import re
 import synapseclient
-import synapseutils
 from time import sleep
 
 from synapseclient import (
@@ -33,7 +32,8 @@ from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
-import synapseutils
+from synapseutils import walk
+from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
@@ -301,7 +301,7 @@ class SynapseStorage(BaseStorage):
         """
 
         # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = synapseutils.walk(self.syn, datasetId)
+        walked_path = walk(self.syn, datasetId)
 
         file_list = []
 
