@@ -821,6 +821,7 @@ class SynapseStorage(BaseStorage):
         )
 
         manifest_synapse_file_id = self.syn.store(manifestSynapseFile, isRestricted = restrict_manifest).id
+        changeFileMetaData(syn = self.syn, entity = manifest_synapse_file_id, downloadAs = file_name_new)
         
         return manifest_synapse_file_id
 
