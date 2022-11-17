@@ -30,8 +30,7 @@ DATA_DIR = os.path.join(TESTS_DIR, "data")
 CONFIG_PATH = os.path.join(DATA_DIR, "test_config.yml")
 CONFIG.load_config(CONFIG_PATH)
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def dataset_id():
     yield "syn25614635"
 
@@ -71,17 +70,14 @@ class Helpers:
         base_version=".".join(version.split('.')[0:2])
 
         return base_version
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def helpers():
     yield Helpers
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def config():
     yield CONFIG
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def config_path():
     yield CONFIG_PATH

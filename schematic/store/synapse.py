@@ -1055,7 +1055,7 @@ class SynapseStorage(BaseStorage):
 
         for idx,row in manifest.iterrows():
             if not row["Uuid"]:
-                gen_uuid = uuid.uuid4()
+                gen_uuid = str(uuid.uuid4())
                 row["Uuid"] = gen_uuid
                 manifest.loc[idx, 'Uuid'] = gen_uuid
 
