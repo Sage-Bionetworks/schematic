@@ -103,7 +103,7 @@ jobs:
       #----------------------------------------------
       - name: Run API tests
         env:
-          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SYNAPSE_ACCESS_TOKEN_TWO: ${{ secrets.SYNAPSE_ACCESS_TOKEN_TWO }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
           source .venv/bin/activate;
