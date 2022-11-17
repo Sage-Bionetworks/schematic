@@ -115,7 +115,7 @@ jobs:
       #----------------------------------------------
       - name: Run other tests
         env:
-          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SYNAPSE_ACCESS_TOKEN_TWO: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         if: ${{ false == contains(github.event.head_commit.message, 'runcombos') }}
         run: >
