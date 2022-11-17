@@ -129,7 +129,7 @@ Please make sure that you run the command before running `schematic init` below
 To obtain ``credentials.json`` and ``token.pickle``, please run:
 
 ```
-schematic init --config ~/path/to/config.yml
+schematic init --config ~/path/to/config.yml --auth token
 ```
 This should prompt you with a URL that will take you through Google OAuth. Your `credentials.json` and `token.pickle` will get automatically downloaded the first time you run this command.
 
