@@ -42,7 +42,7 @@ def syn_token(config):
     config_parser.read(synapse_config_path)
     # try using synapse access token
     if "SYNAPSE_ACCESS_TOKEN" in os.environ:
-        token=os.getenv["SYNAPSE_ACCESS_TOKEN"]
+        token=os.getenv("SYNAPSE_ACCESS_TOKEN")
     else:
         token = config_parser["authentication"]["authtoken"]
     yield token
