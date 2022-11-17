@@ -109,8 +109,20 @@ jobs:
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not google_credentials_needed"
+
+      - name: Set up API endpoints 
+        run: >
+          source .venv/bin/activate;
+          poetry run python3 run_api.py
+      - name: Run API tests
+        env:
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+        run: >
+          source .venv/bin/activate;
+          poetry run python3 run_api.py
           
-      - name: Run tests
+      - name: Run tests that require google creds
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
@@ -118,8 +130,18 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not (google_credentials_needed or rule_combos or schematic_api)"
-    
+          -m "google_credentials_needed"
+
+      # - name: Run tests
+      #   env:
+      #     SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+      #     SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+      #   if: ${{ false == contains(github.event.head_commit.message, 'runcombos') }}
+      #   run: >
+      #     source .venv/bin/activate;
+      #     pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+      #     -m "not (google_credentials_needed or rule_combos or schematic_api)"
+
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
         with:
