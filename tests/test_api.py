@@ -42,8 +42,9 @@ def syn_token(config):
     config_parser.read(synapse_config_path)
     # try using synapse access token
     if "SYNAPSE_ACCESS_TOKEN" in os.environ:
-        token=os.environ["SYNAPSE_ACCESS_TOKEN"]
-    token = config_parser["authentication"]["authtoken"]
+        token=os.getenv["SYNAPSE_ACCESS_TOKEN"]
+    else:
+        token = config_parser["authentication"]["authtoken"]
     yield token
 
 @pytest.mark.schematic_api
