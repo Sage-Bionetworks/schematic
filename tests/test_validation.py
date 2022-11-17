@@ -70,38 +70,45 @@ class TestManifestValidation:
             val_rule = 'num',
             row_num = 3,
             attribute_name = 'Check Num', 
-            invalid_entry = 'c'
-            ) in errors
+            invalid_entry = 'c',
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_type_error(
             val_rule = 'int',
             row_num = 3,
             attribute_name = 'Check Int', 
-            invalid_entry = 5.63
-            ) in errors
+            invalid_entry = 5.63,
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_type_error(
             val_rule = 'str',
             row_num = 3,
             attribute_name = 'Check String', 
-            invalid_entry = 94
-            ) in errors
+            invalid_entry = 94,
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_list_error(
+            val_rule = 'list strict',
             list_string = 'invalid list values',
             row_num = '3',
             attribute_name = 'Check List',
             list_error = "not_comma_delimited",
-            invalid_entry = 'invalid list values'
-            ) in errors
+            invalid_entry = 'invalid list values',
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_list_error(
+            val_rule = 'list strict',
             list_string = 'ab cd ef',
             row_num = '3',
             attribute_name = 'Check Regex List',
             list_error = "not_comma_delimited",
-            invalid_entry = 'ab cd ef'
-            ) in errors
+            invalid_entry = 'ab cd ef',
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_regex_error(
             val_rule = 'regex',
@@ -109,8 +116,9 @@ class TestManifestValidation:
             row_num = '3',
             attribute_name = 'Check Regex Format',
             module_to_call = 'match',
-            invalid_entry = 'm'
-            ) in errors   
+            invalid_entry = 'm',
+            sg = sg,
+            )[0] in errors   
 
         assert GenerateError.generate_regex_error(
             val_rule = 'regex',
@@ -118,17 +126,20 @@ class TestManifestValidation:
             row_num = '3',
             attribute_name = 'Check Regex Single',
             module_to_call = 'search',
-            invalid_entry = 'q'
-            ) in errors   
+            invalid_entry = 'q',
+            sg = sg,
+            )[0] in errors   
 
         assert GenerateError.generate_url_error(
+            val_rule = 'url',
             url = 'http://googlef.com/',
             url_error = 'invalid_url',
             row_num = '3',
             attribute_name = 'Check URL',
             argument = None,
-            invalid_entry = 'http://googlef.com/'
-            ) in errors
+            invalid_entry = 'http://googlef.com/',
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_content_error(
             val_rule = 'unique error', 
@@ -167,34 +178,39 @@ class TestManifestValidation:
             attribute_name='Check Match at Least',
             invalid_entry = '[7163]',
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
-            ) in warnings
+            sg = sg,
+            )[1] in warnings
 
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value',
             row_num = '[3]',
             attribute_name = 'Check Match at Least values',
             invalid_entry = '[51100]',
-            ) in warnings      
+            sg = sg,
+            )[1] in warnings      
 
         assert \
             GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne',
             attribute_name='Check Match Exactly',
-            matching_manifests = ['syn29862078', 'syn27648165']
-            ) in warnings \
+            matching_manifests = ['syn29862078', 'syn27648165'],
+            sg = sg,
+            )[1] in warnings \
             or \
             GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne',
             attribute_name='Check Match Exactly',
-            matching_manifests = ['syn29862066', 'syn27648165']
-            ) in warnings
+            matching_manifests = ['syn29862066', 'syn27648165'],
+            sg = sg,
+            )[1] in warnings
                     
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
             row_num = '[2, 3, 4]',
             attribute_name='Check Match Exactly values',
             invalid_entry = '[71738, 98085, 210065]',
-            ) in warnings 
+            sg = sg,
+            )[1] in warnings 
         
         
 
@@ -213,38 +229,45 @@ class TestManifestValidation:
             val_rule = 'num',
             row_num = '3',
             attribute_name = 'Check Num', 
-            invalid_entry = 'c'
-            ) in errors
+            invalid_entry = 'c',
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_type_error(
             val_rule = 'int',
             row_num = '3',
             attribute_name = 'Check Int', 
-            invalid_entry = '5.63'
-            ) in errors
+            invalid_entry = '5.63',
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_type_error(
             val_rule = 'str',
             row_num = '3',
             attribute_name = 'Check String', 
-            invalid_entry = '94'
-            ) in errors
+            invalid_entry = '94',
+            sg = sg,
+            )[0] in errors
             
         assert GenerateError.generate_list_error(
+            val_rule = 'list strict',
             list_string = 'invalid list values',
             row_num = '3',
             attribute_name = 'Check List',
             list_error = "not_comma_delimited",
-            invalid_entry = 'invalid list values'
-            ) in errors
+            invalid_entry = 'invalid list values',
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_list_error(
+            val_rule = 'list strict',
             list_string = 'ab cd ef',
             row_num = '3',
             attribute_name = 'Check Regex List',
             list_error = "not_comma_delimited",
-            invalid_entry = 'ab cd ef'
-            ) in errors
+            invalid_entry = 'ab cd ef',
+            sg = sg,
+            )[0] in errors
 
         assert GenerateError.generate_regex_error(
             val_rule = 'regex',
@@ -252,8 +275,9 @@ class TestManifestValidation:
             row_num = '3',
             attribute_name = 'Check Regex Single',
             module_to_call = 'search',
-            invalid_entry = 'q'
-            ) in errors 
+            invalid_entry = 'q',
+            sg = sg,
+            )[0] in errors 
 
         assert GenerateError.generate_regex_error(
             val_rule = 'regex',
@@ -261,17 +285,20 @@ class TestManifestValidation:
             row_num = '3',
             attribute_name = 'Check Regex Format',
             module_to_call = 'match',
-            invalid_entry = 'm'
-            ) in errors     
+            invalid_entry = 'm',
+            sg = sg,
+            )[0] in errors     
 
         assert GenerateError.generate_url_error(
+            val_rule = 'url',
             url = 'http://googlef.com/',
             url_error = 'invalid_url',
             row_num = '3',
             attribute_name = 'Check URL',
             argument = None,
-            invalid_entry = 'http://googlef.com/'
-            ) in errors
+            invalid_entry = 'http://googlef.com/',
+            sg = sg,
+            )[0] in errors
 
         
         #Check Warnings
@@ -281,34 +308,39 @@ class TestManifestValidation:
             attribute_name='Check Match at Least',
             invalid_entry = '[7163]',
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
-            ) in warnings
+            sg = sg,
+            )[1] in warnings
 
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value',
             row_num = '[3]',
             attribute_name = 'Check Match at Least values',
             invalid_entry = '[51100]',
-            ) in warnings      
+            sg = sg,
+            )[1] in warnings      
 
         assert \
             GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne',
             attribute_name='Check Match Exactly',
-            matching_manifests = ['syn29862078', 'syn27648165']
-            ) in warnings \
+            matching_manifests = ['syn29862078', 'syn27648165'],
+            sg = sg,
+            )[1] in warnings \
             or \
             GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne',
             attribute_name='Check Match Exactly',
-            matching_manifests = ['syn29862066', 'syn27648165']
-            ) in warnings
+            matching_manifests = ['syn29862066', 'syn27648165'],
+            sg = sg,
+            )[1] in warnings
                     
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
             row_num = '[2, 3, 4]',
             attribute_name='Check Match Exactly values',
             invalid_entry = '[71738, 98085, 210065]',
-            ) in warnings 
+            sg = sg,
+            )[1] in warnings 
         
 
     @pytest.mark.rule_combos(reason = 'This introduces a great number of tests covering every possible rule combination that are only necessary on occasion.')

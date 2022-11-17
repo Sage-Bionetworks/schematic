@@ -23,6 +23,7 @@ from great_expectations.data_context.types.base import DataContextConfig, Dataso
 from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
 
 from schematic.models.validate_attribute import GenerateError
+from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
@@ -159,7 +160,7 @@ class GreatExpectationsHelpers(object):
             if validation_rules:
                 #iterate through all validation rules for an attribute
                 for rule in validation_rules:
-                    
+                    base_rule = rule.split(" ")[0]
             
                     #check if rule has an implemented expectation
                     if rule_in_rule_list(rule,self.unimplemented_expectations):
@@ -169,8 +170,9 @@ class GreatExpectationsHelpers(object):
                     args["column"] = col
                     args["result_format"] = "COMPLETE"
 
+
                     #Validate num
-                    if rule=='num':
+                    if base_rule=='num':
                         args["mostly"]=1.0
                         args["type_list"]=['int','int64', 'float', 'float64']
                         meta={
@@ -182,7 +184,7 @@ class GreatExpectationsHelpers(object):
                         }
                 
                     #Validate float
-                    elif rule=='float':
+                    elif base_rule=='float':
                         args["mostly"]=1.0
                         args["type_list"]=['float', 'float64']
                         meta={
@@ -194,7 +196,7 @@ class GreatExpectationsHelpers(object):
                         }
                 
                     #Validate int
-                    elif rule=='int':
+                    elif base_rule=='int':
                         args["mostly"]=1.0
                         args["type_list"]=['int','int64']
                         meta={
@@ -206,7 +208,7 @@ class GreatExpectationsHelpers(object):
                         }
                 
                     #Validate string
-                    elif rule=='str':
+                    elif base_rule=='str':
                         args["mostly"]=1.0
                         args["type_"]='str'
                         meta={
@@ -217,7 +219,7 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
 
-                    elif rule.startswith("recommended"):
+                    elif base_rule==("recommended"):
                         args["mostly"]=0.0000000001
                         args["regex_list"]=['^$']
                         meta={
@@ -228,7 +230,7 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
 
-                    elif rule.startswith("protectAges"):
+                    elif base_rule==("protectAges"):
                         #Function to convert to different age limit formats
                         min_age, max_age = self.get_age_limits()
 
@@ -243,7 +245,7 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
 
-                    elif rule.startswith("unique"):
+                    elif base_rule==("unique"):
                         args["mostly"]=1.0
                         meta={
                             "notes": {
@@ -253,7 +255,7 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule
                         }
                     
-                    elif rule.startswith("inRange"):
+                    elif base_rule==("inRange"):
                         args["mostly"]=1.0
                         args["min_value"]=float(rule.split(" ")[1])
                         args["max_value"]=float(rule.split(" ")[2])
@@ -350,7 +352,8 @@ class GreatExpectationsHelpers(object):
         validation_results: Dict,
         validation_types: Dict,
         errors: List,
-        warnings: List
+        warnings: List,
+        sg: SchemaGenerator,
         ):
         """
             Purpose:
@@ -407,45 +410,50 @@ class GreatExpectationsHelpers(object):
                 #call functions to generate error messages and add to error list
                 if validation_types[rule.split(" ")[0]]['type']=='type_validation':
                     for row, value in zip(indices,values):
-                        errors.append(
-                            GenerateError.generate_type_error(
+                        vr_errors, vr_warnings = GenerateError.generate_type_error(
                                 val_rule = rule,
                                 row_num = row+2,
                                 attribute_name = errColumn,
                                 invalid_entry = value,
+                                sg = sg,
                             )
-                        )          
+                        if vr_errors:
+                            errors.append(vr_errors)  
+                        if vr_warnings:
+                            warnings.append(vr_warnings) 
                 elif validation_types[rule.split(" ")[0]]['type']=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
-
                     for row, value in zip(indices,values):   
-                        errors.append(
-                            GenerateError.generate_regex_error(
+                        vr_errors, vr_warnings = GenerateError.generate_regex_error(
                                 val_rule= rule,
                                 reg_expression = expression,
                                 row_num = row+2,
                                 module_to_call = 'match',
                                 attribute_name = errColumn,
                                 invalid_entry = value,
+                                sg = sg,
                             )
-                        )    
+                        if vr_errors:
+                            errors.append(vr_errors)  
+                        if vr_warnings:
+                            warnings.append(vr_warnings)                          
                 elif validation_types[rule.split(" ")[0]]['type']=='content_validation':     
-                    content_errors, content_warnings = GenerateError.generate_content_error(
+                    vr_errors, vr_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,
                                                             row_num = list(np.array(indices)+2),
                                                             error_val = values,  
                                                             sg = self.sg
                                                         )       
-                    if content_errors:
-                        errors.append(content_errors)  
+                    if vr_errors:
+                        errors.append(vr_errors)  
                         if rule.startswith('protectAges'):
-                            self.censor_ages(content_errors,errColumn)
+                            self.censor_ages(vr_errors,errColumn)
                             pass
-                    elif content_warnings:
-                        warnings.append(content_warnings)  
+                    if vr_warnings:
+                        warnings.append(vr_warnings)  
                         if rule.startswith('protectAges'):
-                            self.censor_ages(content_warnings,errColumn)
+                            self.censor_ages(vr_warnings,errColumn)
                             pass
 
         return errors, warnings
