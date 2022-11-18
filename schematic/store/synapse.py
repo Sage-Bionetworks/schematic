@@ -745,7 +745,7 @@ class SynapseStorage(BaseStorage):
         # Rename the manifest columns to display names to match fileview
         table_info = self.get_table_info(datasetId)
 
-        blacklist_chars = ['(', ')', '.', ' ']
+        blacklist_chars = ['(', ')', '.', ' ', '-']
         manifest_columns = manifest.columns.tolist()
 
         table_manifest=deepcopy(manifest)
@@ -831,7 +831,7 @@ class SynapseStorage(BaseStorage):
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
         # columns with special characters are outside of the schema
         metadataSyn = {}
-        blacklist_chars = ['(', ')', '.', ' ']
+        blacklist_chars = ['(', ')', '.', ' ', '-']
         
         for k, v in row.to_dict().items():
 
