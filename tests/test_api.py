@@ -6,7 +6,7 @@ import json
 import os
 import pandas as pd
 import re
-
+from tenacity import retry, TryAgain, RetryError, stop_after_attempt, wait_random_exponential
 
 @pytest.fixture(scope="class")
 def app():
@@ -22,7 +22,7 @@ def client(app, config_path):
 
 @pytest.fixture(scope="class")
 def test_manifest_csv(helpers):
-    test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
+    test_manifest_path = helpers.get_data_path("mock_manifests/Example_Test_BulkRNAseq.csv")
     yield test_manifest_path
     
 @pytest.fixture(scope="class")
@@ -41,8 +41,8 @@ def syn_token(config):
     config_parser = configparser.ConfigParser()
     config_parser.read(synapse_config_path)
     # try using synapse access token
-    if "SYNAPSE_ACCESS_TOKEN_TWO" in os.environ:
-        token=os.getenv("SYNAPSE_ACCESS_TOKEN_TWO")
+    if "SYNAPSE_ACCESS_TOKEN" in os.environ:
+        token=os.getenv("SYNAPSE_ACCESS_TOKEN")
     else:
         token = config_parser["authentication"]["authtoken"]
     yield token
@@ -400,7 +400,7 @@ class TestManifestOperation:
         test_manifest_data = open(test_manifest_csv, "rb")
         
         params = {
-            "data_type": "MockComponent",
+            "data_type": "BulkRNA-seqAssay",
             "schema_url": data_model_jsonld,
             "title": "Example",
             "csv_file": test_manifest_data
@@ -430,7 +430,7 @@ class TestManifestOperation:
             assert response.status_code == 200
 
         else: 
-            params["data_type"] = "MockComponent"
+            params["data_type"] = "BulkRNA-seqAssay"
 
             headers = {
             'Content-Type': "multipart/form-data",
@@ -498,6 +498,23 @@ class TestManifestOperation:
 
             assert isinstance(response_path, str)
             assert response_path.endswith(".csv")
+    
+    @retry(wait=wait_random_exponential(multiplier=1,min=10,max=120), stop=stop_after_attempt(10))
+    def submit_manifest_json(self, client, params):
+        response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
+        if response.status_code == 500:
+            raise TryAgain
+        else:
+            return response.status_code
+
+    @retry(wait=wait_random_exponential(multiplier=1,min=10,max=120), stop=stop_after_attempt(10))
+    def submit_manifest_csv(self, client, params, headers, test_manifest_csv):
+        response = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
+        if response.status_code == 500:
+            raise TryAgain
+        else:
+            return response.status_code
+
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
     def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv):
@@ -513,18 +530,23 @@ class TestManifestOperation:
 
         if json_str:
             params["json_str"] = json_str
-            response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
-            assert response.status_code == 200
+            try:
+                status_code = self.submit_manifest_json(params=params,client=client)
+            except (RetryError) as e:
+                pass
+            assert status_code == 200
         else: 
             headers = {
             'Content-Type': "multipart/form-data",
             'Accept': "application/json"
             }
-            params["data_type"] = "MockComponent"
+            params["data_type"] = "BulkRNA-seqAssay"
 
-            # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
-            assert response_csv.status_code == 200     
+            try:
+                status_code=self.submit_manifest_csv(params=params,client=client,headers=headers,test_manifest_csv=test_manifest_csv)
+            except (RetryError) as e:
+                pass
+            assert status_code == 200     
 
 
 @pytest.mark.schematic_api

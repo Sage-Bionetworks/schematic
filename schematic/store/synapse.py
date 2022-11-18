@@ -114,8 +114,7 @@ class SynapseStorage(BaseStorage):
     def login(token=None, access_token=None, input_token=None):
         # If no token is provided, try retrieving access token from environment
         if not token and not access_token and not input_token:
-            access_token = os.getenv("SYNAPSE_ACCESS_TOKEN_TWO") # just for testing
-
+            access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
         # login using a token
         if token:
             syn = synapseclient.Synapse()
