@@ -673,3 +673,20 @@ def get_node_range(
     gen = SchemaGenerator(path_to_json_ld=schema_url)
     node_range = gen.get_node_range(node_label, return_display_names)
     return node_range
+
+def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
+    """Check if the node is required
+
+    Args:
+        schema_url (str): Data Model URL
+        node_display_name (str): display name
+
+    Returns: 
+        a boolean that indicates if a node is required
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    is_required = gen.is_node_required(node_display_name)
+
+    return is_required
+
+
