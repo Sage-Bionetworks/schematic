@@ -767,11 +767,11 @@ paths:
             type: string
             nullable: false
           description: Display label of a node
-          example: Patient
+          example: FamilyHistory
           required: true
       responses:
         "200":
-          description: csv file path or json
+          description: return a boolean 
         "500":
           description: Check schematic log. 
       tags:

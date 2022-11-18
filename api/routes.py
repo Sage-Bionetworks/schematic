@@ -681,8 +681,9 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
         schema_url (str): Data Model URL
         node_display_name (str): display name
 
-    Returns: 
-        a boolean that indicates if a node is required
+    Returns:
+        True: If the given node is a "required" node.
+        False: If the given node is not a "required" (i.e., an "optional") node.
     """
     gen = SchemaGenerator(path_to_json_ld=schema_url)
     is_required = gen.is_node_required(node_display_name)
