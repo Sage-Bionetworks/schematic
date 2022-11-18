@@ -745,7 +745,7 @@ class SynapseStorage(BaseStorage):
         # Rename the manifest columns to display names to match fileview
         table_info = self.get_table_info(datasetId)
 
-        blacklist_chars = ['(', ')', '.', ' ']
+        blacklist_chars = ['(', ')', '.', ' ', '-']
         manifest_columns = manifest.columns.tolist()
 
         table_manifest=deepcopy(manifest)
