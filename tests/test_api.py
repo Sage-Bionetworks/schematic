@@ -199,7 +199,16 @@ class TestSchemaExplorerOperation:
         if os.path.exists(response_dt):
             os.remove(response_dt)
 
+    def test_if_node_required(test, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_display_name": "FamilyHistory"
+        }
 
+        response = client.get("http://localhost:3001/v1/schemas/is_node_required", query_string = params)
+        response_dta = json.loads(response.data)
+        assert response.status_code == 200
+        assert response_dta == True
 
 @pytest.mark.schematic_api
 class TestSchemaGeneratorOperation:
