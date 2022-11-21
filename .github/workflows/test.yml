@@ -107,7 +107,7 @@ jobs:
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
           source .venv/bin/activate;
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/api
+          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/api --durations=0
           -m "schematic_api"
 
       #----------------------------------------------
