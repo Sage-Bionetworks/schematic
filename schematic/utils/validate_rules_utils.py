@@ -20,70 +20,83 @@ def validation_rule_info():
     '''
     rule_dict = {
             "int": {
-                'arguments':(None, None),
+                'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',]},
+                'complementary_rules': ['inRange',],
+                'default_message_level': 'error'},
 
             "float": {
-                'arguments':(None, None), 
+                'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',]},
+                'complementary_rules': ['inRange',],
+                'default_message_level': 'error'},
 
             "num": {
-                'arguments':(None, None), 
+                'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',]},
+                'complementary_rules': ['inRange',],
+                'default_message_level': 'error'},
 
             "str": {
-                'arguments':(None, None), 
+                'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'error'},
 
             "regex": {
-                'arguments':(2, 2), 
+                'arguments':(3, 2), 
                 'fixed_arg': ['strict'], 
                 'type': "regex_validation",
-                'complementary_rules': ['list']},
+                'complementary_rules': ['list'],
+                'default_message_level': 'error'},
 
             "url" : {
-                'arguments':(None, None), 
+                'arguments':(101, 0), 
                 'type': "url_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'error'},
 
             "list": {
-                'arguments':(1, 0), 
+                'arguments':(2, 0), 
                 'type': "list_validation",
-                'complementary_rules': ['regex']},
+                'complementary_rules': ['regex'],
+                'default_message_level': 'error'},
                 
             "matchAtLeastOne": {
-                'arguments':(2, 2), 
+                'arguments':(3, 2), 
                 'type': "cross_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'warning'},
 
             "matchExactlyOne": {
-                'arguments':(2, 2), 
+                'arguments':(3, 2), 
                 'type': "cross_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'warning'},
                 
             "recommended": {
-                'arguments':(None, None), 
+                'arguments':(1, 0), 
                 'type': "content_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'warning'},
 
             "protectAges": {
                 'arguments':(1, 0), 
                 'type': "content_validation",
-                'complementary_rules': ['inRange',]},
+                'complementary_rules': ['inRange',],
+                'default_message_level': 'warning'},
 
             "unique": {
                 'arguments':(1, 0), 
                 'type': "content_validation",
-                'complementary_rules': None},
+                'complementary_rules': None,
+                'default_message_level': 'error'},
                 
             "inRange": {
                 'arguments':(3, 2), 
                 'type': "content_validation",
-                'complementary_rules': ['int','float','num','protectAges']},
+                'complementary_rules': ['int','float','num','protectAges'],
+                'default_message_level': 'error'},
             }
 
     return rule_dict

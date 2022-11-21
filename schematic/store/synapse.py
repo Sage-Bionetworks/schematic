@@ -14,7 +14,6 @@ import numpy as np
 import pandas as pd
 import re
 import synapseclient
-import synapseutils
 from time import sleep
 
 from synapseclient import (
@@ -33,7 +32,8 @@ from synapseclient.table import CsvFileTable
 from synapseclient.table import build_table
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
-import synapseutils
+from synapseutils import walk
+from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
@@ -301,7 +301,7 @@ class SynapseStorage(BaseStorage):
         """
 
         # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = synapseutils.walk(self.syn, datasetId)
+        walked_path = walk(self.syn, datasetId)
 
         file_list = []
 
@@ -745,7 +745,7 @@ class SynapseStorage(BaseStorage):
         # Rename the manifest columns to display names to match fileview
         table_info = self.get_table_info(datasetId)
 
-        blacklist_chars = ['(', ')', '.', ' ']
+        blacklist_chars = ['(', ')', '.', ' ', '-']
         manifest_columns = manifest.columns.tolist()
 
         table_manifest=deepcopy(manifest)
@@ -821,6 +821,7 @@ class SynapseStorage(BaseStorage):
         )
 
         manifest_synapse_file_id = self.syn.store(manifestSynapseFile, isRestricted = restrict_manifest).id
+        changeFileMetaData(syn = self.syn, entity = manifest_synapse_file_id, downloadAs = file_name_new)
         
         return manifest_synapse_file_id
 
@@ -831,7 +832,7 @@ class SynapseStorage(BaseStorage):
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
         # columns with special characters are outside of the schema
         metadataSyn = {}
-        blacklist_chars = ['(', ')', '.', ' ']
+        blacklist_chars = ['(', ')', '.', ' ', '-']
         
         for k, v in row.to_dict().items():
 
