@@ -223,7 +223,7 @@ class GreatExpectationsHelpers(object):
                     #Validate date
                     elif base_rule=='date':
                         args["mostly"]=1.0
-                        args["type_"]=date
+                        args["type_"]='datetime'
                         meta={
                             "notes": {
                                 "format": "markdown",

@@ -57,7 +57,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
 def _parse_dates(date_string):
 
     try:  
-        return dt.date.fromisoformat(date_string)
+        return dt.datetime.fromisoformat(date_string)
     except ValueError:
         return False
 
