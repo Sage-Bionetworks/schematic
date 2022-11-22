@@ -42,6 +42,12 @@ def validation_rule_info():
                 'type': "type_validation",
                 'complementary_rules': None,
                 'default_message_level': 'error'},
+            
+            "date": {
+                'arguments':(1, 0),
+                'type': "type_validation",
+                'complementary_rules': None,
+                'default_message_level': 'error'},
 
             "regex": {
                 'arguments':(3, 2), 
