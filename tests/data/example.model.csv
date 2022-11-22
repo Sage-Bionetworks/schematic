@@ -19,20 +19,20 @@ CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
 Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
 MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Regex Format, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Recommended, Check Ages, Check Unique, Check Range",,FALSE,DataType,,,
-Check List,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list strict
-Check Regex List,,,,,FALSE,DataProperty,,,list strict::regex match [a-f]
-Check Regex Single,,,,,FALSE,DataProperty,,,regex search [a-f]
-Check Regex Format,,,,,FALSE,DataProperty,,,regex match [a-f]
-Check Num,,,,,FALSE,DataProperty,,,num
-Check Float,,,,,FALSE,DataProperty,,,float
-Check Int,,,,,FALSE,DataProperty,,,int
-Check String,,,,,FALSE,DataProperty,,,str
-Check URL,,,,,FALSE,DataProperty,,,url
-Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne Patient.PatientID set
-Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set
-Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value
-Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues value
+Check List,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list strict 
+Check Regex List,,,,,TRUE,DataProperty,,,list strict::regex match [a-f]
+Check Regex Single,,,,,TRUE,DataProperty,,,regex search [a-f]
+Check Regex Format,,,,,TRUE,DataProperty,,,regex match [a-f]
+Check Num,,,,,TRUE,DataProperty,,,num
+Check Float,,,,,TRUE,DataProperty,,,float
+Check Int,,,,,TRUE,DataProperty,,,int
+Check String,,,,,TRUE,DataProperty,,,str
+Check URL,,,,,TRUE,DataProperty,,,url
+Check Match at Least,,,,,TRUE,DataProperty,,,matchAtLeastOne Patient.PatientID set
+Check Match Exactly,,,,,TRUE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set
+Check Match at Least values,,,,,TRUE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value
+Check Match Exactly values,,,,,TRUE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues value
 Check Recommended,,,,,FALSE,DataProperty,,,recommended
-Check Ages,,,,,FALSE,DataProperty,,,protectAges
-Check Unique,,,,,FALSE,DataProperty,,,unique error
-Check Range,,,,,FALSE,DataProperty,,,inRange 50 100 error
+Check Ages,,,,,TRUE,DataProperty,,,protectAges
+Check Unique,,,,,TRUE,DataProperty,,,unique error
+Check Range,,,,,TRUE,DataProperty,,,inRange 50 100 error
