@@ -517,7 +517,7 @@ class TestManifestOperation:
 
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
-    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv):
+    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, helpers):
         params = {
             "input_token": syn_token,
             "schema_url": data_model_jsonld,
@@ -527,6 +527,16 @@ class TestManifestOperation:
             "asset_view": "syn44259375",
             "dataset_id": "syn44259313",
         }
+        python_version = helpers.get_python_version
+
+        if python_version == "3.7":
+            params["dataset_id"] = "syn44259313"
+        elif python_version == "3.8":
+            params["dataset_id"] = "syn45794276"
+        elif python_version == "3.9":
+            params["dataset_id"] = "syn45794311"
+        else: 
+            params["dataset_id"] = "syn45794337"
 
         if json_str:
             params["json_str"] = json_str
