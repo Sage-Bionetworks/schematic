@@ -105,6 +105,7 @@ jobs:
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+        if: ${{ github.event_name == 'pull_request'}}
         run: >
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/api --durations=0
@@ -130,3 +131,6 @@ jobs:
           path: htmlcov
         # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
+  test-api:
+    needs: test
+
