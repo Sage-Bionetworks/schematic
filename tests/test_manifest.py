@@ -10,15 +10,6 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture()
-def mock_creds():
-    mock_creds = {
-        "sheet_service": "mock_sheet_service",
-        "drive_service": "mock_drive_service",
-        "creds": "mock_creds",
-    }
-    yield mock_creds
-
 
 @pytest.fixture(
     params=[
@@ -68,19 +59,16 @@ def manifest(dataset_id, manifest_generator, request):
 
 
 class TestManifestGenerator:
-    def test_init(self, monkeypatch, mock_creds, helpers):
-
-        monkeypatch.setattr(
-            "schematic.manifest.generator.build_credentials", lambda: mock_creds
-        )
+    def test_init(self, helpers):
 
         generator = ManifestGenerator(
             title="mock_title",
             path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            oauth=False
         )
 
         assert type(generator.title) is str
-        assert generator.sheet_service == mock_creds["sheet_service"]
+        # assert generator.sheet_service == mock_creds["sheet_service"]
         assert generator.root is None
         assert type(generator.sg) is SchemaGenerator
 

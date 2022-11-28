@@ -51,7 +51,7 @@ paths:
           name: oauth
           schema:
             type: boolean
-            default: true
+            default: false
           description: OAuth or Service Account
           required: false
         - in: query

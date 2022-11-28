@@ -143,7 +143,7 @@ Please make sure that you run the command before running `schematic init` below
 To obtain ``credentials.json`` and ``token.pickle``, please run:
 
 ```
-schematic init --config ~/path/to/config.yml
+schematic init --config ~/path/to/config.yml --auth token
 ```
 This should prompt you with a URL that will take you through Google OAuth. Your `credentials.json` and `token.pickle` will get automatically downloaded the first time you run this command.
 
@@ -224,16 +224,19 @@ docker run --rm -p 3001:3001 \
   python /usr/src/app/run_api.py
 ``` 
 
-#### Use content of `config.yml` as an environment variable to run API endpoints: 
-1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat config.yml)`
+#### Use content of `config.yml` and `schematic_service_account_creds.json`as an environment variable to run API endpoints: 
+1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat /path/to/config.yml)`
 
-2. Pass `SCHEMATIC_CONFIG_CONTENT` as an environment variable by using `docker run`
+2. Similarly, save the content of `schematic_service_account_creds.json` as `SERVICE_ACCOUNT_CREDS` by doing: `export SERVICE_ACCOUNT_CREDS=$(cat /path/to/schematic_service_account_creds.json)`
+
+3. Pass `SCHEMATIC_CONFIG_CONTENT` and `schematic_service_account_creds` as environment variables by using `docker run`
 
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
   -e GE_HOME=/usr/src/app/great_expectations/ \
   -e SCHEMATIC_CONFIG_CONTENT=$SCHEMATIC_CONFIG_CONTENT \
+  -e SERVICE_ACCOUNT_CREDS=$SERVICE_ACCOUNT_CREDS \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
 ``` 
