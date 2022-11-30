@@ -41,10 +41,6 @@ manifest_commands = {
                 "This is a boolean flag. If flag is provided when command line utility is executed, it will prepopulate template "
                 "with existing annotations from Synapse."
             ),
-            "oauth": (
-                "This is a boolean flag. If flag is provided when command line utility is executed, OAuth will be used to "
-                "authenticate your Google credentials. If not service account mode of authentication will be used."
-            ),
             "json_schema": (
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
