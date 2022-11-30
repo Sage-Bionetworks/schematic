@@ -14,7 +14,6 @@ from urllib.request import Request
 from urllib import error
 from attr import attr
 
-from datetime import date
 from ruamel import yaml
 
 import great_expectations as ge
@@ -127,7 +126,6 @@ class GreatExpectationsHelpers(object):
             "int": "expect_column_values_to_be_in_type_list",
             "float": "expect_column_values_to_be_in_type_list",
             "str": "expect_column_values_to_be_of_type",
-            "date": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
             "recommended": "expect_column_values_to_not_match_regex_list",
             "protectAges": "expect_column_values_to_be_between",
@@ -217,17 +215,6 @@ class GreatExpectationsHelpers(object):
                             "notes": {
                                 "format": "markdown",
                                 "content": "Expect column values to be of string type. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                    #Validate date
-                    elif base_rule=='date':
-                        args["mostly"]=1.0
-                        args["type_"]='datetime'
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of date or datetime type. **Markdown** `Supported`",
                             },
                             "validation_rule": rule
                         }
