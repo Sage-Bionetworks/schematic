@@ -1132,8 +1132,8 @@ class ManifestGenerator(object):
                 create_dropdown = self._request_dropdown(
                 i, req_vals, spreadsheet_id, validation_rules, valid_values
             )
-            if create_dropdown:
-                requests_body["requests"].append(create_dropdown)
+                if create_dropdown:
+                    requests_body["requests"].append(create_dropdown)
 
             # generate a conditional format rule for each required value (i.e. valid value)
             # for this field (i.e. if this field is set to a valid value that may require additional
