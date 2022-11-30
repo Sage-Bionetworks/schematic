@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import numpy as np
 from copy import deepcopy
+import dateparser as dp
 import datetime as dt
 
 logger = logging.getLogger(__name__)
@@ -49,16 +50,19 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         
         #Store values that were entered as ints and dates
         processed_df=processed_df.mask(ints != False, other = ints)  
-        processed_df=processed_df.mask(dates != False, other = dates)  
 
+        #dates = processed_df.applymap(lambda x: _parse_dates(x), na_action='ignore').fillna(False)
+
+        processed_df=processed_df.mask(dates != False, other = dates)  
+        
         return processed_df
 
 
 def _parse_dates(date_string):
-
-    try:  
-        return dt.datetime.fromisoformat(date_string)
-    except ValueError:
+    try:
+        date = dp.parse(date_string = date_string, settings = {'STRICT_PARSING': True})
+        return date if date else False
+    except TypeError:
         return False
 
 
