@@ -278,7 +278,6 @@ class ManifestGenerator(object):
                 + str(len(values) + 1)
             )
             valid_values = [{"userEnteredValue": "=" + target_range}]
-
             response = (
                 self.sheet_service.spreadsheets()
                 .values()
@@ -838,9 +837,8 @@ class ManifestGenerator(object):
                 to add to the column header, about using multiselect.
                 This notes body will be added to a request.
         """            
-       
         if rule_in_rule_list("list", validation_rules) and valid_values:
-            note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
+            note = "Please enter applicable comma-separated items selected from the set of allowable terms for this attribute. See our data standards for allowable terms"
             notes_body = {
                 "requests": [
                     {
@@ -934,10 +932,11 @@ class ManifestGenerator(object):
         }
         return self._get_cell_borders(cell_range)
 
-    def _request_dropdown_or_multi(
+    def _request_dropdown(
         self, i, req_vals, spreadsheet_id, validation_rules, valid_values
     ):
-        """Generating sheet api request to populate a dropdown or a multi selection UI
+        """Generating sheet api request to populate a dropdown
+        Note: multi-select was deprecated
         Args:
             i (int): column index
             req_vals (list[dict]): dict for each valid value
@@ -959,20 +958,6 @@ class ManifestGenerator(object):
             # excel has a total number of characters limit per dropdown...)
             validation_body = self._get_column_data_validation_values(
                 spreadsheet_id, req_vals, i, strict=None, validation_type="ONE_OF_RANGE"
-            )
-        elif rule_in_rule_list("list", validation_rules) and valid_values:
-            # if list is in validation rule attempt to create a multi-value
-            # selection UI, which requires explicit valid values range in
-            # the spreadsheet
-            # set "strict" parameter to false to allow users enter multiple values on google sheet
-            validation_body = self._get_column_data_validation_values(
-                spreadsheet_id,
-                req_vals,
-                i,
-                strict=False,
-                custom_ui=False,
-                input_message="",
-                validation_type="ONE_OF_RANGE",
             )
         else:
             validation_body = self._get_column_data_validation_values(
@@ -1151,7 +1136,8 @@ class ManifestGenerator(object):
                 continue
 
             # Create dropdown or multi-select options, where called for
-            create_dropdown = self._request_dropdown_or_multi(
+            if not rule_in_rule_list("list", validation_rules):
+                create_dropdown = self._request_dropdown(
                 i, req_vals, spreadsheet_id, validation_rules, valid_values
             )
             if create_dropdown:
