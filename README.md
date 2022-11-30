@@ -94,8 +94,6 @@ Description of `config.yml` attributes
 
     definitions:
         synapse_config: "~/path/to/.synapseConfig"
-        creds_path: "~/path/to/credentials.json"
-        token_pickle: "~/path/to/token.pickle"
         service_acct_creds: "~/path/to/service_account_creds.json"
 
     synapse:
@@ -139,28 +137,12 @@ synapse login -u <synapse username> -p <synapse password> --rememberMe
 Please make sure that you run the command before running `schematic init` below
 
 7. Obtain Google credential Files
-
-To obtain ``credentials.json`` and ``token.pickle``, please run:
-
-```
-schematic init --config ~/path/to/config.yml --auth token
-```
-This should prompt you with a URL that will take you through Google OAuth. Your `credentials.json` and `token.pickle` will get automatically downloaded the first time you run this command.
-
-*Note* : The ``credentials.json`` file is required when you are using
-[OAuth2](https://developers.google.com/identity/protocols/oauth2)
-to authenticate with the Google APIs.
-
-For details about the steps involved in the [OAuth2 authorization
-flow](https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18)
-refer to the ``Credentials`` section in the
-[docs/md/details](https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/md/details.md#credentials)
-document.
-
 To obtain  ``schematic_service_account_creds.json``, please run: 
 ```
-schematic init --config ~/path/to/config.yml --auth service_account
+schematic init --config ~/path/to/config.yml
 ```
+> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
+
 *Notes*: Use the ``schematic_service_account_creds.json`` file for the service
 account mode of authentication (*for Google services/APIs*). Service accounts 
 are special Google accounts that can be used by applications to access Google APIs 

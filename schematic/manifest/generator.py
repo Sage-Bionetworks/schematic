@@ -10,7 +10,6 @@ import json
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import (
-    build_credentials,
     execute_google_api_requests,
     build_service_account_creds,
 )
@@ -38,17 +37,10 @@ class ManifestGenerator(object):
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
-        oauth: bool = False, # set the default to use service account credentials
         use_annotations: bool = False,
     ) -> None:
-
-        if oauth:
-            # if user wants to use OAuth for Google authentication
-            # use credentials.json and create token.pickle file
-            services_creds = build_credentials()
-        else:
-            # if not oauth then use service account credentials
-            services_creds = build_service_account_creds()
+        # use service account creds
+        services_creds = build_service_account_creds()
 
         # google service for Sheet API
         self.sheet_service = services_creds["sheet_service"]

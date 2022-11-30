@@ -48,13 +48,6 @@ paths:
             - Biospecimen
           required: true
         - in: query
-          name: oauth
-          schema:
-            type: boolean
-            default: false
-          description: OAuth or Service Account
-          required: false
-        - in: query
           name: use_annotations
           schema:
             type: boolean
