@@ -59,10 +59,6 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
 
 
 def _parse_dates(date_string):
-    parse_settings={
-        'STRICT_PARSING': True,
-        'DATE_ORDER': 'DMY',
-    }
     try:
         date = dp.parse(date_string = date_string, settings = {'STRICT_PARSING': True})
         return date if date else False
