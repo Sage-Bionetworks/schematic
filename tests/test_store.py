@@ -9,6 +9,7 @@ from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_expon
 import pandas as pd
 from synapseclient import EntityViewSchema
 
+from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView
 from schematic.utils.cli_utils import get_from_config
@@ -47,6 +48,15 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     table = dataset_fileview.tidy_table()
     yield table
 
+@pytest.fixture
+def metadata_model(helpers):
+
+    metadata_model = MetadataModel(
+        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+        inputMModelLocationType="local",
+    )
+
+    yield metadata_model
 
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
@@ -243,3 +253,14 @@ class TestDatasetFileView:
         year_value = table.loc[sample_a_row, "YearofBirth"][0]
         assert isinstance(year_value, str)
         assert year_value == "1980"
+
+class TestTableOperations:
+
+    def test_createTable():
+        assert True
+
+    def test_replaceTable():
+        assert True
+
+    def test_updateTable():
+        assert True
