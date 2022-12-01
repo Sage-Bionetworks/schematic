@@ -233,6 +233,47 @@ class ManifestGenerator(object):
         )
         batch.execute()
 
+    def _store_valid_values_as_data_dictionary(self, column_id:int, valid_values:list, spreadsheet_id:str) -> list:
+        '''store valid values in google sheet (sheet 2). This step is required for "ONE OF RANGE" validation
+        Args:
+            column_id: id of column
+            valid_values: a list of valid values for a given attribute (i.e. for diagnosis, this looks like: [{'userEnteredValue': 'Cancer'}, {'userEnteredValue': 'Healthy'}])
+            spreadsheet_id: google spreadsheet id
+        
+        return: range of valid values (i.e. for diagnosis, [{'userEnteredValue': '=Sheet2!D2:D3'}])
+        '''
+        # get valid values w/o google sheet header
+        values = [valid_value["userEnteredValue"] for valid_value in valid_values]
+        
+        if self.alphabetize and self.alphabetize.lower().startswith('a'):
+            values.sort(reverse=False, key=str.lower)
+        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
+            values.sort(reverse=True, key=str.lower)
+
+        # store valid values explicitly in workbook at the provided range to use as validation values
+        target_col_letter = self._column_to_letter(column_id)
+        body = {"majorDimension": "COLUMNS", "values": [values]}
+        target_range = (
+            "Sheet2!"
+            + target_col_letter
+            + "2:"
+            + target_col_letter
+            + str(len(values) + 1)
+        )
+        valid_values = [{"userEnteredValue": "=" + target_range}]
+        response = (
+            self.sheet_service.spreadsheets()
+            .values()
+            .update(
+                spreadsheetId=spreadsheet_id,
+                range=target_range,
+                valueInputOption="RAW",
+                body=body,
+            )
+            .execute()
+        )
+        return valid_values
+
     def _get_column_data_validation_values(
         self,
         spreadsheet_id,
@@ -247,40 +288,10 @@ class ManifestGenerator(object):
         # set validation strictness to config file default if None indicated.
         if strict == None:
             strict = CONFIG["style"]["google_manifest"].get("strict_validation", True)
-
-        # get valid values w/o google sheet header
-        values = [valid_value["userEnteredValue"] for valid_value in valid_values]
         
-        if self.alphabetize and self.alphabetize.lower().startswith('a'):
-            values.sort(reverse=False, key=str.lower)
-        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
-            values.sort(reverse=True, key=str.lower)
-        
-
+        #store valid values explicitly in workbook at the provided range to use as validation values
         if validation_type == "ONE_OF_RANGE":
-
-            # store valid values explicitly in workbook at the provided range to use as validation values
-            target_col_letter = self._column_to_letter(column_id)
-            body = {"majorDimension": "COLUMNS", "values": [values]}
-            target_range = (
-                "Sheet2!"
-                + target_col_letter
-                + "2:"
-                + target_col_letter
-                + str(len(values) + 1)
-            )
-            valid_values = [{"userEnteredValue": "=" + target_range}]
-            response = (
-                self.sheet_service.spreadsheets()
-                .values()
-                .update(
-                    spreadsheetId=spreadsheet_id,
-                    range=target_range,
-                    valueInputOption="RAW",
-                    body=body,
-                )
-                .execute()
-            )
+            valid_values=self._store_valid_values_as_data_dictionary(column_id, valid_values, spreadsheet_id)
 
         # setup validation data request body
         validation_body = {
@@ -942,7 +953,7 @@ class ManifestGenerator(object):
         Returns:
             validation_body: dict
         """
-        if len(req_vals) > 0 and not rule_in_rule_list("list", validation_rules):
+        if len(req_vals) > 0:
             # if more than 0 values in dropdown use ONE_OF_RANGE type of validation
             # since excel and openoffice
             # do not support other kinds of data validation for
@@ -1127,13 +1138,17 @@ class ManifestGenerator(object):
             if not req_vals:
                 continue
 
-            # Create dropdown or multi-select options, where called for
+            # for attributes that don't require "list", create dropdown options and set up data validation rules
             if not rule_in_rule_list("list", validation_rules):
                 create_dropdown = self._request_dropdown(
                 i, req_vals, spreadsheet_id, validation_rules, valid_values
             )
                 if create_dropdown:
                     requests_body["requests"].append(create_dropdown)
+
+            # for attributes that require "list", simply store valid values (if any) in second sheet
+            elif len(req_vals)>0 and rule_in_rule_list("list", validation_rules):
+                self._store_valid_values_as_data_dictionary(i, req_vals, spreadsheet_id)
 
             # generate a conditional format rule for each required value (i.e. valid value)
             # for this field (i.e. if this field is set to a valid value that may require additional
