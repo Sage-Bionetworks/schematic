@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     """
     Universal function to load CSVs and return DataFrames
+    Parses string entries to convert as appropriate to type int, float, and pandas timestamp
     Args:
         file_path: path of csv to open
         preserve_raw_input: Bool. If false, convert cell datatypes to an inferred type
