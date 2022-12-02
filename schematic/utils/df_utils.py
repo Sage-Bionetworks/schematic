@@ -51,9 +51,6 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         
         #Store values that were entered as ints and dates
         processed_df=processed_df.mask(ints != False, other = ints)  
-
-        #dates = processed_df.applymap(lambda x: _parse_dates(x), na_action='ignore').fillna(False)
-
         processed_df=processed_df.mask(dates != False, other = dates)  
         
         return processed_df
