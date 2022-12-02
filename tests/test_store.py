@@ -246,10 +246,36 @@ class TestDatasetFileView:
 
 class TestTableOperations:
 
-    def test_createTable():
+    def test_createTable(self, helpers, synapse_store):
+        print(helpers.get_python_project(helpers))
+
+        # Check if FollowUp table exists
+            # if so delete
+
+        # assert no table
+
+        # associate metadata with files
+
+        # assert table exists
+
+        # delete table
         assert True
 
     def test_replaceTable():
+
+        # Check if FollowUp table exists
+            # if so delete
+
+        # assert no table
+        # Associate barebones FollowUp manifest with files
+        # Query table for certain column
+        # assert empty/no results
+        # import filled FollowUp Manifest
+        # Associate filled manifest with files
+        # query table
+        # assert results exist
+        # delete table        
+
         assert True
 
     def test_updateTable():
