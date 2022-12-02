@@ -70,6 +70,21 @@ class Helpers:
         base_version=".".join(version.split('.')[0:2])
 
         return base_version
+
+    @staticmethod
+    def get_python_project(self):
+
+        version = self.get_python_version(Helpers)
+
+        python_projects = {
+            "3.7":  "syn47217926",
+            "3.8":  "syn47217967",
+            "3.9":  "syn47218127",
+            "3.10": "syn47218347",
+        }
+
+        return python_projects[version]
+
 @pytest.fixture(scope="session")
 def helpers():
     yield Helpers
