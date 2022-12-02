@@ -48,16 +48,6 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     table = dataset_fileview.tidy_table()
     yield table
 
-@pytest.fixture
-def metadata_model(helpers):
-
-    metadata_model = MetadataModel(
-        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
-        inputMModelLocationType="local",
-    )
-
-    yield metadata_model
-
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
 
