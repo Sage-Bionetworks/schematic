@@ -11,13 +11,11 @@ build:
   tools:
     python: "3.9"
   jobs:
-    pre_create_environment:
-      - asdf plugin add poetry
-      - asdf install poetry latest
-      - asdf global poetry latest
-      - poetry config virtualenvs.create false #Poetry will install my dependencies into the virtualenv created by readthedocs if I set virtualenvs.create=false
     post_install:
-      - poetry install
+      - pip install poetry==1.2.0b1
+      - poetry config virtualenvs.create false
+      - poetry install --with doc
+    #Poetry will install my dependencies into the virtualenv created by readthedocs if I set virtualenvs.create=false
     # You can also specify other tool versions:
     # nodejs: "16"
     # rust: "1.55"
