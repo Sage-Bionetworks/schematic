@@ -3,7 +3,7 @@ import os
 import math
 import logging
 import pytest
-import time
+from time import sleep 
 from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
 
 import pandas as pd
@@ -248,11 +248,17 @@ class TestTableOperations:
 
     def test_createTable(self, helpers, synapse_store):
         print(helpers.get_python_project(helpers))
+ 
+        # Check if FollowUp table exists if so delete
+        projectId = helpers.get_python_project(helpers)
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+        
+        if "followup_synapse_storage_manifest_table" in existing_tables.keys():
+            synapse_store.syn.delete(existing_tables["followup_synapse_storage_manifest_table"])
+            sleep(1)
+            # assert no table
+            assert "followup_synapse_storage_manifest_table" not in synapse_store.get_table_info(projectId = projectId).keys()
 
-        # Check if FollowUp table exists
-            # if so delete
-
-        # assert no table
 
         # associate metadata with files
 
