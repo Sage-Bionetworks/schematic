@@ -7,7 +7,7 @@ from time import sleep
 from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
 
 import pandas as pd
-from synapseclient import EntityViewSchema
+from synapseclient import EntityViewSchema, Folder
 
 from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
@@ -47,6 +47,23 @@ def dataset_fileview_table(dataset_fileview):
 def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     table = dataset_fileview.tidy_table()
     yield table
+
+@pytest.fixture
+def projectId(synapse_store, helpers):
+    projectId = helpers.get_python_project(helpers)
+    yield projectId
+
+@pytest.fixture
+def datasetId(synapse_store, projectId):
+    dataset = Folder(
+        name = 'Test  Dataset',
+        parent = projectId,
+        )
+
+    datasetId = synapse_store.syn.store(dataset).id
+    yield datasetId
+    synapse_store.syn.delete(datasetId)
+
 
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
@@ -246,11 +263,20 @@ class TestDatasetFileView:
 
 class TestTableOperations:
 
-    def test_createTable(self, helpers, synapse_store):
-        print(helpers.get_python_project(helpers))
- 
+    def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
+        # print(helpers.get_python_project(helpers))
+
+        # # create dataset
+        # projectId = helpers.get_python_project(helpers)
+        # dataset = Folder(
+        #     name = 'Test  Dataset',
+        #     parent = projectId,
+        #     )
+
+        # datasetId = synapse_store.syn.store(dataset).id
+        # sleep(20)
+
         # Check if FollowUp table exists if so delete
-        projectId = helpers.get_python_project(helpers)
         existing_tables = synapse_store.get_table_info(projectId = projectId)
         
         if "followup_synapse_storage_manifest_table" in existing_tables.keys():
@@ -259,12 +285,30 @@ class TestTableOperations:
             # assert no table
             assert "followup_synapse_storage_manifest_table" not in synapse_store.get_table_info(projectId = projectId).keys()
 
-
         # associate metadata with files
+        manifest_path = "mock_manifests/local_manifest.csv"
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        sg = SchemaGenerator(inputModelLocaiton)
 
+        sleep(45)
+        manifestId = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = 'table',
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+        )
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+        
+        # clean Up
+        synapse_store.syn.delete(manifestId)
+        #synapse_store.syn.delete(datasetId)
         # assert table exists
-
-        # delete table
+        
+        assert "followup_synapse_storage_manifest_table" in existing_tables.keys()
+        
         assert True
 
     def test_replaceTable(self, helpers):
