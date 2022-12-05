@@ -93,6 +93,9 @@ class SynapseStorage(BaseStorage):
         except KeyError: 
             raise MissingConfigValueError(("synapse", "manifest_basename"))
 
+        self._query_fileview()
+
+    def _query_fileview(self):
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
             self.manifest = CONFIG["synapse"]["manifest_basename"]
@@ -108,7 +111,7 @@ class SynapseStorage(BaseStorage):
         except AttributeError:
             raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
-            raise AccessCredentialsError(self.storageFileview)
+            raise AccessCredentialsError(self.storageFileview)        
 
     @staticmethod
     def login(token=None, access_token=None, input_token=None):
@@ -1311,6 +1314,9 @@ class SynapseStorage(BaseStorage):
         Returns:
             str: The Synapse ID for the parent project.
         """
+
+        self._query_fileview()
+
         # Subset main file view
         dataset_index = self.storageFileviewTable["id"] == datasetId
         dataset_row = self.storageFileviewTable[dataset_index]
