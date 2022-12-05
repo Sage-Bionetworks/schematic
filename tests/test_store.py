@@ -261,7 +261,7 @@ class TestTableOperations:
         # delete table
         assert True
 
-    def test_replaceTable():
+    def test_replaceTable(self, helpers):
 
         # Check if FollowUp table exists
             # if so delete
@@ -278,5 +278,5 @@ class TestTableOperations:
 
         assert True
 
-    def test_updateTable():
+    def test_updateTable(self, helpers):
         assert True
