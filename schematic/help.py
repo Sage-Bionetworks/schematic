@@ -36,7 +36,7 @@ manifest_commands = {
                 "to the metadata manifest file. If not it will produce a pandas dataframe for the same."
             ),
             "output_csv": ("Path to where the CSV manifest template should be stored."),
-            "output_xlsx": ("Path to where the Excel manifest template should be stored."),
+            "output_xlsx": ("Path to where the Excel manifest template should be stored. Testing testing testing testing"),
             "use_annotations": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, it will prepopulate template "
                 "with existing annotations from Synapse."
