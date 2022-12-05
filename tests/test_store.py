@@ -280,7 +280,7 @@ class TestTableOperations:
         sg = SchemaGenerator(inputModelLocaiton)
 
         # updating file view on synapse takes a long time
-        sleep(45)
+        sleep(30)
         manifestId = synapse_store.associateMetadataWithFiles(
             schemaGenerator = sg,
             metadataManifestPath = helpers.get_data_path(manifest_path),
