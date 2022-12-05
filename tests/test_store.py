@@ -264,17 +264,6 @@ class TestDatasetFileView:
 class TestTableOperations:
 
     def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
-        # print(helpers.get_python_project(helpers))
-
-        # # create dataset
-        # projectId = helpers.get_python_project(helpers)
-        # dataset = Folder(
-        #     name = 'Test  Dataset',
-        #     parent = projectId,
-        #     )
-
-        # datasetId = synapse_store.syn.store(dataset).id
-        # sleep(20)
 
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
@@ -290,6 +279,7 @@ class TestTableOperations:
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
         sg = SchemaGenerator(inputModelLocaiton)
 
+        # updating file view on synapse takes a long time
         sleep(45)
         manifestId = synapse_store.associateMetadataWithFiles(
             schemaGenerator = sg,
@@ -304,12 +294,9 @@ class TestTableOperations:
         
         # clean Up
         synapse_store.syn.delete(manifestId)
-        #synapse_store.syn.delete(datasetId)
         # assert table exists
-        
         assert "followup_synapse_storage_manifest_table" in existing_tables.keys()
-        
-        assert True
+
 
     def test_replaceTable(self, helpers):
 
