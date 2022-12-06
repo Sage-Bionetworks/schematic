@@ -1302,9 +1302,14 @@ class SynapseStorage(BaseStorage):
         # Force all values as strings
         return table.astype(str)
 
-    @retry(stop = stop_after_attempt(5), wait = wait_chain(*[wait_fixed(10) for i in range (2)] + 
-                                        [wait_fixed(15) for i in range(2)] + 
-                                        [wait_fixed(20)]))
+    def raise_final_error(retry_state):
+        return retry_state.outcome.result()
+
+    @retry(stop = stop_after_attempt(5), 
+            wait = wait_chain(*[wait_fixed(10) for i in range (2)] + 
+                    [wait_fixed(15) for i in range(2)] + 
+                    [wait_fixed(20)]),
+            retry_error_callback = raise_final_error)
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
 
