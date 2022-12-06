@@ -270,7 +270,6 @@ class TestTableOperations:
         
         if "followup_synapse_storage_manifest_table" in existing_tables.keys():
             synapse_store.syn.delete(existing_tables["followup_synapse_storage_manifest_table"])
-            sleep(1)
             # assert no table
             assert "followup_synapse_storage_manifest_table" not in synapse_store.get_table_info(projectId = projectId).keys()
 
@@ -280,7 +279,6 @@ class TestTableOperations:
         sg = SchemaGenerator(inputModelLocaiton)
 
         # updating file view on synapse takes a long time
-        sleep(30)
         manifestId = synapse_store.associateMetadataWithFiles(
             schemaGenerator = sg,
             metadataManifestPath = helpers.get_data_path(manifest_path),
