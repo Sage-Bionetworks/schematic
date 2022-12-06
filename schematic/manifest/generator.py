@@ -180,6 +180,24 @@ class ManifestGenerator(object):
             .execute()["id"]
         )
 
+    def _create_blank_manifest(self, title):
+        '''
+        create a blank manifest
+        '''
+        spreadsheet = {
+            'properties': {
+                'title': title
+            }
+        }
+
+        spreadsheet = (
+            self.sheet_service.spreadsheets()
+            .create(body=spreadsheet, fields="spreadsheetId")
+            .execute()
+        )
+        spreadsheet_id = spreadsheet.get("spreadsheetId")
+        return spreadsheet_id
+        
     def _create_empty_manifest_spreadsheet(self, title):
         if CONFIG["style"]["google_manifest"]["master_template_id"]:
 
@@ -190,12 +208,7 @@ class ManifestGenerator(object):
 
         else:
             # if no template, create an empty spreadsheet
-            spreadsheet = (
-                self.sheet_service.spreadsheets()
-                .create(body=spreadsheet, fields="spreadsheetId")
-                .execute()
-            )
-            spreadsheet_id = spreadsheet.get("spreadsheetId")
+            spreadsheet_id = self._create_blank_manifest(title)
 
         return spreadsheet_id
 
