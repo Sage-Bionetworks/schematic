@@ -9,6 +9,7 @@ import secrets
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
 from collections import OrderedDict
+from tenacity import Retrying, stop_after_attempt, wait_chain, wait_fixed
 
 import numpy as np
 import pandas as pd
@@ -1315,11 +1316,27 @@ class SynapseStorage(BaseStorage):
             str: The Synapse ID for the parent project.
         """
 
-        self._query_fileview()
-
-        # Subset main file view
+        # Subset Existing main file view
         dataset_index = self.storageFileviewTable["id"] == datasetId
         dataset_row = self.storageFileviewTable[dataset_index]
+
+        # If not dataset is found in view, try querying again since it may just need more time to reflect recent changes
+        # implement retrying since fileviews on synapse take variable amounts of time to update after operations
+        if dataset_row.empty:
+            for attempt in Retrying(
+                stop = stop_after_attempt(6),
+                wait = wait_chain(*[wait_fixed(5) for i in range (2)] + 
+                                    [wait_fixed(10) for i in range(2)] + 
+                                    [wait_fixed(15) for i in range (2)]),
+                ):
+                
+                self._query_fileview()
+
+                # Subset new main file view
+                dataset_index = self.storageFileviewTable["id"] == datasetId
+                dataset_row = self.storageFileviewTable[dataset_index]
+                if not dataset_row.empty:
+                    break
 
         # Return `projectId` for given row if only one found
         if len(dataset_row) == 1:
