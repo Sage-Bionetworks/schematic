@@ -107,8 +107,8 @@ jobs:
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
           source .venv/bin/activate;
-          pytest tests/unit --cov-report=term --cov-report=html:htmlcov"
-          
+          pytest tests/unit --cov-report=term --cov-report=html:htmlcov
+
       - name: Run regular tests and rule combination tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
