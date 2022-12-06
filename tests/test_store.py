@@ -56,7 +56,7 @@ def projectId(synapse_store, helpers):
 @pytest.fixture
 def datasetId(synapse_store, projectId):
     dataset = Folder(
-        name = 'Test  Dataset',
+        name = 'Table Test  Dataset',
         parent = projectId,
         )
 
