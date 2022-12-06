@@ -805,6 +805,7 @@ class SynapseStorage(BaseStorage):
                                     manipulation = 'replace')
 
 
+        print(manifest_table_id, manifest, table_manifest)
         return manifest_table_id, manifest, table_manifest
 
     def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = ''):
