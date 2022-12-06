@@ -1487,7 +1487,7 @@ class SynapseStorage(BaseStorage):
                     self.syn.store(current_table, isRestricted = restrict)
 
                     # wait for synapse store to finish
-                    sleep(1)
+                    sleep(10)
 
                     # build schema and table from columns and store with necessary restrictions
                     schema = Schema(name=table_name, columns=cols, parent=datasetParentProject)
