@@ -9,6 +9,7 @@ import secrets
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
 from collections import OrderedDict
+from tenacity import retry, stop_after_attempt, wait_chain, wait_fixed
 
 import numpy as np
 import pandas as pd
@@ -1301,6 +1302,9 @@ class SynapseStorage(BaseStorage):
         # Force all values as strings
         return table.astype(str)
 
+    @retry(stop = stop_after_attempt(5), wait = wait_chain(*[wait_fixed(5) for i in range (2)] + 
+                                        [wait_fixed(10) for i in range(2)] + 
+                                        [wait_fixed(15)]))
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
 
