@@ -299,7 +299,7 @@ class TestTableOperations:
         # assert table exists
         assert table_name in existing_tables.keys()
 
-    def test_replaceTable(self, helpers)
+    def test_replaceTable(self, helpers):
         # Check if FollowUp table exists
             # if so delete
 
