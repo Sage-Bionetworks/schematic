@@ -63,7 +63,7 @@ def datasetId(synapse_store, projectId):
     datasetId = synapse_store.syn.store(dataset).id
     sleep(5)
     yield datasetId
-    #synapse_store.syn.delete(datasetId)
+    synapse_store.syn.delete(datasetId)
 
 
 def raise_final_error(retry_state):
