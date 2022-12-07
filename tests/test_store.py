@@ -271,7 +271,6 @@ class TestTableOperations:
 
         table_name='MockComponent_synapse_storage_manifest_table'
         
-            synapse_store.syn.delete(existing_tables["followup_synapse_storage_manifest_table"])
         if table_name in existing_tables.keys():
             synapse_store.syn.delete(existing_tables[table_name])
             # assert no table
