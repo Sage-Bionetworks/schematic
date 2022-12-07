@@ -749,7 +749,6 @@ class SynapseStorage(BaseStorage):
         else: 
             return {None:None}
 
-    @missing_entity_handler
     def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel):
         # Rename the manifest columns to display names to match fileview
         table_info = self.get_table_info(datasetId = datasetId)
