@@ -269,7 +269,7 @@ class TestTableOperations:
         # Check if MockComponent table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
 
-        table_name='MockComponent_synapse_storage_manifest_table'
+        table_name='mockcomponent_synapse_storage_manifest_table'
         
         if table_name in existing_tables.keys():
             synapse_store.syn.delete(existing_tables[table_name])
