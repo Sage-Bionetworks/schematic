@@ -266,16 +266,19 @@ class TestTableOperations:
 
     def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
 
-        # Check if FollowUp table exists if so delete
+        # Check if MockComponent table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
+
+        table_name='MockComponent_synapse_storage_manifest_table'
         
-        if "followup_synapse_storage_manifest_table" in existing_tables.keys():
             synapse_store.syn.delete(existing_tables["followup_synapse_storage_manifest_table"])
+        if table_name in existing_tables.keys():
+            synapse_store.syn.delete(existing_tables[table_name])
             # assert no table
-            assert "followup_synapse_storage_manifest_table" not in synapse_store.get_table_info(projectId = projectId).keys()
+            assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
         # associate metadata with files
-        manifest_path = "mock_manifests/local_manifest.csv"
+        manifest_path = "mock_manifests/Valid_Test_Manifest.csv"
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
         sg = SchemaGenerator(inputModelLocaiton)
 
@@ -294,10 +297,7 @@ class TestTableOperations:
         # clean Up
         synapse_store.syn.delete(manifestId)
         # assert table exists
-        assert "followup_synapse_storage_manifest_table" in existing_tables.keys()
-
-
-    def test_replaceTable(self, helpers):
+        assert table_name in existing_tables.keys()
 
         # Check if FollowUp table exists
             # if so delete
