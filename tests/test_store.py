@@ -269,7 +269,7 @@ class TestTableOperations:
         # Check if MockComponent table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
 
-        table_name='mockcomponent_synapse_storage_manifest_table'
+        table_name='followup_synapse_storage_manifest_table'
         
         if table_name in existing_tables.keys():
             synapse_store.syn.delete(existing_tables[table_name])
@@ -277,7 +277,7 @@ class TestTableOperations:
             assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
         # associate metadata with files
-        manifest_path = "mock_manifests/Valid_Test_Manifest.csv"
+        manifest_path = "mock_manifests/table_manifest.csv"
         inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
         sg = SchemaGenerator(inputModelLocaiton)
 
