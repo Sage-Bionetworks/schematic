@@ -64,7 +64,6 @@ class TestManifestGenerator:
         generator = ManifestGenerator(
             title="mock_title",
             path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
-            oauth=False
         )
 
         assert type(generator.title) is str

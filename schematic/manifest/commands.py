@@ -90,12 +90,6 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "use_annotations")),
 )
 @click.option(
-    "-oa",
-    "--oauth",
-    is_flag=True,
-    help=query_dict(manifest_commands, ("manifest", "get", "oauth")),
-)
-@click.option(
     "-js",
     "--json_schema",
     help=query_dict(manifest_commands, ("manifest", "get", "json_schema")),
@@ -116,7 +110,6 @@ def get_manifest(
     sheet_url,
     output_csv,
     use_annotations,
-    oauth,
     json_schema,
     output_xlsx,
     alphabetize_valid_values,
@@ -141,7 +134,6 @@ def get_manifest(
             path_to_json_ld=jsonld,
             title=t,
             root=data_type,
-            oauth=oauth,
             use_annotations=use_annotations,
             alphabetize_valid_values=alphabetize_valid_values,
         )

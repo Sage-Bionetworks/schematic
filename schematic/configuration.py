@@ -113,17 +113,6 @@ class Configuration(object):
 
         # Return self.DATA as a side-effect
         return self.DATA
-    @property
-    def CREDS_PATH(self):
-        self._CREDS_PATH = self.DATA["definitions"]["creds_path"]
-        self._CREDS_PATH = self.normalize_path(self._CREDS_PATH)
-        return self._CREDS_PATH
-
-    @property
-    def TOKEN_PICKLE(self):
-        self._TOKEN_PICKLE = self.DATA["definitions"]["token_pickle"]
-        self._TOKEN_PICKLE = self.normalize_path(self._TOKEN_PICKLE)
-        return self._TOKEN_PICKLE
 
     @property
     def SERVICE_ACCT_CREDS(self):
