@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - main
   workflow_dispatch:  # Allow manually triggering the workflow
 concurrency:
   # cancel the current running workflow from the same branch, PR when a new workflow is triggered 
@@ -35,6 +36,11 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
+
+      - name: Get pushed tag, if any
+        run:  |
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo ${{ env.RELEASE_VERSION }}
   
       #----------------------------------------------
       #       Trigger DCA testing instance   
@@ -45,5 +51,5 @@ jobs:
           -H "Authorization: token ${{ secrets.ACCESS_TOKEN }}" \
           -H "Accept: application/vnd.github+json" \
           https://api.github.com/repos/Sage-Bionetworks/data_curator/dispatches \
-          -d '{"event_type": "trigger-frontend", "client_payload": { "branch": "'${{ github.ref_name }}'", "commit-sha": "'${{ steps.vars.outputs.sha_short }}'"}'
+          -d '{"event_type": "trigger-frontend", "client_payload": { "branch": "'${{ steps.extract_branch.outputs.branch }}'", "commit-sha": "'${{ steps.vars.outputs.sha_short }}'",  "release-version": "${{ env.RELEASE_VERSION }}"}'
 
