@@ -149,7 +149,6 @@ class TestManifestGenerator:
                 assert info["type"] == "anyone"
                 assert info["role"] == "writer"
 
-    @patch("schematic.manifest.generator.ManifestGenerator._execute_spreadsheet_service")
     def test_store_valid_values_as_data_dictionary(self, ManifestGeneratorMock):
         '''
         store valid values in google sheet (sheet 2). This step is required for "ONE OF RANGE" validation
@@ -163,8 +162,43 @@ class TestManifestGenerator:
             mg = ManifestGeneratorMock
             valid_values = mg._store_valid_values_as_data_dictionary(column_id=2, valid_values=[{'userEnteredValue': 'Cancer'}, {'userEnteredValue': 'Healthy'}], spreadsheet_id="mock_spreadsheet_id")
             assert {'userEnteredValue': '=Sheet2!C2:C3'} in valid_values
-
     
+    @pytest.mark.parametrize("validation_type", ["ONE_OF_RANGE","ONE_OF_LIST"])
+    @pytest.mark.parametrize("strict", [True, False])
+    @pytest.mark.parametrize("custom_ui", [True, False])
+    @pytest.mark.parametrize("input_message", ["test message", ''])
+    @pytest.mark.parametrize("column_id", [2, 3])
+    def test_get_column_data_validation_values(self, config, ManifestGeneratorMock, column_id, validation_type, strict, custom_ui, input_message):
+        '''
+        get data validation values
+        '''
+        with patch('schematic.manifest.generator.ManifestGenerator._execute_spreadsheet_service') as MockClass:
+            # mocking response of _execute_spreadsheet_service
+            instance = MockClass.return_value
+            instance.method.return_value = 'test ressponse'
+
+            # use ManifestGenerator
+            mg = ManifestGeneratorMock
+            validation_body = mg._get_column_data_validation_values(column_id=column_id, valid_values=[{'userEnteredValue': 'Cancer'}, {'userEnteredValue': 'Healthy'}], validation_type=validation_type, spreadsheet_id="mock_spreadsheet_id", strict=strict, input_message=input_message, custom_ui=custom_ui)
+            req_body = validation_body["requests"][0]["setDataValidation"]
+            assert req_body["range"]["startColumnIndex"] == column_id
+            assert req_body["range"]["endColumnIndex"] == column_id + 1
+
+            if validation_type: 
+                assert req_body["rule"]["condition"]["type"] == validation_type
+            else: 
+                assert req_body["rule"]["condition"]["type"] == "ONE_OF_LIST"
+            
+
+            assert req_body["rule"]["inputMessage"] == input_message
+
+
+            assert req_body["rule"]["strict"] == strict
+
+            assert req_body["rule"]["showCustomUi"] == custom_ui
+
+
+
     
     ## start testing functions related to dealing with json schema
     @pytest.mark.parametrize("schema_path_provided", [True, False])
