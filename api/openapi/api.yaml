@@ -48,13 +48,6 @@ paths:
             - Biospecimen
           required: true
         - in: query
-          name: oauth
-          schema:
-            type: boolean
-            default: false
-          description: OAuth or Service Account
-          required: false
-        - in: query
           name: use_annotations
           schema:
             type: boolean
@@ -413,8 +406,8 @@ paths:
         - Manifest Operations
   /get/datatype/manifest:
     get:
-      summary: Retrieve asset view table as a dataframe.
-      description: Retrieve asset view table as a dataframe.
+      summary:  Get datatype of attributes in manifest
+      description: Get datatype of attributes in manifest
       operationId: api.routes.get_manifest_datatype
       parameters:
         - in: query
