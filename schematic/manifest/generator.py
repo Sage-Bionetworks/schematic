@@ -246,6 +246,20 @@ class ManifestGenerator(object):
         )
         batch.execute()
 
+    def _execute_spreadsheet_service(self, spreadsheet_id, target_range, body):
+        response = (
+            self.sheet_service.spreadsheets()
+            .values()
+            .update(
+                spreadsheetId=spreadsheet_id,
+                range=target_range,
+                valueInputOption="RAW",
+                body=body,
+            )
+            .execute()
+        )
+        return response        
+
     def _store_valid_values_as_data_dictionary(self, column_id:int, valid_values:list, spreadsheet_id:str) -> list:
         '''store valid values in google sheet (sheet 2). This step is required for "ONE OF RANGE" validation
         Args:
@@ -274,17 +288,7 @@ class ManifestGenerator(object):
             + str(len(values) + 1)
         )
         valid_values = [{"userEnteredValue": "=" + target_range}]
-        response = (
-            self.sheet_service.spreadsheets()
-            .values()
-            .update(
-                spreadsheetId=spreadsheet_id,
-                range=target_range,
-                valueInputOption="RAW",
-                body=body,
-            )
-            .execute()
-        )
+        response = self._execute_spreadsheet_service(spreadsheet_id, target_range, body)
         return valid_values
 
     def _get_column_data_validation_values(
@@ -511,6 +515,7 @@ class ManifestGenerator(object):
             ordered_metadata_fields[0]
         )
         return end_col_letter, ordered_metadata_fields
+
 
     def _gs_add_and_format_columns(self, required_metadata_fields, spreadsheet_id):
         """Add columns to the google sheet and format them.

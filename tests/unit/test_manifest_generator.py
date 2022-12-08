@@ -2,16 +2,15 @@ from schematic.manifest.generator import ManifestGenerator
 import pytest
 from schematic.schemas.generator import SchemaGenerator
 from unittest.mock import Mock
+from unittest.mock import patch
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def ManifestGeneratorMock(helpers):
-
     mg = ManifestGenerator(
         path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
         title="Example",
         root="Patient"
     )
-
     yield mg
 
 @pytest.fixture
@@ -19,13 +18,13 @@ def mock_create_blank_google_sheet():
     'Mock creating a new google sheet'
     er = Mock()
     er.return_value = "mock_spreadsheet_id"
-    return er
+    yield er
 
 @pytest.fixture
 def get_empty_gsheet(ManifestGeneratorMock):
     mg = ManifestGeneratorMock
     spreadsheet_id = mg._create_blank_manifest(title='Example')
-    return spreadsheet_id
+    yield spreadsheet_id
 
 
 class TestManifestGenerator:
@@ -150,8 +149,23 @@ class TestManifestGenerator:
                 assert info["type"] == "anyone"
                 assert info["role"] == "writer"
 
-    # def test_get_column_validation_rule
+    @patch("schematic.manifest.generator.ManifestGenerator._execute_spreadsheet_service")
+    def test_store_valid_values_as_data_dictionary(self, ManifestGeneratorMock):
+        '''
+        store valid values in google sheet (sheet 2). This step is required for "ONE OF RANGE" validation
+        '''
+        with patch('schematic.manifest.generator.ManifestGenerator._execute_spreadsheet_service') as MockClass:
+            # mocking response of _execute_spreadsheet_service
+            instance = MockClass.return_value
+            instance.method.return_value = 'test ressponse'
 
+            # use ManifestGenerator
+            mg = ManifestGeneratorMock
+            valid_values = mg._store_valid_values_as_data_dictionary(column_id=2, valid_values=[{'userEnteredValue': 'Cancer'}, {'userEnteredValue': 'Healthy'}], spreadsheet_id="mock_spreadsheet_id")
+            assert {'userEnteredValue': '=Sheet2!C2:C3'} in valid_values
+
+    
+    
     ## start testing functions related to dealing with json schema
     @pytest.mark.parametrize("schema_path_provided", [True, False])
     def test_get_json_schema(self, helpers, ManifestGeneratorMock, schema_path_provided):
