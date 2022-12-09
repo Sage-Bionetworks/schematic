@@ -281,6 +281,10 @@ class TestManifestGenerator:
         assert "Test attribute" in req_dict
         assert 'Test' in req_dict["Test attribute"]
 
+    ######################
+    ########### end
+    #######################    
+
     @pytest.mark.parametrize("additional_metadata", [{"Mock attribute": "Test", "Filename": ["Test file name", "Test file name"]}, {"Mock attribute": "Test", "Filename": ["Test file name"]}])
     def test_add_root_to_component(self, helpers, additional_metadata):
         '''If 'Component' is in the column set, add root node as a
