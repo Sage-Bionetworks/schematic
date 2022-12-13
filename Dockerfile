@@ -30,5 +30,3 @@ RUN poetry install --no-interaction --no-ansi --no-root
 COPY . ./
 
 RUN poetry install --no-interaction --no-ansi --only-root
-
-CMD ["python", "/usr/src/app/run_api.py"]
