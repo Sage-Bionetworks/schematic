@@ -16,8 +16,8 @@ RUN apt-get update -qqy \
   libopenblas-dev \
   gfortran 
 
-# remove libtiff5 for security reasons
-RUN apt remove -y libtiff5
+# remove libtiff5 and sqlite3 for security reasons
+RUN apt remove -y libtiff5 sqlite3
 
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
