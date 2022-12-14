@@ -49,6 +49,11 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     yield table
 
 @pytest.fixture
+def version(synapse_store, helpers):
+    
+    yield helpers.get_python_version(helpers)
+
+@pytest.fixture
 def projectId(synapse_store, helpers):
     projectId = helpers.get_python_project(helpers)
     yield projectId
@@ -264,7 +269,7 @@ class TestDatasetFileView:
 
 class TestTableOperations:
 
-    def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
+    def test_createTable(self, helpers, synapse_store, config, projectId, datasetId, version):
 
         # Check if MockComponent table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
