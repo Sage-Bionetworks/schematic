@@ -1,7 +1,7 @@
 from multiprocessing.sharedctypes import Value
 import os
 import logging
-import platform
+import sys
 
 import shutil
 import pytest
@@ -66,7 +66,7 @@ class Helpers:
 
     @staticmethod
     def get_python_version(self):
-        version=platform.python_version()
+        version=sys.version
         base_version=".".join(version.split('.')[0:2])
 
         return base_version
