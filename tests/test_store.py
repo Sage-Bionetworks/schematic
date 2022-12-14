@@ -302,6 +302,7 @@ class TestTableOperations:
         
         # clean Up
         synapse_store.syn.delete(manifestId)
+        synapse_store.syn.delete(datasetId)
         # assert table exists
         assert table_name in existing_tables.keys()
 
