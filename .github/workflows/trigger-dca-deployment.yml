@@ -3,7 +3,7 @@ name: trigger-dca
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[1-9][0-9].[0-9]+.[0-9]+'
     branches:
       - develop
   workflow_dispatch:  # Allow manually triggering the workflow
