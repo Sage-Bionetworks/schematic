@@ -248,7 +248,7 @@ class TestTableOperations:
 
     def test_createTable(self, helpers, synapse_store, config):
 
-        version = helpers.get_pytyhon_version(helpers)
+        version = helpers.get_python_version(helpers)
 
         if version == "3.7":
             projectId = "syn47217926"
