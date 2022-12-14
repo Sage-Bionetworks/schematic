@@ -273,6 +273,7 @@ class TestTableOperations:
         
         if table_name in existing_tables.keys():
             synapse_store.syn.delete(existing_tables[table_name])
+            sleep(10)
             # assert no table
             assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
