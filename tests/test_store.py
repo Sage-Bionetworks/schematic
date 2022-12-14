@@ -48,6 +48,24 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     table = dataset_fileview.tidy_table()
     yield table
 
+@pytest.fixture
+def projectId(synapse_store, helpers):
+    projectId = helpers.get_python_project(helpers)
+    yield projectId
+
+@pytest.fixture
+def datasetId(synapse_store, projectId, helpers):
+    dataset = Folder(
+        name = 'Table Test  Dataset ' + helpers.get_python_version(helpers),
+        parent = projectId,
+        )
+
+    datasetId = synapse_store.syn.store(dataset).id
+    sleep(5)
+    yield datasetId
+    synapse_store.syn.delete(datasetId)
+
+
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
 
@@ -246,31 +264,7 @@ class TestDatasetFileView:
 
 class TestTableOperations:
 
-    def test_createTable(self, helpers, synapse_store, config):
-
-        version = helpers.get_pytyhon_version(helpers)
-
-        if version == "3.7":
-            projectId = "syn47217926"
-        elif version == "3.8":
-            projectId = "syn47217967"
-        elif version == "3.9":
-            projectId = "syn47218127"
-        elif version == "3.10":
-            projectId = "syn47218347"
-        else:
-            raise ValueError(
-                "Python version not supported"
-            )
-
-        dataset = Folder(
-            name = 'Table Test  Dataset ' + version,
-            parent = projectId,
-            )
-
-        datasetId = synapse_store.syn.store(dataset).id
-        sleep(5)
-
+    def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
 
         # Check if MockComponent table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
