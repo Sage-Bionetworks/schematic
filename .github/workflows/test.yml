@@ -100,6 +100,11 @@ jobs:
       #     # if files are not formatted correctly, the build will not go through
       #     black . --check
       #----------------------------------------------
+      #             Display Python Version
+      #----------------------------------------------
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      #----------------------------------------------
       #              run test suite   
       #----------------------------------------------
       - name: Run regular tests and rule combination tests
