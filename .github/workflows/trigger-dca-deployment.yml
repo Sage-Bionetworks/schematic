@@ -6,6 +6,7 @@ on:
       - 'v[1-9][0-9].[0-9]+.[0-9]+'
     branches:
       - develop
+      - main
   workflow_dispatch:  # Allow manually triggering the workflow
 concurrency:
   # cancel the current running workflow from the same branch, PR when a new workflow is triggered 
@@ -34,7 +35,11 @@ jobs:
       #----------------------------------------------
       #       Open PRs in DCA
       #----------------------------------------------
-      - name: Trigger DCA testing instance 
+      - name: Trigger DCA testing instance
+        # run only when a release tag gets pushed or when the develop branch gets updated
+        # if there's a push to the main branch (without tag), this part would not get triggered
+        # if pushing to main and pushing tag to main both triggering this part, we would end up having the front-end dealing with the same PR
+        if: ${{ env.RELEASE_VERSION != '' }} || github.ref_name == develop
         run: |
           curl -X POST \
           -H "Authorization: token ${{ secrets.ACCESS_TOKEN }}" \
