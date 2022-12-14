@@ -76,14 +76,20 @@ class Helpers:
 
         version = self.get_python_version(Helpers)
 
-        python_projects = {
-            "3.7":  "syn47217926",
-            "3.8":  "syn47217967",
-            "3.9":  "syn47218127",
-            "3.10": "syn47218347",
-        }
-
-        return python_projects[version]
+        if version == "3.7":
+            projectId = "syn47217926"
+        elif version == "3.8":
+            projectId = "syn47217967"
+        elif version == "3.9":
+            projectId = "syn47218127"
+        elif version == "3.10":
+            projectId = "syn47218347"
+        else:
+            raise ValueError(
+                "Python version not supported"
+            )
+        
+        return projectId
 
 @pytest.fixture(scope="session")
 def helpers():
