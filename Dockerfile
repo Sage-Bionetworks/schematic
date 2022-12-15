@@ -1,5 +1,4 @@
-# FROM python:3.10.6
-FROM python:3.10.8-slim-bullseye
+FROM python:3.10.9-slim-bullseye
 
 ENV PYTHONFAULTHANDLER=1 \
   PYTHONUNBUFFERED=1 \
@@ -7,7 +6,7 @@ ENV PYTHONFAULTHANDLER=1 \
   PIP_NO_CACHE_DIR=off \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=200 \
-  POETRY_VERSION=1.2.0rc1
+  POETRY_VERSION=1.2.0
 
 WORKDIR /usr/src/app
 
@@ -17,7 +16,7 @@ RUN apt-get update -qqy \
   gfortran 
 
 # remove libtiff5 and sqlite3 for security reasons
-RUN apt remove -y libtiff5 sqlite3
+RUN apt remove -y libtiff5 
 
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
