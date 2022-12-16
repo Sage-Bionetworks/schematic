@@ -27,8 +27,8 @@ def mock_create_json_schema():
     yield er
 
 @pytest.fixture
-def required_metadata_field_example():
-    required_metadata_field = {'Year of Birth': [], 'Diagnosis': ['Cancer', 'Healthy'], 'Sex': ['Male', 'Female', 'Other'], 'Patient ID': [], 'Component': [], 'Family History': ['Colorectal', 'Breast', 'Skin', 'Prostate', 'Lung', ''], 'Cancer Type': ['Colorectal', 'Breast', 'Skin', 'Prostate', 'Lung', '']}
+def required_metadata_field_example_patient():
+    required_metadata_field = {'Component': [], 'Year of Birth': [], 'Patient ID': [], 'Diagnosis': ['Cancer', 'Healthy'], 'Sex': ['Female', 'Male', 'Other'], 'Cancer Type': ['Breast', 'Skin', 'Prostate', 'Colorectal', 'Lung', ''], 'Family History': ['Breast', 'Skin', 'Prostate', 'Colorectal', 'Lung', '']}
     yield required_metadata_field
 
 @pytest.fixture
@@ -304,6 +304,35 @@ class TestManifestGenerator:
         # add 'Component': [root] in additional_metadata_fields
         assert mock_class.additional_metadata["Component"] == ["BulkRNA-seqAssay"] * time_to_repeat
         assert mock_class.additional_metadata["Mock attribute"] == "Test"
+        
+    @pytest.mark.parametrize("additional_metadata", [None, {"Mock attribute": "Test", "Filename": ["Test file name", "Test file name"]}, {"Mock attribute": "Test", "Filename": ["Test file name"]}])
+    def test_get_additional_metadata(self, helpers, additional_metadata):
+        # if additoinal metadata exists, and required_metadata_fields do not contain keys that currently exist in 
+        # additional_metadata, then this method should add those keys into required_metadata_fields
+        with patch('schematic.manifest.generator.ManifestGenerator._add_root_to_component') as MockClass:
+            mock_class = ManifestGenerator(path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            title="Example",
+            root="BulkRNA-seqAssay",
+            additional_metadata=additional_metadata
+            )
+
+            # mocking response of _add_root_to_component
+            instance = MockClass.return_value
+            instance.method.return_value = {"Component": "Patient"}
+
+            mock_required_metadata = {"mockRequiredfield": "result"}
+
+            required_metadata_fields = mock_class._get_additional_metadata(mock_required_metadata)
+
+            if additional_metadata: 
+                assert "Mock attribute" in required_metadata_fields.keys()
+                assert "Filename" in required_metadata_fields.keys()
+                assert "mockRequiredfield" in required_metadata_fields.keys()
+            # nothing gets added
+            else: 
+                assert len(required_metadata_fields) == len(mock_required_metadata)
+
+
 
 
     
