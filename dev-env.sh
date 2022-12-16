@@ -10,7 +10,7 @@ function workspace-welcome {
 }
 
 function workspace-initialize-env {
-  ws-welcome
+  workspace-welcome
 
   export PATH="/home/vscode/.local/bin:$PATH"
 }

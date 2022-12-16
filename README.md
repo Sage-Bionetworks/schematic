@@ -18,6 +18,12 @@
 # Introduction
 SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, metadata ingress ecosystem, that is meant to streamline the process of biomedical dataset annotation, metadata validation and submission to a data repository for various data contributors.
 
+# Opening the workspace in VS Code
+
+Click on this badge to open the workspace in VS Code using our development container.
+
+[![Open in Remote - Containers](https://img.shields.io/static/v1?label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode&style=for-the-badge)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Sage-Bionetworks/schematic "Open in VS Code Remote - Containers")
+
 # Installation
 ## Installation Requirements
 * Python 3.7.1 or higher
@@ -48,7 +54,7 @@ If you run into error: Failed building wheel for numpy, the error might be able 
 pip3 install --upgrade pip
 ```
 
-## Installation guide for developers/contributors 
+## Installation guide for developers/contributors
 
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
 
@@ -59,19 +65,19 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 ```
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
-2. Install `poetry` (version 1.2 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
+2. Install `poetry` (version 1.2 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first.
 
-3. Start the virtual environment by doing: 
+3. Start the virtual environment by doing:
 ```
 poetry shell
 ```
-4. Install the dependencies by doing: 
+4. Install the dependencies by doing:
 ```
 poetry install
 ```
 This command will install the dependencies based on what we specify in poetry.lock. If this step is taking a long time, try to go back to step 2 and check your version of poetry. Alternatively, you could also try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
 
-5. Fill in credential files: 
+5. Fill in credential files:
 *Note*: If you won't interact with Synapse, please ignore this section.
 
 There are two main configuration files that need to be edited:
@@ -81,7 +87,7 @@ and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePy
 <strong>Configure .synapseConfig File</strong>
 
 Download a copy of the ``.synapseConfig`` file, open the file in the
-editor of your choice and edit the `username` and `authtoken` attribute under the `authentication` section 
+editor of your choice and edit the `username` and `authtoken` attribute under the `authentication` section
 
 *Note*: You could also visit [configparser](https://docs.python.org/3/library/configparser.html#module-configparser>) doc to see the format that `.synapseConfig` must have. For instance:
 >[authentication]<br> username = ABC <br> authtoken = abc
@@ -105,7 +111,7 @@ Description of `config.yml` attributes
     manifest:
         title: "example" # title of metadata manifest file
         # to make all manifests enter only 'all manifests'
-        data_type: 
+        data_type:
           - "Biospecimen"
           - "Patient"
 
@@ -129,29 +135,29 @@ Description of `config.yml` attributes
 *Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
 6. Login to Synapse by using the command line
-On the CLI in your virtual environment, run the following command: 
+On the CLI in your virtual environment, run the following command:
 ```
 synapse login -u <synapse username> -p <synapse password> --rememberMe
 ```
 Please make sure that you run the command before running `schematic init` below
 
 7. Obtain Google credential Files
-To obtain  ``schematic_service_account_creds.json``, please run: 
+To obtain  ``schematic_service_account_creds.json``, please run:
 ```
 schematic init --config ~/path/to/config.yml
 ```
-> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
+> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more.
 
 *Notes*: Use the ``schematic_service_account_creds.json`` file for the service
-account mode of authentication (*for Google services/APIs*). Service accounts 
-are special Google accounts that can be used by applications to access Google APIs 
-programmatically via OAuth2.0, with the advantage being that they do not require 
-human authorization. 
+account mode of authentication (*for Google services/APIs*). Service accounts
+are special Google accounts that can be used by applications to access Google APIs
+programmatically via OAuth2.0, with the advantage being that they do not require
+human authorization.
 
 *Background*: schematic uses Google’s API to generate google sheet templates that users fill in to provide (meta)data.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
-token-based authentication and keep only service account authentication in the future. 
+token-based authentication and keep only service account authentication in the future.
 
 
 ### Development process instruction
@@ -180,7 +186,7 @@ For new features, bugs, enhancements
 
 *Note*: Make sure you have the latest version of the `develop` branch on your local machine.
 
-## Installation Guide - Docker 
+## Installation Guide - Docker
 
 1. Install docker from https://www.docker.com/ . <br>
 2.  Identify docker image of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
@@ -195,7 +201,7 @@ For new features, bugs, enhancements
 
 ### Example For REST API <br>
 
-#### Use file path of `config.yml` to run API endpoints: 
+#### Use file path of `config.yml` to run API endpoints:
 ```
 docker run --rm -p 3001:3001 \
   -v $(pwd):/schematic -w /schematic --name schematic \
@@ -203,9 +209,9 @@ docker run --rm -p 3001:3001 \
   -e GE_HOME=/usr/src/app/great_expectations/ \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
-``` 
+```
 
-#### Use content of `config.yml` and `schematic_service_account_creds.json`as an environment variable to run API endpoints: 
+#### Use content of `config.yml` and `schematic_service_account_creds.json`as an environment variable to run API endpoints:
 1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat /path/to/config.yml)`
 
 2. Similarly, save the content of `schematic_service_account_creds.json` as `SERVICE_ACCOUNT_CREDS` by doing: `export SERVICE_ACCOUNT_CREDS=$(cat /path/to/schematic_service_account_creds.json)`
@@ -220,7 +226,7 @@ docker run --rm -p 3001:3001 \
   -e SERVICE_ACCOUNT_CREDS=$SERVICE_ACCOUNT_CREDS \
   sagebionetworks/schematic \
   python /usr/src/app/run_api.py
-``` 
+```
 
 
 ### Example For Schematic on mac/linux <br>
@@ -237,7 +243,7 @@ docker run \
   -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
   -dt MockComponent \
   -js /schematic/tests/data/example.model.jsonld
-``` 
+```
 
 ### Example For Schematic on Windows <br>
 ```
@@ -276,7 +282,7 @@ Please visit more documentation [here](https://sage-schematic.readthedocs.io/en/
 
 
 
-# Testing 
+# Testing
 
 All code added to the client must have tests. The Python client uses pytest to run tests. The test code is located in the [tests](https://github.com/Sage-Bionetworks/schematic/tree/develop-docs-update/tests) subdirectory.
 

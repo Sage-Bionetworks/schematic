@@ -1,13 +1,6 @@
 {
   "name": "Schematic",
-  // "image": "sagebionetworks/challenge-devcontainer:6c35430",
-
-  "build": {
-		"dockerfile": "Dockerfile",
-		"args": {
-			"imageVersion": "bullseye-20221004-slim"
-		}
-	},
+  "image": "sagebionetworks/schematic-devcontainer:test",
 
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2.0.0": {
@@ -18,13 +11,9 @@
   "settings": {},
 
   "extensions": [
-    // "esbenp.prettier-vscode",
-    // "GitHub.vscode-pull-request-github",
-    // "Gruntfuggly.todo-tree",
-    // "humao.rest-client",
-    // "mhutchie.git-graph",
-    // "ms-python.python",
-    // "stkb.rewrap"
+    "GitHub.vscode-pull-request-github",
+    "mhutchie.git-graph",
+    "ms-python.python"
   ],
 
   "forwardPorts": [
