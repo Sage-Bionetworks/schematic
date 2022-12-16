@@ -18,18 +18,11 @@
 # Introduction
 SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. The Python based infrastructure provides a _novel_ schema-based, metadata ingress ecosystem, that is meant to streamline the process of biomedical dataset annotation, metadata validation and submission to a data repository for various data contributors.
 
-# Opening the workspace in VS Code
-
-Click on this badge to open the workspace in VS Code using our development container.
-
-[![Open in Remote - Containers](https://img.shields.io/static/v1?label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode&style=for-the-badge)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Sage-Bionetworks/schematic "Open in VS Code Remote - Containers")
-
 # Installation
 ## Installation Requirements
 * Python 3.7.1 or higher
 
 Note: You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have the right permissions to download the Google credentials files from Synapse.
-
 
 ## Installation guide for data curator app
 
@@ -254,6 +247,12 @@ docker run -v %cd%:/schematic \
   schematic model \
   -c config.yml validate -mp tests/data/mock_manifests/inValid_Test_Manifest.csv -dt MockComponent -js /schematic/data/example.model.jsonld
 ```
+
+# Opening the workspace in VS Code
+
+Click on this badge to open the workspace in VS Code using our development container.
+
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=VS%20Code%20-%20Dev%20%20Containers&message=Open&color=blue&logo=visualstudiocode&style=for-the-badge)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Sage-Bionetworks/schematic "Open in VS Code Dev Containers")
 
 # Other Contribution Guidelines
 ## Updating readthedocs documentation
