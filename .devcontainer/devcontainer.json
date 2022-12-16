@@ -18,13 +18,13 @@
   "settings": {},
 
   "extensions": [
-    "esbenp.prettier-vscode",
-    "GitHub.vscode-pull-request-github",
-    "Gruntfuggly.todo-tree",
-    "humao.rest-client",
-    "mhutchie.git-graph",
-    "ms-python.python",
-    "stkb.rewrap"
+    // "esbenp.prettier-vscode",
+    // "GitHub.vscode-pull-request-github",
+    // "Gruntfuggly.todo-tree",
+    // "humao.rest-client",
+    // "mhutchie.git-graph",
+    // "ms-python.python",
+    // "stkb.rewrap"
   ],
 
   "forwardPorts": [],

@@ -8,6 +8,8 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ARG yarnVersion="3.3.0"
 # https://www.npmjs.com/package/@devcontainers/cli
 ARG devcontainerCliVersion="0.25.2"
+# https://pypi.org/project/poetry
+ARG poetryVersion="1.2.0rc1"
 
 # Create the docker group so that we can assign it to the user.
 # This is to enable the non-root user to use the command `docker`.
@@ -49,5 +51,8 @@ RUN useradd -m $user \
     "fi" | tee -a /home/$user/.bashrc
 
 USER $user
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 - --version "${poetryVersion}"
 
 CMD ["bash"]
