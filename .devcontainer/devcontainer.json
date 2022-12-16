@@ -27,9 +27,16 @@
     // "stkb.rewrap"
   ],
 
-  "forwardPorts": [],
+  "forwardPorts": [
+    3001
+  ],
 
-  "portsAttributes": {},
+  "portsAttributes": {
+    "3001": {
+      "label": "schematic-api",
+      "onAutoForward": "silent"
+    }
+  },
 
 	"remoteUser": "vscode",
   "shutdownAction": "stopContainer",
