@@ -1,0 +1,33 @@
+{
+  "name": "Schematic",
+  "image": "sagebionetworks/schematic-devcontainer:test",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2.0.0": {
+      "version": "20.10.21"
+    }
+  },
+
+  "settings": {},
+
+  "extensions": [
+    "GitHub.vscode-pull-request-github",
+    "mhutchie.git-graph",
+    "ms-python.python"
+  ],
+
+  "forwardPorts": [
+    3001
+  ],
+
+  "portsAttributes": {
+    "3001": {
+      "label": "schematic-api",
+      "onAutoForward": "silent"
+    }
+  },
+
+	"remoteUser": "vscode",
+  "shutdownAction": "stopContainer",
+  "runArgs": ["--name", "schematic_devcontainer"]
+}
