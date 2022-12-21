@@ -65,6 +65,7 @@ def build_credentials() -> Dict[str, Any]:
 
 
 def build_service_account_creds() -> Dict[str, Any]:
+    print('see all the environment variable', print(os.environ))
     if "SERVICE_ACCOUNT_CREDS" in os.environ:
         dict_creds=json.loads(os.environ["SERVICE_ACCOUNT_CREDS"])
         credentials = service_account.Credentials.from_service_account_info(dict_creds, scopes=SCOPES)
