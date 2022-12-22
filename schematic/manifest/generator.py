@@ -508,13 +508,14 @@ class ManifestGenerator(object):
         # determining columns range
         end_col = len(required_metadata_fields.keys())
         end_col_letter = self._column_to_letter(end_col)
+        return end_col_letter
 
-        # order columns header (since they are generated based on a json schema, which is a dict)
-        ordered_metadata_fields = [list(required_metadata_fields.keys())]
-        ordered_metadata_fields[0] = self.sort_manifest_fields(
-            ordered_metadata_fields[0]
-        )
-        return end_col_letter, ordered_metadata_fields
+        # # order columns header (since they are generated based on a json schema, which is a dict)
+        # ordered_metadata_fields = [list(required_metadata_fields.keys())]
+        # ordered_metadata_fields[0] = self.sort_manifest_fields(
+        #     ordered_metadata_fields[0]
+        # )
+        # return end_col_letter, ordered_metadata_fields
 
 
     def _gs_add_and_format_columns(self, required_metadata_fields, spreadsheet_id):
