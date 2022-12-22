@@ -332,6 +332,19 @@ class TestManifestGenerator:
             else: 
                 assert len(required_metadata_fields) == len(mock_required_metadata)
 
+    def test_get_column_range_and_order(self, helpers, ManifestGeneratorMock):
+        with patch('schematic.manifest.generator.ManifestGenerator._column_to_letter') as MockClass:
+            instance = MockClass.return_value
+            instance.method.return_value = "H"
+            
+            test_return = ManifestGeneratorMock._get_column_range_and_order({"test1": "test2", "test3": "test4"})
+            #assert test_return == "H"
+            
+
+
+
+
+
 
 
 
