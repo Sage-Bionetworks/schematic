@@ -172,6 +172,24 @@ class ManifestGenerator(object):
             .execute()["id"]
         )
 
+    def _create_blank_manifest(self, title):
+        '''
+        create a blank manifest
+        '''
+        spreadsheet = {
+            'properties': {
+                'title': title
+            }
+        }
+
+        spreadsheet = (
+            self.sheet_service.spreadsheets()
+            .create(body=spreadsheet, fields="spreadsheetId")
+            .execute()
+        )
+        spreadsheet_id = spreadsheet.get("spreadsheetId")
+        return spreadsheet_id
+        
     def _create_empty_manifest_spreadsheet(self, title):
         if CONFIG["style"]["google_manifest"]["master_template_id"]:
 
@@ -182,12 +200,7 @@ class ManifestGenerator(object):
 
         else:
             # if no template, create an empty spreadsheet
-            spreadsheet = (
-                self.sheet_service.spreadsheets()
-                .create(body=spreadsheet, fields="spreadsheetId")
-                .execute()
-            )
-            spreadsheet_id = spreadsheet.get("spreadsheetId")
+            spreadsheet_id = self._create_blank_manifest(title)
 
         return spreadsheet_id
 
@@ -233,6 +246,20 @@ class ManifestGenerator(object):
         )
         batch.execute()
 
+    def _execute_spreadsheet_service(self, spreadsheet_id, target_range, body):
+        response = (
+            self.sheet_service.spreadsheets()
+            .values()
+            .update(
+                spreadsheetId=spreadsheet_id,
+                range=target_range,
+                valueInputOption="RAW",
+                body=body,
+            )
+            .execute()
+        )
+        return response        
+
     def _store_valid_values_as_data_dictionary(self, column_id:int, valid_values:list, spreadsheet_id:str) -> list:
         '''store valid values in google sheet (sheet 2). This step is required for "ONE OF RANGE" validation
         Args:
@@ -261,17 +288,7 @@ class ManifestGenerator(object):
             + str(len(values) + 1)
         )
         valid_values = [{"userEnteredValue": "=" + target_range}]
-        response = (
-            self.sheet_service.spreadsheets()
-            .values()
-            .update(
-                spreadsheetId=spreadsheet_id,
-                range=target_range,
-                valueInputOption="RAW",
-                body=body,
-            )
-            .execute()
-        )
+        response = self._execute_spreadsheet_service(spreadsheet_id, target_range, body)
         return valid_values
 
     def _get_column_data_validation_values(
@@ -491,13 +508,15 @@ class ManifestGenerator(object):
         # determining columns range
         end_col = len(required_metadata_fields.keys())
         end_col_letter = self._column_to_letter(end_col)
+        return end_col_letter
 
-        # order columns header (since they are generated based on a json schema, which is a dict)
-        ordered_metadata_fields = [list(required_metadata_fields.keys())]
-        ordered_metadata_fields[0] = self.sort_manifest_fields(
-            ordered_metadata_fields[0]
-        )
-        return end_col_letter, ordered_metadata_fields
+        # # order columns header (since they are generated based on a json schema, which is a dict)
+        # ordered_metadata_fields = [list(required_metadata_fields.keys())]
+        # ordered_metadata_fields[0] = self.sort_manifest_fields(
+        #     ordered_metadata_fields[0]
+        # )
+        # return end_col_letter, ordered_metadata_fields
+
 
     def _gs_add_and_format_columns(self, required_metadata_fields, spreadsheet_id):
         """Add columns to the google sheet and format them.
