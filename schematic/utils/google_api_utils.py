@@ -3,6 +3,7 @@ import pickle
 import logging
 import json
 import pygsheets as ps
+import boto3
 
 from typing import Dict, Any
 
@@ -65,8 +66,6 @@ def build_credentials() -> Dict[str, Any]:
 
 
 def build_service_account_creds() -> Dict[str, Any]:
-    print('check if SERVICE_ACCOUNT_CREDS environment variable exists', "SERVICE_ACCOUNT_CREDS" in os.environ)
-    print('get SERVICE_ACCOUNT_CREDS', os.environ.get('SERVICE_ACCOUNT_CREDS', 'default'))
     print('get SECRETS_MANAGER_SECRETS', os.environ.get('SECRETS_MANAGER_SECRETS', 'default2'))
     print('TEST_CREDS', os.environ.get('TEST_CREDS', 'default3'))
 
@@ -77,8 +76,12 @@ def build_service_account_creds() -> Dict[str, Any]:
     # for AWS deployment
     elif "SECRETS_MANAGER_SECRETS" in os.environ:
         print('this line is being executed')
-        dict_creds = json.loads(os.environ["SECRETS_MANAGER_SECRETS"])
-        print('dict_creds', dict_creds)
+        session = boto3.session.Session()
+        region_name = os.environ['AWS_REGION']
+        client = session.client(service_name='secretsmanager', region_name=region_name)
+        secret_value_response = client.get_secret_value(SecretId="schematic-test")
+        all_secrets = json.loads(secret_value_response['SecretString'])
+        dict_creds=json.loads(all_secrets["SERVICE_ACCOUNT_CREDS"])
         credentials = service_account.Credentials.from_service_account_info(dict_creds, scopes=SCOPES)
     else:
         credentials = service_account.Credentials.from_service_account_file(
