@@ -7,6 +7,9 @@ import os
 import pandas as pd
 import re
 from tenacity import retry, TryAgain, RetryError, stop_after_attempt, wait_random_exponential
+from unittest.mock import MagicMock
+from schematic.manifest import ManifestGenerator
+from unittest.mock import patch
 
 @pytest.fixture(scope="class")
 def app():
@@ -349,6 +352,10 @@ class TestManifestOperation:
 
     @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)", None])
     @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
+    # @patch.multiple('schematic.manifest.generator.ManifestGenerator', 
+    #     get_empty_manifest=MagicMock(return_value='mock manifest spreadsheet url'),
+    #     export_sheet_to_excel=MagicMock(return_value='test.xlsx'),
+    #     )
     def test_generate_new_manifest(self, caplog, client, data_model_jsonld, data_type, output_format):
         params = {
             "schema_url": data_model_jsonld,
@@ -361,11 +368,15 @@ class TestManifestOperation:
 
         if output_format: 
             params["output_format"] = output_format
-    
 
+        # mock google API response 
+        # mg = ManifestGenerator(data_model_jsonld)
+        # mg.get_empty_manifest = MagicMock(return_value="mock manifest url")
+
+        # with patch.object(ManifestGenerator, "get_empty_manifest", return_value="mock manifest url") as mock_method:
+        #     mg = ManifestGenerator(data_model_jsonld)
         response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
         assert response.status_code == 200
-
 
         if output_format and output_format == "excel":
             if data_type == "all manifests":
@@ -413,7 +424,7 @@ class TestManifestOperation:
     
         # should return a list with one google sheet link 
         assert isinstance(response_dt[0], str)
-        assert response_dt[0].startswith("https://docs.google.com/")
+        assert response_dt[0].startswith("https://docs.google.com/")    
     
     @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
     def test_validate_manifest(self, data_model_jsonld, client, json_str, test_manifest_csv, test_manifest_json):
