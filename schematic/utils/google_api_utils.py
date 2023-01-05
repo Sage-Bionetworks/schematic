@@ -85,65 +85,33 @@ def build_service_account_creds() -> Dict[str, Any]:
     }
 
 
-def download_creds_file(auth: str = "service_account") -> None:
-    if auth is None:
-        raise ValueError(
-            f"'{auth}' is not a valid authentication method. Please "
-            "enter one of 'token' or 'service_account'."
-        )
-
+def download_creds_file() -> None:
     syn = SynapseStorage.login()
 
-    # use the service account auth method by default
+    # if file path of service_account does not exist
+    # and if an environment variable related to service account is not found
+    # regenerate service_account credentials
+    if not os.path.exists(CONFIG.SERVICE_ACCT_CREDS) and "SERVICE_ACCOUNT_CREDS" not in os.environ:
 
-    if auth == "token":
-        if not os.path.exists(CONFIG.CREDS_PATH):
-            # synapse ID of the 'credentials.json' file
-            API_CREDS = CONFIG["synapse"]["token_creds"]
+        # synapse ID of the 'schematic_service_account_creds.json' file
+        API_CREDS = CONFIG["synapse"]["service_acct_creds"]
 
-            # Download in parent directory of CREDS_PATH to
-            # ensure same file system for os.rename()
-            creds_dir = os.path.dirname(CONFIG.CREDS_PATH)
+        # Download in parent directory of SERVICE_ACCT_CREDS to
+        # ensure same file system for os.rename()
+        creds_dir = os.path.dirname(CONFIG.SERVICE_ACCT_CREDS)
 
-            creds_file = syn.get(API_CREDS, downloadLocation=creds_dir)
-            os.rename(creds_file.path, CONFIG.CREDS_PATH)
+        creds_file = syn.get(API_CREDS, downloadLocation=creds_dir)
+        os.rename(creds_file.path, CONFIG.SERVICE_ACCT_CREDS)
 
-            logger.info(
-                "The credentials file has been downloaded " f"to '{CONFIG.CREDS_PATH}'"
-            )
+        logger.info(
+            "The credentials file has been downloaded "
+            f"to '{CONFIG.SERVICE_ACCT_CREDS}'"
+        )
 
-    elif auth == "service_account":
-        # if file path of service_account does not exist
-        # and if an environment variable related to service account is not found
-        # regenerate service_account credentials
-        if not os.path.exists(CONFIG.SERVICE_ACCT_CREDS) and "SERVICE_ACCOUNT_CREDS" not in os.environ:
-
-            # synapse ID of the 'schematic_service_account_creds.json' file
-            API_CREDS = CONFIG["synapse"]["service_acct_creds"]
-
-            # Download in parent directory of SERVICE_ACCT_CREDS to
-            # ensure same file system for os.rename()
-            creds_dir = os.path.dirname(CONFIG.SERVICE_ACCT_CREDS)
-
-            creds_file = syn.get(API_CREDS, downloadLocation=creds_dir)
-            os.rename(creds_file.path, CONFIG.SERVICE_ACCT_CREDS)
-
-            logger.info(
-                "The credentials file has been downloaded "
-                f"to '{CONFIG.SERVICE_ACCT_CREDS}'"
-            )
-
-        elif "SERVICE_ACCOUNT_CREDS" in os.environ:
-            # remind users that "SERVICE_ACCOUNT_CREDS" as an environment variable is being used
-            logger.info(
-                "Using environment variable SERVICE_ACCOUNT_CREDS as the credential file."
-            )
-
-    else:
-        logger.warning(
-            f"The mode of authentication you selected '{auth}' is "
-            "not supported. Please use one of either 'token' or "
-            "'service_account'."
+    elif "SERVICE_ACCOUNT_CREDS" in os.environ:
+        # remind users that "SERVICE_ACCOUNT_CREDS" as an environment variable is being used
+        logger.info(
+            "Using environment variable SERVICE_ACCOUNT_CREDS as the credential file."
         )
 
 

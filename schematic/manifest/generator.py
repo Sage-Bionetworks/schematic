@@ -10,7 +10,6 @@ import json
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import (
-    build_credentials,
     execute_google_api_requests,
     build_service_account_creds,
 )
@@ -38,17 +37,10 @@ class ManifestGenerator(object):
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
-        oauth: bool = False, # set the default to use service account credentials
         use_annotations: bool = False,
     ) -> None:
-
-        if oauth:
-            # if user wants to use OAuth for Google authentication
-            # use credentials.json and create token.pickle file
-            services_creds = build_credentials()
-        else:
-            # if not oauth then use service account credentials
-            services_creds = build_service_account_creds()
+        # use service account creds
+        services_creds = build_service_account_creds()
 
         # google service for Sheet API
         self.sheet_service = services_creds["sheet_service"]
@@ -241,6 +233,47 @@ class ManifestGenerator(object):
         )
         batch.execute()
 
+    def _store_valid_values_as_data_dictionary(self, column_id:int, valid_values:list, spreadsheet_id:str) -> list:
+        '''store valid values in google sheet (sheet 2). This step is required for "ONE OF RANGE" validation
+        Args:
+            column_id: id of column
+            valid_values: a list of valid values for a given attribute (i.e. for diagnosis, this looks like: [{'userEnteredValue': 'Cancer'}, {'userEnteredValue': 'Healthy'}])
+            spreadsheet_id: google spreadsheet id
+        
+        return: range of valid values (i.e. for diagnosis, [{'userEnteredValue': '=Sheet2!D2:D3'}])
+        '''
+        # get valid values w/o google sheet header
+        values = [valid_value["userEnteredValue"] for valid_value in valid_values]
+        
+        if self.alphabetize and self.alphabetize.lower().startswith('a'):
+            values.sort(reverse=False, key=str.lower)
+        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
+            values.sort(reverse=True, key=str.lower)
+
+        # store valid values explicitly in workbook at the provided range to use as validation values
+        target_col_letter = self._column_to_letter(column_id)
+        body = {"majorDimension": "COLUMNS", "values": [values]}
+        target_range = (
+            "Sheet2!"
+            + target_col_letter
+            + "2:"
+            + target_col_letter
+            + str(len(values) + 1)
+        )
+        valid_values = [{"userEnteredValue": "=" + target_range}]
+        response = (
+            self.sheet_service.spreadsheets()
+            .values()
+            .update(
+                spreadsheetId=spreadsheet_id,
+                range=target_range,
+                valueInputOption="RAW",
+                body=body,
+            )
+            .execute()
+        )
+        return valid_values
+
     def _get_column_data_validation_values(
         self,
         spreadsheet_id,
@@ -255,41 +288,10 @@ class ManifestGenerator(object):
         # set validation strictness to config file default if None indicated.
         if strict == None:
             strict = CONFIG["style"]["google_manifest"].get("strict_validation", True)
-
-        # get valid values w/o google sheet header
-        values = [valid_value["userEnteredValue"] for valid_value in valid_values]
         
-        if self.alphabetize and self.alphabetize.lower().startswith('a'):
-            values.sort(reverse=False, key=str.lower)
-        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
-            values.sort(reverse=True, key=str.lower)
-        
-
+        #store valid values explicitly in workbook at the provided range to use as validation values
         if validation_type == "ONE_OF_RANGE":
-
-            # store valid values explicitly in workbook at the provided range to use as validation values
-            target_col_letter = self._column_to_letter(column_id)
-            body = {"majorDimension": "COLUMNS", "values": [values]}
-            target_range = (
-                "Sheet2!"
-                + target_col_letter
-                + "2:"
-                + target_col_letter
-                + str(len(values) + 1)
-            )
-            valid_values = [{"userEnteredValue": "=" + target_range}]
-
-            response = (
-                self.sheet_service.spreadsheets()
-                .values()
-                .update(
-                    spreadsheetId=spreadsheet_id,
-                    range=target_range,
-                    valueInputOption="RAW",
-                    body=body,
-                )
-                .execute()
-            )
+            valid_values=self._store_valid_values_as_data_dictionary(column_id, valid_values, spreadsheet_id)
 
         # setup validation data request body
         validation_body = {
@@ -838,9 +840,8 @@ class ManifestGenerator(object):
                 to add to the column header, about using multiselect.
                 This notes body will be added to a request.
         """            
-       
         if rule_in_rule_list("list", validation_rules) and valid_values:
-            note = "From 'Selection options' menu above, go to 'Select multiple values', check all items that apply, and click 'Save selected values'"
+            note = "Please enter applicable comma-separated items selected from the set of allowable terms for this attribute. See our data standards for allowable terms"
             notes_body = {
                 "requests": [
                     {
@@ -934,10 +935,11 @@ class ManifestGenerator(object):
         }
         return self._get_cell_borders(cell_range)
 
-    def _request_dropdown_or_multi(
+    def _request_dropdown(
         self, i, req_vals, spreadsheet_id, validation_rules, valid_values
     ):
-        """Generating sheet api request to populate a dropdown or a multi selection UI
+        """Generating sheet api request to populate a dropdown
+        Note: multi-select was deprecated
         Args:
             i (int): column index
             req_vals (list[dict]): dict for each valid value
@@ -951,7 +953,7 @@ class ManifestGenerator(object):
         Returns:
             validation_body: dict
         """
-        if len(req_vals) > 0 and not rule_in_rule_list("list", validation_rules):
+        if len(req_vals) > 0:
             # if more than 0 values in dropdown use ONE_OF_RANGE type of validation
             # since excel and openoffice
             # do not support other kinds of data validation for
@@ -959,20 +961,6 @@ class ManifestGenerator(object):
             # excel has a total number of characters limit per dropdown...)
             validation_body = self._get_column_data_validation_values(
                 spreadsheet_id, req_vals, i, strict=None, validation_type="ONE_OF_RANGE"
-            )
-        elif rule_in_rule_list("list", validation_rules) and valid_values:
-            # if list is in validation rule attempt to create a multi-value
-            # selection UI, which requires explicit valid values range in
-            # the spreadsheet
-            # set "strict" parameter to false to allow users enter multiple values on google sheet
-            validation_body = self._get_column_data_validation_values(
-                spreadsheet_id,
-                req_vals,
-                i,
-                strict=False,
-                custom_ui=False,
-                input_message="",
-                validation_type="ONE_OF_RANGE",
             )
         else:
             validation_body = self._get_column_data_validation_values(
@@ -1150,12 +1138,17 @@ class ManifestGenerator(object):
             if not req_vals:
                 continue
 
-            # Create dropdown or multi-select options, where called for
-            create_dropdown = self._request_dropdown_or_multi(
+            # for attributes that don't require "list", create dropdown options and set up data validation rules
+            if not rule_in_rule_list("list", validation_rules):
+                create_dropdown = self._request_dropdown(
                 i, req_vals, spreadsheet_id, validation_rules, valid_values
             )
-            if create_dropdown:
-                requests_body["requests"].append(create_dropdown)
+                if create_dropdown:
+                    requests_body["requests"].append(create_dropdown)
+
+            # for attributes that require "list", simply store valid values (if any) in second sheet
+            elif len(req_vals)>0 and rule_in_rule_list("list", validation_rules):
+                self._store_valid_values_as_data_dictionary(i, req_vals, spreadsheet_id)
 
             # generate a conditional format rule for each required value (i.e. valid value)
             # for this field (i.e. if this field is set to a valid value that may require additional
