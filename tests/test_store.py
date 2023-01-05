@@ -267,6 +267,7 @@ class TestDatasetFileView:
         assert isinstance(year_value, str)
         assert year_value == "1980"
 
+@pytest.mark.table_operations
 class TestTableOperations:
 
     def test_createTable(self, helpers, synapse_store, config, projectId, datasetId, version):
