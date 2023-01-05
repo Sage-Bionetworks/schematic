@@ -273,7 +273,7 @@ class TestTableOperations:
     def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
 
 
-        # Check if MockComponent table exists if so delete
+        # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
 
         table_name='followup_synapse_storage_manifest_table'
