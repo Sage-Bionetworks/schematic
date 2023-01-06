@@ -368,6 +368,3 @@ class TestTableOperations:
         assert (daysToFollowUp == '89').all()
         # delete table        
         synapse_store.syn.delete(tableId)
-
-    def test_updateTable(self, helpers):
-        assert True
