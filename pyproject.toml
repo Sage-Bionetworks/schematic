@@ -118,5 +118,15 @@ markers = [
     """\
     schematic_api: marks tests requiring \
     running API locally (skipped on GitHub CI)   
-    """
+    """,
+    """\
+    rule_combos: marks tests covering \
+    combinations of rules that aren't always necessary \
+    and can add significantly to CI runtime (skipped on GitHub CI unless prompted to run in commit message)   
+    """,   
+    """\
+    table_operations: marks tests covering \
+    table operations that pass locally \
+    but fail on CI due to interactions with Synapse (skipped on GitHub CI)   
+    """    
 ]
