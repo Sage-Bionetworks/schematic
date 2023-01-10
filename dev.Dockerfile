@@ -1,4 +1,4 @@
-# FROM python:3.10.6
+## For aws deployments
 FROM python:3.10.9-slim-bullseye
 
 ENV PYTHONFAULTHANDLER=1 \
@@ -28,7 +28,5 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY . ./
-
-RUN poetry install --no-interaction --no-ansi --only-root
 
 CMD ["python", "/usr/src/app/run_api.py"]
