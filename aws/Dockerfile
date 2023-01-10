@@ -21,7 +21,7 @@ RUN apt remove -y libtiff5
 
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
-COPY ../pyproject.toml poetry.lock ./
+COPY ../pyproject.toml ../poetry.lock ./
 
 RUN poetry config virtualenvs.create false
 
