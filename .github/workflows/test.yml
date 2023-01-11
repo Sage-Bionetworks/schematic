@@ -25,11 +25,11 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test:
-
     runs-on: ubuntu-latest
     env:
       POETRY_VERSION:  1.2.0rc1
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10"]
 
@@ -109,16 +109,17 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not google_credentials_needed"
+          -m "not (google_credentials_needed or table_operations)"
           
       - name: Run tests
         env:
-          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}          
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         if: ${{ false == contains(github.event.head_commit.message, 'runcombos') }}
         run: >
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not (google_credentials_needed or rule_combos or schematic_api)"
+          -m "not (google_credentials_needed or rule_combos or schematic_api or table_operations)"
     
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2

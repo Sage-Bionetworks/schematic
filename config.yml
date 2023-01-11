@@ -1,15 +1,12 @@
 # Do not change the 'definitions' section unless you know what you're doing
 definitions:
   synapse_config: ".synapseConfig"
-  creds_path: "credentials.json"
-  token_pickle: "token.pickle"
   service_acct_creds: "schematic_service_account_creds.json"
 
 synapse:
   master_fileview: 'syn23643253'
   manifest_folder: 'manifests'
   manifest_basename: 'synapse_storage_manifest' 
-  token_creds: 'syn23643259'
   service_acct_creds: 'syn25171627'
 
 manifest:

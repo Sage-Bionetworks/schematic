@@ -197,12 +197,11 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None):
+def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
             title: title of a given manifest. 
-            oauth: if user wants to use OAuth for Google authentication
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
             output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
             use_annotations: Whether to use existing annotations during manifest generation
@@ -258,7 +257,6 @@ def get_manifest_route(schema_url: str, oauth: bool, use_annotations: bool, data
             path_to_json_ld=jsonld,
             title=title,
             root=data_type,
-            oauth=oauth,
             use_annotations=use_annotations,
             alphabetize_valid_values = 'ascending',
         )

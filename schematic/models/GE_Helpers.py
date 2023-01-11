@@ -218,7 +218,6 @@ class GreatExpectationsHelpers(object):
                             },
                             "validation_rule": rule
                         }
-
                     elif base_rule==("recommended"):
                         args["mostly"]=0.0000000001
                         args["regex_list"]=['^$']

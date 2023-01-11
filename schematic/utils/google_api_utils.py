@@ -1,7 +1,7 @@
 import os
 import pickle
 import logging
-
+import json
 import pygsheets as ps
 
 from typing import Dict, Any
@@ -65,9 +65,13 @@ def build_credentials() -> Dict[str, Any]:
 
 
 def build_service_account_creds() -> Dict[str, Any]:
-    credentials = service_account.Credentials.from_service_account_file(
-        CONFIG.SERVICE_ACCT_CREDS, scopes=SCOPES
-    )
+    if "SERVICE_ACCOUNT_CREDS" in os.environ:
+        dict_creds=json.loads(os.environ["SERVICE_ACCOUNT_CREDS"])
+        credentials = service_account.Credentials.from_service_account_info(dict_creds, scopes=SCOPES)
+    else:
+        credentials = service_account.Credentials.from_service_account_file(
+            CONFIG.SERVICE_ACCT_CREDS, scopes=SCOPES
+        )
 
     # get a Google Sheet API service
     sheet_service = build("sheets", "v4", credentials=credentials)
@@ -81,53 +85,33 @@ def build_service_account_creds() -> Dict[str, Any]:
     }
 
 
-def download_creds_file(auth: str = "token") -> None:
-    if auth is None:
-        raise ValueError(
-            f"'{auth}' is not a valid authentication method. Please "
-            "enter one of 'token' or 'service_account'."
-        )
-
+def download_creds_file() -> None:
     syn = SynapseStorage.login()
 
-    if auth == "token":
-        if not os.path.exists(CONFIG.CREDS_PATH):
-            # synapse ID of the 'credentials.json' file
-            API_CREDS = CONFIG["synapse"]["token_creds"]
+    # if file path of service_account does not exist
+    # and if an environment variable related to service account is not found
+    # regenerate service_account credentials
+    if not os.path.exists(CONFIG.SERVICE_ACCT_CREDS) and "SERVICE_ACCOUNT_CREDS" not in os.environ:
 
-            # Download in parent directory of CREDS_PATH to
-            # ensure same file system for os.rename()
-            creds_dir = os.path.dirname(CONFIG.CREDS_PATH)
+        # synapse ID of the 'schematic_service_account_creds.json' file
+        API_CREDS = CONFIG["synapse"]["service_acct_creds"]
 
-            creds_file = syn.get(API_CREDS, downloadLocation=creds_dir)
-            os.rename(creds_file.path, CONFIG.CREDS_PATH)
+        # Download in parent directory of SERVICE_ACCT_CREDS to
+        # ensure same file system for os.rename()
+        creds_dir = os.path.dirname(CONFIG.SERVICE_ACCT_CREDS)
 
-            logger.info(
-                "The credentials file has been downloaded " f"to '{CONFIG.CREDS_PATH}'"
-            )
+        creds_file = syn.get(API_CREDS, downloadLocation=creds_dir)
+        os.rename(creds_file.path, CONFIG.SERVICE_ACCT_CREDS)
 
-    elif auth == "service_account":
-        if not os.path.exists(CONFIG.SERVICE_ACCT_CREDS):
-            # synapse ID of the 'schematic_service_account_creds.json' file
-            API_CREDS = CONFIG["synapse"]["service_acct_creds"]
+        logger.info(
+            "The credentials file has been downloaded "
+            f"to '{CONFIG.SERVICE_ACCT_CREDS}'"
+        )
 
-            # Download in parent directory of SERVICE_ACCT_CREDS to
-            # ensure same file system for os.rename()
-            creds_dir = os.path.dirname(CONFIG.SERVICE_ACCT_CREDS)
-
-            creds_file = syn.get(API_CREDS, downloadLocation=creds_dir)
-            os.rename(creds_file.path, CONFIG.SERVICE_ACCT_CREDS)
-
-            logger.info(
-                "The credentials file has been downloaded "
-                f"to '{CONFIG.SERVICE_ACCT_CREDS}'"
-            )
-
-    else:
-        logger.warning(
-            f"The mode of authentication you selected '{auth}' is "
-            "not supported. Please use one of either 'token' or "
-            "'service_account'."
+    elif "SERVICE_ACCOUNT_CREDS" in os.environ:
+        # remind users that "SERVICE_ACCOUNT_CREDS" as an environment variable is being used
+        logger.info(
+            "Using environment variable SERVICE_ACCOUNT_CREDS as the credential file."
         )
 
 
