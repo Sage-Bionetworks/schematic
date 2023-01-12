@@ -112,6 +112,12 @@ model_commands = {
                 "'table' will store the manifest as a table and a csv on Synapse. 'both' will do both of the options specified above. "
                 "Default value is 'table'."
             ),      
+            "table_manipulation":(
+                "Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'. "
+                "'replace' will remove the rows and columns from the existing table and store the new rows and columns, preserving the name and synID. "
+                "'upsert' will add the new rows to the table and preserve the exisitng rows and columns in the existing table. "
+                "Default value is 'replace'. "
+            ),  
         },
         "validate": {
             "short_help": ("Validation of manifest files."),
