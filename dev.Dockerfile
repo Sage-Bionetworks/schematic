@@ -1,13 +1,15 @@
 ## For aws deployments
 FROM python:3.10.9-slim-bullseye
 
+# set APP_PORT to 80 to avoid 308 unhealthy target group error
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=200 \
-    POETRY_VERSION=1.2.0
+    POETRY_VERSION=1.2.0 \
+    APP_PORT=80 
 
 WORKDIR /usr/src/app
 
