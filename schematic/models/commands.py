@@ -128,6 +128,7 @@ def submit_manifest(
             use_schema_label=use_schema_label,
             hide_blanks=hide_blanks,
             project_scope=project_scope,
+            table_manipulation=table_manipulation,
         )
 
         '''

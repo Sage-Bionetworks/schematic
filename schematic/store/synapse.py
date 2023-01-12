@@ -757,12 +757,14 @@ class SynapseStorage(BaseStorage):
         table_name: str, 
         restrict: bool = False, 
         useSchemaLabel: bool = True, 
-        existingTableId: str = None,):
+        existingTableId: str = None,
+        table_manipulation: str = 'replace',
+        ):
         
 
         col_schema, table_manifest = self.formatDB(se, manifest, datasetId, useSchemaLabel)
 
-        manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, restrict)
+        manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, table_manipulation, restrict)
 
         return manifest_table_id, manifest, table_manifest
 
@@ -807,6 +809,7 @@ class SynapseStorage(BaseStorage):
         table_name: str, 
         col_schema: List,
         table_manifest: pd.DataFrame,
+        table_manipulation: str,
         restrict: bool = False, 
         ):
 
@@ -1034,7 +1037,7 @@ class SynapseStorage(BaseStorage):
 
     def associateMetadataWithFiles(
         self, schemaGenerator: SchemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
-        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False,
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False, table_manipulation: str = 'replace',
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -1117,7 +1120,7 @@ class SynapseStorage(BaseStorage):
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
-                                                        se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel)
+                                                        se, manifest, datasetId, table_name,  restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,table_manipulation=table_manipulation,)
             
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
