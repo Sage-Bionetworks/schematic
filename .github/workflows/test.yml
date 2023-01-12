@@ -109,7 +109,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not (google_credentials_needed or table_operations)"
+          -m "not (google_credentials_needed or schematic_api or table_operations)"
           
       - name: Run tests
         env:
