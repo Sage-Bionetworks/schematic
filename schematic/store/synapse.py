@@ -621,7 +621,7 @@ class SynapseStorage(BaseStorage):
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
                 manifest_df = load_df(manifest_path)
-                manifest_table_id = upload_format_manifest_table(manifest, datasetId, datasetName)
+                manifest_table_id = uploadDB(manifest, datasetId, datasetName)
                 manifest_loaded.append(datasetName)
         return manifest_loaded
 
@@ -750,9 +750,24 @@ class SynapseStorage(BaseStorage):
             return {None:None}
 
     @missing_entity_handler
-    def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel):
+    def uploadDB(self, 
+        se: SchemaExplorer, 
+        manifest: pd.DataFrame, 
+        datasetId: str, 
+        table_name: str, 
+        restrict: bool = False, 
+        useSchemaLabel: bool = True, 
+        existingTableId: str = None,):
+        
+
+        col_schema, table_manifest = self.formatDB(se, manifest, datasetId, useSchemaLabel)
+
+        manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, restrict)
+
+        return manifest_table_id, manifest, table_manifest
+
+    def formatDB(self, se, manifest, datasetId, useSchemaLabel):
         # Rename the manifest columns to display names to match fileview
-        table_info = self.get_table_info(datasetId = datasetId)
 
         blacklist_chars = ['(', ')', '.', ' ', '-']
         manifest_columns = manifest.columns.tolist()
@@ -785,6 +800,18 @@ class SynapseStorage(BaseStorage):
             if col['name'] == 'Uuid':
                 col_schema[i]['maximumSize'] = 64
 
+        return col_schema, table_manifest
+
+    def buildDB(self,  
+        datasetId: str, 
+        table_name: str, 
+        col_schema: List,
+        table_manifest: pd.DataFrame,
+        restrict: bool = False, 
+        ):
+
+        table_info = self.get_table_info(datasetId = datasetId)
+
         # Put table manifest onto synapse
         schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
         if table_name not in table_info.keys():
@@ -804,8 +831,8 @@ class SynapseStorage(BaseStorage):
                                     restrict = restrict,
                                     manipulation = 'replace')
 
+        return manifest_table_id
 
-        return manifest_table_id, manifest, table_manifest
 
     def uplodad_manifest_file(self, manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = ''):
         # Update manifest to have the new entityId column
@@ -1089,7 +1116,7 @@ class SynapseStorage(BaseStorage):
 
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
-            manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
+            manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
                                                         se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel)
             
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
