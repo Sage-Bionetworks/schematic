@@ -9,6 +9,7 @@ import secrets
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
 from collections import OrderedDict
+from tenacity import retry, stop_after_attempt, wait_chain, wait_fixed, retry_if_exception_type
 
 import numpy as np
 import pandas as pd
@@ -93,6 +94,9 @@ class SynapseStorage(BaseStorage):
         except KeyError: 
             raise MissingConfigValueError(("synapse", "manifest_basename"))
 
+        self._query_fileview()
+
+    def _query_fileview(self):
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
             self.manifest = CONFIG["synapse"]["manifest_basename"]
@@ -108,7 +112,7 @@ class SynapseStorage(BaseStorage):
         except AttributeError:
             raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
-            raise AccessCredentialsError(self.storageFileview)
+            raise AccessCredentialsError(self.storageFileview)        
 
     @staticmethod
     def login(token=None, access_token=None, input_token=None):
@@ -725,16 +729,21 @@ class SynapseStorage(BaseStorage):
 
         return df, results
 
-    def _get_tables(self, datasetId: str = None) -> List[Table]:
-        project = self.syn.get(self.getDatasetProject(datasetId))
+    def _get_tables(self, datasetId: str = None, projectId: str = None) -> List[Table]:
+        if projectId:
+            project = projectId
+        elif datasetId:
+            project = self.syn.get(self.getDatasetProject(datasetId))
+        
         return list(self.syn.getChildren(project, includeTypes=["table"]))
 
-    def get_table_info(self, datasetId: str = None) -> List[str]:
+    def get_table_info(self, datasetId: str = None, projectId: str = None) -> List[str]:
         """Gets the names of the tables in the schema
+        Can pass in a synID for a dataset or project
         Returns:
             list[str]: A list of table names
         """
-        tables = self._get_tables(datasetId)
+        tables = self._get_tables(datasetId = datasetId, projectId = projectId)
         if tables:
             return {table["name"]: table["id"] for table in tables}
         else: 
@@ -743,7 +752,7 @@ class SynapseStorage(BaseStorage):
     @missing_entity_handler
     def upload_format_manifest_table(self, se, manifest, datasetId, table_name, restrict, useSchemaLabel):
         # Rename the manifest columns to display names to match fileview
-        table_info = self.get_table_info(datasetId)
+        table_info = self.get_table_info(datasetId = datasetId)
 
         blacklist_chars = ['(', ')', '.', ' ', '-']
         manifest_columns = manifest.columns.tolist()
@@ -1293,6 +1302,15 @@ class SynapseStorage(BaseStorage):
         # Force all values as strings
         return table.astype(str)
 
+    def raise_final_error(retry_state):
+        return retry_state.outcome.result()
+
+    @retry(stop = stop_after_attempt(5), 
+            wait = wait_chain(*[wait_fixed(10) for i in range (2)] + 
+                    [wait_fixed(15) for i in range(2)] + 
+                    [wait_fixed(20)]),
+            retry=retry_if_exception_type(LookupError),
+            retry_error_callback = raise_final_error)
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
 
@@ -1306,6 +1324,9 @@ class SynapseStorage(BaseStorage):
         Returns:
             str: The Synapse ID for the parent project.
         """
+
+        self._query_fileview()
+
         # Subset main file view
         dataset_index = self.storageFileviewTable["id"] == datasetId
         dataset_row = self.storageFileviewTable[dataset_index]

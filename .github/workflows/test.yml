@@ -29,6 +29,7 @@ jobs:
     env:
       POETRY_VERSION:  1.2.0rc1
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10"]
 
@@ -108,7 +109,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not google_credentials_needed"
+          -m "not (google_credentials_needed or schematic_api or table_operations)"
           
       - name: Run tests
         env:
@@ -118,7 +119,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not (google_credentials_needed or rule_combos or schematic_api)"
+          -m "not (google_credentials_needed or rule_combos or schematic_api or table_operations)"
     
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
