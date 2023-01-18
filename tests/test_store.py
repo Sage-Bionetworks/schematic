@@ -410,9 +410,9 @@ class TestTableOperations:
 
         #set primary key annotation for uploaded table
         tableId = existing_tables[table_name]
-        annos = synapse_store.get_annotations(tableId)
+        annos = synapse_store.syn.get_annotations(tableId)
         annos['primary_key'] = 'FollowUp_id'
-        annos=synapse_store.set_annotations(annos)
+        annos=synapse_store.syn.set_annotations(annos)
 
         # Query table for DaystoFollowUp column        
         daysToFollowUp = synapse_store.syn.tableQuery(
