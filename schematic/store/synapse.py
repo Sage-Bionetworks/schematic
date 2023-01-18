@@ -1311,6 +1311,16 @@ class SynapseStorage(BaseStorage):
                     [wait_fixed(20)]),
             retry=retry_if_exception_type(LookupError),
             retry_error_callback = raise_final_error)
+
+    def checkIfinAssetView(self, syn_id) -> str:
+        # get data in administrative fileview for this pipeline
+        assetViewTable = self.getStorageFileviewTable()
+        all_files = list(assetViewTable["id"])
+        if syn_id in all_files: 
+            return True
+        else: 
+            return False
+
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
 

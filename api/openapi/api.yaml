@@ -645,6 +645,43 @@ paths:
           description: Check schematic log. 
       tags:
         - Synapse Storage
+  /storage/if_in_asset_view:
+    get:
+      summary: Check if a file or a folder is in a given asset view. Return "true" or "false"
+      description: Check if a file or a folder is in a given asset view. Return "true" or "false"
+      operationId: api.routes.check_if_files_in_assetview
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: id
+          schema:
+            type: string
+            nullable: false
+          description: ID of file or folder. For example, for Synapse this would be the Synapse ID. 
+          example: syn30988314
+          required: true
+      responses:
+        "200":
+          description: return "true" or "false"
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
   /schemas/get/schema:
     get:
       summary: Return schema as a pickle file
