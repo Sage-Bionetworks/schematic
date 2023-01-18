@@ -373,3 +373,70 @@ class TestTableOperations:
         assert (daysToFollowUp == '89').all()
         # delete table        
         synapse_store.syn.delete(tableId)
+
+    def test_upsertTable(self, helpers, synapse_store, config, projectId, datasetId):
+        table_manipulation = 'upsert'
+
+        table_name='followup_synapse_storage_manifest_table'
+        manifest_path = "mock_manifests/table_manifest.csv"
+        replacement_manifest_path = "mock_manifests/table_manifest_upsert.csv"
+        column_of_interest="DaystoFollowUp"   
+        
+        # Check if FollowUp table exists if so delete
+        existing_tables = synapse_store.get_table_info(projectId = projectId)        
+        
+        if table_name in existing_tables.keys():
+            synapse_store.syn.delete(existing_tables[table_name])
+            sleep(10)
+            # assert no table
+            assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
+
+        # associate org FollowUp metadata with files
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        sg = SchemaGenerator(inputModelLocaiton)
+
+            # updating file view on synapse takes a long time
+        manifestId = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = 'table',
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+            table_manipulation=table_manipulation,
+        )
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+
+        # Query table for DaystoFollowUp column        
+        tableId = existing_tables[table_name]
+        daysToFollowUp = synapse_store.syn.tableQuery(
+            f"SELECT {column_of_interest} FROM {tableId}"
+        ).asDataFrame().squeeze()
+
+        # assert Days to FollowUp == 73
+        assert (daysToFollowUp == '73.0').all()
+        
+        # Associate new manifest with files
+        manifestId = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = 'table',
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+            table_manipulation=table_manipulation,
+        )
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+        
+        # Query table for DaystoFollowUp column        
+        tableId = existing_tables[table_name]
+        daysToFollowUp = synapse_store.syn.tableQuery(
+            f"SELECT {column_of_interest} FROM {tableId}"
+        ).asDataFrame().squeeze()
+
+        # assert Days to FollowUp is not all '73'
+        assert not (daysToFollowUp == '73').all()
+        # delete table        
+        synapse_store.syn.delete(tableId)
