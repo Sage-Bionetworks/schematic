@@ -87,7 +87,6 @@ class DataModelGraphExporer():
 		'''
 		self.data_model_graph = DataModelGraph.generate_data_model_graph(data_model)
 
-
 	def get_adjacent_nodes_by_relationship():
 		return
 
