@@ -408,8 +408,13 @@ class TestTableOperations:
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
 
-        # Query table for DaystoFollowUp column        
+        #set primary key annotation for uploaded table
         tableId = existing_tables[table_name]
+        annos = synapse_store.get_annotations(tableId)
+        annos['primary_key'] = 'FollowUp_id'
+        annos=synapse_store.set_annotations(annos)
+
+        # Query table for DaystoFollowUp column        
         daysToFollowUp = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
