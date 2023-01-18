@@ -1,32 +1,74 @@
 import builtins
-from jsonschema import ValidationError
 import logging
+import re
+import sys
+import time
+from os import getenv
+# allows specifying explicit variable types
+from typing import Any, Dict, List, Optional, Text
+from urllib import error
+from urllib.parse import urlparse
+from urllib.request import (HTTPDefaultErrorHandler, OpenerDirector, Request,
+                            urlopen)
 
 import numpy as np
 import pandas as pd
-import re
-import sys
-from os import getenv
+from jsonschema import ValidationError
 
-# allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List
-from urllib.parse import urlparse
-from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
-from urllib.request import Request
-from urllib import error
-
-from schematic.store.synapse import SynapseStorage
-from schematic.store.base import BaseStorage
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.validate_utils import comma_separated_list_regex
-import time
+from schematic.store.base import BaseStorage
+from schematic.store.synapse import SynapseStorage
+from schematic.utils.validate_rules_utils import validation_rule_info
+from schematic.utils.validate_utils import (comma_separated_list_regex,
+                                            parse_str_series_to_list)
 
 logger = logging.getLogger(__name__)
 
 class GenerateError:
+    def generate_schema_error(row_num: str, attribute_name: str, error_msg: str, invalid_entry: str, sg: SchemaGenerator,)-> List[str]:
+        '''
+        Purpose: Process error messages generated from schema
+        Input:
+            - row_num: the row the error occurred on.
+            - attribute_name: the attribute the error occurred on.
+            - error_msg: Error message
+        '''
+        error_list = []
+        warning_list = []
+        
+        #Determine which, if any, message to raise
+        raises = GenerateError.get_message_level(
+            val_rule = 'schema',
+            attribute_name = attribute_name,
+            sg = sg,
+            )
+
+        #if a message needs to be raised, get the approrpiate function to do so
+        if raises:
+            logLevel = getattr(logging,raises)  
+        else:
+            return error_list, warning_list
+
+
+        error_col = attribute_name  # Attribute name
+        error_row = row_num  # index row of the manifest where the error presented.
+        error_message = error_msg
+
+        arg_error_string = (
+                f"For the attribute '{error_col}', on row {error_row}, {error_message}."
+        )
+        logLevel(arg_error_string)
+
+        if raises == 'error':
+            error_list = [error_row, error_col, error_message, invalid_entry]
+        elif raises == 'warning':
+            warning_list = [error_row, error_col, error_message, invalid_entry]
+
+        return error_list, warning_list 
+
     def generate_list_error(
         list_string: str, row_num: str, attribute_name: str, list_error: str,
-        invalid_entry:str,
+        invalid_entry:str, sg: SchemaGenerator, val_rule: str,
     ) -> List[str]:
         """
             Purpose:
@@ -40,18 +82,43 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
+
+        error_list = []
+        warning_list = []
+        
+        #Determine which, if any, message to raise
+        raises = GenerateError.get_message_level(
+            val_rule = val_rule,
+            attribute_name = attribute_name,
+            sg = sg,
+            )
+
+        #if a message needs to be raised, get the approrpiate function to do so
+        if raises:
+            logLevel = getattr(logging,raises)  
+        else:
+            return error_list, warning_list
+
         if list_error == "not_comma_delimited":
             error_str = (
                 f"For attribute {attribute_name} in row {row_num} it does not "
                 f"appear as if you provided a comma delimited string. Please check "
                 f"your entry ('{list_string}'') and try again."
             )
-            logging.error(error_str)
+            logLevel(error_str)
             error_row = row_num  # index row of the manifest where the error presented.
             error_col = attribute_name  # Attribute name
             error_message = error_str
             error_val = invalid_entry
-        return [error_row, error_col, error_message, error_val]
+                #return error and empty list for warnings
+        
+        if raises == 'error':
+            error_list = [error_row, error_col, error_message, error_val]
+        #return warning and empty list for errors
+        elif raises == 'warning':
+            warning_list = [error_row, error_col, error_message, error_val]
+        
+        return error_list, warning_list 
 
     def generate_regex_error(
         val_rule: str,
@@ -59,7 +126,8 @@ class GenerateError:
         row_num: str,
         module_to_call: str,
         attribute_name: str,
-        invalid_entry:str,
+        invalid_entry: str,
+        sg: SchemaGenerator,
     ) -> List[str]:
         """
             Purpose:
@@ -75,19 +143,43 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
+        error_list = []
+        warning_list = []
+        
+        #Determine which, if any, message to raise
+        raises = GenerateError.get_message_level(
+            val_rule = val_rule,
+            attribute_name = attribute_name,
+            sg = sg,
+            )
+
+        #if a message needs to be raised, get the approrpiate function to do so
+        if raises:
+            logLevel = getattr(logging,raises)  
+        else:
+            return error_list, warning_list
+
         regex_error_string = (
             f"For the attribute {attribute_name}, on row {row_num}, the string is not properly formatted. "
             f'It should follow the following re.{module_to_call} pattern "{reg_expression}".'
         )
-        logging.error(regex_error_string)
+        logLevel(regex_error_string)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = regex_error_string
         error_val = invalid_entry
-        return [error_row, error_col, error_message, error_val]
+
+        #return error and empty list for warnings
+        if raises == 'error':
+            error_list = [error_row, error_col, error_message, error_val]
+        #return warning and empty list for errors
+        elif raises == 'warning':
+            warning_list = [error_row, error_col, error_message, error_val]
+        
+        return error_list, warning_list       
 
     def generate_type_error(
-        val_rule: str, row_num: str, attribute_name: str, invalid_entry:str,
+        val_rule: str, row_num: str, attribute_name: str, invalid_entry:str, sg: SchemaGenerator,
     ) -> List[str]:
         """
             Purpose:
@@ -101,20 +193,46 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
+
+        error_list = []
+        warning_list = []
+        
+        #Determine which, if any, message to raise
+        raises = GenerateError.get_message_level(
+            val_rule = val_rule,
+            attribute_name = attribute_name,
+            sg = sg,
+            )
+
+        #if a message needs to be raised, get the approrpiate function to do so
+        if raises:
+            logLevel = getattr(logging,raises)  
+        else:
+            return error_list, warning_list
+
         type_error_str = (
             f"On row {row_num} the attribute {attribute_name} "
             f"does not contain the proper value type {val_rule}."
         )
-        logging.error(type_error_str)
+        logLevel(type_error_str)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = type_error_str
         error_val = invalid_entry
-        return [error_row, error_col, error_message, error_val]
+
+
+        #return error and empty list for warnings
+        if raises == 'error':
+            error_list = [error_row, error_col, error_message, error_val]
+        #return warning and empty list for errors
+        elif raises == 'warning':
+            warning_list = [error_row, error_col, error_message, error_val]
+        
+        return error_list, warning_list              
 
     def generate_url_error(
         url: str, url_error: str, row_num: str, attribute_name: str, argument: str,
-        invalid_entry:str,
+        invalid_entry:str, sg: SchemaGenerator, val_rule: str,
     ) -> List[str]:
         """
             Purpose:
@@ -139,6 +257,24 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
+
+        error_list = []
+        warning_list = []
+        
+        #Determine which, if any, message to raise
+        raises = GenerateError.get_message_level(
+            val_rule = val_rule,
+            attribute_name = attribute_name,
+            sg = sg,
+            )
+
+        #if a message needs to be raised, get the approrpiate function to do so
+        if raises:
+            logLevel = getattr(logging,raises)  
+        else:
+            return error_list, warning_list
+
+
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         if url_error == "invalid_url":
@@ -147,7 +283,7 @@ class GenerateError:
                 f"conform to the standards of a URL. Please make sure you are entering a real, working URL "
                 f"as required by the Schema."
             )
-            logging.error(invalid_url_error_string)
+            logLevel(invalid_url_error_string)
             error_message = invalid_url_error_string
             error_val = invalid_entry
         elif url_error == "arg_error":
@@ -155,7 +291,7 @@ class GenerateError:
                 f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
                 f"conform to the schema specifications and does not contain the required element: {argument}."
             )
-            logging.error(arg_error_string)
+            logLevel(arg_error_string)
             error_message = arg_error_string
             error_val = f"URL Error: Argument Error"
         elif url_error == "random_entry":
@@ -163,18 +299,28 @@ class GenerateError:
                 f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
                 f"look like a URL, please check input and try again."
             )
-            logging.error(random_entry_error_str)
+            logLevel(random_entry_error_str)
             error_message = random_entry_error_str
             error_val = f"URL Error: Random Entry"
-        return [error_row, error_col, error_message, error_val]
+
+        #return error and empty list for warnings
+        if raises == 'error':
+            error_list = [error_row, error_col, error_message, error_val]
+        #return warning and empty list for errors
+        elif raises == 'warning':
+            warning_list = [error_row, error_col, error_message, error_val]
+        
+        return error_list, warning_list        
 
     def generate_cross_warning(
         val_rule: str,
         attribute_name: str,
+        sg: SchemaGenerator,
         matching_manifests = [],
         missing_manifest_ID = None,
         invalid_entry = None,
         row_num = None,
+        
     ) -> List[str]:
         """
             Purpose:
@@ -191,7 +337,22 @@ class GenerateError:
                 Logging.error.
                 Errors: List[str] Error details for further storage.
             """
+        error_list = []
+        warning_list = []
         
+        #Determine which, if any, message to raise
+        raises = GenerateError.get_message_level(
+            val_rule = val_rule,
+            attribute_name = attribute_name,
+            sg = sg,
+            )
+
+        #if a message needs to be raised, get the approrpiate function to do so
+        if raises:
+            logLevel = getattr(logging,raises)  
+        else:
+            return error_list, warning_list
+
         if val_rule.__contains__('matchAtLeast'):
             cross_error_str = (
                 f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing." )
@@ -212,13 +373,21 @@ class GenerateError:
                     f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. " 
                 )            
 
-        logging.warning(cross_error_str)
+        logLevel(cross_error_str)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = cross_error_str
         error_val = invalid_entry #Value from source manifest missing from targets
         
-        return [error_row, error_col, error_message, error_val]
+        #return error and empty list for warnings
+        if raises == 'error':
+            error_list = [error_row, error_col, error_message, error_val]
+        #return warning and empty list for errors
+        elif raises == 'warning':
+            warning_list = [error_row, error_col, error_message, error_val]
+        
+        return error_list, warning_list        
+
 
     def generate_content_error(
         val_rule: str,
@@ -250,7 +419,7 @@ class GenerateError:
         warning_list = []
         error_col = attribute_name  # Attribute name
         
-        #Determine whether to raise a warning or error
+        #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
             val_rule=val_rule,
             attribute_name = attribute_name,
@@ -308,44 +477,53 @@ class GenerateError:
         return error_list, warning_list
 
     def get_message_level(
-        val_rule: str,
         sg: SchemaGenerator,
         attribute_name: str,
+        val_rule: str,
         ) -> str:
         """
         Purpose:
             Determine whether an error or warning message should be logged and displayed
+            
+            if node is not required, 
+                return warning
+            if node is recommended and requried, 
+                return None    
+            for other rules, parse possible, if not use default specified in validation_rule_info
 
-            Types of error/warning included:
-                - recommended - Raised when an attribute is empty and recommended but not required.
-                - unique - Raised when attribute values are not unique.
-                - protectAges - Raised when an attribute contains ages below 18YO or over 90YO that should be censored.
         Input:
                 val_rule: str, defined in the schema.
                 sg: schemaGenerator object
                 attribute_name: str, attribute being validated
         Returns:
-            'error' or 'warning'
+            'error', 'warning' or None
+        # TODO: recommended and other rules
         """
 
-        
+        level = None
         rule_parts = val_rule.split(" ")
-        
-        #See if the node is required, if it is and the column is missing then a requirement error will be raised later; no error or waring logged here if recommended and required but missing        
-        if val_rule.startswith('recommended') and sg.is_node_required(node_display_name=attribute_name):
+        rule_info = validation_rule_info()
+
+        if not sg.is_node_required(node_display_name=attribute_name):
+            # raise warning if recommended but not required
+            if 'recommended' in val_rule:
+                level = 'warning'
+            # If not required or recommended raise warnings to notify
+            else:
+                level = 'warning' 
+                return level
+        elif sg.is_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
             level = None
         
-        #if not required, use the message level specified in the rule
-        elif rule_parts[-1].lower() == 'error':
+        
+        # Parse rule for level, set to default if not specified
+        if rule_parts[-1].lower() == 'error' or rule_parts[0] == 'schema':
             level = 'error'
-
         elif rule_parts[-1].lower() == 'warning':
             level = 'warning'
-        
-        #if no level specified, the default level is warning
         else:
-            level = 'warning'
-
+            level = rule_info[rule_parts[0]]['default_message_level']
+            
         return level
 
 class ValidateAttribute(object):
@@ -391,7 +569,7 @@ class ValidateAttribute(object):
         return synStore, target_manifest_IDs, target_dataset_IDs    
 
     def list_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series
+        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
     ) -> (List[List[str]], List[List[str]], pd.core.series.Series):
         """
         Purpose:
@@ -424,25 +602,28 @@ class ValidateAttribute(object):
             for i, list_string in enumerate(manifest_col):
                 if not re.fullmatch(csv_re,list_string):
                     list_error = "not_comma_delimited"
-                    errors.append(
-                        GenerateError.generate_list_error(
+                    vr_errors, vr_warnings = GenerateError.generate_list_error(
                             list_string,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             list_error=list_error,
-                            invalid_entry=manifest_col[i]
+                            invalid_entry=manifest_col[i],
+                            sg = sg,
+                            val_rule = val_rule, 
                         )
-                    )
+                    if vr_errors:
+                        errors.append(vr_errors)
+                    if vr_warnings:
+                        warnings.append(vr_warnings)
+                
 
-        # Convert string to list. For 'list like' strings, just attempt casting to list of strings without validation
-        manifest_col = manifest_col.apply(
-            lambda x: [s.strip() for s in str(x).split(",")]
-        )
+        # Convert string to list.
+        manifest_col = parse_str_series_to_list(manifest_col)
 
         return errors, warnings, manifest_col
 
     def regex_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series
+        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
     ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
@@ -481,24 +662,33 @@ class ValidateAttribute(object):
 
         errors = []
         warnings = []
+        validation_rules=self.sg.se.get_class_validation_rules(self.sg.se.get_class_label_from_display_name(manifest_col.name))
         # Handle case where validating re's within a list.
-        if type(manifest_col[0]) == list:
+        if re.search('list',"|".join(validation_rules)):
+            if type(manifest_col[0]) == str:
+                # Convert string to list.
+                manifest_col = parse_str_series_to_list(manifest_col)
+
             for i, row_values in enumerate(manifest_col):
                 for j, re_to_check in enumerate(row_values):
                     re_to_check = str(re_to_check)
                     if not bool(module_to_call(reg_expression, re_to_check)) and bool(
                         re_to_check
                     ):
-                        errors.append(
-                            GenerateError.generate_regex_error(
-                                val_rule,
-                                reg_expression,
+                        vr_errors, vr_warnings = GenerateError.generate_regex_error(
+                                val_rule = val_rule,
+                                reg_expression = reg_expression,
                                 row_num=str(i + 2),
                                 module_to_call=reg_exp_rules[1],
                                 attribute_name=manifest_col.name,
-                                invalid_entry=manifest_col[i]
+                                invalid_entry=manifest_col[i],
+                                sg = sg,
                             )
-                        )
+                        if vr_errors:
+                            errors.append(vr_errors)
+                        if vr_warnings:
+                            warnings.append(vr_warnings)
+
         # Validating single re's
         else:
             manifest_col = manifest_col.astype(str)
@@ -506,21 +696,24 @@ class ValidateAttribute(object):
                 if not bool(module_to_call(reg_expression, re_to_check)) and bool(
                     re_to_check
                 ):
-                    errors.append(
-                        GenerateError.generate_regex_error(
-                            val_rule,
-                            reg_expression,
+                    vr_errors, vr_warnings = GenerateError.generate_regex_error(
+                            val_rule = val_rule,
+                            reg_expression = reg_expression,
                             row_num=str(i + 2),
                             module_to_call=reg_exp_rules[1],
                             attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i]
+                            invalid_entry=manifest_col[i],
+                            sg = sg,
                         )
-                    )
+                    if vr_errors:
+                        errors.append(vr_errors)
+                    if vr_warnings:
+                        warnings.append(vr_warnings)
 
         return errors, warnings
 
     def type_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series
+        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
     ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
@@ -552,28 +745,34 @@ class ValidateAttribute(object):
         if val_rule == "num":
             for i, value in enumerate(manifest_col):
                 if bool(value) and not isinstance(value, specified_type[val_rule]):
-                    errors.append(
-                        GenerateError.generate_type_error(
-                            val_rule,
+                    vr_errors, vr_warnings = GenerateError.generate_type_error(
+                            val_rule = val_rule ,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
-                            invalid_entry=str(manifest_col[i])
+                            invalid_entry=str(manifest_col[i]),
+                            sg = sg,
                         )
-                    )
+                    if vr_errors:
+                        errors.append(vr_errors)
+                    if vr_warnings:
+                        warnings.append(vr_warnings)
         elif val_rule in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
                 if bool(value) and not isinstance(value, specified_type[val_rule]):
-                    errors.append(
-                        GenerateError.generate_type_error(
-                            val_rule,
+                    vr_errors, vr_warnings = GenerateError.generate_type_error(
+                            val_rule = val_rule,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
-                            invalid_entry=str(manifest_col[i])
+                            invalid_entry=str(manifest_col[i]),
+                            sg = sg,
                         )
-                    )
+                    if vr_errors:
+                        errors.append(vr_errors)
+                    if vr_warnings:
+                        warnings.append(vr_warnings)
         return errors, warnings
 
-    def url_validation(self, val_rule: str, manifest_col: str) -> (List[List[str]], List[List[str]]):
+    def url_validation(self, val_rule: str, manifest_col: str, sg: SchemaGenerator,) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
@@ -595,7 +794,7 @@ class ValidateAttribute(object):
         for i, url in enumerate(manifest_col):
             # Check if a random phrase, string or number was added and
             # log the appropriate error.
-            if not (
+            if not isinstance(url,str) or not (
                 urlparse(url).scheme
                 + urlparse(url).netloc
                 + urlparse(url).params
@@ -605,16 +804,20 @@ class ValidateAttribute(object):
                 #
                 url_error = "random_entry"
                 valid_url = False
-                errors.append(
-                    GenerateError.generate_url_error(
+                vr_errors, vr_warnings = GenerateError.generate_url_error(
                         url,
                         url_error=url_error,
                         row_num=str(i + 2),
                         attribute_name=manifest_col.name,
                         argument=url_args,
-                        invalid_entry=manifest_col[i]
+                        invalid_entry=manifest_col[i],
+                        sg = sg,
+                        val_rule = val_rule,
                     )
-                )
+                if vr_errors:
+                    errors.append(vr_errors)
+                if vr_warnings:
+                    warnings.append(vr_warnings)
             else:
                 # add scheme to the URL if not currently added.
                 if not urlparse(url).scheme:
@@ -629,36 +832,44 @@ class ValidateAttribute(object):
                 except:
                     valid_url = False
                     url_error = "invalid_url"
-                    errors.append(
-                        GenerateError.generate_url_error(
+                    vr_errors, vr_warnings = GenerateError.generate_url_error(
                             url,
                             url_error=url_error,
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             argument=url_args,
-                            invalid_entry=manifest_col[i]
+                            invalid_entry=manifest_col[i],
+                            sg = sg,
+                            val_rule = val_rule,
                         )
-                    )
+                    if vr_errors:
+                        errors.append(vr_errors)
+                    if vr_warnings:
+                        warnings.append(vr_warnings)
                 if valid_url == True:
                     # If the URL works, check to see if it contains the proper arguments
                     # as specified in the schema.
                     for arg in url_args:
                         if arg not in url:
                             url_error = "arg_error"
-                            errors.append(
-                                GenerateError.generate_url_error(
+                            vr_errors, vr_warnings = GenerateError.generate_url_error(
                                     url,
                                     url_error=url_error,
                                     row_num=str(i + 2),
                                     attribute_name=manifest_col.name,
                                     argument=arg,
-                                    invalid_entry=manifest_col[i]
+                                    invalid_entry=manifest_col[i],
+                                    sg = sg,
+                                    val_rule = val_rule,
                                 )
-                            )
+                            if vr_errors:
+                                errors.append(vr_errors)
+                            if vr_warnings:
+                                warnings.append(vr_warnings)
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List,
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, sg: SchemaGenerator,
     ) -> List[List[str]]:
         """
         Purpose:
@@ -738,25 +949,31 @@ class ValidateAttribute(object):
             
             if val_rule.__contains__('matchAtLeastOne') and not missing_values.empty:
                 missing_rows = missing_values.index.to_numpy() + 2
-                warnings.append(
-                    GenerateError.generate_cross_warning(
+                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
                         row_num = str(list(missing_rows)),
                         attribute_name = source_attribute,
                         invalid_entry = str(missing_values.values.tolist()),
+                        sg = sg,
                     )
-                )
+                if vr_errors:
+                    errors.append(vr_errors)
+                if vr_warnings:
+                    warnings.append(vr_warnings)
             elif val_rule.__contains__('matchExactlyOne') and (duplicated_values.any() or missing_values.any()):
                 invalid_values  = pd.merge(duplicated_values,missing_values,how='outer')
                 invalid_rows    = pd.merge(duplicated_values,missing_values,how='outer',left_index=True,right_index=True).index.to_numpy() + 2
-                warnings.append(
-                    GenerateError.generate_cross_warning(
+                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
                         row_num = str(list(invalid_rows)), 
                         attribute_name = source_attribute, 
-                        invalid_entry = str(invalid_values.squeeze().values.tolist()) 
+                        invalid_entry = str(pd.Series(invalid_values.squeeze()).values.tolist()),
+                        sg = sg,
                     )
-                )
+                if vr_errors:
+                    errors.append(vr_errors)
+                if vr_warnings:
+                    warnings.append(vr_warnings)
             
 
             
@@ -773,23 +990,29 @@ class ValidateAttribute(object):
                 missing_values=list(set(missing_values))
                 #print(missing_rows,missing_values)
 
-                warnings.append(
-                    GenerateError.generate_cross_warning(
+                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
                         row_num = str(missing_rows),
                         attribute_name = source_attribute,
                         invalid_entry = str(missing_values),
                         missing_manifest_ID = missing_manifest_IDs,
+                        sg = sg,
                     )
-                )
+                if vr_errors:
+                    errors.append(vr_errors)
+                if vr_warnings:
+                    warnings.append(vr_warnings)
             elif val_rule.__contains__('matchExactlyOne') and len(present_manifest_log) != 1:
-                warnings.append(
-                    GenerateError.generate_cross_warning(
+                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
                         attribute_name = source_attribute,
                         matching_manifests = present_manifest_log,
+                        sg = sg,
                     )
-                )
+                if vr_errors:
+                    errors.append(vr_errors)
+                if vr_warnings:
+                    warnings.append(vr_warnings)
                 
 
         return errors, warnings

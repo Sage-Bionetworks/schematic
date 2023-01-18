@@ -1,17 +1,19 @@
 import os
 import logging
-
+from pathlib import Path
 import click
 import click_log
 import logging
 import sys
+from typing import List
 
 from schematic.manifest.generator import ManifestGenerator
-from schematic.utils.cli_utils import fill_in_from_config, query_dict
+from schematic.utils.cli_utils import fill_in_from_config, query_dict, parse_synIDs
 from schematic.help import manifest_commands
 from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel
+from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel, export_manifest_drive_service
+from schematic.store.synapse import SynapseStorage
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -88,12 +90,6 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "use_annotations")),
 )
 @click.option(
-    "-oa",
-    "--oauth",
-    is_flag=True,
-    help=query_dict(manifest_commands, ("manifest", "get", "oauth")),
-)
-@click.option(
     "-js",
     "--json_schema",
     help=query_dict(manifest_commands, ("manifest", "get", "json_schema")),
@@ -114,7 +110,6 @@ def get_manifest(
     sheet_url,
     output_csv,
     use_annotations,
-    oauth,
     json_schema,
     output_xlsx,
     alphabetize_valid_values,
@@ -139,14 +134,31 @@ def get_manifest(
             path_to_json_ld=jsonld,
             title=t,
             root=data_type,
-            oauth=oauth,
             use_annotations=use_annotations,
             alphabetize_valid_values=alphabetize_valid_values,
         )
 
         # call get_manifest() on manifest_generator
+        # if output_xlsx gets specified, output_format = "excel"
+        if output_xlsx: 
+            output_format = "excel"
+
+            # if file name is in the path, and that file does not exist
+            if not os.path.exists(output_xlsx):
+                if ".xlsx" or ".xls" in output_xlsx:
+                    path = Path(output_xlsx)
+                    output_path = path.parent.absolute()
+                else: 
+                    logger.error(f"{output_xlsx} does not exists. Please try a valid file path")
+
+            else: 
+                output_path = output_xlsx
+        else: 
+            output_format = None
+            output_path = None
+
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema,
+            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema, output_format = output_format, output_path = output_path
         )
 
         if sheet_url:
@@ -158,13 +170,13 @@ def get_manifest(
             if prefix_ext == ".model":
                 prefix = prefix_root
             output_csv = f"{prefix}.{data_type}.manifest.csv"
+
         elif output_xlsx:
-            export_manifest_excel(output_excel=output_xlsx, manifest=result)
             logger.info(
                 f"Find the manifest template using this Excel file path: {output_xlsx}"
             )
             return result
-        export_manifest_csv(file_name=output_csv, manifest=result)
+        export_manifest_csv(file_path=output_csv, manifest=result)
         logger.info(
                 f"Find the manifest template using this CSV file path: {output_csv}"
             )
@@ -182,10 +194,80 @@ def get_manifest(
             result = create_single_manifest(data_type = component)
     else:
         for dt in data_type:
-            if len(data_type) > 1:
+            if len(data_type) > 1 and not output_xlsx:
                 t = f'{title}.{dt}.manifest'
+            elif output_xlsx: 
+                if ".xlsx" or ".xls" in output_xlsx:
+                    title_with_extension = os.path.basename(output_xlsx)
+                    t = title_with_extension.split('.')[0]
             else:
                 t = title
             result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
 
     return result
+
+@manifest.command(
+    "migrate", short_help=query_dict(manifest_commands, ("manifest", "migrate", "short_help"))
+)
+@click_log.simple_verbosity_option(logger)
+# define the optional arguments
+@click.option(
+    "-ps",
+    "--project_scope",
+    default=None,
+    callback=parse_synIDs,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "project_scope")),
+)
+@click.option(
+    "-ap",
+    "--archive_project",
+    default=None,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "archive_project")),
+)
+@click.option(
+    "-p", "--jsonld", help=query_dict(manifest_commands, ("manifest", "get", "jsonld"))
+)
+@click.option(
+    "-re",
+    "--return_entities",
+    is_flag=True,
+    default=False,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "return_entities")),
+)
+@click.option(
+    "-dr",
+    "--dry_run",
+    is_flag=True,
+    default=False,
+    help=query_dict(manifest_commands, ("manifest", "migrate", "dry_run")),
+)
+@click.pass_obj
+def migrate_manifests(
+    ctx,
+    project_scope: List,
+    archive_project: str,
+    jsonld: str,
+    return_entities: bool,
+    dry_run: bool,
+):
+    """
+    Running CLI with manifest migration options.
+    """
+    jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
+
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    full_scope = project_scope + [archive_project]
+    if access_token:
+        synStore = SynapseStorage(access_token = access_token, project_scope = full_scope)
+    else:
+        synStore = SynapseStorage(project_scope = full_scope)  
+
+    for project in project_scope:
+        if not return_entities:
+            logging.info("Re-uploading manifests as tables")
+            synStore.upload_annotated_project_manifests_to_synapse(project, jsonld, dry_run)
+        if archive_project:
+            logging.info("Migrating entitites")
+            synStore.move_entities_to_new_project(project, archive_project, return_entities, dry_run)
+        
+    return 

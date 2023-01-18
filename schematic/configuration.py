@@ -9,12 +9,16 @@ class Configuration(object):
         # entire configuration data
         self.DATA = None
 
+
     def __getattribute__(self, name):
         value = super().__getattribute__(name)
-        if value is None and "SCHEMATIC_CONFIG" in os.environ:
+        if value is None and "SCHEMATIC_CONFIG_CONTENT" in os.environ:
+            self.load_config_content_from_env()
+            value = super().__getattribute__(name)
+        elif value is None and "SCHEMATIC_CONFIG" in os.environ:
             self.load_config_from_env()
             value = super().__getattribute__(name)
-        elif value is None and "SCHEMATIC_CONFIG" not in os.environ:
+        elif value is None and "SCHEMATIC_CONFIG" not in os.environ and "SCHEMATIC_CONFIG_CONTENT" not in os.environ:
             raise AttributeError(
                 "The '%s' configuration field was accessed, but it hasn't been "
                 "set yet, presumably because the schematic.CONFIG.load_config() "
@@ -34,6 +38,14 @@ class Configuration(object):
             value = default
         return value
 
+    def load_config_content(self, str_yaml: str) -> dict:
+        try: 
+            config_data = yaml.safe_load(str_yaml)
+        except yaml.YAMLError as exc:
+            print(exc)
+            return None
+        return config_data
+
     @staticmethod
     def load_yaml(file_path: str) -> dict:
         with open(file_path, "r") as stream:
@@ -45,9 +57,15 @@ class Configuration(object):
         return config_data
 
     def normalize_path(self, path):
-        # Retrieve parent directory of the config to decode relative paths
-        parent_dir = os.path.dirname(self.CONFIG_PATH)
-        # Ensure absolute file paths
+
+        if self.CONFIG_PATH:
+            # Retrieve parent directory of the config to decode relative paths
+            parent_dir = os.path.dirname(self.CONFIG_PATH)
+        else:
+            # assume the parent dir would be the current work dir
+            parent_dir = os.getcwd()
+
+            # Ensure absolute file paths
         if not os.path.isabs(path):
             path = os.path.join(parent_dir, path)
         # And lastly, normalize file paths
@@ -61,7 +79,19 @@ class Configuration(object):
         )
         return self.load_config(schematic_config)
 
-    def load_config(self, config_path=None, asset_view=None):
+    def load_config_content_from_env(self):
+        schematic_config_content = os.environ["SCHEMATIC_CONFIG_CONTENT"]
+
+        print(
+            'Loading content of config file:  %s' % schematic_config_content
+        )
+
+        config_content_yaml = self.load_config_content(schematic_config_content)
+        self.DATA = config_content_yaml
+
+        return self.DATA
+
+    def load_config(self, config_path=None, asset_view=None): 
         # If config_path is None, try loading from environment
         if config_path is None and "SCHEMATIC_CONFIG" in os.environ:
             return self.load_config_from_env()
@@ -83,17 +113,6 @@ class Configuration(object):
 
         # Return self.DATA as a side-effect
         return self.DATA
-    @property
-    def CREDS_PATH(self):
-        self._CREDS_PATH = self.DATA["definitions"]["creds_path"]
-        self._CREDS_PATH = self.normalize_path(self._CREDS_PATH)
-        return self._CREDS_PATH
-
-    @property
-    def TOKEN_PICKLE(self):
-        self._TOKEN_PICKLE = self.DATA["definitions"]["token_pickle"]
-        self._TOKEN_PICKLE = self.normalize_path(self._TOKEN_PICKLE)
-        return self._TOKEN_PICKLE
 
     @property
     def SERVICE_ACCT_CREDS(self):

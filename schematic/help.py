@@ -41,10 +41,6 @@ manifest_commands = {
                 "This is a boolean flag. If flag is provided when command line utility is executed, it will prepopulate template "
                 "with existing annotations from Synapse."
             ),
-            "oauth": (
-                "This is a boolean flag. If flag is provided when command line utility is executed, OAuth will be used to "
-                "authenticate your Google credentials. If not service account mode of authentication will be used."
-            ),
             "json_schema": (
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
@@ -53,6 +49,28 @@ manifest_commands = {
             "alphabetize_valid_values": (
                 "Specify to alphabetize valid attribute values either ascending (a) or descending (d)." 
                 "Optional"
+            ),
+        },
+        "migrate": {
+            "short_help": (
+                "Specify the path to the `config.yml` using this option. "
+                "This is a required argument."
+            ),
+            "project_scope": (
+                "Specify a comma-separated list of projects where manifest entities will be migrated to tables."
+            ),
+            "archive_project": (
+                "Specify a single project where legacy manifest entities will be stored after migration to table."
+            ),
+            "return_entities": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, "
+                "entities that have been transferred to an archive project will be returned to their original folders."
+            ),
+            "dry_run": (
+                "This is a boolean flag. If flag is provided when command line utility is executed, "
+                "a dry run will be performed. No manifests will be re-uploaded and no entities will be migrated, "
+                "but archival folders will still be created. "
+                "Migration information for testing purposes will be logged to the INFO level."
             ),
         },
     }
@@ -145,14 +163,24 @@ schema_commands = {
 # `schematic init` command description
 init_command = {
     "init": {
-        "short_help": ("Initialize mode of authentication for schematic."),
-        "auth": (
-            "Specify the mode of authentication you want to use for Google accounts. "
-            "You can use one of either 'token' or 'service_account'. The default mode of authentication "
-            "is 'token' which uses OAuth."
-        ),
+        "short_help": ("Initialize authentication for schematic."),
         "config": (
             "Specify the path to the `config.yml` using this option. This is a required argument."
         ),
     }
+}
+
+viz_commands = {
+    "visualization": {
+        "config": (
+            "Specify the path to the `config.yml` using this option. This is a required argument."
+        ),
+        "tangled_tree": {
+            "figure_type": ("Specify the type of schema visualization to make. Either 'dependency' or 'component'."
+                ),
+            "text_format": ("Specify the type of text to gather for tangled tree visualization, either 'plain' or 'highlighted'."
+                ),
+        }
+    }
+    
 }

@@ -1,14 +1,20 @@
+from __future__ import annotations
 import os
 import math
 import logging
 import pytest
+from time import sleep 
+from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
 
 import pandas as pd
-from synapseclient import EntityViewSchema
+from synapseclient import EntityViewSchema, Folder
 
+from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView
-
+from schematic.utils.cli_utils import get_from_config
+from schematic.schemas.generator import SchemaGenerator
+from synapseclient.core.exceptions import SynapseHTTPError
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -42,6 +48,31 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
     table = dataset_fileview.tidy_table()
     yield table
 
+@pytest.fixture
+def version(synapse_store, helpers):
+    
+    yield helpers.get_python_version(helpers)
+
+@pytest.fixture
+def projectId(synapse_store, helpers):
+    projectId = helpers.get_python_project(helpers)
+    yield projectId
+
+@pytest.fixture
+def datasetId(synapse_store, projectId, helpers):
+    dataset = Folder(
+        name = 'Table Test  Dataset ' + helpers.get_python_version(helpers),
+        parent = projectId,
+        )
+
+    datasetId = synapse_store.syn.store(dataset).id
+    sleep(5)
+    yield datasetId
+    synapse_store.syn.delete(datasetId)
+
+
+def raise_final_error(retry_state):
+    return retry_state.outcome.result()
 
 class TestBaseStorage:
     def test_init(self):
@@ -75,6 +106,45 @@ class TestSynapseStorage:
         del actual_dict["entityId"]
 
         assert expected_dict == actual_dict
+
+    def test_annotation_submission(self, synapse_store, helpers, config):
+        manifest_path = "mock_manifests/annotations_test_manifest.csv"
+
+        # Upload dataset annotations
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        sg = SchemaGenerator(inputModelLocaiton)
+
+        try:        
+            for attempt in Retrying(
+                stop = stop_after_attempt(15),
+                wait = wait_random_exponential(multiplier=1,min=10,max=120),
+                retry_error_callback = raise_final_error
+                ):
+                with attempt:         
+                    manifest_id = synapse_store.associateMetadataWithFiles(
+                        schemaGenerator = sg,
+                        metadataManifestPath = helpers.get_data_path(manifest_path),
+                        datasetId = 'syn34295552',
+                        manifest_record_type = 'entity',
+                        useSchemaLabel = True,
+                        hideBlanks = True,
+                        restrict_manifest = False,
+                    )
+        except RetryError:
+            pass
+
+        # Retrive annotations
+        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
+        annotations = synapse_store.getFileAnnotations(entity_id)
+
+        # Check annotations of interest
+        assert annotations['CheckInt'] == '7'
+        assert annotations['CheckList'] == 'valid, list, values'
+        assert 'CheckRecommended' not in annotations.keys()
+
+
+
+
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
@@ -124,7 +194,7 @@ class TestSynapseStorage:
         assert synapse_store.getDatasetProject("syn24992812") == "syn24992754"
         assert synapse_store.getDatasetProject("syn24992754") == "syn24992754"
 
-        with pytest.raises(ValueError):
+        with pytest.raises(PermissionError):
             synapse_store.getDatasetProject("syn12345678")
 
 
@@ -196,3 +266,105 @@ class TestDatasetFileView:
         year_value = table.loc[sample_a_row, "YearofBirth"][0]
         assert isinstance(year_value, str)
         assert year_value == "1980"
+
+@pytest.mark.table_operations
+class TestTableOperations:
+
+    def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
+
+
+        # Check if FollowUp table exists if so delete
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+
+        table_name='followup_synapse_storage_manifest_table'
+        
+        if table_name in existing_tables.keys():
+            synapse_store.syn.delete(existing_tables[table_name])
+            sleep(10)
+            # assert no table
+            assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
+
+        # associate metadata with files
+        manifest_path = "mock_manifests/table_manifest.csv"
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        sg = SchemaGenerator(inputModelLocaiton)
+
+        # updating file view on synapse takes a long time
+        manifestId = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = 'table',
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+        )
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+        
+        # clean Up
+        synapse_store.syn.delete(manifestId)
+        # assert table exists
+        assert table_name in existing_tables.keys()
+
+    def test_replaceTable(self, helpers, synapse_store, config, projectId, datasetId):
+        table_name='followup_synapse_storage_manifest_table'
+        manifest_path = "mock_manifests/table_manifest.csv"
+        replacement_manifest_path = "mock_manifests/table_manifest_replacement.csv"
+        column_of_interest="DaystoFollowUp"   
+        
+        # Check if FollowUp table exists if so delete
+        existing_tables = synapse_store.get_table_info(projectId = projectId)        
+        
+        if table_name in existing_tables.keys():
+            synapse_store.syn.delete(existing_tables[table_name])
+            sleep(10)
+            # assert no table
+            assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
+
+        # associate org FollowUp metadata with files
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        sg = SchemaGenerator(inputModelLocaiton)
+
+            # updating file view on synapse takes a long time
+        manifestId = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = 'table',
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+        )
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+
+        # Query table for DaystoFollowUp column        
+        tableId = existing_tables[table_name]
+        daysToFollowUp = synapse_store.syn.tableQuery(
+            f"SELECT {column_of_interest} FROM {tableId}"
+        ).asDataFrame().squeeze()
+
+        # assert Days to FollowUp == 73
+        assert (daysToFollowUp == '73.0').all()
+        
+        # Associate replacement manifest with files
+        manifestId = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = 'table',
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+        )
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+        
+        # Query table for DaystoFollowUp column        
+        tableId = existing_tables[table_name]
+        daysToFollowUp = synapse_store.syn.tableQuery(
+            f"SELECT {column_of_interest} FROM {tableId}"
+        ).asDataFrame().squeeze()
+
+        # assert Days to FollowUp == 89 now and not 73
+        assert (daysToFollowUp == '89').all()
+        # delete table        
+        synapse_store.syn.delete(tableId)

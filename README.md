@@ -59,7 +59,8 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 ```
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
-2. Follow the [instructions](https://python-poetry.org/docs/) here to install `poetry`
+2. Install `poetry` (version 1.2 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
+
 3. Start the virtual environment by doing: 
 ```
 poetry shell
@@ -68,12 +69,12 @@ poetry shell
 ```
 poetry install
 ```
-This command will install the dependencies based on what we specify in poetry.lock
+This command will install the dependencies based on what we specify in poetry.lock. If this step is taking a long time, try to go back to step 2 and check your version of poetry. Alternatively, you could also try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
 
 5. Fill in credential files: 
 *Note*: If you won't interact with Synapse, please ignore this section.
 
-There are two main configuration files that need to be edited :
+There are two main configuration files that need to be edited:
 [config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml)
 and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig)
 
@@ -87,58 +88,60 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 
 <strong>Configure config.yml File</strong>
 
+*Note*: Below is only a brief explanation of some attributes in `config.yml`. <strong>Please use the link [here](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml) to get the latest version of `config.yml` in `develop` branch</strong>.
+
 Description of `config.yml` attributes
 
     definitions:
         synapse_config: "~/path/to/.synapseConfig"
-        creds_path: "~/path/to/credentials.json"
-        token_pickle: "~/path/to/token.pickle"
         service_acct_creds: "~/path/to/service_account_creds.json"
 
     synapse:
         master_fileview: "syn23643253" # fileview of project with datasets on Synapse
         manifest_folder: "~/path/to/manifest_folder/" # manifests will be downloaded to this folder
         manifest_basename: "filename" # base name of the manifest file in the project dataset, without extension
-        token_creds: "syn23643259" # synapse ID of credentials.json file
         service_acct_creds: "syn25171627" # synapse ID of service_account_creds.json file
 
     manifest:
-        title: "Patient Manifest " # title of metadata manifest file
-        data_type: "Patient" # component or data type from the data model
+        title: "example" # title of metadata manifest file
+        # to make all manifests enter only 'all manifests'
+        data_type: 
+          - "Biospecimen"
+          - "Patient"
 
     model:
         input:
             location: "data/schema_org_schemas/example.jsonld" # path to JSON-LD data model
             file_type: "local" # only type "local" is supported currently
-            validation_schema: "~/path/to/validation_schema.json" # path to custom JSON Validation Schema JSON file
-            log_location: "~/path/to/log_folder/validation_schema.json" # auto-generated JSON Validation Schemas can be logged
-        
+    style: # configuration of google sheet
+        google_manifest:
+          req_bg_color:
+            red: 0.9215
+            green: 0.9725
+            blue: 0.9803
+          opt_bg_color:
+            red: 1.0
+            green: 1.0
+            blue: 0.9019
+          master_template_id: '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU'
+          strict_validation: true
 
 *Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
-6. Obtain Google credential Files
+6. Login to Synapse by using the command line
+On the CLI in your virtual environment, run the following command: 
+```
+synapse login -u <synapse username> -p <synapse password> --rememberMe
+```
+Please make sure that you run the command before running `schematic init` below
 
-To obtain ``credentials.json`` and ``token.pickle``, please run:
-
+7. Obtain Google credential Files
+To obtain  ``schematic_service_account_creds.json``, please run: 
 ```
 schematic init --config ~/path/to/config.yml
 ```
-This should prompt you with a URL that will take you through Google OAuth. Your `credentials.json` and `token.pickle` will get automatically downloaded the first time you run this command.
+> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
 
-*Note* : The ``credentials.json`` file is required when you are using
-[OAuth2](https://developers.google.com/identity/protocols/oauth2)
-to authenticate with the Google APIs.
-
-For details about the steps involved in the [OAuth2 authorization
-flow](https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18)
-refer to the ``Credentials`` section in the
-[docs/md/details](https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/md/details.md#credentials)
-document.
-
-To obtain  ``schematic_service_account_creds.json``, please run: 
-```
-schematic init --config ~/path/to/config.yml --auth service_account
-```
 *Notes*: Use the ``schematic_service_account_creds.json`` file for the service
 account mode of authentication (*for Google services/APIs*). Service accounts 
 are special Google accounts that can be used by applications to access Google APIs 
@@ -149,7 +152,6 @@ human authorization.
 Most Google sheet functionality could be authenticated with service account. However, more complex Google sheet functionality
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
-
 
 
 ### Development process instruction
@@ -177,6 +179,75 @@ For new features, bugs, enhancements
 14. Delete the develop-<feature/fix-name> branch
 
 *Note*: Make sure you have the latest version of the `develop` branch on your local machine.
+
+## Installation Guide - Docker 
+
+1. Install docker from https://www.docker.com/ . <br>
+2.  Identify docker image of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
+    Ex `docker pull sagebionetworks/schematic:latest` from the CLI or, run `docker compose up` after cloning the schematic github repo <br>
+    in this case, `sagebionetworks/schematic:latest` is the name of the image chosen
+3. Run Schematic Command with `docker run <flags> <schematic command and args>`. <br>
+<t> - For more information on flags for `docker run` and what they do, visit the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) <br>
+<t> - These example commands assume that you have navigated to the directory you want to run schematic from. To specify your working directory, use `$(pwd)` on MacOS/Linux or `%cd%` on Windows.  <br>
+<t> - If not using the latest image, then the full name should be specified: ie `sagebionetworks/schematic:commit-e611e4a` <br>
+<t> - If using local image created by `docker compose up`, then the docker image name should be changed: i.e. `schematic_schematic` <br>
+<t> - Using the `--name` flag sets the name of the container running locally on your machine <br>
+
+### Example For REST API <br>
+
+#### Use file path of `config.yml` to run API endpoints: 
+```
+docker run --rm -p 3001:3001 \
+  -v $(pwd):/schematic -w /schematic --name schematic \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic \
+  python /usr/src/app/run_api.py
+``` 
+
+#### Use content of `config.yml` and `schematic_service_account_creds.json`as an environment variable to run API endpoints: 
+1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat /path/to/config.yml)`
+
+2. Similarly, save the content of `schematic_service_account_creds.json` as `SERVICE_ACCOUNT_CREDS` by doing: `export SERVICE_ACCOUNT_CREDS=$(cat /path/to/schematic_service_account_creds.json)`
+
+3. Pass `SCHEMATIC_CONFIG_CONTENT` and `schematic_service_account_creds` as environment variables by using `docker run`
+
+```
+docker run --rm -p 3001:3001 \
+  -v $(pwd):/schematic -w /schematic --name schematic \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  -e SCHEMATIC_CONFIG_CONTENT=$SCHEMATIC_CONFIG_CONTENT \
+  -e SERVICE_ACCOUNT_CREDS=$SERVICE_ACCOUNT_CREDS \
+  sagebionetworks/schematic \
+  python /usr/src/app/run_api.py
+``` 
+
+
+### Example For Schematic on mac/linux <br>
+To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic` <br>
+Then update .synapseConfig with your credentials
+```
+docker run \
+  -v ~/schematic:/schematic \
+  -w /schematic \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic schematic model \
+  -c /schematic/config.yml validate \
+  -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
+  -dt MockComponent \
+  -js /schematic/tests/data/example.model.jsonld
+``` 
+
+### Example For Schematic on Windows <br>
+```
+docker run -v %cd%:/schematic \
+  -w /schematic \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic \
+  schematic model \
+  -c config.yml validate -mp tests/data/mock_manifests/inValid_Test_Manifest.csv -dt MockComponent -js /schematic/data/example.model.jsonld
+```
 
 # Other Contribution Guidelines
 ## Updating readthedocs documentation

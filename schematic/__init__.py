@@ -6,7 +6,7 @@ import click_log
 
 from schematic.configuration import CONFIG
 from schematic.loader import LOADER
-from schematic.utils.google_api_utils import download_creds_file, generate_token
+from schematic.utils.google_api_utils import download_creds_file
 from schematic.utils.cli_utils import query_dict
 from schematic.help import init_command
 
@@ -28,17 +28,10 @@ click_log.basic_config(logger)
 @click.command("init", short_help=query_dict(init_command, ("init", "short_help")))
 @click_log.simple_verbosity_option(logger)
 @click.option(
-    "-a",
-    "--auth",
-    default="token",
-    type=click.Choice(["token", "service_account"], case_sensitive=False),
-    help=query_dict(init_command, ("init", "auth")),
-)
-@click.option(
     "-c", "--config", required=True, help=query_dict(init_command, ("init", "config"))
 )
-def init(auth, config):
-    """Initialize mode of authentication for schematic."""
+def init(config):
+    """Initialize authentication for schematic."""
     try:
         logger.debug(f"Loading config file contents in '{config}'")
         obj = CONFIG.load_config(config)
@@ -48,9 +41,4 @@ def init(auth, config):
         sys.exit(1)
 
     # download crdentials file based on selected mode of authentication
-    download_creds_file(auth)
-
-    # if authentication method is token-based
-    # then create 'token.pickle' file from 'credentials.json' file
-    if auth == "token":
-        generate_token()
+    download_creds_file()

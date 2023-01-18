@@ -48,13 +48,6 @@ paths:
             - Biospecimen
           required: true
         - in: query
-          name: oauth
-          schema:
-            type: boolean
-            default: true
-          description: OAuth or Service Account
-          required: false
-        - in: query
           name: use_annotations
           schema:
             type: boolean
@@ -79,11 +72,22 @@ paths:
             nullable: true
           description: ID of view listing all project data assets. E.g. for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           required: false
+        - in: query
+          name: output_format
+          schema:
+            type: string
+            enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]
+          description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
+          required: false
       operationId: api.routes.get_manifest_route
       responses:
-        "201":
-          description: Googlesheet link created
+        "200":
+          description: Googlesheet link created OR an excel file gets returned OR pandas dataframe gets returned
           content:
+            application/vnd.ms-excel:
+              schema:
+                type: string
+                format: binary
             application/json:
               schema:
                 type: string
@@ -152,9 +156,10 @@ paths:
             schema:
               type: object
               properties:
-                # csv_file will be the field name in
+                # file_name will be the field name in
                 # this multipart request
-                csv_file:
+                file_name:
+                  description: Upload a json or a csv file. 
                   type: string
                   format: binary
       parameters:
@@ -174,6 +179,23 @@ paths:
           description: Data Model Component
           example: Patient
           required: true
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
+          example: '[{
+          "Patient ID": 123,
+          "Sex": "Female",
+          "Year of Birth": "",
+          "Diagnosis": "Healthy",
+          "Component": "Patient",
+          "Cancer Type": "Breast",
+          "Family History": "Breast, Lung",
+          }]'
+
       operationId: api.routes.validate_manifest_route
       responses:
         "200":
@@ -203,7 +225,8 @@ paths:
             schema:
               type: object
               properties:
-                csv_file:
+                file_name:
+                  description: Upload a json or a csv file. 
                   type: string
                   format: binary
       parameters:
@@ -251,6 +274,30 @@ paths:
             nullable: false
           description: Token
           required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn28559058
+          required: true
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
+          example: '[{
+          "Patient ID": 123,
+          "Sex": "Female",
+          "Year of Birth": "",
+          "Diagnosis": "Healthy",
+          "Component": "Patient",
+          "Cancer Type": "Breast",
+          "Family History": "Breast, Lung",
+          }]'
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
@@ -338,6 +385,13 @@ paths:
           description: Title of Manifest
           example: Example
           required: false
+        - in: query
+          name: return_excel
+          schema:
+            type: boolean
+            nullable: true
+          description: If true, this would return an Excel spreadsheet.(This approach would avoid sending metadata to Google sheet APIs)
+          required: false
       operationId: api.routes.populate_manifest_route
       responses:
         "200":
@@ -352,8 +406,8 @@ paths:
         - Manifest Operations
   /get/datatype/manifest:
     get:
-      summary: Retrieve asset view table as a dataframe.
-      description: Retrieve asset view table as a dataframe.
+      summary:  Get datatype of attributes in manifest
+      description: Get datatype of attributes in manifest
       operationId: api.routes.get_manifest_datatype
       parameters:
         - in: query
@@ -528,9 +582,17 @@ paths:
           description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
           example: syn23643253
           required: true
+        - in: query
+          name: return_type
+          schema:
+            type: string
+            enum: ["json", "csv"]
+          description: Type of return
+          example: 'json'
+          required: true
       responses:
         "200":
-          description: A list of json
+          description: csv file path or json
         "500":
           description: Check schematic log. 
       tags:
@@ -583,3 +645,346 @@ paths:
           description: Check schematic log. 
       tags:
         - Synapse Storage
+  /schemas/get/schema:
+    get:
+      summary: Return schema as a pickle file
+      description: Return schema as a pickle file
+      operationId: api.routes.get_schema_pickle
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+      responses:
+        "200":
+          description: A pickle file gets downloaded and local file path of the pickle file gets returned.
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+
+  /explorer/find_class_specific_properties:
+    get:
+      summary: Find properties specifically associated with a given class
+      description: Find properties specifically associated with a given class
+      operationId: api.routes.find_class_specific_properties
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: schema_class
+          schema:
+            type: string
+            nullable: false
+          description: schema class
+          example: MolecularEntity
+          required: true
+      responses:
+        "200":
+          description: A list of properties of a given class. 
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+  /schemas/get/graph_by_edge_type:
+    get:
+      summary: Get a subgraph containing all edges of a given type (aka relationship)
+      description: Get a subgraph containing all edges of a given type (aka relationship)
+      operationId: api.routes.get_subgraph_by_edge_type
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: relationship
+          schema:
+            type: string
+            nullable: false
+          description: Relationship (i.e. parentOf, requiresDependency, rangeValue, domainValue)
+          example: requiresDependency
+          required: true        
+      responses:
+        "200":
+          description: A list of tuples.
+          content:
+            application/json:
+              schema:
+                type: array
+                example: [
+                        [
+                            [Patient, PatientID],
+                            [Patient,Sex],
+                            [Patient, YearofBirth]
+                        ]
+                    ]
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+  /schemas/is_node_required:
+    get:
+      summary: Check if a node is required or not
+      description: Check if a node is required or not
+      operationId: api.routes.get_if_node_required
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_display_name
+          schema:
+            type: string
+            nullable: false
+          description: Display label of a node
+          example: FamilyHistory
+          required: true
+      responses:
+        "200":
+          description: return a boolean 
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+
+
+
+
+  /explorer/get_node_dependencies:
+    get:
+      summary: Get the immediate dependencies that are related to a given source node
+      description: Get the immediate dependencies that are related to a given source node
+      operationId: api.routes.get_node_dependencies
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: source_node
+          schema:
+            type: string
+            nullable: false
+          description: The node whose dependencies are needed
+          example: Patient
+          required: true
+        - in: query
+          name: return_display_names
+          schema:
+            type: boolean
+            nullable: true
+          description: Return display names or not
+          required: false
+          example: true
+        - in: query
+          name: return_schema_ordered
+          schema:
+            type: boolean
+            nullable: true
+          description: Return schema ordered or not
+          required: false
+          example: true
+      responses:
+        "200":
+          description: List of nodes that are dependent on the source node.
+        "500":
+          description: Check schematic log.
+      tags:
+        - Schema Operation
+        
+  /explorer/get_property_label_from_display_name:
+    get:
+      summary: Converts a given display name string into a proper property label string
+      description: Converts a given display name string into a proper property label string
+      operationId: api.routes.get_property_label_from_display_name
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: display_name
+          schema:
+            type: string
+            nullable: false
+          description: The display name to be converted
+          example: MolecularEntity
+          required: true
+        - in: query
+          name: strict_camel_case
+          schema:
+            type: boolean
+            nullable: false
+          description: If true the more strict way of
+            converting to camel case is used.
+      responses:
+        "200":
+          description: The property label of the display name.
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+      
+  /explorer/get_node_range:
+    get:
+      summary: Get all the valid values that are associated with a node label.
+      description: Get all the valid values that are associated with a node label.
+      operationId: api.routes.get_node_range
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_label
+          schema:
+            type: string
+            nullable: false
+          description: Node / term for which you need to retrieve the range.
+          example: FamilyHistory
+          required: true
+        - in: query
+          name: return_display_names
+          schema:
+            type: boolean
+          description: If true returns the display names of the nodes.
+          required: false
+      responses:
+        "200":
+          description: A list of nodes.
+        "500":
+          description: Check schematic log.
+      tags:
+        - Schema Operation
+  /visualize/tangled_tree/layers:
+    get:
+      summary: Get layers of tangled tree.
+      description: >-
+        Get tangled tree node layers to display for a given data model and figure type
+      operationId: api.routes.get_viz_tangled_tree_layers
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: figure_type
+          schema:
+            type: string
+            enum: ["component", "dependency"]
+          description: Figure type to generate.
+          example: 'component'
+          required: true
+      responses:
+        "200":
+          description: Returns a dataframe as a JSON String.
+          content:
+            text/json:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
+  /visualize/tangled_tree/text:
+    get:
+      summary: Get text to display on tangled tree.
+      description: >-
+        Get tangled tree plain or higlighted text to display for a given data model, text formatting and figure type
+      operationId: api.routes.get_viz_tangled_tree_text
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: figure_type
+          schema:
+            type: string
+            enum: ["component", "dependency"]
+          description: Figure type to generate.
+          example: 'component'
+          required: true
+        - in: query
+          name: text_format
+          schema:
+            type: string
+            enum: ["plain", "highlighted"]
+          description: Text formatting type.
+          example: 'plain'
+          required: true
+      responses:
+        "200":
+          description: Returns a dataframe as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
+  /visualize/attributes:
+    get:
+      summary: Get an attributes table for a data model, as a CSV (JSON String)
+      description: >-
+        Get all the attributes associated with a data model formatted as a
+        dataframe (stored as a JSON String) for use in Observable visualization.
+      operationId: api.routes.get_viz_attributes_explorer
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+      responses:
+        "200":
+          description: Returns a CSV as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations

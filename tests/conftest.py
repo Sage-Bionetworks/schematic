@@ -1,6 +1,9 @@
+from multiprocessing.sharedctypes import Value
 import os
 import logging
+import sys
 
+import shutil
 import pytest
 import pandas as pd
 from dotenv import load_dotenv, find_dotenv
@@ -27,8 +30,7 @@ DATA_DIR = os.path.join(TESTS_DIR, "data")
 CONFIG_PATH = os.path.join(DATA_DIR, "test_config.yml")
 CONFIG.load_config(CONFIG_PATH)
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def dataset_id():
     yield "syn25614635"
 
@@ -62,17 +64,35 @@ class Helpers:
         se.load_schema(fullpath)
         return se
 
+    @staticmethod
+    def get_python_version(self):
+        version=sys.version
+        base_version=".".join(version.split('.')[0:2])
 
-@pytest.fixture
+        return base_version
+
+    @staticmethod
+    def get_python_project(self):
+
+        version = self.get_python_version(Helpers)
+
+        python_projects = {
+            "3.7":  "syn47217926",
+            "3.8":  "syn47217967",
+            "3.9":  "syn47218127",
+            "3.10": "syn47218347",
+        }
+
+        return python_projects[version]
+
+@pytest.fixture(scope="session")
 def helpers():
     yield Helpers
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def config():
     yield CONFIG
 
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def config_path():
     yield CONFIG_PATH

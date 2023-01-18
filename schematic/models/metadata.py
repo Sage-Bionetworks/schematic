@@ -213,7 +213,7 @@ class MetadataModel(object):
         warnings = []
 
         load_args={
-            "dtype":"string"
+            "dtype":"string",
             }
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
@@ -254,7 +254,7 @@ class MetadataModel(object):
         errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope)
         return errors, warnings
 
-    def populateModelManifest(self, title, manifestPath: str, rootNode: str) -> str:
+    def populateModelManifest(self, title, manifestPath: str, rootNode: str, return_excel = False) -> str:
         """Populate an existing annotations manifest based on a dataframe.
             TODO: Remove this method; always use getModelManifest instead
 
@@ -274,7 +274,7 @@ class MetadataModel(object):
 
         emptyManifestURL = mg.get_manifest()
 
-        return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL)
+        return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL, return_excel = return_excel, title=title)
 
     def submit_metadata_manifest(
         self,
@@ -305,7 +305,7 @@ class MetadataModel(object):
         #TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-        syn_store = SynapseStorage(input_token=input_token)
+        syn_store = SynapseStorage(input_token = input_token, project_scope = project_scope)
         manifest_id=None
         censored_manifest_id=None
         restrict_maniest=False
@@ -321,8 +321,8 @@ class MetadataModel(object):
                 # here, we are suppressing the KeyError exception and replacing it with a more
                 # descriptive ValueError exception
                 raise ValueError(
-                    "The component {} could not be found "
-                    "in the schema.".format(validate_component)
+                    f"The component '{validate_component}' could not be found "
+                    f"in the schema here '{path_to_json_ld}'"
                 )
 
             # automatic JSON schema generation and validation with that JSON schema

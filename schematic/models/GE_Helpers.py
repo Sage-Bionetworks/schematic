@@ -23,6 +23,8 @@ from great_expectations.data_context.types.base import DataContextConfig, Dataso
 from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
 
 from schematic.models.validate_attribute import GenerateError
+from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.validate_utils import rule_in_rule_list
 
 logger = logging.getLogger(__name__)
 
@@ -131,9 +133,9 @@ class GreatExpectationsHelpers(object):
             "inRange": "expect_column_values_to_be_between",
             
             # To be implemented rules with possible expectations
+            #"list": "expect_column_values_to_not_match_regex_list",
             #"regex": "expect_column_values_to_match_regex",
             #"url": "expect_column_values_to_be_valid_urls",
-            #"list": "expect_column_values_to_follow_rule",
             #"matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
             #"matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
         }
@@ -143,8 +145,7 @@ class GreatExpectationsHelpers(object):
         self.suite = self.context.create_expectation_suite(
             expectation_suite_name=expectation_suite_name,
             overwrite_existing=True
-        )
-        #print(f'Created ExpectationSuite "{suite.expectation_suite_name}".')        
+        )    
 
         #build expectation configurations for each expecation
         for col in self.manifest.columns:
@@ -153,126 +154,127 @@ class GreatExpectationsHelpers(object):
             
             # remove trailing/leading whitespaces from manifest
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            rule = self.sg.get_node_validation_rules(col)
-            #check if attribute has a rule associated with it
-            if rule:
-                rule = rule[0]
-            else:
-                continue
+            validation_rules = self.sg.get_node_validation_rules(col)
+
+            #check if attribute has any rules associated with it
+            if validation_rules:
+                #iterate through all validation rules for an attribute
+                for rule in validation_rules:
+                    base_rule = rule.split(" ")[0]
             
-            #check if rule has an implemented expectation
-            if re.match(self.unimplemented_expectations,rule):
-                continue
+                    #check if rule has an implemented expectation
+                    if rule_in_rule_list(rule,self.unimplemented_expectations):
+                        continue
 
+                
+                    args["column"] = col
+                    args["result_format"] = "COMPLETE"
+
+
+                    #Validate num
+                    if base_rule=='num':
+                        args["mostly"]=1.0
+                        args["type_list"]=['int','int64', 'float', 'float64']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
+                            },
+                            "validation_rule": rule
+                        }
+                
+                    #Validate float
+                    elif base_rule=='float':
+                        args["mostly"]=1.0
+                        args["type_list"]=['float', 'float64']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be of float type. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                
+                    #Validate int
+                    elif base_rule=='int':
+                        args["mostly"]=1.0
+                        args["type_list"]=['int','int64']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be of int type. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                
+                    #Validate string
+                    elif base_rule=='str':
+                        args["mostly"]=1.0
+                        args["type_"]='str'
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be of string type. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                    elif base_rule==("recommended"):
+                        args["mostly"]=0.0000000001
+                        args["regex_list"]=['^$']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column to not be empty. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+
+                    elif base_rule==("protectAges"):
+                        #Function to convert to different age limit formats
+                        min_age, max_age = self.get_age_limits()
+
+                        args["mostly"]=1.0
+                        args["min_value"]=min_age
+                        args["max_value"]=max_age
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+
+                    elif base_rule==("unique"):
+                        args["mostly"]=1.0
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                    
+                    elif base_rule==("inRange"):
+                        args["mostly"]=1.0
+                        args["min_value"]=float(rule.split(" ")[1])
+                        args["max_value"]=float(rule.split(" ")[2])
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                                        
+                    #add expectation for attribute to suite        
+                    self.add_expectation(
+                        rule=rule,
+                        args=args,
+                        meta=meta,
+                        validation_expectation=validation_expectation,
+                    )
+        
             
-            args["column"] = col
-            args["result_format"] = "COMPLETE"
-           
-            #Validate num
-            if rule=='num':
-                args["mostly"]=1.0
-                args["type_list"]=['int','int64', 'float', 'float64']
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
-                    },
-                    "validation_rule": rule
-                }
-           
-            #Validate float
-            elif rule=='float':
-                args["mostly"]=1.0
-                args["type_list"]=['float', 'float64']
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be of float type. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-           
-            #Validate int
-            elif rule=='int':
-                args["mostly"]=1.0
-                args["type_list"]=['int','int64']
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be of int type. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-           
-            #Validate string
-            elif rule=='str':
-                args["mostly"]=1.0
-                args["type_"]='str'
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be of string type. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-
-            elif rule.startswith("recommended"):
-                args["mostly"]=0.0000000001
-                args["regex_list"]=['^$']
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column to not be empty. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-
-            elif rule.startswith("protectAges"):
-                #Function to convert to different age limit formats
-                min_age, max_age = self.get_age_limits()
-
-                args["mostly"]=1.0
-                args["min_value"]=min_age
-                args["max_value"]=max_age
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-
-            elif rule.startswith("unique"):
-                args["mostly"]=1.0
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be Unique. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-            
-            elif rule.startswith("inRange"):
-                args["mostly"]=1.0
-                args["min_value"]=float(rule.split(" ")[1])
-                args["max_value"]=float(rule.split(" ")[2])
-                meta={
-                    "notes": {
-                        "format": "markdown",
-                        "content": "Expect column values to be Unique. **Markdown** `Supported`",
-                    },
-                    "validation_rule": rule
-                }
-                                   
-            #add expectation for attribute to suite        
-            self.add_expectation(
-                rule=rule,
-                args=args,
-                meta=meta,
-                validation_expectation=validation_expectation,
-            )
-    
-        #print(self.context.get_expectation_suite(expectation_suite_name=expectation_suite_name))
         self.context.save_expectation_suite(expectation_suite=self.suite, expectation_suite_name=expectation_suite_name)
 
         suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=expectation_suite_name)
@@ -349,7 +351,8 @@ class GreatExpectationsHelpers(object):
         validation_results: Dict,
         validation_types: Dict,
         errors: List,
-        warnings: List
+        warnings: List,
+        sg: SchemaGenerator,
         ):
         """
             Purpose:
@@ -382,11 +385,6 @@ class GreatExpectationsHelpers(object):
             
             indices = []
             values = []
-
-            #print(result_dict)
-            #print(result_dict['expectation_config']['expectation_type'])
-            pass
-
             
             #if the expectaion failed, get infromation to generate error message
             if not result_dict['success']:
@@ -409,48 +407,52 @@ class GreatExpectationsHelpers(object):
                         values.append(item) if isinstance(item,type_dict[observed_type]) else values
 
                 #call functions to generate error messages and add to error list
-                if validation_types[rule.split(" ")[0]]=='type_validation':
+                if validation_types[rule.split(" ")[0]]['type']=='type_validation':
                     for row, value in zip(indices,values):
-                        errors.append(
-                            GenerateError.generate_type_error(
+                        vr_errors, vr_warnings = GenerateError.generate_type_error(
                                 val_rule = rule,
                                 row_num = row+2,
                                 attribute_name = errColumn,
                                 invalid_entry = value,
+                                sg = sg,
                             )
-                        )                                      
-                elif validation_types[rule.split(" ")[0]]=='regex_validation':
+                        if vr_errors:
+                            errors.append(vr_errors)  
+                        if vr_warnings:
+                            warnings.append(vr_warnings) 
+                elif validation_types[rule.split(" ")[0]]['type']=='regex_validation':
                     expression=result_dict['expectation_config']['kwargs']['regex']
-
                     for row, value in zip(indices,values):   
-                        errors.append(
-                            GenerateError.generate_regex_error(
+                        vr_errors, vr_warnings = GenerateError.generate_regex_error(
                                 val_rule= rule,
                                 reg_expression = expression,
                                 row_num = row+2,
                                 module_to_call = 'match',
                                 attribute_name = errColumn,
                                 invalid_entry = value,
+                                sg = sg,
                             )
-                        )    
-                elif validation_types[rule.split(" ")[0]]=='content_validation':
-                    
-                    content_errors, content_warnings = GenerateError.generate_content_error(
+                        if vr_errors:
+                            errors.append(vr_errors)  
+                        if vr_warnings:
+                            warnings.append(vr_warnings)                          
+                elif validation_types[rule.split(" ")[0]]['type']=='content_validation':     
+                    vr_errors, vr_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,
                                                             row_num = list(np.array(indices)+2),
                                                             error_val = values,  
                                                             sg = self.sg
                                                         )       
-                    if content_errors:
-                        errors.append(content_errors)  
+                    if vr_errors:
+                        errors.append(vr_errors)  
                         if rule.startswith('protectAges'):
-                            self.censor_ages(content_errors,errColumn)
+                            self.censor_ages(vr_errors,errColumn)
                             pass
-                    elif content_warnings:
-                        warnings.append(content_warnings)  
+                    if vr_warnings:
+                        warnings.append(vr_warnings)  
                         if rule.startswith('protectAges'):
-                            self.censor_ages(content_warnings,errColumn)
+                            self.censor_ages(vr_warnings,errColumn)
                             pass
 
         return errors, warnings
