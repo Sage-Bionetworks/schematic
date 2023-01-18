@@ -6,7 +6,7 @@ import logging
 import sys
 import re
 
-from schematic.schemas.df_parser import _convert_csv_to_data_model
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.utils.cli_utils import query_dict
 from schematic.help import schema_commands
 
@@ -32,7 +32,7 @@ def schema():  # use as `schematic model ...`
 )
 @click_log.simple_verbosity_option(logger)
 @click.argument(
-    "schema_csv", type=click.Path(exists=True), metavar="<DATA_MODEL_CSV>", nargs=1
+    "schema", type=click.Path(exists=True), metavar="<DATA_MODEL_CSV>", nargs=1
 )
 @click.option(
     "--base_schema",
@@ -47,11 +47,18 @@ def schema():  # use as `schematic model ...`
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
-def convert(schema_csv, base_schema, output_jsonld):
+def convert(schema, base_schema, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
     """
+    # Instantiate Parser
+    data_model_parser = DataModelParser(schema)
+
+    #Parse Model
+    parse_data_model = data_model_parser.parse_model()
+
+    '''
     # convert RFC to Data Model
     base_se = _convert_csv_to_data_model(schema_csv, base_schema)
 
@@ -72,4 +79,4 @@ def convert(schema_csv, base_schema, output_jsonld):
         click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
     except:
         click.echo(f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again")
-
+    '''
