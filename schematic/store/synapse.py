@@ -543,7 +543,7 @@ class SynapseStorage(BaseStorage):
                     manifest_name = entity["properties"]["name"]
 
                 # otherwise download the manifest and parse for information
-                elif 'Component' not in annotations or not annotations:
+                elif not annotations or 'Component' not in annotations:
                     logging.debug(
                         f"No component annotations have been found for manifest {manifestId}. "
                         "The manifest will be downloaded and parsed instead. "
