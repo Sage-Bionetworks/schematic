@@ -571,9 +571,10 @@ class SynapseStorage(BaseStorage):
                             logging.warning(
                             f"Manifest {manifestId} is composed of multiple components. Schematic does not support mulit-component manifests at this time."
                             "Behavior of manifests with multiple components is undefined"
-                            )              
-
-            #save manifest list with applicable informaiton
+                            )
+            else:
+                manifest_name = ""
+                component = None              
             if component:
                 manifest = (
                     (datasetId, datasetName),
@@ -593,6 +594,8 @@ class SynapseStorage(BaseStorage):
                     ("", ""),
                     ("", ""),
                 )
+
+            print('manifest', manifest)
 
             if manifest:
                 manifests.append(manifest)
