@@ -645,6 +645,44 @@ paths:
           description: Check schematic log. 
       tags:
         - Synapse Storage
+  /storage/entity/type:
+    get:
+      summary: Check type of an entity
+      description: Check type of an entity and return entity type
+      operationId: api.routes.check_entity_type
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: entity_id
+          schema:
+            type: string
+            nullable: false
+          description: ID of an entity. It could be a file, a folder, a project, or an asset view
+          example: syn30988314
+          required: true
+      responses:
+        "200":
+          description: return type of a schematic entity
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
+
   /storage/if_in_asset_view:
     get:
       summary: Check if a file or a folder is in a given asset view. Return "true" or "false"
@@ -668,7 +706,7 @@ paths:
           example: syn23643253
           required: true
         - in: query
-          name: id
+          name: entity_id
           schema:
             type: string
             nullable: false

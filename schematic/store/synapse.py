@@ -96,6 +96,25 @@ class SynapseStorage(BaseStorage):
 
         self._query_fileview()
 
+    def checkEntityType(self, syn_id): 
+        """
+        Check the entity type of a synapse entity
+        return: type of synapse entity 
+        """
+        entity = self.syn.get(syn_id)
+        type_entity = str(type(entity))
+
+        if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":
+            return "asset view"
+        elif type_entity == "<class 'synapseclient.entity.Folder'>":
+            return "folder"
+        elif type_entity == "<class 'synapseclient.entity.File'>":
+            return "file"
+        elif type_entity == "<class 'synapseclient.entity.Project'>":
+            return "project"
+        else: 
+            return type_entity
+
     def _query_fileview(self):
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
