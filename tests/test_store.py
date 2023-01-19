@@ -377,10 +377,10 @@ class TestTableOperations:
     def test_upsertTable(self, helpers, synapse_store, config, projectId, datasetId):
         table_manipulation = 'upsert'
 
-        table_name='followup_synapse_storage_manifest_table'
-        manifest_path = "mock_manifests/table_manifest.csv"
-        replacement_manifest_path = "mock_manifests/table_manifest_upsert.csv"
-        column_of_interest="DaystoFollowUp"   
+        table_name='patient_synapse_storage_manifest_table'
+        manifest_path = "mock_manifests/rdb_table_manifest.csv"
+        replacement_manifest_path = "mock_manifests/rdb_table_manifest_upsert.csv"
+        column_of_interest="PatientID"   
         
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)        
@@ -411,22 +411,24 @@ class TestTableOperations:
         #set primary key annotation for uploaded table
         tableId = existing_tables[table_name]
         annos = synapse_store.syn.get_annotations(tableId)
-        annos['primary_key'] = 'FollowUp_id'
+        annos['primary_key'] = 'PatientID'
         annos=synapse_store.syn.set_annotations(annos)
+        sleep(5)
 
         # Query table for DaystoFollowUp column        
-        daysToFollowUp = synapse_store.syn.tableQuery(
+        patientIDs = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
 
-        # assert Days to FollowUp == 73
-        assert (daysToFollowUp == '73.0').all()
+        # assert max ID is '4' and that there are 4 entries
+        assert patientIDs.max() == '4'
+        assert patientIDs.size == 4
         
         # Associate new manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
             schemaGenerator = sg,
             metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
-            datasetId = datasetId,
+            datasetId = datasetId, 
             manifest_record_type = 'table',
             useSchemaLabel = True,
             hideBlanks = True,
@@ -437,11 +439,12 @@ class TestTableOperations:
         
         # Query table for DaystoFollowUp column        
         tableId = existing_tables[table_name]
-        daysToFollowUp = synapse_store.syn.tableQuery(
+        patientIDs = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
 
-        # assert Days to FollowUp is not all '73'
-        assert not (daysToFollowUp == '73').all()
+        # assert max ID is '4' and that there are 4 entries
+        assert patientIDs.max() == '8'
+        assert patientIDs.size == 8
         # delete table        
         synapse_store.syn.delete(tableId)
