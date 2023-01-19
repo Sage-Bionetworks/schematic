@@ -1162,9 +1162,7 @@ class SynapseStorage(BaseStorage):
 
             TableOperations.updateTable(self, 
                 tableToLoad=table_manifest, 
-                tableName=table_name, 
                 existingTableId=manifest_synapse_table_id, 
-                specifySchema=True, 
                 restrict=restrict_manifest)
             
             # Set annotations for the table manifest
