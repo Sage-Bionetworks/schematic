@@ -1160,13 +1160,11 @@ class SynapseStorage(BaseStorage):
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
 
-            TableOperations.replaceTable(self, 
+            TableOperations.updateTable(self, 
                 tableToLoad=table_manifest, 
                 tableName=table_name, 
                 existingTableId=manifest_synapse_table_id, 
                 specifySchema=True, 
-                datasetId=datasetId, 
-                columnTypeDict=col_schema, 
                 restrict=restrict_manifest)
             
             # Set annotations for the table manifest
@@ -1545,7 +1543,14 @@ class TableOperations:
 
         return existingTableId
 
+    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Uuid',  restrict: bool = False):
+        existing_table, existing_results = synStore.get_synapse_table(existingTableId)
+        
+        tableToLoad = update_df(existing_table, tableToLoad, update_col)
+        # store table with existing etag data and impose restrictions as appropriate
+        synStore.syn.store(Table(existingTableId, tableToLoad, etag = existing_results.etag), isRestricted = restrict)
 
+        return
 
 
 class DatasetFileView:
