@@ -537,7 +537,7 @@ class SynapseStorage(BaseStorage):
                 annotations = self.getFileAnnotations(manifestId)
 
                 # If manifest has annotations specifying component, use that
-                if 'Component' in annotations:
+                if annotations and 'Component' in annotations:
                     component = annotations['Component']
                     entity = self.syn.get(manifestId, downloadFile=False)
                     manifest_name = entity["properties"]["name"]
