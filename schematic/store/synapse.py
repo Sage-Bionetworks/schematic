@@ -760,6 +760,25 @@ class SynapseStorage(BaseStorage):
         existingTableId: str = None,
         table_manipulation: str = 'replace',
         ):
+        """
+        Method to upload a database to an asset store. In synapse, this will upload a metadata table
+        
+        Args:
+            se: schemaExplorer object
+            manifest: pd.Df manifest to upload
+            datasetId: synID of the dataset for the manifest
+            table_name: name of the table to be uploaded
+            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
+            useSchemaLabel: bool whether to use schemaLabel (True) or display label (False)
+            existingTableId: str of the synId of the existing table, if one already exists
+            table_manipulation: str, 'replace' or 'upsert', in the case where a manifest already exists, should the new metadata replace the existing (replace) or be added to it (upsert)
+
+        Returns:
+            manifest_table_id: synID of the uploaded table
+            manifest: the original manifset
+            table_manifest: manifest formatted appropriately for the table
+        
+        """
         
 
         col_schema, table_manifest = self.formatDB(se, manifest, datasetId, useSchemaLabel)
@@ -768,7 +787,20 @@ class SynapseStorage(BaseStorage):
 
         return manifest_table_id, manifest, table_manifest
 
-    def formatDB(self, se, manifest, datasetId, useSchemaLabel):
+    def formatDB(self, se, manifest, useSchemaLabel):
+        """
+        Method to format a manifest appropriatly for upload as table
+        
+        Args:
+            se: schemaExplorer object
+            manifest: pd.Df manifest to upload
+            useSchemaLabel: bool whether to use schemaLabel (True) or display label (False)
+
+        Returns:
+            col_schema: schema for table columns: type, size, etc
+            table_manifest: formatted manifest
+        
+        """
         # Rename the manifest columns to display names to match fileview
 
         blacklist_chars = ['(', ')', '.', ' ', '-']
@@ -812,7 +844,22 @@ class SynapseStorage(BaseStorage):
         table_manipulation: str,
         restrict: bool = False, 
         ):
+        """
+        Method to construct the table appropriately: create new table, replace existing, or upsert new into existing
+        Calls TableOperations class to execute 
+        
+        Args:
+            datasetId: synID of the dataset for the manifest
+            table_name: name of the table to be uploaded
+            col_schema: schema for table columns: type, size, etc from `formatDB`
+            table_manifest: formatted manifest taht can be uploaded as a table
+            table_manipulation: str, 'replace' or 'upsert', in the case where a manifest already exists, should the new metadata replace the existing (replace) or be added to it (upsert)
+            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
 
+        Returns:
+            manifest_table_id: synID of the uploaded table
+        
+        """
         table_info = self.get_table_info(datasetId = datasetId)
         # Put table manifest onto synapse
         schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
