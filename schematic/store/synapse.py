@@ -871,6 +871,8 @@ class SynapseStorage(BaseStorage):
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
             elif table_manipulation.lower() == 'upsert':
                 manifest_table_id = TableOperations.upsertTable(self, table_name=table_name, data = None)
+            elif table_manipulation.lower() == 'update':
+                manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
         else:
             manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
 
@@ -1202,9 +1204,10 @@ class SynapseStorage(BaseStorage):
         
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
-
-            manifest_synapse_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=manifest_synapse_table_id, restrict=restrict_manifest)
             
+            manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
+                                                                    se, manifest, datasetId, table_name,  restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,table_manipulation='update',)
+
             # Set annotations for the table manifest
             manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
             self.syn.set_annotations(manifest_annotations)
