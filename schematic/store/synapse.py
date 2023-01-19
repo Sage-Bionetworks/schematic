@@ -38,6 +38,10 @@ from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
+from schematic_db.synapse.synapse import SynapseConfig
+from schematic_db.rdb.synapse_database import SynapseDatabase
+from schematic_db.schema.schema import get_key_attribute
+
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.schemas.explorer import SchemaExplorer
@@ -823,7 +827,7 @@ class SynapseStorage(BaseStorage):
             if table_manipulation.lower() == 'replace':
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
             elif table_manipulation.lower() == 'upsert':
-                manifest_table_id = TableOperations.upsertTable(self, table_name=table_name, data = None)
+                manifest_table_id = TableOperations.upsertTable(self, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
         else:
             manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
 
@@ -1526,8 +1530,21 @@ class TableOperations:
         existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
         return existingTableId
     
-    def upsertTable(synStore, tableName: str = None, data: pd.DataFrame = None):
-        raise NotImplementedError
+    def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
+        config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+
+        if config.has_option('authentication', 'username') and config.has_option('authentication', 'authtoken'):
+            cache_root_dir = config.get('authentication', 'username')
+
+            synConfig = SynapseConfig(config.get('authentication', 'username'),config.get('authentication', 'authtoken'),synStore.getDatasetProject(datasetId))
+        else:
+            raise ValueError
+
+        synapseDB = SynapseDatabase(synConfig)
+        synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+
+        return existingTableId
+
 
 
 
