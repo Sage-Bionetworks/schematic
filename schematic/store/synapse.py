@@ -781,7 +781,7 @@ class SynapseStorage(BaseStorage):
         """
         
 
-        col_schema, table_manifest = self.formatDB(se, manifest, datasetId, useSchemaLabel)
+        col_schema, table_manifest = self.formatDB(se, manifest, useSchemaLabel)
 
         manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, table_manipulation, restrict)
 
