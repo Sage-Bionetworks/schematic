@@ -766,7 +766,7 @@ class SynapseStorage(BaseStorage):
 
         manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, table_manipulation, restrict)
 
-        return manifest_table_id, manifest, table_manifest, col_schema
+        return manifest_table_id, manifest, table_manifest
 
     def formatDB(self, se, manifest, datasetId, useSchemaLabel):
         # Rename the manifest columns to display names to match fileview
@@ -1112,7 +1112,7 @@ class SynapseStorage(BaseStorage):
 
         # If specified, upload manifest as a table and get the SynID and manifest
         if manifest_record_type == 'table' or manifest_record_type == 'both':
-            manifest_synapse_table_id, manifest, table_manifest, col_schema = self.uploadDB(
+            manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
                                                         se, manifest, datasetId, table_name,  restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,table_manipulation=table_manipulation,)
             
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
