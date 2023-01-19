@@ -1203,10 +1203,7 @@ class SynapseStorage(BaseStorage):
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
 
-            TableOperations.updateTable(self, 
-                tableToLoad=table_manifest, 
-                existingTableId=manifest_synapse_table_id, 
-                restrict=restrict_manifest)
+            manifest_synapse_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=manifest_synapse_table_id, restrict=restrict_manifest)
             
             # Set annotations for the table manifest
             manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
@@ -1461,8 +1458,36 @@ class SynapseStorage(BaseStorage):
         return table_schema_by_cname
 
 class TableOperations:
+    """
+    Object to hold functions for various table operations specific to the Synapse Asset Store.
+    
+    Currently implement operations are:
+    createTable: upload a manifest as a new table when none exist
+    replaceTable: replace a metadata in a table from one manifest with metadata from another manifest
+    updateTable: add a column to a table that already exists on synapse
+
+    Operations currently in development are:
+    upsertTable: add metadata from a manifest to an existing table that contains metadata from another manifest
+    """
+
 
     def createTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, datasetId: str = None, columnTypeDict: dict = None, specifySchema: bool = True, restrict: bool = False):
+        """
+        Method to create a table from a metadata manifest and upload it to synapse
+        
+        Args:
+            tableToLoad: manifest formatted appropriately for the table
+            tableName: name of the table to be uploaded
+            datasetId: synID of the dataset for the manifest
+            columnTypeDict: dictionary schema for table columns: type, size, etc
+            specifySchema: to specify a specific schema for the table format          
+            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
+            
+
+        Returns:
+            table.schema.id: synID of the newly created table
+        """
+
         datasetEntity = synStore.syn.get(datasetId, downloadFile = False)
         datasetName = datasetEntity.name
         table_schema_by_cname = synStore._get_table_schema_by_cname(columnTypeDict) 
@@ -1503,6 +1528,22 @@ class TableOperations:
             return table.schema.id
 
     def replaceTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None, specifySchema: bool = True, datasetId: str = None, columnTypeDict: dict = None, restrict: bool = False):
+        """
+        Method to create a table from a metadata manifest and upload it to synapse
+        
+        Args:
+            tableToLoad: manifest formatted appropriately for the table
+            tableName: name of the table to be uploaded
+            existingTableId: synId of the existing table to be replaced
+            specifySchema: to infer a schema for the table format      
+            datasetId: synID of the dataset for the manifest    
+            columnTypeDict: dictionary schema for table columns: type, size, etc
+            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
+            
+
+        Returns:
+           existingTableId: synID of the already existing table that had its metadata replaced
+        """
         datasetEntity = synStore.syn.get(datasetId, downloadFile = False)
         datasetName = datasetEntity.name
         table_schema_by_cname = synStore._get_table_schema_by_cname(columnTypeDict) 
@@ -1572,14 +1613,27 @@ class TableOperations:
     def upsertTable(synStore, tableName: str = None, data: pd.DataFrame = None):
         raise NotImplementedError
 
-    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Uuid',  restrict: bool = False):
+    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  updateCol: str = 'Uuid',  restrict: bool = False):
+        """
+        Method to update an existing table with a new column
+        
+        Args:
+            tableToLoad: manifest formatted appropriately for the table, that contains the new column
+            existingTableId: synId of the existing table to be replaced
+            updateCol: column to index the old and new tables on
+            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
+            
+
+        Returns:
+           existingTableId: synID of the already existing table that had its metadata replaced
+        """
         existing_table, existing_results = synStore.get_synapse_table(existingTableId)
         
-        tableToLoad = update_df(existing_table, tableToLoad, update_col)
+        tableToLoad = update_df(existing_table, tableToLoad, updateCol)
         # store table with existing etag data and impose restrictions as appropriate
         synStore.syn.store(Table(existingTableId, tableToLoad, etag = existing_results.etag), isRestricted = restrict)
 
-        return
+        return existingTableId
 
 class DatasetFileView:
     """Helper class to create temporary dataset file views.
