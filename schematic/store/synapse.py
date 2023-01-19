@@ -1622,6 +1622,21 @@ class TableOperations:
 
 
 
+        synapseDB = SynapseDatabase(synConfig)
+        synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+
+        return existingTableId
+
+    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Uuid',  restrict: bool = False):
+        existing_table, existing_results = synStore.get_synapse_table(existingTableId)
+        
+        tableToLoad = update_df(existing_table, tableToLoad, update_col)
+        # store table with existing etag data and impose restrictions as appropriate
+        synStore.syn.store(Table(existingTableId, tableToLoad, etag = existing_results.etag), isRestricted = restrict)
+
+        return
+
+
 class DatasetFileView:
     """Helper class to create temporary dataset file views.
     This class can be used in conjunction with a 'with' statement.
