@@ -831,6 +831,14 @@ class SynapseStorage(BaseStorage):
         else:
             manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
 
+
+        if table_manipulation.lower() == 'upsert':
+            existing_tables=self.get_table_info(datasetId=datasetId)
+            tableId=existing_tables[table_name]
+            annos = self.syn.get_annotations(tableId)
+            annos['primary_key'] = get_key_attribute(table_manifest['Component'][0])
+            annos = self.syn.set_annotations(annos)
+
         return manifest_table_id
 
 
