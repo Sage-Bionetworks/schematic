@@ -1550,7 +1550,6 @@ class TableOperations:
 
         return
 
-
 class DatasetFileView:
     """Helper class to create temporary dataset file views.
     This class can be used in conjunction with a 'with' statement.
