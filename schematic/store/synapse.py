@@ -38,6 +38,10 @@ from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
+from schematic_db.synapse.synapse import SynapseConfig
+from schematic_db.rdb.synapse_database import SynapseDatabase
+from schematic_db.schema.schema import get_key_attribute
+
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.schemas.explorer import SchemaExplorer
@@ -870,7 +874,7 @@ class SynapseStorage(BaseStorage):
             if table_manipulation.lower() == 'replace':
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
             elif table_manipulation.lower() == 'upsert':
-                manifest_table_id = TableOperations.upsertTable(self, table_name=table_name, data = None)
+                manifest_table_id = TableOperations.upsertTable(self, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
             elif table_manipulation.lower() == 'update':
                 manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
         else:
@@ -1613,30 +1617,10 @@ class TableOperations:
         existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
         return existingTableId
     
-    def upsertTable(synStore, tableName: str = None, data: pd.DataFrame = None):
-        raise NotImplementedError
+    def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
+        config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
 
-    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  updateCol: str = 'Uuid',  restrict: bool = False):
-        """
-        Method to update an existing table with a new column
-        
-        Args:
-            tableToLoad: manifest formatted appropriately for the table, that contains the new column
-            existingTableId: synId of the existing table to be replaced
-            updateCol: column to index the old and new tables on
-            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
-            
 
-        Returns:
-           existingTableId: synID of the already existing table that had its metadata replaced
-        """
-        existing_table, existing_results = synStore.get_synapse_table(existingTableId)
-        
-        tableToLoad = update_df(existing_table, tableToLoad, updateCol)
-        # store table with existing etag data and impose restrictions as appropriate
-        synStore.syn.store(Table(existingTableId, tableToLoad, etag = existing_results.etag), isRestricted = restrict)
-
-        return existingTableId
 
 class DatasetFileView:
     """Helper class to create temporary dataset file views.
