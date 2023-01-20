@@ -1537,8 +1537,10 @@ class ManifestGenerator(object):
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
         if input_token: 
+            # for getting an existing manifest on AWS
             store = SynapseStorage(input_token=input_token)
-        store = SynapseStorage()
+        else: 
+            store = SynapseStorage()
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
