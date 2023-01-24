@@ -1644,7 +1644,7 @@ class TableOperations:
         # store table with existing etag data and impose restrictions as appropriate
         synStore.syn.store(Table(existingTableId, tableToLoad, etag = existing_results.etag), isRestricted = restrict)
 
-        return
+        return existingTableId
 
 
 class DatasetFileView:
