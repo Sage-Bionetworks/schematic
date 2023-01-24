@@ -1628,6 +1628,8 @@ class TableOperations:
     def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
         config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
 
+        if config.has_option('authentication', 'username') and config.has_option('authentication', 'authtoken'):
+            synConfig = SynapseConfig(config.get('authentication', 'username'), config.get('authentication', 'authtoken'), synStore.getDatasetProject(datasetId) )
 
 
         synapseDB = SynapseDatabase(synConfig)
