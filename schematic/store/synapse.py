@@ -874,7 +874,9 @@ class SynapseStorage(BaseStorage):
             if table_manipulation.lower() == 'replace':
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
             elif table_manipulation.lower() == 'upsert':
-                manifest_table_id = TableOperations.upsertTable(self, table_name=table_name, data = None)
+                manifest_table_id = TableOperations.upsertTable(self, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
+            elif table_manipulation.lower() == 'update':
+                manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
         else:
             manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
 
@@ -1623,8 +1625,15 @@ class TableOperations:
         existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
         return existingTableId
     
-    def upsertTable(synStore, tableName: str = None, data: pd.DataFrame = None):
-        raise NotImplementedError
+    def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
+        config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+
+
+
+        synapseDB = SynapseDatabase(synConfig)
+        synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+
+        return existingTableId
 
     def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Uuid',  restrict: bool = False):
         existing_table, existing_results = synStore.get_synapse_table(existingTableId)
