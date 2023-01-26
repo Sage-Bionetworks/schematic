@@ -870,7 +870,7 @@ class SynapseStorage(BaseStorage):
             if table_manipulation.lower() == 'replace':
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
             elif table_manipulation.lower() == 'upsert':
-                manifest_table_id = TableOperations.upsertTable(self, table_name=table_name, data = None)
+                manifest_table_id = TableOperations.upsertTable(self, tableName=table_name, data = None)
             elif table_manipulation.lower() == 'update':
                 manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
         else:
