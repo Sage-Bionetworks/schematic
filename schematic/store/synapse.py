@@ -1614,7 +1614,9 @@ class TableOperations:
         return existingTableId
     
     def upsertTable(synStore, tableName: str = None, data: pd.DataFrame = None):
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Table upsert functionality has not been implemented yet."
+        )
 
     def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  updateCol: str = 'Uuid',  restrict: bool = False):
         """
