@@ -212,6 +212,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     """
 
     # call config_handler()
+    print('triggering getting a manifest endpoint')
     config_handler(asset_view = asset_view)
 
     # get path to temporary JSON-LD file
@@ -351,6 +352,7 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
 
 
 def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
+    print("triggering submit manifest endpoint")
     # call config_handler()
     config_handler(asset_view = asset_view)
 

@@ -3,14 +3,16 @@ import os
 import connexion
 
 from schematic import CONFIG
-
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 def create_app():
     connexionapp = connexion.FlaskApp(__name__, specification_dir="openapi/")
     connexionapp.add_api("api.yaml")
+    
 
     # get the underlying Flask app instance
     app = connexionapp.app
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_port=1)
 
     # path to config.yml file saved as a Flask config variable
     default_config = os.path.abspath(os.path.join(__file__, "../../config.yml"))
