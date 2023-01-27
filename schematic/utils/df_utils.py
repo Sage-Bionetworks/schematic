@@ -6,7 +6,6 @@ from copy import deepcopy
 import dateparser as dp
 import datetime as dt
 from pandarallel import pandarallel
-import time
 
 logger = logging.getLogger(__name__)
 
