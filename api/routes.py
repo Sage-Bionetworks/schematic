@@ -688,4 +688,19 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
 
     return is_required
 
+def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
+    """From a list of node labels retrieve their display names, return as list.
+    
+    Args:
+        schema_url (str): Data Model URL
+        node_list (List[str]): List of node labels.
+        
+    Returns:
+        node_display_names (List[str]): List of node display names.
+
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    mm_graph = gen.se.get_nx_schema()
+    node_display_names = gen.get_nodes_display_names(node_list, mm_graph)
+    return node_display_names
 
