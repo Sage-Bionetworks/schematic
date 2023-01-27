@@ -68,7 +68,7 @@ openpyxl = "^3.0.9"
 Flask-Cors = "^3.0.10"
 pdoc = "^12.2.0"
 dateparser = "^1.1.4"
-
+pandarallel = "^1.6.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.2"
