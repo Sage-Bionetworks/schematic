@@ -688,4 +688,16 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
 
     return is_required
 
+def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
+    """
+    Args:
+        schema_url (str): Data Model URL
+        node_display_name (str): node display name
+    Returns:
+        List of valiation rules for a given node.
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    node_validation_rules = gen.get_node_validation_rules(node_display_name)
+
+    return node_validation_rules
 
