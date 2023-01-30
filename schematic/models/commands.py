@@ -202,7 +202,8 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     """
     Running CLI for manifest validation.
     """
-    data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
+    if not data_type:
+        data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
     
     try:
         len(data_type) == 1
