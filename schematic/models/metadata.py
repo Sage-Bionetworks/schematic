@@ -288,6 +288,7 @@ class MetadataModel(object):
         hide_blanks: bool = False,
         input_token: str = None,
         project_scope: List = None,
+        table_manipulation: str = 'replace'
     ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -341,6 +342,7 @@ class MetadataModel(object):
                         manifest_record_type = manifest_record_type,
                         useSchemaLabel = use_schema_label,
                         hideBlanks = hide_blanks,
+                        table_manipulation=table_manipulation,
                     )
                     restrict_maniest = True
                 
@@ -352,6 +354,7 @@ class MetadataModel(object):
                     useSchemaLabel = use_schema_label, 
                     hideBlanks = hide_blanks,
                     restrict_manifest=restrict_maniest,
+                    table_manipulation=table_manipulation,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
@@ -372,6 +375,7 @@ class MetadataModel(object):
                 manifest_record_type=manifest_record_type,
                 useSchemaLabel=use_schema_label,
                 hideBlanks=hide_blanks,
+                table_manipulation=table_manipulation,
             )
             restrict_maniest = True
         
@@ -383,6 +387,7 @@ class MetadataModel(object):
             useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
             restrict_manifest=restrict_maniest,
+            table_manipulation=table_manipulation,
         )
 
         logger.debug(
