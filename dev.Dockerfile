@@ -1,6 +1,8 @@
 ## For aws deployments
 FROM python:3.10.9-slim-bullseye
 
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+
 # set APP_PORT to 80 to avoid 308 unhealthy target group error
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
@@ -23,11 +25,11 @@ RUN apt remove -y libtiff5
 
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml poetry.lock uwsgi.ini ./
 
 RUN poetry config virtualenvs.create false
 
-RUN poetry install --no-interaction --no-ansi --no-root
+RUN poetry install --no-interaction --no-ansi --no-root && pip cache purge
 
 COPY . ./
 
