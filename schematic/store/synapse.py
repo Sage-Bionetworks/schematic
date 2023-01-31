@@ -595,8 +595,6 @@ class SynapseStorage(BaseStorage):
                     ("", ""),
                 )
 
-            print('manifest', manifest)
-
             if manifest:
                 manifests.append(manifest)
                 
