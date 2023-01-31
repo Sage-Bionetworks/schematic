@@ -275,7 +275,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             dir_name = os.path.dirname(result)
             file_name = os.path.basename(result)
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, filename=file_name, as_attachment=True, mimetype=mimetype, cache_timeout=0)
+            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
                
         return result
 
