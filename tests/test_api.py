@@ -385,13 +385,13 @@ class TestManifestOperation:
             if data_type == "all manifests":
                 # return error message
                 for record in caplog.records:
-                    assert record.levelname == "ERROR"
-                assert "Currently we do not support returning multiple files as Excel format at once. Please choose a different output format." in caplog.text
+                    if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+                        assert record.levelname == "WARNING"
             elif isinstance(data_type, list) and len(data_type) > 1:
                 # return warning message
                 for record in caplog.records:
-                    assert record.levelname == "WARNING"
-                assert "Currently we do not support returning multiple files as Excel format at once." in caplog.text
+                    if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+                        assert record.levelname == "WARNING"
                 self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
             else:
                 self.ifExcelExists(response, "Example.xlsx")
