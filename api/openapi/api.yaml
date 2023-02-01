@@ -24,6 +24,12 @@ paths:
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
         - in: query
+          name: input_token
+          schema:
+            type: string
+          description: Token is needed if getting an existing manifest on AWS
+          required: false
+        - in: query
           name: title
           schema:
             type: string
@@ -298,6 +304,11 @@ paths:
           "Cancer Type": "Breast",
           "Family History": "Breast, Lung",
           }]'
+        - in: query
+          name: table_manipulation
+          schema:
+            type: string
+            enum: ["replace", "upsert"]
       operationId: api.routes.submit_manifest_route
       responses:
         "200":

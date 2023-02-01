@@ -324,6 +324,7 @@ class TestManifestOperation:
             "title": "Example",
             "data_type": data_type,
             "use_annotations": False, 
+            "input_token": None
             }
         if dataset_id: 
             params['dataset_id'] = dataset_id
@@ -369,6 +370,7 @@ class TestManifestOperation:
             "data_type": data_type,
             "use_annotations": False,
             "dataset_id": None,
+            "input_token": None
         }
 
         if output_format: 
