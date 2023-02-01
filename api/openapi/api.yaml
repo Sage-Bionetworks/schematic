@@ -781,6 +781,37 @@ paths:
       tags:
         - Schema Operation
 
+  /schemas/get_nodes_display_names:
+    get:
+      summary: Get display names for nodes labels in a list.
+      description: et display names for nodes labels in a list.
+      operationId: api.routes.get_nodes_display_names
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_list
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: false
+          description: List of node labels.
+          example: ['FamilyHistory', 'Biospecimen']
+          required: true
+      responses:
+        "200":
+          description: return List[str]
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
 
 
 
@@ -902,6 +933,8 @@ paths:
           description: Check schematic log.
       tags:
         - Schema Operation
+
+
   /visualize/tangled_tree/layers:
     get:
       summary: Get layers of tangled tree.
