@@ -213,6 +213,17 @@ class TestSchemaExplorerOperation:
         assert response.status_code == 200
         assert response_dta == True
 
+    def test_get_nodes_display_names(test, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_list": ["FamilyHistory", "Biospecimen"]
+        }
+        response = client.get("http://localhost:3001/v1/schemas/get_nodes_display_names", query_string = params)
+        response_dta = json.loads(response.data)
+        assert response.status_code == 200
+        assert "Family History" and "Biospecimen" in response_dta
+
+
 @pytest.mark.schematic_api
 class TestSchemaGeneratorOperation:
     @pytest.mark.parametrize("relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"])
@@ -324,6 +335,7 @@ class TestManifestOperation:
             "title": "Example",
             "data_type": data_type,
             "use_annotations": False, 
+            "input_token": None
             }
         if dataset_id: 
             params['dataset_id'] = dataset_id
@@ -369,6 +381,7 @@ class TestManifestOperation:
             "data_type": data_type,
             "use_annotations": False,
             "dataset_id": None,
+            "input_token": None
         }
 
         if output_format: 
