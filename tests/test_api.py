@@ -212,6 +212,16 @@ class TestSchemaExplorerOperation:
         response_dta = json.loads(response.data)
         assert response.status_code == 200
         assert response_dta == True
+    def test_get_node_validation_rules(test, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_display_name": "CheckRegexList"
+        }
+        response = client.get("http://localhost:3001/v1/schemas/get_node_validation_rules", query_string = params)
+        response_dta = json.loads(response.data)
+        assert response.status_code == 200
+        assert "list strict" in response_dta
+        assert "regex match [a-f]" in response_dta        
 
 @pytest.mark.schematic_api
 class TestSchemaGeneratorOperation:
