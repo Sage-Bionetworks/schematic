@@ -127,7 +127,7 @@ class GreatExpectationsHelpers(object):
             "float": "expect_column_values_to_be_in_type_list",
             "str": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
-            "date": "expect_column_values_to_be_of_type",
+            "date": "expect_column_values_to_be_dateutil_parseable",
             "recommended": "expect_column_values_to_not_match_regex_list",
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
