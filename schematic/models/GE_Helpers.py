@@ -418,6 +418,7 @@ class GreatExpectationsHelpers(object):
                 # indices and values cannot be returned
                 else:
                     for i, item in enumerate(self.manifest[errColumn]):
+                        logging.warning(result_dict)
                         observed_type=result_dict['result']['observed_value']
                         indices.append(i)   if isinstance(item,type_dict[observed_type]) else indices
                         values.append(item) if isinstance(item,type_dict[observed_type]) else values
