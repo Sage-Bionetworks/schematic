@@ -348,7 +348,7 @@ class TestTableOperations:
         ).asDataFrame().squeeze()
 
         # assert Days to FollowUp == 73
-        assert (daysToFollowUp == '73.0').all()
+        assert (daysToFollowUp == 73).all()
         
         # Associate replacement manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
@@ -370,7 +370,7 @@ class TestTableOperations:
         ).asDataFrame().squeeze()
 
         # assert Days to FollowUp == 89 now and not 73
-        assert (daysToFollowUp == '89').all()
+        assert (daysToFollowUp == 89).all()
         # delete table        
         synapse_store.syn.delete(tableId)
 
@@ -380,7 +380,7 @@ class TestTableOperations:
         table_name='patient_synapse_storage_manifest_table'
         manifest_path = "mock_manifests/rdb_table_manifest.csv"
         replacement_manifest_path = "mock_manifests/rdb_table_manifest_upsert.csv"
-        column_of_interest="PatientID"   
+        column_of_interest="Patient_id"   
         
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)        
@@ -401,7 +401,7 @@ class TestTableOperations:
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table',
-            useSchemaLabel = True,
+            useSchemaLabel = False,
             hideBlanks = True,
             restrict_manifest = False,
             table_manipulation=table_manipulation,
@@ -410,10 +410,6 @@ class TestTableOperations:
 
         #set primary key annotation for uploaded table
         tableId = existing_tables[table_name]
-        annos = synapse_store.syn.get_annotations(tableId)
-        annos['primary_key'] = 'PatientID'
-        annos=synapse_store.syn.set_annotations(annos)
-        sleep(5)
 
         # Query table for DaystoFollowUp column        
         patientIDs = synapse_store.syn.tableQuery(
@@ -421,7 +417,7 @@ class TestTableOperations:
         ).asDataFrame().squeeze()
 
         # assert max ID is '4' and that there are 4 entries
-        assert patientIDs.max() == '4'
+        assert patientIDs.max() == 4
         assert patientIDs.size == 4
         
         # Associate new manifest with files
@@ -430,7 +426,7 @@ class TestTableOperations:
             metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
             datasetId = datasetId, 
             manifest_record_type = 'table',
-            useSchemaLabel = True,
+            useSchemaLabel = False,
             hideBlanks = True,
             restrict_manifest = False,
             table_manipulation=table_manipulation,
@@ -444,7 +440,7 @@ class TestTableOperations:
         ).asDataFrame().squeeze()
 
         # assert max ID is '4' and that there are 4 entries
-        assert patientIDs.max() == '8'
+        assert patientIDs.max() == 8
         assert patientIDs.size == 8
         # delete table        
         synapse_store.syn.delete(tableId)
