@@ -61,4 +61,4 @@ EXPOSE 7080
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Run server in production mode
-CMD ["uwsgi", "--ini", "uwsgi.ini", "--lazy", "--http", ":7080", "--callable", "app"]
+CMD ["uwsgi", "--ini", "uwsgi.ini", "--lazy", "--http", ":7080"]

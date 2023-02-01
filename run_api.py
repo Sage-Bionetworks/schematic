@@ -2,7 +2,7 @@
 
 # import our application
 # Run our application
-from schematic_api.api import create_app as app
+from schematic_api.api import create_app
 from flask_cors import CORS
 import os
 
