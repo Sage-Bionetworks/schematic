@@ -1544,7 +1544,7 @@ class TableOperations:
 
     def replaceTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None, specifySchema: bool = True, datasetId: str = None, columnTypeDict: dict = None, restrict: bool = False):
         """
-        Method to create a table from a metadata manifest and upload it to synapse
+        Method to replace an existing table on synapse with metadata from a new manifest
         
         Args:
             tableToLoad: manifest formatted appropriately for the table
@@ -1626,6 +1626,20 @@ class TableOperations:
         return existingTableId
     
     def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
+        """
+        Method to upsert rows from a new manifest into an existing table on synapse
+        
+        Args:
+            tableToLoad: manifest formatted appropriately for the table
+            tableName: name of the table to be uploaded
+            existingTableId: synId of the existing table to be replaced     
+            datasetId: synID of the dataset for the manifest    
+            columnTypeDict: dictionary schema for table columns: type, size, etc
+            
+
+        Returns:
+           existingTableId: synID of the already existing table that had its metadata replaced
+        """
         config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
 
         if config.has_option('authentication', 'username') and config.has_option('authentication', 'authtoken'):
@@ -1641,6 +1655,19 @@ class TableOperations:
         return existingTableId
 
     def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Uuid',  restrict: bool = False):
+        """
+        Method to update an existing table with a new column
+        
+        Args:
+            tableToLoad: manifest formatted appropriately for the table, that contains the new column
+            existingTableId: synId of the existing table to be replaced
+            updateCol: column to index the old and new tables on
+            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
+            
+
+        Returns:
+           existingTableId: synID of the already existing table that had its metadata replaced
+        """
         existing_table, existing_results = synStore.get_synapse_table(existingTableId)
         
         tableToLoad = update_df(existing_table, tableToLoad, update_col)
