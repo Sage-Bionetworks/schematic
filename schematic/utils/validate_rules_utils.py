@@ -45,7 +45,7 @@ def validation_rule_info():
 
             "date": {
                 'arguments':(1, 0),
-                'type': "type_validation",
+                'type': "content_validation",
                 'complementary_rules': None,
                 'default_message_level': 'error'
             },

@@ -223,12 +223,15 @@ class GreatExpectationsHelpers(object):
                     #Validate date
                     elif base_rule=='date':
                         args["mostly"]=1.0
-                        args["type_"]='date'
+                        args["result_format"]=None
+                        args["include_config"]=False
+                        args["catch_exceptions"]=None
+                        args["meta"]=None
                         meta={
                             "notes": {
                                 "format": "markdown",
                                 "content": (
-                                    "Expect column values to be of date type. "
+                                    "Expect column values to be parsable by dateutils. "
                                     "**Markdown** `Supported`"
                                 ),
                             },
