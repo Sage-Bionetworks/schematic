@@ -218,6 +218,22 @@ class GreatExpectationsHelpers(object):
                             },
                             "validation_rule": rule
                         }
+
+                    #Validate date
+                    elif base_rule=='date':
+                        args["mostly"]=1.0
+                        args["type_"]='date'
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": (
+                                    "Expect column values to be of date type. "
+                                    "**Markdown** `Supported`"
+                                ),
+                            },
+                            "validation_rule": rule
+                        }
+
                     elif base_rule==("recommended"):
                         args["mostly"]=0.0000000001
                         args["regex_list"]=['^$']
