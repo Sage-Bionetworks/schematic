@@ -1630,7 +1630,10 @@ class TableOperations:
 
         if config.has_option('authentication', 'username') and config.has_option('authentication', 'authtoken'):
             synConfig = SynapseConfig(config.get('authentication', 'username'), config.get('authentication', 'authtoken'), synStore.getDatasetProject(datasetId) )
-
+        else:
+            raise KeyError(
+                "Username or authtoken credentials missing in .synapseConfig"
+            )
 
         synapseDB = SynapseDatabase(synConfig)
         synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
