@@ -868,8 +868,10 @@ class SynapseStorage(BaseStorage):
         # Put table manifest onto synapse
         schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
 
-
-        if table_name in table_info.keys() and table_info[table_name]:
+        
+        if not table_manipulation or (table_name not in table_info.keys() and table_info[table_name]):
+            manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
+        elif table_name in table_info.keys() and table_info[table_name]:
 
             if table_manipulation.lower() == 'replace':
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
@@ -877,11 +879,10 @@ class SynapseStorage(BaseStorage):
                 manifest_table_id = TableOperations.upsertTable(self, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
             elif table_manipulation.lower() == 'update':
                 manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
-        else:
-            manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
 
 
-        if table_manipulation.lower() == 'upsert':
+
+        if table_manipulation and table_manipulation.lower() == 'upsert':
             existing_tables=self.get_table_info(datasetId=datasetId)
             tableId=existing_tables[table_name]
             annos = self.syn.get_annotations(tableId)
