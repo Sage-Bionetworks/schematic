@@ -1,17 +1,34 @@
 version: "3.9"
 services:
-  schematic:
-    build: .
-    container_name: schematic
-    entrypoint: python /usr/src/app/run_api.py
+  # schematic:
+  #   build:
+  #     dockerfile: Dockerfile
+  #   container_name: schematic
+  #   entrypoint: python /usr/src/app/run_api.py
+  #   ports:
+  #     - "3001:3001"
+  #   volumes:
+  #     - .:/schematic
+  #   working_dir: /schematic
+  #   environment:
+  #     APP_HOST: "0.0.0.0"
+  #     APP_PORT: "3001"
+  #     SCHEMATIC_CONFIG: /schematic/config.yml
+  #     SCHEMATIC_CONFIG_CONTENT: "${SCHEMATIC_CONFIG_CONTENT}"
+  #     GE_HOME: /usr/src/app/great_expectations/
+  schematic-aws:
+    build: 
+      context: ../schematic
+      dockerfile: schematic_api/Dockerfile
+    container_name: schematic-api-aws
+    image: sagebionetworks/schematic-aws-api:latest
+    restart: always
+    env_file: 
+      - .env
+    networks:
+      - schematic
     ports:
-      - "3001:3001"
-    volumes:
-      - .:/schematic
-    working_dir: /schematic
-    environment:
-      APP_HOST: "0.0.0.0"
-      APP_PORT: "3001"
-      SCHEMATIC_CONFIG: /schematic/config.yml
-      SCHEMATIC_CONFIG_CONTENT: "${SCHEMATIC_CONFIG_CONTENT}"
-      GE_HOME: /usr/src/app/great_expectations/
+      - "${SERVER_PORT}:7080"
+networks:
+  schematic:
+    name: schematic

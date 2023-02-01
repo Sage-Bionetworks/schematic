@@ -2,7 +2,7 @@
 
 # import our application
 # Run our application
-from api import create_app
+from schematic_api.api import create_app as app
 from flask_cors import CORS
 import os
 
@@ -15,4 +15,4 @@ if __name__ == "__main__":
     # Launch app
     app = create_app()
     CORS(app, resources={r"*": {"origins": "*"}})
-    app.run(host=host, port=port, debug=True)
+    app.run(host=host, port=port, debug=False)
