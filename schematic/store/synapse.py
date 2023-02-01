@@ -869,7 +869,7 @@ class SynapseStorage(BaseStorage):
         schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
 
         
-        if not table_manipulation or (table_name not in table_info.keys() and table_info[table_name]):
+        if not table_manipulation or table_name not in table_info.keys():
             manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
         elif table_name in table_info.keys() and table_info[table_name]:
 
