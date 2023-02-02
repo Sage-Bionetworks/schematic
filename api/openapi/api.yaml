@@ -814,6 +814,35 @@ paths:
         - Schema Operation
 
 
+  /schemas/get_node_validation_rules:
+    get:
+      summary: Get validation rules for a given node
+      description: Get validation rules for a given node
+      operationId: api.routes.get_node_validation_rules
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_display_name
+          schema:
+            type: string
+            nullable: false
+          description: Display label of node
+          example: CheckRegexList
+          required: true
+      responses:
+        "200":
+          description: return a list
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
 
   /explorer/get_node_dependencies:
     get:
