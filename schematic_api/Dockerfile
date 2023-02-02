@@ -13,7 +13,10 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DEFAULT_TIMEOUT=200 \
     POETRY_VERSION=1.2.0 \
     APP_PORT=80 \
-    APP_DIR=/opt/app
+    APP_DIR=/opt/app \ 
+    SERVER_PROTOCOL=http:// \
+    SERVER_DOMAIN=localhost \
+    SERVER_PORT=7080
 
 # RUN apt-get autoclean && apt-get -y autoremove
 
