@@ -303,6 +303,7 @@ paths:
           schema:
             type: string
             enum: ["replace", "upsert"]
+          required: true
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
