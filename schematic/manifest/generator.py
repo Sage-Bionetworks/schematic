@@ -1603,7 +1603,7 @@ class ManifestGenerator(object):
         # initalize excel writer
         writer = pd.ExcelWriter(existing_excel_path, engine='openpyxl')
         writer.book = workbook
-        writer.sheets = {ws.title: ws for ws in workbook.worksheets}
+        writer.worksheets = {ws.title: ws for ws in workbook.worksheets}
         worksheet = writer.sheets["Sheet1"]
 
         # add additional content to the existing spreadsheet
