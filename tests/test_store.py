@@ -375,12 +375,12 @@ class TestTableOperations:
         synapse_store.syn.delete(tableId)
 
     def test_upsertTable(self, helpers, synapse_store, config, projectId, datasetId):
-        table_manipulation = 'upsert'
+        table_manipulation = "upsert"
 
-        table_name='patient_synapse_storage_manifest_table'
+        table_name="MockRDB_synapse_storage_manifest_table".lower()
         manifest_path = "mock_manifests/rdb_table_manifest.csv"
         replacement_manifest_path = "mock_manifests/rdb_table_manifest_upsert.csv"
-        column_of_interest="Patient_id"   
+        column_of_interest="MockRDB_id"   
         
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)        
@@ -412,13 +412,13 @@ class TestTableOperations:
         tableId = existing_tables[table_name]
 
         # Query table for DaystoFollowUp column        
-        patientIDs = synapse_store.syn.tableQuery(
+        IDs = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
 
         # assert max ID is '4' and that there are 4 entries
-        assert patientIDs.max() == 4
-        assert patientIDs.size == 4
+        assert IDs.max() == 4
+        assert IDs.size == 4
         
         # Associate new manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
@@ -435,12 +435,12 @@ class TestTableOperations:
         
         # Query table for DaystoFollowUp column        
         tableId = existing_tables[table_name]
-        patientIDs = synapse_store.syn.tableQuery(
+        IDs = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
 
         # assert max ID is '4' and that there are 4 entries
-        assert patientIDs.max() == 8
-        assert patientIDs.size == 8
+        assert IDs.max() == 8
+        assert IDs.size == 8
         # delete table        
         synapse_store.syn.delete(tableId)
