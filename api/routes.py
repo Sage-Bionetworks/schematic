@@ -197,7 +197,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None):
+def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, input_token=None):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -206,6 +206,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
             use_annotations: Whether to use existing annotations during manifest generation
             asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
+            input_token: Token
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
@@ -251,7 +252,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 )
 
 
-    def create_single_manifest(data_type, title, dataset_id=None, output_format=None):
+    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, input_token=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -267,7 +268,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 output_format = "dataframe"
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format
+            dataset_id=dataset_id, sheet_url=True, output_format=output_format, input_token=input_token
         )
 
         # return an excel file if output_format is set to "excel"
@@ -275,7 +276,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             dir_name = os.path.dirname(result)
             file_name = os.path.basename(result)
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, filename=file_name, as_attachment=True, mimetype=mimetype, cache_timeout=0)
+            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
                
         return result
 
@@ -291,7 +292,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             else: 
                 t = f'Example.{component}.manifest'
             if output_format != "excel":
-                result = create_single_manifest(data_type=component, output_format=output_format, title=t)
+                result = create_single_manifest(data_type=component, output_format=output_format, title=t, input_token=input_token)
                 all_results.append(result)
             else: 
                 app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
@@ -306,9 +307,9 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     t = title
             if dataset_ids:
                 # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t)
+                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t, input_token=input_token)
             else:
-                result = create_single_manifest(data_type=dt, output_format=output_format, title=t)
+                result = create_single_manifest(data_type=dt, output_format=output_format, title=t, input_token=input_token)
 
             # if output is pandas dataframe or google sheet url
             if isinstance(result, str) or isinstance(result, pd.DataFrame):
@@ -690,4 +691,32 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
 
     return is_required
 
+def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
+    """
+    Args:
+        schema_url (str): Data Model URL
+        node_display_name (str): node display name
+    Returns:
+        List of valiation rules for a given node.
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    node_validation_rules = gen.get_node_validation_rules(node_display_name)
+
+    return node_validation_rules
+
+def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
+    """From a list of node labels retrieve their display names, return as list.
+    
+    Args:
+        schema_url (str): Data Model URL
+        node_list (List[str]): List of node labels.
+        
+    Returns:
+        node_display_names (List[str]): List of node display names.
+
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    mm_graph = gen.se.get_nx_schema()
+    node_display_names = gen.get_nodes_display_names(node_list, mm_graph)
+    return node_display_names
 

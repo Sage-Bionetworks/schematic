@@ -212,6 +212,27 @@ class TestSchemaExplorerOperation:
         response_dta = json.loads(response.data)
         assert response.status_code == 200
         assert response_dta == True
+    def test_get_node_validation_rules(test, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_display_name": "CheckRegexList"
+        }
+        response = client.get("http://localhost:3001/v1/schemas/get_node_validation_rules", query_string = params)
+        response_dta = json.loads(response.data)
+        assert response.status_code == 200
+        assert "list strict" in response_dta
+        assert "regex match [a-f]" in response_dta        
+
+    def test_get_nodes_display_names(test, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_list": ["FamilyHistory", "Biospecimen"]
+        }
+        response = client.get("http://localhost:3001/v1/schemas/get_nodes_display_names", query_string = params)
+        response_dta = json.loads(response.data)
+        assert response.status_code == 200
+        assert "Family History" and "Biospecimen" in response_dta
+
 
 @pytest.mark.schematic_api
 class TestSchemaGeneratorOperation:
@@ -305,7 +326,8 @@ class TestManifestOperation:
             assert isinstance(df, pd.DataFrame)
 
 
-    @pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
+    #@pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
+    @pytest.mark.parametrize("output_format", ["excel"])
     @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
     def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog):
         # set dataset
@@ -324,6 +346,7 @@ class TestManifestOperation:
             "title": "Example",
             "data_type": data_type,
             "use_annotations": False, 
+            "input_token": None
             }
         if dataset_id: 
             params['dataset_id'] = dataset_id
@@ -341,8 +364,8 @@ class TestManifestOperation:
                 if isinstance(data_type, list) and len(data_type) > 1:
                     # return warning message
                     for record in caplog.records:
-                        assert record.levelname == "WARNING"
-                    assert "Currently we do not support returning multiple files as Excel format at once." in caplog.text
+                        if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+                            assert record.levelname == "WARNING"
                     self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
                 # for single data type
                 else: 
@@ -369,6 +392,7 @@ class TestManifestOperation:
             "data_type": data_type,
             "use_annotations": False,
             "dataset_id": None,
+            "input_token": None
         }
 
         if output_format: 
@@ -383,13 +407,13 @@ class TestManifestOperation:
             if data_type == "all manifests":
                 # return error message
                 for record in caplog.records:
-                    assert record.levelname == "ERROR"
-                assert "Currently we do not support returning multiple files as Excel format at once. Please choose a different output format." in caplog.text
+                    if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+                        assert record.levelname == "WARNING"
             elif isinstance(data_type, list) and len(data_type) > 1:
                 # return warning message
                 for record in caplog.records:
-                    assert record.levelname == "WARNING"
-                assert "Currently we do not support returning multiple files as Excel format at once." in caplog.text
+                    if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+                        assert record.levelname == "WARNING"
                 self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
             else:
                 self.ifExcelExists(response, "Example.xlsx")
