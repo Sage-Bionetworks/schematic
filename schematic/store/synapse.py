@@ -1629,7 +1629,8 @@ class TableOperations:
     def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
-        
+        For upsert functionality to work, primary keys must follow the naming convention of <componenet>_id
+             
         Args:
             tableToLoad: manifest formatted appropriately for the table
             tableName: name of the table to be uploaded
