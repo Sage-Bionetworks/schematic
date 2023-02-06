@@ -54,7 +54,6 @@ def syn_token(config):
 class TestSynapseStorage:
     @pytest.mark.parametrize("return_type", ["json", "csv"])
     def test_get_storage_assets_tables(self, client, syn_token, return_type):
-        print('ensure that local changes are working')
         params = {
             "input_token": syn_token,
             "asset_view": "syn23643253",
