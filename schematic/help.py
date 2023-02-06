@@ -117,6 +117,8 @@ model_commands = {
                 "'replace' will remove the rows and columns from the existing table and store the new rows and columns, preserving the name and synID. "
                 "'upsert' will add the new rows to the table and preserve the exisitng rows and columns in the existing table. "
                 "Default value is 'replace'. "
+                "'upsert' should be used for initial table uploads if users intend to upsert into them at a later time."
+                "Using 'upsert' at creation will generate the metadata necessary for upsert functionality."
             ),  
         },
         "validate": {
