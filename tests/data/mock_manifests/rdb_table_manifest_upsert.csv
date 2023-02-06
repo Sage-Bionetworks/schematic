@@ -1,5 +1,5 @@
-Patient_id,Sex,Year of Birth,Diagnosis,Component,Cancer Type,Family History
-5,Male,1954,Healthy,Patient,,
-6,Female,1955,Healthy,Patient,,
-7,Male,1956,Healthy,Patient,,
-8,Female,1957,Healthy,Patient,,
+Component,MockRDB_id
+MockRDB,5
+MockRDB,6
+MockRDB,7
+MockRDB,8
