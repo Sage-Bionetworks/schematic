@@ -2138,6 +2138,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "uwsgitop"
+version = "0.11"
+description = "uWSGI top-like interface"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "wcwidth"
 version = "0.2.5"
 description = "Measures the displayed width of unicode strings in a terminal"
@@ -2220,7 +2228,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco-functools", "jaraco-itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.11"
-content-hash = "7f08d04b261a26cc20e2638e241ed0de412221c89a6ac2d2f2fe6a0b66807cff"
+content-hash = "3f06a32eb1b69abb33236973a5ca8699610e0481d4340971866a1fce6d0d4f47"
 
 [metadata.files]
 alabaster = [
@@ -3566,6 +3574,9 @@ urllib3 = [
 ]
 uwsgi = [
     {file = "uwsgi-2.0.21.tar.gz", hash = "sha256:35a30d83791329429bc04fe44183ce4ab512fcf6968070a7bfba42fc5a0552a9"},
+]
+uwsgitop = [
+    {file = "uwsgitop-0.11.tar.gz", hash = "sha256:99ca245119e4a0600840a62b7b4e020c9870fe90952b24eecfff0c9090c75d14"},
 ]
 wcwidth = [
     {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},

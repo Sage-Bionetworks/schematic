@@ -69,6 +69,7 @@ Flask-Cors = "^3.0.10"
 pdoc = "^12.2.0"
 dateparser = "^1.1.4"
 uWSGI = "^2.0.21"
+uwsgitop = "^0.11"
 
 
 [tool.poetry.dev-dependencies]
