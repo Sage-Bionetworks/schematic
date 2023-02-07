@@ -37,11 +37,14 @@ class GenerateError:
         warning_list = []
         
         #Determine which, if any, message to raise
-        raises = GenerateError.get_message_level(
-            val_rule = 'schema',
-            attribute_name = attribute_name,
-            sg = sg,
-            )
+        if attribute_name.lower() == 'wrong schema':
+            raises = 'error'
+        else:    
+            raises = GenerateError.get_message_level(
+                val_rule = 'schema',
+                attribute_name = attribute_name,
+                sg = sg,
+                )
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
