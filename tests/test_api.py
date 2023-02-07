@@ -481,10 +481,11 @@ class TestManifestOperation:
 
             # test uploading a json file
             # change data type to patient since the testing json manifest is using Patient component
-            params["data_type"] = "Patient"
-            response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
-            response_dt = json.loads(response_json.data)
-            assert response_json.status_code == 200
+            # WILL DEPRECATE uploading a json file for validation
+            # params["data_type"] = "Patient"
+            # response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
+            # response_dt = json.loads(response_json.data)
+            # assert response_json.status_code == 200
 
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
@@ -545,6 +546,7 @@ class TestManifestOperation:
             "manifest_record_type": "table",
             "asset_view": "syn44259375",
             "dataset_id": "syn44259313",
+            "table_manipulation": "replace"
         }
 
         if json_str:
