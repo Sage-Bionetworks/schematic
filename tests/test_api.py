@@ -537,7 +537,8 @@ class TestManifestOperation:
             assert response_path.endswith(".csv")
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
-    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv):
+    @pytest.mark.parametrize("table_manipulation", ["replace", "upsert"])
+    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, table_manipulation):
         params = {
             "input_token": syn_token,
             "schema_url": data_model_jsonld,
@@ -546,7 +547,7 @@ class TestManifestOperation:
             "manifest_record_type": "table",
             "asset_view": "syn44259375",
             "dataset_id": "syn44259313",
-            "table_manipulation": "replace"
+            "table_manipulation": table_manipulation
         }
 
         if json_str:
