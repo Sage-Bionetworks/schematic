@@ -3,7 +3,6 @@ FROM python:3.10.9-slim-bullseye
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-
 # set APP_PORT to 80
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
@@ -37,6 +36,7 @@ RUN apt-get update -qq -y \
 # remove libtiff5 for security reasons
 # RUN apt remove -y libtiff5
 WORKDIR ${APP_DIR}
+RUN chown www-data:www-data /opt/app/
 
 # install poetry
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
@@ -54,6 +54,10 @@ COPY great_expectations ./great_expectations
 
 # copy schematic
 COPY schematic  ./schematic
+
+# change permission 
+WORKDIR /var/www/
+RUN chown www-data:www-data /var/www/
 
 WORKDIR /
 COPY schematic_api/docker-entrypoint.sh ./

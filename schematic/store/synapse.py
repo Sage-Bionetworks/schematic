@@ -5,7 +5,7 @@ import json
 import atexit
 import logging
 import secrets
-
+import time 
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
 from collections import OrderedDict
@@ -1094,6 +1094,8 @@ class SynapseStorage(BaseStorage):
             
         # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
         # also set metadata for each synapse entity as Synapse annotations
+        print('before running manifest.iterrows()')
+        time_before_manifest_iterrows = time.time()
         for idx, row in manifest.iterrows():
             if not row["entityId"] and (manifest_record_type == 'entity' or 
                 manifest_record_type == 'both'):
@@ -1120,10 +1122,14 @@ class SynapseStorage(BaseStorage):
                 if annos:
                 # Store annotations for an entity folder
                     self.syn.set_annotations(annos)
-
+        time_after_manifest_iterrows = time.time()
+        print('total time of running manifest.iterrows()', time_after_manifest_iterrows - time_before_manifest_iterrows)
         # Load manifest to synapse as a CSV File
+        upload_manifest_file_break_point = time.time()
         manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = component_name)
-        
+        upload_manifest_file_break_point_finish = time.time()
+        print('cost of running uplodad_manifest_file function', upload_manifest_file_break_point_finish - upload_manifest_file_break_point)
+
         # Set annotations for the file manifest.
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
         self.syn.set_annotations(manifest_annotations)
@@ -1132,6 +1138,8 @@ class SynapseStorage(BaseStorage):
         
         if manifest_record_type == 'table' or manifest_record_type == 'both':
             # Update manifest Synapse table with new entity id column.
+            print('before making synapse table')
+            make_synapse_table_break_point = time.time()
             self.make_synapse_table(
                 table_to_load = table_manifest,
                 dataset_id = datasetId,
@@ -1141,7 +1149,9 @@ class SynapseStorage(BaseStorage):
                 specify_schema = False,
                 restrict = restrict_manifest
                 )
-            
+            make_synapse_table_break_point_finish = time.time()
+            print('time cost of make_synapse_table function', make_synapse_table_break_point_finish - make_synapse_table_break_point)
+
             # Set annotations for the table manifest
             manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
             self.syn.set_annotations(manifest_annotations)

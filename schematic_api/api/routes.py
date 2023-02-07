@@ -26,7 +26,7 @@ import json
 from schematic.utils.df_utils import load_df
 import pickle
 from flask import send_from_directory
-
+import time
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
 #     pass
@@ -213,6 +213,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
     # call config_handler()
     print('triggering getting a manifest endpoint')
+    start_time = time.time()
     config_handler(asset_view = asset_view)
 
     # get path to temporary JSON-LD file
@@ -319,7 +320,8 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 if len(data_type) > 1:
                     app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
                 return result
-
+    time_diff = time.time() - start_time
+    print('latency of running function', time_diff)
     return all_results
 
 
@@ -352,7 +354,8 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
 
 
 def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
-    print("triggering submit manifest endpoint")
+    print("triggering submit manifest endpoint, starting counting time now")
+    start_time = time.time()
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -379,9 +382,11 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         validate_component = data_type
     
     print('before submit metadata manifest function')
+    before_submission_break_point = time.time()
     manifest_id = metadata_model.submit_metadata_manifest(
         path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
-
+    submission_break_point_finish = time.time()
+    print('total time cost of running the submit function', submission_break_point_finish-before_submission_break_point)
     return manifest_id
 
 def populate_manifest_route(schema_url, title=None, data_type=None, return_excel=None):

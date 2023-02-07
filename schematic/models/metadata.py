@@ -27,7 +27,7 @@ from schematic.utils.df_utils import load_df
 
 from schematic.models.validate_attribute import ValidateAttribute
 from schematic.models.validate_manifest import validate_all
-
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -305,7 +305,11 @@ class MetadataModel(object):
         #TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
+        print('before running synapse storage in submit_metadata_manifest')
+        synapse_storage_break_point = time.time()
         syn_store = SynapseStorage(input_token = input_token, project_scope = project_scope)
+        synapse_storage_break_point_finish = time.time()
+        print('time cost of running synapse storage', synapse_storage_break_point_finish-synapse_storage_break_point)
         manifest_id=None
         censored_manifest_id=None
         restrict_maniest=False
@@ -327,10 +331,12 @@ class MetadataModel(object):
 
             # automatic JSON schema generation and validation with that JSON schema
             print('before triggering validatemodelManifest')
+            before_validation_model_manifest_break_point = time.time()
             val_errors, val_warnings = self.validateModelManifest(
                 manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules, project_scope=project_scope,
             )
-            print('after triggering validatemodelManifest')
+            after_validation_model_manifest_break_point = time.time()
+            print('time cost of triggering validatemodelManifest', after_validation_model_manifest_break_point-before_validation_model_manifest_break_point)
 
             # if there are no errors in validation process
             if val_errors == []:                
@@ -346,7 +352,8 @@ class MetadataModel(object):
                     )
                     restrict_maniest = True
                 
-                print('before triggering associate metadata with files')
+                print('After finding out manifest has no error, before triggering associate metadata with files')
+                trigger_assoc_metadata_break_point = time.time()
                 manifest_id = syn_store.associateMetadataWithFiles(
                     schemaGenerator = self.sg,
                     metadataManifestPath = manifest_path, 
@@ -356,7 +363,8 @@ class MetadataModel(object):
                     hideBlanks = hide_blanks,
                     restrict_manifest=restrict_maniest,
                 )
-                print('after triggering associate metadata with files')
+                trigger_assoc_metadata_break_point_finish = time.time()
+                print('the total time cost of triggering associate metadata with files', trigger_assoc_metadata_break_point_finish - trigger_assoc_metadata_break_point)
 
                 logger.info(f"No validation errors occured during validation.")
                 return manifest_id
