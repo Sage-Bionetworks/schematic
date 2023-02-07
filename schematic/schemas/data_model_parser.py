@@ -20,6 +20,10 @@ class DataModelParser():
     be further converted into a graph data model. Other data model types
     may be added in the future.
 
+    TODO:
+
+    Make sure to build with namespace contexts in mind!
+
     '''
     def __init__(
         self,
