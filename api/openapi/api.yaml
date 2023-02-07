@@ -24,6 +24,12 @@ paths:
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
         - in: query
+          name: input_token
+          schema:
+            type: string
+          description: Token is needed if getting an existing manifest on AWS
+          required: false
+        - in: query
           name: title
           schema:
             type: string
@@ -777,8 +783,68 @@ paths:
       tags:
         - Schema Operation
 
+  /schemas/get_nodes_display_names:
+    get:
+      summary: Get display names for nodes labels in a list.
+      description: et display names for nodes labels in a list.
+      operationId: api.routes.get_nodes_display_names
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_list
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: false
+          description: List of node labels.
+          example: ['FamilyHistory', 'Biospecimen']
+          required: true
+      responses:
+        "200":
+          description: return List[str]
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
 
 
+  /schemas/get_node_validation_rules:
+    get:
+      summary: Get validation rules for a given node
+      description: Get validation rules for a given node
+      operationId: api.routes.get_node_validation_rules
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_display_name
+          schema:
+            type: string
+            nullable: false
+          description: Display label of node
+          example: CheckRegexList
+          required: true
+      responses:
+        "200":
+          description: return a list
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
 
   /explorer/get_node_dependencies:
     get:
@@ -898,6 +964,8 @@ paths:
           description: Check schematic log.
       tags:
         - Schema Operation
+
+
   /visualize/tangled_tree/layers:
     get:
       summary: Get layers of tangled tree.
