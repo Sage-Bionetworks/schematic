@@ -481,10 +481,11 @@ class TestManifestOperation:
 
             # test uploading a json file
             # change data type to patient since the testing json manifest is using Patient component
-            params["data_type"] = "Patient"
-            response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
-            response_dt = json.loads(response_json.data)
-            assert response_json.status_code == 200
+            # WILL DEPRECATE uploading a json file for validation
+            # params["data_type"] = "Patient"
+            # response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
+            # response_dt = json.loads(response_json.data)
+            # assert response_json.status_code == 200
 
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
@@ -536,7 +537,8 @@ class TestManifestOperation:
             assert response_path.endswith(".csv")
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
-    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv):
+    @pytest.mark.parametrize("table_manipulation", ["replace", "upsert"])
+    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, table_manipulation):
         params = {
             "input_token": syn_token,
             "schema_url": data_model_jsonld,
@@ -545,6 +547,7 @@ class TestManifestOperation:
             "manifest_record_type": "table",
             "asset_view": "syn44259375",
             "dataset_id": "syn44259313",
+            "table_manipulation": table_manipulation
         }
 
         if json_str:

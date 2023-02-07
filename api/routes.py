@@ -350,7 +350,7 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     return res_dict
 
 
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None):
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -371,7 +371,8 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     input_token = connexion.request.args["input_token"]
 
-    table_manipulation = connexion.request.args["table_manipulation"]
+    if not table_manipulation: 
+        table_manipulation = "replace"
 
     if data_type == 'None':
         validate_component = None
@@ -379,7 +380,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         validate_component = data_type
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules, table_manipulation=table_manipulation)
+        path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules, table_manipulation = table_manipulation)
 
     return manifest_id
 
