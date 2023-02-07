@@ -571,9 +571,10 @@ class SynapseStorage(BaseStorage):
                             logging.warning(
                             f"Manifest {manifestId} is composed of multiple components. Schematic does not support mulit-component manifests at this time."
                             "Behavior of manifests with multiple components is undefined"
-                            )              
-
-            #save manifest list with applicable informaiton
+                            )
+            else:
+                manifest_name = ""
+                component = None              
             if component:
                 manifest = (
                     (datasetId, datasetName),
@@ -1125,7 +1126,7 @@ class SynapseStorage(BaseStorage):
             load_args={
                 "dtype":"string",
             }
-            manifest = load_df(metadataManifestPath, preserve_raw_input = True, **load_args) #HOTFIX: set preserve_raw_input to true to allow mixed type cols in table uploads schematic#870
+            manifest = load_df(metadataManifestPath, preserve_raw_input = False, **load_args)
         except FileNotFoundError as err:
             raise FileNotFoundError(
                 f"No manifest file was found at this path: {metadataManifestPath}"
