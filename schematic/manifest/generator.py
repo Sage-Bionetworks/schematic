@@ -1604,7 +1604,7 @@ class ManifestGenerator(object):
         writer = pd.ExcelWriter(existing_excel_path, engine='openpyxl')
         writer.book = workbook
         writer.worksheets = {ws.title: ws for ws in workbook.worksheets}
-        worksheet = writer.sheets["Sheet1"]
+        worksheet = writer.worksheets["Sheet1"]
 
         # add additional content to the existing spreadsheet
         additional_df.to_excel(writer, sheet_name = "Sheet1", startrow=1, index = False, header=False)
