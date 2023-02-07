@@ -53,7 +53,7 @@ def convert(schema, base_schema, output_jsonld):
     data model in JSON-LD format.
     """
     # Instantiate Parser
-    data_model_parser = DataModelParser(schema)
+    data_model_parser = DataModelParser(schema, base_schema)
 
     #Parse Model
     parse_data_model = data_model_parser.parse_model()
