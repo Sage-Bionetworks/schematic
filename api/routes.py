@@ -161,7 +161,11 @@ class JsonConverter:
             temp_path = save_file(file_key='file_name')
             return temp_path
         
-
+def parse_bool(str_bool):
+    if str_bool.lower().startswith('t'):
+        return True
+    else:
+        return False
         
 def save_file(file_key="csv_file"):
     '''
