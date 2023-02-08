@@ -38,6 +38,10 @@ from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
+from schematic_db.synapse.synapse import SynapseConfig
+from schematic_db.rdb.synapse_database import SynapseDatabase
+from schematic_db.schema.schema import get_key_attribute
+
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.schemas.explorer import SchemaExplorer
@@ -865,17 +869,26 @@ class SynapseStorage(BaseStorage):
         # Put table manifest onto synapse
         schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
 
-
-        if table_name in table_info.keys() and table_info[table_name]:
+        
+        if not table_manipulation or table_name not in table_info.keys():
+            manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
+        elif table_name in table_info.keys() and table_info[table_name]:
 
             if table_manipulation.lower() == 'replace':
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
             elif table_manipulation.lower() == 'upsert':
-                manifest_table_id = TableOperations.upsertTable(self, tableName=table_name, data = None)
+                manifest_table_id = TableOperations.upsertTable(self, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
             elif table_manipulation.lower() == 'update':
                 manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
-        else:
-            manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
+
+
+
+        if table_manipulation and table_manipulation.lower() == 'upsert':
+            existing_tables=self.get_table_info(datasetId=datasetId)
+            tableId=existing_tables[table_name]
+            annos = self.syn.get_annotations(tableId)
+            annos['primary_key'] = get_key_attribute(table_manifest['Component'][0])
+            annos = self.syn.set_annotations(annos)
 
         return manifest_table_id
 
@@ -1533,7 +1546,7 @@ class TableOperations:
 
     def replaceTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None, specifySchema: bool = True, datasetId: str = None, columnTypeDict: dict = None, restrict: bool = False):
         """
-        Method to create a table from a metadata manifest and upload it to synapse
+        Method to replace an existing table on synapse with metadata from a new manifest
         
         Args:
             tableToLoad: manifest formatted appropriately for the table
@@ -1614,12 +1627,40 @@ class TableOperations:
         existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
         return existingTableId
     
-    def upsertTable(synStore, tableName: str = None, data: pd.DataFrame = None):
-        raise NotImplementedError(
-            "Table upsert functionality has not been implemented yet."
-        )
+    def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
+        """
+        Method to upsert rows from a new manifest into an existing table on synapse
+        For upsert functionality to work, primary keys must follow the naming convention of <componenet>_id        
+        `-tm upsert` should be used for initial table uploads if users intend to upsert into them at a later time; using 'upsert' at creation will generate the metadata necessary for upsert functionality.
+        Currently it is required to use -dl/--use_display_label with table upserts.
+        
 
-    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  updateCol: str = 'Uuid',  restrict: bool = False):
+        Args:
+            tableToLoad: manifest formatted appropriately for the table
+            tableName: name of the table to be uploaded
+            existingTableId: synId of the existing table to be replaced     
+            datasetId: synID of the dataset for the manifest    
+            columnTypeDict: dictionary schema for table columns: type, size, etc
+            
+
+        Returns:
+           existingTableId: synID of the already existing table that had its metadata replaced
+        """
+        config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+
+        if config.has_option('authentication', 'username') and config.has_option('authentication', 'authtoken'):
+            synConfig = SynapseConfig(config.get('authentication', 'username'), config.get('authentication', 'authtoken'), synStore.getDatasetProject(datasetId) )
+        else:
+            raise KeyError(
+                "Username or authtoken credentials missing in .synapseConfig"
+            )
+
+        synapseDB = SynapseDatabase(synConfig)
+        synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+
+        return existingTableId
+
+    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Uuid',  restrict: bool = False):
         """
         Method to update an existing table with a new column
         
@@ -1635,11 +1676,12 @@ class TableOperations:
         """
         existing_table, existing_results = synStore.get_synapse_table(existingTableId)
         
-        tableToLoad = update_df(existing_table, tableToLoad, updateCol)
+        tableToLoad = update_df(existing_table, tableToLoad, update_col)
         # store table with existing etag data and impose restrictions as appropriate
         synStore.syn.store(Table(existingTableId, tableToLoad, etag = existing_results.etag), isRestricted = restrict)
 
         return existingTableId
+
 
 class DatasetFileView:
     """Helper class to create temporary dataset file views.
