@@ -168,7 +168,7 @@ def parse_bool(str_bool):
         return False
     else:
         raise ValueError(
-            "String boolean does not appear to be true or false. Please verify input"
+            "String boolean does not appear to be true or false. Please verify input."
         )
         
 def save_file(file_key="csv_file"):
