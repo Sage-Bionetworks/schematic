@@ -369,7 +369,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     data_type = connexion.request.args["data_type"]
 
-    restrict_rules = connexion.request.args["restrict_rules"]
+    restrict_rules = parse_bool(connexion.request.args["restrict_rules"])
 
     metadata_model = initalize_metadata_model(schema_url)
 
