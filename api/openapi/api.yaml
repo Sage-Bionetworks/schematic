@@ -317,7 +317,7 @@ paths:
           schema:
             type: boolean
             default: true
-          required: true
+          required: false
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
