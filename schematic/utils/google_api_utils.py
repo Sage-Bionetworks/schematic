@@ -68,6 +68,12 @@ def build_service_account_creds() -> Dict[str, Any]:
     if "SERVICE_ACCOUNT_CREDS" in os.environ:
         dict_creds=json.loads(os.environ["SERVICE_ACCOUNT_CREDS"])
         credentials = service_account.Credentials.from_service_account_info(dict_creds, scopes=SCOPES)
+
+    # for AWS deployment
+    elif "SECRETS_MANAGER_SECRETS" in os.environ:
+        all_secrets_dict =json.loads(os.environ["SECRETS_MANAGER_SECRETS"])
+        dict_creds=json.loads(all_secrets_dict["SERVICE_ACCOUNT_CREDS"])
+        credentials = service_account.Credentials.from_service_account_info(dict_creds, scopes=SCOPES)
     else:
         credentials = service_account.Credentials.from_service_account_file(
             CONFIG.SERVICE_ACCT_CREDS, scopes=SCOPES

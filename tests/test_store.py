@@ -271,7 +271,7 @@ class TestDatasetFileView:
 class TestTableOperations:
 
     def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
-
+        table_manipulation = None
 
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
@@ -298,6 +298,7 @@ class TestTableOperations:
             useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
+            table_manipulation=table_manipulation,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
         
@@ -307,6 +308,8 @@ class TestTableOperations:
         assert table_name in existing_tables.keys()
 
     def test_replaceTable(self, helpers, synapse_store, config, projectId, datasetId):
+        table_manipulation = 'replace'
+
         table_name='followup_synapse_storage_manifest_table'
         manifest_path = "mock_manifests/table_manifest.csv"
         replacement_manifest_path = "mock_manifests/table_manifest_replacement.csv"
@@ -334,6 +337,7 @@ class TestTableOperations:
             useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
+            table_manipulation=table_manipulation,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
 
@@ -355,6 +359,7 @@ class TestTableOperations:
             useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
+            table_manipulation=table_manipulation,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
         
