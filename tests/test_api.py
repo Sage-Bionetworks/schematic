@@ -538,7 +538,8 @@ class TestManifestOperation:
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
     @pytest.mark.parametrize("table_manipulation", ["replace", "upsert"])
-    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, table_manipulation):
+    @pytest.mark.parametrize("use_schema_label", ['true','false'])
+    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, table_manipulation, use_schema_label):
         params = {
             "input_token": syn_token,
             "schema_url": data_model_jsonld,
@@ -547,7 +548,8 @@ class TestManifestOperation:
             "manifest_record_type": "table",
             "asset_view": "syn44259375",
             "dataset_id": "syn44259313",
-            "table_manipulation": table_manipulation
+            "table_manipulation": table_manipulation,
+            "use_schema_label": use_schema_label
         }
 
         if json_str:
