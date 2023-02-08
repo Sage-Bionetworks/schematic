@@ -164,8 +164,12 @@ class JsonConverter:
 def parse_bool(str_bool):
     if str_bool.lower().startswith('t'):
         return True
-    else:
+    elif str_bool.lower().startswith('f'):
         return False
+    else:
+        raise ValueError(
+            "String boolean does not appear to be true or false. Please verify input"
+        )
         
 def save_file(file_key="csv_file"):
     '''
