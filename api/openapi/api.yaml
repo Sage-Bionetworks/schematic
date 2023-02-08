@@ -311,6 +311,13 @@ paths:
             type: string
             enum: ["replace", "upsert"]
           required: false
+        - in: query
+          name: use_schema_label
+          description: "Store attributes using the schema label (true, default) or store attributes using the display label (false). Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
+          schema:
+            type: boolean
+            default: true
+          required: true
       operationId: api.routes.submit_manifest_route
       responses:
         "200":
