@@ -2879,23 +2879,6 @@
             ]
         },
         {
-            "@id": "bts:CheckDate",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "CheckDate",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:DataProperty"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Check Date",
-            "sms:required": "sms:true",
-            "sms:validationRules": []
-        },
-        {
             "@id": "bts:Component",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
