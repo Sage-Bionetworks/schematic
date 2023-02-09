@@ -39,7 +39,6 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         null_cells = org_df.isnull() 
         org_df = org_df.astype(str).mask(null_cells, '')
         ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
-        dates = org_df.applymap(lambda x: _parse_dates(x), na_action='ignore').fillna(False)
 
         #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
@@ -51,7 +50,6 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         
         #Store values that were entered as ints and dates
         processed_df=processed_df.mask(ints != False, other = ints)  
-        processed_df=processed_df.mask(dates != False, other = dates)  
         
         return processed_df
 

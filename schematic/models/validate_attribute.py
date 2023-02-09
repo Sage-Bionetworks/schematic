@@ -37,11 +37,14 @@ class GenerateError:
         warning_list = []
         
         #Determine which, if any, message to raise
-        raises = GenerateError.get_message_level(
-            val_rule = 'schema',
-            attribute_name = attribute_name,
-            sg = sg,
-            )
+        if attribute_name.lower() == 'wrong schema':
+            raises = 'error'
+        else:    
+            raises = GenerateError.get_message_level(
+                val_rule = 'schema',
+                attribute_name = attribute_name,
+                sg = sg,
+                )
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
@@ -461,8 +464,11 @@ class GenerateError:
         elif val_rule.startswith('inRange'):
             cross_error_str = (
                 f"{attribute_name} values in rows {row_num} are out of the specified range."
+            )
+        elif val_rule.startswith('date'):
+            cross_error_str = (
+                f"{attribute_name} values in rows {row_num} are not parsable as dates."
             )  
-
         logLevel(cross_error_str)
         error_row = row_num 
         error_message = cross_error_str

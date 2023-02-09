@@ -65,6 +65,8 @@ class TestManifestValidation:
             rootNode=rootNode
             )
 
+        logging.warning(errors)
+
         #Check errors
         assert GenerateError.generate_type_error(
             val_rule = 'num',
@@ -139,6 +141,14 @@ class TestManifestValidation:
             argument = None,
             invalid_entry = 'http://googlef.com/',
             sg = sg,
+            )[0] in errors
+
+        assert GenerateError.generate_content_error(
+            val_rule = 'date',
+            attribute_name = 'Check Date',
+            sg = sg,
+            row_num = [2,3,4],
+            error_val = ['84-43-094', '32-984', 'notADate'],
             )[0] in errors
 
         assert GenerateError.generate_content_error(

@@ -278,7 +278,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             dir_name = os.path.dirname(result)
             file_name = os.path.basename(result)
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, filename=file_name, as_attachment=True, mimetype=mimetype, cache_timeout=0)
+            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
                
         return result
 
@@ -353,9 +353,10 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     return res_dict
 
 
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None):
     print("triggering submit manifest endpoint, starting counting time now")
     start_time = time.time()
+
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -376,6 +377,9 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     input_token = connexion.request.args["input_token"]
 
+    if not table_manipulation: 
+        table_manipulation = "replace"
+
     if data_type == 'None':
         validate_component = None
     else:
@@ -384,7 +388,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
     print('before submit metadata manifest function')
     before_submission_break_point = time.time()
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
+        path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules, table_manipulation = table_manipulation)
     submission_break_point_finish = time.time()
     print('total time cost of running the submit function', submission_break_point_finish-before_submission_break_point)
     return manifest_id
@@ -697,4 +701,32 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
 
     return is_required
 
+def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
+    """
+    Args:
+        schema_url (str): Data Model URL
+        node_display_name (str): node display name
+    Returns:
+        List of valiation rules for a given node.
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    node_validation_rules = gen.get_node_validation_rules(node_display_name)
+
+    return node_validation_rules
+
+def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
+    """From a list of node labels retrieve their display names, return as list.
+    
+    Args:
+        schema_url (str): Data Model URL
+        node_list (List[str]): List of node labels.
+        
+    Returns:
+        node_display_names (List[str]): List of node display names.
+
+    """
+    gen = SchemaGenerator(path_to_json_ld=schema_url)
+    mm_graph = gen.se.get_nx_schema()
+    node_display_names = gen.get_nodes_display_names(node_list, mm_graph)
+    return node_display_names
 
