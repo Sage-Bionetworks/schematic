@@ -379,7 +379,12 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     input_token = connexion.request.args["input_token"]
 
-    use_schema_label = parse_bool(connexion.request.args["use_schema_label"])
+
+    use_schema_label = connexion.request.args["use_schema_label"]
+    if use_schema_label == 'None':
+        use_schema_label = True
+    else:
+        use_schema_label = parse_bool(use_schema_label)
 
     if not table_manipulation: 
         table_manipulation = "replace"
