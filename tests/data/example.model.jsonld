@@ -2893,51 +2893,7 @@
             },
             "sms:displayName": "Check Date",
             "sms:required": "sms:true",
-            "sms:validationRules": ["date"]
-        },
-        {
-            "@id": "bts:MockRDB",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "MockRDB",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:DataType"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "MockRDB",
-            "sms:required": "sms:false",
-            "sms:requiresDependency": [
-                {
-                    "@id": "bts:Component"
-                },
-                {
-                    "@id": "bts:MockRDBId"
-                }
-            ],
             "sms:validationRules": []
-        },
-        {
-            "@id": "bts:MockRDBId",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "MockRDBId",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:DataProperty"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "MockRDB_id",
-            "sms:required": "sms:true",
-            "sms:validationRules": [
-                "int"
-            ]
         },
         {
             "@id": "bts:Component",

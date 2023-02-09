@@ -304,14 +304,7 @@ paths:
           "Cancer Type": "Breast",
           "Family History": "Breast, Lung",
           }]'
-        - in: query
-          name: table_manipulation
-          description: Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.replace' will remove the rows and columns from the existing table and store the new rows and columns, preserving the name and synID.'upsert' will add the new rows to the table and preserve the exisitng rows and columns in the existing table. If nothing is selected, the default is "replace"
-          schema:
-            type: string
-            enum: ["replace", "upsert"]
-          required: false
-      operationId: api.routes.submit_manifest_route
+      operationId: schematic_api.api.routes.submit_manifest_route
       responses:
         "200":
           description: Manifest ID (e.g. Synapse ID if your asset management platform is Synapse)
@@ -783,68 +776,8 @@ paths:
       tags:
         - Schema Operation
 
-  /schemas/get_nodes_display_names:
-    get:
-      summary: Get display names for nodes labels in a list.
-      description: et display names for nodes labels in a list.
-      operationId: api.routes.get_nodes_display_names
-      parameters:
-        - in: query
-          name: schema_url
-          schema:
-            type: string
-          description: Data Model URL
-          example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
-          required: true
-        - in: query
-          name: node_list
-          schema:
-            type: array
-            items: 
-              type: string
-            nullable: false
-          description: List of node labels.
-          example: ['FamilyHistory', 'Biospecimen']
-          required: true
-      responses:
-        "200":
-          description: return List[str]
-        "500":
-          description: Check schematic log. 
-      tags:
-        - Schema Operation
 
 
-  /schemas/get_node_validation_rules:
-    get:
-      summary: Get validation rules for a given node
-      description: Get validation rules for a given node
-      operationId: api.routes.get_node_validation_rules
-      parameters:
-        - in: query
-          name: schema_url
-          schema:
-            type: string
-          description: Data Model URL
-          example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
-          required: true
-        - in: query
-          name: node_display_name
-          schema:
-            type: string
-            nullable: false
-          description: Display label of node
-          example: CheckRegexList
-          required: true
-      responses:
-        "200":
-          description: return a list
-        "500":
-          description: Check schematic log. 
-      tags:
-        - Schema Operation
 
   /explorer/get_node_dependencies:
     get:
@@ -964,8 +897,6 @@ paths:
           description: Check schematic log.
       tags:
         - Schema Operation
-
-
   /visualize/tangled_tree/layers:
     get:
       summary: Get layers of tangled tree.

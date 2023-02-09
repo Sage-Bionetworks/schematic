@@ -162,7 +162,4 @@ def parse_comma_str_to_list(
     ctx, param, comma_string,
 ) -> List[str]:
 
-    if comma_string:
-        return comma_string.split(",")
-    else:
-        return None
+    return comma_string.split(",")
