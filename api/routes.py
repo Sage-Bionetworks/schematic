@@ -161,7 +161,15 @@ class JsonConverter:
             temp_path = save_file(file_key='file_name')
             return temp_path
         
-
+def parse_bool(str_bool):
+    if str_bool.lower().startswith('t'):
+        return True
+    elif str_bool.lower().startswith('f'):
+        return False
+    else:
+        raise ValueError(
+            "String boolean does not appear to be true or false. Please verify input."
+        )
         
 def save_file(file_key="csv_file"):
     '''
@@ -365,11 +373,18 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     data_type = connexion.request.args["data_type"]
 
-    restrict_rules = connexion.request.args["restrict_rules"]
+    restrict_rules = parse_bool(connexion.request.args["restrict_rules"])
 
     metadata_model = initalize_metadata_model(schema_url)
 
     input_token = connexion.request.args["input_token"]
+
+
+    use_schema_label = connexion.request.args["use_schema_label"]
+    if use_schema_label == 'None':
+        use_schema_label = True
+    else:
+        use_schema_label = parse_bool(use_schema_label)
 
     if not table_manipulation: 
         table_manipulation = "replace"
@@ -380,7 +395,15 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         validate_component = data_type
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules, table_manipulation = table_manipulation)
+        path_to_json_ld = schema_url, 
+        manifest_path=temp_path, 
+        dataset_id=dataset_id, 
+        validate_component=validate_component, 
+        input_token=input_token, 
+        manifest_record_type = manifest_record_type, 
+        restrict_rules = restrict_rules, 
+        table_manipulation = table_manipulation, 
+        use_schema_label=use_schema_label)
 
     return manifest_id
 
