@@ -154,11 +154,6 @@ def submit_manifest(
         logger.error(
             f"Validation errors resulted while validating with '{validate_component}'."
         )
-    except LookupError:
-        logger.error(
-            f"'{dataset_id}' could not be found in the asset view (or file view for Synapse user)"
-        )
-
 
 # prototype based on validateModelManifest()
 @model.command(
