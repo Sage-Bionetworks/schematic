@@ -146,10 +146,6 @@ def submit_manifest(
                 f"File at '{manifest_path}' was successfully associated "
                 f"with dataset '{dataset_id}'."
             )
-    except ValueError:
-        logger.error(
-            f"Component '{validate_component}' is not present in '{jsonld}', or is invalid."
-        )
     except ValidationError:
         logger.error(
             f"Validation errors resulted while validating with '{validate_component}'."
