@@ -1,6 +1,6 @@
 
 import pytest
-from api import create_app
+from schematic_api.api import create_app
 import configparser
 import json
 import os
