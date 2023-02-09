@@ -51,6 +51,7 @@ COPY  schematic_api ./schematic_api
 
 # copy great_expectations folder
 COPY great_expectations ./great_expectations
+RUN chown -R www-data:www-data /opt/app/great_expectations/
 
 # copy schematic
 COPY schematic  ./schematic
