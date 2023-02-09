@@ -146,10 +146,6 @@ def submit_manifest(
                 f"File at '{manifest_path}' was successfully associated "
                 f"with dataset '{dataset_id}'."
             )
-    except ValidationError:
-        logger.error(
-            f"Validation errors resulted while validating with '{validate_component}'."
-        )
 
 # prototype based on validateModelManifest()
 @model.command(
