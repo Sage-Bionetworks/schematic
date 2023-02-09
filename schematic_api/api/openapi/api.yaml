@@ -21,7 +21,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: input_token
@@ -175,7 +175,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: data_type
@@ -242,7 +242,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: data_type
@@ -327,7 +327,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: source_component
@@ -374,7 +374,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: data_type
@@ -663,7 +663,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
       responses:
         "200":
@@ -689,7 +689,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: schema_class
@@ -718,7 +718,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: relationship
@@ -758,7 +758,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: node_display_name
@@ -791,7 +791,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: source_node
@@ -837,7 +837,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: display_name
@@ -874,7 +874,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: node_label
@@ -910,7 +910,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: figure_type
@@ -942,7 +942,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
         - in: query
           name: figure_type
@@ -983,7 +983,7 @@ paths:
             type: string
           description: Data Model URL
           example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-add-uWSGI/tests/data/example.model.new.jsonld
           required: true
       responses:
         "200":
