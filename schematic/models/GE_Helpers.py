@@ -408,7 +408,7 @@ class GreatExpectationsHelpers(object):
                 rule        = result_dict['expectation_config']['meta']['validation_rule']
 
 
-                if 'exception_info' in result_dict.keys():
+                if 'exception_info' in result_dict.keys() and result_dict['exception_info']['exception_message']:
                     raise Exception(result_dict['exception_info']['exception_traceback'])
                 
                 #only some expectations explicitly list unexpected values and indices, read or find if not present
