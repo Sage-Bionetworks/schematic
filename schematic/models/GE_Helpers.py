@@ -272,8 +272,8 @@ class GreatExpectationsHelpers(object):
                     
                     elif base_rule==("inRange"):
                         args["mostly"]=1.0
-                        args["min_value"]=float(rule.split(" ")[1])
-                        args["max_value"]=float(rule.split(" ")[2])
+                        args["min_value"]=float(rule.split(" ")[1]) if rule.split(" ")[1] != 'None' else None
+                        args["max_value"]=float(rule.split(" ")[2]) if rule.split(" ")[2] != 'None' else None
                         args['allow_cross_type_comparisons']=True
                         meta={
                             "notes": {
