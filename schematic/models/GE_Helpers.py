@@ -274,6 +274,7 @@ class GreatExpectationsHelpers(object):
                         args["mostly"]=1.0
                         args["min_value"]=float(rule.split(" ")[1])
                         args["max_value"]=float(rule.split(" ")[2])
+                        args['allow_cross_type_comparisons']=True
                         meta={
                             "notes": {
                                 "format": "markdown",
