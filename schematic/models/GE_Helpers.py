@@ -277,7 +277,7 @@ class GreatExpectationsHelpers(object):
                         meta={
                             "notes": {
                                 "format": "markdown",
-                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                                "content": "Expect column values to be within a specified range. **Markdown** `Supported`",
                             },
                             "validation_rule": rule
                         }
