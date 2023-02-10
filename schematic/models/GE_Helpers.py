@@ -408,8 +408,11 @@ class GreatExpectationsHelpers(object):
                 rule        = result_dict['expectation_config']['meta']['validation_rule']
 
 
+                if 'exception_info' in result_dict.keys():
+                    raise Exception(result_dict['exception_info']['exception_traceback'])
+                
                 #only some expectations explicitly list unexpected values and indices, read or find if not present
-                if 'unexpected_index_list' in result_dict['result']:
+                elif 'unexpected_index_list' in result_dict['result']:
                     indices = result_dict['result']['unexpected_index_list']
                     values  = result_dict['result']['unexpected_list']
 
