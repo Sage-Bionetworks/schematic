@@ -252,6 +252,7 @@ class GreatExpectationsHelpers(object):
                         args["mostly"]=1.0
                         args["min_value"]=min_age
                         args["max_value"]=max_age
+                        #args['allow_cross_type_comparisons']=True # TODO Can allow after issue #980 is completed
                         meta={
                             "notes": {
                                 "format": "markdown",
