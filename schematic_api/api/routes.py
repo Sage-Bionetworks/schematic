@@ -9,7 +9,7 @@ import connexion
 from connexion.decorators.uri_parsing import Swagger2URIParser
 from flask import current_app as app
 from werkzeug.debug import DebuggedApplication
-
+import uuid
 from schematic import CONFIG
 
 from schematic.visualization.attributes_explorer import AttributesExplorer
@@ -33,13 +33,25 @@ import time
 # def after_request(var1, var2):
 #     # Do stuff after your route executes
 #     pass
-
+import asyncio
+import aiohttp
+from aiohttp import web
+from flask import copy_current_request_context
 
 def config_handler(asset_view=None):
-    path_to_config = app.config["SCHEMATIC_CONFIG"]
+    #path_to_config = app.config["SCHEMATIC_CONFIG"]
+    default_config = os.path.abspath(os.path.join(__file__, "../../../config.yml"))
+    SCHEMATIC_CONFIG = os.environ.get("SCHEMATIC_CONFIG",default_config)
+    SCHEMATIC_CONFIG_CONTENT = os.environ.get("SCHEMATIC_CONFIG_CONTENT")
+
+    #path_to_config = os.environ.get("SCHEMATIC_CONFIG")
+    path_to_config = SCHEMATIC_CONFIG
+    print('path to config', path_to_config)
 
     # if content of the config file is provided: 
-    content_of_config = app.config["SCHEMATIC_CONFIG_CONTENT"]
+    #content_of_config = app.config["SCHEMATIC_CONFIG_CONTENT"]
+    content_of_config = SCHEMATIC_CONFIG_CONTENT
+
 
     # if the environment variable exists
     if content_of_config:
@@ -252,8 +264,6 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
                     f"Please check your submission and try again."
                 )
-
-
     def create_single_manifest(data_type, title, dataset_id=None, output_format=None, input_token=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -278,7 +288,8 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             dir_name = os.path.dirname(result)
             file_name = os.path.basename(result)
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, filename=file_name, as_attachment=True, mimetype=mimetype, cache_timeout=0)
+            #return send_from_directory(directory=dir_name, filename=file_name, as_attachment=True, mimetype=mimetype, cache_timeout=0)
+            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
                
         return result
 
@@ -352,8 +363,25 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
 
     return res_dict
 
+task = {}
 
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
+async def submit_manifest_task(metadata_model, schema_url, temp_path, dataset_id, validate_component, input_token, manifest_record_type, restrict_rules, token):
+    manifest_id = await metadata_model.submit_metadata_manifest(
+            path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
+
+    task[token] = manifest_id
+    # print('task', task)
+
+def get_submission_task(task_token):
+    print('task', task)
+    try:
+        manifest_id = task[task_token]
+        return manifest_id
+    except:
+        print({'status': 201})
+
+
+async def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
     print("triggering submit manifest endpoint, starting counting time now")
     start_time = time.time()
     # call config_handler()
@@ -383,11 +411,20 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
     
     print('before submit metadata manifest function')
     before_submission_break_point = time.time()
-    manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
+
+    token = uuid.uuid4().hex
+
+    async with aiohttp.ClientSession() as session:
+        manifest_id = await submit_manifest_task(metadata_model, schema_url, temp_path, dataset_id, validate_component, input_token, manifest_record_type, restrict_rules, token)
+        # manifest_id = metadata_model.submit_metadata_manifest(
+        #         path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
+
+        #task[token] = manifest_id
+
     submission_break_point_finish = time.time()
     print('total time cost of running the submit function', submission_break_point_finish-before_submission_break_point)
-    return manifest_id
+    #return manifest_id
+    return web.json_response({"status_code": 201, "token": token})
 
 def populate_manifest_route(schema_url, title=None, data_type=None, return_excel=None):
     # call config_handler()

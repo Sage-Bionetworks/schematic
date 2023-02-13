@@ -3,7 +3,7 @@ import connexion
 from schematic import CONFIG
 from flask_cors import CORS
 from schematic_api.api import app
-
+from aiohttp import web
 
 def main(): 
     # Get app configuration

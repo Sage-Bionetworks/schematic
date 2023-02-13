@@ -221,6 +221,26 @@ paths:
                           type: string
       tags:
         - Model Operations
+
+  /submission/task:
+    get:
+      summary: An endpoint to get manifest submission result
+      description: An endpoint to get manifest submission result
+      parameters:
+        - in: query
+          name: task_token
+          schema:
+            type: string
+          description: token provided to users
+          required: true
+      operationId: schematic_api.api.routes.get_submission_task
+      responses:
+        "200":
+          description: Manifest submission id
+      tags:
+        - Model Operations
+
+
   /model/submit:
     post:
       summary: Endpoint to facilitate manifest submission

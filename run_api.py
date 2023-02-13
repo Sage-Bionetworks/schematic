@@ -14,5 +14,16 @@ if __name__ == "__main__":
 
     # Launch app
     app = create_app()
-    CORS(app, resources={r"*": {"origins": "*"}})
+
+    # default_config = os.path.abspath(os.path.join(__file__, "config.yml"))
+    # schematic_config = os.environ.get("SCHEMATIC_CONFIG", default_config)
+    # schematic_config_content = os.environ.get("SCHEMATIC_CONFIG_CONTENT")
+
+    #CORS(app, resources={r"*": {"origins": "*"}})
+    # default_config = os.path.abspath(os.path.join(__file__, "config.yml"))
+    # SCHEMATIC_CONFIG = os.environ.get("SCHEMATIC_CONFIG",default_config)
+    # SCHEMATIC_CONFIG_CONTENT = os.environ.get("SCHEMATIC_CONFIG_CONTENT")
+   
+
+    #print('can I see the environment variable', SCHEMATIC_CONFIG)
     app.run(host=host, port=port, debug=False)
