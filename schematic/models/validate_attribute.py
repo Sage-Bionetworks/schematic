@@ -517,21 +517,13 @@ class GenerateError:
         # Parse rule for level, set to default if not specified
         if rule_parts[-1].lower() == 'error' or rule_parts[0] == 'schema':
             level = 'error'
-            return level
         elif rule_parts[-1].lower() == 'warning':
-            level = 'warning'
-            return level 
-        
+            level = 'warning'        
         elif not sg.is_node_required(node_display_name=attribute_name):
-            # raise warning if recommended but not required
-            if 'recommended' in val_rule:
-                level = 'warning'
-            # If not required or recommended raise warnings to notify
-            else:
-                level = 'warning' 
+            # If not required raise warnings to notify
+            level = 'warning' 
         elif sg.is_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
             level = None
-            
             
         return level
 
