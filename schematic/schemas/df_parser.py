@@ -504,7 +504,7 @@ def create_nx_schema_objects(
                         se,
                         attribute["Attribute"],
                         description=attribute["Description"],
-                        subclass_of=attribute["Parent"],
+                        subclass_of=[attribute["Parent"]],
                         requires_dependencies=class_info["dependencies"],
                         requires_range=class_info["range"],
                         required=class_info["required"],
