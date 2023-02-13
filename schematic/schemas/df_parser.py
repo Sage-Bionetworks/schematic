@@ -49,7 +49,7 @@ def get_class(
     se: SchemaExplorer,
     class_display_name: str,
     description: str = None,
-    subclass_of: list = None,
+    subclass_of: list = [],
     requires_dependencies: list = None,
     requires_range: list = None,
     requires_components: list = None,
@@ -98,6 +98,7 @@ def get_class(
                     for sub in subclass_of
                 ]
             }
+
     else:
         parent = {"rdfs:subClassOf": [{"@id": "schema:Thing"}]}
 
@@ -151,7 +152,7 @@ def get_class(
 def get_property(
     se: SchemaExplorer,
     property_display_name: str,
-    property_class_name: str,
+    property_class_names: list,
     description: str = None,
     requires_range: list = None,
     requires_dependencies: list = None,
@@ -164,7 +165,7 @@ def get_property(
     Args:
         se: a schema explorer object allowing the traversal and modification of a schema graph
         property_display_name: human readable label for the schema object/attribute: key characteristic X of the assay, related protocol, or downstream data that we want to record as metadata feature
-        property_class_name: *schema* label of the class/object that this is a property of
+        property_class_name: *schema* label of the classes/objects that this is a property of
         description: definition or a reference containing the definition of attribute X. Preferably provide a source ontology link or code in addition to the definition.
         requires_range: what is the set/domain of values that this attribute can be assigned to; currently only used to specify primitive types. TODO: extend to reg exp patterns
         requires_dependencies: important characteristics, if any, of property X that need to be recorded as metadata features given property X is specified. These characteristics are attributes themselves and need to pre-exist in the schema as such
@@ -174,7 +175,7 @@ def get_property(
     Returns: a json schema.org  property object
     """
     property_name = se.get_property_label_from_display_name(property_display_name)
-
+    
     property_attributes = {
         "@id": "bts:" + property_name,
         "@type": "rdf:Property",
@@ -183,11 +184,17 @@ def get_property(
         else "TBD",
         "rdfs:label": property_name,
         "sms:displayName": property_display_name,
-        "schema:domainIncludes": {
-            "@id": "bts:" + se.get_class_label_from_display_name(property_class_name)
-        },
         "schema:isPartOf": {"@id": "http://schema.biothings.io"},
     }
+
+    domain_includes = {
+            "schema:domainIncludes": [
+                {"@id": "bts:" + se.get_class_label_from_display_name(val)}
+                for val in property_class_names
+            ]
+        }
+    property_attributes.update(domain_includes)
+
     if requires_range:
         value_constraint = {
             "schema:rangeIncludes": [
@@ -266,6 +273,22 @@ def check_schema_definition(schema_definition: pd.DataFrame) -> bool:
             "'DependsOn Component', respectively. Switch to the new column names."
         )
 
+def _prop_2_classes(properties: dict) -> dict:
+    
+    """Create a dictionary linking all properties to their classes.
+    Args:
+        properties (dict): attributes and their properties (if applicable)
+    Returns:
+        Dictionary linking properties to all the classes in their domain.
+    """
+    prop_2_classes = {}
+    for record in properties:
+        if not pd.isnull(record["Properties"]):
+            props = record["Properties"].strip().split(",")
+            for pr in props:
+                prop_2_classes.setdefault(pr.strip(),[]).append(record["Attribute"])
+    
+    return prop_2_classes
 
 def create_nx_schema_objects(
     schema_extension: pd.DataFrame, se: SchemaExplorer
@@ -310,14 +333,8 @@ def create_nx_schema_objects(
     # get both attributes and their properties (if any)
     properties = schema_extension[["Attribute", "Properties"]].to_dict("records")
 
-    # property to class map
-    prop_2_class = {}
-    for record in properties:
-        if not pd.isnull(record["Properties"]):
-            props = record["Properties"].strip().split(",")
-            for p in props:
-                prop_2_class[p.strip()] = record["Attribute"]
-
+    prop_2_classes = _prop_2_classes(properties)
+    
     logger.debug("Adding attributes")
     for attribute in attributes:
 
@@ -326,6 +343,7 @@ def create_nx_schema_objects(
             required = attribute["Required"]
 
         if not attribute["Attribute"] in all_properties:
+            # Attribute is not a property
             display_name = attribute["Attribute"]
 
             subclass_of = None
@@ -353,17 +371,19 @@ def create_nx_schema_objects(
                 print("ATTRIBUTE EXISTS")
                 print(new_class)
             """
-
+        
         else:
+            # Attribute is a property
             display_name = attribute["Attribute"]
 
             new_property = get_property(
                 se,
                 display_name,
-                prop_2_class[display_name],
+                prop_2_classes[display_name],
                 description=attribute["Description"],
                 required=required,
             )
+
             # check if attribute doesn't already exist and add it
             if not attribute_exists(se, new_property["rdfs:label"]):
                 se.add_schema_object_nx(new_property, **rel_dict)
@@ -454,16 +474,18 @@ def create_nx_schema_objects(
                         parent = attribute["Attribute"]
                     else:
                         # this attribute is a property, set the parent to the domain class of this attribute
+                        
                         parent = se.get_class_by_property(attribute["Attribute"])
+                        
                         if not parent:
                             raise ValueError(
                                 f"Listed valid value: {val}, for attribute: {attribute['Attribute']} "
                                 "must have a class parent. The extension could not be added to the schema."
                             )
-
                     new_class = get_class(
-                        se, val, description=None, subclass_of=[parent]
+                        se, val, description=None, subclass_of=parent
                     )
+
                     # check if attribute doesn't already exist and add it
                     if not attribute_exists(se, new_class["rdfs:label"]):
                         se.add_schema_object_nx(new_class, **rel_dict)
@@ -477,11 +499,12 @@ def create_nx_schema_objects(
                     class_info["range"].append(
                         se.get_class_label_from_display_name(val)
                     )
+
                     class_range_edit = get_class(
                         se,
                         attribute["Attribute"],
                         description=attribute["Description"],
-                        subclass_of=[attribute["Parent"]],
+                        subclass_of=attribute["Parent"],
                         requires_dependencies=class_info["dependencies"],
                         requires_range=class_info["range"],
                         required=class_info["required"],
@@ -497,6 +520,7 @@ def create_nx_schema_objects(
                     property_info["range"].append(
                         se.get_class_label_from_display_name(val)
                     )
+                    
                     property_range_edit = get_property(
                         se,
                         attribute["Attribute"],
@@ -570,8 +594,8 @@ def create_nx_schema_objects(
 
         # get dependencies for this attribute, if any are specified
         requires_dependencies = attribute["DependsOn"]
-        if not pd.isnull(requires_dependencies):
 
+        if not pd.isnull(requires_dependencies):
             for dep in requires_dependencies.strip().split(","):
                 # check if dependency is a property or not
                 dep = dep.strip()
