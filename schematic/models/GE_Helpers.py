@@ -21,6 +21,8 @@ from great_expectations.core.expectation_configuration import ExpectationConfigu
 from great_expectations.data_context import BaseDataContext
 from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
 from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
+from great_expectations.exceptions.exceptions import GreatExpectationsError
+
 
 from schematic.models.validate_attribute import GenerateError
 from schematic.schemas.generator import SchemaGenerator
@@ -411,7 +413,7 @@ class GreatExpectationsHelpers(object):
 
 
                 if 'exception_info' in result_dict.keys() and result_dict['exception_info']['exception_message']:
-                    raise Exception(result_dict['exception_info']['exception_traceback'])
+                    raise GreatExpectationsError(result_dict['exception_info']['exception_traceback'])
                 
                 #only some expectations explicitly list unexpected values and indices, read or find if not present
                 elif 'unexpected_index_list' in result_dict['result']:
