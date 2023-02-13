@@ -274,7 +274,7 @@ class GreatExpectationsHelpers(object):
                         args["mostly"]=1.0
                         args["min_value"]=float(rule.split(" ")[1]) if rule.split(" ")[1] != 'None' else None
                         args["max_value"]=float(rule.split(" ")[2]) if rule.split(" ")[2] != 'None' else None
-                        args['allow_cross_type_comparisons']=True
+                        args['allow_cross_type_comparisons']=True # TODO Should follow up with issue #980
                         meta={
                             "notes": {
                                 "format": "markdown",
