@@ -147,7 +147,9 @@ class ValidateManifest(object):
                     },
                 },
                 result_format={'result_format': 'COMPLETE'},
-            )        
+            )       
+
+            ge_helpers.context.delete_checkpoint(ge_helpers.checkpoint_name) 
         
             #print(results)       
             #results.list_validation_results()
