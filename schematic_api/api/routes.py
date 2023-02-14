@@ -353,7 +353,7 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     return res_dict
 
 
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, data_type=None):
     print("triggering submit manifest endpoint, starting counting time now")
     start_time = time.time()
     # call config_handler()
@@ -367,8 +367,6 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         temp_path = jsc.convert_json_file_to_csv("file_name")
 
     dataset_id = connexion.request.args["dataset_id"]
-
-    data_type = connexion.request.args["data_type"]
 
     restrict_rules = connexion.request.args["restrict_rules"]
 

@@ -1114,7 +1114,7 @@ class SynapseStorage(BaseStorage):
                 # get the entity id corresponding to this row
                 entityId = row["entityId"]
 
-            # Adding annotations to connected files.
+           # Adding annotations to connected files.
             if entityId:
                 # Format annotations for Synapse
                 annos = self.format_row_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
@@ -1123,7 +1123,7 @@ class SynapseStorage(BaseStorage):
                 # Store annotations for an entity folder
                     self.syn.set_annotations(annos)
         time_after_manifest_iterrows = time.time()
-        print('total time of running manifest.iterrows()', time_after_manifest_iterrows - time_before_manifest_iterrows)
+        print('total time of running manifest.iterrows() and setting annotation', time_after_manifest_iterrows - time_before_manifest_iterrows)
         # Load manifest to synapse as a CSV File
         upload_manifest_file_break_point = time.time()
         manifest_synapse_file_id = self.uplodad_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest, component_name = component_name)
@@ -1153,7 +1153,11 @@ class SynapseStorage(BaseStorage):
             print('time cost of make_synapse_table function', make_synapse_table_break_point_finish - make_synapse_table_break_point)
 
             # Set annotations for the table manifest
+            before_running_format_manifest_annotations = time.time()
             manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
+            after_running_format_manifest_annotations = time.time()
+            print('time cost of format_manifest_annotation function', after_running_format_manifest_annotations - before_running_format_manifest_annotations)
+
             self.syn.set_annotations(manifest_annotations)
 
         return manifest_synapse_file_id

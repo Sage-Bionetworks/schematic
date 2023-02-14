@@ -216,9 +216,14 @@ class MetadataModel(object):
             "dtype":"string",
             }
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
+        print('begin to time load_df function')
+        start_load_df = time.time()
         manifest = load_df(
             manifestPath, preserve_raw_input=False, **load_args,
         )  # read manifest csv file as is from manifest path
+        after_load_df = time.time()
+        time_diff = after_load_df - start_load_df
+        print('time cost of running load_df', time_diff)
 
         # handler for mismatched components/data types
         # throw TypeError if the value(s) in the "Component" column differ from the selected template type
@@ -250,8 +255,12 @@ class MetadataModel(object):
                 )
 
             return errors, warnings
-
+        print('before running validate_all')
+        before_validate = time.time()
         errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope)
+        after_validate = time.time()
+        time_diff = after_validate - before_validate
+        print('time cost of running validating all', time_diff)
         return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str, return_excel = False) -> str:
