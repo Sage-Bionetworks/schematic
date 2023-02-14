@@ -509,8 +509,11 @@ class SchemaExplorer:
                     property_info["uri"] = curie2uri(record["@id"], namespaces)
 
                     p_domain = record["schema:domainIncludes"]
-                    property_info["domain"] = [self.uri2label(record["@id"]) for record in p_domain]
-                    
+                    if type(p_domain) == list:
+                        property_info["domain"] = [self.uri2label(record["@id"]) for record in p_domain]
+                    elif type(p_domain) == dict:
+                        property_info["domain"] = [self.uri2label(record["@id"])]
+
                     if "schema:rangeIncludes" in record:
                         p_range = dict2list(record["schema:rangeIncludes"])
                         property_info["range"] = [
