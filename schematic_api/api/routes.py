@@ -493,10 +493,18 @@ def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
+    before_synapse_storage = time.time()
     store = SynapseStorage(input_token=input_token)
+    after_synapse_storage = time.time()
+    time_diff = after_synapse_storage - before_synapse_storage
+    print('time cost of running synapseStorage', time_diff)
 
     # download existing file
+    before_dataset_manifest = time.time()
     manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name)
+    after_dataset_manifest = time.time()
+    time_diff = after_dataset_manifest - before_dataset_manifest
+    print('time cost of running getDatasetManifest', time_diff)
 
     #return local file path
     manifest_local_file_path = manifest_data['path']

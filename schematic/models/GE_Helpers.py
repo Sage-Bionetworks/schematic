@@ -326,9 +326,9 @@ class GreatExpectationsHelpers(object):
                 adds checkpoint to self 
         """
         #create manifest checkpoint
-        checkpoint_name = "manifest_checkpoint"  
+        self.checkpoint_name = "manifest_checkpoint"  
         checkpoint_config={
-            "name": checkpoint_name,
+            "name": self.checkpoint_name,
             "config_version": 1,
             "class_name": "SimpleCheckpoint",
             "validations": [
