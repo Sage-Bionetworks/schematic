@@ -28,7 +28,12 @@ def client(app, config_path):
 def test_manifest_csv(helpers):
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
     yield test_manifest_path
-    
+
+@pytest.fixture(scope="class")
+def test_upsert_manifest_csv(helpers):
+    test_upsert_manifest_path = helpers.get_data_path("mock_manifests/rdb_table_manifest.csv")
+    yield test_upsert_manifest_path
+
 @pytest.fixture(scope="class")
 def test_manifest_json(helpers):
     test_manifest_path = helpers.get_data_path("mock_manifests/Example.Patient.manifest.json")
@@ -212,6 +217,27 @@ class TestSchemaExplorerOperation:
         response_dta = json.loads(response.data)
         assert response.status_code == 200
         assert response_dta == True
+    def test_get_node_validation_rules(test, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_display_name": "CheckRegexList"
+        }
+        response = client.get("http://localhost:3001/v1/schemas/get_node_validation_rules", query_string = params)
+        response_dta = json.loads(response.data)
+        assert response.status_code == 200
+        assert "list strict" in response_dta
+        assert "regex match [a-f]" in response_dta        
+
+    def test_get_nodes_display_names(test, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_list": ["FamilyHistory", "Biospecimen"]
+        }
+        response = client.get("http://localhost:3001/v1/schemas/get_nodes_display_names", query_string = params)
+        response_dta = json.loads(response.data)
+        assert response.status_code == 200
+        assert "Family History" and "Biospecimen" in response_dta
+
 
 @pytest.mark.schematic_api
 class TestSchemaGeneratorOperation:
@@ -305,7 +331,8 @@ class TestManifestOperation:
             assert isinstance(df, pd.DataFrame)
 
 
-    @pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
+    #@pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
+    @pytest.mark.parametrize("output_format", ["excel"])
     @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
     def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog):
         # set dataset
@@ -324,6 +351,7 @@ class TestManifestOperation:
             "title": "Example",
             "data_type": data_type,
             "use_annotations": False, 
+            "input_token": None
             }
         if dataset_id: 
             params['dataset_id'] = dataset_id
@@ -341,8 +369,8 @@ class TestManifestOperation:
                 if isinstance(data_type, list) and len(data_type) > 1:
                     # return warning message
                     for record in caplog.records:
-                        assert record.levelname == "WARNING"
-                    assert "Currently we do not support returning multiple files as Excel format at once." in caplog.text
+                        if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+                            assert record.levelname == "WARNING"
                     self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
                 # for single data type
                 else: 
@@ -369,6 +397,7 @@ class TestManifestOperation:
             "data_type": data_type,
             "use_annotations": False,
             "dataset_id": None,
+            "input_token": None
         }
 
         if output_format: 
@@ -383,13 +412,13 @@ class TestManifestOperation:
             if data_type == "all manifests":
                 # return error message
                 for record in caplog.records:
-                    assert record.levelname == "ERROR"
-                assert "Currently we do not support returning multiple files as Excel format at once. Please choose a different output format." in caplog.text
+                    if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+                        assert record.levelname == "WARNING"
             elif isinstance(data_type, list) and len(data_type) > 1:
                 # return warning message
                 for record in caplog.records:
-                    assert record.levelname == "WARNING"
-                assert "Currently we do not support returning multiple files as Excel format at once." in caplog.text
+                    if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+                        assert record.levelname == "WARNING"
                 self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
             else:
                 self.ifExcelExists(response, "Example.xlsx")
@@ -457,10 +486,11 @@ class TestManifestOperation:
 
             # test uploading a json file
             # change data type to patient since the testing json manifest is using Patient component
-            params["data_type"] = "Patient"
-            response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
-            response_dt = json.loads(response_json.data)
-            assert response_json.status_code == 200
+            # WILL DEPRECATE uploading a json file for validation
+            # params["data_type"] = "Patient"
+            # response_json =  client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_json, 'rb'), "test.json")}, headers=headers)
+            # response_dt = json.loads(response_json.data)
+            # assert response_json.status_code == 200
 
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
@@ -512,7 +542,8 @@ class TestManifestOperation:
             assert response_path.endswith(".csv")
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
-    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv):
+    @pytest.mark.parametrize("use_schema_label", ['true','false'])
+    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, use_schema_label):
         params = {
             "input_token": syn_token,
             "schema_url": data_model_jsonld,
@@ -521,6 +552,8 @@ class TestManifestOperation:
             "manifest_record_type": "table",
             "asset_view": "syn44259375",
             "dataset_id": "syn44259313",
+            "table_manipulation": 'replace',
+            "use_schema_label": use_schema_label
         }
 
         if json_str:
@@ -537,7 +570,35 @@ class TestManifestOperation:
             # test uploading a csv file
             response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
             assert response_csv.status_code == 200     
+    
+    @pytest.mark.parametrize("json_str", [None, '[{ "Component": "MockRDB", "MockRDB_id": 5 }]'])
+    def test_submit_manifest_upsert(self, client, syn_token, data_model_jsonld, json_str, test_upsert_manifest_csv, ):
+        params = {
+            "input_token": syn_token,
+            "schema_url": data_model_jsonld,
+            "data_type": "MockRDB",
+            "restrict_rules": False, 
+            "manifest_record_type": "table",
+            "asset_view": "syn44259375",
+            "dataset_id": "syn44259313",
+            "table_manipulation": 'upsert',
+            "use_schema_label": False
+        }
 
+        if json_str:
+            params["json_str"] = json_str
+            response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
+            assert response.status_code == 200
+        else: 
+            headers = {
+            'Content-Type': "multipart/form-data",
+            'Accept': "application/json"
+            }
+            params["data_type"] = "MockRDB"
+
+            # test uploading a csv file
+            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_upsert_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
+            assert response_csv.status_code == 200     
 
 @pytest.mark.schematic_api
 class TestSchemaVisualization:

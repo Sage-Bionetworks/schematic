@@ -36,4 +36,6 @@ Check Recommended,,,,,FALSE,DataProperty,,,recommended
 Check Ages,,,,,TRUE,DataProperty,,,protectAges
 Check Unique,,,,,TRUE,DataProperty,,,unique error
 Check Range,,,,,TRUE,DataProperty,,,inRange 50 100 error
-Check Date,,,,,TRUE,DataProperty,,,
+Check Date,,,,,TRUE,DataProperty,,,date
+MockRDB,,,"Component, MockRDB_id",,FALSE,DataType,,,
+MockRDB_id,,,,,TRUE,DataProperty,,,int

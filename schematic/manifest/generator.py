@@ -1504,7 +1504,7 @@ class ManifestGenerator(object):
                 return manifest_url  
 
     def get_manifest(
-        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None
+        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, input_token: str = None
     ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
            TODO: move this function to class MetadatModel (after MetadataModel is refactored)
@@ -1514,6 +1514,7 @@ class ManifestGenerator(object):
             sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
             output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             output_path: Determines the output path of the exported manifest
+            input_token: Token in .synapseConfig. Since we could not pre-load access_token as an environment variable on AWS, we have to add this variable. 
 
         Returns:
             Googlesheet URL, pandas dataframe, or an Excel spreadsheet 
@@ -1535,8 +1536,11 @@ class ManifestGenerator(object):
         #TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-
-        store = SynapseStorage()
+        if input_token: 
+            # for getting an existing manifest on AWS
+            store = SynapseStorage(input_token=input_token)
+        else: 
+            store = SynapseStorage()
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
@@ -1602,9 +1606,8 @@ class ManifestGenerator(object):
         
         # initalize excel writer
         writer = pd.ExcelWriter(existing_excel_path, engine='openpyxl')
-        writer.book = workbook
-        writer.sheets = {ws.title: ws for ws in workbook.worksheets}
-        worksheet = writer.sheets["Sheet1"]
+        writer.worksheets = {ws.title: ws for ws in workbook.worksheets}
+        worksheet = writer.worksheets["Sheet1"]
 
         # add additional content to the existing spreadsheet
         additional_df.to_excel(writer, sheet_name = "Sheet1", startrow=1, index = False, header=False)
