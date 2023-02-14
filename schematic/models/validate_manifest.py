@@ -139,7 +139,7 @@ class ValidateManifest(object):
 
         #run GE validation
             results = ge_helpers.context.run_checkpoint(
-                checkpoint_name="manifest_checkpoint",
+                checkpoint_name=ge_helpers.checkpoint_name,
                 batch_request={
                     "runtime_parameters": {"batch_data": manifest},
                     "batch_identifiers": {
