@@ -151,8 +151,6 @@ class ValidateManifest(object):
 
             ge_helpers.context.delete_checkpoint(ge_helpers.checkpoint_name) 
         
-            #print(results)       
-            #results.list_validation_results()
             validation_results = results.list_validation_results()
             
 
