@@ -459,17 +459,15 @@ class SchemaExplorer:
         """
         label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))"""
         # This is the newer more strict method
-        try:
-            if strict_camel_case:
-                display_name = display_name.strip().translate({ord(c): "_" for c in string.whitespace})
-                label = inflection.camelize(display_name, uppercase_first_letter=True)
+        if strict_camel_case:
+            display_name = display_name.strip().translate({ord(c): "_" for c in string.whitespace})
+            label = inflection.camelize(display_name, uppercase_first_letter=True)
 
-            # This method remains for backwards compatibility
-            else:
-                display_name = display_name.translate({ord(c): None for c in string.whitespace})
-                label = inflection.camelize(display_name.strip(), uppercase_first_letter=True)
-        except:
-            breakpoint()
+        # This method remains for backwards compatibility
+        else:
+            display_name = display_name.translate({ord(c): None for c in string.whitespace})
+            label = inflection.camelize(display_name.strip(), uppercase_first_letter=True)
+
         return label
 
     def get_class_by_property(self, property_display_name):
@@ -486,12 +484,6 @@ class SchemaExplorer:
                             self.uri2label(record["@id"]) 
                                 for record in p_domain
                             ]
-                    #return unlist(
-                    #    [
-                    #        self.uri2label(schema_class["@id"])
-                    #        for schema_class in p_domain
-                    #    ]
-                    #)
 
         return None
 
