@@ -62,6 +62,9 @@ class ManifestGenerator(object):
         if self.title is None:
             self.title = f"{self.root} - Manifest"
 
+        # use schema label as column headers
+        self.use_schema_label = True
+
         # Whether to use existing annotations during manifest generation
         self.use_annotations = use_annotations
 
@@ -517,6 +520,15 @@ class ManifestGenerator(object):
         end_col_letter, ordered_metadata_fields = self._get_column_range_and_order(
             required_metadata_fields
         )
+
+        # START HERE:
+        
+        if self.use_schema_label:
+            ordered_metadata_fields = [
+                        [self.sg.get_node_label(field)
+                         for field in ordered_metadata_fields[0]
+                        ]
+                    ]
 
         body = {"values": ordered_metadata_fields}
 
