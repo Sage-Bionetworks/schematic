@@ -2893,7 +2893,9 @@
             },
             "sms:displayName": "Check Date",
             "sms:required": "sms:true",
-            "sms:validationRules": ["date"]
+            "sms:validationRules": [
+                "date"
+            ]
         },
         {
             "@id": "bts:MockRDB",

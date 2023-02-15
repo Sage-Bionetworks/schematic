@@ -94,7 +94,7 @@ class TestDfParser:
         actual = df_parser.get_property(
             se=se_obj,
             property_display_name="Test",
-            property_class_name="Prop_Class",
+            property_class_names=["Prop_Class"],
             description="This is a dummy test property",
             requires_range=["Test_Start", "Test_End"],
             requires_dependencies=["Test_Dep_1", "Test_Dep_2"],
@@ -111,7 +111,7 @@ class TestDfParser:
             "schema:rangeIncludes": [{"@id": "bts:TestStart"}, {"@id": "bts:TestEnd"}],
             "sms:displayName": "Test",
             "sms:required": "sms:true",
-            "schema:domainIncludes": {"@id": "bts:PropClass"},
+            "schema:domainIncludes": [{"@id": "bts:PropClass"}],
             "sms:requiresDependency": [
                 {"@id": "bts:Test_Dep_1"},
                 {"@id": "bts:Test_Dep_2"},
