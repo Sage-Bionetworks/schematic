@@ -2965,13 +2965,7 @@
             "rdfs:label": "Female",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:X"
+                    "@id": "bts:Sex"
                 }
             ],
             "schema:isPartOf": {
@@ -2988,13 +2982,7 @@
             "rdfs:label": "Male",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:X"
+                    "@id": "bts:Sex"
                 }
             ],
             "schema:isPartOf": {
@@ -3011,13 +2999,7 @@
             "rdfs:label": "Other",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:X"
+                    "@id": "bts:Sex"
                 }
             ],
             "schema:isPartOf": {
@@ -3034,31 +3016,7 @@
             "rdfs:label": "Healthy",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:D"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:A"
-                },
-                {
-                    "@id": "bts:G"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:O"
-                },
-                {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:S"
+                    "@id": "bts:Diagnosis"
                 }
             ],
             "schema:isPartOf": {
@@ -3075,37 +3033,7 @@
             "rdfs:label": "Breast",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:A"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:R"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:T"
-                },
-                {
-                    "@id": "bts:Y"
-                },
-                {
-                    "@id": "bts:P"
-                },
-                {
-                    "@id": "bts:E"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -3122,37 +3050,7 @@
             "rdfs:label": "Colorectal",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:A"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:R"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:T"
-                },
-                {
-                    "@id": "bts:Y"
-                },
-                {
-                    "@id": "bts:P"
-                },
-                {
-                    "@id": "bts:E"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -3169,37 +3067,7 @@
             "rdfs:label": "Lung",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:A"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:R"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:T"
-                },
-                {
-                    "@id": "bts:Y"
-                },
-                {
-                    "@id": "bts:P"
-                },
-                {
-                    "@id": "bts:E"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -3216,37 +3084,7 @@
             "rdfs:label": "Prostate",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:A"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:R"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:T"
-                },
-                {
-                    "@id": "bts:Y"
-                },
-                {
-                    "@id": "bts:P"
-                },
-                {
-                    "@id": "bts:E"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -3263,37 +3101,7 @@
             "rdfs:label": "Skin",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:A"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:R"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:T"
-                },
-                {
-                    "@id": "bts:Y"
-                },
-                {
-                    "@id": "bts:P"
-                },
-                {
-                    "@id": "bts:E"
+                    "@id": "bts:CancerType"
                 }
             ],
             "schema:isPartOf": {
@@ -3310,43 +3118,7 @@
             "rdfs:label": "Malignant",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:T"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:U"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:T"
-                },
-                {
-                    "@id": "bts:A"
-                },
-                {
-                    "@id": "bts:T"
-                },
-                {
-                    "@id": "bts:U"
-                },
-                {
-                    "@id": "bts:S"
+                    "@id": "bts:TissueStatus"
                 }
             ],
             "schema:isPartOf": {
@@ -3363,37 +3135,7 @@
             "rdfs:label": "FASTQ",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:F"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:F"
-                },
-                {
-                    "@id": "bts:O"
-                },
-                {
-                    "@id": "bts:R"
-                },
-                {
-                    "@id": "bts:M"
-                },
-                {
-                    "@id": "bts:A"
-                },
-                {
-                    "@id": "bts:T"
+                    "@id": "bts:FileFormat"
                 }
             ],
             "schema:isPartOf": {
@@ -3410,40 +3152,7 @@
             "rdfs:label": "GRCh37",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:G"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:O"
-                },
-                {
-                    "@id": "bts:M"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:B"
-                },
-                {
-                    "@id": "bts:U"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:D"
+                    "@id": "bts:GenomeBuild"
                 }
             ],
             "schema:isPartOf": {
@@ -3460,40 +3169,7 @@
             "rdfs:label": "GRCh38",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:G"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:O"
-                },
-                {
-                    "@id": "bts:M"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:B"
-                },
-                {
-                    "@id": "bts:U"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:D"
+                    "@id": "bts:GenomeBuild"
                 }
             ],
             "schema:isPartOf": {
@@ -3510,40 +3186,7 @@
             "rdfs:label": "GRCm38",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:G"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:O"
-                },
-                {
-                    "@id": "bts:M"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:B"
-                },
-                {
-                    "@id": "bts:U"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:D"
+                    "@id": "bts:GenomeBuild"
                 }
             ],
             "schema:isPartOf": {
@@ -3560,40 +3203,7 @@
             "rdfs:label": "GRCm39",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:G"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:N"
-                },
-                {
-                    "@id": "bts:O"
-                },
-                {
-                    "@id": "bts:M"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:B"
-                },
-                {
-                    "@id": "bts:U"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:D"
+                    "@id": "bts:GenomeBuild"
                 }
             ],
             "schema:isPartOf": {
@@ -3610,34 +3220,7 @@
             "rdfs:label": "Ab",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:H"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:K"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:T"
+                    "@id": "bts:CheckList"
                 }
             ],
             "schema:isPartOf": {
@@ -3654,34 +3237,7 @@
             "rdfs:label": "Cd",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:H"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:K"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:T"
+                    "@id": "bts:CheckList"
                 }
             ],
             "schema:isPartOf": {
@@ -3698,34 +3254,7 @@
             "rdfs:label": "Ef",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:H"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:K"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:T"
+                    "@id": "bts:CheckList"
                 }
             ],
             "schema:isPartOf": {
@@ -3742,34 +3271,7 @@
             "rdfs:label": "Gh",
             "rdfs:subClassOf": [
                 {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:H"
-                },
-                {
-                    "@id": "bts:E"
-                },
-                {
-                    "@id": "bts:C"
-                },
-                {
-                    "@id": "bts:K"
-                },
-                {
-                    "@id": "bts:"
-                },
-                {
-                    "@id": "bts:L"
-                },
-                {
-                    "@id": "bts:I"
-                },
-                {
-                    "@id": "bts:S"
-                },
-                {
-                    "@id": "bts:T"
+                    "@id": "bts:CheckList"
                 }
             ],
             "schema:isPartOf": {
