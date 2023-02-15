@@ -7,7 +7,7 @@ import dateparser as dp
 import datetime as dt
 
 logger = logging.getLogger(__name__)
-
+from pandarallel import pandarallel
 
 def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     """
@@ -24,7 +24,6 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     """
     #Read CSV to df as type specified in kwargs
     org_df = pd.read_csv(file_path, keep_default_na = True, encoding='utf8', **load_args)
-    
     if preserve_raw_input:
         #only trim if not data model csv
         if not data_model:
@@ -38,8 +37,11 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         #Cast the columns in dataframe to string while preserving NaN
         null_cells = org_df.isnull() 
         org_df = org_df.astype(str).mask(null_cells, '')
-        ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
-        dates = org_df.applymap(lambda x: _parse_dates(x), na_action='ignore').fillna(False)
+        if org_df.size < 1000:
+            ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+        else:
+            pandarallel.initialize(verbose = 1)
+            ints = org_df.parallel_applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
@@ -51,7 +53,6 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         
         #Store values that were entered as ints and dates
         processed_df=processed_df.mask(ints != False, other = ints)  
-        processed_df=processed_df.mask(dates != False, other = dates)  
         
         return processed_df
 
