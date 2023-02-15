@@ -470,7 +470,7 @@ def create_nx_schema_objects(
                     # determine parent class of the new value class
                     # if this attribute is not a property, set it as a parent class
                     if not attribute["Attribute"] in all_properties:
-                        parent = attribute["Attribute"]
+                        parent = [attribute["Attribute"]]
                     else:
                         # this attribute is a property, set the parent to the domain class of this attribute
                         
@@ -482,7 +482,7 @@ def create_nx_schema_objects(
                                 "must have a class parent. The extension could not be added to the schema."
                             )
                     new_class = get_class(
-                        se, val, description=None, subclass_of=[parent]
+                        se, val, description=None, subclass_of=parent
                     )
 
                     # check if attribute doesn't already exist and add it
