@@ -98,7 +98,6 @@ def get_class(
                     for sub in subclass_of
                 ]
             }
-
     else:
         parent = {"rdfs:subClassOf": [{"@id": "schema:Thing"}]}
 
@@ -483,7 +482,7 @@ def create_nx_schema_objects(
                                 "must have a class parent. The extension could not be added to the schema."
                             )
                     new_class = get_class(
-                        se, val, description=None, subclass_of=parent
+                        se, val, description=None, subclass_of=[parent]
                     )
 
                     # check if attribute doesn't already exist and add it
