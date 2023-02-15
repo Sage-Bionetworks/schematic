@@ -240,15 +240,16 @@ class SchemaExplorer:
                 ):
                     properties.append(record["rdfs:label"])
                 elif (
-                    type(record["schema:domainIncludes"]) == list
-                    and [
-                        item
-                        for item in record["schema:domainIncludes"]
-                        if item["@id"] == schema_uri
-                    ]
-                    != []
-                ):
-                    properties.append(record["rdfs:label"])
+                     type(record["schema:domainIncludes"]) == list
+                     and [
+                         item
+                         for item in record["schema:domainIncludes"]
+                         if item["@id"] == schema_uri
+                     ]
+                     != []
+                     ):
+                   
+                     properties.append(record["rdfs:label"])
         return properties
 
     def find_all_class_properties(self, schema_class, display_as_table=False):
@@ -479,13 +480,18 @@ class SchemaExplorer:
         for record in self.schema["@graph"]:
             if record["@type"] == "rdf:Property":
                 if record["rdfs:label"] == schema_property:
-                    p_domain = dict2list(record["schema:domainIncludes"])
-                    return unlist(
-                        [
-                            self.uri2label(schema_class["@id"])
-                            for schema_class in p_domain
-                        ]
-                    )
+                    p_domain = record["schema:domainIncludes"]
+
+                    return [
+                            self.uri2label(record["@id"]) 
+                                for record in p_domain
+                            ]
+                    #return unlist(
+                    #    [
+                    #        self.uri2label(schema_class["@id"])
+                    #        for schema_class in p_domain
+                    #    ]
+                    #)
 
         return None
 
@@ -504,10 +510,12 @@ class SchemaExplorer:
                     property_info["description"] = record["rdfs:comment"]
                     property_info["uri"] = curie2uri(record["@id"], namespaces)
 
-                    p_domain = dict2list(record["schema:domainIncludes"])
-                    property_info["domain"] = unlist(
-                        [self.uri2label(record["@id"]) for record in p_domain]
-                    )
+                    p_domain = record["schema:domainIncludes"]
+                    if type(p_domain) == list:
+                        property_info["domain"] = [self.uri2label(record["@id"]) for record in p_domain]
+                    elif type(p_domain) == dict:
+                        property_info["domain"] = [self.uri2label(record["@id"])]
+
                     if "schema:rangeIncludes" in record:
                         p_range = dict2list(record["schema:rangeIncludes"])
                         property_info["range"] = [
