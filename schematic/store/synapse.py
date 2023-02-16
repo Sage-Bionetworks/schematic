@@ -1405,7 +1405,6 @@ class SynapseStorage(BaseStorage):
             str: The Synapse ID for the parent project.
         """
 
-        self._query_fileview()
 
         # Subset main file view
         dataset_index = self.storageFileviewTable["id"] == datasetId
