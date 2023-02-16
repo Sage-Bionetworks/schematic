@@ -95,9 +95,15 @@ def model(ctx, config):  # use as `schematic model ...`
     callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
+@click.option(
+    "--table_manipulation",
+    "-tm",
+    default='replace',
+    type=click.Choice(['replace', 'upsert'], case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "table_manipulation")))
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope,
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope, table_manipulation,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -111,47 +117,25 @@ def submit_manifest(
         inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
     )
 
-    try:
-        manifest_id = metadata_model.submit_metadata_manifest(
-            path_to_json_ld = jsonld,
-            manifest_path=manifest_path,
-            dataset_id=dataset_id,
-            validate_component=validate_component,
-            manifest_record_type=manifest_record_type,
-            restrict_rules=restrict_rules,
-            use_schema_label=use_schema_label,
-            hide_blanks=hide_blanks,
-            project_scope=project_scope,
-        )
 
-        '''
-        if censored_manifest_id:
-            logger.info(
-                f"File at '{manifest_path}' was censored and successfully associated "
-                f"with dataset '{dataset_id}'. "
-                f"An uncensored version has also been associated with dataset '{dataset_id}' "
-                f"and submitted to the Synapse Access Control Team to begin the process "
-                f"of adding terms of use or review board approval."
-            )
-        '''
-        if manifest_id:
-            logger.info(
-                f"File at '{manifest_path}' was successfully associated "
-                f"with dataset '{dataset_id}'."
-            )
-    except ValueError:
-        logger.error(
-            f"Component '{validate_component}' is not present in '{jsonld}', or is invalid."
+    manifest_id = metadata_model.submit_metadata_manifest(
+        path_to_json_ld = jsonld,
+        manifest_path=manifest_path,
+        dataset_id=dataset_id,
+        validate_component=validate_component,
+        manifest_record_type=manifest_record_type,
+        restrict_rules=restrict_rules,
+        use_schema_label=use_schema_label,
+        hide_blanks=hide_blanks,
+        project_scope=project_scope,
+        table_manipulation=table_manipulation,
+    )
+    
+    if manifest_id:
+        logger.info(
+            f"File at '{manifest_path}' was successfully associated "
+            f"with dataset '{dataset_id}'."
         )
-    except ValidationError:
-        logger.error(
-            f"Validation errors resulted while validating with '{validate_component}'."
-        )
-    except LookupError:
-        logger.error(
-            f"'{dataset_id}' could not be found in the asset view (or file view for Synapse user)"
-        )
-
 
 # prototype based on validateModelManifest()
 @model.command(
@@ -195,7 +179,8 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     """
     Running CLI for manifest validation.
     """
-    data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
+    if not data_type:
+        data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
     
     try:
         len(data_type) == 1
