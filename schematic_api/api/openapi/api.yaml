@@ -249,9 +249,8 @@ paths:
           schema:
             type: string
             nullable: true
-          description: Data Model Component
+          description: Data Model Component. If not being provided, validation will be skipped. 
           example: Patient
-          required: true
         - in: query
           name: dataset_id
           schema:

@@ -358,7 +358,7 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     return res_dict
 
 
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None):
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -370,8 +370,6 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         temp_path = jsc.convert_json_file_to_csv("file_name")
 
     dataset_id = connexion.request.args["dataset_id"]
-
-    data_type = connexion.request.args["data_type"]
 
     restrict_rules = parse_bool(connexion.request.args["restrict_rules"])
 
