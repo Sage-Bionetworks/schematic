@@ -5,6 +5,7 @@ import numpy as np
 from copy import deepcopy
 import dateparser as dp
 import datetime as dt
+from pandarallel import pandarallel
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,12 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         #Cast the columns in dataframe to string while preserving NaN
         null_cells = org_df.isnull() 
         org_df = org_df.astype(str).mask(null_cells, '')
-        ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+
+        if org_df.size < 1000:
+            ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+        else:
+            pandarallel.initialize(verbose = 1)
+            ints = org_df.parallel_applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
