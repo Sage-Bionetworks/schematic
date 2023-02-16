@@ -271,7 +271,7 @@ class TestDatasetFileView:
 class TestTableOperations:
 
     def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
-
+        table_manipulation = None
 
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)
@@ -298,6 +298,7 @@ class TestTableOperations:
             useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
+            table_manipulation=table_manipulation,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
         
@@ -307,6 +308,8 @@ class TestTableOperations:
         assert table_name in existing_tables.keys()
 
     def test_replaceTable(self, helpers, synapse_store, config, projectId, datasetId):
+        table_manipulation = 'replace'
+
         table_name='followup_synapse_storage_manifest_table'
         manifest_path = "mock_manifests/table_manifest.csv"
         replacement_manifest_path = "mock_manifests/table_manifest_replacement.csv"
@@ -334,6 +337,7 @@ class TestTableOperations:
             useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
+            table_manipulation=table_manipulation,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
 
@@ -344,7 +348,7 @@ class TestTableOperations:
         ).asDataFrame().squeeze()
 
         # assert Days to FollowUp == 73
-        assert (daysToFollowUp == '73.0').all()
+        assert (daysToFollowUp == 73).all()
         
         # Associate replacement manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
@@ -355,6 +359,7 @@ class TestTableOperations:
             useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
+            table_manipulation=table_manipulation,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
         
@@ -365,6 +370,77 @@ class TestTableOperations:
         ).asDataFrame().squeeze()
 
         # assert Days to FollowUp == 89 now and not 73
-        assert (daysToFollowUp == '89').all()
+        assert (daysToFollowUp == 89).all()
+        # delete table        
+        synapse_store.syn.delete(tableId)
+
+    def test_upsertTable(self, helpers, synapse_store, config, projectId, datasetId):
+        table_manipulation = "upsert"
+
+        table_name="MockRDB_synapse_storage_manifest_table".lower()
+        manifest_path = "mock_manifests/rdb_table_manifest.csv"
+        replacement_manifest_path = "mock_manifests/rdb_table_manifest_upsert.csv"
+        column_of_interest="MockRDB_id"   
+        
+        # Check if FollowUp table exists if so delete
+        existing_tables = synapse_store.get_table_info(projectId = projectId)        
+        
+        if table_name in existing_tables.keys():
+            synapse_store.syn.delete(existing_tables[table_name])
+            sleep(10)
+            # assert no table
+            assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
+
+        # associate org FollowUp metadata with files
+        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        sg = SchemaGenerator(inputModelLocaiton)
+
+            # updating file view on synapse takes a long time
+        manifestId = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = 'table',
+            useSchemaLabel = False,
+            hideBlanks = True,
+            restrict_manifest = False,
+            table_manipulation=table_manipulation,
+        )
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+
+        #set primary key annotation for uploaded table
+        tableId = existing_tables[table_name]
+
+        # Query table for DaystoFollowUp column        
+        IDs = synapse_store.syn.tableQuery(
+            f"SELECT {column_of_interest} FROM {tableId}"
+        ).asDataFrame().squeeze()
+
+        # assert max ID is '4' and that there are 4 entries
+        assert IDs.max() == 4
+        assert IDs.size == 4
+        
+        # Associate new manifest with files
+        manifestId = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
+            datasetId = datasetId, 
+            manifest_record_type = 'table',
+            useSchemaLabel = False,
+            hideBlanks = True,
+            restrict_manifest = False,
+            table_manipulation=table_manipulation,
+        )
+        existing_tables = synapse_store.get_table_info(projectId = projectId)
+        
+        # Query table for DaystoFollowUp column        
+        tableId = existing_tables[table_name]
+        IDs = synapse_store.syn.tableQuery(
+            f"SELECT {column_of_interest} FROM {tableId}"
+        ).asDataFrame().squeeze()
+
+        # assert max ID is '4' and that there are 4 entries
+        assert IDs.max() == 8
+        assert IDs.size == 8
         # delete table        
         synapse_store.syn.delete(tableId)
