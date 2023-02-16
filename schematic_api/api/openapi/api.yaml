@@ -85,7 +85,7 @@ paths:
             enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]
           description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
           required: false
-      operationId: api.routes.get_manifest_route
+      operationId: schematic_api.api.routes.get_manifest_route
       responses:
         "200":
           description: Googlesheet link created OR an excel file gets returned OR pandas dataframe gets returned
@@ -142,7 +142,7 @@ paths:
             nullable: true
           description: Fill in if you want to change the filename of the downloaded manifest.
           required: false
-      operationId: api.routes.download_manifest
+      operationId: schematic_api.api.routes.download_manifest
       responses:
         "200":
           description: A manifest gets downloaded and local file path of the manifest gets returned.
@@ -202,7 +202,7 @@ paths:
           "Family History": "Breast, Lung",
           }]'
 
-      operationId: api.routes.validate_manifest_route
+      operationId: schematic_api.api.routes.validate_manifest_route
       responses:
         "200":
           description: Manifest Validated
@@ -318,7 +318,7 @@ paths:
             type: boolean
             default: true
           required: false
-      operationId: api.routes.submit_manifest_route
+      operationId: schematic_api.api.routes.submit_manifest_route
       responses:
         "200":
           description: Manifest ID (e.g. Synapse ID if your asset management platform is Synapse)
@@ -357,7 +357,7 @@ paths:
             default: false
           description: if False return component requirements as a list; if True return component requirements as a dependency graph (i.e. a DAG)
           required: true
-      operationId: api.routes.get_component_requirements
+      operationId: schematic_api.api.routes.get_component_requirements
       responses:
         "200":
           description: A list of required components associated with the source component.
@@ -412,7 +412,7 @@ paths:
             nullable: true
           description: If true, this would return an Excel spreadsheet.(This approach would avoid sending metadata to Google sheet APIs)
           required: false
-      operationId: api.routes.populate_manifest_route
+      operationId: schematic_api.api.routes.populate_manifest_route
       responses:
         "200":
           description: Googlesheet link created
@@ -428,7 +428,7 @@ paths:
     get:
       summary:  Get datatype of attributes in manifest
       description: Get datatype of attributes in manifest
-      operationId: api.routes.get_manifest_datatype
+      operationId: schematic_api.api.routes.get_manifest_datatype
       parameters:
         - in: query
           name: input_token
@@ -465,7 +465,7 @@ paths:
     get:
       summary: Get all storage projects the current user has access to
       description: Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
-      operationId: api.routes.get_storage_projects
+      operationId: schematic_api.api.routes.get_storage_projects
       parameters:
         - in: query
           name: input_token
@@ -494,7 +494,7 @@ paths:
     get:
       summary: Gets all datasets in folder under a given storage project that the current user has access to.
       description: Gets all datasets in folder under a given storage project that the current user has access to.
-      operationId: api.routes.get_storage_projects_datasets
+      operationId: schematic_api.api.routes.get_storage_projects_datasets
       parameters:
         - in: query
           name: input_token
@@ -531,7 +531,7 @@ paths:
     get:
       summary: Get all files in a given dataset folder
       description: Get all files in a given dataset folder
-      operationId: api.routes.get_files_storage_dataset
+      operationId: schematic_api.api.routes.get_files_storage_dataset
       parameters:
         - in: query
           name: input_token
@@ -584,7 +584,7 @@ paths:
     get:
       summary: Retrieve asset view table as a dataframe.
       description: Retrieve asset view table as a dataframe.
-      operationId: api.routes.get_asset_view_table
+      operationId: schematic_api.api.routes.get_asset_view_table
       parameters:
         - in: query
           name: input_token
@@ -621,7 +621,7 @@ paths:
     get:
       summary: Gets all metadata manifest files across all datasets in a specified project.
       description: Gets all metadata manifest files across all datasets in a specified project.
-      operationId: api.routes.get_project_manifests
+      operationId: schematic_api.api.routes.get_project_manifests
       parameters:
         - in: query
           name: input_token
@@ -669,7 +669,7 @@ paths:
     get:
       summary: Return schema as a pickle file
       description: Return schema as a pickle file
-      operationId: api.routes.get_schema_pickle
+      operationId: schematic_api.api.routes.get_schema_pickle
       parameters:
         - in: query
           name: schema_url
@@ -695,7 +695,7 @@ paths:
     get:
       summary: Find properties specifically associated with a given class
       description: Find properties specifically associated with a given class
-      operationId: api.routes.find_class_specific_properties
+      operationId: schematic_api.api.routes.find_class_specific_properties
       parameters:
         - in: query
           name: schema_url
@@ -724,7 +724,7 @@ paths:
     get:
       summary: Get a subgraph containing all edges of a given type (aka relationship)
       description: Get a subgraph containing all edges of a given type (aka relationship)
-      operationId: api.routes.get_subgraph_by_edge_type
+      operationId: schematic_api.api.routes.get_subgraph_by_edge_type
       parameters:
         - in: query
           name: schema_url
@@ -764,7 +764,7 @@ paths:
     get:
       summary: Check if a node is required or not
       description: Check if a node is required or not
-      operationId: api.routes.get_if_node_required
+      operationId: schematic_api.api.routes.get_if_node_required
       parameters:
         - in: query
           name: schema_url
@@ -794,7 +794,7 @@ paths:
     get:
       summary: Get display names for nodes labels in a list.
       description: et display names for nodes labels in a list.
-      operationId: api.routes.get_nodes_display_names
+      operationId: schematic_api.api.routes.get_nodes_display_names
       parameters:
         - in: query
           name: schema_url
@@ -827,7 +827,7 @@ paths:
     get:
       summary: Get validation rules for a given node
       description: Get validation rules for a given node
-      operationId: api.routes.get_node_validation_rules
+      operationId: schematic_api.api.routes.get_node_validation_rules
       parameters:
         - in: query
           name: schema_url
@@ -857,7 +857,7 @@ paths:
     get:
       summary: Get the immediate dependencies that are related to a given source node
       description: Get the immediate dependencies that are related to a given source node
-      operationId: api.routes.get_node_dependencies
+      operationId: schematic_api.api.routes.get_node_dependencies
       parameters:
         - in: query
           name: schema_url
@@ -903,7 +903,7 @@ paths:
     get:
       summary: Converts a given display name string into a proper property label string
       description: Converts a given display name string into a proper property label string
-      operationId: api.routes.get_property_label_from_display_name
+      operationId: schematic_api.api.routes.get_property_label_from_display_name
       parameters:
         - in: query
           name: schema_url
@@ -940,7 +940,7 @@ paths:
     get:
       summary: Get all the valid values that are associated with a node label.
       description: Get all the valid values that are associated with a node label.
-      operationId: api.routes.get_node_range
+      operationId: schematic_api.api.routes.get_node_range
       parameters:
         - in: query
           name: schema_url
@@ -978,7 +978,7 @@ paths:
       summary: Get layers of tangled tree.
       description: >-
         Get tangled tree node layers to display for a given data model and figure type
-      operationId: api.routes.get_viz_tangled_tree_layers
+      operationId: schematic_api.api.routes.get_viz_tangled_tree_layers
       parameters:
         - in: query
           name: schema_url
@@ -1010,7 +1010,7 @@ paths:
       summary: Get text to display on tangled tree.
       description: >-
         Get tangled tree plain or higlighted text to display for a given data model, text formatting and figure type
-      operationId: api.routes.get_viz_tangled_tree_text
+      operationId: schematic_api.api.routes.get_viz_tangled_tree_text
       parameters:
         - in: query
           name: schema_url
@@ -1051,7 +1051,7 @@ paths:
       description: >-
         Get all the attributes associated with a data model formatted as a
         dataframe (stored as a JSON String) for use in Observable visualization.
-      operationId: api.routes.get_viz_attributes_explorer
+      operationId: schematic_api.api.routes.get_viz_attributes_explorer
       parameters:
         - in: query
           name: schema_url
