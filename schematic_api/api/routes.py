@@ -26,13 +26,76 @@ import json
 from schematic.utils.df_utils import load_df
 import pickle
 from flask import send_from_directory
-
+from cProfile import Profile
+from pstats import Stats
+from functools import wraps
+from pstats import SortKey
+import pstats
+import io
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
 #     pass
 # def after_request(var1, var2):
 #     # Do stuff after your route executes
 #     pass
+
+def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_dirs=False):
+    """
+    The function was initially taken from: https://towardsdatascience.com/how-to-profile-your-code-in-python-e70c834fad89
+    A time profiler decorator.
+    Inspired by and modified the profile decorator of Giampaolo Rodola:
+    http://code.activestate.com/recipes/577817-profile-decorator/
+    Args:
+        output_file: str or None. Default is None
+            Path of the output file. If only name of the file is given, it's
+            saved in the current directory.
+            If it's None, the name of the decorated function is used.
+        sort_by: str or SortKey enum or tuple/list of str/SortKey enum
+            Sorting criteria for the Stats object.
+            For a list of valid string and SortKey refer to:
+            https://docs.python.org/3/library/profile.html#pstats.Stats.sort_stats
+        lines_to_print: int or None
+            Number of lines to print. Default (None) is for all the lines.
+            This is useful in reducing the size of the printout, especially
+            that sorting by 'cumulative', the time consuming operations
+            are printed toward the top of the file.
+        strip_dirs: bool
+            Whether to remove the leading path info from file names.
+            This is also useful in reducing the size of the printout
+    Returns:
+        Profile of the decorated function
+    """
+
+    def inner(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            _output_file = output_file or func.__name__ + '.prof'
+            pr = Profile()
+            pr.enable()
+            retval = func(*args, **kwargs)
+            pr.disable()
+            pr.dump_stats(_output_file)
+
+            #if we are running the functions on AWS: 
+            if "SECRETS_MANAGER_SECRETS" in os.environ:
+                ps = pstats.Stats(pr)
+                # limit this to 30 line for now otherwise it will be too long for AWS log
+                ps.sort_stats('cumulative').print_stats(30)
+            else: 
+                with open(_output_file, 'w') as f:
+                    ps = pstats.Stats(pr, stream=f)
+                    if strip_dirs:
+                        ps.strip_dirs()
+                    if isinstance(sort_by, (tuple, list)):
+                        ps.sort_stats(*sort_by)
+                    else:
+                        ps.sort_stats(sort_by)
+                    ps.print_stats(lines_to_print)
+            return retval
+
+        return wrapper
+
+    return inner
 
 
 def config_handler(asset_view=None):
@@ -329,7 +392,8 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
     return all_results
 
-
+#####profile validate manifest route function 
+@profile(sort_by='cumulative', strip_dirs=True)
 def validate_manifest_route(schema_url, data_type, json_str=None):
     # call config_handler()
     config_handler()
@@ -357,7 +421,8 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
 
     return res_dict
 
-
+#####profile validate manifest route function 
+@profile(sort_by='cumulative', strip_dirs=True)
 def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None):
     # call config_handler()
     config_handler(asset_view = asset_view)
@@ -505,7 +570,8 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
     layers = tangled_tree.get_tangled_tree_layers(save_file=False)
 
     return layers[0]
-    
+
+@profile(sort_by='cumulative', strip_dirs=True)  
 def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
