@@ -65,8 +65,6 @@ class TestManifestValidation:
             rootNode=rootNode
             )
 
-        logging.warning(errors)
-
         #Check errors
         assert GenerateError.generate_type_error(
             val_rule = 'num',

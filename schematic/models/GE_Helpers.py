@@ -21,6 +21,8 @@ from great_expectations.core.expectation_configuration import ExpectationConfigu
 from great_expectations.data_context import BaseDataContext
 from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
 from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
+from great_expectations.exceptions.exceptions import GreatExpectationsError
+
 
 from schematic.models.validate_attribute import GenerateError
 from schematic.schemas.generator import SchemaGenerator
@@ -252,6 +254,7 @@ class GreatExpectationsHelpers(object):
                         args["mostly"]=1.0
                         args["min_value"]=min_age
                         args["max_value"]=max_age
+                        #args['allow_cross_type_comparisons']=True # TODO Can allow after issue #980 is completed
                         meta={
                             "notes": {
                                 "format": "markdown",
@@ -272,12 +275,13 @@ class GreatExpectationsHelpers(object):
                     
                     elif base_rule==("inRange"):
                         args["mostly"]=1.0
-                        args["min_value"]=float(rule.split(" ")[1])
-                        args["max_value"]=float(rule.split(" ")[2])
+                        args["min_value"]=float(rule.split(" ")[1]) if rule.split(" ")[1].lower() != 'none' else None
+                        args["max_value"]=float(rule.split(" ")[2]) if rule.split(" ")[2].lower() != 'none' else None
+                        args['allow_cross_type_comparisons']=True # TODO Should follow up with issue #980
                         meta={
                             "notes": {
                                 "format": "markdown",
-                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                                "content": "Expect column values to be within a specified range. **Markdown** `Supported`",
                             },
                             "validation_rule": rule
                         }
@@ -408,8 +412,11 @@ class GreatExpectationsHelpers(object):
                 rule        = result_dict['expectation_config']['meta']['validation_rule']
 
 
+                if 'exception_info' in result_dict.keys() and result_dict['exception_info']['exception_message']:
+                    raise GreatExpectationsError(result_dict['exception_info']['exception_traceback'])
+                
                 #only some expectations explicitly list unexpected values and indices, read or find if not present
-                if 'unexpected_index_list' in result_dict['result']:
+                elif 'unexpected_index_list' in result_dict['result']:
                     indices = result_dict['result']['unexpected_index_list']
                     values  = result_dict['result']['unexpected_list']
 
