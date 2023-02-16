@@ -331,7 +331,7 @@ class SynapseStorage(BaseStorage):
                     file_list.append(filename[::-1])
 
         return file_list
-
+        
     def getDatasetManifest(
         self, datasetId: str, downloadFile: bool = False, newManifestName: str='',
     ) -> List[str]:
@@ -387,11 +387,15 @@ class SynapseStorage(BaseStorage):
                     # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
                     try:
                         if 'manifest_folder' in CONFIG['synapse'].keys():
+                            time_before_getting_manifest_data = time.time()
                             manifest_data = self.syn.get(
                                 manifest_syn_id,
                                 downloadLocation=CONFIG["synapse"]["manifest_folder"],
                                 ifcollision="overwrite.local",
                             )
+                            time_after_getting_manifest_data = time.time()
+                            time_diff = time_after_getting_manifest_data - time_before_getting_manifest_data
+                            print('time cost of running syn.get', time_diff)
                             break
                         # if no manifest folder is set, download to cache
                         else:

@@ -27,6 +27,8 @@ from schematic.utils.df_utils import load_df
 import pickle
 from flask import send_from_directory
 import time
+from cProfile import Profile
+from pstats import Stats
 # def before_request(var1, var2):
 #     # Do stuff before your route executes
 #     pass
@@ -326,6 +328,9 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
 
 def validate_manifest_route(schema_url, data_type, json_str=None):
+    prof = Profile()
+    prof.enable()
+
     # call config_handler()
     config_handler()
 
@@ -350,10 +355,20 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     
     res_dict = {"errors": errors, "warnings": warnings}
 
+    prof.disable()  # don't profile the generation of stats
+    prof.dump_stats('mystats-validate.stats')
+
+    with open('mystats_validate.txt', 'wt') as output:
+        stats = Stats('mystats-validate.stats', stream=output)
+        stats.sort_stats('cumulative', 'time')
+        stats.print_stats()
+
     return res_dict
 
 
 def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, data_type=None):
+    prof = Profile()
+    prof.enable()
     print("triggering submit manifest endpoint, starting counting time now")
     start_time = time.time()
     # call config_handler()
@@ -385,6 +400,15 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         path_to_json_ld = schema_url, manifest_path=temp_path, dataset_id=dataset_id, validate_component=validate_component, input_token=input_token, manifest_record_type = manifest_record_type, restrict_rules = restrict_rules)
     submission_break_point_finish = time.time()
     print('total time cost of running the submit function', submission_break_point_finish-before_submission_break_point)
+
+    prof.disable()  # don't profile the generation of stats
+    prof.dump_stats('mystats-submit.stats')
+
+    with open('mystats_submit.txt', 'wt') as output:
+        stats = Stats('mystats-submit.stats', stream=output)
+        stats.sort_stats('cumulative', 'time')
+        stats.print_stats()
+
     return manifest_id
 
 def populate_manifest_route(schema_url, title=None, data_type=None, return_excel=None):
