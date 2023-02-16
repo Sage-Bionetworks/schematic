@@ -19,12 +19,10 @@ logger = logging.getLogger(__name__)
 def query_dict(dictionary: Mapping[Any, Any], keys: Sequence[Any]) -> Union[Any, None]:
     """Access a nested value in a dictionary corresponding
     to a series of keys.
-
     Args:
         dictionary: A dictionary containing anything.
         keys: A sequence of values corresponding to keys
             in `dictionary`
-
     Returns:
         The nested value corresponding to the given series
         of keys, or `None` is such a value doesn't exist.
@@ -44,15 +42,12 @@ def get_from_config(
 ) -> Union[Any, None]:
     """Access a nested configuration value from a yaml
     configuration file.
-
     Args:
         dictionary: A dictionary containing anything.
         keys: A sequence of values corresponding to keys
             in `dictionary`.
-
     Returns:
         The nested value corresponding to the given series.
-
     Raises:
         MissingConfigValueError: When configuration value not
             found in config.yml file for given key.
@@ -78,7 +73,6 @@ def fill_in_from_config(
     arg_name: str, arg_value: Any, config_keys: Sequence[Any], allow_none: bool = False
 ) -> Any:
     """Fill in a missing value from a configuration object.
-
     Args:
         arg_name: Name of the argument. Used for logging.
         config_keys: List of keys used to access a nested
@@ -88,11 +82,9 @@ def fill_in_from_config(
         allow_none: Return None if argument value and
             configuration value are both None (rather
             than raising an error).
-
     Returns:
         The argument value, either from the calling context
         or the corresponding field in the configuration.
-
     Raises:
         AssertionError: If both the argument value and the
             configuration object are `None`.
@@ -125,7 +117,6 @@ def parse_synIDs(
     ctx, param, synIDs,
 ) -> List[str]:
     """Parse and validate a comma separated string of synIDs
-
     Args:
         ctx:
             click option context
@@ -133,10 +124,8 @@ def parse_synIDs(
             click option argument name
         synIDs:
             comma separated string of synIDs
-
     Returns:
         List of synID strings
-
     Raises:
         ValueError: If the entire string does not match a regex for 
             a valid comma separated string of SynIDs
@@ -162,4 +151,7 @@ def parse_comma_str_to_list(
     ctx, param, comma_string,
 ) -> List[str]:
 
-    return comma_string.split(",")
+    if comma_string:
+        return comma_string.split(",")
+    else:
+        return None
