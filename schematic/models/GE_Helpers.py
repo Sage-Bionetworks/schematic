@@ -275,8 +275,8 @@ class GreatExpectationsHelpers(object):
                     
                     elif base_rule==("inRange"):
                         args["mostly"]=1.0
-                        args["min_value"]=float(rule.split(" ")[1]) if rule.split(" ")[1] != 'None' else None
-                        args["max_value"]=float(rule.split(" ")[2]) if rule.split(" ")[2] != 'None' else None
+                        args["min_value"]=float(rule.split(" ")[1]) if rule.split(" ")[1].lower() != 'none' else None
+                        args["max_value"]=float(rule.split(" ")[2]) if rule.split(" ")[2].lower() != 'none' else None
                         args['allow_cross_type_comparisons']=True # TODO Should follow up with issue #980
                         meta={
                             "notes": {
