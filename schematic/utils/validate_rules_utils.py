@@ -217,7 +217,6 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     validation_rules: list
     input_filetype: str, used in error generation to aid user in
         locating the source of the error.
-
     Validation Rules Formatting rules:
     Multiple Rules:
         max of 2 rules
