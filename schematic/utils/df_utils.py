@@ -19,11 +19,11 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         data_model: bool, indicates if importing a data model
         load_args: dict of key value pairs to be passed to the pd.read_csv function
         **kwargs: keyword arguments for pd.read_csv()
-
     Returns: a processed dataframe for manifests or unprocessed df for data models
     """
     #Read CSV to df as type specified in kwargs
     org_df = pd.read_csv(file_path, keep_default_na = True, encoding='utf8', **load_args)
+    
     if preserve_raw_input:
         #only trim if not data model csv
         if not data_model:
@@ -73,7 +73,6 @@ def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
     Args:
         df: data frame to normalize
         primary_key: primary key on which to perform dedup
-
     Returns: a dedupped dataframe
     """
 
@@ -96,21 +95,16 @@ def update_df(
     input_df: pd.DataFrame, updates_df: pd.DataFrame, index_col: str = "entityId"
 ) -> pd.DataFrame:
     """Update a manifest using another data frame with Synapse IDs.
-
     The input `input_df` is copied to avoid changing the input.
-
     Both input data frames must have an `entityId` column. Any rows
     in `updates_df` corresponding to entities that don't appear in
     `input_df` are silently dropped. Similarly, any columns in
     `updates_df` that don't appear in `input_df` are not added.
-
     IMPORTANT: This function is currently designed to handle empty
     manifests because it will not raise an error or warning if any
     overwriting of existing values takes place.
-
     TODO: Handle conflicts/overwriting more elegantly. See:
     https://github.com/Sage-Bionetworks/schematic/issues/312#issuecomment-725750931
-
     Args:
         input_df (pd.DataFrame): Manifest data frame. Must
         include the `index_col` column.
@@ -118,7 +112,6 @@ def update_df(
         include the `index_col` column. This data frame doesn't
         need to include all of the column names from `input_df`.
         index_col (str): Column to index the data frames on.
-
     Returns:
         pd.DataFrame: Updated `input_df` data frame.
     """
@@ -146,10 +139,8 @@ def update_df(
 
 def trim_commas_df(df: pd.DataFrame):
     """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
-
     Args:
         df: pandas dataframe with data from manifest file.
-
     Returns:
         df: cleaned-up pandas dataframe.
     """
