@@ -37,6 +37,7 @@ class ManifestGenerator(object):
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
+        use_schema_label: bool = False,
         use_annotations: bool = False,
     ) -> None:
         # use service account creds
@@ -63,7 +64,7 @@ class ManifestGenerator(object):
             self.title = f"{self.root} - Manifest"
 
         # use schema label as column headers
-        self.use_schema_label = True
+        self.use_schema_label = use_schema_label
 
         # Whether to use existing annotations during manifest generation
         self.use_annotations = use_annotations
@@ -479,6 +480,11 @@ class ManifestGenerator(object):
                     required_metadata_fields[column] = []
         return required_metadata_fields
 
+    def _convert_column_names(self, required_metadata_fields: dict) -> dict:
+        """Convert column names to schema label
+
+        """
+
     def _get_column_range_and_order(self, required_metadata_fields):
         """Find the alphabetical range of columns and sort them.
         Args:
@@ -522,13 +528,6 @@ class ManifestGenerator(object):
         )
 
         # START HERE:
-        
-        if self.use_schema_label:
-            ordered_metadata_fields = [
-                        [self.sg.get_node_label(field)
-                         for field in ordered_metadata_fields[0]
-                        ]
-                    ]
 
         body = {"values": ordered_metadata_fields}
 
@@ -1244,6 +1243,13 @@ class ManifestGenerator(object):
         required_metadata_fields = self._get_additional_metadata(
             required_metadata_fields
         )
+
+        # Convert field names to use schema_label if desired by user.
+        if self.use_schema_label:
+            #keys = required_metadata_fields.keys()
+            for key in list(required_metadata_fields):
+                required_metadata_fields.update({self.sg.get_node_label(key): required_metadata_fields[key]})
+                del required_metadata_fields[key]
         return required_metadata_fields
 
     def get_empty_manifest(self, json_schema_filepath=None):

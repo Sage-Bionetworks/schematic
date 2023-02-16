@@ -50,6 +50,10 @@ manifest_commands = {
                 "Specify to alphabetize valid attribute values either ascending (a) or descending (d)." 
                 "Optional"
             ),
+            "use_schema_label": (
+                "Specify use attribute schema label instead of display names for column headers." 
+                "Optional"
+            ),
         },
         "migrate": {
             "short_help": (
