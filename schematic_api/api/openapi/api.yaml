@@ -10,10 +10,10 @@ servers:
   - url: /v1
 
 paths:
-  /manifest/generate:
+  /get/manifest/generate:
     get:
       summary: Endpoint to facilitate manifest generation
-      description: Endpoint to create dynamically create metadata manifest files
+      description: Endpoint to dynamically create metadata manifest files
       parameters:
         - in: query
           name: schema_url
@@ -99,7 +99,7 @@ paths:
                 type: string
       tags:
         - Manifest Operations
-  /manifest/download:
+  /get/manifest/download:
     get:
       summary: Endpoint to download an existing manifest
       description: Endpoint to download an existing manifest
@@ -152,7 +152,7 @@ paths:
                 type: string
       tags:
         - Manifest Operations
-  /model/validate:
+  /post/manifest/validate:
     post:
       summary: Endpoint to facilitate manifest validation
       description: Endpoint to validate metadata manifest files
@@ -220,8 +220,8 @@ paths:
                         items:
                           type: string
       tags:
-        - Model Operations
-  /model/submit:
+        - Manifest Operations
+  /post/manifest/submit:
     post:
       summary: Endpoint to facilitate manifest submission
       description: Endpoint to submit annotated manifest files
@@ -328,11 +328,11 @@ paths:
         "500":
           description: Check schematic log
       tags:
-        - Model Operations
-  /model/component-requirements:
+        - Manifest Operations
+  /get/schema/component/requirements:
     get:
-      summary: Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it.
-      description: Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it. Useful to construct requirement dependencies not only between specific attributes but also between categories/components of attributes; it can be utilized to track metadata completion progress across multiple categories of attributes.
+      summary: Given a source model component (see https://w3id.org/biolink/vocab/category for definition of component), return all components required by it.
+      description: Given a source model component (see https://w3id.org/biolink/vocab/category for definition of component), return all components required by it. Useful to construct requirement dependencies not only between specific attributes but also between categories/components of attributes; it can be utilized to track metadata completion progress across multiple categories of attributes.
       parameters:
         - in: query
           name: schema_url
@@ -366,8 +366,8 @@ paths:
                 type: array
                 example: ["MolecularTest","Therapy","Diagnosis","FollowUp","Exposure","FamilyHistory","Demographics","Patient","BreastCancerTier3"]
       tags:
-        - Manifest Operations
-  /manifest/populate:
+        - Schema Operation
+  /post/manifest/populate:
     post:
       summary: Create a Google sheet link based on an existing manifest. 
       description: Create a Google sheet link based on an existing manifest.  
@@ -423,7 +423,7 @@ paths:
           description: Check schematic log
       tags:
         - Manifest Operations
-  /get/datatype/manifest:
+  /get/manifest/datatype:
     get:
       summary:  Get datatype of attributes in manifest
       description: Get datatype of attributes in manifest
@@ -460,7 +460,7 @@ paths:
           description: Check schematic log. 
       tags:
         - Manifest Operations
-  /storage/projects:
+  /get/storage/projects:
     get:
       summary: Get all storage projects the current user has access to
       description: Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
@@ -488,8 +488,8 @@ paths:
         "500":
           description: Check log
       tags:
-        - Synapse Storage
-  /storage/project/datasets:
+        - Asset store operation
+  /get/storage/project/datasets:
     get:
       summary: Gets all datasets in folder under a given storage project that the current user has access to.
       description: Gets all datasets in folder under a given storage project that the current user has access to.
@@ -525,8 +525,8 @@ paths:
         "500":
           description: Check log
       tags:
-        - Synapse Storage
-  /storage/dataset/files:
+        - Asset store operation
+  /get/storage/dataset/files:
     get:
       summary: Get all files in a given dataset folder
       description: Get all files in a given dataset folder
@@ -578,8 +578,8 @@ paths:
         "500":
           description: Check schematic log
       tags:
-        - Synapse Storage
-  /storage/assets/tables:
+        - Asset store operation
+  /get/storage/assets/tables:
     get:
       summary: Retrieve asset view table as a dataframe.
       description: Retrieve asset view table as a dataframe.
@@ -615,8 +615,8 @@ paths:
         "500":
           description: Check schematic log. 
       tags:
-        - Synapse Storage
-  /storage/project/manifests:
+        - Asset store operation
+  /get/storage/project/manifests:
     get:
       summary: Gets all metadata manifest files across all datasets in a specified project.
       description: Gets all metadata manifest files across all datasets in a specified project.
@@ -663,8 +663,8 @@ paths:
         "500":
           description: Check schematic log. 
       tags:
-        - Synapse Storage
-  /schemas/get/schema:
+        - Asset store operation
+  /get/schema/pickle:
     get:
       summary: Return schema as a pickle file
       description: Return schema as a pickle file
@@ -690,7 +690,7 @@ paths:
       tags:
         - Schema Operation
 
-  /explorer/find_class_specific_properties:
+  /get/schema/class/properties:
     get:
       summary: Find properties specifically associated with a given class
       description: Find properties specifically associated with a given class
@@ -719,7 +719,7 @@ paths:
           description: Check schematic log. 
       tags:
         - Schema Operation
-  /schemas/get/graph_by_edge_type:
+  /get/schema/graph/edge_type:
     get:
       summary: Get a subgraph containing all edges of a given type (aka relationship)
       description: Get a subgraph containing all edges of a given type (aka relationship)
@@ -759,7 +759,7 @@ paths:
           description: Check schematic log. 
       tags:
         - Schema Operation
-  /schemas/is_node_required:
+  /get/schema/node/if_required:
     get:
       summary: Check if a node is required or not
       description: Check if a node is required or not
@@ -789,7 +789,7 @@ paths:
       tags:
         - Schema Operation
 
-  /schemas/get_nodes_display_names:
+  /get/schema/node/display_name:
     get:
       summary: Get display names for nodes labels in a list.
       description: et display names for nodes labels in a list.
@@ -822,7 +822,7 @@ paths:
         - Schema Operation
 
 
-  /schemas/get_node_validation_rules:
+  /get/schema/node/validation_rules:
     get:
       summary: Get validation rules for a given node
       description: Get validation rules for a given node
@@ -852,7 +852,7 @@ paths:
       tags:
         - Schema Operation
 
-  /explorer/get_node_dependencies:
+  /get/schema/node/dependencies:
     get:
       summary: Get the immediate dependencies that are related to a given source node
       description: Get the immediate dependencies that are related to a given source node
@@ -898,7 +898,7 @@ paths:
       tags:
         - Schema Operation
         
-  /explorer/get_property_label_from_display_name:
+  /get/schema/display_name_to_property_label:
     get:
       summary: Converts a given display name string into a proper property label string
       description: Converts a given display name string into a proper property label string
@@ -935,7 +935,7 @@ paths:
       tags:
         - Schema Operation
       
-  /explorer/get_node_range:
+  /get/schema/node/range:
     get:
       summary: Get all the valid values that are associated with a node label.
       description: Get all the valid values that are associated with a node label.
