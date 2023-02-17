@@ -35,9 +35,9 @@ http://localhost:3001/v1/ui/
 To resolve: 
 
 Make sure that the following libraries have the correct version: 
-* itsdangerous version: 1.1.0
-* jinja2 version: 2.11.3
-* markupsafe version: 2.0.1
+* itsdangerous version: ^2.0.0
+* jinja2 version: >2.11.3
+* markupsafe version: ^2.1.0
 
 ## Notes for using schematic features and API endpoints utilizing Google Services (e.g. manifest generation): 
 Before trying out the API endpoints, please make sure that you have obtained `credentials.json`, `schematic_service_account_creds.json`, and `token.pickle`. (Instructions can be found in schematic/README.md) 
