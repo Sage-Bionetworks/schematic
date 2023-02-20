@@ -393,7 +393,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     return all_results
 
 #####profile validate manifest route function 
-@profile(sort_by='cumulative', strip_dirs=True)
+#@profile(sort_by='cumulative', strip_dirs=True)
 def validate_manifest_route(schema_url, data_type, json_str=None):
     # call config_handler()
     config_handler()
@@ -422,7 +422,7 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     return res_dict
 
 #####profile validate manifest route function 
-@profile(sort_by='cumulative', strip_dirs=True)
+#@profile(sort_by='cumulative', strip_dirs=True)
 def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None):
     # call config_handler()
     config_handler(asset_view = asset_view)
@@ -571,7 +571,7 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
-@profile(sort_by='cumulative', strip_dirs=True)  
+#@profile(sort_by='cumulative', strip_dirs=True)  
 def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
