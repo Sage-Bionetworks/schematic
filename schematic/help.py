@@ -152,6 +152,10 @@ model_commands = {
             "project_scope": (
                 "Specify a comma-separated list of projects to search through for cross manifest validation."
             ),
+            "use_schema_label": (
+                "Specify use attribute schema label instead of display names when performing manifest validation. This flag is necessary to set when manifests have been created using the same flag." 
+                "Optional"
+            ),
         },
     }
 }

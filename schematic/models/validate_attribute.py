@@ -575,7 +575,7 @@ class ValidateAttribute(object):
         return synStore, target_manifest_IDs, target_dataset_IDs    
 
     def list_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator, use_schema_label: bool,
     ) -> (List[List[str]], List[List[str]], pd.core.series.Series):
         """
         Purpose:
@@ -629,7 +629,7 @@ class ValidateAttribute(object):
         return errors, warnings, manifest_col
 
     def regex_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator, use_schema_label: bool,
     ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
@@ -719,7 +719,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def type_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator, use_schema_label: bool,
     ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
@@ -778,7 +778,7 @@ class ValidateAttribute(object):
                         warnings.append(vr_warnings)
         return errors, warnings
 
-    def url_validation(self, val_rule: str, manifest_col: str, sg: SchemaGenerator,) -> (List[List[str]], List[List[str]]):
+    def url_validation(self, val_rule: str, manifest_col: str, sg: SchemaGenerator, use_schema_label: bool,) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
@@ -875,7 +875,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, sg: SchemaGenerator, use_schema_label: bool,
     ) -> List[List[str]]:
         """
         Purpose:
@@ -900,6 +900,10 @@ class ValidateAttribute(object):
         [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
         scope=val_rule.lower().split(" ")[2]
         target_column.name=target_attribute
+
+        if use_schema_label:
+            #convert source_attribute (schema_label) to display name, so it can work with model
+            source_attribute = self.sg.get_node_display_name(source_attribute)
 
         
         #Get IDs of manifests with target component

@@ -480,10 +480,19 @@ class ManifestGenerator(object):
                     required_metadata_fields[column] = []
         return required_metadata_fields
 
-    def _convert_column_names(self, required_metadata_fields: dict) -> dict:
-        """Convert column names to schema label
-
+    def _convert_to_schema_labels(self, display_name: str) -> str:
+        """Convert display name to "schema label".
+        Args:
+            display_name (str)
+        Retuns:
+            schema_label (str): class label for the display name.
         """
+        blacklist_chars = ['(', ')', '.', ' ', '-']
+
+        schema_label = self.sg.se.get_class_label_from_display_name(
+                        str(display_name)
+                        ).translate({ord(x): '' for x in blacklist_chars})
+        return schema_label
 
     def _get_column_range_and_order(self, required_metadata_fields):
         """Find the alphabetical range of columns and sort them.
@@ -1071,8 +1080,10 @@ class ManifestGenerator(object):
             # prepare request calls
             dependency_formatting_body = {"requests": []}
 
-            # set conditiaon formatting for dependencies.
+            # set conditional formatting for dependencies.
             if val_dependencies:
+                if self.use_schema_label:
+                    val_dependencies = [self._convert_to_schema_labels(v) for v in val_dependencies]
                 dependency_formatting_body["requests"] = self._dependency_formatting(
                     i, req_val, ordered_metadata_fields, val_dependencies,
                     dependency_formatting_body
@@ -1109,36 +1120,47 @@ class ManifestGenerator(object):
                 containing all the update requests to add to the gs
         """
         # store all requests to execute at once
+        if self.use_schema_label:
+            mm_graph = self.sg.se.get_nx_schema()
+        
         requests_body = {}
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
+
+            if self.use_schema_label:
+                # If using schema label, get the display name.
+                node_label = self.sg.get_node_label(req)
+                req_display_name = mm_graph.nodes[node_label]['displayName']
+            else:
+                req_display_name = req
+
             # Gather validation rules and valid values for attribute
-            validation_rules = self.sg.get_node_validation_rules(req)
+            validation_rules = self.sg.get_node_validation_rules(req_display_name)
 
             if validation_rules:
                 requests_body =self._request_regex_match_vr_formatting(
                         validation_rules, i, spreadsheet_id, requests_body
                         )
 
-            if req in json_schema["properties"].keys():
+            if req_display_name in json_schema["properties"].keys():
                 valid_values = self._get_valid_values_from_jsonschema_property(
-                    json_schema["properties"][req]
+                    json_schema["properties"][req_display_name]
                 )
             else:
                 valid_values = []
 
             # Set row formatting
-            get_row_formatting = self._request_row_format(i, req)
+            get_row_formatting = self._request_row_format(i, req_display_name)
             if get_row_formatting:
                 requests_body["requests"].append(get_row_formatting)
 
             # Add notes to headers to provide descriptions of the attribute
-            header_notes = self._request_notes_comments(i, req, json_schema)
+            header_notes = self._request_notes_comments(i, req_display_name, json_schema)
             if header_notes:
                 requests_body["requests"].append(header_notes)
             # Add note on how to use multi-select, when appropriate
             note_vv = self._request_note_valid_values(
-                i, req, validation_rules, valid_values
+                i, req_display_name, validation_rules, valid_values
             )
             if note_vv:
                 requests_body["requests"].append(note_vv)
@@ -1244,12 +1266,12 @@ class ManifestGenerator(object):
             required_metadata_fields
         )
 
-        # Convert field names to use schema_label if desired by user.
+        # Convert field names (column headers) to use schema_label.
         if self.use_schema_label:
-            #keys = required_metadata_fields.keys()
+            sl_req_md_fields = {}
             for key in list(required_metadata_fields):
-                required_metadata_fields.update({self.sg.get_node_label(key): required_metadata_fields[key]})
-                del required_metadata_fields[key]
+                sl_req_md_fields[self._convert_to_schema_labels(key)] = required_metadata_fields[key]
+            required_metadata_fields = sl_req_md_fields
         return required_metadata_fields
 
     def get_empty_manifest(self, json_schema_filepath=None):

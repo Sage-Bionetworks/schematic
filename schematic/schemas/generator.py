@@ -341,6 +341,18 @@ class SchemaGenerator(object):
 
         return node_required
 
+    def get_node_display_name(self, node):
+        """Get display name of a particular node in graph.
+        Args:
+            node (str): Node whose display name we need
+        Returns:
+            display_name (str)
+        """
+        mm_graph = self.se.get_nx_schema()
+        node_label = self.get_node_label(node)
+        display_name = mm_graph.nodes[node_label]['displayName']
+        return display_name
+
     def get_nodes_display_names(
         self, node_list: List[str], mm_graph: nx.MultiDiGraph
     ) -> List[str]:

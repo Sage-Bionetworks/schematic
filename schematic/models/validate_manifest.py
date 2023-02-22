@@ -27,12 +27,13 @@ from schematic.utils.validate_utils import rule_in_rule_list
 logger = logging.getLogger(__name__)
 
 class ValidateManifest(object):
-    def __init__(self, errors, manifest, manifestPath, sg, jsonSchema):
+    def __init__(self, errors, manifest, manifestPath, sg, jsonSchema, use_schema_label=False):
         self.errors = errors
         self.manifest = manifest
         self.manifestPath = manifestPath
         self.sg = sg
-        self.jsonSchema = jsonSchema       
+        self.jsonSchema = jsonSchema
+        self.use_schema_label = use_schema_label
 
     def get_multiple_types_error(
         self, validation_rules: list, attribute_name: str, error_type: str
@@ -170,6 +171,9 @@ class ValidateManifest(object):
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+            if self.use_schema_label:
+                node_label = sg.get_node_label(col)
             validation_rules = sg.get_node_validation_rules(col)
 
             # Check that attribute rules conform to limits:
@@ -197,16 +201,16 @@ class ValidateManifest(object):
 
                     if validation_type == "list":
                         vr_errors, vr_warnings, manifest_col = validation_method(
-                            self, rule, manifest[col], sg,
+                            self, rule, manifest[col], sg, self.use_schema_label,
                         )
                         manifest[col] = manifest_col
                     elif validation_type.lower().startswith("match"):
                         vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], project_scope, sg,
+                            self, rule, manifest[col], project_scope, sg, self.use_schema_label,
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], sg,
+                            self, rule, manifest[col], sg, self.use_schema_label,
                         )
                     # Check for validation rule errors and add them to other errors.
                     if vr_errors:
@@ -215,6 +219,21 @@ class ValidateManifest(object):
                         warnings.extend(vr_warnings)
 
         return manifest, errors, warnings
+
+    def _convert_annotation_keys(self, annotations):
+        # If the manifest is using the schema label, convert annotation labels back to display names
+        # for validation purposes.
+        mm_graph = self.sg.se.get_nx_schema()
+
+        converted_annotations = []
+        for annotation in annotations:
+            converted_annotation = {}
+            for key in list(annotation):
+                node_label = self.sg.get_node_label(key)
+                converted_annotation[self.sg.get_node_display_name(node_label)] = annotation[key]
+            converted_annotations.append(converted_annotation)
+        annotations = converted_annotations
+        return annotations
 
     def validate_manifest_values(self, manifest, jsonSchema, sg
     ) -> (List[List[str]], List[List[str]]):
@@ -229,7 +248,15 @@ class ValidateManifest(object):
         manifest = manifest.applymap(lambda x: str(x) if isinstance(x, (int, np.int64, float, np.float64)) else x, na_action='ignore')
 
         annotations = json.loads(manifest.to_json(orient="records"))
+
+        # If using schema label, need to convert labels back to display names
+        # since this is what the validator is expecting.
+
+        if self.use_schema_label:
+            annotations = self._convert_annotation_keys(annotations)
+
         for i, annotation in enumerate(annotations):
+
             v = Draft7Validator(jsonSchema)
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
                 errorRow = i + 2
@@ -248,8 +275,8 @@ class ValidateManifest(object):
         return errors, warnings
 
 
-def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules, project_scope: List):
-    vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema)
+def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules, project_scope: List, use_schema_label: bool):
+    vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema, use_schema_label)
     manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg, restrict_rules, project_scope)
     if vmr_errors:
         errors.extend(vmr_errors)
