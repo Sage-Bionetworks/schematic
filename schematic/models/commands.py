@@ -174,8 +174,14 @@ def submit_manifest(
     callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
+@click.option(
+    "-sl",
+    "--use_schema_label",
+    is_flag=True,
+    help=query_dict(model_commands, ("model", "validate", "use_schema_label")),
+)
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope):
+def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope, use_schema_label):
     """
     Running CLI for manifest validation.
     """
@@ -203,11 +209,13 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
+        inputMModelLocation=jsonld, inputMModelLocationType=model_file_type,
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules, project_scope=project_scope,
+        manifestPath=manifest_path, rootNode=data_type, 
+        jsonSchema=json_schema, restrict_rules=restrict_rules,
+        project_scope=project_scope, use_schema_label=use_schema_label
     )
 
     if not errors:

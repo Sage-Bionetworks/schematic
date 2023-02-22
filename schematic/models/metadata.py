@@ -186,7 +186,9 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, project_scope: List = None,
+        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None,
+        project_scope: List = None,
+        use_schema_label: bool=False,
     ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
@@ -251,7 +253,7 @@ class MetadataModel(object):
 
             return errors, warnings
 
-        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope)
+        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope, use_schema_label)
         return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str, return_excel = False) -> str:
@@ -328,7 +330,7 @@ class MetadataModel(object):
 
             # automatic JSON schema generation and validation with that JSON schema
             val_errors, val_warnings = self.validateModelManifest(
-                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules, project_scope=project_scope,
+                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules, project_scope=project_scope, use_schema_label=use_schema_label
             )
 
             # if there are no errors in validation process
