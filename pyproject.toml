@@ -4,10 +4,11 @@ version = "22.3.2"
 description = "Package for biomedical data model and metadata ingress management"
 authors = [
     "Milen Nikolov <milen.nikolov@sagebase.org>",
-    "Sujay Patil <sujay.patil@sagebase.org>",
+    "Lingling Peng <lingling.peng@sagebase.org>",
+    "Mialy Defelice <mialy.defelice@sagebase.org>",
+    "Gianna Jordan <gianna.jordan@sagebase.org>",
     "Bruno Grande <bruno.grande@sagebase.org>",
     "Robert Allaway <robert.allaway@sagebionetworks.org>",
-    "Xengie Doan <xengie.doan@sagebase.org>",
 ]
 
 readme = "README.md"
@@ -68,7 +69,7 @@ openpyxl = "^3.0.9"
 Flask-Cors = "^3.0.10"
 pdoc = "^12.2.0"
 dateparser = "^1.1.4"
-schematic-db = {version = "^0.0.6", extras = ["synapse"]}
+schematic-db = {version = "0.0.6", extras = ["synapse"]}
 pyopenssl = "^23.0.0"
 
 

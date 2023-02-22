@@ -510,25 +510,20 @@ class GenerateError:
         rule_parts = val_rule.split(" ")
         rule_info = validation_rule_info()
 
-        if not sg.is_node_required(node_display_name=attribute_name):
-            # raise warning if recommended but not required
-            if 'recommended' in val_rule:
-                level = 'warning'
-            # If not required or recommended raise warnings to notify
-            else:
-                level = 'warning' 
-                return level
-        elif sg.is_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
-            level = None
-        
-        
+        #set message level to default and change after
+        if rule_parts[0] != 'schema':
+            level = rule_info[rule_parts[0]]['default_message_level']
+
         # Parse rule for level, set to default if not specified
         if rule_parts[-1].lower() == 'error' or rule_parts[0] == 'schema':
             level = 'error'
         elif rule_parts[-1].lower() == 'warning':
-            level = 'warning'
-        else:
-            level = rule_info[rule_parts[0]]['default_message_level']
+            level = 'warning'        
+        elif not sg.is_node_required(node_display_name=attribute_name):
+            # If not required raise warnings to notify
+            level = 'warning' 
+        elif sg.is_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
+            level = None
             
         return level
 

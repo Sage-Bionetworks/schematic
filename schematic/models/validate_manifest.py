@@ -138,19 +138,20 @@ class ValidateManifest(object):
             ge_helpers.build_expectation_suite()
             ge_helpers.build_checkpoint()
 
-        #run GE validation
-            results = ge_helpers.context.run_checkpoint(
-                checkpoint_name=ge_helpers.checkpoint_name,
-                batch_request={
-                    "runtime_parameters": {"batch_data": manifest},
-                    "batch_identifiers": {
-                        "default_identifier_name": "manifestID"
+            try:
+                #run GE validation
+                results = ge_helpers.context.run_checkpoint(
+                    checkpoint_name=ge_helpers.checkpoint_name,
+                    batch_request={
+                        "runtime_parameters": {"batch_data": manifest},
+                        "batch_identifiers": {
+                            "default_identifier_name": "manifestID"
+                        },
                     },
-                },
-                result_format={'result_format': 'COMPLETE'},
-            )       
-
-            ge_helpers.context.delete_checkpoint(ge_helpers.checkpoint_name) 
+                    result_format={'result_format': 'COMPLETE'},
+                )       
+            finally:
+                ge_helpers.context.delete_checkpoint(ge_helpers.checkpoint_name) 
         
             validation_results = results.list_validation_results()
             
