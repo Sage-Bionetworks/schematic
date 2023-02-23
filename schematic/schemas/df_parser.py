@@ -560,10 +560,8 @@ def create_nx_schema_objects(
                         validation_rules=class_info["validation_rules"],
                         display_name_as_schema_label=display_name_as_schema_label,
                     )
-                    try:
-                        se.edit_schema_object_nx(class_range_edit)
-                    except:
-                        breakpoint()
+                    se.edit_schema_object_nx(class_range_edit)
+
                 else:
                     # the attribute is a property
                     if display_name_as_schema_label:
@@ -588,10 +586,7 @@ def create_nx_schema_objects(
                         validation_rules=property_info["validation_rules"],
                         display_name_as_schema_label=display_name_as_schema_label,
                     )
-                    try:
-                        se.edit_schema_object_nx(property_range_edit)
-                    except:
-                        breakpoint()
+                    se.edit_schema_object_nx(property_range_edit)
 
                 logger.debug(val + " added to value range")
 
@@ -746,10 +741,8 @@ def create_nx_schema_objects(
                         validation_rules=class_info["validation_rules"],
                         display_name_as_schema_label=display_name_as_schema_label,
                     )
-                    try:
-                        se.edit_schema_object_nx(class_dependencies_edit)
-                    except:
-                        breakpoint()
+                    se.edit_schema_object_nx(class_dependencies_edit)
+
                 else:
                     # the attribute is a property then update as a property
                     if display_name_as_schema_label:
@@ -819,10 +812,8 @@ def create_nx_schema_objects(
                 requires_components=class_info["component_dependencies"],
                 display_name_as_schema_label=display_name_as_schema_label,
             )
-            try:
-                se.edit_schema_object_nx(class_component_dependencies_edit)
-            except:
-                breakpoint()
+            se.edit_schema_object_nx(class_component_dependencies_edit)
+
         logger.debug(comp_dep + " added to dependencies")
 
         # TODO check for cycles in component dependencies schema subgraph

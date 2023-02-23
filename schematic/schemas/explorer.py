@@ -488,12 +488,6 @@ class SchemaExplorer:
                             self.uri2label(record["@id"]) 
                                 for record in p_domain
                             ]
-                    #return unlist(
-                    #    [
-                    #        self.uri2label(schema_class["@id"])
-                    #        for schema_class in p_domain
-                    #    ]
-                    #)
 
         return None
 
