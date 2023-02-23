@@ -470,10 +470,14 @@ class SchemaExplorer:
 
         return label
 
-    def get_class_by_property(self, property_display_name):
-        schema_property = self.get_property_label_from_display_name(
-            property_display_name
-        )
+    def get_class_by_property(self, property_display_name, display_name_as_schema_label=False):
+        
+        if display_name_as_schema_label:
+            schema_property = property_display_name
+        else:
+            schema_property = self.get_property_label_from_display_name(
+                property_display_name
+            )
 
         for record in self.schema["@graph"]:
             if record["@type"] == "rdf:Property":

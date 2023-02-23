@@ -47,13 +47,19 @@ def schema():  # use as `schematic model ...`
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
-def convert(schema_csv, base_schema, output_jsonld):
+@click.option(
+    "--display_name_as_schema_label",
+    "-dn",
+    is_flag=True,
+    help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
+    )
+def convert(schema_csv, base_schema, display_name_as_schema_label, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
     """
     # convert RFC to Data Model
-    base_se = _convert_csv_to_data_model(schema_csv, base_schema)
+    base_se = _convert_csv_to_data_model(schema_csv, base_schema, display_name_as_schema_label)
 
     # output JSON-LD file alongside CSV file by default
     if output_jsonld is None:

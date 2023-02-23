@@ -166,6 +166,9 @@ schema_commands = {
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
+             "display_name_as_schema_label": (
+                "Flag that indicates the user wants to use their display names as the schema label."
+            ),
         }
     }
 }

@@ -55,6 +55,7 @@ def get_class(
     requires_components: list = None,
     required: bool = None,
     validation_rules: list = None,
+    display_name_as_schema_label: bool = False,
 ) -> dict:
 
     """Constructs a new schema.org compliant class given a set of schema object attributes
@@ -73,7 +74,10 @@ def get_class(
     Returns: a json schema.org object
     """
 
-    class_name = se.get_class_label_from_display_name(class_display_name)
+    if display_name_as_schema_label:
+        class_name = class_display_name
+    else:
+        class_name = se.get_class_label_from_display_name(class_display_name)
 
     # setup biothings object template with mandatory elements
     class_attributes = {
@@ -92,12 +96,20 @@ def get_class(
         if len(subclass_of) == 1 and pd.isnull(subclass_of[0]):
             parent = {"rdfs:subClassOf": [{"@id": "schema:Thing"}]}
         else:
-            parent = {
-                "rdfs:subClassOf": [
-                    {"@id": "bts:" + se.get_class_label_from_display_name(sub)}
-                    for sub in subclass_of
-                ]
-            }
+            if display_name_as_schema_label:
+                parent = {
+                    "rdfs:subClassOf": [
+                        {"@id": "bts:" + sub.strip()}
+                        for sub in subclass_of
+                    ]
+                }
+            else:
+                parent = {
+                    "rdfs:subClassOf": [
+                        {"@id": "bts:" + se.get_class_label_from_display_name(sub)}
+                        for sub in subclass_of
+                    ]
+                }
     else:
         parent = {"rdfs:subClassOf": [{"@id": "schema:Thing"}]}
 
@@ -115,12 +127,20 @@ def get_class(
 
     # add optional attribute specifying the possible values this object can be set to; can be other objects, including primitives
     if requires_range:
-        value_constraint = {
-            "schema:rangeIncludes": [
-                {"@id": "bts:" + se.get_class_label_from_display_name(val)}
-                for val in requires_range
-            ]
-        }
+        if display_name_as_schema_label:
+            value_constraint = {
+                "schema:rangeIncludes": [
+                    {"@id": "bts:" + val.strip()}
+                    for val in requires_range
+                ]
+            }
+        else:
+            value_constraint = {
+                "schema:rangeIncludes": [
+                    {"@id": "bts:" + se.get_class_label_from_display_name(val)}
+                    for val in requires_range
+                ]
+            }
         class_attributes.update(value_constraint)
 
     # add optional attribute specifying validation patterns associated with this object (e.g. precise definition of the object range)
@@ -157,6 +177,7 @@ def get_property(
     requires_dependencies: list = None,
     required: bool = None,
     validation_rules: str = None,
+    display_name_as_schema_label: bool = False,
 ) -> dict:
 
     """Constructs a new schema.org compliant property of an existing schema.org object/class; note that the property itself is a schema.org object class.
@@ -173,7 +194,10 @@ def get_property(
 
     Returns: a json schema.org  property object
     """
-    property_name = se.get_property_label_from_display_name(property_display_name)
+    if display_name_as_schema_label:
+        property_name = property_display_name
+    else:
+        property_name = se.get_property_label_from_display_name(property_display_name)
     
     property_attributes = {
         "@id": "bts:" + property_name,
@@ -186,21 +210,37 @@ def get_property(
         "schema:isPartOf": {"@id": "http://schema.biothings.io"},
     }
 
-    domain_includes = {
-            "schema:domainIncludes": [
-                {"@id": "bts:" + se.get_class_label_from_display_name(val)}
-                for val in property_class_names
-            ]
-        }
+    if display_name_as_schema_label:
+        domain_includes = {
+                "schema:domainIncludes": [
+                    {"@id": "bts:" + val}
+                    for val in property_class_names
+                ]
+            }
+    else:
+        domain_includes = {
+                "schema:domainIncludes": [
+                    {"@id": "bts:" + se.get_class_label_from_display_name(val)}
+                    for val in property_class_names
+                ]
+            }
     property_attributes.update(domain_includes)
-
+ 
     if requires_range:
-        value_constraint = {
-            "schema:rangeIncludes": [
-                {"@id": "bts:" + se.get_class_label_from_display_name(val)}
-                for val in requires_range
-            ]
-        }
+        if display_name_as_schema_label:
+            value_constraint = {
+                "schema:rangeIncludes": [
+                    {"@id": "bts:" + val}
+                    for val in requires_range
+                ]
+            }
+        else:
+            value_constraint = {
+                "schema:rangeIncludes": [
+                    {"@id": "bts:" + se.get_class_label_from_display_name(val)}
+                    for val in requires_range
+                ]
+            }
         property_attributes.update(value_constraint)
 
     if requires_dependencies:
@@ -290,7 +330,7 @@ def _prop_2_classes(properties: dict) -> dict:
     return prop_2_classes
 
 def create_nx_schema_objects(
-    schema_extension: pd.DataFrame, se: SchemaExplorer
+    schema_extension: pd.DataFrame, se: SchemaExplorer, display_name_as_schema_label: bool,
 ) -> SchemaExplorer:
     """Creates classes for all attributes and adds them to the schema.
     Args:
@@ -357,6 +397,7 @@ def create_nx_schema_objects(
                 description=attribute["Description"],
                 subclass_of=subclass_of,
                 required=required,
+                display_name_as_schema_label=display_name_as_schema_label,
             )
 
             se.add_schema_object_nx(new_class, **rel_dict)
@@ -381,6 +422,7 @@ def create_nx_schema_objects(
                 prop_2_classes[display_name],
                 description=attribute["Description"],
                 required=required,
+                display_name_as_schema_label=display_name_as_schema_label,
             )
 
             # check if attribute doesn't already exist and add it
@@ -407,9 +449,12 @@ def create_nx_schema_objects(
                     description = schema_extension.loc[
                         schema_extension["Attribute"] == p
                     ]["Description"].values[0]
-                    property_info = se.explore_property(
-                        se.get_property_label_from_display_name(p)
-                    )
+                    if display_name_as_schema_label:
+                        property_info = se.explore_property(p)
+                    else:
+                        property_info = se.explore_property(
+                            se.get_property_label_from_display_name(p)
+                        )
                     range_values = (
                         property_info["range"] if "range" in property_info else None
                     )
@@ -432,12 +477,13 @@ def create_nx_schema_objects(
                         requires_range=range_values,
                         requires_dependencies=requires_dependencies,
                         required=required,
+                        display_name_as_schema_label=display_name_as_schema_label,
                     )
                     se.edit_schema_object_nx(new_property)
                 else:
                     description = None
                     new_property = get_property(
-                        se, p, attribute, description=description
+                        se, p, attribute, description=description, display_name_as_schema_label=display_name_as_schema_label,
                     )
                     se.add_schema_object_nx(new_property, **rel_dict)
 
@@ -474,7 +520,7 @@ def create_nx_schema_objects(
                     else:
                         # this attribute is a property, set the parent to the domain class of this attribute
                         
-                        parent = se.get_class_by_property(attribute["Attribute"])
+                        parent = se.get_class_by_property(attribute["Attribute"], display_name_as_schema_label)
                         
                         if not parent:
                             raise ValueError(
@@ -482,7 +528,7 @@ def create_nx_schema_objects(
                                 "must have a class parent. The extension could not be added to the schema."
                             )
                     new_class = get_class(
-                        se, val, description=None, subclass_of=parent
+                        se, val.strip(), description=None, subclass_of=parent, display_name_as_schema_label=display_name_as_schema_label,
                     )
 
                     # check if attribute doesn't already exist and add it
@@ -492,12 +538,16 @@ def create_nx_schema_objects(
                 # update rangeIncludes of attribute
                 # if attribute is not a property, then assume it is a class
                 if not attribute["Attribute"] in all_properties:
-                    class_info = se.explore_class(
-                        se.get_class_label_from_display_name(attribute["Attribute"])
-                    )
-                    class_info["range"].append(
-                        se.get_class_label_from_display_name(val)
-                    )
+                    if display_name_as_schema_label:
+                        class_info = se.explore_class(attribute["Attribute"])
+                        class_info["range"].append(val.strip())
+                    else:
+                        class_info = se.explore_class(
+                            se.get_class_label_from_display_name(attribute["Attribute"])
+                        )
+                        class_info["range"].append(
+                            se.get_class_label_from_display_name(val.strip())
+                        )
 
                     class_range_edit = get_class(
                         se,
@@ -508,17 +558,24 @@ def create_nx_schema_objects(
                         requires_range=class_info["range"],
                         required=class_info["required"],
                         validation_rules=class_info["validation_rules"],
+                        display_name_as_schema_label=display_name_as_schema_label,
                     )
-                    se.edit_schema_object_nx(class_range_edit)
-
+                    try:
+                        se.edit_schema_object_nx(class_range_edit)
+                    except:
+                        breakpoint()
                 else:
                     # the attribute is a property
-                    property_info = se.explore_property(
-                        se.get_property_label_from_display_name(attribute["Attribute"])
-                    )
-                    property_info["range"].append(
-                        se.get_class_label_from_display_name(val)
-                    )
+                    if display_name_as_schema_label:
+                        property_info = se.explore_property(attribute["Attribute"])
+                        property_info["range"].append(val.strip())
+                    else:
+                        property_info = se.explore_property(
+                            se.get_property_label_from_display_name(attribute["Attribute"])
+                        )
+                        property_info["range"].append(
+                            se.get_class_label_from_display_name(val.strip())
+                        )
                     
                     property_range_edit = get_property(
                         se,
@@ -529,8 +586,12 @@ def create_nx_schema_objects(
                         requires_range=property_info["range"],
                         required=property_info["required"],
                         validation_rules=property_info["validation_rules"],
+                        display_name_as_schema_label=display_name_as_schema_label,
                     )
-                    se.edit_schema_object_nx(property_range_edit)
+                    try:
+                        se.edit_schema_object_nx(property_range_edit)
+                    except:
+                        breakpoint()
 
                 logger.debug(val + " added to value range")
 
@@ -554,9 +615,12 @@ def create_nx_schema_objects(
             # update validation rules of attribute
             # if attribute is not a property, then assume it is a class
             if not attribute["Attribute"] in all_properties:
-                class_info = se.explore_class(
+                if display_name_as_schema_label:
+                    class_info = se.explore_class(attribute["Attribute"])
+                else:
+                    class_info = se.explore_class(
                     se.get_class_label_from_display_name(attribute["Attribute"])
-                )
+                    )
                 class_info["validation_rules"] = validation_rules
                 class_val_rule_edit = get_class(
                     se,
@@ -567,13 +631,17 @@ def create_nx_schema_objects(
                     requires_range=class_info["range"],
                     required=class_info["required"],
                     validation_rules=class_info["validation_rules"],
+                    display_name_as_schema_label=display_name_as_schema_label,
                 )
                 se.edit_schema_object_nx(class_val_rule_edit)
             else:
                 # the attribute is a property
-                property_info = se.explore_property(
-                    se.get_property_label_from_display_name(attribute["Attribute"])
-                )
+                if display_name_as_schema_label:
+                        property_info = se.explore_property(attribute["Attribute"])
+                else:
+                    property_info = se.explore_property(
+                        se.get_property_label_from_display_name(attribute["Attribute"])
+                    )
                 property_info["validation_rules"] = validation_rules
                 property_val_rule_edit = get_property(
                     se,
@@ -584,6 +652,7 @@ def create_nx_schema_objects(
                     requires_range=property_info["range"],
                     required=property_info["required"],
                     validation_rules=property_info["validation_rules"],
+                    display_name_as_schema_label=display_name_as_schema_label,
                 )
                 se.edit_schema_object_nx(property_val_rule_edit)
             try:
@@ -601,10 +670,13 @@ def create_nx_schema_objects(
                 dep_is_property = dep in all_properties
                 dep_label = ""
                 # set dependency label based on kind of dependency: class or property
-                if dep_is_property:
-                    dep_label = se.get_property_label_from_display_name(dep)
+                if display_name_as_schema_label:
+                    dep_label = dep
                 else:
-                    dep_label = se.get_class_label_from_display_name(dep)
+                    if dep_is_property:
+                        dep_label = se.get_property_label_from_display_name(dep)
+                    else:
+                        dep_label = se.get_class_label_from_display_name(dep)
 
                 # check if dependency is in attributes column; add it to the list if not
                 if not dep.strip() in list(schema_extension["Attribute"]):
@@ -623,7 +695,7 @@ def create_nx_schema_objects(
                                 )
 
                         new_class = get_class(
-                            se, dep, description=None, subclass_of=[parent]
+                            se, dep, description=None, subclass_of=[parent], display_name_as_schema_label=display_name_as_schema_label,
                         )
                         # se.add_schema_object_nx(new_class, **rel_dict)
                         # check if attribute doesn't already exist and add it
@@ -646,7 +718,7 @@ def create_nx_schema_objects(
 
                         description = None
                         new_property = get_property(
-                            se, dep, domain_attribute, description=description
+                            se, dep, domain_attribute, description=description, display_name_as_schema_label=display_name_as_schema_label,
                         )
                         # check if attribute doesn't already exist and add it
                         if not attribute_exists(se, new_property["rdfs:label"]):
@@ -655,10 +727,14 @@ def create_nx_schema_objects(
                 # update required dependencies of attribute
                 # if attribute is not a property then assume it is a class
                 if not attribute["Attribute"] in all_properties:
-                    class_info = se.explore_class(
-                        se.get_class_label_from_display_name(attribute["Attribute"])
-                    )
+                    if display_name_as_schema_label:
+                        class_info = se.explore_class(attribute["Attribute"])
+                    else:
+                        class_info = se.explore_class(
+                            se.get_class_label_from_display_name(attribute["Attribute"])
+                        )
                     class_info["dependencies"].append(dep_label)
+                    
                     class_dependencies_edit = get_class(
                         se,
                         attribute["Attribute"],
@@ -668,13 +744,20 @@ def create_nx_schema_objects(
                         requires_range=class_info["range"],
                         required=class_info["required"],
                         validation_rules=class_info["validation_rules"],
+                        display_name_as_schema_label=display_name_as_schema_label,
                     )
-                    se.edit_schema_object_nx(class_dependencies_edit)
+                    try:
+                        se.edit_schema_object_nx(class_dependencies_edit)
+                    except:
+                        breakpoint()
                 else:
                     # the attribute is a property then update as a property
-                    property_info = se.explore_property(
-                        se.get_property_label_from_display_name(attribute["Attribute"])
-                    )
+                    if display_name_as_schema_label:
+                        property_info = se.explore_property(attribute["Attribute"])
+                    else:
+                        property_info = se.explore_property(
+                            se.get_property_label_from_display_name(attribute["Attribute"])
+                        )
                     property_info["dependencies"].append(dep_label)
                     property_dependencies_edit = get_property(
                         se,
@@ -685,6 +768,7 @@ def create_nx_schema_objects(
                         requires_range=property_info["range"],
                         required=property_info["required"],
                         validation_rules=property_info["validation_rules"],
+                        display_name_as_schema_label=display_name_as_schema_label,
                     )
                     se.edit_schema_object_nx(property_dependencies_edit)
 
@@ -705,7 +789,7 @@ def create_nx_schema_objects(
             if not comp_dep.strip() in list(schema_extension["Attribute"]):
 
                 # component is not in csv schema so try adding it as a class with a parent Thing
-                new_class = get_class(se, comp_dep, description=None)
+                new_class = get_class(se, comp_dep, description=None, display_name_as_schema_label=display_name_as_schema_label)
 
                 # check if attribute doesn't already exist in schema.org schema and add it
                 # (component may not be in csv schema, but could be in the base schema we are extending)
@@ -713,12 +797,17 @@ def create_nx_schema_objects(
                     se.add_schema_object_nx(new_class, **rel_dict)
 
             # update this attribute requirements to include component
-            class_info = se.explore_class(
-                se.get_class_label_from_display_name(attribute["Attribute"])
-            )
-            class_info["component_dependencies"].append(
-                se.get_class_label_from_display_name(comp_dep)
-            )
+            if display_name_as_schema_label:
+                class_info = se.explore_class(attribute["Attribute"])
+                class_info["component_dependencies"].append(comp_dep.strip())
+            else:
+                class_info = se.explore_class(
+                    se.get_class_label_from_display_name(attribute["Attribute"])
+                )
+                class_info["component_dependencies"].append(
+                    se.get_class_label_from_display_name(comp_dep)
+                )
+    
             class_component_dependencies_edit = get_class(
                 se,
                 attribute["Attribute"],
@@ -728,9 +817,12 @@ def create_nx_schema_objects(
                 requires_range=class_info["range"],
                 validation_rules=class_info["validation_rules"],
                 requires_components=class_info["component_dependencies"],
+                display_name_as_schema_label=display_name_as_schema_label,
             )
-            se.edit_schema_object_nx(class_component_dependencies_edit)
-
+            try:
+                se.edit_schema_object_nx(class_component_dependencies_edit)
+            except:
+                breakpoint()
         logger.debug(comp_dep + " added to dependencies")
 
         # TODO check for cycles in component dependencies schema subgraph
@@ -756,7 +848,7 @@ def _get_base_schema_path(base_schema: str = None) -> str:
 
 
 def _convert_csv_to_data_model(
-    schema_csv: str, base_schema: str = None
+    schema_csv: str, base_schema: str = None, display_name_as_schema_label: bool = False,
 ) -> SchemaExplorer:
     """Convert provided CSV spec. in CSV format to data model in JSON-LD format.
 
@@ -782,6 +874,6 @@ def _convert_csv_to_data_model(
 
     # call parser code that converts a dataframe of the RFC
     # specs. into a JSON-LD data model
-    base_se = create_nx_schema_objects(rfc_df, base_se)
+    base_se = create_nx_schema_objects(rfc_df, base_se, display_name_as_schema_label)
 
     return base_se
