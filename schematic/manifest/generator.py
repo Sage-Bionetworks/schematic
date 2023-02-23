@@ -1609,7 +1609,6 @@ class ManifestGenerator(object):
         # initalize excel writer
         with pd.ExcelWriter(existing_excel_path, mode='a', engine='openpyxl', if_sheet_exists='overlay') as writer: 
 
-            # writer = pd.ExcelWriter(existing_excel_path, engine='openpyxl')
             writer.worksheets = {ws.title: ws for ws in workbook.worksheets}
             worksheet = writer.worksheets["Sheet1"]
 
