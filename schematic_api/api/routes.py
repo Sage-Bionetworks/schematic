@@ -575,7 +575,7 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
-@profile(sort_by='cumulative', strip_dirs=True)  
+#@profile(sort_by='cumulative', strip_dirs=True)  
 def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
