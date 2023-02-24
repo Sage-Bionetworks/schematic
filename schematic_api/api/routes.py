@@ -38,6 +38,7 @@ import io
 # def after_request(var1, var2):
 #     # Do stuff after your route executes
 #     pass
+from flask_cors import cross_origin
 
 def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_dirs=False):
     """
@@ -534,6 +535,7 @@ def get_component_requirements(schema_url, source_component, as_graph):
 
     return req_components
 
+@cross_origin()
 def get_viz_attributes_explorer(schema_url):
     # call config_handler()
     config_handler()
@@ -544,6 +546,7 @@ def get_viz_attributes_explorer(schema_url):
 
     return attributes_csv
 
+@cross_origin()
 def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
    
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
@@ -556,6 +559,7 @@ def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
     
     return text_df
 
+@cross_origin()
 def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     # call config_handler()
@@ -571,7 +575,7 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
-#@profile(sort_by='cumulative', strip_dirs=True)  
+@profile(sort_by='cumulative', strip_dirs=True)  
 def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
