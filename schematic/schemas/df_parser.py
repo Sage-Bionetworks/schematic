@@ -330,7 +330,7 @@ def _prop_2_classes(properties: dict) -> dict:
     return prop_2_classes
 
 def create_nx_schema_objects(
-    schema_extension: pd.DataFrame, se: SchemaExplorer, display_name_as_schema_label: bool,
+    schema_extension: pd.DataFrame, se: SchemaExplorer, display_name_as_schema_label: bool = False,
 ) -> SchemaExplorer:
     """Creates classes for all attributes and adds them to the schema.
     Args:
