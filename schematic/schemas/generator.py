@@ -256,7 +256,7 @@ class SchemaGenerator(object):
 
         return required_range
 
-    def get_node_label(self, node_display_name: str) -> str:
+    def get_node_label(self, node_display_name: str, display_name_as_schema_label: bool = False) -> str:
         """Get the node label for a given display name.
 
         Args:
@@ -270,21 +270,27 @@ class SchemaGenerator(object):
         """
         mm_graph = self.se.get_nx_schema()
 
-        node_class_label = self.se.get_class_label_from_display_name(node_display_name)
-        node_property_label = self.se.get_property_label_from_display_name(
-            node_display_name
-        )
-
-        if node_class_label in mm_graph.nodes:
-            node_label = node_class_label
-        elif node_property_label in mm_graph.nodes:
-            node_label = node_property_label
+        if display_name_as_schema_label:
+            if node_display_name in mm_graph.nodes():
+                node_label = node_display_name
+            else:
+                node_label = ""
         else:
-            node_label = ""
+            node_class_label = self.se.get_class_label_from_display_name(node_display_name)
+            node_property_label = self.se.get_property_label_from_display_name(
+                node_display_name
+            )
+
+            if node_class_label in mm_graph.nodes:
+                node_label = node_class_label
+            elif node_property_label in mm_graph.nodes:
+                node_label = node_property_label
+            else:
+                node_label = ""
 
         return node_label
 
-    def get_node_definition(self, node_display_name: str) -> str:
+    def get_node_definition(self, node_display_name: str, display_name_as_schema_label: bool = False) -> str:
         """Get the node definition, i.e., the "comment" associated with a given node display name.
 
         Args:
@@ -293,7 +299,7 @@ class SchemaGenerator(object):
         Returns:
             Comment associated with node, as a string.
         """
-        node_label = self.get_node_label(node_display_name)
+        node_label = self.get_node_label(node_display_name, display_name_as_schema_label)
 
         if not node_label:
             return ""
@@ -303,7 +309,7 @@ class SchemaGenerator(object):
 
         return node_definition
 
-    def get_node_validation_rules(self, node_display_name: str) -> str:
+    def get_node_validation_rules(self, node_display_name: str, display_name_as_schema_label: bool = False) -> str:
         """Get validation rules associated with a node,
 
         Args:
@@ -312,7 +318,7 @@ class SchemaGenerator(object):
         Returns:
             A set of validation rules associated with node, as a list.
         """
-        node_label = self.get_node_label(node_display_name)
+        node_label = self.get_node_label(node_display_name, display_name_as_schema_label)
 
         if not node_label:
             return []
@@ -322,7 +328,7 @@ class SchemaGenerator(object):
 
         return node_validation_rules
 
-    def is_node_required(self, node_display_name: str) -> bool:
+    def is_node_required(self, node_display_name: str, display_name_as_schema_label=False) -> bool:
         """Check if a given node is required or not.
 
         Note: The possible options that a node can be associated with -- "required" / "optional".
@@ -334,7 +340,7 @@ class SchemaGenerator(object):
             True: If the given node is a "required" node.
             False: If the given node is not a "required" (i.e., an "optional") node.
         """
-        node_label = self.get_node_label(node_display_name)
+        node_label = self.get_node_label(node_display_name, display_name_as_schema_label)
 
         mm_graph = self.se.get_nx_schema()
         node_required = mm_graph.nodes[node_label]["required"]

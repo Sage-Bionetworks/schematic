@@ -782,6 +782,13 @@ paths:
           description: Display label of a node
           example: FamilyHistory
           required: true
+        - in: query
+          name: display_name_as_schema_label
+          schema:
+            type: boolean
+            nullable: true
+          description: Use the display name as schema label
+          required: false
       responses:
         "200":
           description: return a boolean 
@@ -793,7 +800,7 @@ paths:
   /schemas/get_nodes_display_names:
     get:
       summary: Get display names for nodes labels in a list.
-      description: et display names for nodes labels in a list.
+      description: Get display names for nodes labels in a list.
       operationId: api.routes.get_nodes_display_names
       parameters:
         - in: query
@@ -845,6 +852,13 @@ paths:
           description: Display label of node
           example: CheckRegexList
           required: true
+        - in: query
+          name: display_name_as_schema_label
+          schema:
+            type: boolean
+            nullable: true
+          description: Use the display name as schema label
+          required: false
       responses:
         "200":
           description: return a list
@@ -928,6 +942,14 @@ paths:
             nullable: false
           description: If true the more strict way of
             converting to camel case is used.
+        - in: query
+          name: display_name_as_schema_label
+          schema:
+            type: boolean
+            nullable: true
+          description: Use the display name as schema label
+          required: false
+          example: false
       responses:
         "200":
           description: The property label of the display name.

@@ -660,7 +660,8 @@ def get_node_dependencies(
 def get_property_label_from_display_name(
     schema_url: str,
     display_name: str,
-    strict_camel_case: bool = False
+    strict_camel_case: bool = False,
+    display_name_as_schema_label: bool = False,
 ) -> str:
     """Converts a given display name string into a proper property label string
 
@@ -675,7 +676,7 @@ def get_property_label_from_display_name(
     """
     explorer = SchemaExplorer()
     explorer.load_schema(schema_url)
-    label = explorer.get_property_label_from_display_name(display_name, strict_camel_case)
+    label = explorer.get_property_label_from_display_name(display_name, strict_camel_case, display_name_as_schema_label)
     return label
 
 
@@ -699,7 +700,7 @@ def get_node_range(
     node_range = gen.get_node_range(node_label, return_display_names)
     return node_range
 
-def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
+def get_if_node_required(schema_url: str, node_display_name: str, display_name_as_schema_label: bool = False) -> bool:
     """Check if the node is required
 
     Args:
@@ -711,11 +712,11 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
         False: If the given node is not a "required" (i.e., an "optional") node.
     """
     gen = SchemaGenerator(path_to_json_ld=schema_url)
-    is_required = gen.is_node_required(node_display_name)
+    is_required = gen.is_node_required(node_display_name, display_name_as_schema_label)
 
     return is_required
 
-def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
+def get_node_validation_rules(schema_url: str, node_display_name: str, display_name_as_schema_label: bool = False) -> list:
     """
     Args:
         schema_url (str): Data Model URL
@@ -724,7 +725,7 @@ def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
         List of valiation rules for a given node.
     """
     gen = SchemaGenerator(path_to_json_ld=schema_url)
-    node_validation_rules = gen.get_node_validation_rules(node_display_name)
+    node_validation_rules = gen.get_node_validation_rules(node_display_name, display_name_as_schema_label)
 
     return node_validation_rules
 
