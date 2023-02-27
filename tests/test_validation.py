@@ -185,7 +185,7 @@ class TestManifestValidation:
             row_num = '[3]',
             attribute_name='Check Match at Least',
             invalid_entry = '[7163]',
-            missing_manifest_ID = ['syn27600110', 'syn29381803'],
+            missing_manifest_ID = ['syn27600110', 'syn29381803', 'syn42173343'],
             sg = sg,
             )[1] in warnings
 
@@ -315,7 +315,7 @@ class TestManifestValidation:
             row_num = '[3]',
             attribute_name='Check Match at Least',
             invalid_entry = '[7163]',
-            missing_manifest_ID = ['syn27600110', 'syn29381803'],
+            missing_manifest_ID = ['syn27600110', 'syn29381803', 'syn42173343'],
             sg = sg,
             )[1] in warnings
 
