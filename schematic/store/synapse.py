@@ -1123,17 +1123,7 @@ class SynapseStorage(BaseStorage):
             FileNotFoundError: Manifest file does not exist at provided path.
 
         """
-
-        # Check that record type provided matches expected input.
-        manifest_record_types = ['entity', 'table', 'both']
-        try:
-            manifest_record_type in manifest_record_types
-        except ValueError as err:
-            raise ValueError(
-                f"manifest_record_type provided: {manifest_record_type}, is not one of the accepted "
-                f"types: {manifest_record_types}"
-            ) from err
-
+        
         # read new manifest csv
         try:
             load_args={
