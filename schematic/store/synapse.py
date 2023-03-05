@@ -1153,10 +1153,10 @@ class SynapseStorage(BaseStorage):
             table_name = component_name + '_synapse_storage_manifest_table'
         else:
             component_name = ''
-            table_name = 'synapse_storage_manifest_table'
+            tabsle_name = 'synapse_storage_manifest_table'
         return table_name, component_name
 
-    def add_annotations(self, se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks):
+    def _add_annotations(self, se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks):
         """Helper function to format and add annotations to entities in Synapse.
         Args:
             se: schemaExplorer object,
@@ -1206,11 +1206,22 @@ class SynapseStorage(BaseStorage):
                     hideBlanks,
                     manifest_synapse_table_id=''
                     ):
-        '''Depending on upload type add Ids to entity row.
+        '''Depending on upload type add Ids to entityId row. Add anotations to connected files.
+        Args:
+            se: Schema Explorer Object
+            schemaGenerator: SchemaGenerator object
+            manifest (pd.DataFrame): loaded df containing user supplied data.
+            manifest_record_type:
+            datasetId:
+            useSchemaLabel:
+            hideBlanks:
+            manifest_synapse_table_id: Default is an empty string ''.
+        Returns
+
         '''
         for idx, row in manifest.iterrows():
-            if not row["entityId"] and (manifest_record_type == 'entity' or 
-                manifest_record_type == 'both'):
+            if not row["entityId"] and (manifest_record_type == 'file_w_entities' or 
+                manifest_record_type == 'combo'):
                 manifest, entityId = self._create_entity_id(idx, row, manifest, datasetId)
             elif not row["entityId"] and manifest_record_type == 'table':
                 # If not using entityIds, fill with manifest_table_id so 
@@ -1223,7 +1234,7 @@ class SynapseStorage(BaseStorage):
 
             # Adding annotations to connected files.
             if entityId:
-                self.add_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
+                self._add_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
         return manifest
 
     
@@ -1245,13 +1256,18 @@ class SynapseStorage(BaseStorage):
                             ):
         """Upload manifest to Synapse as a table and csv.
         Args:
-            #se: schema explorer object
+            se: SchemaExplorer object
+            schemaGenerator: SchemaGenerator Object
             manifest (pd.DataFrame): loaded df containing user supplied data.
             datasetId (str): synapse ID of folder containing the dataset
             restrict_manifest(bool): Default is false. Flag for censored data.
             table_name (str): Generated to name the table being uploaded.
-            useSchemaLabel (bool): True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
-            table_malnipulation (str): Default is 'replace'. Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.
+            component_name (str): Name of the component manifest that is currently being uploaded.
+            restrict (bool): Flag for censored data.
+            manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
+            useSchemaLabel: Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
+            hideBlanks: Default is false -Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
+            table_malnipulation (str): Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.
         Return:
             manifest_synapse_file_id: SynID of manifest csv uploaded to synapse.
         """
@@ -1383,7 +1399,7 @@ class SynapseStorage(BaseStorage):
         return manifest_synapse_file_id
 
     def associateMetadataWithFiles(
-        self, schemaGenerator: SchemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'both', 
+        self, schemaGenerator: SchemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'combo', 
         useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False, table_manipulation: str = 'replace',
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
@@ -1403,7 +1419,7 @@ class SynapseStorage(BaseStorage):
             Some datasets, e.g. clinical data, do not contain file id's, but data is stored in a table: one row per item.
             In this case, the system creates a file on Synapse for each row in the table (e.g. patient, biospecimen) and associates the columnset data as metadata/annotations to his file.
             datasetId: synapse ID of folder containing the dataset
-            manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
+            manifest_record_type: Default value is 'combo'. valid values are 'file', 'file_w_entities', 'table' or 'combo'. 'file_w_entities' will store the manifest as a csv and create Synapse files for each row in the manifest.'table' will store the manifest as a table and a csv on Synapse. 'file' will store the manifest as a csv only on Synapse. 'combo' will perform the options file_with_entites and table in combination.
             useSchemaLabel: Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
             hideBlanks: Default is false. Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
             restrict_manifest (bool): Default is false. Flag for censored data.
@@ -1439,36 +1455,7 @@ class SynapseStorage(BaseStorage):
                                         manifest_record_type=manifest_record_type,
                                         table_manipulation=table_manipulation,
                                         )
-        if manifest_record_type == "entity":
-            manifest_synapse_file_id = self.upload_manifest_as_csv( 
-                                        se,
-                                        schemaGenerator,
-                                        manifest,
-                                        metadataManifestPath,
-                                        datasetId,
-                                        restrict=restrict_manifest,
-                                        useSchemaLabel=useSchemaLabel,
-                                        hideBlanks=hideBlanks,
-                                        manifest_record_type=manifest_record_type,
-                                        component_name = component_name,
-                                        with_entities=True,
-                                        )
-        if manifest_record_type == "both":
-            manifest_synapse_file_id = self.upload_manifest_combo(
-                                        se,
-                                        schemaGenerator,
-                                        manifest,
-                                        metadataManifestPath,
-                                        datasetId,
-                                        table_name,
-                                        component_name,
-                                        restrict=restrict_manifest,
-                                        useSchemaLabel=useSchemaLabel,
-                                        hideBlanks=hideBlanks,
-                                        manifest_record_type=manifest_record_type,
-                                        table_manipulation=table_manipulation,
-                                        )
-        if manifest_record_type == "manifest":
+        elif manifest_record_type == "file":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
                                         se,
                                         schemaGenerator,
@@ -1483,6 +1470,35 @@ class SynapseStorage(BaseStorage):
                                         with_entities = False,
                                         )
 
+        elif manifest_record_type == "file_w_entities":
+            manifest_synapse_file_id = self.upload_manifest_as_csv( 
+                                        se,
+                                        schemaGenerator,
+                                        manifest,
+                                        metadataManifestPath,
+                                        datasetId,
+                                        restrict=restrict_manifest,
+                                        useSchemaLabel=useSchemaLabel,
+                                        hideBlanks=hideBlanks,
+                                        manifest_record_type=manifest_record_type,
+                                        component_name = component_name,
+                                        with_entities=True,
+                                        )
+        elif manifest_record_type == "combo":
+            manifest_synapse_file_id = self.upload_manifest_combo(
+                                        se,
+                                        schemaGenerator,
+                                        manifest,
+                                        metadataManifestPath,
+                                        datasetId,
+                                        table_name,
+                                        component_name,
+                                        restrict=restrict_manifest,
+                                        useSchemaLabel=useSchemaLabel,
+                                        hideBlanks=hideBlanks,
+                                        manifest_record_type=manifest_record_type,
+                                        table_manipulation=table_manipulation,
+                                        )
         return manifest_synapse_file_id
 
     def getTableAnnotations(self, table_id:str):

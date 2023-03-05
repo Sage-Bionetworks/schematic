@@ -79,8 +79,8 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='both',
-    type=click.Choice(['table', 'entity', 'both', 'manifest'], case_sensitive=True),
+    default='combo',
+    type=click.Choice(['table', 'file', 'file_w_entities', 'combo'], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
 @click.option(
     "-rr",
