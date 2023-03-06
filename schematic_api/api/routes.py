@@ -535,7 +535,7 @@ def get_component_requirements(schema_url, source_component, as_graph):
 
     return req_components
 
-@cross_origin(["http://localhost:8000/main.html", "https://sage-bionetworks.github.io/schema_visualization/"])
+@cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
 def get_viz_attributes_explorer(schema_url):
     # call config_handler()
     config_handler()
@@ -546,7 +546,7 @@ def get_viz_attributes_explorer(schema_url):
 
     return attributes_csv
 
-@cross_origin(["http://localhost:8000/main.html", "https://sage-bionetworks.github.io/schema_visualization/"])
+@cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
 def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
    
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
