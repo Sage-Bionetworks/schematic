@@ -559,7 +559,7 @@ def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
     
     return text_df
 
-@cross_origin(["http://localhost:8000/main.html", "https://sage-bionetworks.github.io/schema_visualization/"])
+@cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
 def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     # call config_handler()
