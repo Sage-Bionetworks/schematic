@@ -1146,6 +1146,7 @@ class SynapseStorage(BaseStorage):
             Manifest loaded as a pd.Dataframe
         Returns:
             table_name (str): Name of the table to load
+            component_name (str): Name of the manifest component (if applicable)
         """
         # Create table name here.
         if 'Component' in manifest.columns:
@@ -1211,12 +1212,13 @@ class SynapseStorage(BaseStorage):
             se: Schema Explorer Object
             schemaGenerator: SchemaGenerator object
             manifest (pd.DataFrame): loaded df containing user supplied data.
-            manifest_record_type:
-            datasetId:
-            useSchemaLabel:
-            hideBlanks:
-            manifest_synapse_table_id: Default is an empty string ''.
-        Returns
+            manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
+            datasetId (str): synapse ID of folder containing the dataset
+            useSchemaLabel (bool): Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
+            hideBlanks (bool): Default is false -Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
+            manifest_synapse_table_id (str): Default is an empty string ''.
+        Returns:
+            manifest (pd.DataFrame): modified to add entitiyId as appropriate.
 
         '''
         for idx, row in manifest.iterrows():
@@ -1236,8 +1238,6 @@ class SynapseStorage(BaseStorage):
             if entityId:
                 self._add_annotations(se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks)
         return manifest
-
-    
 
     def upload_manifest_as_table(
                             self,
@@ -1259,19 +1259,18 @@ class SynapseStorage(BaseStorage):
             se: SchemaExplorer object
             schemaGenerator: SchemaGenerator Object
             manifest (pd.DataFrame): loaded df containing user supplied data.
+            metadataManifestPath: path to csv containing a validated metadata manifest.
             datasetId (str): synapse ID of folder containing the dataset
-            restrict_manifest(bool): Default is false. Flag for censored data.
             table_name (str): Generated to name the table being uploaded.
             component_name (str): Name of the component manifest that is currently being uploaded.
             restrict (bool): Flag for censored data.
-            manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
-            useSchemaLabel: Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
-            hideBlanks: Default is false -Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
+            manifest_record_type (str): valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
+            useSchemaLabel(bool): Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
+            hideBlanks (bool): Default is False -Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
             table_malnipulation (str): Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.
         Return:
             manifest_synapse_file_id: SynID of manifest csv uploaded to synapse.
-        """
-        
+        """      
         # Upload manifest as a table, get the ID and updated manifest.
         manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
                                                     se,
@@ -1319,16 +1318,21 @@ class SynapseStorage(BaseStorage):
                             hideBlanks,
                             component_name,
                             with_entities = False,):
-
         """Upload manifest to Synapse as a csv only.
         Args:
+            se: SchemaExplorer object
+            schemaGenerator: SchemaGenerator Object
             manifest (pd.DataFrame): loaded df containing user supplied data.
             metadataManifestPath: path to csv containing a validated metadata manifest.
             datasetId (str): synapse ID of folder containing the dataset
-            restrict_manifest(bool): Default is false. Flag for censored data.
-            component_name (str): Name of component the manifest represents. If no component is ''.
+            restrict (bool): Flag for censored data.
+            manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
+            useSchemaLabel (bool): Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
+            hideBlanks (bool): Default is False -Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
+            table_malnipulation (str): Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.
+            with_entities (bool): Default is False - Flag to indicate whether to create entityIds and add annotations.
         Return:
-            manifest_synapse_file_id: SynID of manifest csv uploaded to synapse.
+            manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
         if with_entities:
             manifest = self.add_entities(se, schemaGenerator, manifest, manifest_record_type, datasetId, useSchemaLabel, hideBlanks)
@@ -1361,7 +1365,21 @@ class SynapseStorage(BaseStorage):
                             table_manipulation,
                             ):
         """Upload manifest to Synapse as a table and CSV with entities.
-
+        Args:
+            se: SchemaExplorer object
+            schemaGenerator: SchemaGenerator Object
+            manifest (pd.DataFrame): loaded df containing user supplied data.
+            metadataManifestPath: path to csv containing a validated metadata manifest.
+            datasetId (str): synapse ID of folder containing the dataset
+            table_name (str): Generated to name the table being uploaded.
+            component_name (str): Name of the component manifest that is currently being uploaded.
+            restrict (bool): Flag for censored data.
+            manifest_record_type: valid values are 'entity', 'table' or 'both'. Specifies whether to create entity ids and folders for each row in a manifest, a Synapse table to house the entire manifest or do both.
+            useSchemaLabel (bool): Default is True - use the schema label. If False, uses the display label from the schema. Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'.
+            hideBlanks (bool): Default is False -Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
+            table_malnipulation (str): Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.
+        Return:
+            manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
         manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
                                                     se,
@@ -1371,7 +1389,6 @@ class SynapseStorage(BaseStorage):
                                                     restrict,
                                                     useSchemaLabel=useSchemaLabel,
                                                     table_manipulation=table_manipulation,)
-
 
         manifest = self.add_entities(se, schemaGenerator, manifest, manifest_record_type, datasetId, useSchemaLabel, hideBlanks, manifest_synapse_table_id)
         
@@ -1414,6 +1431,7 @@ class SynapseStorage(BaseStorage):
         for downstream query and interaction with the data.
 
         Args:
+            schemaGenerator: SchemaGenerator Object
             metadataManifestPath: path to csv containing a validated metadata manifest.
             The manifest should include a column entityId containing synapse IDs of files/entities to be associated with metadata, if that is applicable to the dataset type.
             Some datasets, e.g. clinical data, do not contain file id's, but data is stored in a table: one row per item.
@@ -1426,8 +1444,6 @@ class SynapseStorage(BaseStorage):
             table_malnipulation (str): Default is 'replace'. Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.
         Returns:
             manifest_synapse_file_id: SynID of manifest csv uploaded to synapse.
-
-        
         """
 
         # Read new manifest CSV:
