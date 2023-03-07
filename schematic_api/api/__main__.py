@@ -12,7 +12,7 @@ def main():
     port = int(port)
 
     # Launch app
-    CORS(app, resources={r"*": {"origins": "*"}})
+    # CORS(app, resources={r"*": {"origins": "*"}})
     app.run(host=host, port=port, debug=False)
 
 if __name__ == "__main__":
