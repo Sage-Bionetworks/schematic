@@ -25,7 +25,7 @@ from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import rule_in_rule_list
 
 
-from time import time
+from time import perf_counter
 logger = logging.getLogger(__name__)
 
 class ValidateManifest(object):
@@ -127,7 +127,7 @@ class ValidateManifest(object):
         warnings = [] 
 
         if not restrict_rules:
-            t_GE = time()
+            t_GE = perf_counter()
             #operations necessary to set up and run ge suite validation
             ge_helpers=GreatExpectationsHelpers(
                 sg=sg,
@@ -166,11 +166,11 @@ class ValidateManifest(object):
                 validation_types = validation_types,
                 sg = sg,
                 )        
-            logger.debug(f"GE Elaplsed time {time()-t_GE}")       
+            logger.debug(f"GE Elaplsed time {perf_counter()-t_GE}")       
         else:             
             logger.info("Great Expetations suite will not be utilized.")  
 
-        t_err=time()
+        t_err=perf_counter()
         regex_re=re.compile('regex.*')
         for col in manifest.columns:
             
@@ -196,7 +196,7 @@ class ValidateManifest(object):
                         logger.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                         continue  
 
-                    t_indiv_rule=time()
+                    t_indiv_rule=perf_counter()
                     #Validate for each individual validation rule.
                     validation_method = getattr(
                             ValidateAttribute, validation_types[validation_type]['type']
@@ -220,8 +220,8 @@ class ValidateManifest(object):
                         errors.extend(vr_errors)
                     if vr_warnings:
                         warnings.extend(vr_warnings)
-                    logger.debug(f"Rule {rule} elapsed time: {time()-t_indiv_rule}")
-        logger.debug(f"In House validation elapsed time {time()-t_err}")
+                    logger.debug(f"Rule {rule} elapsed time: {perf_counter()-t_indiv_rule}")
+        logger.debug(f"In House validation elapsed time {perf_counter()-t_err}")
         return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema, sg

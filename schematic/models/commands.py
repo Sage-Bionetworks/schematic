@@ -15,7 +15,7 @@ from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
 
-import time
+from time import perf_counter
 logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
@@ -199,7 +199,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-    t = time.time()
+    t_validate = perf_counter()
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -222,5 +222,5 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         click.echo(errors)
 
     logger.debug(
-        f"Total elapsed time {time.time()-t} seconds"
+        f"Total elapsed time {perf_counter()-t_validate} seconds"
     )
