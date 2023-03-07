@@ -10,7 +10,7 @@ from schematic.schemas.df_parser import _convert_csv_to_data_model
 from schematic.utils.cli_utils import query_dict
 from schematic.help import schema_commands
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
