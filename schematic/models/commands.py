@@ -15,7 +15,7 @@ from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
 
-logger = logging.getLogger()
+logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
