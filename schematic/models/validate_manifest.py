@@ -196,6 +196,7 @@ class ValidateManifest(object):
                         logger.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                         continue  
 
+                    t_indiv_rule=time()
                     #Validate for each individual validation rule.
                     validation_method = getattr(
                             ValidateAttribute, validation_types[validation_type]['type']
@@ -219,7 +220,8 @@ class ValidateManifest(object):
                         errors.extend(vr_errors)
                     if vr_warnings:
                         warnings.extend(vr_warnings)
-        logger.debug(f"Errors elapsed time {time()-t_err}")
+                    logger.debug(f"Rule {rule} elapsed time: {time()-t_indiv_rule}")
+        logger.debug(f"In House validation elapsed time {time()-t_err}")
         return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema, sg
