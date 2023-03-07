@@ -186,6 +186,12 @@ paths:
           example: Patient
           required: true
         - in: query
+          name: restrict_rules
+          schema:
+            type: boolean
+            default: false
+          description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
+        - in: query
           name: json_str
           required: false
           schema:
