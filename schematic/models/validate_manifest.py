@@ -24,6 +24,8 @@ from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import rule_in_rule_list
 
+
+from time import time
 logger = logging.getLogger(__name__)
 
 class ValidateManifest(object):
@@ -125,6 +127,7 @@ class ValidateManifest(object):
         warnings = [] 
 
         if not restrict_rules:
+            t_GE = time()
             #operations necessary to set up and run ge suite validation
             ge_helpers=GreatExpectationsHelpers(
                 sg=sg,
@@ -162,13 +165,15 @@ class ValidateManifest(object):
                 validation_results = validation_results,
                 validation_types = validation_types,
                 sg = sg,
-                )               
+                )        
+            logging.info(f"GE Elaplsed time {time()-t_GE}")       
         else:             
-            logging.info("Great Expetations suite will not be utilized.")  
+            logger.info("Great Expetations suite will not be utilized.")  
 
-
+        t_err=time()
         regex_re=re.compile('regex.*')
         for col in manifest.columns:
+            
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
@@ -188,7 +193,7 @@ class ValidateManifest(object):
                 validation_type = rule.split(" ")[0]
                 if rule_in_rule_list(rule,unimplemented_expectations) or (rule_in_rule_list(rule,in_house_rules) and restrict_rules):
                     if not rule_in_rule_list(rule,in_house_rules):
-                        logging.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
+                        logger.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                         continue  
 
                     #Validate for each individual validation rule.
@@ -214,7 +219,7 @@ class ValidateManifest(object):
                         errors.extend(vr_errors)
                     if vr_warnings:
                         warnings.extend(vr_warnings)
-
+        logging.info(f"Errors elapsed time {time()-t_err}")
         return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema, sg
