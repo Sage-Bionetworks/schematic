@@ -15,6 +15,7 @@ from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
 
+import time
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
 
@@ -108,7 +109,7 @@ def submit_manifest(
     """
     Running CLI with manifest validation (optional) and submission options.
     """
-
+    
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -136,6 +137,7 @@ def submit_manifest(
             f"File at '{manifest_path}' was successfully associated "
             f"with dataset '{dataset_id}'."
         )
+
 
 # prototype based on validateModelManifest()
 @model.command(
@@ -197,7 +199,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-    
+    t = time.time()
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -218,3 +220,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         )
     else:
         click.echo(errors)
+
+    logger.info(
+        f"Total elapsed time {time.time()-t} seconds"
+    )
