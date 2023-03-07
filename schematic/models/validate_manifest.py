@@ -166,7 +166,7 @@ class ValidateManifest(object):
                 validation_types = validation_types,
                 sg = sg,
                 )        
-            logging.info(f"GE Elaplsed time {time()-t_GE}")       
+            logger.debug(f"GE Elaplsed time {time()-t_GE}")       
         else:             
             logger.info("Great Expetations suite will not be utilized.")  
 
@@ -219,7 +219,7 @@ class ValidateManifest(object):
                         errors.extend(vr_errors)
                     if vr_warnings:
                         warnings.extend(vr_warnings)
-        logging.info(f"Errors elapsed time {time()-t_err}")
+        logger.debug(f"Errors elapsed time {time()-t_err}")
         return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema, sg

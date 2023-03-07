@@ -221,6 +221,6 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     else:
         click.echo(errors)
 
-    logger.info(
+    logger.debug(
         f"Total elapsed time {time.time()-t} seconds"
     )
