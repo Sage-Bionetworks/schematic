@@ -673,9 +673,9 @@ class TestSchemaVisualization:
 
 
 @pytest.mark.schematic_api
-class TestValidationBenchmark:
-    def test_validation_performance(self, data_model_jsonld, client, test_invalid_manifest_csv, ):
-
+class TestValidationBenchmark():
+    @pytest.mark.parametrize('MockComponent_attribute', get_MockComponent_attribute())
+    def test_validation_performance(self, data_model_jsonld, client, test_invalid_manifest_csv, MockComponent_attribute ):
 
 
 
