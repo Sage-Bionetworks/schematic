@@ -30,6 +30,11 @@ def test_manifest_csv(helpers):
     yield test_manifest_path
 
 @pytest.fixture(scope="class")
+def test_invalid_manifest_csv(helpers):
+    test_invalid_manifest_path = helpers.get_data_frame("mock_manifests/Invalid_Test_Manifest.csv", preserve_raw_input=False)
+    yield test_invalid_manifest_path
+
+@pytest.fixture(scope="class")
 def test_upsert_manifest_csv(helpers):
     test_upsert_manifest_path = helpers.get_data_path("mock_manifests/rdb_table_manifest.csv")
     yield test_upsert_manifest_path
@@ -655,8 +660,17 @@ class TestSchemaVisualization:
         assert response.status_code == 200
 
 
+@pytest.mark.schematic_api
+class ValidationBenchmark:
+    def test_validation_performance(self, data_model_jsonld, client, test_invalid_manifest_csv, ):
 
 
+
+
+
+
+
+        assert True
 
 
 
