@@ -661,7 +661,7 @@ class TestSchemaVisualization:
 
 
 @pytest.mark.schematic_api
-class ValidationBenchmark:
+class TestValidationBenchmark:
     def test_validation_performance(self, data_model_jsonld, client, test_invalid_manifest_csv, ):
 
 
