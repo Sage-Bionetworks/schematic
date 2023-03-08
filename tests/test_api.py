@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import re
 
+from schematic.schemas.generator import SchemaGenerator
 
 '''
 To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
@@ -48,6 +49,17 @@ def test_manifest_json(helpers):
 def data_model_jsonld():
     data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
     yield data_model_jsonld
+
+def get_MockComponent_attribute():
+    """
+    Yield all of the mock conponent attributes one at a time
+    """
+    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld")
+    attributes=sg.get_node_dependencies('MockComponent')
+    attributes.remove('Component')
+
+    for MockComponent_attribute in attributes:
+        yield MockComponent_attribute   
 
 @pytest.fixture(scope="class")
 def syn_token(config):
