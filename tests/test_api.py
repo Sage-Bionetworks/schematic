@@ -53,6 +53,7 @@ def data_model_jsonld():
 def get_MockComponent_attribute():
     """
     Yield all of the mock conponent attributes one at a time
+    TODO: pull in jsonld from fixture
     """
     sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld")
     attributes=sg.get_node_dependencies('MockComponent')
