@@ -263,7 +263,7 @@ paths:
           name: manifest_record_type
           schema:
             type: string
-            enum: ["table", "file", "file_w_entites", "combo"]
+            enum: ["table", "file", "file_w_entities", "combo"]
           description: Manifest storage type.
           example: 'table'
         - in: query
