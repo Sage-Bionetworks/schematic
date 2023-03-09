@@ -226,7 +226,8 @@ class ValidateManifest(object):
 
     def validate_manifest_values(self, manifest, jsonSchema, sg
     ) -> (List[List[str]], List[List[str]]):
-        
+        t_json_schema = perf_counter()
+
         errors = []
         warnings = []
         col_attr = {} # save the mapping between column index and attribute name
@@ -252,7 +253,7 @@ class ValidateManifest(object):
                     errors.append(val_errors)
                 if val_warnings:
                     warnings.append(val_warnings)
-
+        logger.debug(f"JSON Schema validation elapsed time {perf_counter()-t_json_schema}")
         return errors, warnings
 
 
