@@ -434,9 +434,9 @@ class GreatExpectationsHelpers(object):
                     for row, value in zip(indices,values):
                         vr_errors, vr_warnings = GenerateError.generate_type_error(
                                 val_rule = rule,
-                                row_num = row+2,
+                                row_num = str(row+2),
                                 attribute_name = errColumn,
-                                invalid_entry = value,
+                                invalid_entry = str(value),
                                 sg = sg,
                             )
                         if vr_errors:
