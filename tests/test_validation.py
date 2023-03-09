@@ -312,7 +312,7 @@ class TestManifestValidation:
         #Check Warnings
         assert GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name='Check Match at Least',
             invalid_entry = ['7163'],
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
