@@ -59,6 +59,8 @@ def get_MockComponent_attribute():
     attributes=sg.get_node_dependencies('MockComponent')
     attributes.remove('Component')
 
+    #yield attributes[-1]
+
     for MockComponent_attribute in attributes:
         yield MockComponent_attribute   
 
@@ -680,12 +682,12 @@ class TestValidationBenchmark():
         target_rows = 1000
         # Isolate single attribute of interest, keep `Component` column
         single_attribute_manfiest = test_invalid_manifest[['Component', MockComponent_attribute]]
-        # Extend to ~1000 rows in size to for performance test
-        multi_factor = ceil(target_rows/single_attribute_manfiest.shape[0])
-        large_manfiest = pd.concat([single_attribute_manfiest]*multi_factor, ignore_index = True)
-        # Convert manfiest to JSON for api endpoint
-        manifest_json = large_manfiest.to_json(orient='split',index=False)
-        
+        # # Extend to ~1000 rows in size to for performance test
+        # multi_factor = ceil(target_rows/single_attribute_manfiest.shape[0])
+        # large_manfiest = pd.concat([single_attribute_manfiest]*multi_factor, ignore_index = True)
+        # # Convert manfiest to JSON for api endpoint
+        # manifest_json = large_manfiest.to_json(orient='split',index=False)
+        manifest_json = single_attribute_manfiest.to_json()
         
 
         params = {
