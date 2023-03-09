@@ -449,7 +449,7 @@ class GreatExpectationsHelpers(object):
                         vr_errors, vr_warnings = GenerateError.generate_regex_error(
                                 val_rule= rule,
                                 reg_expression = expression,
-                                row_num = row+2,
+                                row_num = str(row+2),
                                 module_to_call = 'match',
                                 attribute_name = errColumn,
                                 invalid_entry = value,
