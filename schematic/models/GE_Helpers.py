@@ -26,7 +26,7 @@ from great_expectations.exceptions.exceptions import GreatExpectationsError
 
 from schematic.models.validate_attribute import GenerateError
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.validate_utils import rule_in_rule_list, np_array_to_str_list
+from schematic.utils.validate_utils import rule_in_rule_list, np_array_to_str_list, iterable_to_str_list
 
 logger = logging.getLogger(__name__)
 
@@ -464,7 +464,7 @@ class GreatExpectationsHelpers(object):
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,
                                                             row_num = np_array_to_str_list(np.array(indices)+2),
-                                                            error_val = values,  
+                                                            error_val = iterable_to_str_list(values),  
                                                             sg = self.sg
                                                         )       
                     if vr_errors:
