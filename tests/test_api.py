@@ -687,6 +687,17 @@ class TestValidationBenchmark():
         manifest_json = large_manfiest.to_json(orient='split',index=False)
         
         
+
+        params = {
+            "schema_url": data_model_jsonld,
+            "json_str": manifest_json,
+            "data_type": "MockComponent"
+        }
+
+        response = client.post('http://localhost:3001/v1/model/validate', query_string=params)
+        response_dt = json.loads(response.data)
+        assert response.status_code == 200
+
         assert True
 
 
