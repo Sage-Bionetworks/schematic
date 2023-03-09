@@ -464,6 +464,28 @@ def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, fi
     file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
     return file_lst
 
+def check_if_files_in_assetview(input_token, asset_view, entity_id):
+    # call config handler 
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # call function and check if a file or a folder is in asset view
+    if_exists = store.checkIfinAssetView(entity_id)
+
+    return if_exists
+
+def check_entity_type(input_token, asset_view, entity_id):
+    # call config handler 
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    entity_type = store.checkEntityType(entity_id)
+    return entity_type
+
 def get_component_requirements(schema_url, source_component, as_graph):
     metadata_model = initalize_metadata_model(schema_url)
 
