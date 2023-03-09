@@ -68,7 +68,7 @@ class TestManifestValidation:
         #Check errors
         assert GenerateError.generate_type_error(
             val_rule = 'num',
-            row_num = 3,
+            row_num = '3',
             attribute_name = 'Check Num', 
             invalid_entry = 'c',
             sg = sg,
