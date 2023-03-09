@@ -26,7 +26,7 @@ from great_expectations.exceptions.exceptions import GreatExpectationsError
 
 from schematic.models.validate_attribute import GenerateError
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.validate_utils import rule_in_rule_list, np_array_to_str_list
 
 logger = logging.getLogger(__name__)
 
@@ -463,7 +463,7 @@ class GreatExpectationsHelpers(object):
                     vr_errors, vr_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,
-                                                            row_num = list(np.array(indices)+2),
+                                                            row_num = np_array_to_str_list(np.array(indices)+2),
                                                             error_val = values,  
                                                             sg = self.sg
                                                         )       
@@ -515,10 +515,13 @@ class GreatExpectationsHelpers(object):
                     name of column containing ages
             Returns:
                 updates self.manifest with censored ages
-            
+            TODO: Speed up conversion from str list to int list
         """
+        censor_rows = []
         
-        censor_rows = list(np.array(message[0]) - 2) 
+        for row in message[0]:
+            censor_rows.append(int(row) - 2)
+
         self.manifest.loc[censor_rows,(col)] = 'age censored'
 
         # update the manifest file, so that ages are censored
