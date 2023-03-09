@@ -762,7 +762,6 @@ class SynapseStorage(BaseStorage):
         table_name: str, 
         restrict: bool = False, 
         useSchemaLabel: bool = True, 
-        existingTableId: str = None,
         table_manipulation: str = 'replace',
         ):
         """
