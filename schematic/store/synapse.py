@@ -1153,7 +1153,7 @@ class SynapseStorage(BaseStorage):
             table_name = component_name + '_synapse_storage_manifest_table'
         else:
             component_name = ''
-            tabsle_name = 'synapse_storage_manifest_table'
+            table_name = 'synapse_storage_manifest_table'
         return table_name, component_name
 
     def _add_annotations(self, se, schemaGenerator, row, entityId, useSchemaLabel, hideBlanks):
