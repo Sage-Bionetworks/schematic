@@ -1,5 +1,6 @@
 class DataModelEdges():
-	def __init__():
+	def __init__(self):
+		return
 
 	def generate_edge():
 		return

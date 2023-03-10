@@ -7,6 +7,7 @@ import sys
 import re
 
 from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.utils.cli_utils import query_dict
 from schematic.help import schema_commands
 
@@ -52,11 +53,21 @@ def convert(schema, base_schema, output_jsonld):
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
     """
+
+    # TO DO: Throw these steps into their own function
+
     # Instantiate Parser
     data_model_parser = DataModelParser(schema, base_schema)
 
     #Parse Model
-    parse_data_model = data_model_parser.parse_model()
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Convert parsed model to graph
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+    
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
 
     '''
     # convert RFC to Data Model

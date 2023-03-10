@@ -77,7 +77,6 @@ class DataModelParser():
             # parse
             jsonld_parser = DataModelJSONLDParser()
             base_model = jsonld_parser.parse_jsonld_model(base_model_path)
-            breakpoint()
             return base_model
 
     def parse_model(self):
@@ -86,13 +85,13 @@ class DataModelParser():
         '''
         if self.model_type == 'CSV':
             csv_parser = DataModelCSVParser()
-            csv_parser.parse_csv_model(self.path_to_data_model)
+            model_dict = csv_parser.parse_csv_model(self.path_to_data_model)
         elif self.model_type == 'JSONLD':
             jsonld_parser = DataModelJSONLDParser()
-            jsonld_parser.parse_jsonld_model(self.path_to_data_model)
+            model_dict = jsonld_parser.parse_jsonld_model(self.path_to_data_model)
 
         base_model = self.parse_base_model()
-        return
+        return model_dict
 
 class DataModelCSVParser():
     '''
@@ -165,16 +164,18 @@ class DataModelCSVParser():
         attributes = model_df[list(self.required_headers)].to_dict("records")
         
         # Build attribute/relationship dictionary
-        relationship_types = ['Parent', 'DependsOn', 'DependsOn Component']
-        #Does not include anything like valid values or properties...
-        #Need to add these.
+        relationship_types = list(self.required_headers)
+        relationship_types.remove("Attribute")
 
         attr_rel_dictionary = {}
         for attr in attributes:
             attr_rel_dictionary.update({attr['Attribute']: {'Relationships': {}}})
             for relationship in relationship_types:
                 if not pd.isnull(attr[relationship]):
-                    rels = attr[relationship].strip().split(',')
+                    if type(attr[relationship]) == bool:
+                        rels = attr[relationship]
+                    else:
+                        rels = attr[relationship].strip().split(',')
                     attr_rel_dictionary[attr['Attribute']]['Relationships'].update({relationship:rels})
 
         return attr_rel_dictionary
@@ -199,7 +200,6 @@ class DataModelCSVParser():
 
         model_dict = self.gather_csv_attributes_relationships(model_df)
 
-        breakpoint()
         return model_dict
 
 class DataModelJSONLDParser():
@@ -235,7 +235,6 @@ class DataModelJSONLDParser():
         '''
         model_ids = [v['@id'] for v in model_jsonld]
         attr_rel_dictionary = {}
-        breakpoint()
         # For each entry in the jsonld model
         for entry in model_jsonld:
             # Check to see if it has been assigned as a subclass as an attribute or parent.
@@ -255,7 +254,6 @@ class DataModelJSONLDParser():
                         # If the entry is an attribute that has not already been added to the dictionary, add it.
                         if entry_id not in attr_rel_dictionary.keys():
                             attr_rel_dictionary.update({entry_id: {'Relationships': {}}})
-                        
                         
                         for relationship in self.relationship_types.keys():
                             if relationship in entry.keys():
