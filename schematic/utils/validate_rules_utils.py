@@ -22,25 +22,25 @@ def validation_rule_info():
             "int": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',],
+                'complementary_rules': ['inRange', 'IsNA',],
                 'default_message_level': 'error'},
 
             "float": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',],
+                'complementary_rules': ['inRange', 'IsNA',],
                 'default_message_level': 'error'},
 
             "num": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',],
+                'complementary_rules': ['inRange', 'IsNA',],
                 'default_message_level': 'error'},
 
             "str": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': None,
+                'complementary_rules': ['IsNA'],
                 'default_message_level': 'error'},
 
             "date": {
@@ -54,7 +54,7 @@ def validation_rule_info():
                 'arguments':(3, 2), 
                 'fixed_arg': ['strict'], 
                 'type': "regex_validation",
-                'complementary_rules': ['list'],
+                'complementary_rules': ['list', 'IsNA',],
                 'default_message_level': 'error'},
 
             "url" : {
@@ -102,13 +102,13 @@ def validation_rule_info():
             "inRange": {
                 'arguments':(3, 2), 
                 'type': "content_validation",
-                'complementary_rules': ['int','float','num','protectAges'],
+                'complementary_rules': ['int', 'float', 'num', 'protectAges'],
                 'default_message_level': 'error'},
             "IsNA":     {
                 'arguments':(0, 1), 
                 'type': "content_validation",
-                'complementary_rules': None,
-                'default_message_level': 'warning'},            
+                'complementary_rules': ['int', 'float', 'num', 'str'],
+                'default_message_level': 'warning'},        
             }
 
     return rule_dict
