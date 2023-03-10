@@ -542,7 +542,7 @@ def create_nx_schema_objects(
             # TODO: make validation rules delimiter configurable parameter
            
             validation_rules = [
-                val_rule.strip() for val_rule in validation_rules.strip().split("::")
+                val_rule.strip().split("|") for val_rule in validation_rules.strip().split("::")
             ]
 
             validate_vr = validate_schema_rules(

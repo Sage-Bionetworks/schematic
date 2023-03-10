@@ -123,11 +123,19 @@ def get_error(validation_rules: list,
     if error_type == 'too_many_rules':
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) ."
-        f"have too many entries. We currently only allow for pairs of rules to be used at the same time.")
+        f"have too many entries. We currently only allow for pairs of rule groups to be used at the same time.")
         logging.error(error_str)
         error_message = error_str
         error_val = f"Multiple Rules: too many rules"
-    
+
+    if error_type == 'too_many_rules_in_group':
+        error_str = (f"The {input_filetype}, has an error in the validation rule "
+            f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) ."
+        f"have too many entries. We currently only allow for pairs of rules to be used at the same time within a group.")
+        logging.error(error_str)
+        error_message = error_str
+        error_val = f"Multiple Rules: too many rules in a group"    
+
     if error_type == 'delimiter':
         error_str = (f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
@@ -226,13 +234,13 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
 
 def validate_schema_rules(validation_rules, attribute, input_filetype):
     '''
-    validation_rules: list
+    validation_rules: list[list[str]]
     input_filetype: str, used in error generation to aid user in
         locating the source of the error.
 
     Validation Rules Formatting rules:
     Multiple Rules:
-        max of 2 rules
+        max of 2 groups of rules, with 2 rules per group
     Single Rules:
         Additional arg
     '''
@@ -242,29 +250,36 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
 
     errors = []
     rule_info = validation_rule_info()
-    num_validation_rules = len(validation_rules)
+    num_validation_groups = len(validation_rules)
 
-    
     # Check for edge case that user has entered more than 2 rules,
     # throw an error if they have.
-    if num_validation_rules > 2:
+    for group in validation_rules:
+        if len(group) > 2:
+            errors.append(get_error(group, attribute,
+                error_type = 'too_many_rules_in_group', input_filetype=input_filetype))
+
+    if num_validation_groups > 2:
             errors.append(get_error(validation_rules, attribute,
                 error_type = 'too_many_rules', input_filetype=input_filetype))
 
-    elif num_validation_rules == 2: 
-        first_rule, second_rule = validation_rules
-        first_type = first_rule.split(" ")[0]  
-        second_type = second_rule.split(" ")[0]  
+    elif num_validation_groups == 2: 
+        for group_one_rule in validation_rules[0]:
+            for group_two_rule in validation_rules[1]:
 
-        # validate rule combination
-        if second_type not in rule_info[first_type]['complementary_rules']:
-            errors.append(get_error(validation_rules, attribute, 
-                error_type = 'invalid_rule_combination', input_filetype=input_filetype))
+                first_type = group_one_rule.split(" ")[0]  
+                second_type = group_two_rule.split(" ")[0]  
+
+                # validate rule combination
+                if second_type not in rule_info[first_type]['complementary_rules']:
+                    errors.append(get_error(validation_rules, attribute, 
+                        error_type = 'invalid_rule_combination', input_filetype=input_filetype))
         
     # validate each rule individually in the combo
-    for rule in validation_rules:
-        errors.extend(validate_single_rule(rule,
-            attribute, input_filetype))
+    for rule_group in validation_rules:
+        for rule in rule_group:
+            errors.extend(validate_single_rule(rule,
+                attribute, input_filetype))
                 
 
     if errors:
