@@ -31,7 +31,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         if not data_model:
             org_df=trim_commas_df(org_df)
         
-            logger.debug(f"Load Eplased time {perf_counter()-t_load_df}")
+            logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
 
     else:
