@@ -166,7 +166,7 @@ class ValidateManifest(object):
                 validation_types = validation_types,
                 sg = sg,
                 )        
-            logger.debug(f"GE Elaplsed time {perf_counter()-t_GE}")       
+            logger.debug(f"GE elapsed time {perf_counter()-t_GE}")       
         else:             
             logger.info("Great Expetations suite will not be utilized.")  
 
