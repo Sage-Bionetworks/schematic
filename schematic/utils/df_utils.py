@@ -53,7 +53,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         #Store values that were entered as ints and dates
         processed_df=processed_df.mask(ints != False, other = ints)  
         
-        logger.debug(f"Load Eplased time {perf_counter()-t_load_df}")
+        logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return processed_df
 
 
