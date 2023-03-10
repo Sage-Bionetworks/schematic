@@ -1021,7 +1021,7 @@ class ValidateAttribute(object):
                     warnings.append(vr_warnings)
                 
 
-        logger.debug(f"cross manfiest validation time {perf_counter()-t_cross_manifest}")
+        logger.debug(f"cross manifest validation time {perf_counter()-t_cross_manifest}")
         return errors, warnings
 
 
