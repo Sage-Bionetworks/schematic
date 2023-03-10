@@ -419,7 +419,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=temp_path, rootNode=data_type
+        manifestPath=temp_path, rootNode=data_type, restrict_rules=restrict_rules
     )
     
     res_dict = {"errors": errors, "warnings": warnings}
