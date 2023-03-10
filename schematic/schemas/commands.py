@@ -47,6 +47,13 @@ def schema():  # use as `schematic model ...`
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
+@click.option(
+    "-rcl",
+    "--remove_combination_limits",
+    is_flag=True,
+    default = False,
+    help=query_dict(schema_commands, ("schema", "convert", "remove_combination_limits")),
+)
 def convert(schema_csv, base_schema, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to

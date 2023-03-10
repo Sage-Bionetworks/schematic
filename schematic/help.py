@@ -166,6 +166,12 @@ schema_commands = {
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
+            "remove_combination_limits": (
+                "Boolean flag. When True, remove limits on allowable rule combinations " 
+                "allowing access to untested and unsupported rule combinations without restriction. "
+                "Defaults to False. "
+                "Warning - behavior is undefined and unsupported when enabled. Use at your own risk."
+            )
         }
     }
 }
