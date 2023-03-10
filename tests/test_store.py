@@ -125,7 +125,7 @@ class TestSynapseStorage:
                         schemaGenerator = sg,
                         metadataManifestPath = helpers.get_data_path(manifest_path),
                         datasetId = 'syn34295552',
-                        manifest_record_type = 'entity',
+                        manifest_record_type = 'file_w_entities',
                         useSchemaLabel = True,
                         hideBlanks = True,
                         restrict_manifest = False,
