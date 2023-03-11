@@ -543,13 +543,14 @@ class TestManifestOperation:
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
     @pytest.mark.parametrize("use_schema_label", ['true','false'])
-    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, use_schema_label):
+    @pytest.mark.parametrize("manifest_record_type", ['table', 'file'])
+    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, use_schema_label, manifest_record_type):
         params = {
             "input_token": syn_token,
             "schema_url": data_model_jsonld,
             "data_type": "Patient",
             "restrict_rules": False, 
-            "manifest_record_type": "table",
+            "manifest_record_type": manifest_record_type,
             "asset_view": "syn44259375",
             "dataset_id": "syn44259313",
             "table_manipulation": 'replace',
@@ -569,7 +570,38 @@ class TestManifestOperation:
 
             # test uploading a csv file
             response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
+            assert response_csv.status_code == 200
+
+    @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
+    @pytest.mark.parametrize("manifest_record_type", ['file_w_entities', 'combo'])
+    def test_submit_manifest_w_entities(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, manifest_record_type):
+        params = {
+            "input_token": syn_token,
+            "schema_url": data_model_jsonld,
+            "data_type": "Patient",
+            "restrict_rules": False, 
+            "manifest_record_type": manifest_record_type,
+            "asset_view": "syn44259375",
+            "dataset_id": "syn44259313",
+            "table_manipulation": 'replace',
+            "use_schema_label": True
+        }
+
+        if json_str:
+            params["json_str"] = json_str
+            response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
+            assert response.status_code == 200
+        else: 
+            headers = {
+            'Content-Type': "multipart/form-data",
+            'Accept': "application/json"
+            }
+            params["data_type"] = "MockComponent"
+
+            # test uploading a csv file
+            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
             assert response_csv.status_code == 200     
+
     
     @pytest.mark.parametrize("json_str", [None, '[{ "Component": "MockRDB", "MockRDB_id": 5 }]'])
     def test_submit_manifest_upsert(self, client, syn_token, data_model_jsonld, json_str, test_upsert_manifest_csv, ):
