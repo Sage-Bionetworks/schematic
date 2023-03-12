@@ -16,7 +16,7 @@ import pandas as pd
 import re
 import synapseclient
 from time import sleep
-
+from ..utils.general import get_dir_size, convert_size
 from synapseclient import (
     Synapse,
     File,
@@ -50,6 +50,7 @@ from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -100,14 +101,32 @@ class SynapseStorage(BaseStorage):
 
         self._query_fileview()
 
+    def _purge_synapse_cache(self):
+        # try clearing the cache
+        # scan a directory and check size of files
+        if os.path.exists("/var/www/.synapseCache"):
+            #nbytes = sum(d.stat().st_size for d in os.scandir('/var/www/.synapseCache') if d.is_file())
+            nbytes = get_dir_size("/var/www/.synapseCache")
+            # if 19.5 GB has already been taken, purge cache prior to today
+            if nbytes >= 20937965568:
+                c = self.syn.core.cache.Cache()
+                today = datetime.strftime(datetime.utcnow(), '%s')
+                c.purge(before_date = int(today))
+            else:
+                # print remaining ephemeral storage on AWS 
+                remaining_space = 21474836480 - nbytes
+                converted_space = convert_size(remaining_space)
+                print(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache.')
+
     def _query_fileview(self):
+        self._purge_synapse_cache()
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
             self.manifest = CONFIG["synapse"]["manifest_basename"]
             if self.project_scope:
                 self.storageFileviewTable = self.syn.tableQuery(
                     f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
-                ).asDataFrame()
+                , resultsAs="rowset").asDataFrame()
             else:
                 # get data in administrative fileview for this pipeline
                 self.storageFileviewTable = self.syn.tableQuery(
