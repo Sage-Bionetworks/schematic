@@ -485,12 +485,14 @@ class TestManifestOperation:
         # should return a list with one google sheet link 
         assert isinstance(response_dt[0], str)
         assert response_dt[0].startswith("https://docs.google.com/")
-    
+
+    @pytest.mark.parametrize("restrict_rules", [False, True, None])
     @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
-    def test_validate_manifest(self, data_model_jsonld, client, json_str, test_manifest_csv, test_manifest_json):
+    def test_validate_manifest(self, data_model_jsonld, client, json_str, restrict_rules, test_manifest_csv):
 
         params = {
             "schema_url": data_model_jsonld,
+            "restrict_rules": restrict_rules
         }
 
         if json_str:
