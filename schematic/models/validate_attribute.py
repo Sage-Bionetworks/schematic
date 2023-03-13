@@ -448,11 +448,11 @@ class GenerateError:
         
         #log warning or error message
         if val_rule.startswith('recommended'):
-            cross_error_str = (
+            content_error_str = (
                 f"Column {attribute_name} is recommended but empty."
             )
-            logLevel(cross_error_str)
-            error_message = cross_error_str
+            logLevel(content_error_str)
+            error_message = content_error_str
 
             if raises == 'error':
                 error_list = [error_col, error_message]
@@ -463,26 +463,26 @@ class GenerateError:
             return error_list, warning_list
 
         elif val_rule.startswith('unique'):    
-            cross_error_str = (
+            content_error_str = (
                 f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
             )
 
         elif val_rule.startswith('protectAges'):
-            cross_error_str = (
+            content_error_str = (
                 f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
             )           
 
         elif val_rule.startswith('inRange'):
-            cross_error_str = (
+            content_error_str = (
                 f"{attribute_name} values in rows {row_num} are out of the specified range."
             )
         elif val_rule.startswith('date'):
-            cross_error_str = (
+            content_error_str = (
                 f"{attribute_name} values in rows {row_num} are not parsable as dates."
             )  
-        logLevel(cross_error_str)
+        logLevel(content_error_str)
         error_row = row_num 
-        error_message = cross_error_str
+        error_message = content_error_str
 
         #return error and empty list for warnings
         if raises == 'error':
