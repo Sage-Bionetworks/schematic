@@ -105,7 +105,6 @@ class SynapseStorage(BaseStorage):
         # try clearing the cache
         # scan a directory and check size of files
         if os.path.exists("/var/www/.synapseCache"):
-            #nbytes = sum(d.stat().st_size for d in os.scandir('/var/www/.synapseCache') if d.is_file())
             nbytes = get_dir_size("/var/www/.synapseCache")
             # if 19.5 GB has already been taken, purge cache prior to today
             if nbytes >= 20937965568:
@@ -126,7 +125,7 @@ class SynapseStorage(BaseStorage):
             if self.project_scope:
                 self.storageFileviewTable = self.syn.tableQuery(
                     f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
-                , resultsAs="rowset").asDataFrame()
+                    ).asDataFrame()
             else:
                 # get data in administrative fileview for this pipeline
                 self.storageFileviewTable = self.syn.tableQuery(
