@@ -8,8 +8,8 @@ import pandas as pd
 import re
 from math import ceil
 import timeit
-
 import logging
+
 from schematic.schemas.generator import SchemaGenerator
 
 logging.basicConfig(level=logging.DEBUG)
