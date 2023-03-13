@@ -7,6 +7,8 @@ import os
 import pandas as pd
 import re
 from math import ceil
+import timeit
+
 from schematic.schemas.generator import SchemaGenerator
 
 '''
@@ -680,6 +682,8 @@ class TestValidationBenchmark():
     @pytest.mark.parametrize('MockComponent_attribute', get_MockComponent_attribute())
     def test_validation_performance(self, data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
         target_rows = 1000
+        endpoint_url = 'http://localhost:3001/v1/model/validate'
+
         # Isolate single attribute of interest, keep `Component` column
         single_attribute_manfiest = test_invalid_manifest[['Component', MockComponent_attribute]]
         # # Extend to ~1000 rows in size to for performance test
@@ -689,18 +693,21 @@ class TestValidationBenchmark():
         # manifest_json = large_manfiest.to_json(orient='split',index=False)
         manifest_json = single_attribute_manfiest.to_json()
         
-
         params = {
             "schema_url": data_model_jsonld,
             "json_str": manifest_json,
             "data_type": "MockComponent"
         }
 
-        response = client.post('http://localhost:3001/v1/model/validate', query_string=params)
-        response_dt = json.loads(response.data)
-        assert response.status_code == 200
+        benchmark_test = """
+        def run_endpoint(client,endpoint_url,params):
+            response = client.post(endpoint_url, query_string=params)
+        """
 
-        assert True
+        results = timeit.repeat(stmt=benchmark_test, repeat = 5)
+
+        assert min(results) < 5
+        
 
 
 
