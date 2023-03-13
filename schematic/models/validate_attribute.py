@@ -3,6 +3,7 @@ import logging
 import re
 import sys
 import time
+from time import perf_counter
 from os import getenv
 # allows specifying explicit variable types
 from typing import Any, Dict, List, Optional, Text
@@ -24,6 +25,7 @@ from schematic.utils.validate_utils import (comma_separated_list_regex,
                                             np_array_to_str_list,
                                             iterable_to_str_list,
                                             )
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +53,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -85,8 +87,9 @@ class GenerateError:
                 - row_num: the row the error occurred on.
                 - attribute_name: the attribute the error occurred on.
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -101,7 +104,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -146,8 +149,9 @@ class GenerateError:
                 module_to_call: re module specified in the schema
                 attribute_name: str, attribute being validated
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
         error_list = []
         warning_list = []
@@ -161,7 +165,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -196,8 +200,9 @@ class GenerateError:
                 row_num: str, row where the error was detected
                 attribute_name: str, attribute being validated
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -212,7 +217,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -260,8 +265,9 @@ class GenerateError:
                 attribute_name: str, attribute being validated
                 argument: str, argument being validated.
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -276,7 +282,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -340,8 +346,9 @@ class GenerateError:
                 invalid_entry: str, value present in source manifest that is missing in the target
                 row_num: row in source manifest with value missing in target manifests             
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
         error_list = []
         warning_list = []
@@ -355,7 +362,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -418,8 +425,9 @@ class GenerateError:
                 error_val: value duplicated
 
         Returns:
-            Logging.error or Logging.warning.
-            Message: List[str] Error|Warning details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         """
         error_list = []
         warning_list = []
@@ -434,7 +442,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
         
@@ -546,7 +554,7 @@ class ValidateAttribute(object):
     """
 
     def get_target_manifests(target_component, project_scope: List):
-
+        t_manifest_search = perf_counter()
         target_manifest_IDs=[]
         target_dataset_IDs=[]
         
@@ -570,6 +578,7 @@ class ValidateAttribute(object):
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
 
+        logger.debug(f"Cross manifest gathering elapsed time {perf_counter()-t_manifest_search}")
         return synStore, target_manifest_IDs, target_dataset_IDs    
 
     def list_validation(
@@ -583,7 +592,9 @@ class ValidateAttribute(object):
             - manifest_col: pd.core.series.Series, column for a given attribute
         Returns:
             - manifest_col: Input values in manifest arere-formatted to a list
-            - Error log, error list
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         """
 
         # For each 'list' (input as a string with a , delimiter) entered,
@@ -647,8 +658,9 @@ class ValidateAttribute(object):
         Returns:
             - This function will return errors when the user input value
             does not match schema specifications.
-            Logging.error.
+            logger.error or logger.warning.
             Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         TODO: 
             move validation to convert step.
         """
@@ -731,8 +743,9 @@ class ValidateAttribute(object):
         Returns:
             -This function will return errors when the user input value
             does not match schema specifications.
-            Logging.error.
+            logger.error or logger.warning.
             Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         TODO:
             Convert all inputs to .lower() just to prevent any entry errors.
         """
@@ -903,6 +916,7 @@ class ValidateAttribute(object):
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
 
+        t_cross_manifest = perf_counter()
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
             entity = synStore.getDatasetManifest(
@@ -1020,6 +1034,7 @@ class ValidateAttribute(object):
                     warnings.append(vr_warnings)
                 
 
+        logger.debug(f"cross manifest validation time {perf_counter()-t_cross_manifest}")
         return errors, warnings
 
 

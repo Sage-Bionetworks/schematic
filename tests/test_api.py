@@ -146,10 +146,40 @@ class TestSynapseStorage:
         response = client.get("http://localhost:3001/v1/storage/projects", query_string = params)
 
         assert response.status_code == 200
-    
 
-        
+    @pytest.mark.parametrize("entity_id", ["syn34640850", "syn23643253", "syn24992754"])
+    def test_get_entity_type(self, syn_token, client, entity_id):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn23643253",
+            "entity_id": entity_id
+        }
+        response = client.get("http://localhost:3001/v1/storage/entity/type", query_string = params)
 
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+        if entity_id == "syn23643253":
+            assert response_dt == "asset view"
+        elif entity_id == "syn34640850":
+            assert response_dt == "folder"
+        elif entity_id == "syn24992754":
+            assert response_dt == "project"
+
+    @pytest.mark.parametrize("entity_id", ["syn30988314", "syn27221721"])
+    def test_if_in_assetview(self, syn_token, client, entity_id):
+        params = {
+            "input_token": syn_token,
+            "asset_view": "syn23643253",
+            "entity_id": entity_id
+        }
+        response = client.get("http://localhost:3001/v1/storage/if_in_asset_view", query_string = params)        
+        assert response.status_code == 200
+        response_dt = json.loads(response.data)
+
+        if entity_id == "syn30988314":
+            assert response_dt == True
+        elif entity_id == "syn27221721":
+            assert response_dt == False
 
 @pytest.mark.schematic_api
 class TestMetadataModelOperation:
@@ -455,12 +485,14 @@ class TestManifestOperation:
         # should return a list with one google sheet link 
         assert isinstance(response_dt[0], str)
         assert response_dt[0].startswith("https://docs.google.com/")
-    
+
+    @pytest.mark.parametrize("restrict_rules", [False, True, None])
     @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
-    def test_validate_manifest(self, data_model_jsonld, client, json_str, test_manifest_csv, test_manifest_json):
+    def test_validate_manifest(self, data_model_jsonld, client, json_str, restrict_rules, test_manifest_csv):
 
         params = {
             "schema_url": data_model_jsonld,
+            "restrict_rules": restrict_rules
         }
 
         if json_str:
