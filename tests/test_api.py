@@ -9,7 +9,11 @@ import re
 from math import ceil
 import timeit
 
+import logging
 from schematic.schemas.generator import SchemaGenerator
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 '''
 To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
@@ -702,8 +706,9 @@ class TestValidationBenchmark():
         benchmark_test = """def run_endpoint(client,endpoint_url,params):   response = client.post(endpoint_url, query_string=params)"""
 
         results = timeit.repeat(stmt=benchmark_test, repeat = 5)
-
+        logger.warning(f"Fastest validation endpiont responise time {min(results)} seconds.")
         assert min(results) < 5
+        
         
 
 
