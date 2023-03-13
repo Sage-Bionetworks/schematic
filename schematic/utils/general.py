@@ -28,7 +28,7 @@ def unlist(_list):
     else:
         return _list
 
-def get_dir_size(path='.'):
+def get_dir_size(path):
     '''
     calculate total size of a directory
     args: 
