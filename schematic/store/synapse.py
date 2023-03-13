@@ -104,8 +104,9 @@ class SynapseStorage(BaseStorage):
     def _purge_synapse_cache(self):
         # try clearing the cache
         # scan a directory and check size of files
-        if os.path.exists("/var/www/.synapseCache"):
-            nbytes = get_dir_size("/var/www/.synapseCache")
+        root_dir = self.syn.cache.cache_root_dir
+        if os.path.exists(root_dir):
+            nbytes = get_dir_size(root_dir)
             # if 19.5 GB has already been taken, purge cache prior to today
             if nbytes >= 20937965568:
                 c = self.syn.core.cache.Cache()
