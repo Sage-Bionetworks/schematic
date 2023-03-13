@@ -699,10 +699,7 @@ class TestValidationBenchmark():
             "data_type": "MockComponent"
         }
 
-        benchmark_test = """
-        def run_endpoint(client,endpoint_url,params):
-            response = client.post(endpoint_url, query_string=params)
-        """
+        benchmark_test = """def run_endpoint(client,endpoint_url,params):   response = client.post(endpoint_url, query_string=params)"""
 
         results = timeit.repeat(stmt=benchmark_test, repeat = 5)
 
