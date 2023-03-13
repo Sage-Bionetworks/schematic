@@ -49,7 +49,7 @@ class ValidateManifest(object):
                 f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) ."
                 f"have too many entries. We currently only specify two rules ('list :: another_rule')."
             )
-            logging.error(error_str)
+            logger.error(error_str)
             error_message = error_str
             error_val = f"Multiple Rules: too many rules"
         if error_type == "list_not_first":
@@ -57,7 +57,7 @@ class ValidateManifest(object):
                 f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
                 f"specified. 'list' must be first."
             )
-            logging.error(error_str)
+            logger.error(error_str)
             error_message = error_str
             error_val = f"Multiple Rules: list not first"
         return ["NA", error_col, error_message, error_val]

@@ -51,7 +51,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -85,8 +85,9 @@ class GenerateError:
                 - row_num: the row the error occurred on.
                 - attribute_name: the attribute the error occurred on.
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -101,7 +102,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -146,8 +147,9 @@ class GenerateError:
                 module_to_call: re module specified in the schema
                 attribute_name: str, attribute being validated
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
         error_list = []
         warning_list = []
@@ -161,7 +163,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -196,8 +198,9 @@ class GenerateError:
                 row_num: str, row where the error was detected
                 attribute_name: str, attribute being validated
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -212,7 +215,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -260,8 +263,9 @@ class GenerateError:
                 attribute_name: str, attribute being validated
                 argument: str, argument being validated.
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -276,7 +280,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -340,8 +344,9 @@ class GenerateError:
                 invalid_entry: str, value present in source manifest that is missing in the target
                 row_num: row in source manifest with value missing in target manifests             
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
         error_list = []
         warning_list = []
@@ -355,7 +360,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -418,8 +423,9 @@ class GenerateError:
                 error_val: value duplicated
 
         Returns:
-            Logging.error or Logging.warning.
-            Message: List[str] Error|Warning details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         """
         error_list = []
         warning_list = []
@@ -434,7 +440,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
         
@@ -584,7 +590,9 @@ class ValidateAttribute(object):
             - manifest_col: pd.core.series.Series, column for a given attribute
         Returns:
             - manifest_col: Input values in manifest arere-formatted to a list
-            - Error log, error list
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         """
 
         # For each 'list' (input as a string with a , delimiter) entered,
@@ -648,8 +656,9 @@ class ValidateAttribute(object):
         Returns:
             - This function will return errors when the user input value
             does not match schema specifications.
-            Logging.error.
+            logger.error or logger.warning.
             Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         TODO: 
             move validation to convert step.
         """
@@ -732,8 +741,9 @@ class ValidateAttribute(object):
         Returns:
             -This function will return errors when the user input value
             does not match schema specifications.
-            Logging.error.
+            logger.error or logger.warning.
             Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         TODO:
             Convert all inputs to .lower() just to prevent any entry errors.
         """
