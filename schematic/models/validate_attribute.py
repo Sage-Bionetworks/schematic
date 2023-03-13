@@ -486,10 +486,10 @@ class GenerateError:
 
         #return error and empty list for warnings
         if raises == 'error':
-            error_list = [error_row, error_col, error_message, set(error_val)]
+            error_list = [error_row, error_col, error_message, error_val]
         #return warning and empty list for errors
         elif raises == 'warning':
-            warning_list = [error_row, error_col, error_message, set(error_val)]
+            warning_list = [error_row, error_col, error_message, error_val]
         
         return error_list, warning_list
 
