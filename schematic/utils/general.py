@@ -36,7 +36,7 @@ def get_dir_size(path='.'):
     '''
     total = 0
     # Example usage of os.scandir could be found here: https://docs.python.org/3/library/os.html#os.scandir
-    # Technically, scandir.close() is called automatically. But it is still advisible to call it explicitly or use the with statement. 
+    # Technically, scandir.close() is called automatically. But it is still advisable to call it explicitly or use the with statement. 
     with os.scandir(path) as it:
         for entry in it:
             if entry.is_file():
