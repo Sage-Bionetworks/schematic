@@ -45,14 +45,17 @@ def get_dir_size(path):
                 total += get_dir_size(entry.path)
     return total
 
-def convert_size(size_bytes):
+def convert_size(size_bytes: int):
     '''
     convert bytes to a human readable format
     '''
     if size_bytes == 0:
        return "0B"
     size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-    i = int(math.floor(math.log(size_bytes, 1024)))
-    p = math.pow(1024, i)
-    s = round(size_bytes / p, 2)
-    return f"{s} {size_name[i]})"
+    # calculate the log of size (in bytes) to base 1024 and run it down to the nearest integer
+    index = int(math.floor(math.log(size_bytes, 1024)))
+    # return the value of 1024 raised to the power of index
+    power_cal_index = math.pow(1024, index)
+    #convert bytes to a different unit if applicable
+    size_bytes_converted = round(size_bytes / power_cal_index, 2)
+    return f"{size_bytes_converted} {size_name[index]})"
