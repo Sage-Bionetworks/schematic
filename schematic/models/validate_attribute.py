@@ -3,6 +3,7 @@ import logging
 import re
 import sys
 import time
+from time import perf_counter
 from os import getenv
 # allows specifying explicit variable types
 from typing import Any, Dict, List, Optional, Text
@@ -21,6 +22,7 @@ from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (comma_separated_list_regex,
                                             parse_str_series_to_list)
+
 
 logger = logging.getLogger(__name__)
 
@@ -549,7 +551,7 @@ class ValidateAttribute(object):
     """
 
     def get_target_manifests(target_component, project_scope: List):
-
+        t_manifest_search = perf_counter()
         target_manifest_IDs=[]
         target_dataset_IDs=[]
         
@@ -573,6 +575,7 @@ class ValidateAttribute(object):
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
 
+        logger.debug(f"Cross manifest gathering elapsed time {perf_counter()-t_manifest_search}")
         return synStore, target_manifest_IDs, target_dataset_IDs    
 
     def list_validation(
@@ -910,6 +913,7 @@ class ValidateAttribute(object):
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
 
+        t_cross_manifest = perf_counter()
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
             entity = synStore.getDatasetManifest(
@@ -1026,6 +1030,7 @@ class ValidateAttribute(object):
                     warnings.append(vr_warnings)
                 
 
+        logger.debug(f"cross manifest validation time {perf_counter()-t_cross_manifest}")
         return errors, warnings
 
 

@@ -3,6 +3,7 @@
 from gc import callbacks
 import logging
 import sys
+from time import perf_counter
 
 import click
 import click_log
@@ -108,7 +109,7 @@ def submit_manifest(
     """
     Running CLI with manifest validation (optional) and submission options.
     """
-
+    
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -136,6 +137,7 @@ def submit_manifest(
             f"File at '{manifest_path}' was successfully associated "
             f"with dataset '{dataset_id}'."
         )
+
 
 # prototype based on validateModelManifest()
 @model.command(
@@ -197,7 +199,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-    
+    t_validate = perf_counter()
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -218,3 +220,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         )
     else:
         click.echo(errors)
+
+    logger.debug(
+        f"Total elapsed time {perf_counter()-t_validate} seconds"
+    )
