@@ -3,6 +3,7 @@ import logging
 import re
 import sys
 import time
+from time import perf_counter
 from os import getenv
 # allows specifying explicit variable types
 from typing import Any, Dict, List, Optional, Text
@@ -22,8 +23,6 @@ from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (comma_separated_list_regex,
                                             parse_str_series_to_list)
 
-
-from time import perf_counter
 
 logger = logging.getLogger(__name__)
 

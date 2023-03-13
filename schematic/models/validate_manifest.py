@@ -9,6 +9,7 @@ import os
 import pandas as pd
 import re
 import sys
+from time import perf_counter
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -24,8 +25,6 @@ from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import rule_in_rule_list
 
-
-from time import perf_counter
 logger = logging.getLogger(__name__)
 
 class ValidateManifest(object):

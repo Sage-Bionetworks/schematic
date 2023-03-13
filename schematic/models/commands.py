@@ -3,6 +3,7 @@
 from gc import callbacks
 import logging
 import sys
+from time import perf_counter
 
 import click
 import click_log
@@ -15,7 +16,6 @@ from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
 
-from time import perf_counter
 logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
