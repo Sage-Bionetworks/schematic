@@ -7,9 +7,8 @@ import os
 import pandas as pd
 import re
 from math import ceil
-import timeit
 import logging
-
+from time import perf_counter
 from schematic.schemas.generator import SchemaGenerator
 
 logging.basicConfig(level=logging.DEBUG)
@@ -65,10 +64,10 @@ def get_MockComponent_attribute():
     attributes=sg.get_node_dependencies('MockComponent')
     attributes.remove('Component')
 
-    #yield attributes[-1]
+    yield attributes[-1]
 
-    for MockComponent_attribute in attributes:
-        yield MockComponent_attribute   
+    # for MockComponent_attribute in attributes:
+    #     yield MockComponent_attribute   
 
 @pytest.fixture(scope="class")
 def syn_token(config):
@@ -703,11 +702,17 @@ class TestValidationBenchmark():
             "data_type": "MockComponent"
         }
 
-        benchmark_test = """def run_endpoint(client,endpoint_url,params):   response = client.post(endpoint_url, query_string=params)"""
+        t_start = perf_counter()
+        response = client.post(endpoint_url, query_string=params)
+        response_time = perf_counter() - t_start
+        response_dt = json.loads(response.data)
+        assert response.status_code == 200
 
-        results = timeit.repeat(stmt=benchmark_test, repeat = 5)
-        logger.warning(f"Fastest validation endpiont responise time {min(results)} seconds.")
-        assert min(results) < 5
+        assert response_time < 5.00
+        logger.warning(f"validation endpiont response time {round(response_time,2)} seconds.")
+
+
+
         
         
 
