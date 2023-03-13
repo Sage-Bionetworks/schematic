@@ -464,7 +464,7 @@ class GenerateError:
 
         elif val_rule.startswith('unique'):    
             cross_error_str = (
-                f"Column {attribute_name} has the duplicate value(s) {set(error_val)} in rows: {row_num}."
+                f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
             )
 
         elif val_rule.startswith('protectAges'):
