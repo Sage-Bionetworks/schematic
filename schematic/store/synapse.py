@@ -1,3 +1,4 @@
+import datetime
 from copy import deepcopy
 import os
 import uuid  # used to generate unique names for entities
@@ -16,7 +17,7 @@ import pandas as pd
 import re
 import synapseclient
 from time import sleep
-from ..utils.general import get_dir_size, convert_size
+from schematic.utils.general import get_dir_size, convert_size
 from synapseclient import (
     Synapse,
     File,
@@ -50,7 +51,6 @@ from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
-import datetime
 
 logger = logging.getLogger(__name__)
 
