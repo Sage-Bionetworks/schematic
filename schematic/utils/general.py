@@ -53,9 +53,9 @@ def convert_size(size_bytes: int):
        return "0B"
     size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
     # calculate the log of size (in bytes) to base 1024 and run it down to the nearest integer
-    index = int(math.floor(math.log(size_bytes, 1024)))
+    index_int = int(math.floor(math.log(size_bytes, 1024)))
     # return the value of 1024 raised to the power of index
-    power_cal_index = math.pow(1024, index)
+    power_cal = math.pow(1024, index_int)
     #convert bytes to a different unit if applicable
-    size_bytes_converted = round(size_bytes / power_cal_index, 2)
-    return f"{size_bytes_converted} {size_name[index]})"
+    size_bytes_converted = round(size_bytes / power_cal, 2)
+    return f"{size_bytes_converted} {size_name[index_int]})"
