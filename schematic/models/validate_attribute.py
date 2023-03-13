@@ -432,7 +432,9 @@ class GenerateError:
         error_list = []
         warning_list = []
         error_col = attribute_name  # Attribute name
-        
+        if error_val:
+            error_val = iterable_to_str_list(set(error_val))
+
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
             val_rule=val_rule,
@@ -464,7 +466,7 @@ class GenerateError:
 
         elif val_rule.startswith('unique'):    
             content_error_str = (
-                f"Column {attribute_name} has the duplicate value(s) {set(error_val)} in rows: {row_num}."
+                f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
             )
 
         elif val_rule.startswith('protectAges'):
@@ -486,10 +488,10 @@ class GenerateError:
 
         #return error and empty list for warnings
         if raises == 'error':
-            error_list = [error_row, error_col, error_message, set(error_val)]
+            error_list = [error_row, error_col, error_message, error_val]
         #return warning and empty list for errors
         elif raises == 'warning':
-            warning_list = [error_row, error_col, error_message, set(error_val)]
+            warning_list = [error_row, error_col, error_message, error_val]
         
         return error_list, warning_list
 
