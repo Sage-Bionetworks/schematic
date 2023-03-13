@@ -102,6 +102,9 @@ class SynapseStorage(BaseStorage):
         self._query_fileview()
 
     def _purge_synapse_cache(self):
+        '''
+        Purge synapse cache if it exceeds 19.5 GB
+        '''
         # try clearing the cache
         # scan a directory and check size of files
         root_dir = self.syn.cache.cache_root_dir
