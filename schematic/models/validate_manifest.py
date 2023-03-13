@@ -47,7 +47,7 @@ class ValidateManifest(object):
                 f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) ."
                 f"have too many entries. We currently only specify two rules ('list :: another_rule')."
             )
-            logging.error(error_str)
+            logger.error(error_str)
             error_message = error_str
             error_val = f"Multiple Rules: too many rules"
         if error_type == "list_not_first":
@@ -55,7 +55,7 @@ class ValidateManifest(object):
                 f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
                 f"specified. 'list' must be first."
             )
-            logging.error(error_str)
+            logger.error(error_str)
             error_message = error_str
             error_val = f"Multiple Rules: list not first"
         return ["NA", error_col, error_message, error_val]
@@ -164,7 +164,7 @@ class ValidateManifest(object):
                 sg = sg,
                 )               
         else:             
-            logging.info("Great Expetations suite will not be utilized.")  
+            logger.info("Great Expetations suite will not be utilized.")  
 
 
         regex_re=re.compile('regex.*')
@@ -188,7 +188,7 @@ class ValidateManifest(object):
                 validation_type = rule.split(" ")[0]
                 if rule_in_rule_list(rule,unimplemented_expectations) or (rule_in_rule_list(rule,in_house_rules) and restrict_rules):
                     if not rule_in_rule_list(rule,in_house_rules):
-                        logging.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
+                        logger.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                         continue  
 
                     #Validate for each individual validation rule.
