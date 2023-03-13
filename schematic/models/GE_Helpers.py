@@ -471,12 +471,12 @@ class GreatExpectationsHelpers(object):
                         errors.append(vr_errors)  
                         if rule.startswith('protectAges'):
                             self.censor_ages(vr_errors,errColumn)
-                            pass
+                            
                     if vr_warnings:
                         warnings.append(vr_warnings)  
                         if rule.startswith('protectAges'):
                             self.censor_ages(vr_warnings,errColumn)
-                            pass
+                            
 
         return errors, warnings
 
