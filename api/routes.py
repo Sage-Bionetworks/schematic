@@ -389,6 +389,9 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
     if not table_manipulation: 
         table_manipulation = "replace"
 
+    if not manifest_record_type:
+        manifest_record_type = "combo"
+
     if data_type == 'None':
         validate_component = None
     else:
