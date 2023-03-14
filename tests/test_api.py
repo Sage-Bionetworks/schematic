@@ -69,10 +69,8 @@ def get_MockComponent_attribute():
     attributes=sg.get_node_dependencies('MockComponent')
     attributes.remove('Component')
 
-    yield attributes[-1]
-
-    # for MockComponent_attribute in attributes:
-    #     yield MockComponent_attribute   
+    for MockComponent_attribute in attributes:
+        yield MockComponent_attribute   
 
 @pytest.fixture(scope="class")
 def syn_token(config):
