@@ -55,12 +55,17 @@ def data_model_jsonld():
     data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
     yield data_model_jsonld
 
+@pytest.fixture(scope="class")
+def benchmark_data_model_jsonld():
+    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-validation-api-tests/tests/data/example.single_rule.model.jsonld"
+    yield benchmark_data_model_jsonld
+
 def get_MockComponent_attribute():
     """
     Yield all of the mock conponent attributes one at a time
     TODO: pull in jsonld from fixture
     """
-    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld")
+    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-validation-api-tests/tests/data/example.single_rule.model.jsonld")
     attributes=sg.get_node_dependencies('MockComponent')
     attributes.remove('Component')
 
@@ -683,7 +688,7 @@ class TestSchemaVisualization:
 @pytest.mark.schematic_api
 class TestValidationBenchmark():
     @pytest.mark.parametrize('MockComponent_attribute', get_MockComponent_attribute())
-    def test_validation_performance(self, data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
+    def test_validation_performance(self, benchmark_data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
         target_rows = 1000
         endpoint_url = 'http://localhost:3001/v1/model/validate'
 
@@ -696,8 +701,8 @@ class TestValidationBenchmark():
         manifest_json = large_manfiest.to_json(orient='records')
         
         
-        params = {
-            "schema_url": data_model_jsonld,
+        params = { 
+            "schema_url": benchmark_data_model_jsonld,
             "json_str": manifest_json,
             "data_type": "MockComponent"
         }
