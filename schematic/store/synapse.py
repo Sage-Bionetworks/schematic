@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 from copy import deepcopy
 import os
 import uuid  # used to generate unique names for entities
@@ -108,13 +108,14 @@ class SynapseStorage(BaseStorage):
         # try clearing the cache
         # scan a directory and check size of files
         root_dir = self.syn.cache.cache_root_dir
+        cache = self.syn.cache
         if os.path.exists(root_dir):
             nbytes = get_dir_size(root_dir)
-            # if 19.5 GB has already been taken, purge cache prior to today
+            # if 19.5 GB has already been taken, purge cache before an hour
             if nbytes >= 20937965568:
-                c = self.syn.core.cache.Cache()
-                today = datetime.strftime(datetime.utcnow(), '%s')
-                c.purge(before_date = int(today))
+                an_hour_earlier = datetime.strftime(datetime.utcnow()- timedelta(hours = 1), '%s')
+                num_of_deleted_files = cache.purge(before_date = int(an_hour_earlier))
+                print(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
             else:
                 # print remaining ephemeral storage on AWS 
                 remaining_space = 21474836480 - nbytes
@@ -135,10 +136,11 @@ class SynapseStorage(BaseStorage):
                 self.storageFileviewTable = self.syn.tableQuery(
                     "SELECT * FROM " + self.storageFileview
                 ).asDataFrame()
+
         except AttributeError:
             raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
-            raise AccessCredentialsError(self.storageFileview)        
+            raise AccessCredentialsError(self.storageFileview)    
 
     @staticmethod
     def login(token=None, access_token=None, input_token=None):
