@@ -21,7 +21,10 @@ from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (comma_separated_list_regex,
-                                            parse_str_series_to_list)
+                                            parse_str_series_to_list,
+                                            np_array_to_str_list,
+                                            iterable_to_str_list,
+                                            )
 
 
 logger = logging.getLogger(__name__)
@@ -429,7 +432,9 @@ class GenerateError:
         error_list = []
         warning_list = []
         error_col = attribute_name  # Attribute name
-        
+        if error_val:
+            error_val = iterable_to_str_list(set(error_val))
+
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
             val_rule=val_rule,
@@ -445,11 +450,11 @@ class GenerateError:
         
         #log warning or error message
         if val_rule.startswith('recommended'):
-            cross_error_str = (
+            content_error_str = (
                 f"Column {attribute_name} is recommended but empty."
             )
-            logLevel(cross_error_str)
-            error_message = cross_error_str
+            logLevel(content_error_str)
+            error_message = content_error_str
 
             if raises == 'error':
                 error_list = [error_col, error_message]
@@ -460,33 +465,33 @@ class GenerateError:
             return error_list, warning_list
 
         elif val_rule.startswith('unique'):    
-            cross_error_str = (
-                f"Column {attribute_name} has the duplicate value(s) {set(error_val)} in rows: {row_num}."
+            content_error_str = (
+                f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
             )
 
         elif val_rule.startswith('protectAges'):
-            cross_error_str = (
+            content_error_str = (
                 f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
             )           
 
         elif val_rule.startswith('inRange'):
-            cross_error_str = (
+            content_error_str = (
                 f"{attribute_name} values in rows {row_num} are out of the specified range."
             )
         elif val_rule.startswith('date'):
-            cross_error_str = (
+            content_error_str = (
                 f"{attribute_name} values in rows {row_num} are not parsable as dates."
             )  
-        logLevel(cross_error_str)
+        logLevel(content_error_str)
         error_row = row_num 
-        error_message = cross_error_str
+        error_message = content_error_str
 
         #return error and empty list for warnings
         if raises == 'error':
-            error_list = [error_row, error_col, error_message, set(error_val)]
+            error_list = [error_row, error_col, error_message, error_val]
         #return warning and empty list for errors
         elif raises == 'warning':
-            warning_list = [error_row, error_col, error_message, set(error_val)]
+            warning_list = [error_row, error_col, error_message, error_val]
         
         return error_list, warning_list
 
@@ -964,11 +969,12 @@ class ValidateAttribute(object):
             
             if val_rule.__contains__('matchAtLeastOne') and not missing_values.empty:
                 missing_rows = missing_values.index.to_numpy() + 2
+                missing_rows = np_array_to_str_list(missing_rows)
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
-                        row_num = str(list(missing_rows)),
+                        row_num = missing_rows,
                         attribute_name = source_attribute,
-                        invalid_entry = str(missing_values.values.tolist()),
+                        invalid_entry = iterable_to_str_list(missing_values),
                         sg = sg,
                     )
                 if vr_errors:
@@ -978,11 +984,12 @@ class ValidateAttribute(object):
             elif val_rule.__contains__('matchExactlyOne') and (duplicated_values.any() or missing_values.any()):
                 invalid_values  = pd.merge(duplicated_values,missing_values,how='outer')
                 invalid_rows    = pd.merge(duplicated_values,missing_values,how='outer',left_index=True,right_index=True).index.to_numpy() + 2
+                invalid_rows    = np_array_to_str_list(invalid_rows)
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
-                        row_num = str(list(invalid_rows)), 
+                        row_num = invalid_rows,
                         attribute_name = source_attribute, 
-                        invalid_entry = str(pd.Series(invalid_values.squeeze()).values.tolist()),
+                        invalid_entry = iterable_to_str_list(invalid_values.squeeze()),
                         sg = sg,
                     )
                 if vr_errors:
@@ -1001,15 +1008,14 @@ class ValidateAttribute(object):
                     missing_rows.append(missing_entry.index[0]+2)
                     missing_values.append(missing_entry.values[0])
                     
-                missing_rows=list(set(missing_rows))
-                missing_values=list(set(missing_values))
-                #print(missing_rows,missing_values)
-
+                missing_rows=iterable_to_str_list(set(missing_rows))
+                missing_values=iterable_to_str_list(set(missing_values))
+                
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
-                        row_num = str(missing_rows),
+                        row_num = missing_rows,
                         attribute_name = source_attribute,
-                        invalid_entry = str(missing_values),
+                        invalid_entry = missing_values,
                         missing_manifest_ID = missing_manifest_IDs,
                         sg = sg,
                     )

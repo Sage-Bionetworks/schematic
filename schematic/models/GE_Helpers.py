@@ -26,7 +26,7 @@ from great_expectations.exceptions.exceptions import GreatExpectationsError
 
 from schematic.models.validate_attribute import GenerateError
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.validate_utils import rule_in_rule_list, np_array_to_str_list, iterable_to_str_list
 
 logger = logging.getLogger(__name__)
 
@@ -434,9 +434,9 @@ class GreatExpectationsHelpers(object):
                     for row, value in zip(indices,values):
                         vr_errors, vr_warnings = GenerateError.generate_type_error(
                                 val_rule = rule,
-                                row_num = row+2,
+                                row_num = str(row+2),
                                 attribute_name = errColumn,
-                                invalid_entry = value,
+                                invalid_entry = str(value),
                                 sg = sg,
                             )
                         if vr_errors:
@@ -449,7 +449,7 @@ class GreatExpectationsHelpers(object):
                         vr_errors, vr_warnings = GenerateError.generate_regex_error(
                                 val_rule= rule,
                                 reg_expression = expression,
-                                row_num = row+2,
+                                row_num = str(row+2),
                                 module_to_call = 'match',
                                 attribute_name = errColumn,
                                 invalid_entry = value,
@@ -463,20 +463,20 @@ class GreatExpectationsHelpers(object):
                     vr_errors, vr_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,
-                                                            row_num = list(np.array(indices)+2),
-                                                            error_val = values,  
+                                                            row_num = np_array_to_str_list(np.array(indices)+2),
+                                                            error_val = iterable_to_str_list(values),  
                                                             sg = self.sg
                                                         )       
                     if vr_errors:
                         errors.append(vr_errors)  
                         if rule.startswith('protectAges'):
                             self.censor_ages(vr_errors,errColumn)
-                            pass
+                            
                     if vr_warnings:
                         warnings.append(vr_warnings)  
                         if rule.startswith('protectAges'):
                             self.censor_ages(vr_warnings,errColumn)
-                            pass
+                            
 
         return errors, warnings
 
@@ -515,10 +515,13 @@ class GreatExpectationsHelpers(object):
                     name of column containing ages
             Returns:
                 updates self.manifest with censored ages
-            
+            TODO: Speed up conversion from str list to int list
         """
+        censor_rows = []
         
-        censor_rows = list(np.array(message[0]) - 2) 
+        for row in message[0]:
+            censor_rows.append(int(row) - 2)
+
         self.manifest.loc[censor_rows,(col)] = 'age censored'
 
         # update the manifest file, so that ages are censored
