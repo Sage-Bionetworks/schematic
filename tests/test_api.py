@@ -692,8 +692,18 @@ class TestValidationBenchmark():
         target_rows = 1000
         endpoint_url = 'http://localhost:3001/v1/model/validate'
 
+        if MockComponent_attribute == 'Check Ages':
+            test_invalid_manifest[MockComponent_attribute][0]  = '6550'
+        elif MockComponent_attribute == 'Check Date':
+            test_invalid_manifest[MockComponent_attribute][0]  = 'October 21 2022'
+            test_invalid_manifest[MockComponent_attribute][2]  = 'October 21 2022'
+        elif MockComponent_attribute == 'Check Unique':
+            test_invalid_manifest[MockComponent_attribute][0]  = 'str2'
+
+
         # Isolate single attribute of interest, keep `Component` column
         single_attribute_manfiest = test_invalid_manifest[['Component', MockComponent_attribute]]
+
         # Extend to ~1000 rows in size to for performance test
         multi_factor = ceil(target_rows/single_attribute_manfiest.shape[0])
         large_manfiest = pd.concat([single_attribute_manfiest]*multi_factor, ignore_index = True)
