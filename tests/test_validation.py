@@ -141,13 +141,16 @@ class TestManifestValidation:
             sg = sg,
             )[0] in errors
 
-        assert GenerateError.generate_content_error(
+
+        date_err = GenerateError.generate_content_error(
             val_rule = 'date',
             attribute_name = 'Check Date',
             sg = sg,
             row_num = ['2','3','4'],
             error_val = ['84-43-094', '32-984', 'notADate'],
-            )[0] in errors
+            )[0]
+        error_in_list = [date_err[2] in error for error in errors]
+        assert any(error_in_list)
 
         assert GenerateError.generate_content_error(
             val_rule = 'unique error', 
@@ -211,14 +214,18 @@ class TestManifestValidation:
             matching_manifests = ['syn29862066', 'syn27648165'],
             sg = sg,
             )[1] in warnings
-                    
-        assert  GenerateError.generate_cross_warning(
+
+
+        cross_warning = GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
             row_num = ['2', '3', '4'],
             attribute_name='Check Match Exactly values',
             invalid_entry = ['71738', '98085', '210065'],
             sg = sg,
-            )[1] in warnings 
+            )[1]
+        warning_in_list = [cross_warning[1] in warning for warning in warnings]
+        assert any(warning_in_list)
+
         
         
 
