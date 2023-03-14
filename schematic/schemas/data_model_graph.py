@@ -12,8 +12,8 @@ from rdflib import Graph, Namespace, plugin, query
 from networkx.algorithms.cycles import find_cycle
 from networkx.readwrite import json_graph
 
-from schematic.schemas.data_model_edges.DataModelEdges import generate_edge, edit_edge
-from schematic.schemas.data_model_nodes.DataModelNodes import generate_node, edit_node
+from schematic.schemas.data_model_edges import DataModelEdges
+from schematic.schemas.data_model_nodes import DataModelNodes 
 
 from schematic.utils.curie_utils import (
     expand_curies_in_schema,
@@ -72,6 +72,8 @@ class DataModelGraph():
         '''
         
         self.data_model = parsed_data_model
+        self.dmn = DataModelNodes()
+        self.dme = DataModelEdges()
 
         if not self.data_model:
             raise ValueError(
@@ -83,19 +85,20 @@ class DataModelGraph():
         '''Generate NetworkX Graph from the Relationships/attributes dictionary
         
         '''
-
+        # Instantiate NetworkX MultiDigraph
         G = nx.MultiDiGraph()
-        for attribute, relationships in self.data_model:
-            node = generate_node(G, attribute, relationship)
 
+        # Add nodes to the graph
+        ## Find nodes all nodes
+        all_nodes = self.dmn.gather_all_nodes(self.data_model)
+        
+        ## Generate Nodes
+        for node in all_nodes:
+            G = self.dmn.generate_node(G, all_nodes, self.data_model)
+            #node = generate_node(G, attribute, relationship)
 
-
-
-
-
-        data_model_graph = None
         breakpoint()
-        return data_model_graph
+        return G
 
 class DataModelGraphExporer():
     def __init__():
