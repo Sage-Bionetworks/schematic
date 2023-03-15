@@ -687,12 +687,24 @@ class TestSchemaVisualization:
 class TestValidationBenchmark():
     @pytest.mark.parametrize('MockComponent_attribute', get_MockComponent_attribute())
     def test_validation_performance(self, benchmark_data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
+        """
+        Test to benchamrk performance of validation rules on large manifests
+        Test loads the invalid_test_manifest.csv and isolates one attribute at a time
+            it then enforces an error rate of 33% in the attribute (except in the case of Match Exactly Values)
+            the single attribute manifest is then extended to be ~1000 rows to see performance on a large manfiest
+            the manifest is passed to the validation endpoint, and the response time of the endpoint is measured
+            Target response time for all rules is under 5.00 seconds with a successful api response
+        """
+
+        # Number of rows to target for large manfiest
         target_rows = 1000
+        # URL of validtion endpoint
         endpoint_url = 'http://localhost:3001/v1/model/validate'
 
         # Isolate single attribute of interest, keep `Component` column
         single_attribute_manfiest = test_invalid_manifest[['Component', MockComponent_attribute]]
 
+        # Enforce error rate of 33% in the manfiest before extension
         if MockComponent_attribute == 'Check Ages':
             single_attribute_manfiest.loc[0,MockComponent_attribute]  = '6550'
         elif MockComponent_attribute == 'Check Date':
@@ -701,26 +713,27 @@ class TestValidationBenchmark():
         elif MockComponent_attribute == 'Check Unique':
             single_attribute_manfiest.loc[0,MockComponent_attribute]   = 'str2'
 
-
-        # Extend to ~1000 rows in size to for performance test
+        # Extend to ~1000 rows in size for performance test
         multi_factor = ceil(target_rows/single_attribute_manfiest.shape[0])
         large_manfiest = pd.concat([single_attribute_manfiest]*multi_factor, ignore_index = True)
+
         # Convert manfiest to JSON for api endpoint
         manifest_json = large_manfiest.to_json(orient='records')
         
-        
+        # Set paramters for endpoint
         params = { 
             "schema_url": benchmark_data_model_jsonld,
             "json_str": manifest_json,
             "data_type": "MockComponent"
         }
 
+        # Run and time endpoint
         t_start = perf_counter()
         response = client.post(endpoint_url, query_string=params)
         response_time = perf_counter() - t_start
         
+        # Log and check time and ensure successful response
         logger.warning(f"validation endpiont response time {round(response_time,2)} seconds.")
-
         assert response.status_code == 200
         assert response_time < 5.00  
 
