@@ -691,12 +691,12 @@ class TestValidationBenchmark():
         endpoint_url = 'http://localhost:3001/v1/model/validate'
 
         if MockComponent_attribute == 'Check Ages':
-            test_invalid_manifest[MockComponent_attribute][0]  = '6550'
+            test_invalid_manifest.loc[0,MockComponent_attribute]  = '6550'
         elif MockComponent_attribute == 'Check Date':
-            test_invalid_manifest[MockComponent_attribute][0]  = 'October 21 2022'
-            test_invalid_manifest[MockComponent_attribute][2]  = 'October 21 2022'
+            test_invalid_manifest.loc[0,MockComponent_attribute]   = 'October 21 2022'
+            test_invalid_manifest.loc[2,MockComponent_attribute]   = 'October 21 2022'
         elif MockComponent_attribute == 'Check Unique':
-            test_invalid_manifest[MockComponent_attribute][0]  = 'str2'
+            test_invalid_manifest.loc[0,MockComponent_attribute]   = 'str2'
 
 
         # Isolate single attribute of interest, keep `Component` column
