@@ -736,7 +736,6 @@ class TestValidationBenchmark():
 
             # Run and time endpoint
             t_start = perf_counter()
-            #response = client.post(endpoint_url, query_string=params)
             response = client.post(endpoint_url, query_string=params, data={"file_name": (open(large_manifest_path, 'rb'), "large_test.csv")}, headers=headers)
             response_time = perf_counter() - t_start
         finally:
