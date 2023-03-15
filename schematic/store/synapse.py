@@ -336,47 +336,69 @@ class SynapseStorage(BaseStorage):
 
         return file_list
 
-    def _get_censored_manifest_id_(self, datasetId, ):
-        """
-        Get censored manifest id
-        """
-        manifest_syn_id=manifest[censored]["id"][0]
-        return 
+    def _get_manifest_id(self, manifest: pd.DataFrame):
+        """If both censored and uncensored manifests are present, return uncensored manifest; if only one manifest is present, return manifest id of that manifest; if more than two manifests are present, return the manifest id of the first one. 
+        Args:
+        manifest: a dataframe that contains annotation of manifests metadata
+        """ 
+        censored_regex=re.compile('.*censored.*')
+        censored = manifest['name'].str.contains(censored_regex)
+        if any(censored):
+            # Try to use uncensored manifest first
+            not_censored=~censored
+            if any(not_censored):
+                manifest_syn_id=manifest[not_censored]["id"][0]
+            # if only censored manifests are available, just use the first censored manifest
+            else: 
+                manifest_syn_id = manifest["id"][0]
+
+        #otherwise, use the first (implied only) version that exists
+        else:
+            manifest_syn_id = manifest["id"][0]
+        
+        # check if user has access to the manifest without download it 
+        try: 
+            self.syn.get(manifest_syn_id, downloadFile=False)
+        # if user ends up not having access to the manifest returned, switch back to use censored manifest
+        except(SynapseUnmetAccessRestrictions):
+            manifest_syn_id=manifest[censored]["id"][0]
+
+        return manifest_syn_id
 
     @staticmethod
-    def download_manifest(self, manifest_syn_id: str, donwload_manifest: bool = True):
+    def download_manifest(syn, manifest_syn_id: str, donwload_manifest: bool = True):
         """
-        Donwload a manifest based on a given manifest id. If a user does not have access to uncensored manifest, we have
-        to use censor manifest instead
+        Donwload a manifest based on a given manifest id. 
         Args:
             manifest_syn_id: syn id of a manifest
             download_manifest: boolean 
         """
+
         # enables retrying if user does not have access to uncensored manifest
         # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-        while True: 
-            try: 
-                if 'manifest_folder' in CONFIG['synapse'].keys():
-                        manifest_data = self.syn.get(
-                            manifest_syn_id,
-                            downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                            ifcollision="overwrite.local",
-                        )
-                        break   
-                # if no manifest folder is set, download to cache
-                else:
-                        manifest_data = self.syn.get(
-                            manifest_syn_id,
-                        )
-                        break
-            # If user does not have access to uncensored manifest, use censored instead
-            except(SynapseUnmetAccessRestrictions):
-                print('handling censored manifest')
-                # manifest_syn_id=manifest[censored]["id"][0]
-            
+        while donwload_manifest: 
+            if 'manifest_folder' in CONFIG['synapse'].keys():
+                try: 
+                    manifest_data = syn.get(
+                        manifest_syn_id,
+                        downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                        ifcollision="overwrite.local",
+                    )
+                    break   
+                except(SynapseUnmetAccessRestrictions):
+                    raise(f"You don't have access to the requested resource: {manifest_syn_id}")
+            # if no manifest folder is set, download to cache
+            ### TO DO: Deprecate the following? 
+            else:
+                try:
+                    manifest_data = syn.get(
+                        manifest_syn_id,
+                    )
+                    break
+                except(SynapseUnmetAccessRestrictions):
+                    raise(f"You don't have access to the requested resource: {manifest_syn_id}")      
         return manifest_data
 
-    @staticmethod
     def getDatasetManifest(
         self, datasetId: str, downloadFile: bool = False, newManifestName: str='',
     ) -> List[str]:
@@ -395,7 +417,11 @@ class SynapseStorage(BaseStorage):
         # get a list of files containing the manifest for this dataset (if any)
         all_files = self.storageFileviewTable
 
+        # construct regex based on manifest basename in the config 
         manifest_re=re.compile(os.path.basename(self.manifest)+".*.[tc]sv")
+
+        # search manifest based on given manifest basename regex above
+        # and return a dataframe containing annotation of manifests
         manifest = all_files[
             (all_files['name'].str.contains(manifest_re,regex=True))
             & (all_files["parentId"] == datasetId)
@@ -410,45 +436,10 @@ class SynapseStorage(BaseStorage):
 
         # if there is an exisiting manifest
         else:
-            # retrieve data from synapse
-
-
-            # if a censored manifest exists for this dataset
-            censored = manifest['name'].str.contains(censored_regex)
-            if any(censored):
-                # Try to use uncensored manifest first
-                not_censored=~censored
-                if any(not_censored):
-                    manifest_syn_id=manifest[not_censored]["id"][0]
-
-            #otherwise, use the first (implied only) version that exists
-            else:
-                manifest_syn_id = manifest["id"][0]
-
-
-            # if the downloadFile option is set to True
-            if downloadFile:
-                # # enables retrying if user does not have access to uncensored manifest
-                while True:
-                    # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                    try:
-                        if 'manifest_folder' in CONFIG['synapse'].keys():
-                            manifest_data = self.syn.get(
-                                manifest_syn_id,
-                                downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                                ifcollision="overwrite.local",
-                            )
-                            break
-                        # if no manifest folder is set, download to cache
-                        else:
-                            manifest_data = self.syn.get(
-                                manifest_syn_id,
-                            )
-                            break
-                # If user does not have access to uncensored manifest, use censored instead
-                    except(SynapseUnmetAccessRestrictions):
-                            manifest_syn_id=manifest[censored]["id"][0]
-                    
+            manifest_syn_id = self._get_manifest_id(manifest)
+            if downloadFile: 
+                manifest_data = self.download_manifest(self.syn, manifest_syn_id=manifest_syn_id, donwload_manifest=True)
+              
                 # Rename manifest file if indicated by user.
                 if newManifestName:
                     if os.path.exists(manifest_data['path']):
