@@ -11,7 +11,7 @@ import logging
 from time import perf_counter
 from schematic.schemas.generator import SchemaGenerator
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 '''
