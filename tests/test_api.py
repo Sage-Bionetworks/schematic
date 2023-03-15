@@ -57,7 +57,7 @@ def data_model_jsonld():
 
 @pytest.fixture(scope="class")
 def benchmark_data_model_jsonld():
-    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-validation-api-tests/tests/data/example.single_rule.model.jsonld"
+    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
     yield benchmark_data_model_jsonld
 
 def get_MockComponent_attribute():
@@ -65,7 +65,7 @@ def get_MockComponent_attribute():
     Yield all of the mock conponent attributes one at a time
     TODO: pull in jsonld from fixture
     """
-    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-validation-api-tests/tests/data/example.single_rule.model.jsonld")
+    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld")
     attributes=sg.get_node_dependencies('MockComponent')
     attributes.remove('Component')
 
