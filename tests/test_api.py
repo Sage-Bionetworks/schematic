@@ -4,12 +4,12 @@ from api import create_app
 import configparser
 import json
 import os
-import pandas as pd
 import re
 from math import ceil
 import logging
 from time import perf_counter
-from schematic.schemas.generator import SchemaGenerator
+import pandas as pd # third party library import
+from schematic.schemas.generator import SchemaGenerator #Local application/library specific imports.
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
