@@ -20,6 +20,7 @@ logging.basicConfig(
 # Suppress INFO-level logging from some dependencies
 logging.getLogger("keyring").setLevel(logging.ERROR)
 logging.getLogger("rdflib").setLevel(logging.ERROR)
+logging.getLogger("synapse").setLevel(logging.INFO)
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)

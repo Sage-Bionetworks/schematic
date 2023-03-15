@@ -52,7 +52,7 @@ from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Synapse storage")
 
 class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -115,12 +115,12 @@ class SynapseStorage(BaseStorage):
             if nbytes >= 20937965568:
                 an_hour_earlier = datetime.strftime(datetime.utcnow()- timedelta(hours = 1), '%s')
                 num_of_deleted_files = cache.purge(before_date = int(an_hour_earlier))
-                print(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
+                logger.info(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
             else:
                 # print remaining ephemeral storage on AWS 
                 remaining_space = 21474836480 - nbytes
                 converted_space = convert_size(remaining_space)
-                print(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache.')
+                logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache.')
 
     def _query_fileview(self):
         self._purge_synapse_cache()
