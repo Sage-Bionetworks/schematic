@@ -690,17 +690,17 @@ class TestValidationBenchmark():
         target_rows = 1000
         endpoint_url = 'http://localhost:3001/v1/model/validate'
 
-        if MockComponent_attribute == 'Check Ages':
-            test_invalid_manifest.loc[0,MockComponent_attribute]  = '6550'
-        elif MockComponent_attribute == 'Check Date':
-            test_invalid_manifest.loc[0,MockComponent_attribute]   = 'October 21 2022'
-            test_invalid_manifest.loc[2,MockComponent_attribute]   = 'October 21 2022'
-        elif MockComponent_attribute == 'Check Unique':
-            test_invalid_manifest.loc[0,MockComponent_attribute]   = 'str2'
-
-
         # Isolate single attribute of interest, keep `Component` column
         single_attribute_manfiest = test_invalid_manifest[['Component', MockComponent_attribute]]
+
+        if MockComponent_attribute == 'Check Ages':
+            single_attribute_manfiest.loc[0,MockComponent_attribute]  = '6550'
+        elif MockComponent_attribute == 'Check Date':
+            single_attribute_manfiest.loc[0,MockComponent_attribute]   = 'October 21 2022'
+            single_attribute_manfiest.loc[2,MockComponent_attribute]   = 'October 21 2022'
+        elif MockComponent_attribute == 'Check Unique':
+            single_attribute_manfiest.loc[0,MockComponent_attribute]   = 'str2'
+
 
         # Extend to ~1000 rows in size to for performance test
         multi_factor = ceil(target_rows/single_attribute_manfiest.shape[0])
