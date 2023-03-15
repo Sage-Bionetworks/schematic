@@ -103,7 +103,7 @@ class SynapseStorage(BaseStorage):
 
     def _purge_synapse_cache(self):
         '''
-        Purge synapse cache if it exceeds 19.5 GB
+        Purge synapse cache if it exceeds 7 GB
         '''
         # try clearing the cache
         # scan a directory and check size of files
@@ -111,16 +111,16 @@ class SynapseStorage(BaseStorage):
         cache = self.syn.cache
         if os.path.exists(root_dir):
             nbytes = get_dir_size(root_dir)
-            # if 19.5 GB has already been taken, purge cache before an hour
-            if nbytes >= 20937965568:
-                an_hour_earlier = datetime.strftime(datetime.utcnow()- timedelta(hours = 1), '%s')
-                num_of_deleted_files = cache.purge(before_date = int(an_hour_earlier))
+            # if 7 GB has already been taken, purge cache before 15 min
+            if nbytes >= 7516192768:
+                minutes_earlier = datetime.strftime(datetime.utcnow()- timedelta(minutes = 15), '%s')
+                num_of_deleted_files = cache.purge(before_date = int(minutes_earlier))
                 logger.info(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
             else:
                 # print remaining ephemeral storage on AWS 
                 remaining_space = 21474836480 - nbytes
                 converted_space = convert_size(remaining_space)
-                logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache.')
+                logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
 
     def _query_fileview(self):
         self._purge_synapse_cache()
