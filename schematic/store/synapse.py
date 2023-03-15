@@ -336,6 +336,47 @@ class SynapseStorage(BaseStorage):
 
         return file_list
 
+    def _get_censored_manifest_id_(self, datasetId, ):
+        """
+        Get censored manifest id
+        """
+        manifest_syn_id=manifest[censored]["id"][0]
+        return 
+
+    @staticmethod
+    def download_manifest(self, manifest_syn_id: str, donwload_manifest: bool = True):
+        """
+        Donwload a manifest based on a given manifest id. If a user does not have access to uncensored manifest, we have
+        to use censor manifest instead
+        Args:
+            manifest_syn_id: syn id of a manifest
+            download_manifest: boolean 
+        """
+        # enables retrying if user does not have access to uncensored manifest
+        # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+        while True: 
+            try: 
+                if 'manifest_folder' in CONFIG['synapse'].keys():
+                        manifest_data = self.syn.get(
+                            manifest_syn_id,
+                            downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                            ifcollision="overwrite.local",
+                        )
+                        break   
+                # if no manifest folder is set, download to cache
+                else:
+                        manifest_data = self.syn.get(
+                            manifest_syn_id,
+                        )
+                        break
+            # If user does not have access to uncensored manifest, use censored instead
+            except(SynapseUnmetAccessRestrictions):
+                print('handling censored manifest')
+                # manifest_syn_id=manifest[censored]["id"][0]
+            
+        return manifest_data
+
+    @staticmethod
     def getDatasetManifest(
         self, datasetId: str, downloadFile: bool = False, newManifestName: str='',
     ) -> List[str]:
@@ -371,6 +412,7 @@ class SynapseStorage(BaseStorage):
         else:
             # retrieve data from synapse
 
+
             # if a censored manifest exists for this dataset
             censored = manifest['name'].str.contains(censored_regex)
             if any(censored):
@@ -386,7 +428,7 @@ class SynapseStorage(BaseStorage):
 
             # if the downloadFile option is set to True
             if downloadFile:
-                # enables retrying if user does not have access to uncensored manifest
+                # # enables retrying if user does not have access to uncensored manifest
                 while True:
                     # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
                     try:
@@ -403,7 +445,7 @@ class SynapseStorage(BaseStorage):
                                 manifest_syn_id,
                             )
                             break
-                    # If user does not have access to uncensored manifest, use censored instead
+                # If user does not have access to uncensored manifest, use censored instead
                     except(SynapseUnmetAccessRestrictions):
                             manifest_syn_id=manifest[censored]["id"][0]
                     

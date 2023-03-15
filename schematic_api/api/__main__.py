@@ -13,7 +13,7 @@ def main():
 
     # Launch app
     # CORS(app, resources={r"*": {"origins": "*"}})
-    app.run(host=host, port=port, debug=False)
+    app.run(host=host, port=port, debug=True)
 
 if __name__ == "__main__":
     main()
