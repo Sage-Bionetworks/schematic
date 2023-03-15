@@ -94,8 +94,9 @@ class DataModelGraph():
         
         ## Generate Nodes
         for node in all_nodes:
-            G = self.dmn.generate_node(G, all_nodes, self.data_model)
-            #node = generate_node(G, attribute, relationship)
+            node_dict = self.dmn.generate_node_dict(node, self.data_model)
+            G = self.dmn.generate_edges(G, attribute, relationship, node_dict)
+            G = self.dmn.generate_node(G, node_dict)
 
         breakpoint()
         return G
