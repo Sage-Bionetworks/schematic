@@ -127,7 +127,6 @@ class SynapseStorage(BaseStorage):
             else:
                 remaining_space = total_ephemeral_storage_bytes - nbytes
                 converted_space = convert_size(remaining_space)
-                print(f'Estimated {remaining_space} bytes (which is approximately {converted_space}')
                 logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
 
     def _query_fileview(self):
