@@ -17,7 +17,7 @@ import pandas as pd
 import re
 import synapseclient
 from time import sleep
-from schematic.utils.general import get_dir_size, convert_size
+from schematic.utils.general import get_dir_size, convert_size, convert_gb_to_bytes
 from synapseclient import (
     Synapse,
     File,
@@ -105,21 +105,29 @@ class SynapseStorage(BaseStorage):
         '''
         Purge synapse cache if it exceeds 7 GB
         '''
+        # define the root directory
+        # set maximum synapse cache allowed
+        # set maximum ephemeral stroage allowed on AWS
+        root_dir = "/var/www/.synapseCache/"
+        maximum_storage_allowed_cache_gb = 7
+        maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
+        total_ephemeral_storag_gb = 20
+        total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
+
         # try clearing the cache
         # scan a directory and check size of files
-        root_dir = self.syn.cache.cache_root_dir
         cache = self.syn.cache
         if os.path.exists(root_dir):
             nbytes = get_dir_size(root_dir)
             # if 7 GB has already been taken, purge cache before 15 min
-            if nbytes >= 7516192768:
+            if nbytes >= maximum_storage_allowed_cache_bytes:
                 minutes_earlier = datetime.strftime(datetime.utcnow()- timedelta(minutes = 15), '%s')
                 num_of_deleted_files = cache.purge(before_date = int(minutes_earlier))
                 logger.info(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
             else:
-                # print remaining ephemeral storage on AWS 
-                remaining_space = 21474836480 - nbytes
+                remaining_space = total_ephemeral_storage_bytes - nbytes
                 converted_space = convert_size(remaining_space)
+                print(f'Estimated {remaining_space} bytes (which is approximately {converted_space}')
                 logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
 
     def _query_fileview(self):

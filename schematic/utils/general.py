@@ -59,3 +59,12 @@ def convert_size(size_bytes: int):
     #convert bytes to a different unit if applicable
     size_bytes_converted = round(size_bytes / power_cal, 2)
     return f"{size_bytes_converted} {size_name[index_int]})"
+
+def convert_gb_to_bytes(gb: int):
+    '''
+    convert gb to bytes
+    args: 
+    gb:  integer
+    ''' 
+    bytes_to_return = gb * 1024 * 1024 * 1024
+    return bytes_to_return
