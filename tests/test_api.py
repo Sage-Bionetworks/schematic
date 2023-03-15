@@ -686,7 +686,7 @@ class TestSchemaVisualization:
 @pytest.mark.schematic_api
 class TestValidationBenchmark():
     @pytest.mark.parametrize('MockComponent_attribute', get_MockComponent_attribute())
-    def test_validation_performance(self, benchmark_data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
+    def test_validation_performance(self, helpers, benchmark_data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
         """
         Test to benchamrk performance of validation rules on large manifests
         Test loads the invalid_test_manifest.csv and isolates one attribute at a time
@@ -701,6 +701,18 @@ class TestValidationBenchmark():
         # URL of validtion endpoint
         endpoint_url = 'http://localhost:3001/v1/model/validate'
 
+        # Set paramters for endpoint
+        params = { 
+            "schema_url": benchmark_data_model_jsonld,
+            "data_type": "MockComponent",
+
+        }
+        headers = {
+        'Content-Type': "multipart/form-data",
+        'Accept': "application/json"
+        }
+
+        # Enforce error rate when possible
         if MockComponent_attribute == 'Check Ages':
             test_invalid_manifest.loc[0,MockComponent_attribute]  = '6550'
         elif MockComponent_attribute == 'Check Date':
@@ -717,20 +729,19 @@ class TestValidationBenchmark():
         multi_factor = ceil(target_rows/single_attribute_manfiest.shape[0])
         large_manfiest = pd.concat([single_attribute_manfiest]*multi_factor, ignore_index = True)
 
-        # Convert manfiest to JSON for api endpoint
-        manifest_json = large_manfiest.to_json(orient='records')
-        
-        # Set paramters for endpoint
-        params = { 
-            "schema_url": benchmark_data_model_jsonld,
-            "json_str": manifest_json,
-            "data_type": "MockComponent"
-        }
+        try:
+            # Convert manfiest to csv for api endpoint
+            large_manifest_path = helpers.get_data_path('mock_manifests/large_manifest_test.csv')
+            large_manfiest.to_csv(large_manifest_path, index=False)
 
-        # Run and time endpoint
-        t_start = perf_counter()
-        response = client.post(endpoint_url, query_string=params)
-        response_time = perf_counter() - t_start
+            # Run and time endpoint
+            t_start = perf_counter()
+            #response = client.post(endpoint_url, query_string=params)
+            response = client.post(endpoint_url, query_string=params, data={"file_name": (open(large_manifest_path, 'rb'), "large_test.csv")}, headers=headers)
+            response_time = perf_counter() - t_start
+        finally:
+            # Remove temp manfiest
+            os.remove(large_manifest_path)
         
         # Log and check time and ensure successful response
         logger.warning(f"validation endpiont response time {round(response_time,2)} seconds.")
