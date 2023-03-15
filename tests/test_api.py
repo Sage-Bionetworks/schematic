@@ -719,11 +719,11 @@ class TestValidationBenchmark():
         response = client.post(endpoint_url, query_string=params)
         response_time = perf_counter() - t_start
         response_dt = json.loads(response.data)
-        assert response.status_code == 200
-
         assert response_time < 5.00
         logger.warning(f"validation endpiont response time {round(response_time,2)} seconds.")
 
+        assert response.status_code == 200
+        assert response_time < 5.00  
 
 
         
