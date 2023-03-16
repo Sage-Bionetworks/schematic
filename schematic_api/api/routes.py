@@ -596,7 +596,7 @@ def download_manifest(input_token, manifest_id, new_manifest_name=''):
         #return local file path
         manifest_local_file_path = manifest_data['path']
     except: 
-        raise(f"Failed to download manifest {manifest_id}")
+        raise(f"Failed to download manifest: {manifest_id}")
 
     return manifest_local_file_path
 
@@ -612,9 +612,12 @@ def download_dataset_manifest(input_token, dataset_id, asset_view, as_json, new_
     manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name)
 
     #return local file path
-    manifest_local_file_path = manifest_data['path']
+    try:
+        manifest_local_file_path = manifest_data['path']
+    except:
+        raise(f'Failed to download manifest from dataset: {dataset_id}')
 
-    # return a json (if as_json = True)
+    #return a json (if as_json = True)
     if as_json: 
         manifest_csv = pd.read_csv(manifest_local_file_path)
         manifest_json = json.loads(manifest_csv.to_json(orient="records"))

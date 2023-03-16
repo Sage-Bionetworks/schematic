@@ -450,10 +450,10 @@ class SynapseStorage(BaseStorage):
         ]
 
         manifest = manifest[["id", "name"]]
-        censored_regex=re.compile('.*censored.*')
         
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
+            logger.warning(f"Could not find a manifest that fits basename {self.manifest} in asset view and dataset {datasetId}")
             return ""
 
         # if there is an exisiting manifest
@@ -461,7 +461,7 @@ class SynapseStorage(BaseStorage):
             manifest_syn_id = self._get_manifest_id(manifest)
             if downloadFile: 
                 manifest_data = self.download_manifest(self.syn, manifest_syn_id=manifest_syn_id, donwload_manifest=True, newManifestName=newManifestName)
-            return manifest_syn_id
+            return manifest_data
 
     def getDataTypeFromManifest(self, manifestId:str):
         """Fetch a manifest and return data types of all columns
