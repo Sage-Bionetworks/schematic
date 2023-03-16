@@ -336,10 +336,13 @@ class SynapseStorage(BaseStorage):
 
         return file_list
 
-    def _get_manifest_id(self, manifest: pd.DataFrame):
+    def _get_manifest_id(self, manifest: pd.DataFrame) -> str:
         """If both censored and uncensored manifests are present, return uncensored manifest; if only one manifest is present, return manifest id of that manifest; if more than two manifests are present, return the manifest id of the first one. 
         Args:
         manifest: a dataframe that contains annotation of manifests metadata
+
+        Return: 
+        manifest_syn_id: id of a given censored or uncensored manifest
         """ 
         censored_regex=re.compile('.*censored.*')
         censored = manifest['name'].str.contains(censored_regex)
@@ -356,7 +359,7 @@ class SynapseStorage(BaseStorage):
         else:
             manifest_syn_id = manifest["id"][0]
         
-        # check if user has access to the manifest without download it 
+        # check if user has access to the manifest without downloading it 
         try: 
             self.syn.get(manifest_syn_id, downloadFile=False)
         # if user ends up not having access to the manifest returned, switch back to use censored manifest
@@ -366,16 +369,20 @@ class SynapseStorage(BaseStorage):
         return manifest_syn_id
 
     @staticmethod
-    def download_manifest(syn, manifest_syn_id: str, donwload_manifest: bool = True):
+    def download_manifest(syn, manifest_syn_id: str, donwload_manifest: bool = True, newManifestName=""):
         """
         Donwload a manifest based on a given manifest id. 
         Args:
             manifest_syn_id: syn id of a manifest
-            download_manifest: boolean 
+            download_manifest: boolean
+            newManifestName: new name of a manifest that gets downloaded 
+        Return: 
+            manifest_data: synapse entity file object
         """
 
         # enables retrying if user does not have access to uncensored manifest
         # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+        manifest_data = ""
         while donwload_manifest: 
             if 'manifest_folder' in CONFIG['synapse'].keys():
                 try: 
@@ -396,7 +403,22 @@ class SynapseStorage(BaseStorage):
                     )
                     break
                 except(SynapseUnmetAccessRestrictions):
-                    raise(f"You don't have access to the requested resource: {manifest_syn_id}")      
+                    raise(f"You don't have access to the requested resource: {manifest_syn_id}")
+        # Rename manifest file if indicated by user.
+        if newManifestName:
+            if os.path.exists(manifest_data['path']):
+                # Rename the file we just made to the new name
+                new_manifest_filename = newManifestName + '.csv'
+                #new_manifest_path_name = manifest_data['path'].replace(manifest['name'][0], new_manifest_filename)
+                dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
+                new_manifest_path_name = os.path.join(dir_name, new_manifest_filename)
+                print('new manifeset path name', new_manifest_path_name)
+                os.rename(manifest_data['path'], new_manifest_path_name)
+
+                # Update file names/paths in manifest_data
+                manifest_data['name'] = new_manifest_filename
+                manifest_data['filename'] = new_manifest_filename
+                manifest_data['path'] = new_manifest_path_name
         return manifest_data
 
     def getDatasetManifest(
@@ -407,6 +429,7 @@ class SynapseStorage(BaseStorage):
         Args:
             datasetId: synapse ID of a storage dataset.
             downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
+            newManifestName: new name of a manifest that gets downloaded 
 
         Returns:
             manifest_syn_id (String): Synapse ID of exisiting manifest file.
@@ -438,24 +461,7 @@ class SynapseStorage(BaseStorage):
         else:
             manifest_syn_id = self._get_manifest_id(manifest)
             if downloadFile: 
-                manifest_data = self.download_manifest(self.syn, manifest_syn_id=manifest_syn_id, donwload_manifest=True)
-              
-                # Rename manifest file if indicated by user.
-                if newManifestName:
-                    if os.path.exists(manifest_data['path']):
-                        # Rename the file we just made to the new name
-                        new_manifest_filename = newManifestName + '.csv'
-                        new_manifest_path_name = manifest_data['path'].replace(manifest['name'][0], new_manifest_filename)
-                        os.rename(manifest_data['path'], new_manifest_path_name)
-
-                        # Update file names/paths in manifest_data
-                        manifest_data['name'] = new_manifest_filename
-                        manifest_data['filename'] = new_manifest_filename
-                        manifest_data['path'] = new_manifest_path_name
-
-                return manifest_data
-
-
+                manifest_data = self.download_manifest(self.syn, manifest_syn_id=manifest_syn_id, donwload_manifest=True, newManifestName=newManifestName)
             return manifest_syn_id
 
     def getDataTypeFromManifest(self, manifestId:str):

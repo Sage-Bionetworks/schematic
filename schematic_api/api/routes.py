@@ -579,8 +579,29 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
+def download_manifest(input_token, manifest_id, new_manifest_name=''):
+    # call config_handler()
+    config_handler()
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # try logging in to asset store
+    try:
+        syn = store.login(input_token=input_token)
+    except: 
+        raise("Failed to log in to asset store. Please check your credentials")
+    manifest_data = store.download_manifest(syn, manifest_id, True, new_manifest_name)
+    try: 
+        #return local file path
+        manifest_local_file_path = manifest_data['path']
+    except: 
+        raise(f"Failed to download manifest {manifest_id}")
+
+    return manifest_local_file_path
+
 #@profile(sort_by='cumulative', strip_dirs=True)  
-def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
+def download_dataset_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
 
