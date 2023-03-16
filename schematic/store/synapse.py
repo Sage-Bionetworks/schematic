@@ -375,7 +375,7 @@ class SynapseStorage(BaseStorage):
         Args:
             manifest_syn_id: syn id of a manifest
             download_manifest: boolean
-            newManifestName: new name of a manifest that gets downloaded 
+            newManifestName: new name of a manifest that gets downloaded.
         Return: 
             manifest_data: synapse entity file object
         """
@@ -412,7 +412,6 @@ class SynapseStorage(BaseStorage):
                 #new_manifest_path_name = manifest_data['path'].replace(manifest['name'][0], new_manifest_filename)
                 dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
                 new_manifest_path_name = os.path.join(dir_name, new_manifest_filename)
-                print('new manifeset path name', new_manifest_path_name)
                 os.rename(manifest_data['path'], new_manifest_path_name)
 
                 # Update file names/paths in manifest_data
