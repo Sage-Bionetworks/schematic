@@ -444,3 +444,41 @@ class TestTableOperations:
         assert IDs.size == 8
         # delete table        
         synapse_store.syn.delete(tableId)
+
+
+class TestDownloadManifest:
+    @pytest.mark.parametrize("datasetFileView", [{"id": ["syn51203973", "syn51203943"], "name": ["synapse_storage_manifest.csv", "synapse_storage_manifest_censored.csv"]}, {"id": ["syn51203973"], "name": ["synapse_storage_manifest.csv"]}, {"id": ["syn51203943"], "name": ["synapse_storage_manifest_censored.csv"]}])
+    def test_get_manifest_id(self, synapse_store, datasetFileView):
+        # rows that contain the censored manifest
+        datasetFileViewDataFrame = pd.DataFrame(datasetFileView)
+        row_censored = datasetFileViewDataFrame.loc[datasetFileViewDataFrame['name'] == "synapse_storage_manifest_censored.csv"]
+        if len(row_censored) > 0:
+            censored_manifest_id = row_censored['id'].values[0]
+        # rows that contain the uncensored manifest
+        row_uncensored = datasetFileViewDataFrame.loc[datasetFileViewDataFrame['name'] == "synapse_storage_manifest.csv"]
+        if len(row_uncensored) > 0:
+            uncensored_manifest_id = row_uncensored['id'].values[0]
+        
+        # get id of the uncensored manifest
+        manifest_syn_id = synapse_store._get_manifest_id(datasetFileViewDataFrame)
+
+        # if there are both censored and uncensored manifests, return only id of uncensored manifest
+        if len(row_uncensored) > 0:
+            assert manifest_syn_id == uncensored_manifest_id
+        # if only censored manifests are present, return only id of censored manifest
+        elif len(row_uncensored) == 0 and len(row_censored) > 0: 
+            assert manifest_syn_id == censored_manifest_id
+
+    @pytest.mark.parametrize("newManifestName",["", "Example"]) 
+    def test_download_manifest(self, config, synapse_store, newManifestName):
+        # test the download function by downloading a manifest
+        manifest_data = synapse_store.download_manifest(synapse_store.syn, "syn51203973", True, newManifestName)
+        assert os.path.exists(manifest_data['path'])
+
+        if not newManifestName:
+            assert manifest_data["name"] == "synapse_storage_manifest.csv"
+        else:
+            assert manifest_data["name"] == "Example.csv"
+        
+        # clean up
+        os.remove(manifest_data['path'])
