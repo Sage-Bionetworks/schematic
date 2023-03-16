@@ -1218,10 +1218,10 @@ class SynapseStorage(BaseStorage):
 
         '''
         for idx, row in manifest.iterrows():
-            if not row["entityId"] and (manifest_record_type == 'file_w_entities' or 
-                manifest_record_type == 'combo'):
+            if not row["entityId"] and (manifest_record_type == 'file_and_entities' or 
+                manifest_record_type == 'table_file_and_entities'):
                 manifest, entityId = self._create_entity_id(idx, row, manifest, datasetId)
-            elif not row["entityId"] and manifest_record_type == 'table':
+            elif not row["entityId"] and manifest_record_type == 'table_and_file':
                 # If not using entityIds, fill with manifest_table_id so 
                 row["entityId"] = manifest_synapse_table_id
                 manifest.loc[idx, "entityId"] = manifest_synapse_table_id

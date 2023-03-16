@@ -600,10 +600,7 @@ class TestManifestOperation:
 
             # test uploading a csv file
             response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
-            try:
-                assert response_csv.status_code == 200
-            except:
-                breakpoint()    
+            assert response_csv.status_code == 200  
 
     
     @pytest.mark.parametrize("json_str", [None, '[{ "Component": "MockRDB", "MockRDB_id": 5 }]'])
