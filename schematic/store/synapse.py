@@ -102,14 +102,14 @@ class SynapseStorage(BaseStorage):
         self._query_fileview()
 
     def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/"):
-        '''
+        """
         Purge synapse cache if it exceeds 7GB
         Args:
             root_dir: directory of the .synapseCache function
         Returns: 
             if size of cache reaches 7GB, return the number of files that get deleted
             otherwise, return the total remaining space (assuming total ephemeral storage is 20GB on AWS )
-        '''
+        """
         # try clearing the cache
         # scan a directory and check size of files
         cache = self.syn.cache
