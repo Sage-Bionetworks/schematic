@@ -435,6 +435,7 @@ class SynapseStorage(BaseStorage):
             manifest_data (synapseclient.entity.File): Synapse entity if downloadFile is True.
             "" (String): No pre-exisiting manifest in dataset.
         """
+        manifest_data = ""
 
         # get a list of files containing the manifest for this dataset (if any)
         all_files = self.storageFileviewTable
