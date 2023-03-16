@@ -101,23 +101,25 @@ class SynapseStorage(BaseStorage):
 
         self._query_fileview()
 
-    def _purge_synapse_cache(self):
+    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/"):
         '''
-        Purge synapse cache if it exceeds 7 GB
+        Purge synapse cache if it exceeds 7GB
+        Args:
+            root_dir: directory of the .synapseCache function
+        Returns: 
+            if size of cache reaches 7GB, return the number of files that get deleted
+            otherwise, return the total remaining space (assuming total ephemeral storage is 20GB on AWS )
         '''
-        # define the root directory
-        # set maximum synapse cache allowed
-        # set maximum ephemeral stroage allowed on AWS
-        root_dir = "/var/www/.synapseCache/"
-        maximum_storage_allowed_cache_gb = 7
-        maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
-        total_ephemeral_storag_gb = 20
-        total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
-
         # try clearing the cache
         # scan a directory and check size of files
         cache = self.syn.cache
         if os.path.exists(root_dir):
+            # set maximum synapse cache allowed
+            # set maximum ephemeral stroage allowed on AWS
+            maximum_storage_allowed_cache_gb = 7
+            maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
+            total_ephemeral_storag_gb = 20
+            total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
             nbytes = get_dir_size(root_dir)
             # if 7 GB has already been taken, purge cache before 15 min
             if nbytes >= maximum_storage_allowed_cache_bytes:
