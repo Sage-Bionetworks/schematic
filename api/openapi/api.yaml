@@ -263,8 +263,8 @@ paths:
           name: manifest_record_type
           schema:
             type: string
-            enum: ["table", "file", "file_w_entities", "combo"]
-          description: Manifest storage type, will default to "combo" if none selected.'file_w_entities' will store the manifest as a csv and create Synapse files for each row in the manifest. 'table' will store the manifest as a table and a csv on Synapse. 'file' will store the manifest as a csv only on Synapse. 'combo' will perform the options file_with_entites and table in combination.
+            enum: ["file_only", "file_w_entities", "table_and_file", "table_file_and_entities"]
+          description: Manifest storage type, will default to "table_file_and_entities" if none selected.'file_and_entities' will store the manifest as a csv and create Synapse files for each row in the manifest. 'table_and_file' will store the manifest as a table and a csv on Synapse. 'file_only' will store the manifest as a csv only on Synapse. 'table_file_and_entities' will perform the options file_with_entites and table in combination.
           example: 'table'
         - in: query
           name: restrict_rules

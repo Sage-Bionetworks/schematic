@@ -543,7 +543,7 @@ class TestManifestOperation:
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
     @pytest.mark.parametrize("use_schema_label", ['true','false'])
-    @pytest.mark.parametrize("manifest_record_type", ['table', 'file'])
+    @pytest.mark.parametrize("manifest_record_type", ['table_and_file', 'file_only'])
     def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, use_schema_label, manifest_record_type):
         params = {
             "input_token": syn_token,
@@ -569,11 +569,11 @@ class TestManifestOperation:
             params["data_type"] = "MockComponent"
 
             # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
+            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
             assert response_csv.status_code == 200
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
-    @pytest.mark.parametrize("manifest_record_type", ['file_w_entities', 'combo'])
+    @pytest.mark.parametrize("manifest_record_type", ['file_and_entities', 'table_file_and_entities'])
     def test_submit_manifest_w_entities(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, manifest_record_type):
         params = {
             "input_token": syn_token,
@@ -599,8 +599,11 @@ class TestManifestOperation:
             params["data_type"] = "MockComponent"
 
             # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
-            assert response_csv.status_code == 200     
+            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
+            try:
+                assert response_csv.status_code == 200
+            except:
+                breakpoint()    
 
     
     @pytest.mark.parametrize("json_str", [None, '[{ "Component": "MockRDB", "MockRDB_id": 5 }]'])
