@@ -28,12 +28,12 @@ def unlist(_list):
     else:
         return _list
 
-def get_dir_size(path):
-    '''
-    calculate total size of a directory
-    args: 
-    path: path to a folder or directory
-    '''
+def get_dir_size(path: str):
+    """calculate total size of a directory
+    Args: 
+        path: path to a folder 
+    return: total size of a directory
+    """
     total = 0
     # Example usage of os.scandir could be found here: https://docs.python.org/3/library/os.html#os.scandir
     # Technically, scandir.close() is called automatically. But it is still advisable to call it explicitly or use the with statement. 
@@ -46,9 +46,11 @@ def get_dir_size(path):
     return total
 
 def convert_size(size_bytes: int):
-    '''
-    convert bytes to a human readable format
-    '''
+    """convert bytes to a human readable format
+    Args:
+        size_bytes: total byte sizes
+    return: a string that indicates bytes in a different format
+    """
     if size_bytes == 0:
        return "0B"
     size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
@@ -61,10 +63,10 @@ def convert_size(size_bytes: int):
     return f"{size_bytes_converted} {size_name[index_int]})"
 
 def convert_gb_to_bytes(gb: int):
-    '''
-    convert gb to bytes
-    args: 
-    gb:  integer
-    ''' 
+    """convert gb to bytes
+    Args:
+        gb: number of gb
+    return: total number of bytes
+    """
     bytes_to_return = gb * 1024 * 1024 * 1024
     return bytes_to_return
