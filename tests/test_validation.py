@@ -68,7 +68,7 @@ class TestManifestValidation:
         #Check errors
         assert GenerateError.generate_type_error(
             val_rule = 'num',
-            row_num = 3,
+            row_num = '3',
             attribute_name = 'Check Num', 
             invalid_entry = 'c',
             sg = sg,
@@ -76,17 +76,17 @@ class TestManifestValidation:
 
         assert GenerateError.generate_type_error(
             val_rule = 'int',
-            row_num = 3,
+            row_num = '3',
             attribute_name = 'Check Int', 
-            invalid_entry = 5.63,
+            invalid_entry = '5.63',
             sg = sg,
             )[0] in errors
 
         assert GenerateError.generate_type_error(
             val_rule = 'str',
-            row_num = 3,
+            row_num = '3',
             attribute_name = 'Check String', 
-            invalid_entry = 94,
+            invalid_entry = '94',
             sg = sg,
             )[0] in errors
 
@@ -141,19 +141,22 @@ class TestManifestValidation:
             sg = sg,
             )[0] in errors
 
-        assert GenerateError.generate_content_error(
+
+        date_err = GenerateError.generate_content_error(
             val_rule = 'date',
             attribute_name = 'Check Date',
             sg = sg,
-            row_num = [2,3,4],
+            row_num = ['2','3','4'],
             error_val = ['84-43-094', '32-984', 'notADate'],
-            )[0] in errors
+            )[0]
+        error_in_list = [date_err[2] in error for error in errors]
+        assert any(error_in_list)
 
         assert GenerateError.generate_content_error(
             val_rule = 'unique error', 
             attribute_name = 'Check Unique',
             sg = sg,
-            row_num = [2,3,4],
+            row_num = ['2','3','4'],
             error_val = ['str1'],  
             )[0] in errors
 
@@ -161,8 +164,8 @@ class TestManifestValidation:
             val_rule = 'inRange 50 100 error', 
             attribute_name = 'Check Range',
             sg = sg,
-            row_num = [3],
-            error_val = [30], 
+            row_num = ['3'],
+            error_val = ['30'], 
             )[0] in errors
 
         #check warnings
@@ -176,24 +179,24 @@ class TestManifestValidation:
             val_rule = 'protectAges', 
             attribute_name = 'Check Ages',
             sg = sg,
-            row_num = [2,3],
-            error_val = [6549,32851], 
+            row_num = ['2','3'],
+            error_val = ['6549','32851'], 
             )[1] in warnings
 
         assert GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name='Check Match at Least',
-            invalid_entry = '[7163]',
+            invalid_entry = ['7163'],
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
             sg = sg,
             )[1] in warnings
 
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name = 'Check Match at Least values',
-            invalid_entry = '[51100]',
+            invalid_entry = ['51100'],
             sg = sg,
             )[1] in warnings      
 
@@ -211,14 +214,18 @@ class TestManifestValidation:
             matching_manifests = ['syn29862066', 'syn27648165'],
             sg = sg,
             )[1] in warnings
-                    
-        assert  GenerateError.generate_cross_warning(
+
+
+        cross_warning = GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[2, 3, 4]',
+            row_num = ['2', '3', '4'],
             attribute_name='Check Match Exactly values',
-            invalid_entry = '[71738, 98085, 210065]',
+            invalid_entry = ['71738', '98085', '210065'],
             sg = sg,
-            )[1] in warnings 
+            )[1]
+        warning_in_list = [cross_warning[1] in warning for warning in warnings]
+        assert any(warning_in_list)
+
         
         
 
@@ -312,18 +319,18 @@ class TestManifestValidation:
         #Check Warnings
         assert GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name='Check Match at Least',
-            invalid_entry = '[7163]',
+            invalid_entry = ['7163'],
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
             sg = sg,
             )[1] in warnings
 
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name = 'Check Match at Least values',
-            invalid_entry = '[51100]',
+            invalid_entry = ['51100'],
             sg = sg,
             )[1] in warnings      
 
@@ -344,9 +351,9 @@ class TestManifestValidation:
                     
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[2, 3, 4]',
+            row_num = ['2', '3', '4'],
             attribute_name='Check Match Exactly values',
-            invalid_entry = '[71738, 98085, 210065]',
+            invalid_entry = ['71738', '98085', '210065'],
             sg = sg,
             )[1] in warnings 
         

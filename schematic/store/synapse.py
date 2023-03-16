@@ -100,6 +100,25 @@ class SynapseStorage(BaseStorage):
 
         self._query_fileview()
 
+    def checkEntityType(self, syn_id): 
+        """
+        Check the entity type of a synapse entity
+        return: type of synapse entity 
+        """
+        entity = self.syn.get(syn_id)
+        type_entity = str(type(entity))
+
+        if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":
+            return "asset view"
+        elif type_entity == "<class 'synapseclient.entity.Folder'>":
+            return "folder"
+        elif type_entity == "<class 'synapseclient.entity.File'>":
+            return "file"
+        elif type_entity == "<class 'synapseclient.entity.Project'>":
+            return "project"
+        else: 
+            return type_entity
+
     def _query_fileview(self):
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
@@ -1678,6 +1697,16 @@ class SynapseStorage(BaseStorage):
                     [wait_fixed(20)]),
             retry=retry_if_exception_type(LookupError),
             retry_error_callback = raise_final_error)
+
+    def checkIfinAssetView(self, syn_id) -> str:
+        # get data in administrative fileview for this pipeline
+        assetViewTable = self.getStorageFileviewTable()
+        all_files = list(assetViewTable["id"])
+        if syn_id in all_files: 
+            return True
+        else: 
+            return False
+
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
 
