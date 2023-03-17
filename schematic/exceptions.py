@@ -28,6 +28,29 @@ class MissingConfigValueError(Exception):
     def __str__(self):
         return f"{self.message}"
 
+class WrongEntityTypeError(Exception):
+    """Exception raised when the entity type is not desired
+
+    Args:
+        entity id: For synapse, thi
+        message: custom/pre-defined error message to be returned.
+
+    Returns:
+        message.
+    """    
+    def __init__(self, syn_id: str, message: str = None) -> str:
+        self.message = (
+            f"'{syn_id}'' is not a desired entity type"
+            "Please ensure that you put in the right syn_id"
+        )
+
+        if message:
+            self.message = message
+
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f"{self.message}"
 
 class MissingConfigAndArgumentValueError(Exception):
     """Exception raised when configuration value not provided in config file.

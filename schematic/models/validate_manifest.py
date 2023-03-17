@@ -9,6 +9,7 @@ import os
 import pandas as pd
 import re
 import sys
+from time import perf_counter
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -47,7 +48,7 @@ class ValidateManifest(object):
                 f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) ."
                 f"have too many entries. We currently only specify two rules ('list :: another_rule')."
             )
-            logging.error(error_str)
+            logger.error(error_str)
             error_message = error_str
             error_val = f"Multiple Rules: too many rules"
         if error_type == "list_not_first":
@@ -55,7 +56,7 @@ class ValidateManifest(object):
                 f"For attribute {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
                 f"specified. 'list' must be first."
             )
-            logging.error(error_str)
+            logger.error(error_str)
             error_message = error_str
             error_val = f"Multiple Rules: list not first"
         return ["NA", error_col, error_message, error_val]
@@ -125,6 +126,7 @@ class ValidateManifest(object):
         warnings = [] 
 
         if not restrict_rules:
+            t_GE = perf_counter()
             #operations necessary to set up and run ge suite validation
             ge_helpers=GreatExpectationsHelpers(
                 sg=sg,
@@ -162,13 +164,15 @@ class ValidateManifest(object):
                 validation_results = validation_results,
                 validation_types = validation_types,
                 sg = sg,
-                )               
+                )        
+            logger.debug(f"GE elapsed time {perf_counter()-t_GE}")       
         else:             
-            logging.info("Great Expetations suite will not be utilized.")  
+            logger.info("Great Expetations suite will not be utilized.")  
 
-
+        t_err=perf_counter()
         regex_re=re.compile('regex.*')
         for col in manifest.columns:
+            
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
@@ -188,9 +192,10 @@ class ValidateManifest(object):
                 validation_type = rule.split(" ")[0]
                 if rule_in_rule_list(rule,unimplemented_expectations) or (rule_in_rule_list(rule,in_house_rules) and restrict_rules):
                     if not rule_in_rule_list(rule,in_house_rules):
-                        logging.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
+                        logger.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
                         continue  
 
+                    t_indiv_rule=perf_counter()
                     #Validate for each individual validation rule.
                     validation_method = getattr(
                             ValidateAttribute, validation_types[validation_type]['type']
@@ -214,12 +219,14 @@ class ValidateManifest(object):
                         errors.extend(vr_errors)
                     if vr_warnings:
                         warnings.extend(vr_warnings)
-
+                    logger.debug(f"Rule {rule} elapsed time: {perf_counter()-t_indiv_rule}")
+        logger.debug(f"In House validation elapsed time {perf_counter()-t_err}")
         return manifest, errors, warnings
 
     def validate_manifest_values(self, manifest, jsonSchema, sg
     ) -> (List[List[str]], List[List[str]]):
-        
+        t_json_schema = perf_counter()
+
         errors = []
         warnings = []
         col_attr = {} # save the mapping between column index and attribute name
@@ -233,7 +240,7 @@ class ValidateManifest(object):
         for i, annotation in enumerate(annotations):
             v = Draft7Validator(jsonSchema)
             for error in sorted(v.iter_errors(annotation), key=exceptions.relevance):
-                errorRow = i + 2
+                errorRow = str(i + 2)
                 errorCol = error.path[-1] if len(error.path) > 0 else "Wrong schema"
                 errorColName = error.path[0] if len(error.path) > 0 else "Wrong schema"
                 errorMsg = error.message[0:500]
@@ -245,7 +252,7 @@ class ValidateManifest(object):
                     errors.append(val_errors)
                 if val_warnings:
                     warnings.append(val_warnings)
-
+        logger.debug(f"JSON Schema validation elapsed time {perf_counter()-t_json_schema}")
         return errors, warnings
 
 

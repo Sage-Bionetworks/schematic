@@ -7,6 +7,7 @@ import dateparser as dp
 import datetime as dt
 from pandarallel import pandarallel
 
+from time import perf_counter
 logger = logging.getLogger(__name__)
 
 
@@ -24,13 +25,15 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     Returns: a processed dataframe for manifests or unprocessed df for data models
     """
     #Read CSV to df as type specified in kwargs
+    t_load_df = perf_counter()
     org_df = pd.read_csv(file_path, keep_default_na = True, encoding='utf8', **load_args)
     
     if preserve_raw_input:
         #only trim if not data model csv
         if not data_model:
             org_df=trim_commas_df(org_df)
-
+        
+            logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
 
     else:
@@ -57,6 +60,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         #Store values that were entered as ints and dates
         processed_df=processed_df.mask(ints != False, other = ints)  
         
+        logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return processed_df
 
 
