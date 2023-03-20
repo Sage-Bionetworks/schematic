@@ -378,6 +378,9 @@ class SynapseStorage(BaseStorage):
                 not_censored=~censored
                 if any(not_censored):
                     manifest_syn_id=manifest[not_censored]["id"][0]
+                # If only censored manifests are available, use the first censored manifest
+                else:
+                    manifest_syn_id=manifest["id"][0]
 
             #otherwise, use the first (implied only) version that exists
             else:
