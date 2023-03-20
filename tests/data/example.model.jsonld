@@ -2536,6 +2536,9 @@
                 },
                 {
                     "@id": "bts:CheckRange"
+                },
+                {
+                    "@id": "bts:CheckDate"
                 }
             ],
             "sms:validationRules": []
