@@ -4,9 +4,15 @@ from schematic_api.api import create_app
 import configparser
 import json
 import os
-import pandas as pd
 import re
+from math import ceil
+import logging
+from time import perf_counter
+import pandas as pd # third party library import
+from schematic.schemas.generator import SchemaGenerator #Local application/library specific imports.
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 '''
 To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
@@ -30,6 +36,11 @@ def test_manifest_csv(helpers):
     yield test_manifest_path
 
 @pytest.fixture(scope="class")
+def test_invalid_manifest(helpers):
+    test_invalid_manifest = helpers.get_data_frame("mock_manifests/Invalid_Test_Manifest.csv", preserve_raw_input=False)
+    yield test_invalid_manifest
+
+@pytest.fixture(scope="class")
 def test_upsert_manifest_csv(helpers):
     test_upsert_manifest_path = helpers.get_data_path("mock_manifests/rdb_table_manifest.csv")
     yield test_upsert_manifest_path
@@ -43,6 +54,23 @@ def test_manifest_json(helpers):
 def data_model_jsonld():
     data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
     yield data_model_jsonld
+
+@pytest.fixture(scope="class")
+def benchmark_data_model_jsonld():
+    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
+    yield benchmark_data_model_jsonld
+
+def get_MockComponent_attribute():
+    """
+    Yield all of the mock conponent attributes one at a time
+    TODO: pull in jsonld from fixture
+    """
+    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld")
+    attributes=sg.get_node_dependencies('MockComponent')
+    attributes.remove('Component')
+
+    for MockComponent_attribute in attributes:
+        yield MockComponent_attribute   
 
 @pytest.fixture(scope="class")
 def syn_token(config):
@@ -575,13 +603,14 @@ class TestManifestOperation:
 
     @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
     @pytest.mark.parametrize("use_schema_label", ['true','false'])
-    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, use_schema_label):
+    @pytest.mark.parametrize("manifest_record_type", ['table_and_file', 'file_only'])
+    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, use_schema_label, manifest_record_type):
         params = {
             "input_token": syn_token,
             "schema_url": data_model_jsonld,
             "data_type": "Patient",
             "restrict_rules": False, 
-            "manifest_record_type": "table",
+            "manifest_record_type": manifest_record_type,
             "asset_view": "syn44259375",
             "dataset_id": "syn44259313",
             "table_manipulation": 'replace',
@@ -600,8 +629,39 @@ class TestManifestOperation:
             params["data_type"] = "MockComponent"
 
             # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
-            assert response_csv.status_code == 200     
+            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
+            assert response_csv.status_code == 200
+
+    @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
+    @pytest.mark.parametrize("manifest_record_type", ['file_and_entities', 'table_file_and_entities'])
+    def test_submit_manifest_w_entities(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, manifest_record_type):
+        params = {
+            "input_token": syn_token,
+            "schema_url": data_model_jsonld,
+            "data_type": "Patient",
+            "restrict_rules": False, 
+            "manifest_record_type": manifest_record_type,
+            "asset_view": "syn44259375",
+            "dataset_id": "syn44259313",
+            "table_manipulation": 'replace',
+            "use_schema_label": True
+        }
+
+        if json_str:
+            params["json_str"] = json_str
+            response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
+            assert response.status_code == 200
+        else: 
+            headers = {
+            'Content-Type': "multipart/form-data",
+            'Accept': "application/json"
+            }
+            params["data_type"] = "MockComponent"
+
+            # test uploading a csv file
+            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
+            assert response_csv.status_code == 200  
+
     
     @pytest.mark.parametrize("json_str", [None, '[{ "Component": "MockRDB", "MockRDB_id": 5 }]'])
     def test_submit_manifest_upsert(self, client, syn_token, data_model_jsonld, json_str, test_upsert_manifest_csv, ):
@@ -655,8 +715,73 @@ class TestSchemaVisualization:
         assert response.status_code == 200
 
 
+@pytest.mark.schematic_api
+class TestValidationBenchmark():
+    @pytest.mark.parametrize('MockComponent_attribute', get_MockComponent_attribute())
+    def test_validation_performance(self, helpers, benchmark_data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
+        """
+        Test to benchamrk performance of validation rules on large manifests
+        Test loads the invalid_test_manifest.csv and isolates one attribute at a time
+            it then enforces an error rate of 33% in the attribute (except in the case of Match Exactly Values)
+            the single attribute manifest is then extended to be ~1000 rows to see performance on a large manfiest
+            the manifest is passed to the validation endpoint, and the response time of the endpoint is measured
+            Target response time for all rules is under 5.00 seconds with a successful api response
+        """
+
+        # Number of rows to target for large manfiest
+        target_rows = 1000
+        # URL of validtion endpoint
+        endpoint_url = 'http://localhost:3001/v1/model/validate'
+
+        # Set paramters for endpoint
+        params = { 
+            "schema_url": benchmark_data_model_jsonld,
+            "data_type": "MockComponent",
+
+        }
+        headers = {
+        'Content-Type': "multipart/form-data",
+        'Accept': "application/json"
+        }
+
+        # Enforce error rate when possible
+        if MockComponent_attribute == 'Check Ages':
+            test_invalid_manifest.loc[0,MockComponent_attribute]  = '6550'
+        elif MockComponent_attribute == 'Check Date':
+            test_invalid_manifest.loc[0,MockComponent_attribute]   = 'October 21 2022'
+            test_invalid_manifest.loc[2,MockComponent_attribute]   = 'October 21 2022'
+        elif MockComponent_attribute == 'Check Unique':
+            test_invalid_manifest.loc[0,MockComponent_attribute]   = 'str2'
 
 
+        # Isolate single attribute of interest, keep `Component` column
+        single_attribute_manfiest = test_invalid_manifest[['Component', MockComponent_attribute]]
+
+        # Extend to ~1000 rows in size to for performance test
+        multi_factor = ceil(target_rows/single_attribute_manfiest.shape[0])
+        large_manfiest = pd.concat([single_attribute_manfiest]*multi_factor, ignore_index = True)
+
+        try:
+            # Convert manfiest to csv for api endpoint
+            large_manifest_path = helpers.get_data_path('mock_manifests/large_manifest_test.csv')
+            large_manfiest.to_csv(large_manifest_path, index=False)
+
+            # Run and time endpoint
+            t_start = perf_counter()
+            response = client.post(endpoint_url, query_string=params, data={"file_name": (open(large_manifest_path, 'rb'), "large_test.csv")}, headers=headers)
+            response_time = perf_counter() - t_start
+        finally:
+            # Remove temp manfiest
+            os.remove(large_manifest_path)
+        
+        # Log and check time and ensure successful response
+        logger.warning(f"validation endpiont response time {round(response_time,2)} seconds.")
+        assert response.status_code == 200
+        assert response_time < 5.00  
+
+
+        
+        
 
 
 
