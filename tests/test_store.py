@@ -493,8 +493,3 @@ class TestDownloadManifest:
         # clean up
         os.remove(manifest_data['path'])
 
-    # @pytest.mark.parametrize("newManifestName",["", "Example"]) 
-    # def test_getDatasetManifest(self, config, synapse_store, newManifestName, datasetId):
-    #     synapse_store.get_
-
-
