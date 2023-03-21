@@ -460,7 +460,6 @@ class SynapseStorage(BaseStorage):
             if os.path.exists(manifest_data['path']):
                 # Rename the file we just made to the new name
                 new_manifest_filename = newManifestName + '.csv'
-                #new_manifest_path_name = manifest_data['path'].replace(manifest['name'][0], new_manifest_filename)
                 dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
                 new_manifest_path_name = os.path.join(dir_name, new_manifest_filename)
                 os.rename(manifest_data['path'], new_manifest_path_name)
