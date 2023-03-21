@@ -44,6 +44,11 @@ def manifest_generator(helpers, request):
     except FileNotFoundError:
         pass
 
+
+@pytest.fixture
+def simple_test_manifest_excel(helpers):
+    yield helpers.get_data_path("mock_manifests/test_bulkRNAseq_manifest.xlsx")
+
 @pytest.fixture(params=[True, False], ids=["sheet_url", "data_frame"])
 def manifest(dataset_id, manifest_generator, request):
 
@@ -177,6 +182,45 @@ class TestManifestGenerator:
         if type(manifest) is str and os.path.exists(manifest): 
             os.remove(manifest)
 
+    @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])
+    @pytest.mark.parametrize("manifest_columns", [["column four"]])
+    def test_get_missing_columns(self, manifest_generator, wb_headers, manifest_columns):
+        generator, use_annotations, data_type = manifest_generator
 
+        manifest_test_df = pd.DataFrame(columns = manifest_columns)
+        missing_columns = generator._get_missing_columns(wb_headers, manifest_test_df)
+        if "column four" not in wb_headers:
+            assert "column four" in missing_columns 
+        else: 
+            assert "column four" not in missing_columns
+
+    @pytest.mark.parametrize("additional_df_dict", [{'test one column': ['a', 'b'], 'test two column': ['c', 'd']}, None])
+    def test_populate_existing_excel_spreadsheet(self,simple_manifest_generator,simple_test_manifest_excel, additional_df_dict):
+        generator = simple_manifest_generator
+        if additional_df_dict: 
+            additional_test_df = pd.DataFrame(additional_df_dict)
+        else: 
+            additional_test_df = pd.DataFrame()
+
+        # added new content to an existing excel spreadsheet if applicable
+        generator.populate_existing_excel_spreadsheet(simple_test_manifest_excel, additional_test_df)
+
+        # read the new excel spreadsheet and see if columns have been added
+        new_df = pd.read_excel(simple_test_manifest_excel)
+
+        # if we are not adding any additional content
+        if additional_test_df.empty:
+            assert len(new_df.columns) == 6
+        # we should be able to see new columns get added 
+        else: 
+            # new columns get added
+            assert not new_df[["test one column", "test two column"]].empty
+        
+            # lastly, drop the dataframe that get added and revert the testing manifest back to normal 
+            df_revert = new_df.drop(columns=additional_test_df.columns, axis=1)
+
+            writer = pd.ExcelWriter(simple_test_manifest_excel)
+            df_revert.to_excel(writer, sheet_name = 'Sheet1', index=False)
+            writer.save()
 
 
