@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from copy import deepcopy
 import os
 import uuid  # used to generate unique names for entities
@@ -16,7 +17,7 @@ import pandas as pd
 import re
 import synapseclient
 from time import sleep
-
+from schematic.utils.general import get_dir_size, convert_size, convert_gb_to_bytes
 from synapseclient import (
     Synapse,
     File,
@@ -51,7 +52,7 @@ from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Synapse storage")
 
 class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -100,23 +101,73 @@ class SynapseStorage(BaseStorage):
 
         self._query_fileview()
 
+    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/"):
+        """
+        Purge synapse cache if it exceeds 7GB
+        Args:
+            root_dir: directory of the .synapseCache function
+        Returns: 
+            if size of cache reaches 7GB, return the number of files that get deleted
+            otherwise, return the total remaining space (assuming total ephemeral storage is 20GB on AWS )
+        """
+        # try clearing the cache
+        # scan a directory and check size of files
+        cache = self.syn.cache
+        if os.path.exists(root_dir):
+            # set maximum synapse cache allowed
+            # set maximum ephemeral stroage allowed on AWS
+            maximum_storage_allowed_cache_gb = 7
+            maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
+            total_ephemeral_storag_gb = 20
+            total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
+            nbytes = get_dir_size(root_dir)
+            # if 7 GB has already been taken, purge cache before 15 min
+            if nbytes >= maximum_storage_allowed_cache_bytes:
+                minutes_earlier = datetime.strftime(datetime.utcnow()- timedelta(minutes = 15), '%s')
+                num_of_deleted_files = cache.purge(before_date = int(minutes_earlier))
+                logger.info(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
+            else:
+                remaining_space = total_ephemeral_storage_bytes - nbytes
+                converted_space = convert_size(remaining_space)
+                logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
+    def checkEntityType(self, syn_id): 
+        """
+        Check the entity type of a synapse entity
+        return: type of synapse entity 
+        """
+        entity = self.syn.get(syn_id)
+        type_entity = str(type(entity))
+
+        if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":
+            return "asset view"
+        elif type_entity == "<class 'synapseclient.entity.Folder'>":
+            return "folder"
+        elif type_entity == "<class 'synapseclient.entity.File'>":
+            return "file"
+        elif type_entity == "<class 'synapseclient.entity.Project'>":
+            return "project"
+        else: 
+            return type_entity
+
     def _query_fileview(self):
+        self._purge_synapse_cache()
         try:
             self.storageFileview = CONFIG["synapse"]["master_fileview"]
             self.manifest = CONFIG["synapse"]["manifest_basename"]
             if self.project_scope:
                 self.storageFileviewTable = self.syn.tableQuery(
                     f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
-                ).asDataFrame()
+                    ).asDataFrame()
             else:
                 # get data in administrative fileview for this pipeline
                 self.storageFileviewTable = self.syn.tableQuery(
                     "SELECT * FROM " + self.storageFileview
                 ).asDataFrame()
+
         except AttributeError:
             raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
-            raise AccessCredentialsError(self.storageFileview)        
+            raise AccessCredentialsError(self.storageFileview)    
 
     @staticmethod
     def login(token=None, access_token=None, input_token=None):
@@ -1430,6 +1481,16 @@ class SynapseStorage(BaseStorage):
                     [wait_fixed(20)]),
             retry=retry_if_exception_type(LookupError),
             retry_error_callback = raise_final_error)
+
+    def checkIfinAssetView(self, syn_id) -> str:
+        # get data in administrative fileview for this pipeline
+        assetViewTable = self.getStorageFileviewTable()
+        all_files = list(assetViewTable["id"])
+        if syn_id in all_files: 
+            return True
+        else: 
+            return False
+
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
 

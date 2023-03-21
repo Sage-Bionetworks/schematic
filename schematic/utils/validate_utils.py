@@ -5,6 +5,7 @@ from re import compile, search, IGNORECASE
 from schematic.utils.io_utils import load_json
 from schematic import CONFIG, LOADER
 from typing import List
+import numpy as np
 
 def validate_schema(schema):
     """Validate schema against schema.org standard"""
@@ -66,3 +67,19 @@ def parse_str_series_to_list(col: pd.Series):
     )
 
     return col
+
+def np_array_to_str_list(np_array):
+    """
+    Parse a numpy array of ints to a list of strings
+    """
+    return np.char.mod('%d', np_array).tolist()
+
+def iterable_to_str_list(iterable):
+    "Parse an iterable into a list of strings"
+    strlist = []
+
+    for element in iterable:
+        strlist.append(str(element))
+
+    return strlist
+    
