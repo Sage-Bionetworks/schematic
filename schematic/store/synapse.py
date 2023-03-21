@@ -420,12 +420,11 @@ class SynapseStorage(BaseStorage):
         return manifest_syn_id
 
     @staticmethod
-    def download_manifest(syn, manifest_syn_id: str, donwload_manifest: bool = True, newManifestName=""):
+    def download_manifest(syn, manifest_syn_id: str, newManifestName=""):
         """
         Donwload a manifest based on a given manifest id. 
         Args:
             manifest_syn_id: syn id of a manifest
-            download_manifest: boolean
             newManifestName: new name of a manifest that gets downloaded.
         Return: 
             manifest_data: synapse entity file object
@@ -434,27 +433,25 @@ class SynapseStorage(BaseStorage):
         # enables retrying if user does not have access to uncensored manifest
         # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
         manifest_data = ""
-        while donwload_manifest: 
-            if 'manifest_folder' in CONFIG['synapse'].keys():
-                try: 
-                    manifest_data = syn.get(
-                        manifest_syn_id,
-                        downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                        ifcollision="overwrite.local",
-                    )
-                    break   
-                except(SynapseUnmetAccessRestrictions):
-                    raise(f"You don't have access to the requested resource: {manifest_syn_id}")
+        if 'manifest_folder' in CONFIG['synapse'].keys():
+            try: 
+                manifest_data = syn.get(
+                    manifest_syn_id,
+                    downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                    ifcollision="overwrite.local",
+                ) 
+            except(SynapseUnmetAccessRestrictions):
+                raise(f"You don't have access to the requested resource: {manifest_syn_id}")
             # if no manifest folder is set, download to cache
             ### TO DO: Deprecate the following? 
-            else:
-                try:
-                    manifest_data = syn.get(
-                        manifest_syn_id,
-                    )
-                    break
-                except(SynapseUnmetAccessRestrictions):
-                    raise(f"You don't have access to the requested resource: {manifest_syn_id}")
+        else:
+            try:
+                manifest_data = syn.get(
+                    manifest_syn_id,
+                )
+                
+            except(SynapseUnmetAccessRestrictions):
+                raise(f"You don't have access to the requested resource: {manifest_syn_id}")
         # Rename manifest file if indicated by user.
         if newManifestName:
             if os.path.exists(manifest_data['path']):
@@ -511,7 +508,7 @@ class SynapseStorage(BaseStorage):
         else:
             manifest_syn_id = self._get_manifest_id(manifest)
             if downloadFile: 
-                manifest_data = self.download_manifest(self.syn, manifest_syn_id=manifest_syn_id, donwload_manifest=True, newManifestName=newManifestName)
+                manifest_data = self.download_manifest(self.syn, manifest_syn_id=manifest_syn_id, newManifestName=newManifestName)
             return manifest_data
 
     def getDataTypeFromManifest(self, manifestId:str):
