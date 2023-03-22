@@ -433,6 +433,11 @@ class SynapseStorage(BaseStorage):
         # enables retrying if user does not have access to uncensored manifest
         # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
         manifest_data = ""
+        # check the type of synapse entity type
+        type_entity = syn.checkEntityType(manifest_syn_id)
+        if type_entity != "file":
+            logger.error('You are using a wrong entity type. Please try downloading with manifest id')
+            raise ('You are using a wrong entity type. Please try downloading with manifest id')
         if 'manifest_folder' in CONFIG['synapse'].keys():
             try: 
                 manifest_data = syn.get(
@@ -440,6 +445,7 @@ class SynapseStorage(BaseStorage):
                     downloadLocation=CONFIG["synapse"]["manifest_folder"],
                     ifcollision="overwrite.local",
                 ) 
+                print('manifest data', manifest_data)
             except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
                 logger.error(f"You don't have access to the requested resource: {manifest_syn_id}")
         # if no manifest folder is set, download to cache
