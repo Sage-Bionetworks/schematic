@@ -613,6 +613,15 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
     return layers[0]
 
 def download_manifest(input_token, manifest_id, new_manifest_name=''):
+    """
+    Donwload a manifest based on a given manifest id. 
+    Args:
+        input_token: token of asset store
+        manifest_syn_id: syn id of a manifest
+        newManifestName: new name of a manifest that gets downloaded.
+    Return: 
+        file path of the downloaded manifest
+    """
     # call config_handler()
     config_handler()
 

@@ -135,6 +135,10 @@ paths:
             text/csv:
               schema:
                 type: string
+        "403":
+          description: You don't have access to the requested resources. 
+        "500":
+          description: Please check schematic log
       tags:
         - Manifest Operations            
   /dataset/manifest/download:
