@@ -620,9 +620,9 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
-def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=True):
+def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=None):
     """
-    Donwload a manifest based on a given manifest id. 
+    Download a manifest based on a given manifest id. 
     Args:
         input_token: token of asset store
         manifest_syn_id: syn id of a manifest
@@ -636,6 +636,10 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=Tr
 
     # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
+
+    # default as_json to True
+    if not as_json:
+        as_json=True
 
     # try logging in to asset store
     try:
