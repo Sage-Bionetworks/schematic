@@ -437,10 +437,13 @@ class SynapseStorage(BaseStorage):
         manifest_data = ""
 
         # check the type of entity
-        type_entity = syn.checkEntityType(manifest_syn_id)
-        if type_entity != "file":
-            logger.error('You are using a wrong entity type. Please try downloading with manifest id')
-            raise ('You are using a wrong entity type. Please try downloading with manifest id')
+        entity_name = syn.get(manifest_syn_id, downloadFile=False)
+        entity_type = str(type(entity_name))
+        if entity_type  != "<class 'synapseclient.entity.File'>":
+            logger.error(f'You are using entity type: {entity_type}. Please try using a file')
+            raise (f'You are using a wrong entity type: {entity_type}. Please try using a file')
+        
+        # download a manifest
         if 'manifest_folder' in CONFIG['synapse'].keys():
             try: 
                 manifest_data = syn.get(
@@ -448,7 +451,6 @@ class SynapseStorage(BaseStorage):
                     downloadLocation=CONFIG["synapse"]["manifest_folder"],
                     ifcollision="overwrite.local",
                 ) 
-                print('manifest data', manifest_data)
             except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
                 logger.error(f"You don't have access to the requested resource: {manifest_syn_id}")
         # if no manifest folder is set, download to cache
