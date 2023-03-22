@@ -510,6 +510,15 @@ def get_viz_attributes_explorer(schema_url):
 
     return attributes_csv
 
+def get_viz_component_attributes_explorer(schema_url):
+    # call config_handler()
+    config_handler()
+
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+
+    return 
+
 def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
    
     temp_path_to_jsonld = get_temp_jsonld(schema_url)

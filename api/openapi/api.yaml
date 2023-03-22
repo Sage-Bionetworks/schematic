@@ -1152,3 +1152,37 @@ paths:
                 type: string
       tags:
         - Visualization Operations
+  /visualize/component:
+    get:
+      summary: Get an attributes table for a specific component of a data model, as a CSV (JSON String)
+      description: >-
+        Get all the attributes associated with a specific data model component formatted as a
+        dataframe (stored as a JSON String).
+      operationId: api.routes.get_viz_component_attributes_explorer
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: component
+          schema:
+            type: string
+          description: Component of the data model to explore
+          example: >-
+            Patient
+          required: true
+      responses:
+        "200":
+          description: Returns a CSV as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
+        
