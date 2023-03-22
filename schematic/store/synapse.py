@@ -130,6 +130,8 @@ class SynapseStorage(BaseStorage):
                 remaining_space = total_ephemeral_storage_bytes - nbytes
                 converted_space = convert_size(remaining_space)
                 logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
+    
+    @staticmethod
     def checkEntityType(self, syn_id): 
         """
         Check the entity type of a synapse entity
@@ -433,7 +435,8 @@ class SynapseStorage(BaseStorage):
         # enables retrying if user does not have access to uncensored manifest
         # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
         manifest_data = ""
-        # check the type of synapse entity type
+
+        # check the type of entity
         type_entity = syn.checkEntityType(manifest_syn_id)
         if type_entity != "file":
             logger.error('You are using a wrong entity type. Please try downloading with manifest id')
