@@ -10,6 +10,7 @@ import logging
 from time import perf_counter
 import pandas as pd # third party library import
 from schematic.schemas.generator import SchemaGenerator #Local application/library specific imports.
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -576,9 +577,37 @@ class TestManifestOperation:
                 "Year of Birth": "Int64",
                 "entityId": "string"}
 
+    @pytest.mark.parametrize("manifest_id",["syn51156998"]) 
+    @pytest.mark.parametrize("new_manifest_name",["Example", None]) 
+    def test_manifest_download(self, client, syn_token, manifest_id, new_manifest_name):
+        params = {
+            "input_token": syn_token,
+            "manifest_id": manifest_id,
+            "new_manifest_name": new_manifest_name
+
+        }
+
+        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        assert response.status_code == 200
+        file_path = response.data.decode()
+
+        assert os.path.exists(file_path)
+        file_base_name = os.path.basename(file_path)
+        file_name = os.path.splitext(file_base_name)[0]
+
+        if new_manifest_name: 
+            assert file_name == new_manifest_name
+        
+        # delete files
+        try: 
+            os.remove(file_path)
+        except: 
+            pass
+
+    
     @pytest.mark.parametrize("as_json", [None, True, False])
     @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
-    def test_manifest_download(self, client, as_json, syn_token, new_manifest_name):
+    def test_dataset_manifest_download(self, client, as_json, syn_token, new_manifest_name):
         params = {
             "input_token": syn_token,
             "asset_view": "syn28559058",
@@ -587,7 +616,7 @@ class TestManifestOperation:
             "new_manifest_name": new_manifest_name
         }
 
-        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        response = client.get('http://localhost:3001/v1/dataset/manifest/download', query_string = params)
         assert response.status_code == 200
         response_dt = response.data
 
