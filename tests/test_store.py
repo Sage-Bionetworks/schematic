@@ -482,7 +482,7 @@ class TestDownloadManifest:
     @pytest.mark.parametrize("newManifestName",["", "Example"]) 
     def test_download_manifest(self, config, synapse_store, newManifestName):
         # test the download function by downloading a manifest
-        manifest_data = synapse_store.download_manifest(synapse_store.syn, "syn51203973", True, newManifestName)
+        manifest_data = synapse_store.download_manifest(synapse_store.syn, "syn51203973", newManifestName)
         assert os.path.exists(manifest_data['path'])
 
         if not newManifestName:
