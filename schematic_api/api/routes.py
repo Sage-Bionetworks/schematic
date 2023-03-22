@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import shutil
 import urllib.request
-
+import logging
 import connexion
 from connexion.decorators.uri_parsing import Swagger2URIParser
 from flask import current_app as app
@@ -19,6 +19,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage
+from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
 from flask_cors import CORS, cross_origin
 from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
@@ -39,6 +40,9 @@ import io
 #     # Do stuff after your route executes
 #     pass
 from flask_cors import cross_origin
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_dirs=False):
     """
@@ -618,15 +622,15 @@ def download_manifest(input_token, manifest_id, new_manifest_name=''):
     # try logging in to asset store
     try:
         syn = store.login(input_token=input_token)
-    except: 
-        raise("Failed to log in to asset store. Please check your credentials")
-    manifest_data = store.download_manifest(syn, manifest_id, True, new_manifest_name)
+    except Exception: 
+        raise SynapseAuthenticationError
     try: 
+        manifest_data = store.download_manifest(syn, manifest_id, new_manifest_name)
         #return local file path
         manifest_local_file_path = manifest_data['path']
-    except: 
-        raise(f"Failed to download manifest: {manifest_id}")
-
+    except Exception: 
+        logger.error(f"Failed to download manifest: {manifest_id}")
+        raise Exception(f"Failed to download manifest: {manifest_id}")
     return manifest_local_file_path
 
 #@profile(sort_by='cumulative', strip_dirs=True)  

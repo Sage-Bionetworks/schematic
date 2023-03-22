@@ -440,18 +440,18 @@ class SynapseStorage(BaseStorage):
                     downloadLocation=CONFIG["synapse"]["manifest_folder"],
                     ifcollision="overwrite.local",
                 ) 
-            except(SynapseUnmetAccessRestrictions):
-                raise(f"You don't have access to the requested resource: {manifest_syn_id}")
-            # if no manifest folder is set, download to cache
-            ### TO DO: Deprecate the following? 
+            except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
+                logger.error(f"You don't have access to the requested resource: {manifest_syn_id}")
+        # if no manifest folder is set, download to cache
+        ### TO DO: Deprecate the following? 
         else:
             try:
                 manifest_data = syn.get(
                     manifest_syn_id,
                 )
                 
-            except(SynapseUnmetAccessRestrictions):
-                raise(f"You don't have access to the requested resource: {manifest_syn_id}")
+            except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
+                logger.error(f"You don't have access to the requested resource: {manifest_syn_id}")
         # Rename manifest file if indicated by user.
         if newManifestName:
             if os.path.exists(manifest_data['path']):
