@@ -10,7 +10,6 @@ import logging
 from time import perf_counter
 import pandas as pd # third party library import
 from schematic.schemas.generator import SchemaGenerator #Local application/library specific imports.
-from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
