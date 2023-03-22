@@ -238,7 +238,15 @@ def parse_bool(str_bool):
         raise ValueError(
             "String boolean does not appear to be true or false. Please verify input."
         )
-        
+
+def return_as_json(manifest_local_file_path):
+    manifest_csv = pd.read_csv(manifest_local_file_path)
+    try:
+        manifest_json = json.loads(manifest_csv.to_json(orient="records"))
+        return manifest_json
+    except Exception: 
+        raise Exception(f"Fail to return the manifest as a json")
+
 def save_file(file_key="csv_file"):
     '''
     input: 
@@ -612,13 +620,14 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
-def download_manifest(input_token, manifest_id, new_manifest_name=''):
+def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=True):
     """
     Donwload a manifest based on a given manifest id. 
     Args:
         input_token: token of asset store
         manifest_syn_id: syn id of a manifest
         newManifestName: new name of a manifest that gets downloaded.
+        as_json: boolean; If true, return a manifest as a json. Default to True
     Return: 
         file path of the downloaded manifest
     """
@@ -640,6 +649,9 @@ def download_manifest(input_token, manifest_id, new_manifest_name=''):
     except Exception: 
         logger.error(f"Failed to download manifest: {manifest_id}")
         raise Exception(f"Failed to download manifest: {manifest_id}")
+    if as_json:
+        manifest_json = return_as_json(manifest_local_file_path)
+        return manifest_json
     return manifest_local_file_path
 
 #@profile(sort_by='cumulative', strip_dirs=True)  
@@ -660,9 +672,8 @@ def download_dataset_manifest(input_token, dataset_id, asset_view, as_json, new_
         raise(f'Failed to download manifest from dataset: {dataset_id}')
 
     #return a json (if as_json = True)
-    if as_json: 
-        manifest_csv = pd.read_csv(manifest_local_file_path)
-        manifest_json = json.loads(manifest_csv.to_json(orient="records"))
+    if as_json:
+        manifest_json = return_as_json(manifest_local_file_path)
         return manifest_json
 
     return manifest_local_file_path

@@ -127,6 +127,13 @@ paths:
             nullable: true
           description: Fill in if you want to change the filename of the downloaded manifest.
           required: false
+        - in: query
+          name: as_json
+          schema:
+            type: boolean
+            default: True
+          description: if True return the manifest in JSON format. Default to True
+          required: false
       operationId: schematic_api.api.routes.download_manifest
       responses:
         "200":
