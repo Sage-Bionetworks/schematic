@@ -715,14 +715,7 @@ class TestSchemaVisualization:
         assert response.status_code == 200
 
     def test_visualize_component(self, client, data_model_jsonld):
-        response_body = """
-            b',Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component\r\n
-            Patient ID,Patient ID,PatientID,TBD,True,,,,Patient\r\n
-            Component,Component,Component,TBD,False,,,,Patient\r\n
-            Sex,Sex,Sex,TBD,True,,"[\'Female\', \'Other\', \'Male\']",,Patient\r\n
-            Year of Birth,Year of Birth,YearofBirth,TBD,False,,,,Patient\r\n
-            Diagnosis,Diagnosis,Diagnosis,TBD,True,,"[\'Healthy\', \'Cancer\']",,Patient\r\n
-            """
+        response_body =     """b',Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component\\r\\nSex,Sex,Sex,TBD,True,,"[\\'Other\\', \\'Male\\', \\'Female\\']",,Patient\\r\\nDiagnosis,Diagnosis,Diagnosis,TBD,True,,"[\\'Cancer\\', \\'Healthy\\']",,Patient\\r\\nPatient ID,Patient ID,PatientID,TBD,True,,,,Patient\\r\\nComponent,Component,Component,TBD,False,,,,Patient\\r\\nYear of Birth,Year of Birth,YearofBirth,TBD,False,,,,Patient\\r\\nFamily History,Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient\\r\\nCancer Type,Cancer Type,CancerType,TBD,False,True,"[\\'Colorectal\\', \\'Lung\\', \\'Breast\\', \\'Skin\\', \\'Prostate\\', \\'\\']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient\\r\\n'"""
 
         ex_response_body = """
             b',Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component\r\n
