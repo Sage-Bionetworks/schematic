@@ -717,27 +717,6 @@ class TestSchemaVisualization:
     def test_visualize_component(self, client, data_model_jsonld):
         response_body =     """b',Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component\\r\\nSex,Sex,Sex,TBD,True,,"[\\'Other\\', \\'Male\\', \\'Female\\']",,Patient\\r\\nDiagnosis,Diagnosis,Diagnosis,TBD,True,,"[\\'Cancer\\', \\'Healthy\\']",,Patient\\r\\nPatient ID,Patient ID,PatientID,TBD,True,,,,Patient\\r\\nComponent,Component,Component,TBD,False,,,,Patient\\r\\nYear of Birth,Year of Birth,YearofBirth,TBD,False,,,,Patient\\r\\nFamily History,Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient\\r\\nCancer Type,Cancer Type,CancerType,TBD,False,True,"[\\'Colorectal\\', \\'Lung\\', \\'Breast\\', \\'Skin\\', \\'Prostate\\', \\'\\']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient\\r\\n'"""
 
-        ex_response_body = """
-            b',Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component\r\n
-            Patient ID,Patient ID,PatientID,TBD,True,,,,Biospecimen\r\n
-            Tissue Status,Tissue Status,TissueStatus,TBD,True,,"[\'Malignant\', \'Healthy\']",,Biospecimen\r\n
-            Component,Component,Component,TBD,False,,,,Biospecimen\r\n
-            Sample ID,Sample ID,SampleID,TBD,True,,,,Biospecimen\r\n
-            Patient ID,Patient ID,PatientID,TBD,True,,,,Patient\r\n
-            Sex,Sex,Sex,TBD,True,,"[\'Female\', \'Other\', \'Male\']",,Patient\r\n
-            Year of Birth,Year of Birth,YearofBirth,TBD,False,,,,Patient\r\n
-            Component,Component,Component,TBD,False,,,,Patient\r\n
-            Diagnosis,Diagnosis,Diagnosis,TBD,True,,"[\'Healthy\', \'Cancer\']",,Patient\r\n
-            Family History,Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient\r\n
-            Cancer Type,Cancer Type,CancerType,TBD,False,True,"[\'Colorectal\', \'Lung\', \'Breast\', \'Prostate\', \'Skin\', \'\']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient\r\n
-            Filename,Filename,Filename,TBD,True,,,,BulkRNA-seqAssay\r\n
-            Component,Component,Component,TBD,False,,,,BulkRNA-seqAssay\r\n
-            File Format,File Format,FileFormat,TBD,True,,"[\'CRAM\', \'CSV/TSV\', \'BAM\', \'FASTQ\']",,BulkRNA-seqAssay\r\n
-            Sample ID,Sample ID,SampleID,TBD,True,,,,BulkRNA-seqAssay\r\n
-            Genome Build,Genome Build,GenomeBuild,TBD,False,True,"[\'GRCm38\', \'GRCm39\', \'GRCh37\', \'GRCh38\', \'\']"," If File Format is ""CRAM"" OR ""CSV/TSV"" OR ""BAM"" then ""Genome Build"" is required",BulkRNA-seqAssay\r\n
-            Genome FASTA,Genome FASTA,GenomeFASTA,TBD,False,True,," If File Format is ""CRAM"" then ""Genome FASTA"" is required",BulkRNA-seqAssay\r\n'
-            """
-
         params = {
             "schema_url": data_model_jsonld,
             "component": "Patient"
