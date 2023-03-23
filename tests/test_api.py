@@ -714,10 +714,11 @@ class TestSchemaVisualization:
 
         assert response.status_code == 200
 
-    def test_visualize_component(self, client, data_model_jsonld):
+    @pytest.mark.parametrize("component", ["Patient", "MockComponent"])
+    def test_visualize_component(self, client, data_model_jsonld,component):
         params = {
             "schema_url": data_model_jsonld,
-            "component": "Patient"
+            "component": component
         }
 
         response = client.get("http://localhost:3001/v1/visualize/component", query_string = params)
