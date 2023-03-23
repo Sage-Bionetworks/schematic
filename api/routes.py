@@ -517,7 +517,7 @@ def get_viz_component_attributes_explorer(schema_url):
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
 
 
-    return 
+    return True
 
 def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
    
