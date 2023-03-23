@@ -638,7 +638,7 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=No
     store = SynapseStorage(input_token=input_token)
 
     # default as_json to True
-    if not as_json:
+    if as_json is None:
         as_json=True
 
     # try logging in to asset store
@@ -656,7 +656,8 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=No
     if as_json:
         manifest_json = return_as_json(manifest_local_file_path)
         return manifest_json
-    return manifest_local_file_path
+    else:
+        return manifest_local_file_path
 
 #@profile(sort_by='cumulative', strip_dirs=True)  
 def download_dataset_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):

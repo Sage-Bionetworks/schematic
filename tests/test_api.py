@@ -576,30 +576,54 @@ class TestManifestOperation:
                 "Year of Birth": "Int64",
                 "entityId": "string"}
 
-    @pytest.mark.parametrize("manifest_id",["syn51156998"]) 
+    # small manifest: syn51078535; big manifest: syn51156998
+    @pytest.mark.parametrize("manifest_id",["syn51156998", "syn51156998"]) 
     @pytest.mark.parametrize("new_manifest_name",["Example", None]) 
-    def test_manifest_download(self, client, syn_token, manifest_id, new_manifest_name):
+    @pytest.mark.parametrize("as_json",[True, False, None]) 
+    def test_manifest_download(self, config, client, syn_token, manifest_id, new_manifest_name, as_json):
         params = {
             "input_token": syn_token,
             "manifest_id": manifest_id,
-            "new_manifest_name": new_manifest_name
+            "new_manifest_name": new_manifest_name, 
+            "as_json": as_json
 
         }
 
         response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
         assert response.status_code == 200
-        file_path = response.data.decode()
 
-        assert os.path.exists(file_path)
-        file_base_name = os.path.basename(file_path)
-        file_name = os.path.splitext(file_base_name)[0]
+        # if as_json is set to True or as_json is not defined
+        if as_json or as_json is None:
+            response_dta = json.loads(response.data)
+            if manifest_id == "syn51078535":
+                assert response_dta[0]["Component"] == "BulkRNA-seqAssay"
+                assert response_dta[0]["File Format"] == "CSV/TSV"
+            else: 
+                assert response_dta[0]["Component"] == "Biospecimen"
 
-        if new_manifest_name: 
-            assert file_name == new_manifest_name
+            current_work_dir = os.getcwd()
+            folder_test_manifests = config["synapse"]["manifest_folder"]
+            folder_dir = os.path.join(current_work_dir, folder_test_manifests)
+            if new_manifest_name:
+                file_name = os.path.join(folder_dir, new_manifest_name + '.' + 'csv')
+            else: 
+                file_name = os.path.join(folder_dir,config["synapse"]["manifest_basename"] + '.csv')
+
+        else:
+            data = response.data.decode()
+            assert os.path.exists(data)
+            file_base_name = os.path.basename(data)
+            file_name = os.path.splitext(file_base_name)[0]
+
+            if new_manifest_name: 
+                assert file_name == new_manifest_name
+
+            file_name = data
+        
         
         # delete files
         try: 
-            os.remove(file_path)
+            os.remove(file_name)
         except: 
             pass
 
