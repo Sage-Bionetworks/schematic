@@ -79,7 +79,7 @@ class AttributesExplorer():
 
         Returns:
             merged_df (pd.DataFrame): dataframe containing data relating to attributes
-                for the provided data model for all components in the data model. 
+                for the provided data model for specified components in the data model. 
                 Dataframe is saved locally as a csv if save_file == True, or returned if
                 save_file == False. 
         Raises:
