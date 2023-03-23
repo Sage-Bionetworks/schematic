@@ -59,17 +59,37 @@ class AttributesExplorer():
                 for the provided data model for all components in the data model. 
                 Dataframe is saved locally as a csv if save_file == True, or returned if
                 save_file == False. 
+                
+        '''
+        # get all components
+        component_dg = self.sg.se.get_digraph_by_edge_type('requiresComponent')
+        components = component_dg.nodes()
+        
+        # For each data type to be loaded gather all attribtes the user would
+        # have to provide.
+        return self._parse_attributes(components, save_file)
+
+    def _parse_attributes(self, components, save_file = True):
+        '''
+        Args: save_file (bool):
+                True: merged_df is saved locally to output_path.
+                False: merged_df is returned.
+              components (list):
+                list of components to parse attributes for
+
+        Returns:
+            merged_df (pd.DataFrame): dataframe containing data relating to attributes
+                for the provided data model for all components in the data model. 
+                Dataframe is saved locally as a csv if save_file == True, or returned if
+                save_file == False. 
         Raises:
             ValueError:
                 If unable hits an error while attempting to get conditional requirements. 
                 This error is likely to be found if there is a mismatch in naming.
         '''
-        # get all components
-        component_dg = self.sg.se.get_digraph_by_edge_type('requiresComponent')
-        components = component_dg.nodes()
+        
         # For each data type to be loaded gather all attribtes the user would
         # have to provide.
-
         df_store = []
         for component in components:
             data_dict = {}
