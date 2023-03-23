@@ -520,7 +520,8 @@ class SynapseStorage(BaseStorage):
             manifest_syn_id = self._get_manifest_id(manifest)
             if downloadFile: 
                 manifest_data = self.download_manifest(self.syn, manifest_syn_id=manifest_syn_id, newManifestName=newManifestName)
-            return manifest_data
+                return manifest_data
+            return manifest_syn_id
 
     def getDataTypeFromManifest(self, manifestId:str):
         """Fetch a manifest and return data types of all columns

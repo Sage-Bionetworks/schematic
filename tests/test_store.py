@@ -197,16 +197,21 @@ class TestSynapseStorage:
         with pytest.raises(PermissionError):
             synapse_store.getDatasetProject("syn12345678")
 
-    def test_getDatasetManifest(self, synapse_store):
+    @pytest.mark.parametrize("downloadFile", [True, False])
+    def test_getDatasetManifest(self, synapse_store, downloadFile):
         # get a test manifest
-        manifest_data = synapse_store.getDatasetManifest("syn51204502", True)
+        manifest_data = synapse_store.getDatasetManifest("syn51204502", downloadFile)
 
         #make sure the file gets downloaded
-        assert manifest_data['name'] == "synapse_storage_manifest_censored.csv"
-        assert os.path.exists(manifest_data['path'])
+        if downloadFile:
+            assert manifest_data['name'] == "synapse_storage_manifest_censored.csv"
+            assert os.path.exists(manifest_data['path'])
+            # clean up
+            os.remove(manifest_data['path'])
+        else: 
+            # return manifest id
+            assert manifest_data == "syn51204513"
 
-        # clean up
-        os.remove(manifest_data['path'])
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
