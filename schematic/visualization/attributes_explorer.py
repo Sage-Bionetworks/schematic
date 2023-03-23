@@ -68,6 +68,24 @@ class AttributesExplorer():
         # For each data type to be loaded gather all attribtes the user would
         # have to provide.
         return self._parse_attributes(components, save_file)
+    
+    def parse_component_attributes(self, component=None, save_file=True,):
+        '''
+        Args: save_file (bool):
+                True: merged_df is saved locally to output_path.
+                False: merged_df is returned.
+
+        Returns:
+            merged_df (pd.DataFrame): dataframe containing data relating to attributes
+                for the provided data model for the specified component in the data model. 
+                Dataframe is saved locally as a csv if save_file == True, or returned if
+                save_file == False. 
+        '''        
+
+        if not component:
+            raise ValueError("You must provide a component to visualize.")
+        else:
+            return self._parse_attributes([component], save_file)
 
     def _parse_attributes(self, components, save_file = True):
         '''
