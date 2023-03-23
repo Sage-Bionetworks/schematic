@@ -746,7 +746,7 @@ class TestSchemaVisualization:
         response = client.get("http://localhost:3001/v1/visualize/component", query_string = params)
 
         assert response.status_code == 200
-        assert response.response[0] == response_body
+        assert str(response.response[0]) == response_body
 
 
 @pytest.mark.schematic_api
