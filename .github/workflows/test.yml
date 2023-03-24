@@ -118,7 +118,7 @@ jobs:
         if: ${{ false == contains(github.event.head_commit.message, 'runcombos') }}
         run: >
           source .venv/bin/activate;
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+          pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not (google_credentials_needed or rule_combos or schematic_api or table_operations)"
     
       - name: Upload pytest test results
