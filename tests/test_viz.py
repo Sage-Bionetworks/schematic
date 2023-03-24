@@ -37,7 +37,7 @@ class TestVisualization:
     def test_ae(self, helpers, attributes_explorer):
         attributes_str = attributes_explorer.parse_attributes(save_file=False)
         
-        df = pd.read_csv(StringIO(attributes_str)).drop(columns=['Unnamed: 0'])
+        df = pd.read_csv(StringIO(attributes_str))
 
         # For the attributes df define expected columns
         expect_col_names = ['Attribute', 'Label', 'Description',
