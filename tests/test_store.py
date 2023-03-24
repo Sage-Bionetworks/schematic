@@ -11,7 +11,7 @@ from synapseclient import EntityViewSchema, Folder
 
 from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import SynapseStorage, DatasetFileView
+from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
 from schematic.utils.cli_utils import get_from_config
 from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
@@ -29,6 +29,10 @@ def synapse_store():
         synapse_store = SynapseStorage()
     yield synapse_store
 
+@pytest.fixture
+def manifestDownload():
+    md = ManifestDownload()
+    yield md
 
 @pytest.fixture
 def dataset_fileview(dataset_id, synapse_store):
@@ -69,7 +73,6 @@ def datasetId(synapse_store, projectId, helpers):
     sleep(5)
     yield datasetId
     synapse_store.syn.delete(datasetId)
-
 
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
@@ -485,9 +488,9 @@ class TestDownloadManifest:
             assert manifest_syn_id == censored_manifest_id
 
     @pytest.mark.parametrize("newManifestName",["", "Example"]) 
-    def test_download_manifest(self, config, synapse_store, newManifestName):
+    def test_download_manifest(self, config, synapse_store, manifestDownload, newManifestName):
         # test the download function by downloading a manifest
-        manifest_data = synapse_store.download_manifest(synapse_store.syn, "syn51203973", newManifestName)
+        manifest_data = manifestDownload.download_manifest(manifestDownload, synapse_store.syn, "syn51203973", newManifestName)
         assert os.path.exists(manifest_data['path'])
 
         if not newManifestName:
@@ -497,4 +500,15 @@ class TestDownloadManifest:
         
         # clean up
         os.remove(manifest_data['path'])
+
+    @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078"])
+    def test_entity_type_checking(self, manifestDownload, synapse_store, entity_id, caplog):
+        manifestDownload._entity_type_checking(synapse_store.syn, entity_id)
+        if entity_id == "syn27600053":
+            for record in caplog.records:
+                assert "Please try using a file" in record.message
+
+
+
+
 

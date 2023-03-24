@@ -54,6 +54,92 @@ from schematic import CONFIG
 
 logger = logging.getLogger("Synapse storage")
 
+class ManifestDownload(object):
+    def _download_manifest_to_folder(self, syn, manifest_id):
+        """
+        try downloading a manifest to local cache or a given folder
+        manifest
+        Args:
+            manifest_id: id of a manifest  
+        Return: 
+            manifest_data: A new Synapse Entity object of the appropriate type
+        """
+        if CONFIG["synapse"]["manifest_folder"]:
+            manifest_data = syn.get(
+                    manifest_id,
+                    downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                    ifcollision="overwrite.local",
+                )
+        else:
+            manifest_data = syn.get(
+                        manifest_id,
+                    )
+        return manifest_data 
+
+    def _entity_type_checking(self, syn, manifest_id):
+        """
+        check the entity type of the id that needs to be downloaded
+        Args:
+            manifest_id: id of a manifest
+        Return: 
+            entity_type: type of the manifest being returned
+        """
+        # check the type of entity
+        entity_name = syn.get(manifest_id, downloadFile=False)
+        entity_type = str(type(entity_name))
+        if entity_type  != "<class 'synapseclient.entity.File'>":
+            logger.error(f'You are using entity type: {entity_type}. Please try using a file')
+
+    @staticmethod
+    def download_manifest(self, syn, manifest_id: str, newManifestName="", manifest_df=None):
+        """
+        Donwload a manifest based on a given manifest id. 
+        Args:
+            manifest_id: id of a manifest
+            newManifestName(optional): new name of a manifest that gets downloaded.
+            manifest_df(optional): a dataframe containing name and id of manifests in a given asset view
+        Return: 
+            manifest_data: synapse entity file object
+        """
+
+        # enables retrying if user does not have access to uncensored manifest
+        # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+        manifest_data = ""
+
+        # entity type checking
+        self._entity_type_checking(syn, manifest_id)
+        
+        # download a manifest
+        try:
+            manifest_data = self._download_manifest_to_folder(syn, manifest_id)
+        except(SynapseUnmetAccessRestrictions, SynapseAuthenticationError):
+            if not manifest_df.empty:
+                censored_regex=re.compile('.*censored.*')
+                censored = manifest_df['name'].str.contains(censored_regex)
+                new_manifest_id=manifest_df[censored]["id"][0]
+                try: 
+                    manifest_data = self._download_manifest_to_folder(syn, new_manifest_id)
+                except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
+                    logger.error(f"You don't have access to the requested resource: {manifest_id}")
+                    raise (f"You don't have access to the requested resource: {manifest_id}")
+
+            else:
+                logger.error(f"You don't have access to the requested resource: {manifest_id}")
+
+        if newManifestName:
+            if os.path.exists(manifest_data['path']):
+                # Rename the file we just made to the new name
+                new_manifest_filename = newManifestName + '.csv'
+                dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
+                new_manifest_path_name = os.path.join(dir_name, new_manifest_filename)
+                os.rename(manifest_data['path'], new_manifest_path_name)
+
+                # Update file names/paths in manifest_data
+                manifest_data['name'] = new_manifest_filename
+                manifest_data['filename'] = new_manifest_filename
+                manifest_data['path'] = new_manifest_path_name
+        return manifest_data
+
 class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
     Provides utilities to list files in a specific project; update files annotations, create fileviews, etc.
@@ -392,7 +478,7 @@ class SynapseStorage(BaseStorage):
     def _get_manifest_id(self, manifest: pd.DataFrame) -> str:
         """If both censored and uncensored manifests are present, return uncensored manifest; if only one manifest is present, return manifest id of that manifest; if more than two manifests are present, return the manifest id of the first one. 
         Args:
-        manifest: a dataframe that contains annotation of manifests metadata
+        manifest: a dataframe contains name and id of manifests in a given asset view
 
         Return: 
         manifest_syn_id: id of a given censored or uncensored manifest
@@ -412,71 +498,7 @@ class SynapseStorage(BaseStorage):
         else:
             manifest_syn_id = manifest["id"][0]
         
-        # check if user has access to the manifest without downloading it 
-        try: 
-            self.syn.get(manifest_syn_id, downloadFile=False)
-        # if user ends up not having access to the manifest returned, switch back to use censored manifest
-        except(SynapseUnmetAccessRestrictions):
-            manifest_syn_id=manifest[censored]["id"][0]
-
         return manifest_syn_id
-
-    @staticmethod
-    def download_manifest(syn, manifest_syn_id: str, newManifestName=""):
-        """
-        Donwload a manifest based on a given manifest id. 
-        Args:
-            manifest_syn_id: syn id of a manifest
-            newManifestName: new name of a manifest that gets downloaded.
-        Return: 
-            manifest_data: synapse entity file object
-        """
-
-        # enables retrying if user does not have access to uncensored manifest
-        # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-        manifest_data = ""
-
-        # check the type of entity
-        entity_name = syn.get(manifest_syn_id, downloadFile=False)
-        entity_type = str(type(entity_name))
-        if entity_type  != "<class 'synapseclient.entity.File'>":
-            logger.error(f'You are using entity type: {entity_type}. Please try using a file')
-            raise (f'You are using a wrong entity type: {entity_type}. Please try using a file')
-        
-        # download a manifest
-        if 'manifest_folder' in CONFIG['synapse'].keys():
-            try: 
-                manifest_data = syn.get(
-                    manifest_syn_id,
-                    downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                    ifcollision="overwrite.local",
-                ) 
-            except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
-                logger.error(f"You don't have access to the requested resource: {manifest_syn_id}")
-        # if no manifest folder is set, download to cache
-        ### TO DO: Deprecate the following? 
-        else:
-            try:
-                manifest_data = syn.get(
-                    manifest_syn_id,
-                )
-                
-            except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
-                logger.error(f"You don't have access to the requested resource: {manifest_syn_id}")
-        # Rename manifest file if indicated by user.
-        if newManifestName:
-            if os.path.exists(manifest_data['path']):
-                # Rename the file we just made to the new name
-                new_manifest_filename = newManifestName + '.csv'
-                dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
-                new_manifest_path_name = os.path.join(dir_name, new_manifest_filename)
-                os.rename(manifest_data['path'], new_manifest_path_name)
-
-                # Update file names/paths in manifest_data
-                manifest_data['name'] = new_manifest_filename
-                manifest_data['filename'] = new_manifest_filename
-                manifest_data['path'] = new_manifest_path_name
-        return manifest_data
 
     def getDatasetManifest(
         self, datasetId: str, downloadFile: bool = False, newManifestName: str='',
@@ -502,7 +524,7 @@ class SynapseStorage(BaseStorage):
         manifest_re=re.compile(os.path.basename(self.manifest)+".*.[tc]sv")
 
         # search manifest based on given manifest basename regex above
-        # and return a dataframe containing annotation of manifests
+        # and return a dataframe containing name and id of manifests in a given asset view
         manifest = all_files[
             (all_files['name'].str.contains(manifest_re,regex=True))
             & (all_files["parentId"] == datasetId)
@@ -519,7 +541,10 @@ class SynapseStorage(BaseStorage):
         else:
             manifest_syn_id = self._get_manifest_id(manifest)
             if downloadFile: 
-                manifest_data = self.download_manifest(self.syn, manifest_syn_id=manifest_syn_id, newManifestName=newManifestName)
+                md = ManifestDownload()
+                manifest_data = ManifestDownload.download_manifest(md, self.syn, manifest_id=manifest_syn_id, newManifestName=newManifestName, manifest_df=manifest)
+                if manifest_data == "":
+                    logger.debug(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
                 return manifest_data
             return manifest_syn_id
 
@@ -653,7 +678,11 @@ class SynapseStorage(BaseStorage):
                         )
 
                     manifest_info = self.getDatasetManifest(datasetId,downloadFile=True)
-                    manifest_name = manifest_info["properties"]["name"]
+                    try:
+                        manifest_name = manifest_info["properties"]["name"]
+                    except:
+                        print('dataset id', datasetId)
+                        print('manifest info', manifest_info)
                     manifest_path = manifest_info["path"]
 
                     manifest_df = load_df(manifest_path)
