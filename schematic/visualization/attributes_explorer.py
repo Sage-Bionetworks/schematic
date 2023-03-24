@@ -200,6 +200,6 @@ class AttributesExplorer():
 
         merged_attributes_df = merged_attributes_df[cols]
         if save_file == True:
-            return merged_attributes_df.to_csv(os.path.join(self.output_path, self.schema_name + 'attributes_data.vis_data.csv'))
+            return merged_attributes_df.to_csv(os.path.join(self.output_path, self.schema_name + 'attributes_data.vis_data.csv'), index=False)
         elif save_file == False:
-            return merged_attributes_df.to_csv()
+            return merged_attributes_df.to_csv(index=False)
