@@ -18,7 +18,7 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.store.synapse import SynapseStorage
+from schematic.store.synapse import SynapseStorage, ManifestDownload
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
 from flask_cors import CORS, cross_origin
 from schematic.schemas.explorer import SchemaExplorer
@@ -647,7 +647,8 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=No
     except Exception: 
         raise SynapseAuthenticationError
     try: 
-        manifest_data = store.download_manifest(syn, manifest_id, new_manifest_name)
+        md = ManifestDownload()
+        manifest_data = ManifestDownload.download_manifest(md, syn, manifest_id, new_manifest_name)
         #return local file path
         manifest_local_file_path = manifest_data['path']
     except Exception: 
