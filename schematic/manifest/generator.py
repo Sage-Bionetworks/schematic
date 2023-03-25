@@ -181,13 +181,13 @@ class ManifestGenerator(object):
             )
 
         else:
+            spreadsheet_body = {
+            'properties': {
+                'title': title
+            }}
+
             # if no template, create an empty spreadsheet
-            spreadsheet = (
-                self.sheet_service.spreadsheets()
-                .create(body=spreadsheet, fields="spreadsheetId")
-                .execute()
-            )
-            spreadsheet_id = spreadsheet.get("spreadsheetId")
+            spreadsheet_id = self.sheet_service.spreadsheets().create(body=spreadsheet_body, fields="spreadsheetId").execute().get("spreadsheetId")
 
         return spreadsheet_id
 

@@ -6,6 +6,9 @@ import pytest
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
 import pandas as pd
+from unittest.mock import Mock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -50,6 +53,13 @@ def manifest_generator(helpers, request):
 def simple_test_manifest_excel(helpers):
     yield helpers.get_data_path("mock_manifests/test_bulkRNAseq_manifest.xlsx")
 
+@pytest.fixture
+def mock_create_blank_google_sheet():
+    'Mock creating a new google sheet'
+    er = Mock()
+    er.return_value = "mock_spreadsheet_id"
+    yield er
+
 @pytest.fixture(params=[True, False], ids=["sheet_url", "data_frame"])
 def manifest(dataset_id, manifest_generator, request):
 
@@ -65,6 +75,7 @@ def manifest(dataset_id, manifest_generator, request):
 
 
 class TestManifestGenerator:
+
     def test_init(self, helpers):
 
         generator = ManifestGenerator(
@@ -179,9 +190,50 @@ class TestManifestGenerator:
                     assert manifest.startswith("https://docs.google.com/spreadsheets/")
         
         # Clean-up
-    
         if type(manifest) is str and os.path.exists(manifest): 
             os.remove(manifest)
+
+    # test all the functions used under get_manifest
+    @pytest.mark.parametrize("template_id", [["not provided"]])
+    def test_create_empty_manifest_spreadsheet(self, config, manifest_generator, template_id):
+        '''
+        Create an empty manifest spreadsheet regardless if master_template_id is provided
+        Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file. If there's no template id provided in config, this function will create a new manifest
+        '''
+        generator, use_annotations, data_type = manifest_generator
+
+        mock_spreadsheet = MagicMock()
+
+        title="Example"
+
+        if template_id == "provided":
+            # mock _gdrive_copy_file function 
+            with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file') as MockClass:
+                instance = MockClass.return_value
+                instance.method.return_value = 'mock google sheet id'
+
+                spreadsheet_id = generator._create_empty_manifest_spreadsheet(title=title)
+                assert spreadsheet_id == "mock google sheet id"
+
+        else:
+            # overwrite test config so that we could test the case when manifest_template_id is not provided
+            config["style"]["google_manifest"]["master_template_id"] = ""
+
+            mock_spreadsheet = Mock()
+            mock_execute = Mock()
+
+
+            # Chain the mocks together
+            mock_spreadsheet.create.return_value = mock_spreadsheet
+            mock_spreadsheet.execute.return_value = mock_execute
+            mock_execute.get.return_value = "mock id"
+            mock_create = Mock(return_value=mock_spreadsheet)
+
+            with patch.object(generator.sheet_service, "spreadsheets", mock_create):
+
+                spreadsheet_id = generator._create_empty_manifest_spreadsheet(title)
+                assert spreadsheet_id == "mock id"
+
 
     @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])
     @pytest.mark.parametrize("manifest_columns", [["column four"]])
@@ -194,6 +246,8 @@ class TestManifestGenerator:
             assert "column four" in missing_columns 
         else: 
             assert "column four" not in missing_columns
+
+    
 
     @pytest.mark.parametrize("additional_df_dict", [{'test one column': ['a', 'b'], 'test two column': ['c', 'd']}, None])
     def test_populate_existing_excel_spreadsheet(self, manifest_generator,simple_test_manifest_excel, additional_df_dict):
