@@ -194,7 +194,7 @@ class TestManifestGenerator:
             os.remove(manifest)
 
     # test all the functions used under get_manifest
-    @pytest.mark.parametrize("template_id", [["not provided"]])
+    @pytest.mark.parametrize("template_id", [["provided", "not provided"]])
     def test_create_empty_manifest_spreadsheet(self, config, manifest_generator, template_id):
         '''
         Create an empty manifest spreadsheet regardless if master_template_id is provided
