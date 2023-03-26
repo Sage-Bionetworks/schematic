@@ -47,7 +47,10 @@ def manifest_generator(helpers, request):
         os.remove(helpers.get_data_path(f"example.{data_type}.schema.json"))
     except FileNotFoundError:
         pass
-
+@pytest.fixture
+def simple_manifest_generator(manifest_generator):
+    generator, use_annotations, data_type = manifest_generator
+    yield generator
 
 @pytest.fixture
 def simple_test_manifest_excel(helpers):
@@ -195,12 +198,12 @@ class TestManifestGenerator:
 
     # test all the functions used under get_manifest
     @pytest.mark.parametrize("template_id", [["provided", "not provided"]])
-    def test_create_empty_manifest_spreadsheet(self, config, manifest_generator, template_id):
+    def test_create_empty_manifest_spreadsheet(self, config, simple_manifest_generator, template_id):
         '''
         Create an empty manifest spreadsheet regardless if master_template_id is provided
         Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file. If there's no template id provided in config, this function will create a new manifest
         '''
-        generator, use_annotations, data_type = manifest_generator
+        generator = simple_manifest_generator
 
         mock_spreadsheet = MagicMock()
 
@@ -235,11 +238,11 @@ class TestManifestGenerator:
                 assert spreadsheet_id == "mock id"
 
     @pytest.mark.parametrize("schema_path_provided", [True, False])
-    def test_get_json_schema(self, manifest_generator, helpers, schema_path_provided):
+    def test_get_json_schema(self, simple_manifest_generator, helpers, schema_path_provided):
         '''
         Open json schema as a dictionary
         '''
-        generator, use_annotations, data_type = manifest_generator
+        generator = simple_manifest_generator
 
         if schema_path_provided:
             json_schema_path = helpers.get_data_path("example.model.jsonld")
@@ -255,13 +258,28 @@ class TestManifestGenerator:
             assert type(json_schema) == str
 
     
+    def test_gather_all_fields(self, simple_manifest_generator):
+        '''
+        gather all fields is a wrapper around three functions: _get_required_metadata_fields, _gather_dependency_requirements
+        and _get_additional_metadata
+        '''
+        generator = simple_manifest_generator
 
+        with patch('schematic.manifest.generator.ManifestGenerator._get_required_metadata_fields') as MockClass:
+            MockClass.return_value = "mock required metadata fields"
+            with patch('schematic.manifest.generator.ManifestGenerator._gather_dependency_requirements') as MockRequirement:
+                MockRequirement.return_value = "mock required metadata fields"
+                with patch('schematic.manifest.generator.ManifestGenerator._get_additional_metadata') as MockAdditionalData:
+                    MockAdditionalData.return_value = "mock required metadata fields"
+                    required_metadata = generator._gather_all_fields("mock fields", "mock json schema")
 
+                    assert required_metadata == "mock required metadata fields"
 
+    
     @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])
     @pytest.mark.parametrize("manifest_columns", [["column four"]])
-    def test_get_missing_columns(self, manifest_generator, wb_headers, manifest_columns):
-        generator, use_annotations, data_type = manifest_generator
+    def test_get_missing_columns(self, simple_manifest_generator, wb_headers, manifest_columns):
+        generator = simple_manifest_generator
 
         manifest_test_df = pd.DataFrame(columns = manifest_columns)
         missing_columns = generator._get_missing_columns(wb_headers, manifest_test_df)
@@ -273,8 +291,8 @@ class TestManifestGenerator:
     
 
     @pytest.mark.parametrize("additional_df_dict", [{'test one column': ['a', 'b'], 'test two column': ['c', 'd']}, None])
-    def test_populate_existing_excel_spreadsheet(self, manifest_generator,simple_test_manifest_excel, additional_df_dict):
-        generator, use_annotations, data_type = manifest_generator
+    def test_populate_existing_excel_spreadsheet(self, simple_manifest_generator, simple_test_manifest_excel, additional_df_dict):
+        generator =  simple_manifest_generator
         if additional_df_dict: 
             additional_test_df = pd.DataFrame(additional_df_dict)
         else: 
