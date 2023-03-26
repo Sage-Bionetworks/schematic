@@ -234,6 +234,29 @@ class TestManifestGenerator:
                 spreadsheet_id = generator._create_empty_manifest_spreadsheet(title)
                 assert spreadsheet_id == "mock id"
 
+    @pytest.mark.parametrize("schema_path_provided", [True, False])
+    def test_get_json_schema(self, manifest_generator, helpers, schema_path_provided):
+        '''
+        Open json schema as a dictionary
+        '''
+        generator, use_annotations, data_type = manifest_generator
+
+        if schema_path_provided:
+            json_schema_path = helpers.get_data_path("example.model.jsonld")
+            json_schema = generator._get_json_schema(json_schema_filepath=json_schema_path)
+
+        else:
+            mock_json_schema = Mock()
+            mock_json_schema.return_value = "mock json ld"
+            with patch.object(SchemaGenerator, "get_json_schema_requirements",mock_json_schema):
+                json_schema = generator._get_json_schema(json_schema_filepath=None)
+                assert json_schema == "mock json ld"
+            
+            assert type(json_schema) == str
+
+    
+
+
 
     @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])
     @pytest.mark.parametrize("manifest_columns", [["column four"]])
