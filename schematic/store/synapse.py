@@ -61,6 +61,7 @@ class ManifestDownload(object):
         try downloading a manifest to local cache or a given folder
         manifest
         Args:
+            syn: an object of type synapseclient.
             manifest_id: id of a manifest  
         Return: 
             manifest_data: A new Synapse Entity object of the appropriate type
@@ -81,6 +82,7 @@ class ManifestDownload(object):
         """
         check the entity type of the id that needs to be downloaded
         Args:
+            syn: an object of type synapseclient.
             manifest_id: id of a manifest
         Return: 
              if the entity type is wrong, raise an error
@@ -95,6 +97,7 @@ class ManifestDownload(object):
         """
         Donwload a manifest based on a given manifest id. 
         Args:
+            syn: an object of type synapseclient.
             manifest_id: id of a manifest
             newManifestName(optional): new name of a manifest that gets downloaded.
             manifest_df(optional): a dataframe containing name and id of manifests in a given asset view
