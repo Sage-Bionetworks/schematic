@@ -661,8 +661,7 @@ class SynapseStorage(BaseStorage):
                     try:
                         manifest_name = manifest_info["properties"]["name"]
                     except:
-                        print('dataset id', datasetId)
-                        print('manifest info', manifest_info)
+                        logger.error(f'Failed to download manifests from {datasetId}')
                     manifest_path = manifest_info["path"]
 
                     manifest_df = load_df(manifest_path)
