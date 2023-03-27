@@ -51,6 +51,7 @@ from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
+from schematic.utils.general import entity_type_checking
 
 logger = logging.getLogger("Synapse storage")
 
@@ -82,12 +83,11 @@ class ManifestDownload(object):
         Args:
             manifest_id: id of a manifest
         Return: 
-            entity_type: type of the manifest being returned
+             if the entity type is wrong, raise an error
         """
         # check the type of entity
-        entity_name = syn.get(manifest_id, downloadFile=False)
-        entity_type = str(type(entity_name))
-        if entity_type  != "<class 'synapseclient.entity.File'>":
+        entity_type = entity_type_checking(syn, manifest_id)
+        if entity_type  != "file":
             logger.error(f'You are using entity type: {entity_type}. Please try using a file')
 
     @staticmethod
@@ -106,9 +106,9 @@ class ManifestDownload(object):
         # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
         manifest_data = ""
 
-        # entity type checking
+        # check entity type
         self._entity_type_checking(syn, manifest_id)
-        
+
         # download a manifest
         try:
             manifest_data = self._download_manifest_to_folder(syn, manifest_id)
@@ -217,25 +217,25 @@ class SynapseStorage(BaseStorage):
                 converted_space = convert_size(remaining_space)
                 logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
     
-    @staticmethod
-    def checkEntityType(self, syn_id): 
-        """
-        Check the entity type of a synapse entity
-        return: type of synapse entity 
-        """
-        entity = self.syn.get(syn_id)
-        type_entity = str(type(entity))
+    # @staticmethod
+    # def checkEntityType(self, syn_id): 
+    #     """
+    #     Check the entity type of a synapse entity
+    #     return: type of synapse entity 
+    #     """
+    #     entity = self.syn.get(syn_id)
+    #     type_entity = str(type(entity))
 
-        if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":
-            return "asset view"
-        elif type_entity == "<class 'synapseclient.entity.Folder'>":
-            return "folder"
-        elif type_entity == "<class 'synapseclient.entity.File'>":
-            return "file"
-        elif type_entity == "<class 'synapseclient.entity.Project'>":
-            return "project"
-        else: 
-            return type_entity
+    #     if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":
+    #         return "asset view"
+    #     elif type_entity == "<class 'synapseclient.entity.Folder'>":
+    #         return "folder"
+    #     elif type_entity == "<class 'synapseclient.entity.File'>":
+    #         return "file"
+    #     elif type_entity == "<class 'synapseclient.entity.Project'>":
+    #         return "project"
+    #     else: 
+    #         return type_entity
 
     def _query_fileview(self):
         self._purge_synapse_cache()

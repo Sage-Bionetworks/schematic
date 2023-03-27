@@ -40,6 +40,7 @@ import io
 #     # Do stuff after your route executes
 #     pass
 from flask_cors import cross_origin
+from schematic.utils.general import entity_type_checking
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -563,15 +564,14 @@ def check_if_files_in_assetview(input_token, asset_view, entity_id):
 
     return if_exists
 
-def check_entity_type(input_token, asset_view, entity_id):
+def check_entity_type(input_token, entity_id):
     # call config handler 
-    config_handler(asset_view=asset_view)
+    config_handler()
 
-    # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    syn = SynapseStorage.login(access_token = input_token)
+    entity_type = entity_type_checking(syn, entity_id)
 
-    entity_type = store.checkEntityType(entity_id)
-    return entity_type
+    return entity_type 
 
 def get_component_requirements(schema_url, source_component, as_graph):
     metadata_model = initalize_metadata_model(schema_url)

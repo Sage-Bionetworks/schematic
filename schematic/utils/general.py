@@ -70,3 +70,30 @@ def convert_gb_to_bytes(gb: int):
     """
     bytes_to_return = gb * 1024 * 1024 * 1024
     return bytes_to_return
+
+
+def entity_type_checking(syn, manifest_id):
+    """
+    check the entity type of the id that needs to be downloaded
+    Args:
+        manifest_id: id of a manifest
+    Return: 
+        type_entity: type of the manifest being returned
+    """
+    # check the type of entity
+    try: 
+        entity_name = syn.get(manifest_id, downloadFile=False)
+    except: 
+        raise(f'Here: {manifest_id}')
+    type_entity = str(type(entity_name))
+
+    if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":
+        return "asset view"
+    elif type_entity == "<class 'synapseclient.entity.Folder'>":
+        return "folder"
+    elif type_entity == "<class 'synapseclient.entity.File'>":
+        return "file"
+    elif type_entity == "<class 'synapseclient.entity.Project'>":
+        return "project"
+    else: 
+        return type_entity
