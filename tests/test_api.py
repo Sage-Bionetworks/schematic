@@ -179,7 +179,6 @@ class TestSynapseStorage:
     def test_get_entity_type(self, syn_token, client, entity_id):
         params = {
             "input_token": syn_token,
-            "asset_view": "syn23643253",
             "entity_id": entity_id
         }
         response = client.get("http://localhost:3001/v1/storage/entity/type", query_string = params)
