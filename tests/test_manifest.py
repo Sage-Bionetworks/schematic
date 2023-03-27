@@ -2,13 +2,15 @@ import os
 import shutil
 import logging
 import pytest
-
-from schematic.manifest.generator import ManifestGenerator
-from schematic.schemas.generator import SchemaGenerator
 import pandas as pd
 from unittest.mock import Mock
 from unittest.mock import patch
 from unittest.mock import MagicMock
+from schematic.manifest.generator import ManifestGenerator
+from schematic.schemas.generator import SchemaGenerator
+from schematic.utils.google_api_utils import execute_google_api_requests
+
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -90,6 +92,11 @@ class TestManifestGenerator:
         # assert generator.sheet_service == mock_creds["sheet_service"]
         assert generator.root is None
         assert type(generator.sg) is SchemaGenerator
+
+    # Define the function to be called instead of my_func
+    def mock_google_api_execution():
+        print('mock google api execution')
+
 
     @pytest.mark.google_credentials_needed
     def test_get_manifest_first_time(self, manifest):
@@ -275,7 +282,46 @@ class TestManifestGenerator:
 
                     assert required_metadata == "mock required metadata fields"
 
-    
+
+
+    #@patch("schematic.utils.google_api_utils.execute_google_api_requests")
+    # @patch("schematic.manifest.generator.ManifestGenerator._create_requests_body")
+    # @patch("schematic.manifest.generator.ManifestGenerator._set_permissions")
+    # @patch("schematic.manifest.generator.ManifestGenerator._gs_add_additional_metadata")
+    # @patch("schematic.manifest.generator.ManifestGenerator._gs_add_and_format_columns")
+    # def test_create_empty_gs(self, mock_format_columns, mock_add_metadata, mock_set_perms, mock_request_body,simple_manifest_generator):
+    #     '''
+    #     Create an empty manifest using specifications from the json schema.
+    #     '''
+
+    #     # Create the mock object
+    #     mock_my_func = MagicMock()
+
+    #     self.sheet_service = Mock()
+
+    #     spreadsheet_id = "example_sheet_id"
+
+    #     mock_format_columns.return_value = ("add_format_cols_response", ["field1", "field2"])
+    #     mock_add_metadata.return_value = "add_metadata_response"
+    #     mock_set_perms.return_value = "set_perms_response"
+    #     mock_request_body.return_value = "mock request body"
+    #     #mock_execute.return_value = "mock response"
+
+    #     required_metadata_fields = "mock required metadata"
+    #     json_schema = "mock json schema string"
+    #     spreadsheet_id = "mock_spreadsheet_id" 
+
+    #     def mock_return():
+    #         return "mock haha"
+
+    #     with patch('schematic.manifest.generator.utils.google_api_utils.execute_google_api_requests', new=mock_return):
+    #             response = simple_manifest_generator._create_empty_gs(
+    #                     required_metadata_fields,
+    #                     json_schema,
+    #                     spreadsheet_id,
+    #                 )
+
+                            
     @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])
     @pytest.mark.parametrize("manifest_columns", [["column four"]])
     def test_get_missing_columns(self, simple_manifest_generator, wb_headers, manifest_columns):
