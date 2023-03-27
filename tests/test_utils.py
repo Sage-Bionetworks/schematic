@@ -20,9 +20,21 @@ from schematic.exceptions import (
     MissingConfigAndArgumentValueError,
 )
 from schematic import LOADER
+from schematic.store.synapse import SynapseStorage
+from schematic.utils.general import entity_type_checking
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+@pytest.fixture
+def synapse_store():
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synapse_store = SynapseStorage(access_token=access_token)
+    else:
+        synapse_store = SynapseStorage()
+    yield synapse_store
 
 
 class TestGeneral:
@@ -49,6 +61,19 @@ class TestGeneral:
 
         test_list = general.dict2list(mock_list)
         assert test_list == mock_list
+
+    @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078", "syn23643253", "syn30988314"])
+    def test_check_entity_type(self, synapse_store, entity_id):
+        syn = synapse_store.syn
+        entity_type = entity_type_checking(syn, entity_id)
+        if entity_id == "syn27600053":
+            assert entity_type == "folder"
+        elif entity_id == "syn29862078":
+            assert entity_type == "file"
+        elif entity_id == "syn23643253":
+            assert entity_type == "asset view"
+        elif entity_id == "syn30988314":
+            assert entity_type == "folder"
 
 
 class TestCliUtils:
