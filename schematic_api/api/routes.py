@@ -647,8 +647,8 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=No
     except Exception: 
         raise SynapseAuthenticationError
     try: 
-        md = ManifestDownload()
-        manifest_data = ManifestDownload.download_manifest(md, syn, manifest_id, new_manifest_name)
+        md = ManifestDownload(syn, manifest_id)
+        manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
         #return local file path
         manifest_local_file_path = manifest_data['path']
     except Exception: 

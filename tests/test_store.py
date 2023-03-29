@@ -30,8 +30,12 @@ def synapse_store():
     yield synapse_store
 
 @pytest.fixture
-def manifestDownload():
-    md = ManifestDownload()
+def test_download_manifest_id():
+    yield "syn51203973"
+
+@pytest.fixture
+def mock_manifest_download(synapse_store, test_download_manifest_id):
+    md = ManifestDownload(synapse_store.syn, test_download_manifest_id)
     yield md
 
 @pytest.fixture
@@ -488,9 +492,9 @@ class TestDownloadManifest:
             assert manifest_syn_id == censored_manifest_id
 
     @pytest.mark.parametrize("newManifestName",["", "Example"]) 
-    def test_download_manifest(self, config, synapse_store, manifestDownload, newManifestName):
+    def test_download_manifest(self, config, mock_manifest_download, newManifestName):
         # test the download function by downloading a manifest
-        manifest_data = manifestDownload.download_manifest(manifestDownload, synapse_store.syn, "syn51203973", newManifestName)
+        manifest_data = mock_manifest_download.download_manifest(mock_manifest_download, newManifestName)
         assert os.path.exists(manifest_data['path'])
 
         if not newManifestName:
@@ -502,11 +506,12 @@ class TestDownloadManifest:
         os.remove(manifest_data['path'])
 
     @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078"])
-    def test_entity_type_checking(self, manifestDownload, synapse_store, entity_id, caplog):
-        manifestDownload._entity_type_checking(synapse_store.syn, entity_id)
+    def test_entity_type_checking(self, synapse_store, entity_id, caplog):
+        md = ManifestDownload(synapse_store.syn, entity_id)
+        md._entity_type_checking()
         if entity_id == "syn27600053":
             for record in caplog.records:
-                assert "Please try using a file" in record.message
+                assert "You are using entity type: folder. Please try using a file" in record.message
 
 
 

@@ -6,6 +6,7 @@ import json
 import atexit
 import logging
 import secrets
+from dataclasses import dataclass
 
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
@@ -55,50 +56,50 @@ from schematic.utils.general import entity_type_checking
 
 logger = logging.getLogger("Synapse storage")
 
+@dataclass
 class ManifestDownload(object):
-    def _download_manifest_to_folder(self, syn, manifest_id):
+    """
+    syn: an object of type synapseclient.
+    manifest_id: id of a manifest  
+    """
+    syn: synapseclient.Synapse
+    manifest_id: str
+
+    def _download_manifest_to_folder(self):
         """
         try downloading a manifest to local cache or a given folder
         manifest
-        Args:
-            syn: an object of type synapseclient.
-            manifest_id: id of a manifest  
         Return: 
             manifest_data: A new Synapse Entity object of the appropriate type
         """
         if CONFIG["synapse"]["manifest_folder"]:
-            manifest_data = syn.get(
-                    manifest_id,
+            manifest_data = self.syn.get(
+                    self.manifest_id,
                     downloadLocation=CONFIG["synapse"]["manifest_folder"],
                     ifcollision="overwrite.local",
                 )
         else:
-            manifest_data = syn.get(
-                        manifest_id,
+            manifest_data = self.syn.get(
+                        self.manifest_id,
                     )
         return manifest_data 
 
-    def _entity_type_checking(self, syn, manifest_id):
+    def _entity_type_checking(self):
         """
         check the entity type of the id that needs to be downloaded
-        Args:
-            syn: an object of type synapseclient.
-            manifest_id: id of a manifest
         Return: 
              if the entity type is wrong, raise an error
         """
         # check the type of entity
-        entity_type = entity_type_checking(syn, manifest_id)
+        entity_type = entity_type_checking(self.syn, self.manifest_id)
         if entity_type  != "file":
             logger.error(f'You are using entity type: {entity_type}. Please try using a file')
 
     @staticmethod
-    def download_manifest(self, syn, manifest_id: str, newManifestName="", manifest_df=None):
+    def download_manifest(self, newManifestName="", manifest_df=None):
         """
         Donwload a manifest based on a given manifest id. 
         Args:
-            syn: an object of type synapseclient.
-            manifest_id: id of a manifest
             newManifestName(optional): new name of a manifest that gets downloaded.
             manifest_df(optional): a dataframe containing name and id of manifests in a given asset view
         Return: 
@@ -110,24 +111,25 @@ class ManifestDownload(object):
         manifest_data = ""
 
         # check entity type
-        self._entity_type_checking(syn, manifest_id)
+        self._entity_type_checking()
 
         # download a manifest
         try:
-            manifest_data = self._download_manifest_to_folder(syn, manifest_id)
+            manifest_data = self._download_manifest_to_folder()
         except(SynapseUnmetAccessRestrictions, SynapseAuthenticationError):
+            # if asset view is provided
             if not manifest_df.empty:
                 censored_regex=re.compile('.*censored.*')
                 censored = manifest_df['name'].str.contains(censored_regex)
                 new_manifest_id=manifest_df[censored]["id"][0]
                 try: 
-                    manifest_data = self._download_manifest_to_folder(syn, new_manifest_id)
+                    manifest_data = self._download_manifest_to_folder()
                 except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
-                    logger.error(f"You don't have access to the requested resource: {manifest_id}")
-                    raise (f"You don't have access to the requested resource: {manifest_id}")
+                    logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
+                    raise (f"You don't have access to the requested resource: {self.manifest_id}")
 
             else:
-                logger.error(f"You don't have access to the requested resource: {manifest_id}")
+                logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
 
         if newManifestName:
             if os.path.exists(manifest_data['path']):
@@ -524,8 +526,8 @@ class SynapseStorage(BaseStorage):
         else:
             manifest_syn_id = self._get_manifest_id(manifest)
             if downloadFile: 
-                md = ManifestDownload()
-                manifest_data = ManifestDownload.download_manifest(md, self.syn, manifest_id=manifest_syn_id, newManifestName=newManifestName, manifest_df=manifest)
+                md = ManifestDownload(self.syn, manifest_id=manifest_syn_id)
+                manifest_data = ManifestDownload.download_manifest(md, newManifestName=newManifestName, manifest_df=manifest)
                 if manifest_data == "":
                     logger.debug(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
                 return manifest_data
