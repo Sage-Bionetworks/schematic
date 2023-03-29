@@ -519,7 +519,7 @@ class SynapseStorage(BaseStorage):
         
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
-            logger.warning(f"Could not find a manifest that fits basename {self.manifest} in asset view and dataset {datasetId}")
+            logger.error(f"Could not find a manifest that fits basename {self.manifest} in asset view and dataset {datasetId}")
             return ""
 
         # if there is an exisiting manifest
@@ -529,7 +529,7 @@ class SynapseStorage(BaseStorage):
                 md = ManifestDownload(self.syn, manifest_id=manifest_syn_id)
                 manifest_data = ManifestDownload.download_manifest(md, newManifestName=newManifestName, manifest_df=manifest)
                 if manifest_data == "":
-                    logger.debug(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
+                    logger.error(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
                 return manifest_data
             return manifest_syn_id
 
