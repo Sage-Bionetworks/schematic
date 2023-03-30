@@ -2,6 +2,9 @@
 from typing import Any, Dict, Optional, Text
 import os
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 def find_duplicates(_list):
     """Find duplicate items in a list"""
@@ -72,19 +75,19 @@ def convert_gb_to_bytes(gb: int):
     return bytes_to_return
 
 
-def entity_type_checking(syn, manifest_id):
+def entity_type_mapping(syn, entity_id):
     """
-    check the entity type of the id that needs to be downloaded
+    Return the entity type of manifest
     Args:
-        manifest_id: id of a manifest
+        entity: id of an entity 
     Return: 
         type_entity: type of the manifest being returned
     """
     # check the type of entity
     try: 
-        entity_name = syn.get(manifest_id, downloadFile=False)
+        entity_name = syn.get(entity_id, downloadFile=False)
     except: 
-        raise(f'Here: {manifest_id}')
+        logger.error(f'cannot get {syn} from asset store. Please make sure that {entity_id} exists')
     type_entity = str(type(entity_name))
 
     if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":

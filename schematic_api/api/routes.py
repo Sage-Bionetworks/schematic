@@ -40,7 +40,7 @@ import io
 #     # Do stuff after your route executes
 #     pass
 from flask_cors import cross_origin
-from schematic.utils.general import entity_type_checking
+from schematic.utils.general import entity_type_mapping
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -569,7 +569,7 @@ def check_entity_type(input_token, entity_id):
     config_handler()
 
     syn = SynapseStorage.login(access_token = input_token)
-    entity_type = entity_type_checking(syn, entity_id)
+    entity_type = entity_type_mapping(syn, entity_id)
 
     return entity_type 
 

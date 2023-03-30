@@ -52,7 +52,7 @@ from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
-from schematic.utils.general import entity_type_checking
+from schematic.utils.general import entity_type_mapping
 
 logger = logging.getLogger("Synapse storage")
 
@@ -91,7 +91,7 @@ class ManifestDownload(object):
              if the entity type is wrong, raise an error
         """
         # check the type of entity
-        entity_type = entity_type_checking(self.syn, self.manifest_id)
+        entity_type = entity_type_mapping(self.syn, self.manifest_id)
         if entity_type  != "file":
             logger.error(f'You are using entity type: {entity_type}. Please try using a file')
 

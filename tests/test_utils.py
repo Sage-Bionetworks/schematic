@@ -21,7 +21,7 @@ from schematic.exceptions import (
 )
 from schematic import LOADER
 from schematic.store.synapse import SynapseStorage
-from schematic.utils.general import entity_type_checking
+from schematic.utils.general import entity_type_mapping
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class TestGeneral:
     @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078", "syn23643253", "syn30988314"])
     def test_check_entity_type(self, synapse_store, entity_id):
         syn = synapse_store.syn
-        entity_type = entity_type_checking(syn, entity_id)
+        entity_type = entity_type_mapping(syn, entity_id)
         if entity_id == "syn27600053":
             assert entity_type == "folder"
         elif entity_id == "syn29862078":
