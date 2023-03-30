@@ -117,16 +117,17 @@ class ManifestDownload(object):
         try:
             manifest_data = self._download_manifest_to_folder()
         except(SynapseUnmetAccessRestrictions, SynapseAuthenticationError):
-            # if asset view is provided
+            # if there's an error getting an uncensored manifest, try getting the censored manifest
             if not manifest_df.empty:
                 censored_regex=re.compile('.*censored.*')
                 censored = manifest_df['name'].str.contains(censored_regex)
                 new_manifest_id=manifest_df[censored]["id"][0]
+                old_requested_manifest_id = self.manifest_id
+                self.manifest_id = new_manifest_id
                 try: 
                     manifest_data = self._download_manifest_to_folder()
                 except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
-                    logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
-                    raise (f"You don't have access to the requested resource: {self.manifest_id}")
+                    logger.error(f"You don't have access to the requested resource: {old_requested_manifest_id} and {new_manifest_id}")
 
             else:
                 logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
@@ -510,6 +511,7 @@ class SynapseStorage(BaseStorage):
 
         # search manifest based on given manifest basename regex above
         # and return a dataframe containing name and id of manifests in a given asset view
+        print('data set id', datasetId)
         manifest = all_files[
             (all_files['name'].str.contains(manifest_re,regex=True))
             & (all_files["parentId"] == datasetId)
@@ -519,7 +521,7 @@ class SynapseStorage(BaseStorage):
         
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
-            logger.error(f"Could not find a manifest that fits basename {self.manifest} in asset view and dataset {datasetId}")
+            logger.warning(f"Could not find a manifest that fits basename {self.manifest} in asset view and dataset {datasetId}")
             return ""
 
         # if there is an exisiting manifest
@@ -529,7 +531,7 @@ class SynapseStorage(BaseStorage):
                 md = ManifestDownload(self.syn, manifest_id=manifest_syn_id)
                 manifest_data = ManifestDownload.download_manifest(md, newManifestName=newManifestName, manifest_df=manifest)
                 if manifest_data == "":
-                    logger.error(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
+                    logger.debug(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
                 return manifest_data
             return manifest_syn_id
 
