@@ -93,11 +93,6 @@ class TestManifestGenerator:
         assert generator.root is None
         assert type(generator.sg) is SchemaGenerator
 
-    # Define the function to be called instead of my_func
-    def mock_google_api_execution():
-        print('mock google api execution')
-
-
     @pytest.mark.google_credentials_needed
     def test_get_manifest_first_time(self, manifest):
 
