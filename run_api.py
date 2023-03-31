@@ -14,5 +14,5 @@ if __name__ == "__main__":
 
     # Launch app
     app = create_app()
-    #CORS(app, resources={r"*": {"origins": "*"}})
+    #TO DO: add a flag --debug to control debug parameter
     app.run(host=host, port=port, debug=True)
