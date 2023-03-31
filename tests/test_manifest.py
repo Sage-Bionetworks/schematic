@@ -282,44 +282,7 @@ class TestManifestGenerator:
 
                     assert required_metadata == "mock required metadata fields"
 
-
-
-    #@patch("schematic.utils.google_api_utils.execute_google_api_requests")
-    # @patch("schematic.manifest.generator.ManifestGenerator._create_requests_body")
-    # @patch("schematic.manifest.generator.ManifestGenerator._set_permissions")
-    # @patch("schematic.manifest.generator.ManifestGenerator._gs_add_additional_metadata")
-    # @patch("schematic.manifest.generator.ManifestGenerator._gs_add_and_format_columns")
-    # def test_create_empty_gs(self, mock_format_columns, mock_add_metadata, mock_set_perms, mock_request_body,simple_manifest_generator):
-    #     '''
-    #     Create an empty manifest using specifications from the json schema.
-    #     '''
-
-    #     # Create the mock object
-    #     mock_my_func = MagicMock()
-
-    #     self.sheet_service = Mock()
-
-    #     spreadsheet_id = "example_sheet_id"
-
-    #     mock_format_columns.return_value = ("add_format_cols_response", ["field1", "field2"])
-    #     mock_add_metadata.return_value = "add_metadata_response"
-    #     mock_set_perms.return_value = "set_perms_response"
-    #     mock_request_body.return_value = "mock request body"
-    #     #mock_execute.return_value = "mock response"
-
-    #     required_metadata_fields = "mock required metadata"
-    #     json_schema = "mock json schema string"
-    #     spreadsheet_id = "mock_spreadsheet_id" 
-
-    #     def mock_return():
-    #         return "mock haha"
-
-    #     with patch('schematic.manifest.generator.utils.google_api_utils.execute_google_api_requests', new=mock_return):
-    #             response = simple_manifest_generator._create_empty_gs(
-    #                     required_metadata_fields,
-    #                     json_schema,
-    #                     spreadsheet_id,
-    #                 )
+    # TO DO: add tests for: test_create_empty_gs
 
                             
     @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])

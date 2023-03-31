@@ -1474,6 +1474,7 @@ class ManifestGenerator(object):
             output_path: Determines the output path of the exported manifest (only relevant if returning an excel spreadsheet)
         return: a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL 
         """
+        ## TO DO: deprecate sheet_url parameter and simplify the logic here
 
         # check if output_format parameter gets set. If not, check the sheet_url parameter
         if not output_format: 
@@ -1556,8 +1557,6 @@ class ManifestGenerator(object):
 
         # Populate empty template with existing manifest
         if manifest_record:
-            print('did i get manifest record', manifest_record)
-
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
 
