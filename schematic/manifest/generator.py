@@ -1617,10 +1617,10 @@ class ManifestGenerator(object):
 
             # if there are new columns, add them to the end of spreadsheet
             # Note: previously, we tried looping through the out of schema columns and use worksheet.cell to modify a particular cell. But that functionality is no longer working. 
-            if len(out_of_schema_columns_lst) > 0:
+            if out_of_schema_columns_lst:
                 df_additional_headers = pd.DataFrame(columns=out_of_schema_columns_lst)
                 start_col_index = len(workbook_headers)
-                df_additional_headers.to_excel(writer, "Sheet1", startrow=0, startcol=start_col_index, index = False, header=True)
+                df_additional_headers.to_excel(writer, "Sheet1", startrow=0, startcol=start_col_index, index=False, header=True)
             
             # add additional content to the existing spreadsheet
             additional_df.to_excel(writer, "Sheet1", startrow=1, index = False, header=False)
