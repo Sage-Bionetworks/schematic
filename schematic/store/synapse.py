@@ -72,6 +72,7 @@ class ManifestDownload(object):
         Return: 
             manifest_data: A new Synapse Entity object of the appropriate type
         """
+         # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config
         if CONFIG["synapse"]["manifest_folder"]:
             manifest_data = self.syn.get(
                     self.manifest_id,
@@ -132,18 +133,17 @@ class ManifestDownload(object):
             else:
                 logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
 
-        if newManifestName:
-            if os.path.exists(manifest_data['path']):
-                # Rename the file we just made to the new name
-                new_manifest_filename = newManifestName + '.csv'
-                dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
-                new_manifest_path_name = os.path.join(dir_name, new_manifest_filename)
-                os.rename(manifest_data['path'], new_manifest_path_name)
+        if newManifestName and os.path.exists(manifest_data['path']):
+            # Rename the file we just made to the new name
+            new_manifest_filename = newManifestName + '.csv'
+            dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
+            new_manifest_path_name = os.path.join(dir_name, new_manifest_filename)
+            os.rename(manifest_data['path'], new_manifest_path_name)
 
-                # Update file names/paths in manifest_data
-                manifest_data['name'] = new_manifest_filename
-                manifest_data['filename'] = new_manifest_filename
-                manifest_data['path'] = new_manifest_path_name
+            # Update file names/paths in manifest_data
+            manifest_data['name'] = new_manifest_filename
+            manifest_data['filename'] = new_manifest_filename
+            manifest_data['path'] = new_manifest_path_name
         return manifest_data
 
 class SynapseStorage(BaseStorage):
@@ -511,7 +511,6 @@ class SynapseStorage(BaseStorage):
 
         # search manifest based on given manifest basename regex above
         # and return a dataframe containing name and id of manifests in a given asset view
-        print('data set id', datasetId)
         manifest = all_files[
             (all_files['name'].str.contains(manifest_re,regex=True))
             & (all_files["parentId"] == datasetId)
@@ -530,6 +529,8 @@ class SynapseStorage(BaseStorage):
             if downloadFile: 
                 md = ManifestDownload(self.syn, manifest_id=manifest_syn_id)
                 manifest_data = ManifestDownload.download_manifest(md, newManifestName=newManifestName, manifest_df=manifest)
+                ## TO DO: revisit how downstream code handle manifest_data. If the downstream code would break when manifest_data is an empty string, 
+                ## then we should catch the error here without returning an empty string. 
                 if manifest_data == "":
                     logger.debug(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
                 return manifest_data

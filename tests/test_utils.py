@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from pandas.testing import assert_frame_equal
+from synapseclient.core.exceptions import SynapseHTTPError
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas import df_parser
@@ -65,6 +66,7 @@ class TestGeneral:
     @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078", "syn23643253", "syn30988314"])
     def test_check_entity_type(self, synapse_store, entity_id):
         syn = synapse_store.syn
+
         entity_type = entity_type_mapping(syn, entity_id)
         if entity_id == "syn27600053":
             assert entity_type == "folder"
@@ -74,6 +76,9 @@ class TestGeneral:
             assert entity_type == "asset view"
         elif entity_id == "syn30988314":
             assert entity_type == "folder"
+        # test with an invalid entity id
+        with pytest.raises(SynapseHTTPError) as exception_info:
+            entity_type_mapping(syn, "syn123456")
 
 
 class TestCliUtils:

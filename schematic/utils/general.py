@@ -4,6 +4,10 @@ import os
 import math
 import logging
 
+from synapseclient.core.exceptions import SynapseHTTPError
+from synapseclient.table import EntityViewSchema
+from synapseclient.entity import File, Folder, Project
+
 logger = logging.getLogger(__name__)
 
 def find_duplicates(_list):
@@ -86,17 +90,17 @@ def entity_type_mapping(syn, entity_id):
     # check the type of entity
     try: 
         entity_name = syn.get(entity_id, downloadFile=False)
-    except: 
-        logger.error(f'cannot get {syn} from asset store. Please make sure that {entity_id} exists')
-    type_entity = str(type(entity_name))
+    except SynapseHTTPError as e: 
+        logger.error(f'cannot get {entity_id} from asset store. Please make sure that {entity_id} exists')
+        raise SynapseHTTPError(f'cannot get {entity_id} from asset store. Please make sure that {entity_id} exists') from e
 
-    if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":
+    if isinstance(entity_name, EntityViewSchema):
         return "asset view"
-    elif type_entity == "<class 'synapseclient.entity.Folder'>":
+    elif isinstance(entity_name, Folder):
         return "folder"
-    elif type_entity == "<class 'synapseclient.entity.File'>":
+    elif isinstance(entity_name, File):
         return "file"
-    elif type_entity == "<class 'synapseclient.entity.Project'>":
+    elif isinstance(entity_name, Project):
         return "project"
     else: 
-        return type_entity
+        return entity_name

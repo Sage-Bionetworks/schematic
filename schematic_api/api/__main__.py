@@ -12,7 +12,7 @@ def main():
     port = int(port)
 
     # Launch app
-    # CORS(app, resources={r"*": {"origins": "*"}})
+    #TO DO: add a flag --debug to control debug parameter
     app.run(host=host, port=port, debug=True)
 
 if __name__ == "__main__":
