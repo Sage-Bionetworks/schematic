@@ -336,7 +336,7 @@ class TestManifestGenerator:
 
     
 
-    @pytest.mark.parametrize("additional_df_dict", [{'test one column': ['a', 'b'], 'test two column': ['c', 'd']}, None])
+    @pytest.mark.parametrize("additional_df_dict", [{"Filename": ['a', 'b'], "Sample ID": ['a', 'b'], "File Format": ['a', 'b'], "Component": ['a', 'b'], "Genome Build": ['a', 'b'], "Genome FASTA": ['a', 'b'], "test_one_column": ['a', 'b'], "test_two_column": ['c', 'd']}, None])
     def test_populate_existing_excel_spreadsheet(self, simple_manifest_generator, simple_test_manifest_excel, additional_df_dict):
         generator =  simple_manifest_generator
         if additional_df_dict: 
@@ -356,14 +356,17 @@ class TestManifestGenerator:
 
         # if we are not adding any additional content
         if additional_test_df.empty:
+            # make sure that new content also gets added 
             assert len(new_df.columns) == 6
         # we should be able to see new columns get added 
         else: 
             # new columns get added
-            assert not new_df[["test one column", "test two column"]].empty
+            assert not new_df[["test_one_column", "test_two_column"]].empty
+            assert len(new_df.test_one_column.value_counts()) > 0 
+            assert len(new_df.test_two_column.value_counts()) > 0 
 
-            # remove file
-            os.remove(dummy_output_path)
+        # remove file
+        os.remove(dummy_output_path)
 
 
 

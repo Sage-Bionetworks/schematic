@@ -1556,6 +1556,7 @@ class ManifestGenerator(object):
 
         # Populate empty template with existing manifest
         if manifest_record:
+            print('did i get manifest record', manifest_record)
 
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
@@ -1621,8 +1622,8 @@ class ManifestGenerator(object):
                 start_col_index = len(workbook_headers)
                 df_additional_headers.to_excel(writer, "Sheet1", startrow=0, startcol=start_col_index, index = False, header=True)
             
-        # add additional content to the existing spreadsheet
-        additional_df.to_excel(writer, "Sheet1", startrow=1, index = False, header=False)
+            # add additional content to the existing spreadsheet
+            additional_df.to_excel(writer, "Sheet1", startrow=1, index = False, header=False)
 
     def populate_manifest_spreadsheet(self, existing_manifest_path: str = None, empty_manifest_url: str = None, return_excel: bool = False, title: str = None):
         """Creates a google sheet manifest based on existing manifest.
