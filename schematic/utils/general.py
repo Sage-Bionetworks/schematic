@@ -103,4 +103,5 @@ def entity_type_mapping(syn, entity_id):
     elif isinstance(entity_name, Project):
         return "project"
     else: 
-        return entity_name
+        # if there's no matching type, return concreteType
+        return entity_name.concreteType
