@@ -87,13 +87,13 @@ def entity_type_mapping(syn, entity_id):
     """
     Return the entity type of manifest
     Args:
-        entity: id of an entity
+        entity_id: id of an entity
     Return:
         type_entity: type of the manifest being returned
     """
     # check the type of entity
     try:
-        entity_name = syn.get(entity_id, downloadFile=False)
+        entity = syn.get(entity_id, downloadFile=False)
     except SynapseHTTPError as e:
         logger.error(
             f"cannot get {entity_id} from asset store. Please make sure that {entity_id} exists"
@@ -102,14 +102,14 @@ def entity_type_mapping(syn, entity_id):
             f"cannot get {entity_id} from asset store. Please make sure that {entity_id} exists"
         ) from e
 
-    if isinstance(entity_name, EntityViewSchema):
+    if isinstance(entity, EntityViewSchema):
         return "asset view"
-    elif isinstance(entity_name, Folder):
+    elif isinstance(entity, Folder):
         return "folder"
-    elif isinstance(entity_name, File):
+    elif isinstance(entity, File):
         return "file"
-    elif isinstance(entity_name, Project):
+    elif isinstance(entity, Project):
         return "project"
     else:
         # if there's no matching type, return concreteType
-        return entity_name.concreteType
+        return entity.concreteType

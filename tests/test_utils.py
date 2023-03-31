@@ -63,23 +63,19 @@ class TestGeneral:
         test_list = general.dict2list(mock_list)
         assert test_list == mock_list
 
-    @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078", "syn23643253", "syn30988314"])
-    def test_check_entity_type(self, synapse_store, entity_id):
+    @pytest.mark.parametrize("entity_id,expected_type", [("syn27600053","folder"), ("syn29862078", "file"), ("syn23643253", "asset view"), ("syn30988314", "folder"), ("syn51182432", "org.sagebionetworks.repo.model.table.TableEntity")])
+    def test_entity_type_mapping(self, synapse_store, entity_id, expected_type):
         syn = synapse_store.syn
 
         entity_type = entity_type_mapping(syn, entity_id)
-        if entity_id == "syn27600053":
-            assert entity_type == "folder"
-        elif entity_id == "syn29862078":
-            assert entity_type == "file"
-        elif entity_id == "syn23643253":
-            assert entity_type == "asset view"
-        elif entity_id == "syn30988314":
-            assert entity_type == "folder"
+        assert entity_type == expected_type
+
+    def test_entity_type_mapping_invalid_entity_id(self, synapse_store):
+        syn = synapse_store.syn
+
         # test with an invalid entity id
         with pytest.raises(SynapseHTTPError) as exception_info:
             entity_type_mapping(syn, "syn123456")
-
 
 class TestCliUtils:
     def test_query_dict(self):
