@@ -1,10 +1,16 @@
 import os
+import shutil
 import logging
 import pytest
-
+import pandas as pd
+from unittest.mock import Mock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
-import pandas as pd
+from schematic.utils.google_api_utils import execute_google_api_requests
+
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -43,6 +49,21 @@ def manifest_generator(helpers, request):
         os.remove(helpers.get_data_path(f"example.{data_type}.schema.json"))
     except FileNotFoundError:
         pass
+@pytest.fixture
+def simple_manifest_generator(manifest_generator):
+    generator, use_annotations, data_type = manifest_generator
+    yield generator
+
+@pytest.fixture
+def simple_test_manifest_excel(helpers):
+    yield helpers.get_data_path("mock_manifests/test_bulkRNAseq_manifest.xlsx")
+
+@pytest.fixture
+def mock_create_blank_google_sheet():
+    'Mock creating a new google sheet'
+    er = Mock()
+    er.return_value = "mock_spreadsheet_id"
+    yield er
 
 @pytest.fixture(params=[True, False], ids=["sheet_url", "data_frame"])
 def manifest(dataset_id, manifest_generator, request):
@@ -59,6 +80,7 @@ def manifest(dataset_id, manifest_generator, request):
 
 
 class TestManifestGenerator:
+
     def test_init(self, helpers):
 
         generator = ManifestGenerator(
@@ -173,10 +195,136 @@ class TestManifestGenerator:
                     assert manifest.startswith("https://docs.google.com/spreadsheets/")
         
         # Clean-up
-    
         if type(manifest) is str and os.path.exists(manifest): 
             os.remove(manifest)
 
+    # test all the functions used under get_manifest
+    @pytest.mark.parametrize("template_id", [["provided", "not provided"]])
+    def test_create_empty_manifest_spreadsheet(self, config, simple_manifest_generator, template_id):
+        '''
+        Create an empty manifest spreadsheet regardless if master_template_id is provided
+        Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file. If there's no template id provided in config, this function will create a new manifest
+        '''
+        generator = simple_manifest_generator
+
+        mock_spreadsheet = MagicMock()
+
+        title="Example"
+
+        if template_id == "provided":
+            # mock _gdrive_copy_file function 
+            with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file') as MockClass:
+                instance = MockClass.return_value
+                instance.method.return_value = 'mock google sheet id'
+
+                spreadsheet_id = generator._create_empty_manifest_spreadsheet(title=title)
+                assert spreadsheet_id == "mock google sheet id"
+
+        else:
+            # overwrite test config so that we could test the case when manifest_template_id is not provided
+            config["style"]["google_manifest"]["master_template_id"] = ""
+
+            mock_spreadsheet = Mock()
+            mock_execute = Mock()
+
+
+            # Chain the mocks together
+            mock_spreadsheet.create.return_value = mock_spreadsheet
+            mock_spreadsheet.execute.return_value = mock_execute
+            mock_execute.get.return_value = "mock id"
+            mock_create = Mock(return_value=mock_spreadsheet)
+
+            with patch.object(generator.sheet_service, "spreadsheets", mock_create):
+
+                spreadsheet_id = generator._create_empty_manifest_spreadsheet(title)
+                assert spreadsheet_id == "mock id"
+
+    @pytest.mark.parametrize("schema_path_provided", [True, False])
+    def test_get_json_schema(self, simple_manifest_generator, helpers, schema_path_provided):
+        '''
+        Open json schema as a dictionary
+        '''
+        generator = simple_manifest_generator
+
+        if schema_path_provided:
+            json_schema_path = helpers.get_data_path("example.model.jsonld")
+            json_schema = generator._get_json_schema(json_schema_filepath=json_schema_path)
+
+        else:
+            mock_json_schema = Mock()
+            mock_json_schema.return_value = "mock json ld"
+            with patch.object(SchemaGenerator, "get_json_schema_requirements",mock_json_schema):
+                json_schema = generator._get_json_schema(json_schema_filepath=None)
+                assert json_schema == "mock json ld"
+            
+            assert type(json_schema) == str
+
+    
+    def test_gather_all_fields(self, simple_manifest_generator):
+        '''
+        gather all fields is a wrapper around three functions: _get_required_metadata_fields, _gather_dependency_requirements
+        and _get_additional_metadata
+        '''
+        generator = simple_manifest_generator
+
+        with patch('schematic.manifest.generator.ManifestGenerator._get_required_metadata_fields') as MockClass:
+            MockClass.return_value = "mock required metadata fields"
+            with patch('schematic.manifest.generator.ManifestGenerator._gather_dependency_requirements') as MockRequirement:
+                MockRequirement.return_value = "mock required metadata fields"
+                with patch('schematic.manifest.generator.ManifestGenerator._get_additional_metadata') as MockAdditionalData:
+                    MockAdditionalData.return_value = "mock required metadata fields"
+                    required_metadata = generator._gather_all_fields("mock fields", "mock json schema")
+
+                    assert required_metadata == "mock required metadata fields"
+
+    # TO DO: add tests for: test_create_empty_gs
+
+                            
+    @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])
+    @pytest.mark.parametrize("manifest_columns", [["column four"]])
+    def test_get_missing_columns(self, simple_manifest_generator, wb_headers, manifest_columns):
+        generator = simple_manifest_generator
+
+        manifest_test_df = pd.DataFrame(columns = manifest_columns)
+        missing_columns = generator._get_missing_columns(wb_headers, manifest_test_df)
+        if "column four" not in wb_headers:
+            assert "column four" in missing_columns 
+        else: 
+            assert "column four" not in missing_columns
+
+    
+
+    @pytest.mark.parametrize("additional_df_dict", [{"Filename": ['a', 'b'], "Sample ID": ['a', 'b'], "File Format": ['a', 'b'], "Component": ['a', 'b'], "Genome Build": ['a', 'b'], "Genome FASTA": ['a', 'b'], "test_one_column": ['a', 'b'], "test_two_column": ['c', 'd']}, None])
+    def test_populate_existing_excel_spreadsheet(self, simple_manifest_generator, simple_test_manifest_excel, additional_df_dict):
+        generator =  simple_manifest_generator
+        if additional_df_dict: 
+            additional_test_df = pd.DataFrame(additional_df_dict)
+        else: 
+            additional_test_df = pd.DataFrame()
+        
+        # copy the existing excel file
+        dummy_output_path = "tests/data/mock_manifests/dummy_output.xlsx"
+        shutil.copy(simple_test_manifest_excel, dummy_output_path)
+
+        # added new content to an existing excel spreadsheet if applicable
+        generator.populate_existing_excel_spreadsheet(dummy_output_path, additional_test_df)
+
+        # read the new excel spreadsheet and see if columns have been added
+        new_df = pd.read_excel(dummy_output_path)
+
+        # if we are not adding any additional content
+        if additional_test_df.empty:
+            # make sure that new content also gets added 
+            assert len(new_df.columns) == 6
+        # we should be able to see new columns get added 
+        else: 
+            # new columns get added
+            assert not new_df[["test_one_column", "test_two_column"]].empty
+            assert len(new_df.test_one_column.value_counts()) > 0 
+            assert len(new_df.test_two_column.value_counts()) > 0 
+
+        # remove file
+        os.remove(dummy_output_path)
 
 
 
