@@ -133,7 +133,7 @@ class ManifestDownload(object):
             else:
                 logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
 
-        if newManifestName and os.path.exists(manifest_data['path']):
+        if newManifestName and os.path.exists(manifest_data.get('path')):
             # Rename the file we just made to the new name
             new_manifest_filename = newManifestName + '.csv'
             dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
@@ -666,10 +666,11 @@ class SynapseStorage(BaseStorage):
                         )
 
                     manifest_info = self.getDatasetManifest(datasetId,downloadFile=True)
-                    try:
-                        manifest_name = manifest_info["properties"]["name"]
-                    except:
-                        logger.error(f'Failed to download manifests from {datasetId}')
+                    manifest_name = manifest_info["properties"].get("name", "")
+
+                    if not manifest_name:
+                        logger.error(f'Failed to download manifests from {datasetId}') 
+
                     manifest_path = manifest_info["path"]
 
                     manifest_df = load_df(manifest_path)
