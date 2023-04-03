@@ -1176,6 +1176,12 @@ paths:
           example: >-
             Patient
           required: true
+        - in: query
+          name: include_index
+          schema:
+            type: boolean
+            default: false
+          required: true
       responses:
         "200":
           description: Returns a CSV as a JSON String.
