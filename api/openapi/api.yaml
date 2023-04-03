@@ -1181,6 +1181,7 @@ paths:
           schema:
             type: boolean
             default: false
+          description: Whether to include the indexes of the datafram in the returned JSON string (true) or not (false).
           required: true
       responses:
         "200":
