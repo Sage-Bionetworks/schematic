@@ -2539,6 +2539,9 @@
                 },
                 {
                     "@id": "bts:CheckDate"
+                },
+                {
+                    "@id": "bts:CheckNA"
                 }
             ],
             "sms:validationRules": []
@@ -2898,6 +2901,25 @@
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "date"
+            ]
+        },
+        {
+            "@id": "bts:CheckNA",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckNA",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check NA",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "IsNA"
             ]
         },
         {
