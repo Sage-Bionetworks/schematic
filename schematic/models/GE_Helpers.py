@@ -163,149 +163,150 @@ class GreatExpectationsHelpers(object):
             #check if attribute has any rules associated with it
             if validation_rules:
                 #iterate through all validation rules for an attribute
-                for rule in validation_rules:
-                    base_rule = rule.split(" ")[0]
-            
-                    #check if rule has an implemented expectation
-                    if rule_in_rule_list(rule,self.unimplemented_expectations):
-                        continue
-
+                for rule_set in validation_rules:
+                    for rule in rule_set:
+                        base_rule = rule.split(" ")[0]
                 
-                    args["column"] = col
-                    args["result_format"] = "COMPLETE"
+                        #check if rule has an implemented expectation
+                        if rule_in_rule_list(rule,self.unimplemented_expectations):
+                            continue
 
-
-                    #Validate num
-                    if base_rule=='num':
-                        args["mostly"]=1.0
-                        args["type_list"]=['int','int64', 'float', 'float64']
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate float
-                    elif base_rule=='float':
-                        args["mostly"]=1.0
-                        args["type_list"]=['float', 'float64']
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of float type. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate int
-                    elif base_rule=='int':
-                        args["mostly"]=1.0
-                        args["type_list"]=['int','int64']
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of int type. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                
-                    #Validate string
-                    elif base_rule=='str':
-                        args["mostly"]=1.0
-                        args["type_"]='str'
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be of string type. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-
-                    #Validate date
-                    elif base_rule=='date':
-                        args["mostly"]=1.0
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": (
-                                    "Expect column values to be parsable by dateutils. "
-                                    "**Markdown** `Supported`"
-                                ),
-                            },
-                            "validation_rule": rule
-                        }
-
-                    elif base_rule==("recommended"):
-                        args["mostly"]=0.0000000001
-                        args["regex_list"]=['^$']
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column to not be empty. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-
-                    elif base_rule==("protectAges"):
-                        #Function to convert to different age limit formats
-                        min_age, max_age = self.get_age_limits()
-
-                        args["mostly"]=1.0
-                        args["min_value"]=min_age
-                        args["max_value"]=max_age
-                        #args['allow_cross_type_comparisons']=True # TODO Can allow after issue #980 is completed
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-
-                    elif base_rule==("unique"):
-                        args["mostly"]=1.0
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
                     
-                    elif base_rule==("inRange"):
-                        args["mostly"]=1.0
-                        args["min_value"]=float(rule.split(" ")[1]) if rule.split(" ")[1].lower() != 'none' else None
-                        args["max_value"]=float(rule.split(" ")[2]) if rule.split(" ")[2].lower() != 'none' else None
-                        args['allow_cross_type_comparisons']=True # TODO Should follow up with issue #980
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be within a specified range. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
+                        args["column"] = col
+                        args["result_format"] = "COMPLETE"
+
+
+                        #Validate num
+                        if base_rule=='num':
+                            args["mostly"]=1.0
+                            args["type_list"]=['int','int64', 'float', 'float64']
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect column values to be of int or float type. **Markdown** `Supported`"
+                                },
+                                "validation_rule": rule
+                            }
+                    
+                        #Validate float
+                        elif base_rule=='float':
+                            args["mostly"]=1.0
+                            args["type_list"]=['float', 'float64']
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect column values to be of float type. **Markdown** `Supported`",
+                                },
+                                "validation_rule": rule
+                            }
+                    
+                        #Validate int
+                        elif base_rule=='int':
+                            args["mostly"]=1.0
+                            args["type_list"]=['int','int64']
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect column values to be of int type. **Markdown** `Supported`",
+                                },
+                                "validation_rule": rule
+                            }
+                    
+                        #Validate string
+                        elif base_rule=='str':
+                            args["mostly"]=1.0
+                            args["type_"]='str'
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect column values to be of string type. **Markdown** `Supported`",
+                                },
+                                "validation_rule": rule
+                            }
+
+                        #Validate date
+                        elif base_rule=='date':
+                            args["mostly"]=1.0
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": (
+                                        "Expect column values to be parsable by dateutils. "
+                                        "**Markdown** `Supported`"
+                                    ),
+                                },
+                                "validation_rule": rule
+                            }
+
+                        elif base_rule==("recommended"):
+                            args["mostly"]=0.0000000001
+                            args["regex_list"]=['^$']
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect column to not be empty. **Markdown** `Supported`",
+                                },
+                                "validation_rule": rule
+                            }
+
+                        elif base_rule==("protectAges"):
+                            #Function to convert to different age limit formats
+                            min_age, max_age = self.get_age_limits()
+
+                            args["mostly"]=1.0
+                            args["min_value"]=min_age
+                            args["max_value"]=max_age
+                            #args['allow_cross_type_comparisons']=True # TODO Can allow after issue #980 is completed
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect ages to be between 18 years (6,570 days) and 90 years (32,850 days) of age. **Markdown** `Supported`",
+                                },
+                                "validation_rule": rule
+                            }
+
+                        elif base_rule==("unique"):
+                            args["mostly"]=1.0
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                                },
+                                "validation_rule": rule
+                            }
                         
-                    elif base_rule==("IsNA"):
-                        args["mostly"]=1.0
-                        args["regex_list"]=['Not Applicable']
-                        meta={
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be marked Not Applicable. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule
-                        }
-                                        
-                    #add expectation for attribute to suite        
-                    self.add_expectation(
-                        rule=rule,
-                        args=args,
-                        meta=meta,
-                        validation_expectation=validation_expectation,
-                    )
-        
+                        elif base_rule==("inRange"):
+                            args["mostly"]=1.0
+                            args["min_value"]=float(rule.split(" ")[1]) if rule.split(" ")[1].lower() != 'none' else None
+                            args["max_value"]=float(rule.split(" ")[2]) if rule.split(" ")[2].lower() != 'none' else None
+                            args['allow_cross_type_comparisons']=True # TODO Should follow up with issue #980
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect column values to be within a specified range. **Markdown** `Supported`",
+                                },
+                                "validation_rule": rule
+                            }
+                            
+                        elif base_rule==("IsNA"):
+                            args["mostly"]=1.0
+                            args["regex_list"]=['Not Applicable']
+                            meta={
+                                "notes": {
+                                    "format": "markdown",
+                                    "content": "Expect column values to be marked Not Applicable. **Markdown** `Supported`",
+                                },
+                                "validation_rule": rule
+                            }
+                                            
+                        #add expectation for attribute to suite        
+                        self.add_expectation(
+                            rule=rule,
+                            args=args,
+                            meta=meta,
+                            validation_expectation=validation_expectation,
+                        )
+            
             
         self.context.save_expectation_suite(expectation_suite=self.suite, expectation_suite_name=expectation_suite_name)
 
