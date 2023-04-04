@@ -49,7 +49,10 @@ def rule_in_rule_list(rule: str, rule_list: List[str]):
 
     # Process string and list of strings for regex comparison
     rule_type = rule_type + '[^\|]*'
-    rule_list = '|'.join(rule_list)
+    if isinstance(rule_list[0], list):
+        rule_list = '|'.join([(rule) for set in rule_list for rule in set])
+    else:
+        rule_list = '|'.join(rule_list)
 
     return search(rule_type, rule_list, flags=IGNORECASE)
 
