@@ -188,38 +188,39 @@ class ValidateManifest(object):
                 )
 
             # Given a validation rule, run validation. Skip validations already performed by GE
-            for rule in validation_rules:
-                validation_type = rule.split(" ")[0]
-                if rule_in_rule_list(rule,unimplemented_expectations) or (rule_in_rule_list(rule,in_house_rules) and restrict_rules):
-                    if not rule_in_rule_list(rule,in_house_rules):
-                        logger.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
-                        continue  
+            for rule_set in validation_rules:
+                for rule in rule_set:
+                    validation_type = rule.split(" ")[0]
+                    if rule_in_rule_list(rule,unimplemented_expectations) or (rule_in_rule_list(rule,in_house_rules) and restrict_rules):
+                        if not rule_in_rule_list(rule,in_house_rules):
+                            logger.warning(f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations.")
+                            continue  
 
-                    t_indiv_rule=perf_counter()
-                    #Validate for each individual validation rule.
-                    validation_method = getattr(
-                            ValidateAttribute, validation_types[validation_type]['type']
-                        )
+                        t_indiv_rule=perf_counter()
+                        #Validate for each individual validation rule.
+                        validation_method = getattr(
+                                ValidateAttribute, validation_types[validation_type]['type']
+                            )
 
-                    if validation_type == "list":
-                        vr_errors, vr_warnings, manifest_col = validation_method(
-                            self, rule, manifest[col], sg,
-                        )
-                        manifest[col] = manifest_col
-                    elif validation_type.lower().startswith("match"):
-                        vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], project_scope, sg,
-                        )
-                    else:
-                        vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], sg,
-                        )
-                    # Check for validation rule errors and add them to other errors.
-                    if vr_errors:
-                        errors.extend(vr_errors)
-                    if vr_warnings:
-                        warnings.extend(vr_warnings)
-                    logger.debug(f"Rule {rule} elapsed time: {perf_counter()-t_indiv_rule}")
+                        if validation_type == "list":
+                            vr_errors, vr_warnings, manifest_col = validation_method(
+                                self, rule, manifest[col], sg,
+                            )
+                            manifest[col] = manifest_col
+                        elif validation_type.lower().startswith("match"):
+                            vr_errors, vr_warnings = validation_method(
+                                self, rule, manifest[col], project_scope, sg,
+                            )
+                        else:
+                            vr_errors, vr_warnings = validation_method(
+                                self, rule, manifest[col], sg,
+                            )
+                        # Check for validation rule errors and add them to other errors.
+                        if vr_errors:
+                            errors.extend(vr_errors)
+                        if vr_warnings:
+                            warnings.extend(vr_warnings)
+                        logger.debug(f"Rule {rule} elapsed time: {perf_counter()-t_indiv_rule}")
         logger.debug(f"In House validation elapsed time {perf_counter()-t_err}")
         return manifest, errors, warnings
 
