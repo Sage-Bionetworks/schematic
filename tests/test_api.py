@@ -65,7 +65,7 @@ def get_MockComponent_attribute():
     Yield all of the mock conponent attributes one at a time
     TODO: pull in jsonld from fixture
     """
-    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld")
+    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop-disjoint-rules-FDS-79/tests/data/example.single_rule.model.jsonld")
     attributes=sg.get_node_dependencies('MockComponent')
     attributes.remove('Component')
 
