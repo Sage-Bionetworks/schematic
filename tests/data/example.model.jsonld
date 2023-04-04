@@ -2185,7 +2185,9 @@
             "sms:displayName": "Family History",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "list strict"
+                [
+                    "list strict"
+                ]
             ]
         },
         {
@@ -2576,7 +2578,9 @@
             "sms:displayName": "Check List",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "list strict"
+                [
+                    "list strict"
+                ]
             ]
         },
         {
@@ -2595,8 +2599,12 @@
             "sms:displayName": "Check Regex List",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "list strict",
-                "regex match [a-f]"
+                [
+                    "list strict"
+                ],
+                [
+                    "regex match [a-f]"
+                ]
             ]
         },
         {
@@ -2615,7 +2623,9 @@
             "sms:displayName": "Check Regex Single",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "regex search [a-f]"
+                [
+                    "regex search [a-f]"
+                ]
             ]
         },
         {
@@ -2634,7 +2644,9 @@
             "sms:displayName": "Check Regex Format",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "regex match [a-f]"
+                [
+                    "regex match [a-f]"
+                ]
             ]
         },
         {
@@ -2653,7 +2665,9 @@
             "sms:displayName": "Check Num",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "num"
+                [
+                    "num"
+                ]
             ]
         },
         {
@@ -2672,7 +2686,9 @@
             "sms:displayName": "Check Float",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "float"
+                [
+                    "float"
+                ]
             ]
         },
         {
@@ -2691,7 +2707,9 @@
             "sms:displayName": "Check Int",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "int"
+                [
+                    "int"
+                ]
             ]
         },
         {
@@ -2710,7 +2728,9 @@
             "sms:displayName": "Check String",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "str"
+                [
+                    "str"
+                ]
             ]
         },
         {
@@ -2729,7 +2749,9 @@
             "sms:displayName": "Check URL",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "url"
+                [
+                    "url"
+                ]
             ]
         },
         {
@@ -2748,7 +2770,9 @@
             "sms:displayName": "Check Match at Least",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "matchAtLeastOne Patient.PatientID set"
+                [
+                    "matchAtLeastOne Patient.PatientID set"
+                ]
             ]
         },
         {
@@ -2767,7 +2791,9 @@
             "sms:displayName": "Check Match Exactly",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkMatchExactly set"
+                [
+                    "matchExactlyOne MockComponent.checkMatchExactly set"
+                ]
             ]
         },
         {
@@ -2786,7 +2812,9 @@
             "sms:displayName": "Check Match at Least values",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "matchAtLeastOne MockComponent.checkMatchatLeastvalues value"
+                [
+                    "matchAtLeastOne MockComponent.checkMatchatLeastvalues value"
+                ]
             ]
         },
         {
@@ -2805,7 +2833,9 @@
             "sms:displayName": "Check Match Exactly values",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkMatchExactlyvalues value"
+                [
+                    "matchExactlyOne MockComponent.checkMatchExactlyvalues value"
+                ]
             ]
         },
         {
@@ -2824,7 +2854,9 @@
             "sms:displayName": "Check Recommended",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "recommended"
+                [
+                    "recommended"
+                ]
             ]
         },
         {
@@ -2843,7 +2875,9 @@
             "sms:displayName": "Check Ages",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "protectAges"
+                [
+                    "protectAges"
+                ]
             ]
         },
         {
@@ -2862,7 +2896,9 @@
             "sms:displayName": "Check Unique",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "unique error"
+                [
+                    "unique error"
+                ]
             ]
         },
         {
@@ -2881,7 +2917,9 @@
             "sms:displayName": "Check Range",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "inRange 50 100 error"
+                [
+                    "inRange 50 100 error"
+                ]
             ]
         },
         {
@@ -2900,7 +2938,9 @@
             "sms:displayName": "Check Date",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "date"
+                [
+                    "date"
+                ]
             ]
         },
         {
@@ -2919,7 +2959,10 @@
             "sms:displayName": "Check NA",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "IsNA"
+                [
+                    "int",
+                    "IsNA"
+                ]
             ]
         },
         {
@@ -2963,7 +3006,9 @@
             "sms:displayName": "MockRDB_id",
             "sms:required": "sms:true",
             "sms:validationRules": [
-                "int"
+                [
+                    "int"
+                ]
             ]
         },
         {

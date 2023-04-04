@@ -37,6 +37,6 @@ Check Ages,,,,,TRUE,DataProperty,,,protectAges
 Check Unique,,,,,TRUE,DataProperty,,,unique error
 Check Range,,,,,TRUE,DataProperty,,,inRange 50 100 error
 Check Date,,,,,TRUE,DataProperty,,,date
-Check NA,,,,,TRUE,DataProperty,,,IsNA
+Check NA,,,,,TRUE,DataProperty,,,int|IsNA
 MockRDB,,,"Component, MockRDB_id",,FALSE,DataType,,,
 MockRDB_id,,,,,TRUE,DataProperty,,,int
