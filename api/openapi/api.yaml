@@ -1176,6 +1176,13 @@ paths:
           example: >-
             Patient
           required: true
+        - in: query
+          name: include_index
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include the indexes of the datafram in the returned JSON string (true) or not (false).
+          required: true
       responses:
         "200":
           description: Returns a CSV as a JSON String.
@@ -1183,6 +1190,21 @@ paths:
             text/csv:
               schema:
                 type: string
+                example: Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component
+
+                          Component,Component,TBD,False,,,,Patient
+                          
+                          Patient ID,PatientID,TBD,True,,,,Patient
+                          
+                          Year of Birth,YearofBirth,TBD,False,,,,Patient
+
+                          Sex,Sex,TBD,True,,"['Female', 'Other', 'Male']",,Patient                      
+
+                          Diagnosis,Diagnosis,TBD,True,,"['Cancer', 'Healthy']",,Patient
+
+                          Cancer Type,CancerType,TBD,False,True,"['Lung', 'Skin', 'Colorectal', 'Breast', 'Prostate', '']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient
+
+                          Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
       tags:
         - Visualization Operations
         

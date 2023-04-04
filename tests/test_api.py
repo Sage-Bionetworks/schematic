@@ -718,7 +718,8 @@ class TestSchemaVisualization:
     def test_visualize_component(self, client, data_model_jsonld,component):
         params = {
             "schema_url": data_model_jsonld,
-            "component": component
+            "component": component,
+            "include_index": False
         }
 
         response = client.get("http://localhost:3001/v1/visualize/component", query_string = params)

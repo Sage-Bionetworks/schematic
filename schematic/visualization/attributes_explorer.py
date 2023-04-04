@@ -69,7 +69,7 @@ class AttributesExplorer():
         # have to provide.
         return self._parse_attributes(components, save_file)
     
-    def parse_component_attributes(self, component=None, save_file=True,):
+    def parse_component_attributes(self, component=None, save_file=True, include_index=True):
         '''
         Args: save_file (bool):
                 True: merged_df is saved locally to output_path.
@@ -85,9 +85,9 @@ class AttributesExplorer():
         if not component:
             raise ValueError("You must provide a component to visualize.")
         else:
-            return self._parse_attributes([component], save_file)
+            return self._parse_attributes([component], save_file, include_index)
 
-    def _parse_attributes(self, components, save_file = True):
+    def _parse_attributes(self, components, save_file=True, include_index=True):
         '''
         Args: save_file (bool):
                 True: merged_df is saved locally to output_path.
@@ -200,6 +200,6 @@ class AttributesExplorer():
 
         merged_attributes_df = merged_attributes_df[cols]
         if save_file == True:
-            return merged_attributes_df.to_csv(os.path.join(self.output_path, self.schema_name + 'attributes_data.vis_data.csv'))
+            return merged_attributes_df.to_csv(os.path.join(self.output_path, self.schema_name + 'attributes_data.vis_data.csv'), index=include_index)
         elif save_file == False:
-            return merged_attributes_df.to_csv()
+            return merged_attributes_df.to_csv(index=include_index)

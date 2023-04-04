@@ -510,13 +510,13 @@ def get_viz_attributes_explorer(schema_url):
 
     return attributes_csv
 
-def get_viz_component_attributes_explorer(schema_url, component):
+def get_viz_component_attributes_explorer(schema_url, component, include_index):
     # call config_handler()
     config_handler()
 
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
 
-    attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_component_attributes(component, save_file=False)
+    attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_component_attributes(component, save_file=False, include_index=include_index)
 
     return attributes_csv
 
