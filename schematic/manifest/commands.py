@@ -15,7 +15,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel, export_manifest_drive_service
 from schematic.store.synapse import SynapseStorage
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options

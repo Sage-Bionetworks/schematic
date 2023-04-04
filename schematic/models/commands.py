@@ -3,6 +3,7 @@
 from gc import callbacks
 import logging
 import sys
+from time import perf_counter
 
 import click
 import click_log
@@ -15,7 +16,7 @@ from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
@@ -79,8 +80,8 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='both',
-    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
+    default='table_file_and_entities',
+    type=click.Choice(['table_and_file', 'file_only', 'file_and_entities', 'table_file_and_entities'], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
 @click.option(
     "-rr",
@@ -108,7 +109,7 @@ def submit_manifest(
     """
     Running CLI with manifest validation (optional) and submission options.
     """
-
+    
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -136,6 +137,7 @@ def submit_manifest(
             f"File at '{manifest_path}' was successfully associated "
             f"with dataset '{dataset_id}'."
         )
+
 
 # prototype based on validateModelManifest()
 @model.command(
@@ -197,7 +199,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-    
+    t_validate = perf_counter()
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -218,3 +220,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         )
     else:
         click.echo(errors)
+
+    logger.debug(
+        f"Total elapsed time {perf_counter()-t_validate} seconds"
+    )

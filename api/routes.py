@@ -330,9 +330,13 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     return all_results
 
 
-def validate_manifest_route(schema_url, data_type, json_str=None):
+def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None):
     # call config_handler()
     config_handler()
+
+    #If restrict_rules parameter is set to None, then default it to False 
+    if not restrict_rules:
+        restrict_rules = False
 
     #Get path to temp file where manifest file contents will be saved
     jsc = JsonConverter()
@@ -350,7 +354,7 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=temp_path, rootNode=data_type
+        manifestPath=temp_path, rootNode=data_type, restrict_rules=restrict_rules
     )
     
     res_dict = {"errors": errors, "warnings": warnings}
@@ -388,6 +392,9 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     if not table_manipulation: 
         table_manipulation = "replace"
+
+    if not manifest_record_type:
+        manifest_record_type = "table_file_and_entities"
 
     if data_type == 'None':
         validate_component = None

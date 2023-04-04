@@ -107,10 +107,12 @@ model_commands = {
                 "If not, annotations with blank values will be displayed."
             ),
             "manifest_record_type":(
-                "Specify the way the manifest should be store as on Synapse. Options are 'entity', 'table' and "
-                "'both'. 'entity' will store the manifest as a csv and create Synapse files for each row in the manifest. "
-                "'table' will store the manifest as a table and a csv on Synapse. 'both' will do both of the options specified above. "
-                "Default value is 'table'."
+                "Specify the way the manifest should be store as on Synapse. Options are 'file_only', 'file_and_entities', 'table_and_file' and "
+                "'table_file_and_entities'. 'file_and_entities' will store the manifest as a csv and create Synapse files for each row in the manifest. "
+                "'table_and_file' will store the manifest as a table and a csv on Synapse. "
+                "'file_only' will store the manifest as a csv only on Synapse."
+                "'table_file_and_entities' will perform the options file_with_entites and table in combination."
+                "Default value is 'table_file_and_entities'."
             ),      
             "table_manipulation":(
                 "Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'. "
