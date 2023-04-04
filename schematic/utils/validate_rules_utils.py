@@ -104,8 +104,9 @@ def validation_rule_info():
                 'type': "content_validation",
                 'complementary_rules': ['int', 'float', 'num', 'protectAges'],
                 'default_message_level': 'error'},
+
             "IsNA":     {
-                'arguments':(0, 1), 
+                'arguments':(1, 0), 
                 'type': "content_validation",
                 'complementary_rules': ['int', 'float', 'num', 'str'],
                 'default_message_level': 'warning'},        
