@@ -726,6 +726,10 @@ class TestSchemaVisualization:
 
         assert response.status_code == 200
 
+        if component == "Patient":
+                assert "Patient ID,PatientID,TBD,True,,,,Patient" in response.text
+        elif component == "MockComponent":
+                assert "Component,Component,TBD,False,MockComponent" in response.text
 
 @pytest.mark.schematic_api
 class TestValidationBenchmark():
