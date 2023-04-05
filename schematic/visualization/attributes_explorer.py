@@ -74,6 +74,8 @@ class AttributesExplorer():
         Args: save_file (bool):
                 True: merged_df is saved locally to output_path.
                 False: merged_df is returned.
+              include_index (bool):
+                Whether to include the index in the returned dataframe (True) or not (False)
 
         Returns:
             merged_df (pd.DataFrame): dataframe containing data relating to attributes
@@ -94,6 +96,8 @@ class AttributesExplorer():
                 False: merged_df is returned.
               components (list):
                 list of components to parse attributes for
+              include_index (bool):
+                Whether to include the index in the returned dataframe (True) or not (False)
 
         Returns:
             merged_df (pd.DataFrame): dataframe containing data relating to attributes
