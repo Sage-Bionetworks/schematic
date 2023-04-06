@@ -8,7 +8,8 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=200 \
     POETRY_VERSION=1.2.0 \
-    APP_DIR=/app \ 
+    APP_PARENT_DIR=/app \ 
+    APP_DIR=/app/app \
     UWSGI_INI=/app/uwsgi.ini \
     NGINX_WORKER_PROCESSES=1
 
@@ -23,19 +24,19 @@ ENV PYTHONFAULTHANDLER=1 \
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
 # set work directory
-WORKDIR ${APP_DIR}
-RUN chown www-data:www-data ${APP_DIR}
+WORKDIR ${APP_PARENT_DIR}
+RUN chown www-data:www-data ${APP_PARENT_DIR}
 
 # remove the old uwsgi.ini and main.py
-RUN rm -rf ${APP_DIR}/main.py
-RUN rm -rf ${APP_DIR}/uwsgi.ini
+RUN rm -rf ${APP_PARENT_DIR}/main.py
+RUN rm -rf ${APP_PARENT_DIR}/uwsgi.ini
 
 # copy relevant files and run poetry install
 COPY ./uwsgi.ini ./
 
 # create a separate folder called app
 RUN mkdir app 
-WORKDIR ${APP_DIR}/app
+WORKDIR ${APP_DIR}
 
 # copy other files to app/app
 # Note: run_api.py is not needed
@@ -53,7 +54,7 @@ COPY great_expectations ./great_expectations
 COPY tests ./tests
 
 # change permission
-RUN chown -R www-data:www-data ${APP_DIR}/app
+RUN chown -R www-data:www-data ${APP_DIR}
 
 # allow downloading to synapse cache 
 RUN chown -R www-data:www-data /root
@@ -66,4 +67,4 @@ WORKDIR /var/www/
 RUN chown www-data:www-data /var/www/
 
 # change work directory back
-WORKDIR ${APP_DIR}/app
+WORKDIR ${APP_DIR}
