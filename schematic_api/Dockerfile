@@ -1,7 +1,4 @@
-## For aws deployments
-FROM python:3.10.9-slim-bullseye
-
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+FROM tiangolo/uwsgi-nginx-flask:python3.10
 
 # set APP_PORT to 80
 ENV PYTHONFAULTHANDLER=1 \
@@ -11,38 +8,38 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=200 \
     POETRY_VERSION=1.2.0 \
-    APP_PORT=80 \
-    APP_DIR=/opt/app \ 
-    SERVER_PROTOCOL=http:// \
-    SERVER_DOMAIN=localhost \
-    SERVER_PORT=7080
+    APP_DIR=/app \ 
+    UWSGI_INI=/app/uwsgi.ini \
+    NGINX_WORKER_PROCESSES=1
 
-# RUN apt-get autoclean && apt-get -y autoremove
-
-RUN apt-get update -qq -y \
-    && apt-get install --no-install-recommends -qq -y \
-        build-essential \
-        gosu \
-        libpcre3 \
-        libpcre3-dev \
-        python3-dev \
-        libopenblas-dev \
-        gfortran \
-    && apt-get -y autoclean \
-    && apt-get -y autoremove \
-    && rm -rf /var/lib/apt/lists/*
+# Note: 
+# The starting number of uWSGI processes is controlled by the variable UWSGI_CHEAPER, by default set to 2.
+# The maximum number of uWSGI processes is controlled by the variable UWSGI_PROCESSES, by default set to 16
+# NGINX_MAX_UPLOAD is set to 0 by default that allows unlimited upload file sizes
 
 
-# remove libtiff5 for security reasons
-# RUN apt remove -y libtiff5
-WORKDIR ${APP_DIR}
-RUN chown www-data:www-data /opt/app/
 
 # install poetry
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
+# set work directory
+WORKDIR ${APP_DIR}
+RUN chown www-data:www-data ${APP_DIR}
+
+# remove the old uwsgi.ini and main.py
+RUN rm -rf ${APP_DIR}/main.py
+RUN rm -rf ${APP_DIR}/uwsgi.ini
+
 # copy relevant files and run poetry install
-COPY ./pyproject.toml ./poetry.lock ./uwsgi.ini ./config.yml ./run_api.py ./
+COPY ./uwsgi.ini ./
+
+# create a separate folder called app
+RUN mkdir app 
+WORKDIR ${APP_DIR}/app
+
+# copy other files to app/app
+# Note: run_api.py is not needed
+COPY ./pyproject.toml ./poetry.lock ./config.yml ./main.py ./
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi --no-root
 
@@ -51,7 +48,15 @@ COPY  schematic_api ./schematic_api
 
 # copy great_expectations folder
 COPY great_expectations ./great_expectations
-RUN chown -R www-data:www-data /opt/app/great_expectations/
+
+# copy tests folder because some endpoints by default download to the tests folder
+COPY tests ./tests
+
+# change permission
+RUN chown -R www-data:www-data ${APP_DIR}/app
+
+# allow downloading to synapse cache 
+RUN chown -R www-data:www-data /root
 
 # copy schematic
 COPY schematic  ./schematic
@@ -60,13 +65,5 @@ COPY schematic  ./schematic
 WORKDIR /var/www/
 RUN chown www-data:www-data /var/www/
 
-WORKDIR /
-COPY schematic_api/docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
-
-EXPOSE 7080
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
-
-# Run server in production mode
-CMD ["uwsgi", "--ini", "uwsgi.ini", "--lazy", "--http", ":7080"]
+# change work directory back
+WORKDIR ${APP_DIR}/app

@@ -27,8 +27,8 @@ services:
       - .env
     networks:
       - schematic
-    ports:
-      - "${SERVER_PORT}:7080"
+    ports: 
+      - "${SERVER_PORT}:80"
 networks:
   schematic:
     name: schematic
