@@ -381,6 +381,10 @@ class TestManifestValidation:
                 # remove default combination for attribute's reules
                 if attribute['sms:displayName'] == 'Check NA':
                     attribute['sms:validationRules'].remove('int')
+                    
+                    # update class 
+                    sg.se.edit_class(attribute)
+                    break
 
                 # Add rule args if necessary
                 if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
@@ -394,9 +398,10 @@ class TestManifestValidation:
                         rule_args = ''
             
                     attribute['sms:validationRules'].append(second_rule + rule_args)
-                
-                sg.se.edit_class(attribute)
-                break
+                    
+                    # update class 
+                    sg.se.edit_class(attribute)
+                    break
 
         target_column=attribute['sms:displayName']
         for col in manifest.columns:
