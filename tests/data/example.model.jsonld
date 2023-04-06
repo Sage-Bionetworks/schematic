@@ -2919,6 +2919,7 @@
             "sms:displayName": "Check NA",
             "sms:required": "sms:true",
             "sms:validationRules": [
+                "int",
                 "IsNA"
             ]
         },
