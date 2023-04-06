@@ -486,6 +486,10 @@ class GenerateError:
             content_error_str = (
                 f"{attribute_name} values in rows {row_num} are not parsable as dates."
             )  
+        elif val_rule.startswith('IsNA'):
+            content_error_str = (
+                f"{attribute_name} values in rows {row_num} are not marked as 'Not Applicable'."
+            )  
 
         if val_rule != "IsNA":
             logLevel(content_error_str)
