@@ -714,7 +714,7 @@ class TestSchemaVisualization:
 
         assert response.status_code == 200
 
-    @pytest.mark.parametrize("component", ["Patient", "MockComponent"])
+    @pytest.mark.parametrize("component", ["Patient", "BulkRNA-seqAssay"])
     def test_visualize_component(self, client, data_model_jsonld,component):
         params = {
             "schema_url": data_model_jsonld,
@@ -726,10 +726,11 @@ class TestSchemaVisualization:
 
         assert response.status_code == 200
 
+        assert "Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component" in response.text
         if component == "Patient":
                 assert "Patient ID,PatientID,TBD,True,,,,Patient" in response.text
-        elif component == "MockComponent":
-                assert "Component,Component,TBD,False,MockComponent" in response.text
+        elif component == "BulkRNA-seqAssay":
+                assert "Component,Component,Component,TBD,False,,,,BulkRNA-seqAssay" in response.text
 
 @pytest.mark.schematic_api
 class TestValidationBenchmark():
