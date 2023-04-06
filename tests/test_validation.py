@@ -263,6 +263,14 @@ class TestManifestValidation:
             invalid_entry = '94',
             sg = sg,
             )[0] in errors
+        
+        assert GenerateError.generate_type_error(
+            val_rule = 'int',
+            row_num = '3',
+            attribute_name = 'Check NA', 
+            invalid_entry = '9.5',
+            sg = sg,
+            )[0] in errors
             
         assert GenerateError.generate_list_error(
             val_rule = 'list strict',
