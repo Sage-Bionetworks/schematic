@@ -9,6 +9,7 @@ info:
 servers:
   - url: /v1
 
+# TO DO: refactor query parameters and remove input_token
 paths:
   /manifest/generate:
     get:
