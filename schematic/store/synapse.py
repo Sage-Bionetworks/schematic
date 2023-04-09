@@ -136,8 +136,11 @@ class ManifestDownload(object):
         if newManifestName and os.path.exists(manifest_data.get('path')):
             # Rename the file we just made to the new name
             new_manifest_filename = newManifestName + '.csv'
-            dir_name = os.path.dirname(os.path.abspath(new_manifest_filename))
-            new_manifest_path_name = os.path.join(dir_name, new_manifest_filename)
+
+            # get location of existing manifest. The manifest that will be renamed should live in the same folder as existing manifest.
+            parent_folder = os.path.dirname(manifest_data.get('path'))
+
+            new_manifest_path_name = os.path.join(parent_folder, new_manifest_filename)
             os.rename(manifest_data['path'], new_manifest_path_name)
 
             # Update file names/paths in manifest_data

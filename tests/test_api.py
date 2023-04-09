@@ -576,10 +576,10 @@ class TestManifestOperation:
                 "entityId": "string"}
 
     # small manifest: syn51078535; big manifest: syn51156998
-    @pytest.mark.parametrize("manifest_id",["syn51156998", "syn51156998"]) 
-    @pytest.mark.parametrize("new_manifest_name",["Example", None]) 
-    @pytest.mark.parametrize("as_json",[True, False, None]) 
-    def test_manifest_download(self, config, client, syn_token, manifest_id, new_manifest_name, as_json):
+    @pytest.mark.parametrize("manifest_id, expected_component, expected_file_name", [("syn51078535", "BulkRNA-seqAssay", "synapse_storage_manifest.csv"), ("syn51156998", "Biospecimen", "synapse_storage_manifest_biospecimen.csv")])
+    @pytest.mark.parametrize("new_manifest_name",[None,"Example.csv"]) 
+    @pytest.mark.parametrize("as_json",[None,True,False]) 
+    def test_manifest_download(self, config, client, syn_token, manifest_id, new_manifest_name, as_json, expected_component, expected_file_name):
         params = {
             "input_token": syn_token,
             "manifest_id": manifest_id,
@@ -591,38 +591,40 @@ class TestManifestOperation:
         response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
         assert response.status_code == 200
 
-        # if as_json is set to True or as_json is not defined
+        # if as_json is set to True or as_json is not defined, then a json gets returned
         if as_json or as_json is None:
             response_dta = json.loads(response.data)
-            if manifest_id == "syn51078535":
-                assert response_dta[0]["Component"] == "BulkRNA-seqAssay"
-                assert response_dta[0]["File Format"] == "CSV/TSV"
-            else: 
-                assert response_dta[0]["Component"] == "Biospecimen"
+
+            # check if the correct manifest gets downloaded 
+            assert response_dta[0]["Component"] == expected_component
 
             current_work_dir = os.getcwd()
             folder_test_manifests = config["synapse"]["manifest_folder"]
             folder_dir = os.path.join(current_work_dir, folder_test_manifests)
+
+            # if a manfiest gets renamed, get new manifest file path
             if new_manifest_name:
-                file_name = os.path.join(folder_dir, new_manifest_name + '.' + 'csv')
+                manifest_file_path = os.path.join(folder_dir, new_manifest_name + '.' + 'csv')
+            # if a manifest does not get renamed, get existing manifest file path
             else: 
-                file_name = os.path.join(folder_dir,config["synapse"]["manifest_basename"] + '.csv')
+                manifest_file_path = os.path.join(folder_dir,expected_file_name)
 
         else:
-            data = response.data.decode()
-            assert os.path.exists(data)
-            file_base_name = os.path.basename(data)
+            # manifest file path gets returned
+            manifest_file_path = response.data.decode()
+
+            file_base_name = os.path.basename(manifest_file_path)
             file_name = os.path.splitext(file_base_name)[0]
 
             if new_manifest_name: 
                 assert file_name == new_manifest_name
 
-            file_name = data
-        
-        
-        # delete files
+        # make sure file gets correctly downloaded
+        assert os.path.exists(manifest_file_path)
+
+        #delete files
         try: 
-            os.remove(file_name)
+            os.remove(manifest_file_path)
         except: 
             pass
 
