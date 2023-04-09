@@ -1,5 +1,6 @@
 from email import generator
 import os
+from json.decoder import JSONDecodeError
 import shutil
 import tempfile
 import shutil
@@ -19,7 +20,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage, ManifestDownload
-from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
+from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions, SynapseNoCredentialsError, SynapseTimeoutError
 from flask_cors import CORS, cross_origin
 from schematic.schemas.explorer import SchemaExplorer
 import pandas as pd
@@ -243,10 +244,10 @@ def parse_bool(str_bool):
 def return_as_json(manifest_local_file_path):
     manifest_csv = pd.read_csv(manifest_local_file_path)
     try:
-        manifest_json = json.loads(manifest_csv.to_json(orient="records"))
+        manifest_json = manifest_csv.to_dict(orient="records")
         return manifest_json
-    except Exception: 
-        raise Exception(f"Fail to return the manifest as a json")
+    except JSONDecodeError: 
+        raise (f"Fail to return the manifest as a json")
 
 def save_file(file_key="csv_file"):
     '''
@@ -620,7 +621,7 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
-def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=None):
+def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=True):
     """
     Download a manifest based on a given manifest id. 
     Args:
@@ -637,23 +638,23 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=No
     # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
 
-    # default as_json to True
-    if as_json is None:
-        as_json=True
-
     # try logging in to asset store
     try:
         syn = store.login(input_token=input_token)
-    except Exception: 
-        raise SynapseAuthenticationError
+
+    except SynapseAuthenticationError: 
+        raise("Your credentials are not valid. Please provide a valid synapse token")
+    except SynapseTimeoutError:
+        raise("Time out waiting for synapse to respond")
+    except SynapseHTTPError as e:
+        raise(f"A Synapse HTTP error occurred. Please see the error status:{e.response.status_code}")
     try: 
         md = ManifestDownload(syn, manifest_id)
         manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
         #return local file path
         manifest_local_file_path = manifest_data['path']
-    except Exception: 
-        logger.error(f"Failed to download manifest: {manifest_id}")
-        raise Exception(f"Failed to download manifest: {manifest_id}")
+    except KeyError:
+        raise (f"Failed to download manifest: {manifest_id}")
     if as_json:
         manifest_json = return_as_json(manifest_local_file_path)
         return manifest_json
@@ -674,7 +675,7 @@ def download_dataset_manifest(input_token, dataset_id, asset_view, as_json, new_
     #return local file path
     try:
         manifest_local_file_path = manifest_data['path']
-    except:
+    except KeyError:
         raise(f'Failed to download manifest from dataset: {dataset_id}')
 
     #return a json (if as_json = True)
