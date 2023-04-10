@@ -210,17 +210,12 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
     Single Rules:
         Specified with the correct required arguments with no more than what is allowed
     '''
-    # Specify all the validation types and whether they currently
-    # allow users to pass additional arguments (when used on their own), and if there is
-    # a set number of arguments required.
-
     errors = []
         
     # validate each individual rule
     for rule in validation_rules:
         errors.extend(validate_single_rule(rule,
-            attribute, input_filetype))
-                
+            attribute, input_filetype))                
 
     if errors:
         raise ValidationError(
