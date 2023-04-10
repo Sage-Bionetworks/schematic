@@ -246,8 +246,8 @@ def return_as_json(manifest_local_file_path):
     try:
         manifest_json = manifest_csv.to_dict(orient="records")
         return manifest_json
-    except JSONDecodeError: 
-        raise (f"Fail to return the manifest as a json")
+    except JSONDecodeError as e: 
+        raise (f"Fail to return the manifest as a json") from e
 
 def save_file(file_key="csv_file"):
     '''
@@ -641,20 +641,19 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=Tr
     # try logging in to asset store
     try:
         syn = store.login(input_token=input_token)
-
-    except SynapseAuthenticationError: 
-        raise("Your credentials are not valid. Please provide a valid synapse token")
-    except SynapseTimeoutError:
-        raise("Time out waiting for synapse to respond")
+    except SynapseAuthenticationError as e:
+        raise("Your credentials are not valid. Please provide a valid synapse token") from e
+    except SynapseTimeoutError as e:
+        raise("Time out waiting for synapse to respond") from e
     except SynapseHTTPError as e:
-        raise(f"A Synapse HTTP error occurred. Please see the error status:{e.response.status_code}")
+        raise(f"A Synapse HTTP error occurred. Please see the error status:{e.response.status_code}") from e
     try: 
         md = ManifestDownload(syn, manifest_id)
         manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
         #return local file path
         manifest_local_file_path = manifest_data['path']
-    except KeyError:
-        raise (f"Failed to download manifest: {manifest_id}")
+    except KeyError as e:
+        raise (f"Failed to download manifest: {manifest_id}") from e
     if as_json:
         manifest_json = return_as_json(manifest_local_file_path)
         return manifest_json

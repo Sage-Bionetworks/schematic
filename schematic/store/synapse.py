@@ -129,7 +129,6 @@ class ManifestDownload(object):
                     manifest_data = self._download_manifest_to_folder()
                 except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
                     logger.error(f"You don't have access to the requested resource: {old_requested_manifest_id} and {new_manifest_id}")
-
             else:
                 logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
 
