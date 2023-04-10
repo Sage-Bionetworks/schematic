@@ -115,13 +115,6 @@ def get_error(validation_rules: list,
     multiple validation rules.
     '''
     error_col = attribute_name # Attribute name
-    if error_type == 'too_many_rules':
-        error_str = (f"The {input_filetype}, has an error in the validation rule "
-            f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) ."
-        f"have too many entries. We currently only allow for pairs of rules to be used at the same time.")
-        logging.error(error_str)
-        error_message = error_str
-        error_val = f"Multiple Rules: too many rules"
     
     if error_type == 'delimiter':
         error_str = (f"The {input_filetype}, has an error in the validation rule "
@@ -160,17 +153,6 @@ def get_error(validation_rules: list,
         logging.error(error_str)
         error_message = error_str
         error_val = f"Incorrect num arguments."
-
-    if error_type == 'invalid_rule_combination':
-        first_type=validation_rules[0].split(' ')[0]
-        second_type=validation_rule_info()[first_type]['complementary_rules']
-
-        error_str = (f"The {input_filetype}, has an error in the validation rule "
-            f"for the attribute: {attribute_name}, the provided validation rules ({'::'.join(validation_rules)}) are not "
-            f"a valid combination of rules. The validation rule [{first_type}] may only be used with rules of type {second_type}.")
-        logging.error(error_str)
-        error_message = error_str
-        error_val = f"Invalid rule combination."
         
     return ['NA', error_col, error_message, error_val]
 
@@ -226,37 +208,16 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
         locating the source of the error.
 
     Validation Rules Formatting rules:
-    Multiple Rules:
-        max of 2 rules
     Single Rules:
-        Additional arg
+        Specified with the correct required arguments with no more than what is allowed
     '''
     # Specify all the validation types and whether they currently
     # allow users to pass additional arguments (when used on their own), and if there is
     # a set number of arguments required.
 
     errors = []
-    rule_info = validation_rule_info()
-    num_validation_rules = len(validation_rules)
-
-    
-    # Check for edge case that user has entered more than 2 rules,
-    # throw an error if they have.
-    if num_validation_rules > 2:
-            errors.append(get_error(validation_rules, attribute,
-                error_type = 'too_many_rules', input_filetype=input_filetype))
-
-    elif num_validation_rules == 2: 
-        first_rule, second_rule = validation_rules
-        first_type = first_rule.split(" ")[0]  
-        second_type = second_rule.split(" ")[0]  
-
-        # validate rule combination
-        if second_type not in rule_info[first_type]['complementary_rules']:
-            errors.append(get_error(validation_rules, attribute, 
-                error_type = 'invalid_rule_combination', input_filetype=input_filetype))
         
-    # validate each rule individually in the combo
+    # validate each individual rule
     for rule in validation_rules:
         errors.extend(validate_single_rule(rule,
             attribute, input_filetype))
