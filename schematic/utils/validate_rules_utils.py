@@ -168,8 +168,11 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
 
     rule_type = validation_rule_with_args[0]
 
+    if ':' in validation_rule:
+        errors.append(get_error(validation_rule, attribute,
+            error_type = 'delimiter', input_filetype=input_filetype))
     # Check that the rule is actually a valid rule type.
-    if rule_type not in validation_types.keys():
+    elif rule_type not in validation_types.keys():
         errors.append(get_error(validation_rule, attribute,
             error_type = 'not_rule', input_filetype=input_filetype))
 
@@ -195,10 +198,6 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
                 errors.append(get_error(validation_rule, attribute,
                     error_type = 'incorrect_num_args', input_filetype=input_filetype))
 
-
-        if ':' in validation_rule:
-            errors.append(get_error(validation_rule, attribute,
-                error_type = 'delimiter', input_filetype=input_filetype))
     return errors
 
 def validate_schema_rules(validation_rules, attribute, input_filetype):
