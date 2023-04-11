@@ -158,8 +158,14 @@ def get_error(validation_rules: list,
 
 def validate_single_rule(validation_rule, attribute, input_filetype):
     '''
-    TODO:reformat validation_types from validate_manifest to document the 
-    arguments allowed. Keep in that location and pull into this function.
+    Perform validation for a single rule to ensure it is specified correctly with an appropriate number of arguments
+    Inputs:
+        validation_rule: single rule being validated
+        attribute: attribute validation rule was specified for
+        input_filetype: filetype of model input
+
+    Returns:
+        errors: List of errors
     '''
     errors = []
     validation_types = validation_rule_info()
@@ -168,6 +174,7 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
 
     rule_type = validation_rule_with_args[0]
 
+    # ensure rules are not delimited incorrectly
     if ':' in validation_rule:
         errors.append(get_error(validation_rule, attribute,
             error_type = 'delimiter', input_filetype=input_filetype))
@@ -175,7 +182,7 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
     elif rule_type not in validation_types.keys():
         errors.append(get_error(validation_rule, attribute,
             error_type = 'not_rule', input_filetype=input_filetype))
-
+    # if the rule is indeed a rule and formatted correctly, check that arguments are appropriate
     else:
         arguments_allowed, arguments_required = validation_types[rule_type]['arguments']
         # Remove any fixed args from our calc.
