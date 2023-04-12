@@ -96,7 +96,7 @@ jobs:
         run: |
           # ran only on certain files for now
           # add here when checked
-          poetry run black schematic/exceptions.py schematic/loader.py --check
+          poetry run black schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py --check
 
       #----------------------------------------------
       #             type checking/enforcement
@@ -107,7 +107,7 @@ jobs:
           # add here when checked
           # mypy .
           # add here when enforced
-          mypy --disallow-untyped-defs schematic/exceptions.py schematic/loader.py
+          mypy --disallow-untyped-defs schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
 
       #----------------------------------------------
       #              run test suite
