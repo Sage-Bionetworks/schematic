@@ -92,10 +92,12 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
+      # Disabled until we agree to turn it on
       # - name: Code formatting with black
       #   run: |
+      #     # run black in check mode
+      #     # if files are not formatted correctly, the build will not go through
       #     black . --check
-
       #----------------------------------------------
       #              run test suite   
       #----------------------------------------------
