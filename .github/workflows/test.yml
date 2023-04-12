@@ -94,8 +94,8 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
-      - name: Code formatting with black
-        run: poetry run black .
+      #- name: Code formatting with black
+      #  run: poetry run black .
 
       #----------------------------------------------
       #              run test suite
