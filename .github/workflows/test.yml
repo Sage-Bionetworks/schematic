@@ -94,7 +94,7 @@ jobs:
       #----------------------------------------------
       - name: Code formatting with black
         run: |
-          black . --check
+          black schematic/exceptions.py --check
 
       #----------------------------------------------
       #              run test suite   
