@@ -85,7 +85,6 @@ mypy = "^0.982"
 
 [tool.black]
 line-length = 88
-target-version = ['py37']
 include = '\.pyi?$'
 exclude = '''
 
