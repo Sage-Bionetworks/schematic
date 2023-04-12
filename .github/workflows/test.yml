@@ -36,7 +36,7 @@ jobs:
     steps:
 
       #----------------------------------------------
-      #       check-out repo and set-up python     
+      #       check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
         uses: actions/checkout@v2
@@ -45,19 +45,19 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       #----------------------------------------------
-      #          install & configure poetry         
+      #          install & configure poetry
       #----------------------------------------------
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org \
             | python3 - --version ${{ env.POETRY_VERSION }};
-          poetry config virtualenvs.create true; 
-          poetry config virtualenvs.in-project true; 
+          poetry config virtualenvs.create true;
+          poetry config virtualenvs.in-project true;
 
       #----------------------------------------------
-      #       load cached venv if cache exists      
+      #       load cached venv if cache exists
       #----------------------------------------------
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -67,21 +67,21 @@ jobs:
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       #----------------------------------------------
-      # install dependencies if cache does not exist 
+      # install dependencies if cache does not exist
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
-        
+
       #----------------------------------------------
-      #    install your root project, if required 
-      #----------------------------------------------      
+      #    install your root project, if required
+      #----------------------------------------------
       - name: Install library
         run: poetry install --no-interaction
-      
+
       #----------------------------------------------
       #             perform linting
-      #----------------------------------------------    
+      #----------------------------------------------
       # Disabled until we agree to turn it on
       # - name: Lint with flake8
       #   run: |
@@ -90,18 +90,30 @@ jobs:
       #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
       #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      #----------------------------------------------
-      #             check formatting
-      #----------------------------------------------
-      # Disabled until we agree to turn it on
-      # - name: Code formatting with black
-      #   run: |
-      #     # run black in check mode
-      #     # if files are not formatted correctly, the build will not go through
-      #     black . --check
-      #----------------------------------------------
-      #              run test suite   
-      #----------------------------------------------
+      ----------------------------------------------
+                   check formatting
+      ----------------------------------------------
+       - name: Code formatting with black
+         run: |
+           # run black in check mode
+           # if files are not formatted correctly, the build will not go through
+           # ran only on certain files for now
+           black schematic/exceptions.py --check
+
+      ----------------------------------------------
+                   type checking/enforcement
+      ----------------------------------------------
+       - name: Type checking with mypy
+         run: |
+           # run mypy
+           # ran only on certain files for now
+           # if files are not formatted correctly, the build will not go through
+           # mypy .
+           mypy --disallow-untyped-defs schematic/exceptions.py
+
+      ----------------------------------------------
+                    run test suite
+      ----------------------------------------------
       - name: Run regular tests and rule combination tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
@@ -110,7 +122,7 @@ jobs:
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not (google_credentials_needed or schematic_api or table_operations)"
-          
+
       - name: Run tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
@@ -120,7 +132,7 @@ jobs:
           source .venv/bin/activate;
           pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
           -m "not (google_credentials_needed or rule_combos or schematic_api or table_operations)"
-    
+
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
         with:
