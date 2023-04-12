@@ -90,27 +90,14 @@ jobs:
       #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
       #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
+      # Disabled until we agree to turn it on
       - name: Code formatting with black
         run: |
-          # run black in check mode
-          # if files are not formatted correctly, the build will not go through
-          # ran only on certain files for now
-          black schematic/exceptions.py --check
-
-      #----------------------------------------------
-      #             type checking/enforcement
-      #----------------------------------------------
-       - name: Type checking with mypy
-         run: |
-           # run mypy
-           # ran only on certain files for now
-           # if files are not formatted correctly, the build will not go through
-           # mypy .
-           mypy --disallow-untyped-defs schematic/exceptions.py
-
+          black . --check
 
       #----------------------------------------------
       #              run test suite
