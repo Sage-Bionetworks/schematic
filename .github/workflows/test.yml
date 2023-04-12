@@ -94,10 +94,8 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
-      # Disabled until we agree to turn it on
       - name: Code formatting with black
-        run: |
-          black . --check
+        run: poetry run black .
 
       #----------------------------------------------
       #              run test suite
