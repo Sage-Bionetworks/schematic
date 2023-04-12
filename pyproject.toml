@@ -79,7 +79,8 @@ pytest-cov = "^4.0.0"
 pytest-mock = "^3.5.1"
 flake8 = "^6.0.0"
 python-dotenv = "^0.21.0"
-black = {version = "^22.6.0", allow-prereleases = true}
+black = "^22.6.0"
+mypy = "^0.982"
 
 
 [tool.black]
