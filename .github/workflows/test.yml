@@ -104,7 +104,7 @@ jobs:
       - name: Type checking with mypy
         run: |
           # install type libraries for some packages
-          poetry run mypy --install-types --non-interactive ./
+          poetry run mypy --install-types --non-interactive
           # ran only on certain files for now
           # add here when checked
           poetry run mypy schematic/configuration.py
