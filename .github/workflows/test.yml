@@ -103,13 +103,11 @@ jobs:
       #----------------------------------------------
       - name: Type checking with mypy
         run: |
-          # install type libraries for some packages
-          poetry run mypy --install-types --non-interactive
           # ran only on certain files for now
           # add here when checked
-          poetry run mypy schematic/configuration.py
+          poetry run mypy --install-types schematic/configuration.py
           # add here when enforced
-          poetry run mypy --disallow-untyped-defs schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
+          poetry run mypy --install-types --disallow-untyped-defs schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
 
       #----------------------------------------------
       #              run test suite
