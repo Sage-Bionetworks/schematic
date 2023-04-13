@@ -37,8 +37,9 @@ WORKDIR ${NGINX_CONFIG}
 COPY ./self-signed.conf ./ssl-params.conf ./certificate.conf ./
 
 
-# copy uwsgi-nginx-entrypoint.sh
-# this bash script is used to generate nginx.conf and some other configs
+# use custom uwsgi-nginx-entrypoint.sh
+# this uwsgi-nginx-entrypoint.sh file is derived from: https://github.com/tiangolo/uwsgi-nginx-flask-docker/blob/master/docker-images/entrypoint.sh
+# we have to modify it so that we could generate a different /etc/nginx/conf.d/nginx.conf file
 WORKDIR ${ROOT}
 COPY ./uwsgi-nginx-entrypoint.sh ./entrypoint2.sh
 COPY ./uwsgi-nginx-entrypoint.sh ./uwsgi-nginx-entrypoint2.sh
