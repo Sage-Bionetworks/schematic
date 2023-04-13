@@ -97,6 +97,7 @@ RUN chown www-data:www-data /var/www/
 WORKDIR ${APP_DIR}
 
 # specify entrypoint again to generate config
+# have to respecify CMD too
 ENTRYPOINT ["/entrypoint2.sh"]
 CMD ["/start.sh"]
 
