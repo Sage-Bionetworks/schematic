@@ -9,7 +9,9 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DEFAULT_TIMEOUT=200 \
     POETRY_VERSION=1.2.0 \
     APP_PARENT_DIR=/app \ 
+    NGINX_CONFIG=/etc/nginx/conf.d \
     APP_DIR=/app/app \
+    ROOT=/ \
     UWSGI_INI=/app/uwsgi.ini \
     NGINX_WORKER_PROCESSES=1
 
@@ -18,7 +20,32 @@ ENV PYTHONFAULTHANDLER=1 \
 # The maximum number of uWSGI processes is controlled by the variable UWSGI_PROCESSES, by default set to 16
 # NGINX_MAX_UPLOAD is set to 0 by default that allows unlimited upload file sizes
 
+# run open ssl and generate certificate
+RUN apt update && \
+    apt-get install openssl && \
+    openssl req -x509 -nodes -days 365 \
+    -subj  "/C=CA/ST=QC/O=Company" \
+    -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key \
+    -out /etc/ssl/certs/localhost.crt;
 
+# add dhparam.pem
+# this step takes quite some time
+RUN openssl dhparam -out /etc/ssl/dhparam.pem 4096
+
+# copy config files that handle encryption to docker
+WORKDIR ${NGINX_CONFIG}
+COPY ./self-signed.conf ./ssl-params.conf ./certificate.conf ./
+
+
+# copy uwsgi-nginx-entrypoint.sh
+# this bash script is used to generate nginx.conf and some other configs
+WORKDIR ${ROOT}
+COPY ./uwsgi-nginx-entrypoint.sh ./entrypoint2.sh
+COPY ./uwsgi-nginx-entrypoint.sh ./uwsgi-nginx-entrypoint2.sh
+RUN chmod +x uwsgi-nginx-entrypoint2.sh
+RUN chmod +x entrypoint2.sh
+RUN chown -R nginx /uwsgi-nginx-entrypoint2.sh
+RUN chown -R nginx /entrypoint2.sh
 
 # install poetry
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
@@ -68,3 +95,10 @@ RUN chown www-data:www-data /var/www/
 
 # change work directory back
 WORKDIR ${APP_DIR}
+
+# specify entrypoint again to generate config
+ENTRYPOINT ["/entrypoint2.sh"]
+CMD ["/start.sh"]
+
+# Expose ports
+EXPOSE 443
