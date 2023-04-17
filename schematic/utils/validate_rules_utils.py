@@ -22,19 +22,19 @@ def validation_rule_info():
             "int": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',],
+                'complementary_rules': ['inRange', 'IsNA'],
                 'default_message_level': 'error'},
 
             "float": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',],
+                'complementary_rules': ['inRange', 'IsNA'],
                 'default_message_level': 'error'},
 
             "num": {
                 'arguments':(1, 0),
                 'type': "type_validation",
-                'complementary_rules': ['inRange',],
+                'complementary_rules': ['inRange', 'IsNA'],
                 'default_message_level': 'error'},
 
             "str": {
@@ -104,6 +104,12 @@ def validation_rule_info():
                 'type': "content_validation",
                 'complementary_rules': ['int','float','num','protectAges'],
                 'default_message_level': 'error'},
+            
+            "IsNA":     {
+                'arguments':(1, 0), 
+                'type': "content_validation",
+                'complementary_rules': ['int', 'float', 'num', ],
+                'default_message_level': 'warning'},            
             }
 
     return rule_dict

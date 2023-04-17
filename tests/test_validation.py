@@ -263,6 +263,14 @@ class TestManifestValidation:
             invalid_entry = '94',
             sg = sg,
             )[0] in errors
+        
+        assert GenerateError.generate_type_error(
+            val_rule = 'int',
+            row_num = '3',
+            attribute_name = 'Check NA', 
+            invalid_entry = '9.5',
+            sg = sg,
+            )[0] in errors
             
         assert GenerateError.generate_list_error(
             val_rule = 'list strict',
@@ -367,11 +375,19 @@ class TestManifestValidation:
         manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
         manifest = helpers.get_data_frame(manifestPath)
 
+        # adjust rules and arguments as necessary for testing combinations
         for attribute in sg.se.schema['@graph']: #Doing it in a loop becasue of sg.se.edit_class design
             if 'sms:validationRules' in attribute and attribute['sms:validationRules']: 
-                if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
+                # remove default combination for attribute's reules
+                if attribute['sms:displayName'] == 'Check NA':
+                    attribute['sms:validationRules'].remove('int')
                     
-                    #Add rule args if necessary
+                    # update class 
+                    sg.se.edit_class(attribute)
+                    break
+
+                # Add rule args if necessary
+                if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
                     if second_rule.startswith('matchAtLeastOne') or second_rule.startswith('matchExactlyOne'):
                         rule_args = f" MockComponent.{attribute['rdfs:label']} Patient.PatientID"
                     elif second_rule.startswith('inRange'):
@@ -382,6 +398,8 @@ class TestManifestValidation:
                         rule_args = ''
             
                     attribute['sms:validationRules'].append(second_rule + rule_args)
+                    
+                    # update class 
                     sg.se.edit_class(attribute)
                     break
 
