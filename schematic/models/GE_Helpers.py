@@ -134,7 +134,8 @@ class GreatExpectationsHelpers(object):
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
             "inRange": "expect_column_values_to_be_between",
-            
+            "IsNA": "expect_column_values_to_match_regex_list",
+
             # To be implemented rules with possible expectations
             #"list": "expect_column_values_to_not_match_regex_list",
             #"regex": "expect_column_values_to_match_regex",
@@ -282,6 +283,17 @@ class GreatExpectationsHelpers(object):
                             "notes": {
                                 "format": "markdown",
                                 "content": "Expect column values to be within a specified range. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                        
+                    elif base_rule==("IsNA"):
+                        args["mostly"]=1.0
+                        args["regex_list"]=['Not Applicable']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be marked Not Applicable. **Markdown** `Supported`",
                             },
                             "validation_rule": rule
                         }
