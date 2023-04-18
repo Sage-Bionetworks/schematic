@@ -262,7 +262,7 @@ def initalize_metadata_model(schema_url):
 def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
     with urllib.request.urlopen(schema_url) as response:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonld") as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".model.jsonld") as tmp_file:
             shutil.copyfileobj(response, tmp_file)
 
     # get path to temporary JSON-LD file
@@ -576,6 +576,16 @@ def get_viz_attributes_explorer(schema_url):
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
 
     attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_attributes(save_file=False)
+
+    return attributes_csv
+
+def get_viz_component_attributes_explorer(schema_url, component, include_index):
+    # call config_handler()
+    config_handler()
+
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+    attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_component_attributes(component, save_file=False, include_index=include_index)
 
     return attributes_csv
 

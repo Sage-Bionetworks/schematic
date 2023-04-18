@@ -1151,3 +1151,59 @@ paths:
                 type: string
       tags:
         - Visualization Operations
+  /visualize/component:
+    get:
+      summary: Get an attributes table for a specific component of a data model, as a CSV (JSON String)
+      description: >-
+        Get all the attributes associated with a specific data model component formatted as a
+        dataframe (stored as a JSON String).
+      operationId: api.routes.get_viz_component_attributes_explorer
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: component
+          schema:
+            type: string
+          description: Component of the data model to explore
+          example: >-
+            Patient
+          required: true
+        - in: query
+          name: include_index
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include the indexes of the datafram in the returned JSON string (true) or not (false).
+          required: true
+      responses:
+        "200":
+          description: Returns a CSV as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component
+
+                          Component,Component,TBD,False,,,,Patient
+                          
+                          Patient ID,PatientID,TBD,True,,,,Patient
+                          
+                          Year of Birth,YearofBirth,TBD,False,,,,Patient
+
+                          Sex,Sex,TBD,True,,"['Female', 'Other', 'Male']",,Patient                      
+
+                          Diagnosis,Diagnosis,TBD,True,,"['Cancer', 'Healthy']",,Patient
+
+                          Cancer Type,CancerType,TBD,False,True,"['Lung', 'Skin', 'Colorectal', 'Breast', 'Prostate', '']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient
+
+                          Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
+      tags:
+        - Visualization Operations
+        
