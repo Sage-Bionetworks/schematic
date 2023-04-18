@@ -1946,6 +1946,50 @@ class TableOperations:
         existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
         return existingTableId
     
+
+    def _get_schematic_db_creds(synStore):
+        username = None
+        authtoken = None
+
+
+        # Get access token from environment variable if available
+        env_access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+        if env_access_token:
+            authtoken = env_access_token
+
+        # retrive credentials from synapse object
+        synapse_object_creds = synStore.syn.credentials
+        if hasattr(synapse_object_creds, 'username'):
+            username = synapse_object_creds.username
+        if hasattr(synapse_object_creds, '_token'):
+            authtoken = synapse_object_creds.secret
+
+        # Try getting creds from .synapseConfig file if it exists
+        if os.path.exists(CONFIG.SYNAPSE_CONFIG_PATH):
+            config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+
+            # check which credentials are provided in file
+            if config.has_option('authentication', 'username'):
+                username = config.get('authentication', 'username')
+            if config.has_option('authentication', 'authtoken'):
+                authtoken = config.get('authentication', 'authtoken')
+        
+        # raise error if required credentials are not found
+        if not (username and authtoken):
+            raise NameError(
+                "Username or authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
+            )
+        if not username:
+            raise NameError(
+                "Username credentials could not be found in the environment, synapse object, or the .synapseConfig file"
+            )
+        if not username:
+            raise NameError(
+                "authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
+            )
+        
+        return username, authtoken
+
     def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
@@ -1964,16 +2008,11 @@ class TableOperations:
 
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
-        """
-        config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+        """            
 
-        if config.has_option('authentication', 'username') and config.has_option('authentication', 'authtoken'):
-            synConfig = SynapseConfig(config.get('authentication', 'username'), config.get('authentication', 'authtoken'), synStore.getDatasetProject(datasetId) )
-        else:
-            raise KeyError(
-                "Username or authtoken credentials missing in .synapseConfig"
-            )
+        username, authtoken = TableOperations._get_schematic_db_creds(synStore)
 
+        synConfig = SynapseConfig(username, authtoken, synStore.getDatasetProject(datasetId))
         synapseDB = SynapseDatabase(synConfig)
         synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
 
