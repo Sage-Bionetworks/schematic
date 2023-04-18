@@ -1157,7 +1157,7 @@ paths:
       description: >-
         Get all the attributes associated with a specific data model component formatted as a
         dataframe (stored as a JSON String).
-      operationId: schematic_api.api.get_viz_component_attributes_explorer
+      operationId: schematic_api.api.routes.get_viz_component_attributes_explorer
       parameters:
         - in: query
           name: schema_url
