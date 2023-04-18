@@ -24,6 +24,7 @@ from schematic.utils.validate_utils import (comma_separated_list_regex,
                                             parse_str_series_to_list,
                                             np_array_to_str_list,
                                             iterable_to_str_list,
+                                            rule_in_rule_list,
                                             )
 
 
@@ -225,19 +226,22 @@ class GenerateError:
             f"On row {row_num} the attribute {attribute_name} "
             f"does not contain the proper value type {val_rule}."
         )
-        logLevel(type_error_str)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = type_error_str
         error_val = invalid_entry
 
-
-        #return error and empty list for warnings
-        if raises == 'error':
-            error_list = [error_row, error_col, error_message, error_val]
-        #return warning and empty list for errors
-        elif raises == 'warning':
-            warning_list = [error_row, error_col, error_message, error_val]
+        # If IsNA rule is being used to allow `Not Applicable` entries, do not log a message
+        if error_val.lower() == 'not applicable' and rule_in_rule_list('IsNA', sg.get_node_validation_rules(sg.get_node_label(attribute_name))):
+          pass  
+        else:
+            logLevel(type_error_str)
+            #return error and empty list for warnings
+            if raises == 'error':
+                error_list = [error_row, error_col, error_message, error_val]
+            #return warning and empty list for errors
+            elif raises == 'warning':
+                warning_list = [error_row, error_col, error_message, error_val]
         
         return error_list, warning_list              
 
@@ -482,16 +486,21 @@ class GenerateError:
             content_error_str = (
                 f"{attribute_name} values in rows {row_num} are not parsable as dates."
             )  
-        logLevel(content_error_str)
-        error_row = row_num 
-        error_message = content_error_str
+        elif val_rule.startswith('IsNA'):
+            content_error_str = (
+                f"{attribute_name} values in rows {row_num} are not marked as 'Not Applicable'."
+            )  
 
-        #return error and empty list for warnings
-        if raises == 'error':
-            error_list = [error_row, error_col, error_message, error_val]
-        #return warning and empty list for errors
-        elif raises == 'warning':
-            warning_list = [error_row, error_col, error_message, error_val]
+        if val_rule != "IsNA":
+            logLevel(content_error_str)
+            error_row = row_num 
+            error_message = content_error_str
+            #return error and empty list for warnings
+            if raises == 'error':
+                error_list = [error_row, error_col, error_message, error_val]
+            #return warning and empty list for errors
+            elif raises == 'warning':
+                warning_list = [error_row, error_col, error_message, error_val]
         
         return error_list, warning_list
 
