@@ -181,13 +181,13 @@ class ManifestGenerator(object):
             )
 
         else:
+            spreadsheet_body = {
+            'properties': {
+                'title': title
+            }}
+
             # if no template, create an empty spreadsheet
-            spreadsheet = (
-                self.sheet_service.spreadsheets()
-                .create(body=spreadsheet, fields="spreadsheetId")
-                .execute()
-            )
-            spreadsheet_id = spreadsheet.get("spreadsheetId")
+            spreadsheet_id = self.sheet_service.spreadsheets().create(body=spreadsheet_body, fields="spreadsheetId").execute().get("spreadsheetId")
 
         return spreadsheet_id
 
@@ -1474,6 +1474,7 @@ class ManifestGenerator(object):
             output_path: Determines the output path of the exported manifest (only relevant if returning an excel spreadsheet)
         return: a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL 
         """
+        ## TO DO: deprecate sheet_url parameter and simplify the logic here
 
         # check if output_format parameter gets set. If not, check the sheet_url parameter
         if not output_format: 
@@ -1556,7 +1557,6 @@ class ManifestGenerator(object):
 
         # Populate empty template with existing manifest
         if manifest_record:
-
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
 
@@ -1593,6 +1593,8 @@ class ManifestGenerator(object):
         Args:
             existing_excel_path: path of an existing excel spreadsheet
             additional_df: additional dataframe
+        Return: 
+            added new dataframe to the existing excel path. 
         '''
         # load workbook
         workbook = load_workbook(existing_excel_path)
@@ -1612,14 +1614,15 @@ class ManifestGenerator(object):
             writer.worksheets = {ws.title: ws for ws in workbook.worksheets}
             worksheet = writer.worksheets["Sheet1"]
 
+            # if there are new columns, add them to the end of spreadsheet
+            # Note: previously, we tried looping through the out of schema columns and use worksheet.cell to modify a particular cell. But that functionality is no longer working. 
+            if out_of_schema_columns_lst:
+                df_additional_headers = pd.DataFrame(columns=out_of_schema_columns_lst)
+                start_col_index = len(workbook_headers)
+                df_additional_headers.to_excel(writer, "Sheet1", startrow=0, startcol=start_col_index, index=False, header=True)
+            
             # add additional content to the existing spreadsheet
             additional_df.to_excel(writer, "Sheet1", startrow=1, index = False, header=False)
-
-            # if there are new columns, add them to the end of spreadsheet
-            if len(out_of_schema_columns_lst) > 0:
-                for i, col_name in enumerate(out_of_schema_columns_lst):
-                    col_index = len(workbook_headers) + 1 + i
-                    worksheet.cell(row=1, column=col_index).value = col_name
 
     def populate_manifest_spreadsheet(self, existing_manifest_path: str = None, empty_manifest_url: str = None, return_excel: bool = False, title: str = None):
         """Creates a google sheet manifest based on existing manifest.

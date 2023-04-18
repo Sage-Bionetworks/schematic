@@ -52,6 +52,29 @@ class TestVisualization:
         assert actual_column_names == expect_col_names
         assert actual_components == expected_components
 
+    @pytest.mark.parametrize("component", ["Patient", "BulkRNA-seqAssay"])
+    def test_ce(self, component, attributes_explorer):
+        """
+        Test the output of parse_component_attributes
+        """
+        # get attributes string
+        component_attributes_str = attributes_explorer.parse_component_attributes(component=component,save_file=False, include_index=False)
+        # convert to dataframe
+        component_attributes = pd.read_csv(StringIO(component_attributes_str))
+
+        # For the attributes df define expected columns
+        expect_col_names = ['Attribute', 'Label', 'Description',
+                            'Required', 'Cond_Req', 'Valid Values', 'Conditional Requirements',
+                            'Component']
+        
+        actual_column_names = component_attributes.columns.tolist()
+
+        # assert all columns are present
+        assert actual_column_names == expect_col_names
+        # assert all attributes belong to the same component
+        assert (component_attributes.Component == component).all()
+
+
     def test_text(self, helpers, tangled_tree):
         text_format = 'plain'
 
