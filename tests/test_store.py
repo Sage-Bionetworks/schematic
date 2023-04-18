@@ -505,6 +505,18 @@ class TestDownloadManifest:
         # clean up
         os.remove(manifest_data['path'])
 
+    def test_download_manifest_aws(self, mock_manifest_download):
+        # test downloading a manifest to a temporary folder 
+        # create an environment variable to mock environment variable on AWS:
+        os.environ["SECRETS_MANAGER_SECRETS"]="mock secret"
+        manifest_data = mock_manifest_download.download_manifest(mock_manifest_download)
+
+        assert manifest_data["name"] == "synapse_storage_manifest.csv"
+        
+        # clean up
+        os.remove(manifest_data['path'])
+        del os.environ['SECRETS_MANAGER_SECRETS']        
+
     @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078"])
     def test_entity_type_checking(self, synapse_store, entity_id, caplog):
         md = ManifestDownload(synapse_store.syn, entity_id)

@@ -16,6 +16,7 @@ from tenacity import retry, stop_after_attempt, wait_chain, wait_fixed, retry_if
 import numpy as np
 import pandas as pd
 import re
+import tempfile
 import synapseclient
 from time import sleep
 from schematic.utils.general import get_dir_size, convert_size, convert_gb_to_bytes
@@ -73,16 +74,28 @@ class ManifestDownload(object):
             manifest_data: A new Synapse Entity object of the appropriate type
         """
          # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config
-        if CONFIG["synapse"]["manifest_folder"]:
+        # on AWS, to avoid overriding manifest, we download the manifest to a temporary folder
+        if "SECRETS_MANAGER_SECRETS" in os.environ:
+            temp_dir = tempfile.gettempdir()
+            download_location=temp_dir
+
+        elif CONFIG["synapse"]["manifest_folder"]:
+            download_location=CONFIG["synapse"]["manifest_folder"]
+    
+        else:
+            download_location=None
+
+        if download_location: 
             manifest_data = self.syn.get(
                     self.manifest_id,
-                    downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                    downloadLocation=download_location,
                     ifcollision="overwrite.local",
                 )
         else:
             manifest_data = self.syn.get(
                         self.manifest_id,
                     )
+        
         return manifest_data 
 
     def _entity_type_checking(self):
