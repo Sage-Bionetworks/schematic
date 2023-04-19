@@ -505,6 +505,17 @@ class TestDownloadManifest:
         # clean up
         os.remove(manifest_data['path'])
 
+    def test_download_access_restricted_manifest(self, synapse_store):
+        # attempt to download an uncensored manifest that has access restriction. 
+        # if the code works correctly, the censored manifest that does not have access restriction would get downloaded (see: syn29862066)
+        md = ManifestDownload(synapse_store.syn, "syn29862066")
+        manifest_data = md.download_manifest(md)
+
+        assert os.path.exists(manifest_data['path'])
+        
+        # clean up 
+        os.remove(manifest_data['path'])
+
     @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078"])
     def test_entity_type_checking(self, synapse_store, entity_id, caplog):
         md = ManifestDownload(synapse_store.syn, entity_id)
