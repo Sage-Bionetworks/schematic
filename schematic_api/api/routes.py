@@ -655,14 +655,11 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=Tr
     try:
         syn = store.login(input_token=input_token)
     except SynapseAuthenticationError as e:
-        logger.error(f'Your credentials are not valid. Please provide a valid synapse token')
         raise e
     except SynapseTimeoutError as e:
-        logger.error("Time out waiting for synapse to respond")
         raise e
     except SynapseHTTPError as e:
-        logger.error(f"A Synapse HTTP error occurred. Please see the error status:{e.response.status_code}")
-        raise(e)
+        raise e
     try: 
         md = ManifestDownload(syn, manifest_id)
         manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
