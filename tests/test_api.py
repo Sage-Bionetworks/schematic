@@ -638,9 +638,9 @@ class TestManifestOperation:
 
         response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
         assert response.status_code == 500
-        with pytest.raises(RuntimeError) as exc_info:
-            raise RuntimeError('the runtime error got raised')
-        assert exc_info.value.args[0] == "the runtime error got raised"
+        with pytest.raises(TypeError) as exc_info:
+            raise TypeError('the type error got raised')
+        assert exc_info.value.args[0] == "the type error got raised"
 
     @pytest.mark.parametrize("as_json", [None, True, False])
     @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
