@@ -3,7 +3,7 @@
 # https://github.com/Sage-Bionetworks/challengeutils/blob/master/.github/workflows/pythonapp.yml
 # https://github.com/snok/install-poetry#workflows-and-tips
 
-name: Test schematic
+name: Test schematic API
 
 on:
   workflow_dispatch:  # Allow manually triggering the workflow
