@@ -97,9 +97,9 @@ class ManifestDownload(object):
             logger.error(f'You are using entity type: {entity_type}. Please try using a file')
 
     @staticmethod
-    def download_manifest(self, newManifestName="", manifest_df=None):
+    def download_manifest(self, newManifestName: str="", manifest_df: pd.DataFrame=pd.DataFrame()) -> File:
         """
-        Donwload a manifest based on a given manifest id. 
+        Download a manifest based on a given manifest id. 
         Args:
             newManifestName(optional): new name of a manifest that gets downloaded.
             manifest_df(optional): a dataframe containing name and id of manifests in a given asset view
@@ -119,16 +119,15 @@ class ManifestDownload(object):
             manifest_data = self._download_manifest_to_folder()
         except(SynapseUnmetAccessRestrictions, SynapseAuthenticationError):
             # if there's an error getting an uncensored manifest, try getting the censored manifest
-            if manifest_df and not manifest_df.empty:
+            if not manifest_df.empty:
                 censored_regex=re.compile('.*censored.*')
                 censored = manifest_df['name'].str.contains(censored_regex)
                 new_manifest_id=manifest_df[censored]["id"][0]
-                old_requested_manifest_id = self.manifest_id
                 self.manifest_id = new_manifest_id
                 try: 
                     manifest_data = self._download_manifest_to_folder()
                 except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
-                    logger.error(f"You don't have access to the requested resource: {old_requested_manifest_id} and {new_manifest_id}")
+                    raise e
             else:
                 logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
 
