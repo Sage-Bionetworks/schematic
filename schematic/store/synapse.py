@@ -97,7 +97,7 @@ class ManifestDownload(object):
             logger.error(f'You are using entity type: {entity_type}. Please try using a file')
 
     @staticmethod
-    def download_manifest(self, newManifestName: str="", manifest_df: pd.DataFrame=pd.DataFrame()) -> File:
+    def download_manifest(self, newManifestName: str="", manifest_df: pd.DataFrame=pd.DataFrame()) -> Union[str,File]:
         """
         Download a manifest based on a given manifest id. 
         Args:
@@ -489,7 +489,7 @@ class SynapseStorage(BaseStorage):
 
     def getDatasetManifest(
         self, datasetId: str, downloadFile: bool = False, newManifestName: str='',
-    ) -> List[str]:
+    ) -> Union[str, File]:
         """Gets the manifest associated with a given dataset.
 
         Args:
