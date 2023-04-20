@@ -1,16 +1,15 @@
 # Built from:
-# https://docs.github.com/en/actions/guides/building-and-testing-python
-# https://github.com/Sage-Bionetworks/challengeutils/blob/master/.github/workflows/pythonapp.yml
-# https://github.com/snok/install-poetry#workflows-and-tips
-
+# https://github.com/Sage-Bionetworks/schematic/blob/develop/.github/workflows/test.yml
 name: Test schematic API
 
 on:
-  workflow_dispatch:  # Allow manually triggering the workflow
-  inputs:
-    perform_benchmarking:
-      type: boolean
-      description: perform benchmarking test (True) or skip (False)
+  workflow_dispatch:
+    inputs:
+      perform_benchmarking:
+        required: true
+        type: boolean
+        description: perform benchmarking test (True) or skip (False)
+
 concurrency:
   # do not cancel the current running workflow from the same branch, PR when a new workflow is triggered
   # when the trigger is not a PR but a push, it will use the commit sha to generate the concurrency group
