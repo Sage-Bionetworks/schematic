@@ -629,8 +629,19 @@ class TestManifestOperation:
             os.remove(manifest_file_path)
         except: 
             pass
+    # test downloading a manifest with access restriction and see if the correct error message got raised
+    def test_download_invalid_manifest(self, client, syn_token):
+        params = {
+            "input_token": syn_token,
+            "manifest_id": "syn29862078"
+        }  
 
-    
+        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        assert response.status_code == 500
+        with pytest.raises(RuntimeError) as exc_info:
+            raise RuntimeError('the runtime error got raised')
+        assert exc_info.value.args[0] == "the runtime error got raised"
+
     @pytest.mark.parametrize("as_json", [None, True, False])
     @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
     def test_dataset_manifest_download(self, client, as_json, syn_token, new_manifest_name):

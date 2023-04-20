@@ -665,8 +665,8 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=Tr
         manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
         #return local file path
         manifest_local_file_path = manifest_data['path']
-    except KeyError as e:
-        raise (f"Failed to download manifest: {manifest_id}") from e
+    except (KeyError, TypeError) as e:
+        raise RuntimeError(f'Failed to download manifest {manifest_id}. An Error occurred: {e}')
     if as_json:
         manifest_json = return_as_json(manifest_local_file_path)
         return manifest_json

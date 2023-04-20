@@ -119,7 +119,7 @@ class ManifestDownload(object):
             manifest_data = self._download_manifest_to_folder()
         except(SynapseUnmetAccessRestrictions, SynapseAuthenticationError):
             # if there's an error getting an uncensored manifest, try getting the censored manifest
-            if not manifest_df.empty:
+            if manifest_df and not manifest_df.empty:
                 censored_regex=re.compile('.*censored.*')
                 censored = manifest_df['name'].str.contains(censored_regex)
                 new_manifest_id=manifest_df[censored]["id"][0]
