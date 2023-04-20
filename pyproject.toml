@@ -131,7 +131,7 @@ markers = [
     table_operations: marks tests covering \
     table operations that pass locally \
     but fail on CI due to interactions with Synapse (skipped on GitHub CI)   
-    """    
+    """,    
     """\
     rule_benchmark: marks tests covering \
     validation rule benchmarking
