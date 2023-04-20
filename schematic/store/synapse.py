@@ -81,7 +81,7 @@ class SynapseStorage(BaseStorage):
             syn_store = SynapseStorage()
         """
 
-        self.syn = self.login(token, access_token, input_token)
+        self.syn = self.login(token, access_token)
         self.project_scope = project_scope
 
 
@@ -137,9 +137,9 @@ class SynapseStorage(BaseStorage):
             raise AccessCredentialsError(self.storageFileview)        
 
     @staticmethod
-    def login(token=None, access_token=None, input_token=None):
+    def login(token=None, access_token=None):
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token and not input_token:
+        if not token and not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
