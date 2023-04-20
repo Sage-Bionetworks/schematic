@@ -687,8 +687,9 @@ def download_dataset_manifest(input_token, dataset_id, asset_view, as_json, new_
     #return local file path
     try:
         manifest_local_file_path = manifest_data['path']
-    except KeyError:
-        raise(f'Failed to download manifest from dataset: {dataset_id}')
+
+    except KeyError as e:
+        raise KeyError(f'Failed to download manifest from dataset: {dataset_id}') from e
 
     #return a json (if as_json = True)
     if as_json:
