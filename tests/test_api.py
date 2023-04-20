@@ -730,6 +730,7 @@ class TestSchemaVisualization:
         assert response_text in response.text
 
 @pytest.mark.schematic_api
+@pytest.mark.rule_benchmark
 class TestValidationBenchmark():
     @pytest.mark.parametrize('MockComponent_attribute', get_MockComponent_attribute())
     def test_validation_performance(self, helpers, benchmark_data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
