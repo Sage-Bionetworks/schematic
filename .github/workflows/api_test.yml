@@ -1,5 +1,6 @@
 # Built from:
 # https://github.com/Sage-Bionetworks/schematic/blob/develop/.github/workflows/test.yml
+
 name: Test schematic API
 
 on:
