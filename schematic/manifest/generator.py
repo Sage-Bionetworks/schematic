@@ -1510,7 +1510,7 @@ class ManifestGenerator(object):
                 return manifest_sh.url
 
     def get_manifest(
-        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, input_token: str = None
+        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, access_token: str = None
     ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
            TODO: move this function to class MetadatModel (after MetadataModel is refactored)
@@ -1520,7 +1520,7 @@ class ManifestGenerator(object):
             sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
             output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             output_path: Determines the output path of the exported manifest
-            input_token: Token in .synapseConfig. Since we could not pre-load access_token as an environment variable on AWS, we have to add this variable. 
+            access_token: Token in .synapseConfig. Since we could not pre-load access_token as an environment variable on AWS, we have to add this variable. 
 
         Returns:
             Googlesheet URL, pandas dataframe, or an Excel spreadsheet 
@@ -1542,9 +1542,9 @@ class ManifestGenerator(object):
         #TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-        if input_token: 
+        if access_token: 
             # for getting an existing manifest on AWS
-            store = SynapseStorage(input_token=input_token)
+            store = SynapseStorage(access_token=access_token)
         else: 
             store = SynapseStorage()
 

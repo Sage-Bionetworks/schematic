@@ -64,7 +64,6 @@ class SynapseStorage(BaseStorage):
         self,
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
-        input_token: str = None,
         project_scope: List = None,
     ) -> None:
         """Initializes a SynapseStorage object.
@@ -152,12 +151,9 @@ class SynapseStorage(BaseStorage):
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("Please make sure you are logged into synapse.org.")
         elif access_token:
-            syn = synapseclient.Synapse()
-            syn.default_headers["Authorization"] = f"Bearer {access_token}"
-        elif input_token: 
-            try: 
+            try:
                 syn = synapseclient.Synapse()
-                syn.default_headers["Authorization"] = f"Bearer {input_token}"
+                syn.default_headers["Authorization"] = f"Bearer {access_token}"
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("No access to resources. Please make sure that your token is correct")
         else:
