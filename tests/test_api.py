@@ -630,7 +630,7 @@ class TestManifestOperation:
         except: 
             pass
     # test downloading a manifest with access restriction and see if the correct error message got raised
-    def test_download_invalid_manifest(self, client, syn_token):
+    def test_download_access_restricted_manifest(self, client, syn_token):
         params = {
             "input_token": syn_token,
             "manifest_id": "syn29862078"
