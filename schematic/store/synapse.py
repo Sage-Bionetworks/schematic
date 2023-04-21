@@ -154,6 +154,7 @@ class SynapseStorage(BaseStorage):
             try:
                 syn = synapseclient.Synapse()
                 syn.default_headers["Authorization"] = f"Bearer {access_token}"
+                syn.login(authToken=access_token, silent = True)
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("No access to resources. Please make sure that your token is correct")
         else:
