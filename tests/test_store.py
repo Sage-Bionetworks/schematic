@@ -522,7 +522,7 @@ class TestDownloadManifest:
         md._entity_type_checking()
         if entity_id == "syn27600053":
             for record in caplog.records:
-                assert "You are using entity type: folder. Please try using a file" in record.message
+                assert "You are using entity type: folder. Please provide a file ID" in record.message
 
 
 
