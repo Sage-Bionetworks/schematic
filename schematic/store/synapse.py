@@ -94,7 +94,7 @@ class ManifestDownload(object):
         # check the type of entity
         entity_type = entity_type_mapping(self.syn, self.manifest_id)
         if entity_type  != "file":
-            logger.error(f'You are using entity type: {entity_type}. Please try using a file')
+            logger.error(f'You are using entity type: {entity_type}. Please provide a file ID')
 
     @staticmethod
     def download_manifest(self, newManifestName: str="", manifest_df: pd.DataFrame=pd.DataFrame()) -> Union[str,File]:
