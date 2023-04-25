@@ -1,5 +1,6 @@
-Component,MockRDB_id
-MockRDB,5
-MockRDB,6
-MockRDB,7
-MockRDB,8
+Component,MockRDB_id,Mock Attribute
+MockRDB,5,Manifest2
+MockRDB,6,Manifest2
+MockRDB,7,Manifest2
+MockRDB,8,Manifest2
+MockRDB,4,Manifest2
