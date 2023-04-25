@@ -380,7 +380,7 @@ class TestTableOperations:
         table_name="MockRDB_synapse_storage_manifest_table".lower()
         manifest_path = "mock_manifests/rdb_table_manifest.csv"
         replacement_manifest_path = "mock_manifests/rdb_table_manifest_upsert.csv"
-        column_of_interest="MockRDB_id"   
+        column_of_interest="MockRDB_id,MockAttribute"
         
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)        
@@ -412,13 +412,14 @@ class TestTableOperations:
         tableId = existing_tables[table_name]
 
         # Query table for DaystoFollowUp column        
-        IDs = synapse_store.syn.tableQuery(
+        table_query = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
 
         # assert max ID is '4' and that there are 4 entries
-        assert IDs.max() == 4
-        assert IDs.size == 4
+        assert table_query.MockRDB_id.max() == 4
+        assert table_query.MockRDB_id.size == 4
+        assert table_query['MockAttribute'][3] == 'Manifest1'
         
         # Associate new manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
@@ -435,12 +436,13 @@ class TestTableOperations:
         
         # Query table for DaystoFollowUp column        
         tableId = existing_tables[table_name]
-        IDs = synapse_store.syn.tableQuery(
+        table_query = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
 
         # assert max ID is '4' and that there are 4 entries
-        assert IDs.max() == 8
-        assert IDs.size == 8
+        assert table_query.MockRDB_id.max() == 8
+        assert table_query.MockRDB_id.size == 8
+        assert table_query['MockAttribute'][3] == 'Manifest2'
         # delete table        
         synapse_store.syn.delete(tableId)
