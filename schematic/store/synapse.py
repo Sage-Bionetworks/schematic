@@ -1953,6 +1953,10 @@ class TableOperations:
         if env_access_token:
             authtoken = env_access_token
 
+        # Get token from authorization header
+        if 'Authorization' in synStore.syn.default_headers:
+            authtoken = synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
+
         # retrive credentials from synapse object
         synapse_object_creds = synStore.syn.credentials
         if hasattr(synapse_object_creds, 'username'):
@@ -1970,7 +1974,6 @@ class TableOperations:
             if config.has_option('authentication', 'authtoken'):
                 authtoken = config.get('authentication', 'authtoken')
         
-        # raise error if required credentials are not found
         if not (username and authtoken):
             raise NameError(
                 "Username or authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
