@@ -474,21 +474,21 @@ class TestDownloadManifest:
         # rows that contain the censored manifest
         datasetFileViewDataFrame = pd.DataFrame(datasetFileView)
         row_censored = datasetFileViewDataFrame.loc[datasetFileViewDataFrame['name'] == "synapse_storage_manifest_censored.csv"]
-        if len(row_censored) > 0:
+        if not row_censored.empty > 0:
             censored_manifest_id = row_censored['id'].values[0]
         # rows that contain the uncensored manifest
         row_uncensored = datasetFileViewDataFrame.loc[datasetFileViewDataFrame['name'] == "synapse_storage_manifest.csv"]
-        if len(row_uncensored) > 0:
+        if not row_uncensored.empty > 0:
             uncensored_manifest_id = row_uncensored['id'].values[0]
         
         # get id of the uncensored manifest
         manifest_syn_id = synapse_store._get_manifest_id(datasetFileViewDataFrame)
 
         # if there are both censored and uncensored manifests, return only id of uncensored manifest
-        if len(row_uncensored) > 0:
+        if not row_uncensored.empty > 0:
             assert manifest_syn_id == uncensored_manifest_id
         # if only censored manifests are present, return only id of censored manifest
-        elif len(row_uncensored) == 0 and len(row_censored) > 0: 
+        elif row_uncensored.empty and not row_censored.empty: 
             assert manifest_syn_id == censored_manifest_id
 
     @pytest.mark.parametrize("newManifestName",["", "Example"]) 
