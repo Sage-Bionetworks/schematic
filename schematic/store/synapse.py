@@ -1974,15 +1974,12 @@ class TableOperations:
             if config.has_option('authentication', 'authtoken'):
                 authtoken = config.get('authentication', 'authtoken')
         
-        if not (username and authtoken):
+        # raise error if required credentials are not found
+        if not username and not authtoken:
             raise NameError(
                 "Username or authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
             )
-        if not username:
-            raise NameError(
-                "Username credentials could not be found in the environment, synapse object, or the .synapseConfig file"
-            )
-        if not username:
+        if not authtoken:
             raise NameError(
                 "authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
             )
