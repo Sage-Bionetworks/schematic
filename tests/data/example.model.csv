@@ -40,4 +40,4 @@ Check Date,,,,,TRUE,DataProperty,,,date
 Check NA,,,,,TRUE,DataProperty,,,int::IsNA
 MockRDB,,,"Component, MockRDB_id",,FALSE,DataType,,,
 MockRDB_id,,,,,TRUE,DataProperty,,,int
-Mock Attribute,,,,,TRUE,DataProperty,,,
+MockAttribute,,,,,TRUE,DataProperty,,,

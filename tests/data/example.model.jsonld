@@ -2980,7 +2980,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "Mock Attribute",
+            "sms:displayName": "MockAttribute",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
