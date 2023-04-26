@@ -1720,13 +1720,11 @@ class SynapseStorage(BaseStorage):
             str: The Synapse ID for the parent project.
         """
 
-        self._query_fileview()
-
         # Subset main file view
         dataset_index = self.storageFileviewTable["id"] == datasetId
         dataset_row = self.storageFileviewTable[dataset_index]
 
-        # re-query if nothing found
+        # re-query if no datasets found
         if len(dataset_row) == 0:
             sleep(5)
             self._query_fileview()
