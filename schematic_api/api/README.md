@@ -1,4 +1,5 @@
 ## Setup
+There are two ways to run schematic APIs: 1) start a flask server and run your application locally (preferred for external users); 2) build a docker image that allows you to run a container with flask application with uWSGI. 
 
 To start a local Flask server and test your endpoints:
 
@@ -6,6 +7,20 @@ To start a local Flask server and test your endpoints:
 source .venv/bin/activate
 python3 run_api.py
 ```
+You should be able to see the application running when visiting `http://localhost:3001/v1/ui/`
+
+To start a docker container that runs flask application with uWSGI:
+1) Comment out line 4 to line 19 in `docker-compose.yml`. 
+2) Create .env file based on env.example. Fill in `service_account_creds.json`
+3) Make sure that you have all the dependencies installed, including uWSGI and flask. 
+4) Build a docker image and spin up docker container `schematic-api-aws` by running: 
+```bash
+docker compose up
+```
+
+You should be able to see the application running when visiting `http://localhost:7080/v1/ui/`
+
+By default, this command builds up two containers (`schematic` and `schematic-aws`). You could spin up two containers if you want. But only `schematic-aws` runs flask with uWSGI. 
 
 ## Notes on installation
 1. The warning message: "connexion.options - The swagger_ui directory could not be found." could be addressed by pip installing connexion[swagger-ui]. For Mac users, the command should be: 
