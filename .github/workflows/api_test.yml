@@ -4,6 +4,8 @@
 name: Test schematic API
 
 on:
+  push:
+    branches: ['develop-api-workflow-FDS-328-test']
   workflow_dispatch:
     inputs:
       perform_benchmarking:
@@ -73,21 +75,20 @@ jobs:
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-        if: ${{ inputs.perform_benchmarking }}
+        #if: ${{ inputs.perform_benchmarking }}
         run: >
           source .venv/bin/activate;
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "schematic_api"
+          pytest tests/test_api.py
 
-      - name: Run API tests + Exclude Benchmarks
-        env:
-          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
-          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-        if: ${{ false == inputs.perform_benchmarking }}
-        run: >
-          source .venv/bin/activate;
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "schematic_api and not rule_benchmark"
+      # - name: Run API tests + Exclude Benchmarks
+      #   env:
+      #     SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+      #     SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+      #   if: ${{ false == inputs.perform_benchmarking }}
+      #   run: >
+      #     source .venv/bin/activate;
+      #     pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+      #     -m "schematic_api and not rule_benchmark"
 
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
