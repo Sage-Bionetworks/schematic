@@ -76,8 +76,7 @@ jobs:
         if: ${{ inputs.perform_benchmarking }}
         run: >
           source .venv/bin/activate;
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "schematic_api"
+          pytest -m "schematic_api"
 
       - name: Run API tests + Exclude Benchmarks
         env:
@@ -86,13 +85,5 @@ jobs:
         if: ${{ false == inputs.perform_benchmarking }}
         run: >
           source .venv/bin/activate;
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "schematic_api and not rule_benchmark"
-
-      - name: Upload pytest test results
-        uses: actions/upload-artifact@v2
-        with:
-          name: pytest-results-${{ matrix.python-version }}
-          path: htmlcov
-        # Use always() to always run this step to publish test results when there are test failures
-        if: ${{ always() }}
+          pytest -m "schematic_api and not rule_benchmark"
+          
