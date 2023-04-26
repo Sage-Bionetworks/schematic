@@ -1726,6 +1726,15 @@ class SynapseStorage(BaseStorage):
         dataset_index = self.storageFileviewTable["id"] == datasetId
         dataset_row = self.storageFileviewTable[dataset_index]
 
+        # re-query if nothing found
+        if len(dataset_row) == 0:
+            sleep(5)
+            self._query_fileview()
+            # Subset main file view
+            dataset_index = self.storageFileviewTable["id"] == datasetId
+            dataset_row = self.storageFileviewTable[dataset_index]
+
+
         # Return `projectId` for given row if only one found
         if len(dataset_row) == 1:
             dataset_project = dataset_row["projectId"].values[0]
