@@ -2944,6 +2944,9 @@
                 },
                 {
                     "@id": "bts:MockRDBId"
+                },
+                {
+                    "@id": "bts:SourceManifest"
                 }
             ],
             "sms:validationRules": []
@@ -2968,10 +2971,10 @@
             ]
         },
         {
-            "@id": "bts:MockAttribute",
+            "@id": "bts:SourceManifest",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
-            "rdfs:label": "MockAttribute",
+            "rdfs:label": "SourceManifest",
             "rdfs:subClassOf": [
                 {
                     "@id": "bts:DataProperty"
@@ -2980,7 +2983,7 @@
             "schema:isPartOf": {
                 "@id": "http://schema.biothings.io"
             },
-            "sms:displayName": "MockAttribute",
+            "sms:displayName": "SourceManifest",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
