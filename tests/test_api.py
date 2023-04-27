@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
 '''
 
+## TO DO: Clean up url and use a global variable SERVER_URL
+
 @pytest.fixture(scope="class")
 def app():
     app = create_app()
@@ -179,7 +181,6 @@ class TestSynapseStorage:
     def test_get_entity_type(self, syn_token, client, entity_id):
         params = {
             "input_token": syn_token,
-            "asset_view": "syn23643253",
             "entity_id": entity_id
         }
         response = client.get("http://localhost:3001/v1/storage/entity/type", query_string = params)
@@ -576,9 +577,74 @@ class TestManifestOperation:
                 "Year of Birth": "Int64",
                 "entityId": "string"}
 
+    # small manifest: syn51078535; big manifest: syn51156998
+    @pytest.mark.parametrize("manifest_id, expected_component, expected_file_name", [("syn51078535", "BulkRNA-seqAssay", "synapse_storage_manifest.csv"), ("syn51156998", "Biospecimen", "synapse_storage_manifest_biospecimen.csv")])
+    @pytest.mark.parametrize("new_manifest_name",[None,"Example.csv"]) 
+    @pytest.mark.parametrize("as_json",[None,True,False]) 
+    def test_manifest_download(self, config, client, syn_token, manifest_id, new_manifest_name, as_json, expected_component, expected_file_name):
+        params = {
+            "input_token": syn_token,
+            "manifest_id": manifest_id,
+            "new_manifest_name": new_manifest_name, 
+            "as_json": as_json
+
+        }
+
+        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        assert response.status_code == 200
+
+        # if as_json is set to True or as_json is not defined, then a json gets returned
+        if as_json or as_json is None:
+            response_dta = json.loads(response.data)
+
+            # check if the correct manifest gets downloaded 
+            assert response_dta[0]["Component"] == expected_component
+
+            current_work_dir = os.getcwd()
+            folder_test_manifests = config["synapse"]["manifest_folder"]
+            folder_dir = os.path.join(current_work_dir, folder_test_manifests)
+
+            # if a manfiest gets renamed, get new manifest file path
+            if new_manifest_name:
+                manifest_file_path = os.path.join(folder_dir, new_manifest_name + '.' + 'csv')
+            # if a manifest does not get renamed, get existing manifest file path
+            else: 
+                manifest_file_path = os.path.join(folder_dir,expected_file_name)
+
+        else:
+            # manifest file path gets returned
+            manifest_file_path = response.data.decode()
+
+            file_base_name = os.path.basename(manifest_file_path)
+            file_name = os.path.splitext(file_base_name)[0]
+
+            if new_manifest_name: 
+                assert file_name == new_manifest_name
+
+        # make sure file gets correctly downloaded
+        assert os.path.exists(manifest_file_path)
+
+        #delete files
+        try: 
+            os.remove(manifest_file_path)
+        except: 
+            pass
+    # test downloading a manifest with access restriction and see if the correct error message got raised
+    def test_download_access_restricted_manifest(self, client, syn_token):
+        params = {
+            "input_token": syn_token,
+            "manifest_id": "syn29862078"
+        }  
+
+        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        assert response.status_code == 500
+        with pytest.raises(TypeError) as exc_info:
+            raise TypeError('the type error got raised')
+        assert exc_info.value.args[0] == "the type error got raised"
+
     @pytest.mark.parametrize("as_json", [None, True, False])
     @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
-    def test_manifest_download(self, client, as_json, syn_token, new_manifest_name):
+    def test_dataset_manifest_download(self, client, as_json, syn_token, new_manifest_name):
         params = {
             "input_token": syn_token,
             "asset_view": "syn28559058",
@@ -587,7 +653,7 @@ class TestManifestOperation:
             "new_manifest_name": new_manifest_name
         }
 
-        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        response = client.get('http://localhost:3001/v1/dataset/manifest/download', query_string = params)
         assert response.status_code == 200
         response_dt = response.data
 

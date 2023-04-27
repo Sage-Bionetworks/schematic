@@ -9,6 +9,7 @@ info:
 servers:
   - url: /v1
 
+# TO DO: refactor query parameters and remove input_token
 paths:
   /manifest/generate:
     get:
@@ -101,8 +102,57 @@ paths:
         - Manifest Operations
   /manifest/download:
     get:
-      summary: Endpoint to download an existing manifest
-      description: Endpoint to download an existing manifest
+      summary: Endpoint to download an existing manifest by using a manifest id
+      description: Endpoint to download an existing manifest by using a manifest id
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: manifest_id
+          schema:
+            type: string
+            nullable: true
+          description: manifest id
+          example: syn51078535
+          required: true
+        - in: query
+          name: new_manifest_name
+          schema:
+            type: string
+            nullable: true
+          description: Fill in if you want to change the filename of the downloaded manifest.
+          required: false
+        - in: query
+          name: as_json
+          schema:
+            type: boolean
+            default: True
+          description: if True return the manifest in JSON format. Default to True
+          required: false
+      operationId: schematic_api.api.routes.download_manifest
+      responses:
+        "200":
+          description: A manifest gets downloaded and local file path of the manifest gets returned.
+          content:
+            text/csv:
+              schema:
+                type: string
+        "403":
+          description: You don't have access to the requested resources. 
+        "500":
+          description: Please check schematic log
+      tags:
+        - Manifest Operations            
+  /dataset/manifest/download:
+    get:
+      summary: Endpoint to download an existing manifest by using a dataset id
+      description: Endpoint to download an existing manifest by using a dataset id
       parameters:
         - in: query
           name: input_token
@@ -142,7 +192,7 @@ paths:
             nullable: true
           description: Fill in if you want to change the filename of the downloaded manifest.
           required: false
-      operationId: schematic_api.api.routes.download_manifest
+      operationId: schematic_api.api.routes.download_dataset_manifest
       responses:
         "200":
           description: A manifest gets downloaded and local file path of the manifest gets returned.
@@ -684,14 +734,6 @@ paths:
             nullable: false
           description: Token
           example: Token
-          required: true
-        - in: query
-          name: asset_view
-          schema:
-            type: string
-            nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
-          example: syn23643253
           required: true
         - in: query
           name: entity_id

@@ -1,10 +1,11 @@
 from email import generator
 import os
+from json.decoder import JSONDecodeError
 import shutil
 import tempfile
 import shutil
 import urllib.request
-
+import logging
 import pickle
 
 import connexion
@@ -14,6 +15,7 @@ from werkzeug.debug import DebuggedApplication
 from flask_cors import cross_origin
 from flask import send_from_directory
 from flask import current_app as app
+
 import pandas as pd
 import json
 
@@ -24,10 +26,12 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.store.synapse import SynapseStorage
-from schematic.schemas.explorer import SchemaExplorer
-from schematic.utils.df_utils import load_df
-from schematic.utils.general import profile
+from schematic.store.synapse import SynapseStorage, ManifestDownload
+from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions, SynapseNoCredentialsError, SynapseTimeoutError
+from schematic.utils.general import entity_type_mapping
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 def config_handler(asset_view=None):
     path_to_config = app.config["SCHEMATIC_CONFIG"]
@@ -164,7 +168,19 @@ def parse_bool(str_bool):
         raise ValueError(
             "String boolean does not appear to be true or false. Please verify input."
         )
-        
+
+def return_as_json(manifest_local_file_path):
+    manifest_csv = pd.read_csv(manifest_local_file_path)
+    try:
+        manifest_json = manifest_csv.to_dict(orient="records")
+        return manifest_json
+    except JSONDecodeError as e:
+        logger.error("Json data is not formatted correctly", e)
+        raise(e)
+    except ValueError as e:
+        logger.error('Failed to return the downloaded manifest as a json', e)
+        raise(e)
+
 def save_file(file_key="csv_file"):
     '''
     input: 
@@ -480,15 +496,14 @@ def check_if_files_in_assetview(input_token, asset_view, entity_id):
 
     return if_exists
 
-def check_entity_type(input_token, asset_view, entity_id):
+def check_entity_type(input_token, entity_id):
     # call config handler 
-    config_handler(asset_view=asset_view)
+    config_handler()
 
-    # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    syn = SynapseStorage.login(access_token = input_token)
+    entity_type = entity_type_mapping(syn, entity_id)
 
-    entity_type = store.checkEntityType(entity_id)
-    return entity_type
+    return entity_type 
 
 def get_component_requirements(schema_url, source_component, as_graph):
     metadata_model = initalize_metadata_model(schema_url)
@@ -547,8 +562,46 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
+def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=True):
+    """
+    Download a manifest based on a given manifest id. 
+    Args:
+        input_token: token of asset store
+        manifest_syn_id: syn id of a manifest
+        newManifestName: new name of a manifest that gets downloaded.
+        as_json: boolean; If true, return a manifest as a json. Default to True
+    Return: 
+        file path of the downloaded manifest
+    """
+    # call config_handler()
+    config_handler()
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+    # try logging in to asset store
+    try:
+        syn = store.login(input_token=input_token)
+    except SynapseAuthenticationError as e:
+        raise e
+    except SynapseTimeoutError as e:
+        raise e
+    except SynapseHTTPError as e:
+        raise e
+    try: 
+        md = ManifestDownload(syn, manifest_id)
+        manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
+        #return local file path
+        manifest_local_file_path = manifest_data['path']
+    except TypeError as e:
+        raise TypeError(f'Failed to download manifest {manifest_id}.')
+    if as_json:
+        manifest_json = return_as_json(manifest_local_file_path)
+        return manifest_json
+    else:
+        return manifest_local_file_path
+
 #@profile(sort_by='cumulative', strip_dirs=True)  
-def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
+def download_dataset_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -559,12 +612,15 @@ def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest
     manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name)
 
     #return local file path
-    manifest_local_file_path = manifest_data['path']
+    try:
+        manifest_local_file_path = manifest_data['path']
 
-    # return a json (if as_json = True)
-    if as_json: 
-        manifest_csv = pd.read_csv(manifest_local_file_path)
-        manifest_json = json.loads(manifest_csv.to_json(orient="records"))
+    except KeyError as e:
+        raise KeyError(f'Failed to download manifest from dataset: {dataset_id}') from e
+
+    #return a json (if as_json = True)
+    if as_json:
+        manifest_json = return_as_json(manifest_local_file_path)
         return manifest_json
 
     return manifest_local_file_path
