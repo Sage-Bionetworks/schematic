@@ -117,10 +117,10 @@ def entity_type_mapping(syn, entity_id):
         # if there's no matching type, return concreteType
         return entity.concreteType
 
-def create_temp_folder(path):
+def create_temp_folder(path: str) -> str:
     """This function creates a temporary directory in the specified directory 
     Args:
-        path: a directory path where all the temporary files will live
+        path(str): a directory path where all the temporary files will live
     Returns: returns the absolute pathname of the new directory.
     """
     # Create a temporary directory in the specified directory
