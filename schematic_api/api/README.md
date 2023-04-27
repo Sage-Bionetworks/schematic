@@ -7,7 +7,7 @@ To start a local Flask server and test your endpoints:
 source .venv/bin/activate
 python3 run_api.py
 ```
-You should be able to see the application running when visiting `http://localhost:3001/v1/ui/`
+If you define `APP_PORT` as `3001` in `docker-compose.yml`, you should be able to see the application running when visiting `http://localhost:3001/v1/ui/`
 
 To start a docker container that runs flask application with uWSGI:
 1) Comment out line 4 to line 19 in `docker-compose.yml`. 
@@ -17,8 +17,7 @@ To start a docker container that runs flask application with uWSGI:
 ```bash
 docker compose up
 ```
-
-You should be able to see the application running when visiting `http://localhost:7080/v1/ui/`
+If you define the value of SERVER_PORT as `7080` in `.env` file, you should be able to see the application running when visiting `http://localhost:7080/v1/ui/`
 
 By default, this command builds up two containers (`schematic` and `schematic-aws`). You could spin up two containers if you want. But only `schematic-aws` runs flask with uWSGI. 
 
