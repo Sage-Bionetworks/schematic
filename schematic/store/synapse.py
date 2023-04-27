@@ -45,6 +45,8 @@ from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
 from schematic_db.schema.schema import get_key_attribute
 
+from synapseclient.entity import File
+
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.general import create_temp_folder
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
@@ -67,15 +69,14 @@ class ManifestDownload(object):
     syn: synapseclient.Synapse
     manifest_id: str
 
-    def _download_manifest_to_folder(self):
+    def _download_manifest_to_folder(self) -> File:
         """
         try downloading a manifest to local cache or a given folder
         manifest
         Return: 
-            manifest_data: A new Synapse Entity object of the appropriate type
+            manifest_data: synapse file entity
         """
-         # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config
-
+        # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config
         # on AWS, to avoid overriding manifest, we download the manifest to a temporary folder
         if "SECRETS_MANAGER_SECRETS" in os.environ:
             temporary_manifest_storage = "/var/tmp/temp_manifest_download"
@@ -101,7 +102,7 @@ class ManifestDownload(object):
                     )
         return manifest_data 
 
-    def _entity_type_checking(self):
+    def _entity_type_checking(self) -> str:
         """
         check the entity type of the id that needs to be downloaded
         Return: 
