@@ -3,7 +3,10 @@ FROM python:3.10.9-slim-bullseye
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-# set APP_PORT to 80
+# set default APP_PORT to 80
+# the environment variables defined here are the default
+# and can be overwritten by docker run -e VARIABLE = XX
+# or can be overwritten by .env when using docker compose
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
