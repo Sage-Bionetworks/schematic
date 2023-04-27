@@ -7,6 +7,7 @@ import atexit
 import logging
 import secrets
 from dataclasses import dataclass
+import tempfile
 
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
@@ -45,6 +46,7 @@ from schematic_db.rdb.synapse_database import SynapseDatabase
 from schematic_db.schema.schema import get_key_attribute
 
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.general import create_temp_folder
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
@@ -73,10 +75,24 @@ class ManifestDownload(object):
             manifest_data: A new Synapse Entity object of the appropriate type
         """
          # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config
-        if CONFIG["synapse"]["manifest_folder"]:
+
+        # on AWS, to avoid overriding manifest, we download the manifest to a temporary folder
+        if "SECRETS_MANAGER_SECRETS" in os.environ:
+            temporary_manifest_storage = "/var/tmp/temp_manifest_download"
+            if not os.path.exists(temporary_manifest_storage):
+                os.mkdir("/var/tmp/temp_manifest_download")
+            download_location = create_temp_folder(temporary_manifest_storage)
+
+        elif CONFIG["synapse"]["manifest_folder"]:
+            download_location=CONFIG["synapse"]["manifest_folder"]
+
+        else:
+            download_location=None
+
+        if download_location: 
             manifest_data = self.syn.get(
                     self.manifest_id,
-                    downloadLocation=CONFIG["synapse"]["manifest_folder"],
+                    downloadLocation=download_location,
                     ifcollision="overwrite.local",
                 )
         else:
