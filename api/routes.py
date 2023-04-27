@@ -198,7 +198,7 @@ def initalize_metadata_model(schema_url):
 def get_temp_jsonld(schema_url):
     # retrieve a JSON-LD via URL and store it in a temporary location
     with urllib.request.urlopen(schema_url) as response:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jsonld") as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".model.jsonld") as tmp_file:
             shutil.copyfileobj(response, tmp_file)
 
     # get path to temporary JSON-LD file
@@ -330,9 +330,13 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     return all_results
 
 
-def validate_manifest_route(schema_url, data_type, json_str=None):
+def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None):
     # call config_handler()
     config_handler()
+
+    #If restrict_rules parameter is set to None, then default it to False 
+    if not restrict_rules:
+        restrict_rules = False
 
     #Get path to temp file where manifest file contents will be saved
     jsc = JsonConverter()
@@ -350,7 +354,7 @@ def validate_manifest_route(schema_url, data_type, json_str=None):
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=temp_path, rootNode=data_type
+        manifestPath=temp_path, rootNode=data_type, restrict_rules=restrict_rules
     )
     
     res_dict = {"errors": errors, "warnings": warnings}
@@ -388,6 +392,9 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     if not table_manipulation: 
         table_manipulation = "replace"
+
+    if not manifest_record_type:
+        manifest_record_type = "table_file_and_entities"
 
     if data_type == 'None':
         validate_component = None
@@ -464,6 +471,28 @@ def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, fi
     file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
     return file_lst
 
+def check_if_files_in_assetview(input_token, asset_view, entity_id):
+    # call config handler 
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    # call function and check if a file or a folder is in asset view
+    if_exists = store.checkIfinAssetView(entity_id)
+
+    return if_exists
+
+def check_entity_type(input_token, asset_view, entity_id):
+    # call config handler 
+    config_handler(asset_view=asset_view)
+
+    # use Synapse Storage
+    store = SynapseStorage(input_token=input_token)
+
+    entity_type = store.checkEntityType(entity_id)
+    return entity_type
+
 def get_component_requirements(schema_url, source_component, as_graph):
     metadata_model = initalize_metadata_model(schema_url)
 
@@ -478,6 +507,16 @@ def get_viz_attributes_explorer(schema_url):
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
 
     attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_attributes(save_file=False)
+
+    return attributes_csv
+
+def get_viz_component_attributes_explorer(schema_url, component, include_index):
+    # call config_handler()
+    config_handler()
+
+    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+
+    attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_component_attributes(component, save_file=False, include_index=include_index)
 
     return attributes_csv
 

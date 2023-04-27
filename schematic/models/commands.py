@@ -3,6 +3,7 @@
 from gc import callbacks
 import logging
 import sys
+from time import perf_counter
 
 import click
 import click_log
@@ -15,7 +16,7 @@ from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic import CONFIG
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
@@ -79,8 +80,8 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='both',
-    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
+    default='table_file_and_entities',
+    type=click.Choice(['table_and_file', 'file_only', 'file_and_entities', 'table_file_and_entities'], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
 @click.option(
     "-rr",
@@ -108,7 +109,7 @@ def submit_manifest(
     """
     Running CLI with manifest validation (optional) and submission options.
     """
-
+    
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -117,46 +118,24 @@ def submit_manifest(
         inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
     )
 
-    try:
-        manifest_id = metadata_model.submit_metadata_manifest(
-            path_to_json_ld = jsonld,
-            manifest_path=manifest_path,
-            dataset_id=dataset_id,
-            validate_component=validate_component,
-            manifest_record_type=manifest_record_type,
-            restrict_rules=restrict_rules,
-            use_schema_label=use_schema_label,
-            hide_blanks=hide_blanks,
-            project_scope=project_scope,
-            table_manipulation=table_manipulation,
-        )
 
-        '''
-        if censored_manifest_id:
-            logger.info(
-                f"File at '{manifest_path}' was censored and successfully associated "
-                f"with dataset '{dataset_id}'. "
-                f"An uncensored version has also been associated with dataset '{dataset_id}' "
-                f"and submitted to the Synapse Access Control Team to begin the process "
-                f"of adding terms of use or review board approval."
-            )
-        '''
-        if manifest_id:
-            logger.info(
-                f"File at '{manifest_path}' was successfully associated "
-                f"with dataset '{dataset_id}'."
-            )
-    except ValueError:
-        logger.error(
-            f"Component '{validate_component}' is not present in '{jsonld}', or is invalid."
-        )
-    except ValidationError:
-        logger.error(
-            f"Validation errors resulted while validating with '{validate_component}'."
-        )
-    except LookupError:
-        logger.error(
-            f"'{dataset_id}' could not be found in the asset view (or file view for Synapse user)"
+    manifest_id = metadata_model.submit_metadata_manifest(
+        path_to_json_ld = jsonld,
+        manifest_path=manifest_path,
+        dataset_id=dataset_id,
+        validate_component=validate_component,
+        manifest_record_type=manifest_record_type,
+        restrict_rules=restrict_rules,
+        use_schema_label=use_schema_label,
+        hide_blanks=hide_blanks,
+        project_scope=project_scope,
+        table_manipulation=table_manipulation,
+    )
+    
+    if manifest_id:
+        logger.info(
+            f"File at '{manifest_path}' was successfully associated "
+            f"with dataset '{dataset_id}'."
         )
 
 
@@ -220,7 +199,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         ("model", "input", "validation_schema"),
         allow_none=True,
     )
-    
+    t_validate = perf_counter()
     jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
     model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
@@ -241,3 +220,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         )
     else:
         click.echo(errors)
+
+    logger.debug(
+        f"Total elapsed time {perf_counter()-t_validate} seconds"
+    )

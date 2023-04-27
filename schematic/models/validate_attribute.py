@@ -3,6 +3,7 @@ import logging
 import re
 import sys
 import time
+from time import perf_counter
 from os import getenv
 # allows specifying explicit variable types
 from typing import Any, Dict, List, Optional, Text
@@ -20,7 +21,12 @@ from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (comma_separated_list_regex,
-                                            parse_str_series_to_list)
+                                            parse_str_series_to_list,
+                                            np_array_to_str_list,
+                                            iterable_to_str_list,
+                                            rule_in_rule_list,
+                                            )
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +54,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -82,8 +88,9 @@ class GenerateError:
                 - row_num: the row the error occurred on.
                 - attribute_name: the attribute the error occurred on.
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -98,7 +105,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -143,8 +150,9 @@ class GenerateError:
                 module_to_call: re module specified in the schema
                 attribute_name: str, attribute being validated
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
         error_list = []
         warning_list = []
@@ -158,7 +166,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -193,8 +201,9 @@ class GenerateError:
                 row_num: str, row where the error was detected
                 attribute_name: str, attribute being validated
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -209,7 +218,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -217,19 +226,22 @@ class GenerateError:
             f"On row {row_num} the attribute {attribute_name} "
             f"does not contain the proper value type {val_rule}."
         )
-        logLevel(type_error_str)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = type_error_str
         error_val = invalid_entry
 
-
-        #return error and empty list for warnings
-        if raises == 'error':
-            error_list = [error_row, error_col, error_message, error_val]
-        #return warning and empty list for errors
-        elif raises == 'warning':
-            warning_list = [error_row, error_col, error_message, error_val]
+        # If IsNA rule is being used to allow `Not Applicable` entries, do not log a message
+        if error_val.lower() == 'not applicable' and rule_in_rule_list('IsNA', sg.get_node_validation_rules(sg.get_node_label(attribute_name))):
+          pass  
+        else:
+            logLevel(type_error_str)
+            #return error and empty list for warnings
+            if raises == 'error':
+                error_list = [error_row, error_col, error_message, error_val]
+            #return warning and empty list for errors
+            elif raises == 'warning':
+                warning_list = [error_row, error_col, error_message, error_val]
         
         return error_list, warning_list              
 
@@ -257,8 +269,9 @@ class GenerateError:
                 attribute_name: str, attribute being validated
                 argument: str, argument being validated.
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
 
         error_list = []
@@ -273,7 +286,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -337,8 +350,9 @@ class GenerateError:
                 invalid_entry: str, value present in source manifest that is missing in the target
                 row_num: row in source manifest with value missing in target manifests             
             Returns:
-                Logging.error.
-                Errors: List[str] Error details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
             """
         error_list = []
         warning_list = []
@@ -352,7 +366,7 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
 
@@ -415,13 +429,16 @@ class GenerateError:
                 error_val: value duplicated
 
         Returns:
-            Logging.error or Logging.warning.
-            Message: List[str] Error|Warning details for further storage.
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         """
         error_list = []
         warning_list = []
         error_col = attribute_name  # Attribute name
-        
+        if error_val:
+            error_val = iterable_to_str_list(set(error_val))
+
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
             val_rule=val_rule,
@@ -431,17 +448,17 @@ class GenerateError:
 
         #if a message needs to be raised, get the approrpiate function to do so
         if raises:
-            logLevel = getattr(logging,raises)  
+            logLevel = getattr(logger,raises)  
         else:
             return error_list, warning_list
         
         #log warning or error message
         if val_rule.startswith('recommended'):
-            cross_error_str = (
+            content_error_str = (
                 f"Column {attribute_name} is recommended but empty."
             )
-            logLevel(cross_error_str)
-            error_message = cross_error_str
+            logLevel(content_error_str)
+            error_message = content_error_str
 
             if raises == 'error':
                 error_list = [error_col, error_message]
@@ -452,33 +469,38 @@ class GenerateError:
             return error_list, warning_list
 
         elif val_rule.startswith('unique'):    
-            cross_error_str = (
-                f"Column {attribute_name} has the duplicate value(s) {set(error_val)} in rows: {row_num}."
+            content_error_str = (
+                f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
             )
 
         elif val_rule.startswith('protectAges'):
-            cross_error_str = (
+            content_error_str = (
                 f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
             )           
 
         elif val_rule.startswith('inRange'):
-            cross_error_str = (
+            content_error_str = (
                 f"{attribute_name} values in rows {row_num} are out of the specified range."
             )
         elif val_rule.startswith('date'):
-            cross_error_str = (
+            content_error_str = (
                 f"{attribute_name} values in rows {row_num} are not parsable as dates."
             )  
-        logLevel(cross_error_str)
-        error_row = row_num 
-        error_message = cross_error_str
+        elif val_rule.startswith('IsNA'):
+            content_error_str = (
+                f"{attribute_name} values in rows {row_num} are not marked as 'Not Applicable'."
+            )  
 
-        #return error and empty list for warnings
-        if raises == 'error':
-            error_list = [error_row, error_col, error_message, set(error_val)]
-        #return warning and empty list for errors
-        elif raises == 'warning':
-            warning_list = [error_row, error_col, error_message, set(error_val)]
+        if val_rule != "IsNA":
+            logLevel(content_error_str)
+            error_row = row_num 
+            error_message = content_error_str
+            #return error and empty list for warnings
+            if raises == 'error':
+                error_list = [error_row, error_col, error_message, error_val]
+            #return warning and empty list for errors
+            elif raises == 'warning':
+                warning_list = [error_row, error_col, error_message, error_val]
         
         return error_list, warning_list
 
@@ -510,25 +532,20 @@ class GenerateError:
         rule_parts = val_rule.split(" ")
         rule_info = validation_rule_info()
 
-        if not sg.is_node_required(node_display_name=attribute_name):
-            # raise warning if recommended but not required
-            if 'recommended' in val_rule:
-                level = 'warning'
-            # If not required or recommended raise warnings to notify
-            else:
-                level = 'warning' 
-                return level
-        elif sg.is_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
-            level = None
-        
-        
+        #set message level to default and change after
+        if rule_parts[0] != 'schema':
+            level = rule_info[rule_parts[0]]['default_message_level']
+
         # Parse rule for level, set to default if not specified
         if rule_parts[-1].lower() == 'error' or rule_parts[0] == 'schema':
             level = 'error'
         elif rule_parts[-1].lower() == 'warning':
-            level = 'warning'
-        else:
-            level = rule_info[rule_parts[0]]['default_message_level']
+            level = 'warning'        
+        elif not sg.is_node_required(node_display_name=attribute_name):
+            # If not required raise warnings to notify
+            level = 'warning' 
+        elif sg.is_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
+            level = None
             
         return level
 
@@ -548,7 +565,7 @@ class ValidateAttribute(object):
     """
 
     def get_target_manifests(target_component, project_scope: List):
-
+        t_manifest_search = perf_counter()
         target_manifest_IDs=[]
         target_dataset_IDs=[]
         
@@ -572,6 +589,7 @@ class ValidateAttribute(object):
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
 
+        logger.debug(f"Cross manifest gathering elapsed time {perf_counter()-t_manifest_search}")
         return synStore, target_manifest_IDs, target_dataset_IDs    
 
     def list_validation(
@@ -585,7 +603,9 @@ class ValidateAttribute(object):
             - manifest_col: pd.core.series.Series, column for a given attribute
         Returns:
             - manifest_col: Input values in manifest arere-formatted to a list
-            - Error log, error list
+            logger.error or logger.warning.
+            Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         """
 
         # For each 'list' (input as a string with a , delimiter) entered,
@@ -649,8 +669,9 @@ class ValidateAttribute(object):
         Returns:
             - This function will return errors when the user input value
             does not match schema specifications.
-            Logging.error.
+            logger.error or logger.warning.
             Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         TODO: 
             move validation to convert step.
         """
@@ -733,8 +754,9 @@ class ValidateAttribute(object):
         Returns:
             -This function will return errors when the user input value
             does not match schema specifications.
-            Logging.error.
+            logger.error or logger.warning.
             Errors: List[str] Error details for further storage.
+            warnings: List[str] Warning details for further storage.
         TODO:
             Convert all inputs to .lower() just to prevent any entry errors.
         """
@@ -905,6 +927,7 @@ class ValidateAttribute(object):
         #Get IDs of manifests with target component
         synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
 
+        t_cross_manifest = perf_counter()
         #Read each manifest
         for target_manifest_ID, target_dataset_ID in zip(target_manifest_IDs,target_dataset_IDs):
             entity = synStore.getDatasetManifest(
@@ -955,11 +978,12 @@ class ValidateAttribute(object):
             
             if val_rule.__contains__('matchAtLeastOne') and not missing_values.empty:
                 missing_rows = missing_values.index.to_numpy() + 2
+                missing_rows = np_array_to_str_list(missing_rows)
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
-                        row_num = str(list(missing_rows)),
+                        row_num = missing_rows,
                         attribute_name = source_attribute,
-                        invalid_entry = str(missing_values.values.tolist()),
+                        invalid_entry = iterable_to_str_list(missing_values),
                         sg = sg,
                     )
                 if vr_errors:
@@ -969,11 +993,12 @@ class ValidateAttribute(object):
             elif val_rule.__contains__('matchExactlyOne') and (duplicated_values.any() or missing_values.any()):
                 invalid_values  = pd.merge(duplicated_values,missing_values,how='outer')
                 invalid_rows    = pd.merge(duplicated_values,missing_values,how='outer',left_index=True,right_index=True).index.to_numpy() + 2
+                invalid_rows    = np_array_to_str_list(invalid_rows)
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
-                        row_num = str(list(invalid_rows)), 
+                        row_num = invalid_rows,
                         attribute_name = source_attribute, 
-                        invalid_entry = str(pd.Series(invalid_values.squeeze()).values.tolist()),
+                        invalid_entry = iterable_to_str_list(invalid_values.squeeze()),
                         sg = sg,
                     )
                 if vr_errors:
@@ -992,15 +1017,14 @@ class ValidateAttribute(object):
                     missing_rows.append(missing_entry.index[0]+2)
                     missing_values.append(missing_entry.values[0])
                     
-                missing_rows=list(set(missing_rows))
-                missing_values=list(set(missing_values))
-                #print(missing_rows,missing_values)
-
+                missing_rows=iterable_to_str_list(set(missing_rows))
+                missing_values=iterable_to_str_list(set(missing_values))
+                
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                         val_rule = val_rule,
-                        row_num = str(missing_rows),
+                        row_num = missing_rows,
                         attribute_name = source_attribute,
-                        invalid_entry = str(missing_values),
+                        invalid_entry = missing_values,
                         missing_manifest_ID = missing_manifest_IDs,
                         sg = sg,
                     )
@@ -1021,6 +1045,7 @@ class ValidateAttribute(object):
                     warnings.append(vr_warnings)
                 
 
+        logger.debug(f"cross manifest validation time {perf_counter()-t_cross_manifest}")
         return errors, warnings
 
 

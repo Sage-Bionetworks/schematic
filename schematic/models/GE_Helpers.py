@@ -21,10 +21,12 @@ from great_expectations.core.expectation_configuration import ExpectationConfigu
 from great_expectations.data_context import BaseDataContext
 from great_expectations.data_context.types.base import DataContextConfig, DatasourceConfig, FilesystemStoreBackendDefaults
 from great_expectations.data_context.types.resource_identifiers import ExpectationSuiteIdentifier
+from great_expectations.exceptions.exceptions import GreatExpectationsError
+
 
 from schematic.models.validate_attribute import GenerateError
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.validate_utils import rule_in_rule_list, np_array_to_str_list, iterable_to_str_list
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +134,8 @@ class GreatExpectationsHelpers(object):
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
             "inRange": "expect_column_values_to_be_between",
-            
+            "IsNA": "expect_column_values_to_match_regex_list",
+
             # To be implemented rules with possible expectations
             #"list": "expect_column_values_to_not_match_regex_list",
             #"regex": "expect_column_values_to_match_regex",
@@ -252,6 +255,7 @@ class GreatExpectationsHelpers(object):
                         args["mostly"]=1.0
                         args["min_value"]=min_age
                         args["max_value"]=max_age
+                        #args['allow_cross_type_comparisons']=True # TODO Can allow after issue #980 is completed
                         meta={
                             "notes": {
                                 "format": "markdown",
@@ -272,12 +276,24 @@ class GreatExpectationsHelpers(object):
                     
                     elif base_rule==("inRange"):
                         args["mostly"]=1.0
-                        args["min_value"]=float(rule.split(" ")[1])
-                        args["max_value"]=float(rule.split(" ")[2])
+                        args["min_value"]=float(rule.split(" ")[1]) if rule.split(" ")[1].lower() != 'none' else None
+                        args["max_value"]=float(rule.split(" ")[2]) if rule.split(" ")[2].lower() != 'none' else None
+                        args['allow_cross_type_comparisons']=True # TODO Should follow up with issue #980
                         meta={
                             "notes": {
                                 "format": "markdown",
-                                "content": "Expect column values to be Unique. **Markdown** `Supported`",
+                                "content": "Expect column values to be within a specified range. **Markdown** `Supported`",
+                            },
+                            "validation_rule": rule
+                        }
+                        
+                    elif base_rule==("IsNA"):
+                        args["mostly"]=1.0
+                        args["regex_list"]=['Not Applicable']
+                        meta={
+                            "notes": {
+                                "format": "markdown",
+                                "content": "Expect column values to be marked Not Applicable. **Markdown** `Supported`",
                             },
                             "validation_rule": rule
                         }
@@ -408,8 +424,11 @@ class GreatExpectationsHelpers(object):
                 rule        = result_dict['expectation_config']['meta']['validation_rule']
 
 
+                if 'exception_info' in result_dict.keys() and result_dict['exception_info']['exception_message']:
+                    raise GreatExpectationsError(result_dict['exception_info']['exception_traceback'])
+                
                 #only some expectations explicitly list unexpected values and indices, read or find if not present
-                if 'unexpected_index_list' in result_dict['result']:
+                elif 'unexpected_index_list' in result_dict['result']:
                     indices = result_dict['result']['unexpected_index_list']
                     values  = result_dict['result']['unexpected_list']
 
@@ -427,9 +446,9 @@ class GreatExpectationsHelpers(object):
                     for row, value in zip(indices,values):
                         vr_errors, vr_warnings = GenerateError.generate_type_error(
                                 val_rule = rule,
-                                row_num = row+2,
+                                row_num = str(row+2),
                                 attribute_name = errColumn,
-                                invalid_entry = value,
+                                invalid_entry = str(value),
                                 sg = sg,
                             )
                         if vr_errors:
@@ -442,7 +461,7 @@ class GreatExpectationsHelpers(object):
                         vr_errors, vr_warnings = GenerateError.generate_regex_error(
                                 val_rule= rule,
                                 reg_expression = expression,
-                                row_num = row+2,
+                                row_num = str(row+2),
                                 module_to_call = 'match',
                                 attribute_name = errColumn,
                                 invalid_entry = value,
@@ -456,20 +475,20 @@ class GreatExpectationsHelpers(object):
                     vr_errors, vr_warnings = GenerateError.generate_content_error(
                                                             val_rule = rule, 
                                                             attribute_name = errColumn,
-                                                            row_num = list(np.array(indices)+2),
-                                                            error_val = values,  
+                                                            row_num = np_array_to_str_list(np.array(indices)+2),
+                                                            error_val = iterable_to_str_list(values),  
                                                             sg = self.sg
                                                         )       
                     if vr_errors:
                         errors.append(vr_errors)  
                         if rule.startswith('protectAges'):
                             self.censor_ages(vr_errors,errColumn)
-                            pass
+                            
                     if vr_warnings:
                         warnings.append(vr_warnings)  
                         if rule.startswith('protectAges'):
                             self.censor_ages(vr_warnings,errColumn)
-                            pass
+                            
 
         return errors, warnings
 
@@ -508,10 +527,13 @@ class GreatExpectationsHelpers(object):
                     name of column containing ages
             Returns:
                 updates self.manifest with censored ages
-            
+            TODO: Speed up conversion from str list to int list
         """
+        censor_rows = []
         
-        censor_rows = list(np.array(message[0]) - 2) 
+        for row in message[0]:
+            censor_rows.append(int(row) - 2)
+
         self.manifest.loc[censor_rows,(col)] = 'age censored'
 
         # update the manifest file, so that ages are censored

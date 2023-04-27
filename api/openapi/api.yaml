@@ -186,6 +186,13 @@ paths:
           example: Patient
           required: true
         - in: query
+          name: restrict_rules
+          schema:
+            type: boolean
+            default: false
+          description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
+          required: false
+        - in: query
           name: json_str
           required: false
           schema:
@@ -263,9 +270,9 @@ paths:
           name: manifest_record_type
           schema:
             type: string
-            enum: [ "table", "entity", "both"]
-          description: Manifest storage type.
-          example: 'table'
+            enum: ["file_only", "file_and_entities", "table_and_file", "table_file_and_entities"]
+          description: Manifest storage type, will default to "table_file_and_entities" if none selected.'file_and_entities' will store the manifest as a csv and create Synapse files for each row in the manifest. 'table_and_file' will store the manifest as a table and a csv on Synapse. 'file_only' will store the manifest as a csv only on Synapse. 'table_file_and_entities' will perform the options file_with_entites and table in combination.
+          example: 'table_and_file'
         - in: query
           name: restrict_rules
           schema:
@@ -661,6 +668,81 @@ paths:
                             [componentSchemaLabel, componentSchemaLabel]
                         ]
                     ]
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
+  /storage/entity/type:
+    get:
+      summary: Check type of an entity
+      description: Check type of an entity and return entity type
+      operationId: api.routes.check_entity_type
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: entity_id
+          schema:
+            type: string
+            nullable: false
+          description: ID of an entity. It could be a file, a folder, a project, or an asset view
+          example: syn30988314
+          required: true
+      responses:
+        "200":
+          description: return type of a schematic entity
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
+
+  /storage/if_in_asset_view:
+    get:
+      summary: Check if a file or a folder is in a given asset view. Return "true" or "false"
+      description: Check if a file or a folder is in a given asset view. Return "true" or "false"
+      operationId: api.routes.check_if_files_in_assetview
+      parameters:
+        - in: query
+          name: input_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: entity_id
+          schema:
+            type: string
+            nullable: false
+          description: ID of file or folder. For example, for Synapse this would be the Synapse ID. 
+          example: syn30988314
+          required: true
+      responses:
+        "200":
+          description: return "true" or "false"
         "500":
           description: Check schematic log. 
       tags:
@@ -1070,3 +1152,59 @@ paths:
                 type: string
       tags:
         - Visualization Operations
+  /visualize/component:
+    get:
+      summary: Get an attributes table for a specific component of a data model, as a CSV (JSON String)
+      description: >-
+        Get all the attributes associated with a specific data model component formatted as a
+        dataframe (stored as a JSON String).
+      operationId: api.routes.get_viz_component_attributes_explorer
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: component
+          schema:
+            type: string
+          description: Component of the data model to explore
+          example: >-
+            Patient
+          required: true
+        - in: query
+          name: include_index
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include the indexes of the datafram in the returned JSON string (true) or not (false).
+          required: true
+      responses:
+        "200":
+          description: Returns a CSV as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component
+
+                          Component,Component,TBD,False,,,,Patient
+                          
+                          Patient ID,PatientID,TBD,True,,,,Patient
+                          
+                          Year of Birth,YearofBirth,TBD,False,,,,Patient
+
+                          Sex,Sex,TBD,True,,"['Female', 'Other', 'Male']",,Patient                      
+
+                          Diagnosis,Diagnosis,TBD,True,,"['Cancer', 'Healthy']",,Patient
+
+                          Cancer Type,CancerType,TBD,False,True,"['Lung', 'Skin', 'Colorectal', 'Breast', 'Prostate', '']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient
+
+                          Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
+      tags:
+        - Visualization Operations
+        
