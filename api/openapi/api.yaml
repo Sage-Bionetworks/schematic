@@ -256,7 +256,7 @@ paths:
           schema:
             type: string
             nullable: true
-          description: Data Model Component
+          description: Data Model Component. Providing a data type will also validate the manfiest against the rules specified for the data type's attributes.
           example: Patient
           required: true
         - in: query
