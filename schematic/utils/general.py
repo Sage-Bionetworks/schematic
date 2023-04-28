@@ -124,11 +124,8 @@ def create_temp_folder(path: str) -> str:
     Returns: returns the absolute pathname of the new directory.
     """
     # Create a temporary directory in the specified directory
-    try:
-        path = tempfile.mkdtemp(dir=path)
-        return path
-    except FileNotFoundError:
-        raise FileNotFoundError(f'Folder path not found: {path}')
+    path = tempfile.mkdtemp(dir=path)
+    return path
 
 
 def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_dirs=False):

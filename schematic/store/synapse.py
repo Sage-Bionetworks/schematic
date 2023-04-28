@@ -74,7 +74,7 @@ class ManifestDownload(object):
         try downloading a manifest to local cache or a given folder
         manifest
         Return: 
-            manifest_data: synapse file entity
+            manifest_data: A Synapse file entity of the downloaded manifest
         """
         # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config
         # on AWS, to avoid overriding manifest, we download the manifest to a temporary folder
