@@ -89,17 +89,18 @@ class ManifestDownload(object):
 
         else:
             download_location=None
-
-        if download_location: 
+        
+        if not download_location:
+            manifest_data = self.syn.get(
+                        self.manifest_id,
+                    )
+        # if download_location is provided and it is not an empty string
+        else:
             manifest_data = self.syn.get(
                     self.manifest_id,
                     downloadLocation=download_location,
                     ifcollision="overwrite.local",
                 )
-        else:
-            manifest_data = self.syn.get(
-                        self.manifest_id,
-                    )
         return manifest_data 
 
     def _entity_type_checking(self) -> str:
