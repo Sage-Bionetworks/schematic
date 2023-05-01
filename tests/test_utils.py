@@ -1,11 +1,12 @@
 import logging
 import json
 import os
-import shutil
 
 import pandas as pd
 import numpy as np
 import pytest
+
+import tempfile
 
 from pandas.testing import assert_frame_equal
 from synapseclient.core.exceptions import SynapseHTTPError
@@ -79,18 +80,9 @@ class TestGeneral:
             entity_type_mapping(syn, "syn123456")
 
     def test_download_manifest_to_temp_folder(self):
-        # define temporary folder path
-        current_dir = os.getcwd()
-        temp_path = os.path.join(current_dir, 'temp_folder')
-
-        # create a temporary folder to test out
-        if not os.path.exists(temp_path):
-            os.mkdir(temp_path)
-
-        path_dir = general.create_temp_folder(temp_path)
-        assert os.path.exists(path_dir)
-        shutil.rmtree(path_dir)
-        shutil.rmtree(temp_path)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path_dir = general.create_temp_folder(tmpdir)
+            assert os.path.exists(path_dir)
 
 class TestCliUtils:
     def test_query_dict(self):
