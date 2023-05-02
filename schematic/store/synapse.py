@@ -1956,15 +1956,18 @@ class TableOperations:
 
 
         # Get access token from environment variable if available
+        # Primarily useful for testing environments, with other possible usefulness for containers
         env_access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
         if env_access_token:
             authtoken = env_access_token
 
         # Get token from authorization header
+        # Primarily useful for API endpoint functionality
         if 'Authorization' in synStore.syn.default_headers:
             authtoken = synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
 
         # retrive credentials from synapse object
+        # Primarily useful for local users, could only be stored here when a .synapseConfig file is used, but including to be safe
         synapse_object_creds = synStore.syn.credentials
         if hasattr(synapse_object_creds, 'username'):
             username = synapse_object_creds.username
@@ -1972,6 +1975,7 @@ class TableOperations:
             authtoken = synapse_object_creds.secret
 
         # Try getting creds from .synapseConfig file if it exists
+        # Primarily useful for local users. Seems to correlate with credentials stored in synaspe object when logged in
         if os.path.exists(CONFIG.SYNAPSE_CONFIG_PATH):
             config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
 
@@ -1982,9 +1986,11 @@ class TableOperations:
                 authtoken = config.get('authentication', 'authtoken')
         
         # raise error if required credentials are not found
+        # providing an authtoken without a username did not prohibit upsert functionality, 
+        # but including username gathering for completeness for schematic_db
         if not username and not authtoken:
             raise NameError(
-                "Username or authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
+                "Username and authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
             )
         if not authtoken:
             raise NameError(
