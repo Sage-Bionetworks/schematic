@@ -1725,7 +1725,7 @@ class SynapseStorage(BaseStorage):
         dataset_row = self.storageFileviewTable[dataset_index]
 
         # re-query if no datasets found
-        if len(dataset_row) == 0:
+        if dataset_row.empty:
             sleep(5)
             self._query_fileview()
             # Subset main file view
