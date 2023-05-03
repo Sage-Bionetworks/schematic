@@ -169,21 +169,15 @@ class TestManifestGenerator:
 
         # if dataset id exists, it could return pandas dataframe, google spreadsheet, or an excel spreadsheet
         if dataset_id: 
-            if output_format: 
-
-                if output_format == "dataframe":
-                    assert isinstance(manifest, pd.DataFrame)
-                elif output_format == "excel":
-                    assert os.path.exists(manifest) == True
-                else: 
-                    assert type(manifest) is str
-                    assert manifest.startswith("https://docs.google.com/spreadsheets/")
+            if output_format == "dataframe":
+                assert isinstance(manifest, pd.DataFrame)
+            elif output_format == "excel":
+                assert os.path.exists(manifest) == True
+            elif sheet_url: 
+                assert type(manifest) is str
+                assert manifest.startswith("https://docs.google.com/spreadsheets/")
             else: 
-                if sheet_url: 
-                    assert type(manifest) is str
-                    assert manifest.startswith("https://docs.google.com/spreadsheets/")
-                else: 
-                    assert isinstance(manifest, pd.DataFrame)
+                assert isinstance(manifest, pd.DataFrame)
         
         # if dataset id does not exist, it could return an empty google sheet or an empty excel spreadsheet exported from google
         else:
@@ -282,15 +276,17 @@ class TestManifestGenerator:
                             
     @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])
     @pytest.mark.parametrize("manifest_columns", [["column four"]])
-    def test_get_missing_columns(self, simple_manifest_generator, wb_headers, manifest_columns):
+    def test_get_mismatched_columns(self, simple_manifest_generator, wb_headers, manifest_columns):
         generator = simple_manifest_generator
 
         manifest_test_df = pd.DataFrame(columns = manifest_columns)
-        missing_columns = generator._get_missing_columns(wb_headers, manifest_test_df)
+        manifest_test_df_headers = list(manifest_test_df.columns)
+        out_of_schema_columns = generator._get_mismatched_columns(manifest_test_df_headers, wb_headers)
+
         if "column four" not in wb_headers:
-            assert "column four" in missing_columns 
+            assert "column four" in out_of_schema_columns 
         else: 
-            assert "column four" not in missing_columns
+            assert "column four" not in out_of_schema_columns
 
     
 
@@ -314,14 +310,15 @@ class TestManifestGenerator:
 
         # if we are not adding any additional content
         if additional_test_df.empty:
+
             # make sure that new content also gets added 
             assert len(new_df.columns) == 6
         # we should be able to see new columns get added 
         else: 
             # new columns get added
             assert not new_df[["test_one_column", "test_two_column"]].empty
-            assert len(new_df.test_one_column.value_counts()) > 0 
-            assert len(new_df.test_two_column.value_counts()) > 0 
+            assert len(new_df.test_one_column.value_counts()) > 0
+            assert len(new_df.test_two_column.value_counts()) > 0
 
         # remove file
         os.remove(dummy_output_path)
