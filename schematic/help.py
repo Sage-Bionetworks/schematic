@@ -1,3 +1,5 @@
+"""Help messages for CLI commands"""
+# pylint: disable=line-too-long
 #!/usr/bin/env python3
 
 # `schematic manifest` related sub-commands description
