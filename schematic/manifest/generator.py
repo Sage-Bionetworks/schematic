@@ -1256,13 +1256,16 @@ class ManifestGenerator(object):
         )
         return manifest_url
 
-    def _get_mismatched_columns(self, headers_1, headers_2):
-        """
+    def _get_mismatched_columns(self, headers_1:list , headers_2:list) -> list:
+        """Compare two colunm sets and get cols that are in headers_1, but not headers_2
+        Args:
+            headers_1 (list): list of column headers
+            headers_2 (list): list of column headers
+        Returns: 
+            list: column headers in headers_1 but not headers_2
 
         """
-        # Compare two colunm sets and get cols that are in headers_1, but not headers_2
-        mismatched_columns = set(headers_1) - set(headers_2)
-        return mismatched_columns
+        return set(headers_1) - set(headers_2)
 
 
     def set_dataframe_by_url(
@@ -1374,8 +1377,6 @@ class ManifestGenerator(object):
 
         # Generate empty manifest using `additional_metadata`
         manifest_url = self.get_empty_manifest()
-        
-        #TODO: MIALY Make sure this functionality is preserved, should be bc there isnt another manifest we are merging with.
         manifest_df = self.get_dataframe_by_url(manifest_url)
 
         # Annotations clashing with manifest attributes are skipped
@@ -1437,22 +1438,6 @@ class ManifestGenerator(object):
         """
         ## TO DO: deprecate sheet_url parameter and simplify the logic here
 
-        # check if output_format parameter gets set. If not, check the sheet_url parameter
-        
-        '''
-        if not output_format: 
-            # if the sheet_url parameter gets set to True, return a google sheet url 
-            if sheet_url: 
-                # populate google sheet with dataframe
-                manifest_sh = self.set_dataframe_by_url(empty_manifest_url, dataframe)
-                return manifest_sh.url
-                # else, return a pandas dataframe
-            else: 
-                return dataframe
-        else:
-        '''
-        # if not saving excel delete after header is made.
-
         # if the output type gets set to "dataframe", return a data frame 
         if output_format == "dataframe":
             """
@@ -1476,13 +1461,12 @@ class ManifestGenerator(object):
 
             return output_file_path
         
-        # for all other cases, return a google sheet url after populating the dataframe
-        # TODO: add "google_sheet" as an output choice
+        # Return google sheet if sheet_url flag is raised.
+        # TODO: Depreciate sheet URL and add google_sheet as an output_format choice.
         elif sheet_url: 
             manifest_sh = self.set_dataframe_by_url(manifest_url=empty_manifest_url, manifest_df=dataframe, out_of_schema_columns=out_of_schema_columns)
             return manifest_sh.url
 
-        # new default is dataframe?
         else:
             return dataframe
 
@@ -1541,7 +1525,6 @@ class ManifestGenerator(object):
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_record[1])
 
             # determine the format of manifest
-            #result = self._handle_output_format_logic(output_format = output_format, output_path = output_path, sheet_url = sheet_url, empty_manifest_url=empty_manifest_url, dataframe = manifest_record[1])
             result = self._handle_output_format_logic(output_format = output_format,
                                                       output_path = output_path,
                                                       sheet_url = sheet_url,
@@ -1585,15 +1568,17 @@ class ManifestGenerator(object):
             return result
 
     def _update_dataframe_with_existing_df(self, empty_manifest_url: str, existing_df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Handle scenario when existing manifest does not match new
-               manifest template due to changes in the data model:
-        
-         the sheet column header reflect the latest schema
-         the existing manifest column-set may be outdated
-         ensure that, if missing, attributes from the latest schema are added to the
-         column-set of the existing manifest so that the user can modify their data if needed
-         to comply with the latest schema
+        """MIALY
+        Handle scenario when existing manifest does not match new manifest template due to changes in the data model:
+            the sheet column header reflect the latest schema the existing manifest column-set may be outdated
+            ensure that, if missing, attributes from the latest schema are added to the column-set of the existing manifest so that the user can modify their data if needed
+            to comply with the latest schema.
+        Args:
+            empty_manifest_url (str):
+            existing_df (Pd.DataFrame):
+
+        Returns:
+            updated_df (Pd.DataFrame): new columns are added to existing_df 
         """
 
         # Get headers for the current schema and existing manifest df.
@@ -1639,44 +1624,17 @@ class ManifestGenerator(object):
             - The naming of existing and additional df is a bit confusing. 
         '''
         # load workbook
-        #TODO: UPDATE NAMING HERE existing_excel_path to excel_path
-        # Additional_df to updated_df
         workbook = load_workbook(existing_excel_path)
-        '''
-        #get missing columns and sort manifest 
-        #get existing headers
-        existing_df = pd.read_excel(existing_excel_path, sheet_name="Sheet1")
-        current_schema_headers = list(existing_df.columns)
-        additional_df_headers = list(additional_df.columns)
 
-        # get new column headers
-        out_of_schema_columns = list(self._get_mismatched_columns(current_schema_headers, additional_df_headers))
-
-        # get columns that are missing from the additional df
-        missing_schema_columns = list(self._get_mismatched_columns(additional_df_headers, current_schema_headers))
-        breakpoint()
-        # Full set of columns to add
-        columns_to_add = out_of_schema_columns + missing_schema_columns
-        '''
         # initalize excel writer
         with pd.ExcelWriter(existing_excel_path, mode='a', engine='openpyxl', if_sheet_exists='replace') as writer: 
             writer.worksheets = {ws.title: ws for ws in workbook.worksheets}
             worksheet = writer.worksheets["Sheet1"]
-            '''
-            df_additional_headers = pd.DataFrame(columns=additional_df.columns)
-            df_additional_headers.to_excel(writer, "Sheet1", startrow=0, startcol=0, index=False, header=True)
-            '''
-            '''
-            # if there are new columns, add them to the end of spreadsheet
-            # Note: previously, we tried looping through the out of schema columns and use worksheet.cell to modify a particular cell. But that functionality is no longer working. 
-            if missing_schema_columns:
-                df_additional_headers = pd.DataFrame(columns=missing_schema_columns)
-                start_col_index = len(current_schema_headers)
-                df_additional_headers.to_excel(writer, "Sheet1", startrow=0, startcol=start_col_index, index=False, header=True)
-            '''
-            # overwrite existing df with new df
-            # In future dont start with a prepopulated excel.
-            additional_df.to_excel(writer, "Sheet1", startrow=0, index = False, header=True)
+           
+            # overwrite existing df with new df, if there is info in the new df
+            # In future depreciate using a prepopulated excel.
+            if not additional_df.empty:
+                additional_df.to_excel(writer, "Sheet1", startrow=0, index = False, header=True)
 
     def populate_manifest_spreadsheet(self, existing_manifest_path: str = None, empty_manifest_url: str = None, return_excel: bool = False, title: str = None):
         """Creates a google sheet manifest based on existing manifest.
