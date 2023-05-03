@@ -119,8 +119,8 @@ markers = [
     Google credentials (skipped on GitHub CI) \
     """,
     """\
-    schematic_api: marks tests requiring \
-    running API locally (skipped on GitHub CI)   
+    schematic_api: marks tests covering \
+    API functionality (skipped on regular GitHub CI test suite)   
     """,
     """\
     rule_combos: marks tests covering \
@@ -131,5 +131,9 @@ markers = [
     table_operations: marks tests covering \
     table operations that pass locally \
     but fail on CI due to interactions with Synapse (skipped on GitHub CI)   
+    """,    
+    """\
+    rule_benchmark: marks tests covering \
+    validation rule benchmarking
     """    
 ]
