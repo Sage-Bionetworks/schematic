@@ -110,6 +110,15 @@ jobs:
           poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
 
       #----------------------------------------------
+      #             linting
+      #----------------------------------------------
+      - name: Lint with pylint
+        run: |
+          # ran only on certain files for now
+          # add here when checked
+          poetry run pylint schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
+
+      #----------------------------------------------
       #              run test suite
       #----------------------------------------------
       - name: Run regular tests and rule combination tests
