@@ -28,7 +28,9 @@ class InvalidResourceError(Exception):
         super().__init__(self.message)
 
     def __str__(self) -> str:
-        return f'{self.message}({self.errno}), "{self.requested_uri}" of {self.namespace}'
+        return (
+            f'{self.message}({self.errno}), "{self.requested_uri}" of {self.namespace}'
+        )
 
     def __repr__(self) -> str:
         return self.__str__()
