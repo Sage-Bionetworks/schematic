@@ -2920,7 +2920,7 @@
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "int error",
-                "IsNA"
+                "IsNA warning"
             ]
         },
         {
@@ -2944,6 +2944,9 @@
                 },
                 {
                     "@id": "bts:MockRDBId"
+                },
+                {
+                    "@id": "bts:SourceManifest"
                 }
             ],
             "sms:validationRules": []
@@ -2966,6 +2969,23 @@
             "sms:validationRules": [
                 "int"
             ]
+        },
+        {
+            "@id": "bts:SourceManifest",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "SourceManifest",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "SourceManifest",
+            "sms:required": "sms:true",
+            "sms:validationRules": []
         },
         {
             "@id": "bts:Component",
