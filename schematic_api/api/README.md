@@ -11,13 +11,13 @@ If you define `APP_PORT` as `3001` in `docker-compose.yml`, you should be able t
 
 To start a docker container that runs flask application with uWSGI:
 1) Comment out line 4 to line 19 in `docker-compose.yml`. 
-2) Create .env file based on env.example. Fill in `service_account_creds.json`
+2) Create .env file based on env.example. Fill in `service_account_creds.json` and wrap around the credentials with single quotes. 
 3) Make sure that you have all the dependencies installed, including uWSGI and flask. 
 4) Build a docker image and spin up docker container `schematic-api-aws` by running: 
 ```bash
 docker compose up
 ```
-If you define the value of SERVER_PORT as `7080` in `.env` file, you should be able to see the application running when visiting `http://localhost:7080/v1/ui/`
+If you define the value of port as `7080` in `.env` file, you should be able to see the application running when visiting `http://localhost:7080/v1/ui/`
 
 By default, this command builds up two containers (`schematic` and `schematic-aws`). You could spin up two containers if you want. But only `schematic-aws` runs flask with uWSGI. 
 
@@ -54,7 +54,7 @@ Make sure that the following libraries have the correct version:
 * markupsafe version: ^2.1.0
 
 ## Notes for using schematic features and API endpoints utilizing Google Services (e.g. manifest generation): 
-Before trying out the API endpoints, please make sure that you have obtained `credentials.json`, `schematic_service_account_creds.json`, and `token.pickle`. (Instructions can be found in schematic/README.md) 
+Before trying out the API endpoints, please make sure that you have obtained `schematic_service_account_creds.json` (Instructions can be found in schematic/README.md) 
 
 
 ###  GET /manifest/generate
