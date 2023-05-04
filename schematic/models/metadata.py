@@ -343,6 +343,7 @@ class MetadataModel(object):
                         useSchemaLabel = use_schema_label,
                         hideBlanks = hide_blanks,
                         table_manipulation=table_manipulation,
+                        access_token = access_token,
                     )
                     restrict_maniest = True
                 
@@ -355,6 +356,7 @@ class MetadataModel(object):
                     hideBlanks = hide_blanks,
                     restrict_manifest=restrict_maniest,
                     table_manipulation=table_manipulation,
+                    access_token = access_token,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
