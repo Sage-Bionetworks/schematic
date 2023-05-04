@@ -25,6 +25,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
 
     Returns: a processed dataframe for manifests or unprocessed df for data models and where indicated
     """
+    large_manifest_cutoff_size = 1000
     # start performance timer
     t_load_df = perf_counter()
     
@@ -53,7 +54,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         org_df = org_df.astype(str).mask(null_cells, '')
 
         # Find integers stored as strings and replace with entries of type np.int64
-        if org_df.size < 1000:  # If small manifest, iterate as normal for improved performance
+        if org_df.size < large_manifest_cutoff_size:  # If small manifest, iterate as normal for improved performance
             ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         else:   # parallelize iterations for large manfiests
