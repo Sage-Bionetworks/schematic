@@ -781,7 +781,6 @@ class SynapseStorage(BaseStorage):
         restrict: bool = False, 
         useSchemaLabel: bool = True, 
         table_manipulation: str = 'replace',
-        access_token: str = None,
         ):
         """
         Method to upload a database to an asset store. In synapse, this will upload a metadata table
@@ -806,7 +805,7 @@ class SynapseStorage(BaseStorage):
 
         col_schema, table_manifest = self.formatDB(se, manifest, useSchemaLabel)
 
-        manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, table_manipulation, restrict, access_token)
+        manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, table_manipulation, restrict)
 
         return manifest_table_id, manifest, table_manifest
 
@@ -866,7 +865,6 @@ class SynapseStorage(BaseStorage):
         table_manifest: pd.DataFrame,
         table_manipulation: str,
         restrict: bool = False, 
-        access_token: str = None,
         ):
         """
         Method to construct the table appropriately: create new table, replace existing, or upsert new into existing
@@ -896,7 +894,7 @@ class SynapseStorage(BaseStorage):
             if table_manipulation.lower() == 'replace':
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
             elif table_manipulation.lower() == 'upsert':
-                manifest_table_id = TableOperations.upsertTable(self, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId, access_token=access_token)
+                manifest_table_id = TableOperations.upsertTable(self, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
             elif table_manipulation.lower() == 'update':
                 manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
 
@@ -1269,7 +1267,6 @@ class SynapseStorage(BaseStorage):
                             useSchemaLabel,
                             hideBlanks,
                             table_manipulation,
-                            access_token,
                             ):
         """Upload manifest to Synapse as a table and csv.
         Args:
@@ -1296,8 +1293,7 @@ class SynapseStorage(BaseStorage):
                                                     table_name,
                                                     restrict,
                                                     useSchemaLabel,
-                                                    table_manipulation,
-                                                    access_token)
+                                                    table_manipulation)
 
         manifest = self.add_entities(se, schemaGenerator, manifest, manifest_record_type, datasetId, useSchemaLabel, hideBlanks, manifest_synapse_table_id)
         # Load manifest to synapse as a CSV File
@@ -1316,9 +1312,7 @@ class SynapseStorage(BaseStorage):
                                                     table_name,  
                                                     restrict,
                                                     useSchemaLabel=useSchemaLabel,
-                                                    table_manipulation='update',
-                                                    access_token=access_token,
-                                                    )
+                                                    table_manipulation='update',)
 
         # Set annotations for the table manifest
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
@@ -1383,7 +1377,6 @@ class SynapseStorage(BaseStorage):
                             useSchemaLabel,
                             hideBlanks,
                             table_manipulation,
-                            access_token
                             ):
         """Upload manifest to Synapse as a table and CSV with entities.
         Args:
@@ -1409,9 +1402,7 @@ class SynapseStorage(BaseStorage):
                                                     table_name,
                                                     restrict,
                                                     useSchemaLabel=useSchemaLabel,
-                                                    table_manipulation=table_manipulation,
-                                                    access_token=access_token,
-                                                    )
+                                                    table_manipulation=table_manipulation,)
 
         manifest = self.add_entities(se, schemaGenerator, manifest, manifest_record_type, datasetId, useSchemaLabel, hideBlanks, manifest_synapse_table_id)
         
@@ -1431,9 +1422,7 @@ class SynapseStorage(BaseStorage):
                                                                 table_name,
                                                                 restrict,
                                                                 useSchemaLabel=useSchemaLabel,
-                                                                table_manipulation='update',
-                                                                access_token=access_token,
-                                                                )
+                                                                table_manipulation='update',)
 
         # Set annotations for the table manifest
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
@@ -1442,7 +1431,7 @@ class SynapseStorage(BaseStorage):
 
     def associateMetadataWithFiles(
         self, schemaGenerator: SchemaGenerator, metadataManifestPath: str, datasetId: str, manifest_record_type: str = 'table_file_and_entities', 
-        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False, table_manipulation: str = 'replace', access_token: str = None,
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False, table_manipulation: str = 'replace',
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -1510,7 +1499,6 @@ class SynapseStorage(BaseStorage):
                                         hideBlanks=hideBlanks,
                                         manifest_record_type=manifest_record_type,
                                         table_manipulation=table_manipulation,
-                                        access_token=access_token,
                                         )
         elif manifest_record_type == "file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_as_csv( 
@@ -1540,7 +1528,6 @@ class SynapseStorage(BaseStorage):
                                         hideBlanks=hideBlanks,
                                         manifest_record_type=manifest_record_type,
                                         table_manipulation=table_manipulation,
-                                        access_token=access_token,
                                         )
         else:
             raise ValueError("Please enter a valid manifest_record_type.")
@@ -1963,7 +1950,7 @@ class TableOperations:
         return existingTableId
     
 
-    def _get_schematic_db_creds(synStore, access_token):
+    def _get_schematic_db_creds(synStore):
         username = None
         authtoken = None
 
@@ -1974,10 +1961,10 @@ class TableOperations:
         if env_access_token:
             authtoken = env_access_token
 
-        # Get token passed in from api endpoint
+        # Get token from authorization header
         # Primarily useful for API endpoint functionality
-        if access_token:
-            authtoken = access_token
+        if 'Authorization' in synStore.syn.default_headers:
+            authtoken = synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
 
         # retrive credentials from synapse object
         # Primarily useful for local users, could only be stored here when a .synapseConfig file is used, but including to be safe
@@ -2012,7 +1999,7 @@ class TableOperations:
         
         return username, authtoken
 
-    def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None, access_token: str = None):
+    def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
         For upsert functionality to work, primary keys must follow the naming convention of <componenet>_id        
@@ -2032,7 +2019,7 @@ class TableOperations:
            existingTableId: synID of the already existing table that had its metadata replaced
         """            
 
-        username, authtoken = TableOperations._get_schematic_db_creds(synStore, access_token)
+        username, authtoken = TableOperations._get_schematic_db_creds(synStore)
 
         synConfig = SynapseConfig(username, authtoken, synStore.getDatasetProject(datasetId))
         synapseDB = SynapseDatabase(synConfig)
