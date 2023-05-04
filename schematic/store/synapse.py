@@ -18,7 +18,6 @@ import pandas as pd
 import re
 import synapseclient
 from time import sleep
-from schematic.utils.general import get_dir_size, convert_size, convert_gb_to_bytes
 from synapseclient import (
     Synapse,
     File,
@@ -46,13 +45,13 @@ from schematic_db.schema.schema import get_key_attribute
 
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+from schematic.utils.general import entity_type_mapping, get_dir_size, convert_size, convert_gb_to_bytes
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
-from schematic.utils.general import entity_type_mapping
 
 logger = logging.getLogger("Synapse storage")
 
