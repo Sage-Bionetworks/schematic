@@ -40,14 +40,13 @@ def unlist(_list):
 
 
 def get_dir_size(path: str):
-    """calculate total size of a directory
+    """Recursively descend the directory tree rooted at the top and call .st_size function to calculate size of files in bytes. 
     Args:
         path: path to a folder
-    return: total size of a directory
+    return: total size of all the files in a given directory in bytes. 
     """
     total = 0
-    # Example usage of os.scandir could be found here: https://docs.python.org/3/library/os.html#os.scandir
-    # Technically, scandir.close() is called automatically. But it is still advisable to call it explicitly or use the with statement.
+    # Recursively scan directory to find entries
     with os.scandir(path) as it:
         for entry in it:
             if entry.is_file():
