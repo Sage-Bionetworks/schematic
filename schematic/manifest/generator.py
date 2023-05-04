@@ -1420,6 +1420,7 @@ class ManifestGenerator(object):
         # otherwise, use the default location
         else:
             output_excel_file_path = os.path.abspath(os.path.join(os.getcwd(), file_name))
+        
         # export the manifest to excel
         export_manifest_drive_service(manifest_url, file_path=output_excel_file_path, mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         
@@ -1427,16 +1428,18 @@ class ManifestGenerator(object):
 
     def _handle_output_format_logic(self, output_format: str = None, output_path: str = None, sheet_url: bool = None, empty_manifest_url: str = None, dataframe: pd.DataFrame = None, out_of_schema_columns=None):
         """
-        handle the logic between sheet_url parameter and output_format parameter to determine the type of output to return
+        Handle the logic between sheet_url parameter and output_format parameter to determine the type of output to return
         Args: 
             output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
             empty_manifest_url: Google sheet URL that leads to an empty manifest 
             dataframe: the pandas dataframe that contains the metadata that needs to be populated to an empty manifest
             output_path: Determines the output path of the exported manifest (only relevant if returning an excel spreadsheet)
-        return: a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL 
+        Return: 
+            a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL 
+        TODO:
+            Depreciate sheet URL and add google_sheet as an output_format choice.
         """
-        ## TO DO: deprecate sheet_url parameter and simplify the logic here
 
         # if the output type gets set to "dataframe", return a data frame 
         if output_format == "dataframe":
@@ -1448,11 +1451,12 @@ class ManifestGenerator(object):
         
         # if the output type gets set to "excel", return an excel spreadsheet
         elif output_format == "excel":              
-            # export the manifest url to excel
-            # note: the manifest url being used here is an empty manifest url that only contains column header
-
-            # export manifest that only contains column headers to Excel
-            output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = empty_manifest_url, output_location = output_path)
+            # export manifest url that only contains column headers to Excel
+            output_file_path = self.export_sheet_to_excel(title = self.title,
+                                                          manifest_url = empty_manifest_url,
+                                                          output_location = output_path,
+                                                          )
+            
             if not os.path.exists(output_file_path): 
                 logger.error(f'Export to Excel spreadsheet fail. Please make sure that file path {output_file_path} is valid')
 
@@ -1462,11 +1466,11 @@ class ManifestGenerator(object):
             return output_file_path
         
         # Return google sheet if sheet_url flag is raised.
-        # TODO: Depreciate sheet URL and add google_sheet as an output_format choice.
         elif sheet_url: 
             manifest_sh = self.set_dataframe_by_url(manifest_url=empty_manifest_url, manifest_df=dataframe, out_of_schema_columns=out_of_schema_columns)
             return manifest_sh.url
-
+        
+        # Default return a DataFrame
         else:
             return dataframe
 
@@ -1568,17 +1572,17 @@ class ManifestGenerator(object):
             return result
 
     def _update_dataframe_with_existing_df(self, empty_manifest_url: str, existing_df: pd.DataFrame) -> pd.DataFrame:
-        """MIALY
+        """
         Handle scenario when existing manifest does not match new manifest template due to changes in the data model:
             the sheet column header reflect the latest schema the existing manifest column-set may be outdated
             ensure that, if missing, attributes from the latest schema are added to the column-set of the existing manifest so that the user can modify their data if needed
             to comply with the latest schema.
         Args:
-            empty_manifest_url (str):
-            existing_df (Pd.DataFrame):
+            empty_manifest_url (str): Google Sheet URL with an empty manifest with headers.
+            existing_df (Pd.DataFrame): df of an existing manifest
 
         Returns:
-            updated_df (Pd.DataFrame): new columns are added to existing_df 
+            updated_df (Pd.DataFrame): existing_df with new_columns added.
         """
 
         # Get headers for the current schema and existing manifest df.
