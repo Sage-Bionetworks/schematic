@@ -80,8 +80,7 @@ def convert_gb_to_bytes(gb: int):
         gb: number of gb
     return: total number of bytes
     """
-    bytes_to_return = gb * 1024 * 1024 * 1024
-    return bytes_to_return
+    return gb * 1024 * 1024 * 1024
 
 def entity_type_mapping(syn, entity_id):
     """
