@@ -2579,8 +2579,8 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 name = "uWSGI"
 version = "2.0.21"
 description = "The uWSGI server"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [[package]]
@@ -2662,7 +2662,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "11ac64fffdf87867e5cd018221a2efb7c3252a2978d48e6b25a417c08d9f6861"
+content-hash = "ad3655e527484a7fffc4bf90b43527da8d6143e0dc8e5a8dfa406d56d9038001"
 
 [metadata.files]
 alabaster = [
