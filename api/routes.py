@@ -205,7 +205,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, input_token=None):
+def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -214,7 +214,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
             use_annotations: Whether to use existing annotations during manifest generation
             asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
-            input_token: Token
+            access_token: Token
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
@@ -260,7 +260,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 )
 
 
-    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, input_token=None):
+    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -276,7 +276,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 output_format = "dataframe"
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format, input_token=input_token
+            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token
         )
 
         # return an excel file if output_format is set to "excel"
@@ -300,7 +300,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             else: 
                 t = f'Example.{component}.manifest'
             if output_format != "excel":
-                result = create_single_manifest(data_type=component, output_format=output_format, title=t, input_token=input_token)
+                result = create_single_manifest(data_type=component, output_format=output_format, title=t, access_token=access_token)
                 all_results.append(result)
             else: 
                 app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
@@ -315,9 +315,9 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     t = title
             if dataset_ids:
                 # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t, input_token=input_token)
+                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token)
             else:
-                result = create_single_manifest(data_type=dt, output_format=output_format, title=t, input_token=input_token)
+                result = create_single_manifest(data_type=dt, output_format=output_format, title=t, access_token=access_token)
 
             # if output is pandas dataframe or google sheet url
             if isinstance(result, str) or isinstance(result, pd.DataFrame):
@@ -381,7 +381,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     metadata_model = initalize_metadata_model(schema_url)
 
-    input_token = connexion.request.args["input_token"]
+    access_token = connexion.request.args["access_token"]
 
 
     use_schema_label = connexion.request.args["use_schema_label"]
@@ -406,7 +406,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         manifest_path=temp_path, 
         dataset_id=dataset_id, 
         validate_component=validate_component, 
-        input_token=input_token, 
+        access_token=access_token, 
         manifest_record_type = manifest_record_type, 
         restrict_rules = restrict_rules, 
         table_manipulation = table_manipulation, 
@@ -432,36 +432,36 @@ def populate_manifest_route(schema_url, title=None, data_type=None, return_excel
 
     return populated_manifest_link
 
-def get_storage_projects(input_token, asset_view):
+def get_storage_projects(access_token, asset_view):
     # call config handler 
     config_handler(asset_view=asset_view)
 
     # use Synapse storage 
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     # call getStorageProjects function
     lst_storage_projects = store.getStorageProjects()
     
     return lst_storage_projects
 
-def get_storage_projects_datasets(input_token, asset_view, project_id):
+def get_storage_projects_datasets(access_token, asset_view, project_id):
     # call config handler
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     # call getStorageDatasetsInProject function
     sorted_dataset_lst = store.getStorageDatasetsInProject(projectId = project_id)
     
     return sorted_dataset_lst
 
-def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, file_names=None):
+def get_files_storage_dataset(access_token, asset_view, dataset_id, full_path, file_names=None):
     # call config handler
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     # no file names were specified (file_names = [''])
     if file_names and not all(file_names): 
@@ -471,24 +471,24 @@ def get_files_storage_dataset(input_token, asset_view, dataset_id, full_path, fi
     file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
     return file_lst
 
-def check_if_files_in_assetview(input_token, asset_view, entity_id):
+def check_if_files_in_assetview(access_token, asset_view, entity_id):
     # call config handler 
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     # call function and check if a file or a folder is in asset view
     if_exists = store.checkIfinAssetView(entity_id)
 
     return if_exists
 
-def check_entity_type(input_token, asset_view, entity_id):
+def check_entity_type(access_token, asset_view, entity_id):
     # call config handler 
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     entity_type = store.checkEntityType(entity_id)
     return entity_type
@@ -547,12 +547,12 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
     
-def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest_name=''):
+def download_manifest(access_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     # download existing file
     manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name)
@@ -568,12 +568,12 @@ def download_manifest(input_token, dataset_id, asset_view, as_json, new_manifest
 
     return manifest_local_file_path
 
-def get_asset_view_table(input_token, asset_view, return_type):
+def get_asset_view_table(access_token, asset_view, return_type):
     # call config handler
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     # get file view table
     file_view_table_df = store.getStorageFileviewTable()
@@ -589,24 +589,24 @@ def get_asset_view_table(input_token, asset_view, return_type):
         return export_path
 
 
-def get_project_manifests(input_token, project_id, asset_view):
+def get_project_manifests(access_token, project_id, asset_view):
     # use the default asset view from config
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     # call getprojectManifest function
     lst_manifest = store.getProjectManifests(projectId=project_id)
 
     return lst_manifest
 
-def get_manifest_datatype(input_token, manifest_id, asset_view):
+def get_manifest_datatype(access_token, manifest_id, asset_view):
     # use the default asset view from config
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(input_token=input_token)
+    store = SynapseStorage(access_token=access_token)
 
     # get data types of an existing manifest
     manifest_dtypes_dict= store.getDataTypeFromManifest(manifest_id)
