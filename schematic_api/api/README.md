@@ -15,11 +15,12 @@ python3 run_api.py
 ```
 If you define `APP_PORT` as `3001` in `docker-compose.yml`, you should be able to see the application running when visiting `http://localhost:3001/v1/ui/`
 
-To start a docker container that runs flask application with uWSGI:
-1) Comment out line 4 to line 19 in `docker-compose.yml`. 
-2) Create .env file based on env.example. Fill in `service_account_creds.json` and wrap around the credentials with single quotes. 
-3) Make sure that you have all the dependencies installed, including uWSGI and flask. 
-4) Build a docker image and spin up docker container `schematic-api-aws` by running: 
+After installing uWSGI, flask and connexion, to start a docker container that runs flask application with uWSGI:
+1) Comment out the first part of `docker-compose.yml` and focus only on building container `schematic-aws`.
+2) Get `service_account_creds.json` by doing `schematic init --config /path/to/config.yml`. 
+3) Make a copy of `env.example` and rename it as `.env` and keep it in the same directory as `env.example` By default, schematic uses port 7080. If port 7080 is not available, please update `SERVER_PORT` in .env file. 
+4) Copy the content of `service_account_creds.json` and put it in `.env` file after key `SERVICE_ACCOUNT_CREDS`. Remember to wrap around the credentials with single quotes.
+5) Build a docker image and spin up docker container `schematic-api-aws` by running: 
 ```bash
 docker compose up
 ```
