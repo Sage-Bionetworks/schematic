@@ -1960,11 +1960,13 @@ class TableOperations:
         env_access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
         if env_access_token:
             authtoken = env_access_token
+            return username, authtoken
 
         # Get token from authorization header
         # Primarily useful for API endpoint functionality
         if 'Authorization' in synStore.syn.default_headers:
             authtoken = synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
+            return username, authtoken
 
         # retrive credentials from synapse object
         # Primarily useful for local users, could only be stored here when a .synapseConfig file is used, but including to be safe
