@@ -1,5 +1,11 @@
+## Installation
+For unix OSs users, simply run the following poetry command to install uWSGI: 
+```bash
+poetry install -E uwsgi
+```
+
 ## Setup
-There are two ways to run schematic APIs: 1) start a flask server and run your application locally (preferred for external users); 2) build a docker image that allows you to run a container with flask application with uWSGI. 
+There are two ways to run schematic APIs: 1) start a flask server and run your application locally (preferred for external users); 2) build a docker image that allows you to run a container with flask application with uWSGI (only works for unix OSs users or windows user with WSL that could install uWSGI)
 
 To start a local Flask server and test your endpoints:
 
