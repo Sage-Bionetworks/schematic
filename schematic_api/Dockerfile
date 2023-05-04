@@ -14,6 +14,7 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=200 \
     POETRY_VERSION=1.2.0 \
+    POETRY_VIRTUALENVS_IN_PROJECT=true \ 
     APP_PORT=80 \
     APP_DIR=/opt/app \ 
     SERVER_PROTOCOL=http:// \
@@ -47,7 +48,7 @@ RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 # copy relevant files and run poetry install
 COPY ./pyproject.toml ./poetry.lock ./uwsgi.ini ./config.yml ./run_api.py ./
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --no-ansi --no-root
+RUN poetry install --no-interaction --no-ansi --no-root --with aws
 
 # copy schematic_api folder
 COPY  schematic_api ./schematic_api
