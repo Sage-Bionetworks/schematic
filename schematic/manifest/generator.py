@@ -1242,7 +1242,7 @@ class ManifestGenerator(object):
         Returns:
             manifest_url (str): url of the google sheet manifest.
         TODO:
-        In future
+            Refactor to not be dependent on GS.
         """
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
         json_schema = self._get_json_schema(json_schema_filepath)
