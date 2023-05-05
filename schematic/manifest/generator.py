@@ -1256,7 +1256,7 @@ class ManifestGenerator(object):
         )
         return manifest_url
 
-    def _get_mismatched_columns(self, headers_1:list , headers_2:list) -> list:
+    def _get_missing_columns(self, headers_1:list , headers_2:list) -> list:
         """Compare two colunm sets and get cols that are in headers_1, but not headers_2
         Args:
             headers_1 (list): list of column headers
@@ -1266,7 +1266,6 @@ class ManifestGenerator(object):
 
         """
         return set(headers_1) - set(headers_2)
-
 
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame, out_of_schema_columns=None,
@@ -1590,10 +1589,10 @@ class ManifestGenerator(object):
         existing_manfiest_headers = list(existing_df.columns)
 
         # Find columns that exist in the current schema, but are not in the manifest being downloaded.
-        new_columns = self._get_mismatched_columns(current_schema_headers, existing_manfiest_headers)
+        new_columns = self._get_missing_columns(current_schema_headers, existing_manfiest_headers)
 
         # Find columns that exist in the manifest being downloaded, but not in the current schema.
-        out_of_schema_columns = self._get_mismatched_columns(existing_manfiest_headers, current_schema_headers)
+        out_of_schema_columns = self._get_missing_columns(existing_manfiest_headers, current_schema_headers)
 
         # clean empty columns if any are present (there should be none)
         # TODO: Remove this line once we start preventing empty column names
