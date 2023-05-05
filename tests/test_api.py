@@ -14,12 +14,7 @@ from schematic.schemas.generator import SchemaGenerator #Local application/libra
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-'''
-To run the tests, you have to keep API running locally first by doing `python3 run_api.py`
-'''
-
 ## TO DO: Clean up url and use a global variable SERVER_URL
-
 @pytest.fixture(scope="class")
 def app():
     app = create_app()
@@ -82,7 +77,8 @@ def syn_token(config):
     # try using synapse access token
     if "SYNAPSE_ACCESS_TOKEN" in os.environ:
         token=os.environ["SYNAPSE_ACCESS_TOKEN"]
-    token = config_parser["authentication"]["authtoken"]
+    else:
+        token = config_parser["authentication"]["authtoken"]
     yield token
 
 @pytest.mark.schematic_api
@@ -796,6 +792,7 @@ class TestSchemaVisualization:
         assert response_text in response.text
 
 @pytest.mark.schematic_api
+@pytest.mark.rule_benchmark
 class TestValidationBenchmark():
     @pytest.mark.parametrize('MockComponent_attribute', get_MockComponent_attribute())
     def test_validation_performance(self, helpers, benchmark_data_model_jsonld, client, test_invalid_manifest, MockComponent_attribute ):
