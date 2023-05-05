@@ -1,7 +1,7 @@
 ## Installation
 For unix OSs users, simply run the following poetry command to install uWSGI: 
 ```bash
-poetry install -E uwsgi
+poetry install --with aws
 ```
 
 ## Setup
