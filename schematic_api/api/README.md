@@ -88,7 +88,7 @@ Note: if the dataset_id you provided is invalid, it will generate an empty manif
 
 ### POST /model/submit
     
-* For the input_token parameter, please use the value of `auth token` in your `.synapseConfig`
+* For the access_token parameter, please use the value of `auth token` in your `.synapseConfig`
 
 * For the dataset_id parameter, please create a test folder on synapse and use its synapse ID
 
