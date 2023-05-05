@@ -1,5 +1,5 @@
-Component,MockRDB_id
-MockRDB,1
-MockRDB,2
-MockRDB,3
-MockRDB,4
+Component,MockRDB_id,SourceManifest
+MockRDB,1,Manifest1
+MockRDB,2,Manifest1
+MockRDB,3,Manifest1
+MockRDB,4,Manifest1
