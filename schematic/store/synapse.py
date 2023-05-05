@@ -126,7 +126,7 @@ class ManifestDownload(object):
                 try: 
                     manifest_data = self._download_manifest_to_folder()
                 except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
-                    raise e
+                    raise PermissionError("You don't have access to censored and uncensored manifests in this dataset.") from e
             else:
                 logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
 
@@ -530,7 +530,7 @@ class SynapseStorage(BaseStorage):
                 manifest_data = ManifestDownload.download_manifest(md, newManifestName=newManifestName, manifest_df=manifest)
                 ## TO DO: revisit how downstream code handle manifest_data. If the downstream code would break when manifest_data is an empty string, 
                 ## then we should catch the error here without returning an empty string. 
-                if manifest_data == "":
+                if not manifest_data:
                     logger.debug(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
                 return manifest_data
             return manifest_syn_id
