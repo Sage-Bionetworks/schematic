@@ -171,15 +171,8 @@ def parse_bool(str_bool):
 
 def return_as_json(manifest_local_file_path):
     manifest_csv = pd.read_csv(manifest_local_file_path)
-    try:
-        manifest_json = manifest_csv.to_dict(orient="records")
-        return manifest_json
-    except JSONDecodeError as e:
-        logger.error("Json data is not formatted correctly", e)
-        raise(e)
-    except ValueError as e:
-        logger.error('Failed to return the downloaded manifest as a json', e)
-        raise(e)
+    manifest_json = manifest_csv.to_dict(orient="records")
+    return manifest_json
 
 def save_file(file_key="csv_file"):
     '''
@@ -579,14 +572,7 @@ def download_manifest(input_token, manifest_id, new_manifest_name='', as_json=Tr
     # use Synapse Storage
     store = SynapseStorage(input_token=input_token)
     # try logging in to asset store
-    try:
-        syn = store.login(input_token=input_token)
-    except SynapseAuthenticationError as e:
-        raise e
-    except SynapseTimeoutError as e:
-        raise e
-    except SynapseHTTPError as e:
-        raise e
+    syn = store.login(input_token=input_token)
     try: 
         md = ManifestDownload(syn, manifest_id)
         manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
