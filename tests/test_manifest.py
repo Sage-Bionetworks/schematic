@@ -276,19 +276,73 @@ class TestManifestGenerator:
                             
     @pytest.mark.parametrize("wb_headers", [["column one", "column two", "column three"], ["column four", "column two"]])
     @pytest.mark.parametrize("manifest_columns", [["column four"]])
-    def test_get_mismatched_columns(self, simple_manifest_generator, wb_headers, manifest_columns):
+    def test_get_missing_columns(self, simple_manifest_generator, wb_headers, manifest_columns):
         generator = simple_manifest_generator
 
         manifest_test_df = pd.DataFrame(columns = manifest_columns)
         manifest_test_df_headers = list(manifest_test_df.columns)
-        out_of_schema_columns = generator._get_mismatched_columns(manifest_test_df_headers, wb_headers)
+        out_of_schema_columns = generator._get_missing_columns(manifest_test_df_headers, wb_headers)
 
         if "column four" not in wb_headers:
             assert "column four" in out_of_schema_columns 
         else: 
             assert "column four" not in out_of_schema_columns
 
-    
+    # Need to actually put in different dfs
+    @pytest.mark.parametrize("existing_manifest", [{"Patient ID": ["1738"], "Sex": ["Male"], "Year of Birth": ["1999"], "Diagnosis": [""], 'Component': [""], 'Cancer Type': [""], 'Family History': [""]},
+                                                   {"Patient ID": ["1738"], "Sex": ["Male"], "Year of Birth": ["1999"], "Diagnosis": [""], 'Component': [""], 'Cancer Type': [""], 'Family History': [""], 'Non Schema Column': [""]},
+                                                   {"Patient ID": ["1738"], "Sex": ["Male"]},
+                                                   None])
+    @pytest.mark.google_credentials_needed
+    def test_update_dataframe_with_existing_df(self, helpers, existing_manifest):
+        '''
+        Tests the following discrepancies with an existing schema:
+            - schema has matching columns to existing_df
+            - existing_df has columns the schema does not
+            - schema has columns the existing_df does not.
+            - No existing manifest
+        '''
+        data_type = "Patient"
+        sheet_url = True
+
+        # Instantiate the Manifest Generator.
+        generator = ManifestGenerator(path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+                                      root=data_type,
+                                      use_annotations=False,
+                                      )
+
+        # Generate a google sheet url for a blank manifest.
+        empty_manifest_url= generator.get_manifest(sheet_url = sheet_url)
+
+        # Loading existing manifest
+        existing_manifest_df = pd.DataFrame(existing_manifest)
+
+        # Update the empty manifest with the existing manifest
+        updated_df = generator._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url,
+                                                                  existing_df = existing_manifest_df,
+                                                                  )[0]
+
+        # Check that update happened as intended.
+        # If the existing manifest is emtpy, the columns will not change, no data will be added
+        if existing_manifest_df.empty:
+            assert updated_df.empty == True
+            assert list(updated_df.columns) == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component',
+                                             'Cancer Type', 'Family History']
+        # If the existing manifest has only 2 of the schema columns, the columns should match the schema, data is added.
+        elif len(existing_manifest_df.columns) == 2:
+            assert updated_df['Patient ID'][0] == '1738'
+            assert list(updated_df.columns) == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component',
+                                             'Cancer Type', 'Family History']
+        # If the existing manifest has matching columns to the schema, the columns should remain the same, data is added.
+        elif len(existing_manifest_df.columns) == 7:
+            assert updated_df['Patient ID'][0] == '1738'
+            assert list(updated_df.columns) == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component',
+                                             'Cancer Type', 'Family History']
+        # If the existing manifest has an extra column that is not in the schema, the new column should be added, data is added.
+        elif len(existing_manifest_df.columns) == 8:
+            assert updated_df['Patient ID'][0] == '1738'
+            assert list(updated_df.columns) == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component',
+                                             'Cancer Type', 'Family History','Non Schema Column']
 
     @pytest.mark.parametrize("additional_df_dict", [{"Filename": ['a', 'b'], "Sample ID": ['a', 'b'], "File Format": ['a', 'b'], "Component": ['a', 'b'], "Genome Build": ['a', 'b'], "Genome FASTA": ['a', 'b'], "test_one_column": ['a', 'b'], "test_two_column": ['c', 'd']}, None])
     def test_populate_existing_excel_spreadsheet(self, simple_manifest_generator, simple_test_manifest_excel, additional_df_dict):
