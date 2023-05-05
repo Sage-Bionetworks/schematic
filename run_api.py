@@ -3,7 +3,6 @@
 # import our application
 # Run our application
 from schematic_api.api import create_app
-from flask_cors import CORS
 import os
 
 if __name__ == "__main__":
@@ -15,4 +14,4 @@ if __name__ == "__main__":
     # Launch app
     app = create_app()
     #TO DO: add a flag --debug to control debug parameter
-    app.run(host=host, port=port, debug=True)
+    app.run(host=host, port=port, debug=False)
