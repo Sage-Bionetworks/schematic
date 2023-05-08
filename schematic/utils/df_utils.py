@@ -5,7 +5,9 @@ import numpy as np
 from copy import deepcopy
 import dateparser as dp
 import datetime as dt
+from pandarallel import pandarallel
 from time import perf_counter
+
 logger = logging.getLogger(__name__)
 
 
@@ -13,6 +15,7 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     """
     Universal function to load CSVs and return DataFrames
     Parses string entries to convert as appropriate to type int, float, and pandas timestamp
+    Pandarallel is used for type inference for large manfiests to improve performance
     Args:
         file_path: path of csv to open
         preserve_raw_input: Bool. If false, convert cell datatypes to an inferred type
@@ -20,39 +23,57 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         load_args: dict of key value pairs to be passed to the pd.read_csv function
         **kwargs: keyword arguments for pd.read_csv()
 
-    Returns: a processed dataframe for manifests or unprocessed df for data models
+    Returns: a processed dataframe for manifests or unprocessed df for data models and where indicated
     """
-    #Read CSV to df as type specified in kwargs
+    large_manifest_cutoff_size = 1000
+    # start performance timer
     t_load_df = perf_counter()
+    
+    #Read CSV to df as type specified in kwargs
     org_df = pd.read_csv(file_path, keep_default_na = True, encoding='utf8', **load_args)
     
+    # If type inference not allowed: trim and return
     if preserve_raw_input:
         #only trim if not data model csv
         if not data_model:
             org_df=trim_commas_df(org_df)
         
+            # log manifest load and processing time
             logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
 
+    # If type inferences is allowed: infer types, trim, and return
     else:
+        # create a separate copy of the manifest 
+        # before beginning conversions to store float values
         float_df=deepcopy(org_df)
-        #Find integers stored as strings
-        #Cast the columns in dataframe to string while preserving NaN
+        
+        # Cast the columns in the dataframe to string and
+        # replace Null values with empty strings
         null_cells = org_df.isnull() 
         org_df = org_df.astype(str).mask(null_cells, '')
-        ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
-        #convert strings to numerical dtype (float) if possible, preserve non-numerical strings
+        # Find integers stored as strings and replace with entries of type np.int64
+        if org_df.size < large_manifest_cutoff_size:  # If small manifest, iterate as normal for improved performance
+            ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+
+        else:   # parallelize iterations for large manfiests
+            pandarallel.initialize(verbose = 1)
+            ints = org_df.parallel_applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+
+        # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
             float_df[col]=pd.to_numeric(float_df[col], errors='coerce')
+            # replace values that couldn't be converted to float with the original str values
             float_df[col].fillna(org_df[col][float_df[col].isna()],inplace=True)
         
-        #Trim nans and empty rows and columns
+        # Trim nans and empty rows and columns
         processed_df = trim_commas_df(float_df)
         
-        #Store values that were entered as ints and dates
+        # Store values that were converted to type int in the final dataframe
         processed_df=processed_df.mask(ints != False, other = ints)  
         
+        # log manifest load and processing time
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return processed_df
 
