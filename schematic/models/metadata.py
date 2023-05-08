@@ -286,7 +286,7 @@ class MetadataModel(object):
         validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
-        input_token: str = None,
+        access_token: str = None,
         project_scope: List = None,
         table_manipulation: str = 'replace'
     ) -> string:
@@ -306,7 +306,7 @@ class MetadataModel(object):
         #TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-        syn_store = SynapseStorage(input_token = input_token, project_scope = project_scope)
+        syn_store = SynapseStorage(access_token = access_token, project_scope = project_scope)
         manifest_id=None
         censored_manifest_id=None
         restrict_maniest=False

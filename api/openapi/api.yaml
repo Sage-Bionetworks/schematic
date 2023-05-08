@@ -24,7 +24,7 @@ paths:
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
           description: Token is needed if getting an existing manifest on AWS
@@ -105,7 +105,7 @@ paths:
       description: Endpoint to download an existing manifest
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -256,7 +256,7 @@ paths:
           schema:
             type: string
             nullable: true
-          description: Data Model Component
+          description: Data Model Component. Providing a data type will also validate the manfiest against the rules specified for the data type's attributes.
           example: Patient
           required: true
         - in: query
@@ -281,7 +281,7 @@ paths:
           description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
           required: true
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -438,7 +438,7 @@ paths:
       operationId: api.routes.get_manifest_datatype
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -475,7 +475,7 @@ paths:
       operationId: api.routes.get_storage_projects
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -504,7 +504,7 @@ paths:
       operationId: api.routes.get_storage_projects_datasets
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -541,7 +541,7 @@ paths:
       operationId: api.routes.get_files_storage_dataset
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -594,7 +594,7 @@ paths:
       operationId: api.routes.get_asset_view_table
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -631,7 +631,7 @@ paths:
       operationId: api.routes.get_project_manifests
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -679,7 +679,7 @@ paths:
       operationId: api.routes.check_entity_type
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -717,7 +717,7 @@ paths:
       operationId: api.routes.check_if_files_in_assetview
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false

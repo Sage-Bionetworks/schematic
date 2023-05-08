@@ -69,7 +69,8 @@ openpyxl = "^3.0.9"
 Flask-Cors = "^3.0.10"
 pdoc = "^12.2.0"
 dateparser = "^1.1.4"
-schematic-db = {version = "0.0.6", extras = ["synapse"]}
+pandarallel = "^1.6.4"
+schematic-db = {version = "^0.0.6", extras = ["synapse"]}
 pyopenssl = "^23.0.0"
 
 

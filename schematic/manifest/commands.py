@@ -255,12 +255,9 @@ def migrate_manifests(
     """
     jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
 
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    
     full_scope = project_scope + [archive_project]
-    if access_token:
-        synStore = SynapseStorage(access_token = access_token, project_scope = full_scope)
-    else:
-        synStore = SynapseStorage(project_scope = full_scope)  
+    synStore = SynapseStorage(project_scope = full_scope)  
 
     for project in project_scope:
         if not return_entities:
