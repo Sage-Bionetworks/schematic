@@ -69,7 +69,8 @@ openpyxl = "^3.0.9"
 Flask-Cors = "^3.0.10"
 pdoc = "^12.2.0"
 dateparser = "^1.1.4"
-schematic-db = {version = "0.0.6", extras = ["synapse"]}
+pandarallel = "^1.6.4"
+schematic-db = {version = "^0.0.6", extras = ["synapse"]}
 pyopenssl = "^23.0.0"
 
 
@@ -119,8 +120,8 @@ markers = [
     Google credentials (skipped on GitHub CI) \
     """,
     """\
-    schematic_api: marks tests requiring \
-    running API locally (skipped on GitHub CI)   
+    schematic_api: marks tests covering \
+    API functionality (skipped on regular GitHub CI test suite)   
     """,
     """\
     rule_combos: marks tests covering \
@@ -131,5 +132,9 @@ markers = [
     table_operations: marks tests covering \
     table operations that pass locally \
     but fail on CI due to interactions with Synapse (skipped on GitHub CI)   
+    """,    
+    """\
+    rule_benchmark: marks tests covering \
+    validation rule benchmarking
     """    
 ]

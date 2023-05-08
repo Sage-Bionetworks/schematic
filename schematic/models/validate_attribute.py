@@ -570,11 +570,7 @@ class ValidateAttribute(object):
         target_dataset_IDs=[]
         
         #login
-        access_token = getenv("SYNAPSE_ACCESS_TOKEN")
-        if access_token:
-            synStore = SynapseStorage(access_token=access_token,project_scope=project_scope)
-        else:
-            synStore = SynapseStorage(project_scope=project_scope)        
+        synStore = SynapseStorage(project_scope=project_scope)        
 
         #Get list of all projects user has access to
         projects = synStore.getStorageProjects(project_scope=project_scope)

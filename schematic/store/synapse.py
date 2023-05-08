@@ -62,7 +62,6 @@ class SynapseStorage(BaseStorage):
         self,
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
-        input_token: str = None,
         project_scope: List = None,
     ) -> None:
         """Initializes a SynapseStorage object.
@@ -80,7 +79,7 @@ class SynapseStorage(BaseStorage):
             syn_store = SynapseStorage()
         """
 
-        self.syn = self.login(token, access_token, input_token)
+        self.syn = self.login(token, access_token)
         self.project_scope = project_scope
 
 
@@ -136,9 +135,9 @@ class SynapseStorage(BaseStorage):
             raise AccessCredentialsError(self.storageFileview)        
 
     @staticmethod
-    def login(token=None, access_token=None, input_token=None):
+    def login(token=None, access_token=None):
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token and not input_token:
+        if not token and not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
@@ -150,12 +149,9 @@ class SynapseStorage(BaseStorage):
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("Please make sure you are logged into synapse.org.")
         elif access_token:
-            syn = synapseclient.Synapse()
-            syn.default_headers["Authorization"] = f"Bearer {access_token}"
-        elif input_token: 
-            try: 
+            try:
                 syn = synapseclient.Synapse()
-                syn.default_headers["Authorization"] = f"Bearer {input_token}"
+                syn.default_headers["Authorization"] = f"Bearer {access_token}"
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("No access to resources. Please make sure that your token is correct")
         else:
@@ -1646,11 +1642,18 @@ class SynapseStorage(BaseStorage):
             str: The Synapse ID for the parent project.
         """
 
-        self._query_fileview()
-
         # Subset main file view
         dataset_index = self.storageFileviewTable["id"] == datasetId
         dataset_row = self.storageFileviewTable[dataset_index]
+
+        # re-query if no datasets found
+        if dataset_row.empty:
+            sleep(5)
+            self._query_fileview()
+            # Subset main file view
+            dataset_index = self.storageFileviewTable["id"] == datasetId
+            dataset_row = self.storageFileviewTable[dataset_index]
+
 
         # Return `projectId` for given row if only one found
         if len(dataset_row) == 1:
@@ -1868,6 +1871,58 @@ class TableOperations:
         existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
         return existingTableId
     
+
+    def _get_schematic_db_creds(synStore):
+        username = None
+        authtoken = None
+
+
+        # Get access token from environment variable if available
+        # Primarily useful for testing environments, with other possible usefulness for containers
+        env_access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+        if env_access_token:
+            authtoken = env_access_token
+            return username, authtoken
+
+        # Get token from authorization header
+        # Primarily useful for API endpoint functionality
+        if 'Authorization' in synStore.syn.default_headers:
+            authtoken = synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
+            return username, authtoken
+
+        # retrive credentials from synapse object
+        # Primarily useful for local users, could only be stored here when a .synapseConfig file is used, but including to be safe
+        synapse_object_creds = synStore.syn.credentials
+        if hasattr(synapse_object_creds, 'username'):
+            username = synapse_object_creds.username
+        if hasattr(synapse_object_creds, '_token'):
+            authtoken = synapse_object_creds.secret
+
+        # Try getting creds from .synapseConfig file if it exists
+        # Primarily useful for local users. Seems to correlate with credentials stored in synaspe object when logged in
+        if os.path.exists(CONFIG.SYNAPSE_CONFIG_PATH):
+            config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+
+            # check which credentials are provided in file
+            if config.has_option('authentication', 'username'):
+                username = config.get('authentication', 'username')
+            if config.has_option('authentication', 'authtoken'):
+                authtoken = config.get('authentication', 'authtoken')
+        
+        # raise error if required credentials are not found
+        # providing an authtoken without a username did not prohibit upsert functionality, 
+        # but including username gathering for completeness for schematic_db
+        if not username and not authtoken:
+            raise NameError(
+                "Username and authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
+            )
+        if not authtoken:
+            raise NameError(
+                "authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
+            )
+        
+        return username, authtoken
+
     def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
@@ -1886,16 +1941,11 @@ class TableOperations:
 
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
-        """
-        config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+        """            
 
-        if config.has_option('authentication', 'username') and config.has_option('authentication', 'authtoken'):
-            synConfig = SynapseConfig(config.get('authentication', 'username'), config.get('authentication', 'authtoken'), synStore.getDatasetProject(datasetId) )
-        else:
-            raise KeyError(
-                "Username or authtoken credentials missing in .synapseConfig"
-            )
+        username, authtoken = TableOperations._get_schematic_db_creds(synStore)
 
+        synConfig = SynapseConfig(username, authtoken, synStore.getDatasetProject(datasetId))
         synapseDB = SynapseDatabase(synConfig)
         synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
 
