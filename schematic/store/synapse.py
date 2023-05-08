@@ -1059,7 +1059,10 @@ class SynapseStorage(BaseStorage):
         """
         # Add Id for table updates and fill.
         if not "Id" in manifest.columns:
-            manifest["Id"] = ''
+            if 'Uuid' in manifest.columns:
+                manifest.rename(columns={'Uuid': 'Id'}, inplace=True)
+            else:
+                manifest["Id"] = ''
 
         for idx,row in manifest.iterrows():
             if not row["Id"]:
