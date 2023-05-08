@@ -851,9 +851,9 @@ class SynapseStorage(BaseStorage):
         # Get the column schema
         col_schema = as_table_columns(table_manifest)
 
-        # Set id column length to 64 (for some reason not being auto set.)
+        # Set Id column length to 64 (for some reason not being auto set.)
         for i, col in enumerate(col_schema):
-            if col['name'] == 'id':
+            if col['name'] == 'Id':
                 col_schema[i]['maximumSize'] = 64
 
         return col_schema, table_manifest
@@ -1133,17 +1133,17 @@ class SynapseStorage(BaseStorage):
         Args:
             Manifest loaded as a pd.Dataframe
         Returns (pd.DataFrame):
-            Manifest df with new id and EntityId columns (and UUID values) if they were not already present.
+            Manifest df with new Id and EntityId columns (and UUID values) if they were not already present.
         """
-        # Add id for table updates and fill.
-        if not "id" in manifest.columns:
-            manifest["id"] = ''
+        # Add Id for table updates and fill.
+        if not "Id" in manifest.columns:
+            manifest["Id"] = ''
 
         for idx,row in manifest.iterrows():
-            if not row["id"]:
+            if not row["Id"]:
                 gen_uuid = str(uuid.uuid4())
-                row["id"] = gen_uuid
-                manifest.loc[idx, 'id'] = gen_uuid
+                row["Id"] = gen_uuid
+                manifest.loc[idx, 'Id'] = gen_uuid
 
         # add entityId as a column if not already there or
         # fill any blanks with an empty string.
@@ -2029,7 +2029,7 @@ class TableOperations:
 
         return existingTableId
 
-    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'id',  restrict: bool = False):
+    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Id',  restrict: bool = False):
         """
         Method to update an existing table with a new column
         
