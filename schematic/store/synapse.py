@@ -1133,7 +1133,7 @@ class SynapseStorage(BaseStorage):
         Args:
             Manifest loaded as a pd.Dataframe
         Returns (pd.DataFrame):
-            Manifest df with new id and EntityId columns (and UUID values) if they were not already present.
+            Manifest df with new Id and EntityId columns (and UUID values) if they were not already present.
         """
         # Add Id for table updates and fill.
         if not "Id" in manifest.columns:
