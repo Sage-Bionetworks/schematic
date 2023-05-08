@@ -1,33 +1,25 @@
+import logging
 import os
-from json.decoder import JSONDecodeError
+import pickle
 import shutil
 import tempfile
-import shutil
 import urllib.request
-import logging
-import pickle
 
 import connexion
-from connexion.decorators.uri_parsing import Swagger2URIParser
-from werkzeug.debug import DebuggedApplication
-
-from flask_cors import cross_origin
-from flask import send_from_directory
-from flask import current_app as app
-
 import pandas as pd
-import json
+from flask import current_app as app
+from flask import send_from_directory
+from flask_cors import cross_origin
 
 from schematic import CONFIG
-from schematic.visualization.attributes_explorer import AttributesExplorer
-from schematic.visualization.tangled_tree import TangledTree
 from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
-from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.store.synapse import SynapseStorage, ManifestDownload
-from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions, SynapseNoCredentialsError, SynapseTimeoutError
+from schematic.schemas.generator import SchemaGenerator
+from schematic.store.synapse import ManifestDownload, SynapseStorage
 from schematic.utils.general import entity_type_mapping
+from schematic.visualization.attributes_explorer import AttributesExplorer
+from schematic.visualization.tangled_tree import TangledTree
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
