@@ -1,15 +1,19 @@
+from __future__ import annotations
 import logging
 import os
 import pickle
 import shutil
 import tempfile
 import urllib.request
+from dataclasses import dataclass
 
 import connexion
 import pandas as pd
 from flask import current_app as app
 from flask import send_from_directory
 from flask_cors import cross_origin
+from typing import Union, BinaryIO, List, Optional
+from pydantic import BaseModel
 
 from schematic import CONFIG
 from schematic.manifest.generator import ManifestGenerator
@@ -24,15 +28,16 @@ from schematic.visualization.tangled_tree import TangledTree
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-def config_handler(asset_view=None):
+def config_handler(asset_view: str=None):
+    """Load schematic config 
+
+    Args:
+        asset_view (str, optional): ID of a file view. A file view lists all files or tables within one or more folders or projects. If not provided, use master_fileview from config.yml
+
+    Raises:
+        FileNotFoundError: no config.yml found
+    """
     path_to_config = app.config["SCHEMATIC_CONFIG"]
-
-    # if content of the config file is provided: 
-    content_of_config = app.config["SCHEMATIC_CONFIG_CONTENT"]
-
-    # if the environment variable exists
-    if content_of_config:
-        CONFIG.load_config_content_from_env()
     
     # check if path to config is provided
     if os.path.isfile(path_to_config):
@@ -198,43 +203,30 @@ def get_temp_jsonld(schema_url):
     # get path to temporary JSON-LD file
     return tmp_file.name
 
-# @before_request
-def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None):
-    """Get the immediate dependencies that are related to a given source node.
-        Args:
-            schema_url: link to data model in json ld format
-            title: title of a given manifest. 
-            dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
-            output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
-            use_annotations: Whether to use existing annotations during manifest generation
-            asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
-            access_token: Token
-        Returns:
-            Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
-    """
-
-    # call config_handler()
-    config_handler(asset_view = asset_view)
-
-    # get path to temporary JSON-LD file
-    jsonld = get_temp_jsonld(schema_url)
-
-    # Gather all data_types to make manifests for.
-    all_args = connexion.request.args
-    args_dict = dict(all_args.lists())
-    data_type = args_dict['data_type']
+class ManifestGeneration(BaseModel):
+    schema_url: str
+    access_token: Optional[str] = ''
+    asset_view: Optional[str] = ''
+    dataset_id: List[str] = []
+    data_type: List[str] = []
+    title: Optional[str] = ''
+    output_format: Optional[str] = "excel"
+    use_annotations: Optional[bool] = False
     
-    # Gather all dataset_ids
-    try:
-        dataset_ids = args_dict['dataset_id']
-    except:
-        pass
-    
-    if dataset_ids:
-        # Check that the number of submitted data_types matches
+    def _load_config_(self) -> None:
+        """load configuration file and update asset view if needed
+        """
+        config_handler(asset_view = self.asset_view)
+
+    def _check_dataset_match_datatype_(self) -> None:
+        """check if number of dataset ids matches number of data types
+
+        Raises:
+            ValueError: mismatch in the number of data_types and dataset_ids
+        """
         # the number of dataset_ids (if applicable)
-        len_data_types = len(data_type)
-        len_dataset_ids = len(dataset_ids)
+        len_data_types = len(self.data_type)
+        len_dataset_ids = len(self.dataset_id)
         
         try:
             len_data_types == len_dataset_ids
@@ -243,85 +235,180 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     f"There is a mismatch in the number of data_types and dataset_id's that "
                     f"submitted. Please check your submission and try again."
                 )
-        
-        # Raise an error if used in conjunction with datatype = 'all_manifests'
-        try:
-            data_type[0] != 'all manifests'
-        except:
-            raise ValueError(
-                    f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
-                    f"Please check your submission and try again."
-                )
 
+    def _get_manifest_title(self, single_data_type:str='') -> str:
+        """get title of manifest
 
-    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None):
-        # create object of type ManifestGenerator
+        Args:
+            single_data_type (str): data type of manifest. Defaults to None.
+
+        Returns: 
+            str: title of manifest
+        """
+        if self.title:
+            t = f'{self.title}.{single_data_type}.manifest'
+        else: 
+            t = f'Example.{single_data_type}.manifest'         
+        return t
+
+    def generate_manifest_and_collect_outputs(self, data_type_lst: List[str], dataset_id: List[str]=[]):
+        """_summary_
+
+        Args:
+            data_type_lst (List[str]): _description_.
+            dataset_id (List[str], optional): _description_. Defaults to [].
+
+        Returns:
+            _type_: _description_
+        """
+        # if requested output is excel, only use the first data type or first dataset id (if provided) to generate a manifest
+        if self.output_format == "excel":
+            # get manifest title based on data type
+            t = self._get_manifest_title(single_data_type=data_type_lst[0])
+            if len(data_type_lst) > 1:
+                # warn users that only the first manifest gets returned
+                app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
+            # if multiple dataset ids are provided, use the first one
+            if dataset_id:
+                self.create_single_manifest(single_data_type=data_type_lst[0], title=t, single_dataset_id=dataset_id[0])
+                app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only manifest generated by using dataset id {dataset_id[0]} would get returned with title {t}')
+            else:
+                self.create_single_manifest(single_data_type=data_type_lst[0], title=t)
+
+        else:
+            # if output format is google sheet or data frame, simply create outputs and append all outputs to a list
+            all_outputs = []
+            for i, dt in enumerate(data_type_lst):
+                t = self._get_manifest_title(single_data_type=dt)
+                if dataset_id:
+                    # get existing manifest
+                    # here we could assume that dataset_id list and data_type list have the same length since _check_dataset_match_datatype_ has done the check
+                    output = self.create_single_manifest(single_data_type=dt, single_dataset_id=dataset_id[i], title=t)
+                else:
+                    # get new manifests in google sheet or data frame format
+                    output = self.create_single_manifest(single_data_type=dt, title=t)
+                # collect outputs in a list
+                all_outputs.append(output)
+            
+            return all_outputs
+                
+
+    def create_single_manifest(self, single_data_type:str='', single_dataset_id:str='', title:str='') -> str|pd.DataFrame|BinaryIO:
+        """call get_manifest generate function to generate a new manifest
+
+        Args:
+            single_data_type (str, optional): data type of a manifest being generated. Defaults to ''.
+            single_dataset_id (str, optional): dataset id of an existing manifest. Defaults to ''.
+            title (str, optional): title of new manifest. Defaults to ''.
+
+        Returns:
+            str|pd.DataFrame|BinaryIO: depends on output_format parameter, returns either a google sheet url, dataframe, or an excel file in attachment
+        """
+
         manifest_generator = ManifestGenerator(
-            path_to_json_ld=jsonld,
+            path_to_json_ld=self.schema_url,
             title=title,
-            root=data_type,
-            use_annotations=use_annotations,
-            alphabetize_valid_values = 'ascending',
+            root=single_data_type,
+            use_annotations=self.use_annotations
         )
 
-        # if returning a dataframe
-        if output_format:
-            if "dataframe" in output_format:
-                output_format = "dataframe"
-
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token
+                dataset_id=single_dataset_id, output_format=self.output_format, access_token=self.access_token
         )
 
         # return an excel file if output_format is set to "excel"
-        if output_format == "excel":
+        if self.output_format == "excel":
             dir_name = os.path.dirname(result)
             file_name = os.path.basename(result)
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
-               
+                
         return result
 
-    # Gather all returned result urls
-    all_results = []
-    if data_type[0] == 'all manifests':
-        sg = SchemaGenerator(path_to_json_ld=jsonld)
-        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
-        components = component_digraph.nodes()
-        for component in components:
-            if title:
-                t = f'{title}.{component}.manifest'
-            else: 
-                t = f'Example.{component}.manifest'
-            if output_format != "excel":
-                result = create_single_manifest(data_type=component, output_format=output_format, title=t, access_token=access_token)
-                all_results.append(result)
-            else: 
-                app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
-    else:
-        for i, dt in enumerate(data_type):
-            if not title: 
-                t = f'Example.{dt}.manifest'
-            else: 
-                if len(data_type) > 1:
-                    t = f'{title}.{dt}.manifest'
-                else: 
-                    t = title
-            if dataset_ids:
-                # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token)
-            else:
-                result = create_single_manifest(data_type=dt, output_format=output_format, title=t, access_token=access_token)
+    @staticmethod
+    def get_manifests_route(schema_url: str, output_format: str, access_token: str='', use_annotations: bool=False, dataset_id: list[str]=[], data_type:list[str] = [], asset_view: str = None, title: str = '') -> str|pd.DataFrame|BinaryIO:
+        """Generate a new manifest template or create an existing manifest in google sheet/excel/dataframe format. 
 
-            # if output is pandas dataframe or google sheet url
-            if isinstance(result, str) or isinstance(result, pd.DataFrame):
-                all_results.append(result)
-            else: 
-                if len(data_type) > 1:
-                    app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
-                return result
+        Args:
+            schema_url (str): data model in json ld format.
+            output_format (str): output format of manifests. Available options are: google sheet, excel, and dataframe
+            access_token (str): access token
+            title (str, optional): title of the new manifest. Defaults to ''
+            use_annotations (bool, optional): whether to use existing annotations during manifest generation. Defaults to False
+            dataset_id (list, optional): id of a given dataset. Defaults to an empty list
+            asset_view (str, optional): id of a file view. A file view lists all files or tables within one or more folders or projects. Defaults to use master_fileview in config.yml
+            data_type (list, optional): a list of data types. Defaults to an empty list
 
-    return all_results
+        Raises:
+            ValueError: There is a mismatch in the number of data_types and dataset_id's that submitted. Please check your submission and try again.
+            ValueError: When submitting 'all manifests' as the data_type cannot also submit dataset_id. Please check your submission and try again.
+
+        Returns:
+            str|pd.DataFrame|BinaryIO: returns google sheet url, pandas dataframe, or excel file based on output_format parameter
+        """
+        # initalize manifest generation class
+        mg = ManifestGeneration(schema_url=schema_url, access_token=access_token, output_format=output_format, title=title, use_annotations=use_annotations, dataset_id=dataset_id, data_type=data_type, asset_view=asset_view)
+
+        # load configuration file
+        mg._load_config_()
+
+        # get path to temporary JSON-LD file
+        jsonld = get_temp_jsonld(schema_url)
+
+        if dataset_id: 
+            mg._check_dataset_match_datatype_(dataset_id, data_type)
+            
+            # Raise an error if used in conjunction with datatype = 'all_manifests'
+            try:
+                data_type[0] != 'all manifests'
+            except:
+                raise ValueError(
+                        f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
+                        f"Please check your submission and try again."
+                    )
+
+        # Gather all returned result urls
+        if data_type[0] == 'all manifests':
+            sg = SchemaGenerator(path_to_json_ld=jsonld)
+            component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+            components = list(component_digraph.nodes())
+        else:
+            components = data_type
+
+        # when output_format = "google_sheet" or output_format = "data_frame", a list of outputs get returned if needed
+        all_outputs = mg.generate_manifest_and_collect_outputs(data_type_lst=components, dataset_id=dataset_id)
+
+        if all_outputs:
+            return all_outputs
+            
+        # all_results = []
+        # components = component_digraph.nodes()
+        # for component in components:
+        #     t = mg._get_manifest_title(single_data_type=component)
+        #     if output_format != "excel":
+        #         output = mg.create_single_manifest(single_data_type=component, title=t)
+        #     else:
+        #         all_results.append(output)
+            # else: 
+            #     app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
+        #else:
+            # for i, dt in enumerate(data_type):
+            #     t = mg._get_manifest_title(single_data_type=dt)
+            #     if dataset_id:
+            #         # get existing manifest
+            #         output = mg.create_single_manifest(single_data_type=dt, single_dataset_id=dataset_id[i], title=t)
+            #     else:
+            #         output = mg.create_single_manifest(single_data_type=dt, title=t)
+
+                # # if output is pandas dataframe or google sheet url
+                # if isinstance(result, str) or isinstance(result, pd.DataFrame):
+                #     all_results.append(result)
+                # else: 
+                #     if len(data_type) > 1:
+                #         app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
+                #     return result
+
+        #return all_outputs
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)

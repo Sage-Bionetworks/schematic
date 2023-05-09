@@ -11,10 +11,10 @@ servers:
 
 # TO DO: refactor query parameters and remove access_token
 paths:
-  /manifest/generate:
+  /manifests:
     get:
       summary: Endpoint to facilitate manifest generation
-      description: Endpoint to create dynamically create metadata manifest files
+      description: Endpoint to dynamically create metadata manifests
       parameters:
         - in: query
           name: schema_url
@@ -86,7 +86,7 @@ paths:
             enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]
           description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
           required: false
-      operationId: schematic_api.api.routes.get_manifest_route
+      operationId: schematic_api.api.routes.ManifestGeneration.get_manifests_route
       responses:
         "200":
           description: Googlesheet link created OR an excel file gets returned OR pandas dataframe gets returned
