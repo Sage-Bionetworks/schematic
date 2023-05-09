@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import logging
 import os
 import pickle
@@ -6,13 +7,13 @@ import shutil
 import tempfile
 import urllib.request
 from dataclasses import dataclass
+from typing import BinaryIO, List, Optional
 
 import connexion
 import pandas as pd
 from flask import current_app as app
 from flask import send_from_directory
 from flask_cors import cross_origin
-from typing import Union, BinaryIO, List, Optional
 from pydantic import BaseModel
 
 from schematic import CONFIG
@@ -354,16 +355,7 @@ class ManifestGeneration(BaseModel):
         jsonld = get_temp_jsonld(schema_url)
 
         if dataset_id: 
-            mg._check_dataset_match_datatype_(dataset_id, data_type)
-            
-            # Raise an error if used in conjunction with datatype = 'all_manifests'
-            try:
-                data_type[0] != 'all manifests'
-            except:
-                raise ValueError(
-                        f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
-                        f"Please check your submission and try again."
-                    )
+            mg._check_dataset_match_datatype_()
 
         # Gather all returned result urls
         if data_type[0] == 'all manifests':
