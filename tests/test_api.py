@@ -1,15 +1,20 @@
 
-import pytest
-from schematic_api.api import create_app
 import configparser
 import json
+import logging
 import os
 import re
+import warnings
 from math import ceil
-import logging
 from time import perf_counter
-import pandas as pd # third party library import
-from schematic.schemas.generator import SchemaGenerator #Local application/library specific imports.
+
+import pandas as pd  # third party library import
+import pytest
+from pydantic import BaseModel
+
+from schematic.schemas.generator import \
+    SchemaGenerator  # Local application/library specific imports.
+from schematic_api.api import create_app
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -370,8 +375,7 @@ class TestSchemaGeneratorOperation:
                 assert "TissueStatus" in response_dt
 
 @pytest.mark.schematic_api
-class TestManifestOperation:
-
+class TestManifestOperation():
     def ifExcelExists(self, response, file_name):
         # return one excel file
         d = response.headers['content-disposition']
@@ -385,62 +389,122 @@ class TestManifestOperation:
         for i in response_dt:
             df = pd.read_json(i)
             assert isinstance(df, pd.DataFrame)
-
-
-    #@pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
-    @pytest.mark.parametrize("output_format", ["excel"])
-    @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
-    def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog):
-        # set dataset
-        if data_type == "Patient":
-            dataset_id = ["syn42171373"] #Mock Patient Manifest folder on synapse
-        elif data_type == "Biospecimen":
-            dataset_id = ["syn42171508"] #Mock biospecimen manifest folder
-        elif data_type == ["Biospecimen", "Patient"]:
-            dataset_id = ["syn42171508", "syn42171373"]
-        else: 
-            dataset_id = None #if "all manifests", dataset id is None
-
+    
+    @pytest.mark.parametrize("output_format", ["google_sheet", "excel", "dataframe (only if getting existing manifests)"])
+    def test_generate_existing_manifest_single_data_type(self, client, data_model_jsonld, output_format):
+        # generate an existing manifest as an excel spreadsheet or google sheet or data frame by using only one data type
+        lst_dataset_id = ["syn42171508", "syn42171373"]
+        lst_data_types = ["Biospecimen", "Patient"]
         params = {
             "schema_url": data_model_jsonld,
             "asset_view": "syn23643253",
-            "title": "Example",
-            "data_type": data_type,
-            "use_annotations": False, 
-            "access_token": None
-            }
-        if dataset_id: 
-            params['dataset_id'] = dataset_id
-        
-        if output_format: 
-            params['output_format'] = output_format
+            "output_format": output_format
+        }
 
-        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
-
-        assert response.status_code == 200
-
-        if dataset_id and output_format:
-            if output_format == "excel":
-                # for multiple data_types
-                if isinstance(data_type, list) and len(data_type) > 1:
-                    # return warning message
-                    for record in caplog.records:
-                        if record.message == "Currently we do not support returning multiple files as Excel format at once.":
-                            assert record.levelname == "WARNING"
-                    self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
-                # for single data type
-                else: 
-                    self.ifExcelExists(response, "Example.xlsx")
-            else:
-                response_dt = json.loads(response.data)
-                if "dataframe" in output_format:
-                    self.ifPandasDataframe(response_dt)
-                    assert len(response_dt) == len(dataset_id)
-                else: 
+        for dataset_id in lst_dataset_id:
+            for data_type in lst_data_types:
+                params["dataset_id"] = dataset_id
+                params["data_type"] = data_type
+                response = client.get('http://localhost:3001/v1/manifests', query_string=params)
+                assert response.status_code == 200
+                # test if excel spreadsheet gets returned
+                if output_format == "excel":
+                    self.ifExcelExists(response, f"Example.{data_type}.manifest.xlsx")
+                # test if google sheet gets returned
+                elif output_format == "google_sheet":
+                    response_dt = json.loads(response.data)
                     self.ifGoogleSheetExists(response_dt)
-        else:
-            response_dt = json.loads(response.data)
-            self.ifGoogleSheetExists(response_dt)
+                else:
+                    response_dt = json.loads(response.data)
+                    self.ifPandasDataframe(response_dt)
+
+    def test_generate_existing_manifest_multi_data_types(self, client, data_model_jsonld):
+        # generate an existing manifest as a google sheet, excel, or data frame
+        data_type_lst = ["Biospecimen", "Patient"]
+        lst_dataset_id = ["syn42171508", "syn42171373"]
+        params = {
+            "schema_url": data_model_jsonld,
+            "asset_view": "syn23643253",
+            "data_type": data_type_lst, 
+            "dataset_id": lst_dataset_id
+        }
+        output_formats = ["excel"]
+        #"dataframe (only if getting existing manifests)", "google_sheet", 
+
+        for output_format in output_formats:
+            params["output_format"] = output_format
+            response = client.get('http://localhost:3001/v1/manifests', query_string=params)
+            assert response.status_code == 200
+            # test if excel spreadsheet gets returned
+            if output_format == "excel":
+                self.ifExcelExists(response, f"Example.{data_type_lst[0]}.manifest.xlsx")
+                with pytest.warns(UserWarning):
+                    warnings.warn(f"Currently we do not support returning multiple files as Excel format at once. Only Example.{data_type_lst[0]}.manifest would get returned", UserWarning)
+            # test if dataframe gets returned
+            elif "dataframe" in output_format:
+                response_dt = json.loads(response.data)
+                self.ifPandasDataframe(response_dt)
+                assert len(response_dt) == len(lst_dataset_id)
+            # test if google sheet gets returned
+            else: 
+                response_dt = json.loads(response.data)
+                self.ifGoogleSheetExists(response_dt)
+
+    #@pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
+    # @pytest.mark.parametrize("output_format", ["excel"])
+    # @pytest.mark.parametrize("title", [None, 'test manifest title'])
+    # @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
+    # def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, title, caplog):
+    #     # set dataset
+    #     if data_type == "Patient":
+    #         dataset_id = ["syn42171373"] #Mock Patient Manifest folder on synapse
+    #     elif data_type == "Biospecimen":
+    #         dataset_id = ["syn42171508"] #Mock biospecimen manifest folder
+    #     elif data_type == ["Biospecimen", "Patient"]:
+    #         dataset_id = ["syn42171508", "syn42171373"]
+    #     else: 
+    #         dataset_id = None #if "all manifests", dataset id is None
+
+    #     params = {
+    #         "schema_url": data_model_jsonld,
+    #         "asset_view": "syn23643253",
+    #         "title": title,
+    #         "data_type": data_type,
+    #         "use_annotations": False, 
+    #         "access_token": None
+    #         }
+    #     if dataset_id: 
+    #         params['dataset_id'] = dataset_id
+        
+    #     if output_format: 
+    #         params['output_format'] = output_format
+
+    #     response = client.get('http://localhost:3001/v1/manifests', query_string=params)
+
+    #     assert response.status_code == 200
+
+    #     if dataset_id and output_format:
+    #         if output_format == "excel":
+    #             # for multiple data_types
+    #             if isinstance(data_type, list) and len(data_type) > 1:
+    #                 # return warning message
+    #                 for record in caplog.records:
+    #                     if record.message == "Currently we do not support returning multiple files as Excel format at once.":
+    #                         assert record.levelname == "WARNING"
+    #                 self.ifExcelExists(response, "Example.Biospecimen.manifest.xlsx")
+    #             # for single data type
+    #             else: 
+    #                 self.ifExcelExists(response, "Example.xlsx")
+    #         else:
+    #             response_dt = json.loads(response.data)
+    #             if "dataframe" in output_format:
+    #                 self.ifPandasDataframe(response_dt)
+    #                 assert len(response_dt) == len(dataset_id)
+    #             else: 
+    #                 self.ifGoogleSheetExists(response_dt)
+    #     else:
+    #         response_dt = json.loads(response.data)
+    #         self.ifGoogleSheetExists(response_dt)
 
 
     @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)", None])
@@ -460,7 +524,7 @@ class TestManifestOperation:
             params["output_format"] = output_format
     
 
-        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        response = client.get('http://localhost:3001/v1/manifests', query_string=params)
         assert response.status_code == 200
 
 

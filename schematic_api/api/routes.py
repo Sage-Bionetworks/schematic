@@ -312,6 +312,9 @@ class ManifestGeneration(BaseModel):
             use_annotations=self.use_annotations
         )
 
+        if "dataframe" in self.output_format:
+            self.output_format = "dataframe"
+
         result = manifest_generator.get_manifest(
                 dataset_id=single_dataset_id, output_format=self.output_format, access_token=self.access_token
         )
