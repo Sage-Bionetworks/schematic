@@ -36,6 +36,8 @@ from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticatio
 from synapseutils import walk
 from synapseutils.copy_functions import changeFileMetaData
 
+import uuid
+
 from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
 from schematic_db.schema.schema import get_key_attribute
@@ -1028,6 +1030,82 @@ class SynapseStorage(BaseStorage):
             annos[annos_k] = annos_v
 
         return annos
+    '''
+    def annotate_upload_manifest_table(self, manifest, datasetId, metadataManifestPath,
+        useSchemaLabel: bool = True, hideBlanks: bool = False, restrict_manifest = False):
+        """
+        Purpose:
+            Works very similarly to associateMetadataWithFiles except takes in the manifest
+            rather than the manifest path
+
+        """
+        
+        # Add uuid for table updates and fill.
+        if not "Uuid" in manifest.columns:
+            manifest["Uuid"] = ''
+
+        for idx,row in manifest.iterrows():
+            if not row["Uuid"]:
+                gen_uuid = uuid.uuid4()
+                row["Uuid"] = gen_uuid
+                manifest.loc[idx, 'Uuid'] = gen_uuid
+
+        # add entityId as a column if not already there or
+        # fill any blanks with an empty string.
+        if not "entityId" in manifest.columns:
+            manifest["entityId"] = ""
+        else:
+            manifest["entityId"].fillna("", inplace=True)
+
+        # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
+        se = SchemaExplorer()
+
+        # Create table name here.
+        if 'Component' in manifest.columns:
+            table_name = manifest['Component'][0].lower() + '_synapse_storage_manifest_table'
+        else:
+            table_name = 'synapse_storage_manifest_table'
+
+        # Upload manifest as a table and get the SynID and manifest
+        manifest_synapse_table_id, manifest, table_manifest = self.upload_format_manifest_table(
+                                                    se, manifest, datasetId, table_name, restrict = restrict_manifest, useSchemaLabel=useSchemaLabel,)
+            
+        # Iterate over manifest rows, create Synapse entities and store corresponding entity IDs in manifest if needed
+        # also set metadata for each synapse entity as Synapse annotations
+        for idx, row in manifest.iterrows():
+            if not row["entityId"]:
+                # If not using entityIds, fill with manifest_table_id so 
+                row["entityId"] = manifest_synapse_table_id
+                entityId = ''
+            else:
+                # get the entity id corresponding to this row
+                entityId = row["entityId"]
+
+        # Load manifest to synapse as a CSV File
+        manifest_synapse_file_id = self.upload_manifest_file(manifest, metadataManifestPath, datasetId, restrict_manifest)
+        
+        # Get annotations for the file manifest.
+        manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_file_id)
+        
+        self.syn.set_annotations(manifest_annotations)
+
+        logger.info("Associated manifest file with dataset on Synapse.")
+        
+        # Update manifest Synapse table with new entity id column.
+        self.make_synapse_table(
+            table_to_load = table_manifest,
+            dataset_id = datasetId,
+            existingTableId = manifest_synapse_table_id,
+            table_name = table_name,
+            update_col = 'Uuid',
+            specify_schema = False,
+            )
+        
+        # Get annotations for the table manifest
+        manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
+        self.syn.set_annotations(manifest_annotations)
+        return manifest_synapse_table_id
+    '''
 
     def _read_manifest(self, metadataManifestPath:str) -> pd.DataFrame:
         """Helper function to read in provided manifest as a pandas DataFrame for subsequent downstream processing.
