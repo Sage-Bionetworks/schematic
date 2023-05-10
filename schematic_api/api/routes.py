@@ -1,39 +1,36 @@
-from email import generator
 import os
+from json.decoder import JSONDecodeError
 import shutil
 import tempfile
 import shutil
 import urllib.request
+import logging
+import pickle
 
 import connexion
 from connexion.decorators.uri_parsing import Swagger2URIParser
-from flask import current_app as app
 from werkzeug.debug import DebuggedApplication
 
-from schematic import CONFIG
+from flask_cors import cross_origin
+from flask import send_from_directory
+from flask import current_app as app
 
+import pandas as pd
+import json
+
+from schematic import CONFIG
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.store.synapse import SynapseStorage
-from flask_cors import CORS, cross_origin
-from schematic.schemas.explorer import SchemaExplorer
-import pandas as pd
-import json
-from schematic.utils.df_utils import load_df
-import pickle
-from flask import send_from_directory
+from schematic.store.synapse import SynapseStorage, ManifestDownload
+from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions, SynapseNoCredentialsError, SynapseTimeoutError
+from schematic.utils.general import entity_type_mapping
 
-# def before_request(var1, var2):
-#     # Do stuff before your route executes
-#     pass
-# def after_request(var1, var2):
-#     # Do stuff after your route executes
-#     pass
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 def config_handler(asset_view=None):
     path_to_config = app.config["SCHEMATIC_CONFIG"]
@@ -170,7 +167,12 @@ def parse_bool(str_bool):
         raise ValueError(
             "String boolean does not appear to be true or false. Please verify input."
         )
-        
+
+def return_as_json(manifest_local_file_path):
+    manifest_csv = pd.read_csv(manifest_local_file_path)
+    manifest_json = manifest_csv.to_dict(orient="records")
+    return manifest_json
+
 def save_file(file_key="csv_file"):
     '''
     input: 
@@ -329,8 +331,13 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
     return all_results
 
-
+#####profile validate manifest route function 
+#@profile(sort_by='cumulative', strip_dirs=True)
 def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None):
+    # if restrict rules is set to None, default it to False
+    if not restrict_rules:
+        restrict_rules=False
+        
     # call config_handler()
     config_handler()
 
@@ -361,8 +368,9 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
 
     return res_dict
 
-
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None):
+#####profile validate manifest route function 
+#@profile(sort_by='cumulative', strip_dirs=True)
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None):
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -374,8 +382,6 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         temp_path = jsc.convert_json_file_to_csv("file_name")
 
     dataset_id = connexion.request.args["dataset_id"]
-
-    data_type = connexion.request.args["data_type"]
 
     restrict_rules = parse_bool(connexion.request.args["restrict_rules"])
 
@@ -483,15 +489,14 @@ def check_if_files_in_assetview(access_token, asset_view, entity_id):
 
     return if_exists
 
-def check_entity_type(access_token, asset_view, entity_id):
+def check_entity_type(access_token, entity_id):
     # call config handler 
-    config_handler(asset_view=asset_view)
+    config_handler()
 
-    # use Synapse Storage
-    store = SynapseStorage(access_token=access_token)
+    syn = SynapseStorage.login(access_token = access_token)
+    entity_type = entity_type_mapping(syn, entity_id)
 
-    entity_type = store.checkEntityType(entity_id)
-    return entity_type
+    return entity_type 
 
 def get_component_requirements(schema_url, source_component, as_graph):
     metadata_model = initalize_metadata_model(schema_url)
@@ -500,6 +505,7 @@ def get_component_requirements(schema_url, source_component, as_graph):
 
     return req_components
 
+@cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
 def get_viz_attributes_explorer(schema_url):
     # call config_handler()
     config_handler()
@@ -520,6 +526,7 @@ def get_viz_component_attributes_explorer(schema_url, component, include_index):
 
     return attributes_csv
 
+@cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
 def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
    
     temp_path_to_jsonld = get_temp_jsonld(schema_url)
@@ -532,6 +539,7 @@ def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
     
     return text_df
 
+@cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
 def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     # call config_handler()
@@ -546,8 +554,40 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
     layers = tangled_tree.get_tangled_tree_layers(save_file=False)
 
     return layers[0]
-    
-def download_manifest(access_token, dataset_id, asset_view, as_json, new_manifest_name=''):
+
+def download_manifest(access_token, manifest_id, new_manifest_name='', as_json=True):
+    """
+    Download a manifest based on a given manifest id. 
+    Args:
+        access_token: token of asset store
+        manifest_syn_id: syn id of a manifest
+        newManifestName: new name of a manifest that gets downloaded.
+        as_json: boolean; If true, return a manifest as a json. Default to True
+    Return: 
+        file path of the downloaded manifest
+    """
+    # call config_handler()
+    config_handler()
+
+    # use Synapse Storage
+    store = SynapseStorage(access_token=access_token)
+    # try logging in to asset store
+    syn = store.login(access_token=access_token)
+    try: 
+        md = ManifestDownload(syn, manifest_id)
+        manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
+        #return local file path
+        manifest_local_file_path = manifest_data['path']
+    except TypeError as e:
+        raise TypeError(f'Failed to download manifest {manifest_id}.')
+    if as_json:
+        manifest_json = return_as_json(manifest_local_file_path)
+        return manifest_json
+    else:
+        return manifest_local_file_path
+
+#@profile(sort_by='cumulative', strip_dirs=True)  
+def download_dataset_manifest(access_token, dataset_id, asset_view, as_json, new_manifest_name=''):
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -558,12 +598,15 @@ def download_manifest(access_token, dataset_id, asset_view, as_json, new_manifes
     manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name)
 
     #return local file path
-    manifest_local_file_path = manifest_data['path']
+    try:
+        manifest_local_file_path = manifest_data['path']
 
-    # return a json (if as_json = True)
-    if as_json: 
-        manifest_csv = pd.read_csv(manifest_local_file_path)
-        manifest_json = json.loads(manifest_csv.to_json(orient="records"))
+    except KeyError as e:
+        raise KeyError(f'Failed to download manifest from dataset: {dataset_id}') from e
+
+    #return a json (if as_json = True)
+    if as_json:
+        manifest_json = return_as_json(manifest_local_file_path)
         return manifest_json
 
     return manifest_local_file_path

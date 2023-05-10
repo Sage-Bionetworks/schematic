@@ -73,7 +73,6 @@ pandarallel = "^1.6.4"
 schematic-db = {version = "^0.0.6", extras = ["synapse"]}
 pyopenssl = "^23.0.0"
 
-
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
 pytest-cov = "^4.0.0"
@@ -83,6 +82,8 @@ python-dotenv = "^0.21.0"
 black = "^22.6.0"
 mypy = "^0.982"
 
+[tool.poetry.group.aws.dependencies]
+uWSGI = "^2.0.21"
 
 [tool.black]
 line-length = 88
