@@ -1454,9 +1454,6 @@ class ManifestGenerator(object):
                                                           output_location = output_path,
                                                           )
             
-            if not os.path.exists(output_file_path): 
-                logger.error(f'Export to Excel spreadsheet fail. Please make sure that file path {output_file_path} is valid')
-
             # populate an excel spreadsheet with the existing dataframe
             self.populate_existing_excel_spreadsheet(output_file_path, dataframe)
 
