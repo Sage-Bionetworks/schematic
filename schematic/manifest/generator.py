@@ -1268,12 +1268,13 @@ class ManifestGenerator(object):
         return set(headers_1) - set(headers_2)
 
     def set_dataframe_by_url(
-        self, manifest_url: str, manifest_df: pd.DataFrame, out_of_schema_columns=None,
+        self, manifest_url: str, manifest_df: pd.DataFrame, out_of_schema_columns: set =None,
     ) -> ps.Spreadsheet:
         """Update Google Sheets using given pandas DataFrame.
         Args:
             manifest_url (str): Google Sheets URL.
             manifest_df (pd.DataFrame): Data frame to "upload".
+            out_of_schema_columns (set): Columns that are in downloaded manifest, but not in current schema.
         Returns:
             ps.Spreadsheet: A Google Sheet object.
         """
@@ -1425,7 +1426,7 @@ class ManifestGenerator(object):
         
         return output_excel_file_path
 
-    def _handle_output_format_logic(self, output_format: str = None, output_path: str = None, sheet_url: bool = None, empty_manifest_url: str = None, dataframe: pd.DataFrame = None, out_of_schema_columns=None):
+    def _handle_output_format_logic(self, output_format: str = None, output_path: str = None, sheet_url: bool = None, empty_manifest_url: str = None, dataframe: pd.DataFrame = None, out_of_schema_columns: set =None):
         """
         Handle the logic between sheet_url parameter and output_format parameter to determine the type of output to return
         Args: 
@@ -1434,6 +1435,7 @@ class ManifestGenerator(object):
             empty_manifest_url: Google sheet URL that leads to an empty manifest 
             dataframe: the pandas dataframe that contains the metadata that needs to be populated to an empty manifest
             output_path: Determines the output path of the exported manifest (only relevant if returning an excel spreadsheet)
+            out_of_schema_columns (set): Columns that are in downloaded manifest, but not in current schema.
         Return: 
             a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL 
         TODO:
@@ -1442,10 +1444,6 @@ class ManifestGenerator(object):
 
         # if the output type gets set to "dataframe", return a data frame 
         if output_format == "dataframe":
-            """
-            TODO: for backwards compatibility may need to return downloaded CSV only with no updates wrt to the schema. 
-            Probably use a different function and endpoint for this bc could just wrap a synapse client funtion instead of going through all the prior steps.
-            """
             return dataframe
         
         # if the output type gets set to "excel", return an excel spreadsheet
@@ -1582,6 +1580,7 @@ class ManifestGenerator(object):
 
         Returns:
             updated_df (Pd.DataFrame): existing_df with new_columns added.
+            out_of_schema_columns (set): Columns that are in downloaded manifest, but not in current schema.
         """
 
         # Get headers for the current schema and existing manifest df.
