@@ -29,8 +29,7 @@ from synapseclient import (
     as_table_columns,
 )
 
-from synapseclient.table import CsvFileTable
-from synapseclient.table import build_table
+from synapseclient.table import CsvFileTable, build_table, Schema
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
 from synapseutils import walk
@@ -2028,9 +2027,58 @@ class TableOperations:
 
         synConfig = SynapseConfig(username, authtoken, synStore.getDatasetProject(datasetId))
         synapseDB = SynapseDatabase(synConfig)
-        synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+
+        try:
+            synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+        except(SynapseHTTPError) as ex:
+            if 'header' in str(ex):
+                TableOperations._update_table_uuid_column(synStore, existingTableId)
+            else:
+                raise ex
 
         return existingTableId
+
+    def _update_table_uuid_column(synStore, table_id: str) -> None:
+        """Removes the `Uuid` column when present, and relpaces with an `Id` column
+        Used to enable backwards compatability for manifests using the old `Uuid` convention
+
+        Args:
+            table_id (str): The Synapse id of the table to be upserted into, that needs columns updated
+
+        Returns:
+            None
+        """
+        schema = synStore.syn.get(table_id)
+        cols = synStore.syn.getTableColumns(schema)
+        for col in cols:
+            if col.name == 'Uuid':
+                new_col = deepcopy(col)
+                new_col['name'] = 'Id'
+                schema.addColumn(new_col)
+                schema = synStore.syn.store(schema)
+                TableOperations._populate_new_id_column(synStore, table_id, schema)
+                schema = synStore.syn.get(table_id)
+                schema.removeColumn(col)
+                schema = synStore.syn.store(schema)
+                break
+
+        return
+
+    def _populate_new_id_column(synStore, table_id: str, schema: Schema) -> None:
+        """Copies the uuid values that were present in the column named `Uuid` to the new column named `Id`
+
+        Args:
+            table_id (str): The Synapse id of the table to be upserted into, that needs columns updated
+            schema (synapseclient.table.Schema): Schema of the table columns
+
+        Returns:
+            None
+        """
+        results = synStore.syn.tableQuery(f"select Uuid,Id from {table_id}")
+        results_df = results.asDataFrame()
+        results_df['Id']=results_df['Uuid']
+        table = synStore.syn.store(Table(schema, results_df, etag=results.etag))
+        return
 
     def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Id',  restrict: bool = False):
         """
