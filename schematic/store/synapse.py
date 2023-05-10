@@ -874,7 +874,7 @@ class SynapseStorage(BaseStorage):
             datasetId: synID of the dataset for the manifest
             table_name: name of the table to be uploaded
             col_schema: schema for table columns: type, size, etc from `formatDB`
-            table_manifest: formatted manifest taht can be uploaded as a table
+            table_manifest: formatted manifest that can be uploaded as a table
             table_manipulation: str, 'replace' or 'upsert', in the case where a manifest already exists, should the new metadata replace the existing (replace) or be added to it (upsert)
             restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
 
