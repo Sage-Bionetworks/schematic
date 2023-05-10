@@ -344,6 +344,7 @@ class ManifestGeneration(BaseModel):
 
         Raises:
             ValueError: could not submit data_type = "all manifests" and dataset id at the same time
+            ValueError: do not enter multiple dataset ids if calling "all manifests" for data_type.
 
         Returns:
             str|pd.DataFrame|BinaryIO: returns google sheet url, pandas dataframe, or excel file based on output_format parameter
@@ -362,6 +363,8 @@ class ManifestGeneration(BaseModel):
 
         # Gather all returned result urls
         if data_type[0] == 'all manifests':
+            if dataset_id:
+                raise ValueError('Do not enter multiple dataset ids if calling "all manifests" for data_type.')
             sg = SchemaGenerator(path_to_json_ld=jsonld)
             component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
             components = list(component_digraph.nodes())
