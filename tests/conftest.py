@@ -9,7 +9,7 @@ import pandas as pd
 from dotenv import load_dotenv, find_dotenv
 
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.configuration import CONFIG
+from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
 
 load_dotenv()
