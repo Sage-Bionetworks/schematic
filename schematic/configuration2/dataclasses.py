@@ -1,11 +1,14 @@
 """Pydantic dataclasses"""
 
 import re
+from dataclasses import field
 from pydantic.dataclasses import dataclass
-from pydantic import validator
+from pydantic import validator, ConfigDict
 
+# This turns on validation for value assignments after creation
+pydantic_config = ConfigDict(validate_assignment=True)
 
-@dataclass()
+@dataclass(config=pydantic_config)
 class SynapseConfig:
     """
     config_basename: teh basename of the synapse config file
@@ -13,8 +16,8 @@ class SynapseConfig:
     master_fileview_id: Synapse id for the master file view
     manifest_folder: name of the folder manifests will be saved to locally
     """
-
-    config_basename: str = "config_basename"
+    validate_assignment = True
+    config_basename: str =  ".synapseConfig"
     manifest_basename: str = "synapse_storage_manifest"
     master_fileview_id: str = "syn23643253"
     manifest_folder: str = "manifests"
@@ -56,7 +59,7 @@ class SynapseConfig:
         return value
 
 
-@dataclass()
+@dataclass(config=pydantic_config)
 class ManifestConfig:
     """
     title:
@@ -64,7 +67,7 @@ class ManifestConfig:
     """
 
     title: str = "example"
-    data_type: list[str] = ["Biospecimen", "Patient"]
+    data_type: list[str] = field(default_factory= lambda: ["Biospecimen", "Patient"])
 
     @validator("title")
     @classmethod
@@ -85,7 +88,7 @@ class ManifestConfig:
         return value
 
 
-@dataclass()
+@dataclass(config=pydantic_config)
 class ModelConfig:
     """
     location: location of the schema jsonld, either a path, ro url
@@ -95,7 +98,7 @@ class ModelConfig:
     location: str = "tests/data/example.model.jsonld"
     file_type: str = "local"
 
-    @validator("title", "file_type")
+    @validator("location", "file_type")
     @classmethod
     def validate_string_is_not_empty(cls, value: str) -> str:
         """Check if string  is not empty(has at least one char)
@@ -114,7 +117,7 @@ class ModelConfig:
         return value
 
 
-@dataclass()
+@dataclass(config=pydantic_config)
 class GoogleSheetsConfig:
     """
     master_template_id:
