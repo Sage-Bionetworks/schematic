@@ -2068,6 +2068,7 @@ class TableOperations:
                 TableOperations._populate_new_id_column(synStore, table_id, schema)
 
                 # get the up-to-date table, remove old `Uuid` column, and store
+                sleep(1)
                 schema = synStore.syn.get(table_id)
                 schema.removeColumn(col)
                 schema = synStore.syn.store(schema)
