@@ -2571,6 +2571,14 @@ secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "ipaddress", "p
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [[package]]
+name = "uWSGI"
+version = "2.0.21"
+description = "The uWSGI server"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "wcwidth"
 version = "0.2.6"
 description = "Measures the displayed width of unicode strings in a terminal"
@@ -2653,7 +2661,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "91a724d31593bf5196b4f095ebbaa3a18cf84e474f7aeca6bf1d5d03d43cb6ba"
+content-hash = "93b3630734394087f4d3ddcefb848a937b7752a9660bdb35b6766fc699773050"
 
 [metadata.files]
 alabaster = [
@@ -4235,6 +4243,9 @@ uritemplate = [
 urllib3 = [
     {file = "urllib3-1.26.15-py2.py3-none-any.whl", hash = "sha256:aa751d169e23c7479ce47a0cb0da579e3ede798f994f5816a74e4f4500dcea42"},
     {file = "urllib3-1.26.15.tar.gz", hash = "sha256:8a388717b9476f934a21484e8c8e61875ab60644d29b9b39e11e4b9dc1c6b305"},
+]
+uWSGI = [
+    {file = "uwsgi-2.0.21.tar.gz", hash = "sha256:35a30d83791329429bc04fe44183ce4ab512fcf6968070a7bfba42fc5a0552a9"},
 ]
 wcwidth = [
     {file = "wcwidth-0.2.6-py2.py3-none-any.whl", hash = "sha256:795b138f6875577cd91bba52baf9e445cd5118fd32723b460e30a0af30ea230e"},
