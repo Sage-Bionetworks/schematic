@@ -1812,7 +1812,7 @@ class TableOperations:
     """
 
 
-    def createTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, datasetId: str = None, columnTypeDict: dict = None, specifySchema: bool = True, restrict: bool = False):
+    def createTable(synStore: SynapseStorage, tableToLoad: pd.DataFrame = None, tableName: str = None, datasetId: str = None, columnTypeDict: dict = None, specifySchema: bool = True, restrict: bool = False):
         """
         Method to create a table from a metadata manifest and upload it to synapse
         
@@ -1868,7 +1868,7 @@ class TableOperations:
             table = synStore.syn.store(table, isRestricted = restrict)
             return table.schema.id
 
-    def replaceTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None, specifySchema: bool = True, datasetId: str = None, columnTypeDict: dict = None, restrict: bool = False):
+    def replaceTable(synStore: SynapseStorage, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None, specifySchema: bool = True, datasetId: str = None, columnTypeDict: dict = None, restrict: bool = False):
         """
         Method to replace an existing table on synapse with metadata from a new manifest
         
@@ -1952,7 +1952,7 @@ class TableOperations:
         return existingTableId
     
 
-    def _get_schematic_db_creds(synStore):
+    def _get_schematic_db_creds(synStore: SynapseStorage):
         username = None
         authtoken = None
 
@@ -2003,7 +2003,7 @@ class TableOperations:
         
         return username, authtoken
 
-    def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
+    def upsertTable(synStore: SynapseStorage, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
         For upsert functionality to work, primary keys must follow the naming convention of <componenet>_id        
@@ -2042,7 +2042,7 @@ class TableOperations:
 
         return existingTableId
 
-    def _update_table_uuid_column(synStore, table_id: str) -> None:
+    def _update_table_uuid_column(synStore: SynapseStorage, table_id: str) -> None:
         """Removes the `Uuid` column when present, and relpaces with an `Id` column
         Used to enable backwards compatability for manifests using the old `Uuid` convention
 
@@ -2079,7 +2079,7 @@ class TableOperations:
 
         return
 
-    def _populate_new_id_column(synStore, table_id: str, schema: Schema) -> None:
+    def _populate_new_id_column(synStore: SynapseStorage, table_id: str, schema: Schema) -> None:
         """Copies the uuid values that were present in the column named `Uuid` to the new column named `Id`
 
         Args:
@@ -2098,7 +2098,7 @@ class TableOperations:
         table = synStore.syn.store(Table(schema, results_df, etag=results.etag))
         return
 
-    def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Id',  restrict: bool = False):
+    def updateTable(synStore: SynapseStorage, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Id',  restrict: bool = False):
         """
         Method to update an existing table with a new column
         
