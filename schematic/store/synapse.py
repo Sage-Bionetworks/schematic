@@ -2031,7 +2031,7 @@ class TableOperations:
         try:
             synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
         except(SynapseHTTPError) as ex:
-            if 'header' in str(ex):
+            if 'Id is not a valid column name or id' in str(ex):
                 TableOperations._update_table_uuid_column(synStore, existingTableId)
             else:
                 raise ex
