@@ -10,7 +10,6 @@ from time import perf_counter
 
 import pandas as pd  # third party library import
 import pytest
-from pydantic import BaseModel
 
 from schematic.schemas.generator import \
     SchemaGenerator  # Local application/library specific imports.

@@ -11,6 +11,7 @@ from typing import BinaryIO, List, Optional
 
 import connexion
 import pandas as pd
+from flask import Flask
 from flask import current_app as app
 from flask import send_from_directory
 from flask_cors import cross_origin
@@ -29,14 +30,18 @@ from schematic.visualization.tangled_tree import TangledTree
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-def config_handler(asset_view: str=None):
+def config_handler(app:Flask=None, asset_view:str=None) -> CONFIG:
     """Load schematic config 
 
     Args:
-        asset_view (str, optional): ID of a file view. A file view lists all files or tables within one or more folders or projects. If not provided, use master_fileview from config.yml
+        app (Flask, optional): _description_. Defaults to None.
+        asset_view (str, optional):ID of a file view. A file view lists all files or tables within one or more folders or projects. If not provided, use master_fileview from config.yml. Defaults to None.
 
     Raises:
         FileNotFoundError: no config.yml found
+
+    Returns:
+        CONFIG: configuration object
     """
     path_to_config = app.config["SCHEMATIC_CONFIG"]
     
@@ -48,6 +53,7 @@ def config_handler(asset_view: str=None):
         raise FileNotFoundError(
             f"No configuration file was found at this path: {path_to_config}"
         )
+    return CONFIG
 
 class JsonConverter:
     '''
@@ -214,10 +220,16 @@ class ManifestGeneration(BaseModel):
     output_format: Optional[str] = "google_sheet"
     use_annotations: Optional[bool] = False
     
-    def _load_config_(self) -> None:
+    def _load_config_(self, app:Flask=None) -> CONFIG:
         """load configuration file and update asset view if needed
+
+        Args:
+            app (Flask, optional): Flask app object. Defaults to None.
+
+        Returns:
+            CONFIG: schematic configuration object
         """
-        config_handler(asset_view = self.asset_view)
+        return config_handler(app=app, asset_view = self.asset_view)
 
     def _check_dataset_match_datatype_(self) -> None:
         """check if number of dataset ids matches number of data types
