@@ -29,8 +29,7 @@ from synapseclient import (
     as_table_columns,
 )
 
-from synapseclient.table import CsvFileTable
-from synapseclient.table import build_table
+from synapseclient.table import CsvFileTable, build_table, Schema
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
 from synapseutils import walk
@@ -874,7 +873,7 @@ class SynapseStorage(BaseStorage):
             datasetId: synID of the dataset for the manifest
             table_name: name of the table to be uploaded
             col_schema: schema for table columns: type, size, etc from `formatDB`
-            table_manifest: formatted manifest taht can be uploaded as a table
+            table_manifest: formatted manifest that can be uploaded as a table
             table_manipulation: str, 'replace' or 'upsert', in the case where a manifest already exists, should the new metadata replace the existing (replace) or be added to it (upsert)
             restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
 
@@ -2028,9 +2027,74 @@ class TableOperations:
 
         synConfig = SynapseConfig(username, authtoken, synStore.getDatasetProject(datasetId))
         synapseDB = SynapseDatabase(synConfig)
-        synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+
+        try:
+            # Try performing upsert
+            synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+        except(SynapseHTTPError) as ex:
+            # If error is raised because Table has old `Uuid` column and not new `Id` column, then handle
+            if 'Id is not a valid column name or id' in str(ex):
+                TableOperations._update_table_uuid_column(synStore, existingTableId)
+            # Raise if other error
+            else:
+                raise ex
 
         return existingTableId
+
+    def _update_table_uuid_column(synStore, table_id: str) -> None:
+        """Removes the `Uuid` column when present, and relpaces with an `Id` column
+        Used to enable backwards compatability for manifests using the old `Uuid` convention
+
+        Args:
+            table_id (str): The Synapse id of the table to be upserted into, that needs columns updated
+
+        Returns:
+            None
+        """
+        # Get the columns of the schema
+        schema = synStore.syn.get(table_id)
+        cols = synStore.syn.getTableColumns(schema)
+        
+        # Iterate through columns until `Uuid` column is found
+        for col in cols:
+            if col.name == 'Uuid':
+                # Create a new `Id` column based off of the old `Uuid` column, and store (column is empty)
+                new_col = deepcopy(col)
+                new_col['name'] = 'Id'
+                schema.addColumn(new_col)
+                schema = synStore.syn.store(schema)
+                
+                # Recently stored column is empty, so populated with uuid values
+                TableOperations._populate_new_id_column(synStore, table_id, schema)
+
+                # get the up-to-date table, remove old `Uuid` column, and store
+                schema = synStore.syn.get(table_id)
+                schema.removeColumn(col)
+                schema = synStore.syn.store(schema)
+
+                # Exit iteration; only concerned with `Uuid` column
+                break
+
+        return
+
+    def _populate_new_id_column(synStore, table_id: str, schema: Schema) -> None:
+        """Copies the uuid values that were present in the column named `Uuid` to the new column named `Id`
+
+        Args:
+            table_id (str): The Synapse id of the table to be upserted into, that needs columns updated
+            schema (synapseclient.table.Schema): Schema of the table columns
+
+        Returns:
+            None
+        """
+        # Query the table for the old `Uuid` column and new `Id` column
+        results = synStore.syn.tableQuery(f"select Uuid,Id from {table_id}")
+        results_df = results.asDataFrame()
+
+        # Copy uuid values to new column, and store in table
+        results_df['Id']=results_df['Uuid']
+        table = synStore.syn.store(Table(schema, results_df, etag=results.etag))
+        return
 
     def updateTable(synStore, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Id',  restrict: bool = False):
         """
