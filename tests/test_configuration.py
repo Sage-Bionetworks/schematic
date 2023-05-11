@@ -1,32 +1,34 @@
-import logging
+"""Testing for Configuration module"""
 import pytest
+from pydantic import ValidationError
+from schematic.configuration.dataclasses import (
+    SynapseConfig,
+    ManifestConfig,
+    ModelConfig,
+    GoogleSheetsConfig,
+)
 
-from schematic.configuration import Configuration
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+class TestDataclasses:
+    """Testing for pydantic dataclasses"""
 
+    def test_synapse_config(self):
+        """Testing for SynapseConfig"""
+        assert isinstance(SynapseConfig(), SynapseConfig)
+        assert isinstance(
+            SynapseConfig(
+                config_basename="file_name",
+                manifest_basename="file_name",
+                master_fileview_id="syn1",
+                manifest_folder="folder_name",
+            ),
+            SynapseConfig,
+        )
 
-class TestConfiguration:
-    def test_load_yaml_valid(self, tmpdir):
-        mock_contents = """
-        section:
-            key: value
-        """
-        mock_file = tmpdir.join("mock.yml")
-        mock_file.write(mock_contents)
-        mock_object = {"section": {"key": "value"}}
-
-        test_object = Configuration.load_yaml(str(mock_file))
-        assert test_object == mock_object
-
-    def test_load_yaml_invalid(self, tmpdir):
-        mock_contents = """
-        section:
-            key: bad-value:
-        """
-        mock_file = tmpdir.join("mock.yml")
-        mock_file.write(mock_contents)
-
-        test_object = Configuration.load_yaml(str(mock_file))
-        assert test_object is None
+    with pytest.raises(ValidationError):
+        SynapseConfig(
+            config_basename=None,
+            manifest_basename="file_name",
+            master_fileview_id="syn1",
+            manifest_folder="folder_name",
+        )
