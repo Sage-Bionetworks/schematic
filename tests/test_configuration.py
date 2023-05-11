@@ -4,13 +4,13 @@ import os
 import pytest
 from pydantic import ValidationError
 
-from schematic.configuration2.dataclasses import (
+from schematic.configuration.dataclasses import (
     SynapseConfig,
     ManifestConfig,
     ModelConfig,
     GoogleSheetsConfig,
 )
-from schematic.configuration2.configuration import Configuration
+from schematic.configuration.configuration import Configuration
 
 
 class TestDataclasses:
@@ -154,8 +154,8 @@ class TestConfiguration:
     def test_load_config(self) -> None:
         """Testing for Configuration.load_config"""
         config = Configuration()
-        config.load_config("tests/data/test_config2.yml")
-        assert os.path.basename(config.config_path) == "test_config2.yml"
+        config.load_config("tests/data/test_config.yml")
+        assert os.path.basename(config.config_path) == "test_config.yml"
         assert os.path.basename(config.synapse_configuration_path) == "file_name"
         assert config.synapse_manifest_basename == "file_name"
         assert config.synapse_master_fileview_id == "syn1"
