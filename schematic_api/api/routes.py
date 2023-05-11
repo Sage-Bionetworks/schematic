@@ -241,9 +241,7 @@ class ManifestGeneration(BaseModel):
         len_data_types = len(self.data_type)
         len_dataset_ids = len(self.dataset_id)
         
-        try:
-            len_data_types == len_dataset_ids
-        except:
+        if len_data_types != len_dataset_ids:
             raise ValueError(
                     f"There is a mismatch in the number of data_types and dataset_id's that "
                     f"submitted. Please check your submission and try again."
