@@ -2029,10 +2029,13 @@ class TableOperations:
         synapseDB = SynapseDatabase(synConfig)
 
         try:
+            # Try performing upsert
             synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
         except(SynapseHTTPError) as ex:
+            # If error is raised because Table has old `Uuid` column and not new `Id` column, then handle
             if 'Id is not a valid column name or id' in str(ex):
                 TableOperations._update_table_uuid_column(synStore, existingTableId)
+            # Raise if other error
             else:
                 raise ex
 
@@ -2048,18 +2051,28 @@ class TableOperations:
         Returns:
             None
         """
+        # Get the columns of the schema
         schema = synStore.syn.get(table_id)
         cols = synStore.syn.getTableColumns(schema)
+        
+        # Iterate through columns until `Uuid` column is found
         for col in cols:
             if col.name == 'Uuid':
+                # Create a new `Id` column based off of the old `Uuid` column, and store (column is empty)
                 new_col = deepcopy(col)
                 new_col['name'] = 'Id'
                 schema.addColumn(new_col)
                 schema = synStore.syn.store(schema)
+                
+                # Recently stored column is empty, so populated with uuid values
                 TableOperations._populate_new_id_column(synStore, table_id, schema)
+
+                # get the up-to-date table, remove old `Uuid` column, and store
                 schema = synStore.syn.get(table_id)
                 schema.removeColumn(col)
                 schema = synStore.syn.store(schema)
+
+                # Exit iteration; only concerned with `Uuid` column
                 break
 
         return
@@ -2074,8 +2087,11 @@ class TableOperations:
         Returns:
             None
         """
+        # Query the table for the old `Uuid` column and new `Id` column
         results = synStore.syn.tableQuery(f"select Uuid,Id from {table_id}")
         results_df = results.asDataFrame()
+
+        # Copy uuid values to new column, and store in table
         results_df['Id']=results_df['Uuid']
         table = synStore.syn.store(Table(schema, results_df, etag=results.etag))
         return
