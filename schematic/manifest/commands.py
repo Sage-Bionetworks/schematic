@@ -142,16 +142,26 @@ def get_manifest(
         # if output_xlsx gets specified, output_format = "excel"
         if output_xlsx: 
             output_format = "excel"
-
             # if file name is in the path, and that file does not exist
             if not os.path.exists(output_xlsx):
+                breakpoint()
                 if ".xlsx" or ".xls" in output_xlsx:
                     path = Path(output_xlsx)
                     output_path = path.parent.absolute()
-                else: 
-                    logger.error(f"{output_xlsx} does not exists. Please try a valid file path")
-
-            else: 
+                    if not os.path.exists(output_path):
+                        raise ValueError(
+                            f"{output_path} does not exists. Please try a valid file path"
+                        )
+                else:
+                    raise ValueError(
+                            f"{output_xlsx} does not exists. Please try a valid file path"
+                        )
+            else:
+                # Check if base path itself exists.
+                if not os.path.exists(os.path.dirname(output_xlsx)):
+                    raise ValueError(
+                    f"{output_xlsx} does not exists. Please try a valid file path"
+                    )
                 output_path = output_xlsx
         else: 
             output_format = None
