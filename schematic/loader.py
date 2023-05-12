@@ -25,18 +25,18 @@ class InvalidResourceError(Exception):
         self.requested_uri = requested_uri
         self.message = "Resource does not exist or is declared incorrectly"
         self.errno = ENOENT
-        super(InvalidResourceError, self).__init__(self.message)
+        super().__init__(self.message)
 
     def __str__(self) -> str:
-        return '{}({}), "{}" of {}'.format(
-            self.message, self.errno, self.requested_uri, self.namespace
+        return (
+            f'{self.message}({self.errno}), "{self.requested_uri}" of {self.namespace}'
         )
 
     def __repr__(self) -> str:
         return self.__str__()
 
 
-class Loader(object):
+class Loader:
     """
     Args:
     namespace {String}: The namespace within the package (relative to the package root)
@@ -58,12 +58,12 @@ class Loader(object):
 
     def _resolve(self, uri: str) -> tuple[str, str]:
         resource_uri = "/".join([self.prefix] + uri.split(pathsep))
-        ns = self.namespace
+        namespace = self.namespace
 
-        if not resource_exists(ns, resource_uri):
-            raise InvalidResourceError(ns, resource_uri)
+        if not resource_exists(namespace, resource_uri):
+            raise InvalidResourceError(namespace, resource_uri)
 
-        return ns, resource_uri
+        return namespace, resource_uri
 
     def read(self, uri: str) -> Any:
         """
@@ -72,8 +72,8 @@ class Loader(object):
         Args:
             uri {String}: URI of the resource.
         """
-        ns, uri = self._resolve(uri)
-        return resource_string(ns, uri)
+        namespace, uri = self._resolve(uri)
+        return resource_string(namespace, uri)
 
     def open(self, uri: str) -> Any:
         """
@@ -82,8 +82,8 @@ class Loader(object):
         Args:
             uri {String}: URI of the resource.
         """
-        ns, uri = self._resolve(uri)
-        return resource_stream(ns, uri)
+        namespace, uri = self._resolve(uri)
+        return resource_stream(namespace, uri)
 
     def filename(self, uri: str) -> str:
         """
@@ -92,8 +92,8 @@ class Loader(object):
         Args:
             uri {String}: URI of the resource.
         """
-        ns, uri = self._resolve(uri)
-        return resource_filename(ns, uri)
+        namespace, uri = self._resolve(uri)
+        return resource_filename(namespace, uri)
 
     def list(self, url: str) -> Iterable[str]:
         """
@@ -102,8 +102,8 @@ class Loader(object):
         Args:
             url {String}: URL of the resources.
         """
-        ns, uri = self._resolve(url)
-        return map(lambda x: url + "/" + x, resource_listdir(ns, uri))
+        namespace, uri = self._resolve(url)
+        return map(lambda x: url + "/" + x, resource_listdir(namespace, uri))
 
 
 # call Loader() and pass `schematic`, which is the global package namespace
