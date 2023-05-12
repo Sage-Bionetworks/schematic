@@ -72,35 +72,23 @@ class ManifestDownload(object):
         """
         try downloading a manifest to local cache or a given folder
         manifest
-        Return: 
+        Return:
             manifest_data: A Synapse file entity of the downloaded manifest
         """
-        # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config (See issue FDS-349 in Jira)
-        # on AWS, to avoid overriding manifest, we download the manifest to a temporary folder
         if "SECRETS_MANAGER_SECRETS" in os.environ:
             temporary_manifest_storage = "/var/tmp/temp_manifest_download"
             if not os.path.exists(temporary_manifest_storage):
                 os.mkdir("/var/tmp/temp_manifest_download")
             download_location = create_temp_folder(temporary_manifest_storage)
-
-        elif CONFIG["synapse"]["manifest_folder"]:
-            download_location=CONFIG["synapse"]["manifest_folder"]
-
         else:
-            download_location=None
-        
-        if not download_location:
-            manifest_data = self.syn.get(
-                        self.manifest_id,
-                    )
-        # if download_location is provided and it is not an empty string
-        else:
-            manifest_data = self.syn.get(
-                    self.manifest_id,
-                    downloadLocation=download_location,
-                    ifcollision="overwrite.local",
-                )
-        return manifest_data 
+            download_location=CONFIG.synapse_manifest_folder
+
+        manifest_data = self.syn.get(
+                self.manifest_id,
+                downloadLocation=download_location,
+                ifcollision="overwrite.local",
+            )
+        return manifest_data
 
     def _entity_type_checking(self) -> str:
         """

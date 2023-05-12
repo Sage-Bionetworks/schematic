@@ -26,7 +26,6 @@ class Configuration:
         self._model_config = ModelConfig()
         self._google_sheets_config = GoogleSheetsConfig()
 
-
     def load_config(self, config_path: str) -> None:
         """Loads a user created config file and overwrites any defaults  listed in the file
 
@@ -191,6 +190,7 @@ class Configuration:
             "green": 1.0,
             "blue": 0.9019,
         }
+
 
 # This instantiates the singleton for the rest of the package
 CONFIG = Configuration()

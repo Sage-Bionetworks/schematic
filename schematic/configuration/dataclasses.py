@@ -8,6 +8,7 @@ from pydantic import validator, ConfigDict
 # This turns on validation for value assignments after creation
 pydantic_config = ConfigDict(validate_assignment=True)
 
+
 @dataclass(config=pydantic_config)
 class SynapseConfig:
     """
@@ -16,8 +17,9 @@ class SynapseConfig:
     master_fileview_id: Synapse id for the master file view
     manifest_folder: name of the folder manifests will be saved to locally
     """
+
     validate_assignment = True
-    config_basename: str =  ".synapseConfig"
+    config_basename: str = ".synapseConfig"
     manifest_basename: str = "synapse_storage_manifest"
     master_fileview_id: str = "syn23643253"
     manifest_folder: str = "manifests"
@@ -67,7 +69,7 @@ class ManifestConfig:
     """
 
     title: str = "example"
-    data_type: list[str] = field(default_factory= lambda: ["Biospecimen", "Patient"])
+    data_type: list[str] = field(default_factory=lambda: ["Biospecimen", "Patient"])
 
     @validator("title")
     @classmethod
