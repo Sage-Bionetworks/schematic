@@ -8,6 +8,7 @@ from unittest.mock import patch
 from unittest.mock import MagicMock
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
+from schematic.configuration.configuration import Configuration
 from schematic.utils.google_api_utils import execute_google_api_requests
 
 
@@ -200,7 +201,7 @@ class TestManifestGenerator:
 
     # test all the functions used under get_manifest
     @pytest.mark.parametrize("template_id", [["provided", "not provided"]])
-    def test_create_empty_manifest_spreadsheet(self, config, simple_manifest_generator, template_id):
+    def test_create_empty_manifest_spreadsheet(self, config: Configuration, simple_manifest_generator, template_id):
         '''
         Create an empty manifest spreadsheet regardless if master_template_id is provided
         Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file. If there's no template id provided in config, this function will create a new manifest

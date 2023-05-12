@@ -20,10 +20,12 @@ class Configuration:
 
     def __init__(self) -> None:
         self.config_path: Optional[str] = None
+        self._parent_directory = os.getcwd()
         self._synapse_config = SynapseConfig()
         self._manifest_config = ManifestConfig()
         self._model_config = ModelConfig()
         self._google_sheets_config = GoogleSheetsConfig()
+
 
     def load_config(self, config_path: str) -> None:
         """Loads a user created config file and overwrites any defaults  listed in the file
@@ -34,6 +36,9 @@ class Configuration:
         config_path = os.path.expanduser(config_path)
         config_path = os.path.abspath(config_path)
         self.config_path = config_path
+
+        self._parent_directory = os.path.dirname(config_path)
+
         with open(config_path, "r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
         self._synapse_config = SynapseConfig(
@@ -52,18 +57,8 @@ class Configuration:
         Returns:
             str: The normalized path
         """
-
-        if self.config_path:
-            # Retrieve parent directory of the config to decode relative paths
-            parent_dir = os.path.dirname(self.config_path)
-        else:
-            # assume the parent dir would be the current work dir
-            parent_dir = os.getcwd()
-
-        # Ensure absolute file paths
         if not os.path.isabs(path):
-            path = os.path.join(parent_dir, path)
-        # And lastly, normalize file paths
+            path = os.path.join(self._parent_directory, path)
         return os.path.normpath(path)
 
     @property

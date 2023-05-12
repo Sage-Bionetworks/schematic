@@ -154,8 +154,8 @@ class TestConfiguration:
     def test_load_config(self) -> None:
         """Testing for Configuration.load_config"""
         config = Configuration()
-        config.load_config("tests/data/test_config.yml")
-        assert os.path.basename(config.config_path) == "test_config.yml"
+        config.load_config("tests/data/test_config2.yml")
+        assert os.path.basename(config.config_path) == "test_config2.yml"
         assert os.path.basename(config.synapse_configuration_path) == "file_name"
         assert config.synapse_manifest_basename == "file_name"
         assert config.synapse_master_fileview_id == "syn1"

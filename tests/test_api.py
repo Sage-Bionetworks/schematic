@@ -10,6 +10,8 @@ import logging
 from time import perf_counter
 import pandas as pd # third party library import
 from schematic.schemas.generator import SchemaGenerator #Local application/library specific imports.
+from schematic.configuration.configuration import Configuration
+from schematic.configuration.configuration import CONFIG
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,8 +23,8 @@ def app():
     yield app
 
 @pytest.fixture(scope="class")
-def client(app, config_path):
-    app.config['SCHEMATIC_CONFIG'] = config_path
+def client(app):
+    app.config['SCHEMATIC_CONFIG'] = None
 
     with app.test_client() as client:
         yield client
@@ -70,8 +72,8 @@ def get_MockComponent_attribute():
         yield MockComponent_attribute   
 
 @pytest.fixture(scope="class")
-def syn_token(config):
-    synapse_config_path = config.SYNAPSE_CONFIG_PATH
+def syn_token(config:Configuration):
+    synapse_config_path = config.synapse_configuration_path
     config_parser = configparser.ConfigParser()
     config_parser.read(synapse_config_path)
     # try using synapse access token

@@ -20,7 +20,7 @@ from schematic.utils.validate_utils import rule_in_rule_list
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
 from schematic.utils.google_api_utils import export_manifest_drive_service
 from openpyxl import load_workbook
 from pathlib import Path
@@ -127,13 +127,9 @@ class ManifestGenerator(object):
         col_letter = self._column_to_letter(column_idx)
 
         if not required:
-            bg_color = CONFIG["style"]["google_manifest"].get(
-                "opt_bg_color", {"red": 1.0, "green": 1.0, "blue": 0.9019,},
-            )
+            bg_color = CONFIG.google_optional_background_color
         else:
-            bg_color = CONFIG["style"]["google_manifest"].get(
-                "req_bg_color", {"red": 0.9215, "green": 0.9725, "blue": 0.9803,},
-            )
+            bg_color = CONFIG.google_required_background_color
 
         boolean_rule = {
             "condition": {
@@ -173,22 +169,9 @@ class ManifestGenerator(object):
         )
 
     def _create_empty_manifest_spreadsheet(self, title):
-        if CONFIG["style"]["google_manifest"]["master_template_id"]:
-
-            # if provided with a template manifest google sheet, use it
-            spreadsheet_id = self._gdrive_copy_file(
-                CONFIG["style"]["google_manifest"]["master_template_id"], title
-            )
-
-        else:
-            spreadsheet_body = {
-            'properties': {
-                'title': title
-            }}
-
-            # if no template, create an empty spreadsheet
-            spreadsheet_id = self.sheet_service.spreadsheets().create(body=spreadsheet_body, fields="spreadsheetId").execute().get("spreadsheetId")
-
+        spreadsheet_id = self._gdrive_copy_file(
+            CONFIG.google_sheets_master_template_id, title
+        )
         return spreadsheet_id
 
     def _get_cell_borders(self, cell_range):
@@ -287,8 +270,7 @@ class ManifestGenerator(object):
 
         # set validation strictness to config file default if None indicated.
         if strict == None:
-            strict = CONFIG["style"]["google_manifest"].get("strict_validation", True)
-        
+            strict = CONFIG.google_sheets_strict_validation
         #store valid values explicitly in workbook at the provided range to use as validation values
         if validation_type == "ONE_OF_RANGE":
             valid_values=self._store_valid_values_as_data_dictionary(column_id, valid_values, spreadsheet_id)
@@ -893,14 +875,7 @@ class ManifestGenerator(object):
         """
         # check if attribute is required and set a corresponding color
         if req in json_schema["required"]:
-            bg_color = CONFIG["style"]["google_manifest"].get(
-                "req_bg_color",
-                {
-                    "red": 0.9215,
-                    "green": 0.9725,
-                    "blue": 0.9803,
-                },
-            )
+            bg_color = CONFIG.google_required_background_color
 
             req_format_body = {
                 "requests": [
