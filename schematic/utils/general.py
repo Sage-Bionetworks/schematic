@@ -7,6 +7,8 @@ import pstats
 from cProfile import Profile
 from functools import wraps
 
+import tempfile
+
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.table import EntityViewSchema
 from synapseclient.entity import File, Folder, Project
@@ -112,7 +114,18 @@ def entity_type_mapping(syn, entity_id):
     else:
         # if there's no matching type, return concreteType
         return entity.concreteType
-        
+
+def create_temp_folder(path: str) -> str:
+    """This function creates a temporary directory in the specified directory 
+    Args:
+        path(str): a directory path where all the temporary files will live
+    Returns: returns the absolute pathname of the new directory.
+    """
+    # Create a temporary directory in the specified directory
+    path = tempfile.mkdtemp(dir=path)
+    return path
+
+
 def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_dirs=False):
     """
     The function was initially taken from: https://towardsdatascience.com/how-to-profile-your-code-in-python-e70c834fad89

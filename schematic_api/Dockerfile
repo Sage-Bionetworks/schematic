@@ -62,7 +62,10 @@ COPY schematic  ./schematic
 
 # change permission 
 WORKDIR /var/www/
-RUN chown www-data:www-data /var/www/
+#The -R option: make the command recursive, so it will change the owner of all files and subdirectories within a given folder.
+RUN chown -R www-data:www-data /var/www/
+
+RUN chown -R www-data:www-data /var/tmp/
 
 WORKDIR /
 COPY schematic_api/docker-entrypoint.sh ./

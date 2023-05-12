@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import pytest
 
+import tempfile
+
 from pandas.testing import assert_frame_equal
 from synapseclient.core.exceptions import SynapseHTTPError
 
@@ -76,6 +78,11 @@ class TestGeneral:
         # test with an invalid entity id
         with pytest.raises(SynapseHTTPError) as exception_info:
             entity_type_mapping(syn, "syn123456")
+
+    def test_download_manifest_to_temp_folder(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path_dir = general.create_temp_folder(tmpdir)
+            assert os.path.exists(path_dir)
 
 class TestCliUtils:
     def test_query_dict(self):
