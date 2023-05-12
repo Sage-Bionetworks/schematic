@@ -11,7 +11,6 @@ from time import perf_counter
 import pandas as pd # third party library import
 from schematic.schemas.generator import SchemaGenerator #Local application/library specific imports.
 from schematic.configuration.configuration import Configuration
-from schematic.configuration.configuration import CONFIG
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -580,7 +579,7 @@ class TestManifestOperation:
     @pytest.mark.parametrize("manifest_id, expected_component, expected_file_name", [("syn51078535", "BulkRNA-seqAssay", "synapse_storage_manifest.csv"), ("syn51156998", "Biospecimen", "synapse_storage_manifest_biospecimen.csv")])
     @pytest.mark.parametrize("new_manifest_name",[None,"Example.csv"]) 
     @pytest.mark.parametrize("as_json",[None,True,False]) 
-    def test_manifest_download(self, config, client, syn_token, manifest_id, new_manifest_name, as_json, expected_component, expected_file_name):
+    def test_manifest_download(self, config: Configuration, client, syn_token, manifest_id, new_manifest_name, as_json, expected_component, expected_file_name):
         params = {
             "access_token": syn_token,
             "manifest_id": manifest_id,
@@ -600,7 +599,7 @@ class TestManifestOperation:
             assert response_dta[0]["Component"] == expected_component
 
             current_work_dir = os.getcwd()
-            folder_test_manifests = config["synapse"]["manifest_folder"]
+            folder_test_manifests = config.synapse_manifest_folder
             folder_dir = os.path.join(current_work_dir, folder_test_manifests)
 
             # if a manfiest gets renamed, get new manifest file path

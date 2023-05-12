@@ -38,7 +38,7 @@ class TestSchemaCli:
         except: 
             pass
 
-    def test_schema_convert_cli(self, runner, config_path, helpers):
+    def test_schema_convert_cli(self, runner, helpers):
 
         data_model_csv_path = helpers.get_data_path("example.model.csv")
 
@@ -88,7 +88,7 @@ class TestSchemaCli:
         output_path = helpers.get_data_path("test.xlsx")
 
         result = runner.invoke(
-            manifest, ["--config", config.config_path,  "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_xlsx", output_path]
+            manifest, ["--config", "/home/alamb/repos/schematic/tests/data/test_config.yml",  "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_xlsx", output_path]
         )
 
         assert result.exit_code == 0
