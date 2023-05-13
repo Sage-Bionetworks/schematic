@@ -86,7 +86,7 @@ class Configuration:
 
     @synapse_master_fileview_id.setter
     def synapse_master_fileview_id(self, synapse_id: str) -> None:
-        """Sets the synapse_master_fileview_id
+        """Sets the Synapse master fileview ID
 
         Args:
             synapse_id (str): The synapse id to set
@@ -158,6 +158,15 @@ class Configuration:
             Optional[str]:
         """
         return self._google_sheets_config.master_template_id
+
+    @google_sheets_master_template_id.setter
+    def google_sheets_master_template_id(self, template_id: str) -> None:
+        """Sets the Google sheets master template ID
+
+        Args:
+            template_id (str): The template id to set
+        """
+        self._google_sheets_config.master_template_id = template_id
 
     @property
     def google_sheets_strict_validation(self) -> bool:
