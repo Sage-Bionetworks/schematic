@@ -168,10 +168,34 @@ class ManifestGenerator(object):
             .execute()["id"]
         )
 
-    def _create_empty_manifest_spreadsheet(self, title):
-        spreadsheet_id = self._gdrive_copy_file(
-            CONFIG.google_sheets_master_template_id, title
-        )
+    def _create_empty_manifest_spreadsheet(self, title:str) -> str:
+        """
+        Creates an empty google spreadsheet returning the id.
+        If the configuration has a template id it will be used
+
+        Args:
+            title (str): The title of the spreadsheet
+
+        Returns:
+            str: The id of the created spreadsheet
+        """
+        template_id = CONFIG.google_sheets_master_template_id
+
+        if template_id is not None:
+            spreadsheet_id = self._gdrive_copy_file(template_id, title)
+
+        else:
+            spreadsheet_body = {
+                'properties': {
+                    'title': title
+                }
+            }
+
+            spreadsheet_id = self.sheet_service.spreadsheets().create(
+                body=spreadsheet_body,
+                fields="spreadsheetId").execute().get("spreadsheetId"
+            )
+
         return spreadsheet_id
 
     def _get_cell_borders(self, cell_range):
