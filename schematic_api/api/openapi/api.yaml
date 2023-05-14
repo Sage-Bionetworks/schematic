@@ -9,6 +9,14 @@ info:
 servers:
   - url: /v1
 
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: X-Auth
+      in: header
+      x-apikeyInfoFunc: schematic_api.api.routes.apikey_auth
+
 # TO DO: refactor query parameters and remove access_token
 paths:
   /manifests:
@@ -24,12 +32,6 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
-        - in: query
-          name: access_token
-          schema:
-            type: string
-          description: Token is needed if getting an existing manifest on AWS
-          required: false
         - in: query
           name: title
           schema:
@@ -87,6 +89,8 @@ paths:
           description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
           required: false
       operationId: schematic_api.api.routes.ManifestGeneration.get_manifests_route
+      security:
+        - api_key: []
       responses:
         "200":
           description: Googlesheet link created OR an excel file gets returned OR pandas dataframe gets returned

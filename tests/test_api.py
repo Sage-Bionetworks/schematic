@@ -408,7 +408,7 @@ class TestManifestOperation():
             self.ifPandasDataframe(response)
     
     @pytest.mark.parametrize("output_format", ["google_sheet", "excel", "dataframe (only if getting existing manifests)"])
-    def test_generate_existing_manifest_single_data_type(self, client, data_model_jsonld, output_format):
+    def test_generate_existing_manifest_single_data_type(self, client, syn_token, data_model_jsonld, output_format):
         # generate an existing manifest as an excel spreadsheet or google sheet or data frame by using only one data type
         lst_dataset_id = ["syn42171508", "syn42171373"]
         lst_data_types = ["Biospecimen", "Patient"]
@@ -422,33 +422,32 @@ class TestManifestOperation():
             for data_type in lst_data_types:
                 params["dataset_id"] = dataset_id
                 params["data_type"] = data_type
-                response = client.get('http://localhost:3001/v1/manifests', query_string=params)
+                response = client.get('http://localhost:3001/v1/manifests', query_string=params, headers={'X-Auth': syn_token})
                 assert response.status_code == 200
                 # test if excel spreadsheet gets returned
                 self.ifOutputCorrect(response, output_format, data_type)
     
-    @pytest.mark.parametrize("data_types", [["Biospecimen", "Patient"]])
-    def test_generate_existing_manifest_multi_data_types(self, client, data_model_jsonld, data_types):
+    def test_generate_existing_manifest_multi_data_types(self, client, data_model_jsonld, syn_token):
         # generate an existing manifest as a google sheet, excel, or data frame
         lst_dataset_id = ["syn42171508", "syn42171373"]
+        lst_data_types = ["Biospecimen", "Patient"]
         params = {
             "schema_url": data_model_jsonld,
             "asset_view": "syn23643253",
-            "dataset_id": lst_dataset_id
+            "dataset_id": lst_dataset_id,
+            "data_type": lst_data_types
         }
         output_formats = ["excel","dataframe (only if getting existing manifests)", "google_sheet"]
-        for data_type in data_types:
-            for output_format in output_formats:
-                params["output_format"] = output_format
-                params["data_type"] = data_type
-                response = client.get('http://localhost:3001/v1/manifests', query_string=params)
-                assert response.status_code == 200
-                self.ifOutputCorrect(response, output_format, data_type, multiple_data_types=True)
+        for output_format in output_formats:
+            params["output_format"] = output_format
+            response = client.get('http://localhost:3001/v1/manifests', query_string=params, headers={'X-Auth': syn_token})
+            assert response.status_code == 200
+            self.ifOutputCorrect(response, output_format, lst_data_types[0], multiple_data_types=True)
 
 
     @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)", None])
     @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
-    def test_generate_new_manifest(self, caplog, client, data_model_jsonld, data_type, output_format):
+    def test_generate_new_manifest(self, syn_token, caplog, client, data_model_jsonld, data_type, output_format):
         params = {
             "schema_url": data_model_jsonld,
             "asset_view": "syn23643253",
@@ -456,14 +455,13 @@ class TestManifestOperation():
             "data_type": data_type,
             "use_annotations": False,
             "dataset_id": None,
-            "access_token": None
         }
 
         if output_format: 
             params["output_format"] = output_format
     
 
-        response = client.get('http://localhost:3001/v1/manifests', query_string=params)
+        response = client.get('http://localhost:3001/v1/manifests', query_string=params, headers={'X-Auth': syn_token})
         assert response.status_code == 200
 
 
@@ -487,7 +485,6 @@ class TestManifestOperation():
         else:
             self.ifGoogleSheetExists(response)
             response_dt = json.loads(response.data)
-
 
             if data_type == "all manifests":
                 assert len(response_dt) == 3
