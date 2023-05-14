@@ -223,18 +223,17 @@ def get_temp_jsonld(schema_url):
 class ManifestGeneration(BaseModel):
     schema_url: str
     data_type: List[str]
-    access_token: Optional[str] = ''
     asset_view: Optional[str] = ''
     dataset_id: List[str] = []
     title: Optional[str] = ''
     output_format: Optional[str] = "google_sheet"
     use_annotations: Optional[bool] = False
     
-    def _load_config_(self, app:Flask=None) -> CONFIG:
+    def _load_config_(self, app:Flask=app) -> CONFIG:
         """load configuration file and update asset view if needed
 
         Args:
-            app (Flask, optional): Flask app object. Defaults to None.
+            app (Flask, optional): Flask app object. Defaults to current flask object.
 
         Returns:
             CONFIG: schematic configuration object
