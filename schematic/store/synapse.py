@@ -6,6 +6,7 @@ import json
 import atexit
 import logging
 import secrets
+import subprocess
 from dataclasses import dataclass
 import tempfile
 
@@ -210,7 +211,7 @@ class SynapseStorage(BaseStorage):
 
         self._query_fileview()
 
-    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/", maximum_storage_allowed_cache_gb=7):
+    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/", maximum_storage_allowed_cache_gb=1):
         """
         Purge synapse cache if it exceeds 7GB
         Args:
@@ -224,7 +225,15 @@ class SynapseStorage(BaseStorage):
         # try clearing the cache
         # scan a directory and check size of files
         cache = self.syn.cache
+        # print out file storage
+        output_one = subprocess.run('df -hk', shell=True)
+        logger.info('file storage distribution', output_one)
+
         if os.path.exists(root_dir):
+            # size of www/vars
+            output_two = subprocess.run('du -sh /var/www', shell=True)
+            logger.info('size of /var/www', output_two)
+
             maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
             total_ephemeral_storag_gb = 20
             total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
