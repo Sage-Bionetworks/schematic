@@ -118,8 +118,7 @@ class TestSynapseStorage:
         manifest_path = "mock_manifests/annotations_test_manifest.csv"
 
         # Upload dataset annotations
-        inputModelLocaiton = helpers.get_data_path(config.model_location)
-        sg = SchemaGenerator(inputModelLocaiton)
+        sg = SchemaGenerator(config.model_location)
 
         try:        
             for attempt in Retrying(
