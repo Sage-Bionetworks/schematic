@@ -131,7 +131,7 @@ class GoogleSheetsConfig:
 
     service_acct_creds_synapse_id: str = "syn25171627"
     service_acct_creds_basename: str = "schematic_service_account_creds.json"
-    master_template_id: Optional[str] = "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
+    master_template_id: Optional[str] = None
     strict_validation: bool = True
 
     @validator("service_acct_creds_basename")
