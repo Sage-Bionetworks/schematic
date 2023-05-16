@@ -27,7 +27,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      POETRY_VERSION:  1.2.0rc1
+      POETRY_VERSION:  1.2.0
     strategy:
       fail-fast: false
       matrix:
