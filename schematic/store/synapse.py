@@ -225,9 +225,9 @@ class SynapseStorage(BaseStorage):
         # try clearing the cache
         # scan a directory and check size of files
         cache = self.syn.cache
-        # print out file storage
+        # print out file space usage
         output_one = subprocess.run('df -hk', shell=True)
-        logger.info(f'file storage distribution: {output_one}')
+        logger.info(f'file space usage: {output_one}')
 
         if os.path.exists(root_dir):
             # size of www/vars
