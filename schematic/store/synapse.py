@@ -216,7 +216,7 @@ class SynapseStorage(BaseStorage):
         Purge synapse cache if it exceeds 1GB
         Args:
             root_dir: directory of the .synapseCache function
-            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 7 GB. 
+            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 1 GB. 
 
         Returns: 
             if size of cache reaches a certain threshold (default is 7GB), return the number of files that get deleted
