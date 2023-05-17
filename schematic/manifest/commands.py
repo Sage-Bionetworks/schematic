@@ -144,7 +144,6 @@ def get_manifest(
             output_format = "excel"
             # if file name is in the path, and that file does not exist
             if not os.path.exists(output_xlsx):
-                breakpoint()
                 if ".xlsx" or ".xls" in output_xlsx:
                     path = Path(output_xlsx)
                     output_path = path.parent.absolute()
