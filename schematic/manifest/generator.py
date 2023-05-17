@@ -181,7 +181,7 @@ class ManifestGenerator(object):
         """
         template_id = CONFIG.google_sheets_master_template_id
 
-        if template_id is not None:
+        if template_id:
             spreadsheet_id = self._gdrive_copy_file(template_id, title)
 
         else:

@@ -135,7 +135,7 @@ class TestConfiguration:
             os.path.basename(config.service_account_credentials_path)
             == "schematic_service_account_creds.json"
         )
-        assert config.google_sheets_master_template_id is None
+        assert config.google_sheets_master_template_id == "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
         assert config.google_sheets_strict_validation
         assert config.google_required_background_color == {
             "red": 0.9215,
@@ -172,7 +172,7 @@ class TestConfiguration:
             os.path.basename(config.service_account_credentials_path)
             == "schematic_service_account_creds.json"
         )
-        assert config.google_sheets_master_template_id is None
+        assert config.google_sheets_master_template_id  == "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
         assert config.google_sheets_strict_validation
 
         config.load_config("tests/data/test_config2.yml")
@@ -187,10 +187,7 @@ class TestConfiguration:
         assert config.model_file_type == "not_local"
         assert config.service_account_credentials_synapse_id
         assert os.path.basename(config.service_account_credentials_path) == "creds.json"
-        assert (
-            config.google_sheets_master_template_id
-            == "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
-        )
+        assert config.google_sheets_master_template_id == ""
         assert not config.google_sheets_strict_validation
 
     def test_set_synapse_master_fileview_id(self) -> None:

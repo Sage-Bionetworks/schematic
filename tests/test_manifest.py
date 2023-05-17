@@ -218,7 +218,7 @@ class TestManifestGenerator:
         else:
             # Temporarily set master template id to None so that we could test that
             template_id = config.google_sheets_master_template_id
-            config.google_sheets_master_template_id = None
+            config.google_sheets_master_template_id = ""
 
             mock_spreadsheet = Mock()
             mock_execute = Mock()

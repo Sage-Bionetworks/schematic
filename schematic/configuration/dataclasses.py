@@ -1,7 +1,6 @@
 """Pydantic dataclasses"""
 
 import re
-from typing import Optional
 from dataclasses import field
 from pydantic.dataclasses import dataclass
 from pydantic import validator, ConfigDict
@@ -19,7 +18,6 @@ class SynapseConfig:
     manifest_folder: name of the folder manifests will be saved to locally
     """
 
-    validate_assignment = True
     config_basename: str = ".synapseConfig"
     manifest_basename: str = "synapse_storage_manifest"
     master_fileview_id: str = "syn23643253"
@@ -131,7 +129,7 @@ class GoogleSheetsConfig:
 
     service_acct_creds_synapse_id: str = "syn25171627"
     service_acct_creds_basename: str = "schematic_service_account_creds.json"
-    master_template_id: Optional[str] = None
+    master_template_id: str = "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
     strict_validation: bool = True
 
     @validator("service_acct_creds_basename")
@@ -149,24 +147,6 @@ class GoogleSheetsConfig:
             (str): The input value
         """
         if not value:
-            raise ValueError(f"{value} is an empty string")
-        return value
-
-    @validator("master_template_id")
-    @classmethod
-    def validate_optional_string_is_not_empty(cls, value: str) -> str:
-        """Check if string is not empty(has at least one char)
-
-        Args:
-            value (Optional[str]): A string
-
-        Raises:
-            ValueError: If the value is zero characters long
-
-        Returns:
-            (str): The input value
-        """
-        if value is not None and len(value) == 0:
             raise ValueError(f"{value} is an empty string")
         return value
 

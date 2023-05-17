@@ -152,10 +152,10 @@ class Configuration:
         )
 
     @property
-    def google_sheets_master_template_id(self) -> Optional[str]:
+    def google_sheets_master_template_id(self) -> str:
         """
         Returns:
-            Optional[str]:
+            str:
         """
         return self._google_sheets_config.master_template_id
 
