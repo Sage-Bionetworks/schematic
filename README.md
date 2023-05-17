@@ -88,43 +88,9 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 
 <strong>Configure config.yml File</strong>
 
-*Note*: Below is only a brief explanation of some attributes in `config.yml`. <strong>Please use the link [here](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml) to get the latest version of `config.yml` in `develop` branch</strong>.
+There are some defaults in schematic that cna be configured. These fields are in ``config_example.yml``. If you want to change any of these copy ``config_example.yml`` to ``config.yml``, change any fields you want to, and remove any fields you don't.
 
-Description of `config.yml` attributes
-
-    definitions:
-        synapse_config: "~/path/to/.synapseConfig"
-        service_acct_creds: "~/path/to/service_account_creds.json"
-
-    synapse:
-        master_fileview: "syn23643253" # fileview of project with datasets on Synapse
-        manifest_folder: "~/path/to/manifest_folder/" # manifests will be downloaded to this folder
-        manifest_basename: "filename" # base name of the manifest file in the project dataset, without extension
-        service_acct_creds: "syn25171627" # synapse ID of service_account_creds.json file
-
-    manifest:
-        title: "example" # title of metadata manifest file
-        # to make all manifests enter only 'all manifests'
-        data_type: 
-          - "Biospecimen"
-          - "Patient"
-
-    model:
-        input:
-            location: "data/schema_org_schemas/example.jsonld" # path to JSON-LD data model
-            file_type: "local" # only type "local" is supported currently
-    style: # configuration of google sheet
-        google_manifest:
-          req_bg_color:
-            red: 0.9215
-            green: 0.9725
-            blue: 0.9803
-          opt_bg_color:
-            red: 1.0
-            green: 1.0
-            blue: 0.9019
-          master_template_id: '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU'
-          strict_validation: true
+*Note*: `config.yml` is ignored by git.
 
 *Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
