@@ -13,7 +13,7 @@ pydantic_config = ConfigDict(validate_assignment=True)
 @dataclass(config=pydantic_config)
 class SynapseConfig:
     """
-    config_basename: teh basename of the synapse config file
+    config_basename: the basename of the synapse config file
     manifest_basename: the name of downloaded manifest files
     master_fileview_id: Synapse id for the master file view
     manifest_folder: name of the folder manifests will be saved to locally

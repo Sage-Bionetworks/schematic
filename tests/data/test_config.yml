@@ -2,7 +2,7 @@
 asset_store:
   synapse:
     config_basename: ".synapseConfig"
-    manifest_basename: 'synapse_storage_manifest' 
+    manifest_basename: 'synapse_storage_manifest'
     master_fileview_id:  'syn23643253'
     manifest_folder:  'manifests'
 
