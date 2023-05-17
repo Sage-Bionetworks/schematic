@@ -57,7 +57,7 @@ class SynapseConfig:
         Returns:
             (str): The input value
         """
-        if len(value) == 0:
+        if not value:
             raise ValueError(f"{value} is an empty string")
         return value
 
@@ -86,7 +86,7 @@ class ManifestConfig:
         Returns:
             (str): The input value
         """
-        if len(value) == 0:
+        if not value:
             raise ValueError(f"{value} is an empty string")
         return value
 
@@ -115,7 +115,7 @@ class ModelConfig:
         Returns:
             (str): The input value
         """
-        if len(value) == 0:
+        if not value:
             raise ValueError(f"{value} is an empty string")
         return value
 
@@ -134,7 +134,7 @@ class GoogleSheetsConfig:
     master_template_id: Optional[str] = None
     strict_validation: bool = True
 
-    @validator("service_acct_creds_basename")
+    @validator("service_acct_creds_basename", )
     @classmethod
     def validate_string_is_not_empty(cls, value: str) -> str:
         """Check if string is not empty(has at least one char)
@@ -148,11 +148,11 @@ class GoogleSheetsConfig:
         Returns:
             (str): The input value
         """
-        if len(value) == 0:
+        if not value:
             raise ValueError(f"{value} is an empty string")
         return value
 
-    @validator("master_template_id")
+    @validator()
     @classmethod
     def validate_optional_string_is_not_empty(cls, value: str) -> str:
         """Check if string is not empty(has at least one char)

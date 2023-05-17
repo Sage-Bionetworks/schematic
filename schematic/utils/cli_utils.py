@@ -9,6 +9,9 @@ import re
 
 logger = logging.getLogger(__name__)
 
+# We are using fstrings in logger methods
+# pylint: disable=logging-fstring-interpolation
+
 
 def query_dict(dictionary: Mapping[Any, Any], keys: Sequence[Any]) -> Union[Any, None]:
     """Access a nested value in a dictionary corresponding
@@ -41,10 +44,7 @@ def log_value_from_config(arg_name: str, config_value: Any):
         config_value (Any): The value in the config
     """
     logger.info(
-        (
-            "The '--%s' argument is being taken from configuration file,"
-            " i.e., '%s'.", arg_name, config_value
-        )
+        f"The {arg_name} argument is being taken from configuration file, i.e., {config_value}."
     )
 
 def parse_synIDs(

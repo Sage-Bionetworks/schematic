@@ -535,6 +535,9 @@ class ManifestGenerator(object):
 
         # adding columns to 2nd sheet that can be used for storing data validation ranges (this avoids limitations on number of dropdown items in excel and openoffice)
         range = "Sheet2!A1:" + str(end_col_letter) + "1"
+        print(spreadsheet_id)
+        print(range)
+        print(body)
         self.sheet_service.spreadsheets().values().update(
             spreadsheetId=spreadsheet_id, range=range, valueInputOption="RAW", body=body
         ).execute()

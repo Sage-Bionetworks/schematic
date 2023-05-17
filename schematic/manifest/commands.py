@@ -169,7 +169,7 @@ def get_manifest(
             output_path = None
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=None, output_format = output_format, output_path = output_path
+            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema, output_format = output_format, output_path = output_path
         )
 
         if sheet_url:

@@ -199,9 +199,8 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
 
     t_validate = perf_counter()
 
-    if jsonld is None:
-        jsonld =  CONFIG.model_location
-        log_value_from_config("jsonld", jsonld)
+    jsonld =  CONFIG.model_location
+    log_value_from_config("jsonld", jsonld)
 
     file_type = CONFIG.model_file_type
     log_value_from_config("file_type", file_type)
