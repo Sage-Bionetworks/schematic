@@ -88,7 +88,7 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 
 <strong>Configure config.yml File</strong>
 
-There are some defaults in schematic that cna be configured. These fields are in ``config_example.yml``. If you want to change any of these copy ``config_example.yml`` to ``config.yml``, change any fields you want to, and remove any fields you don't.
+There are some defaults in schematic that can be configured. These fields are in ``config_example.yml``. If you want to change any of these copy ``config_example.yml`` to ``config.yml``, change any fields you want to, and remove any fields you don't.
 
 *Note*: `config.yml` is ignored by git.
 
