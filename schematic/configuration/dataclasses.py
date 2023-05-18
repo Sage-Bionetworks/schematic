@@ -14,7 +14,7 @@ class SynapseConfig:
     """
     config_basename: the basename of the synapse config file
     manifest_basename: the name of downloaded manifest files
-    master_fileview_id: Synapse id for the master file view
+    master_fileview_id: Synapse ID of the file view listing all project data assets.
     manifest_folder: name of the folder manifests will be saved to locally
     """
 
