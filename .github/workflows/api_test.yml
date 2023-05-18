@@ -4,11 +4,14 @@
 name: Test schematic API
 
 on:
+  push:
+    branches: ['main', 'develop']
   workflow_dispatch:
     inputs:
       perform_benchmarking:
         required: true
         type: boolean
+        default: False
         description: perform benchmarking test (True) or skip (False)
 
 jobs:
@@ -82,7 +85,7 @@ jobs:
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-        if: ${{ false == inputs.perform_benchmarking }}
+        if: ${{ false == inputs.perform_benchmarking }} || ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' }}
         run: >
           source .venv/bin/activate;
           pytest -m "schematic_api and not rule_benchmark"
