@@ -183,3 +183,16 @@ def trim_commas_df(df: pd.DataFrame):
     #Fill in nan cells with empty strings
     df.fillna("", inplace=True)
     return df
+
+
+def col_in_dataframe(col: str, df: pd.DataFrame) -> bool:
+    """Check if a column is in a dataframe, without worring about case
+
+    Args:
+        col: name of column whose presence in the dataframe is being checked
+        df: pandas dataframe with data from manifest file.
+
+    Returns:
+        bool: whether or not the column name is a column in the dataframe, case agnostic
+    """
+    return col.lower() in [manifest_col.lower() for manifest_col in df.columns.to_list()]

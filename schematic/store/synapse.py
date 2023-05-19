@@ -41,7 +41,7 @@ from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
 from schematic_db.schema.schema import get_key_attribute
 
-from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
@@ -852,7 +852,7 @@ class SynapseStorage(BaseStorage):
 
         # Set Id column length to 64 (for some reason not being auto set.)
         for i, col in enumerate(col_schema):
-            if col['name'] == 'Id':
+            if col['name'].lower() == 'id':
                 col_schema[i]['maximumSize'] = 64
 
         return col_schema, table_manifest
@@ -1135,8 +1135,8 @@ class SynapseStorage(BaseStorage):
             Manifest df with new Id and EntityId columns (and UUID values) if they were not already present.
         """
         # Add Id for table updates and fill.
-        if not "Id" in manifest.columns:
-            if 'Uuid' in manifest.columns:
+        if col_in_dataframe("Id", manifest):
+            if col_in_dataframe("Uuid", manifest):
                 manifest.rename(columns={'Uuid': 'Id'}, inplace=True)
             else:
                 manifest["Id"] = ''
@@ -1149,7 +1149,7 @@ class SynapseStorage(BaseStorage):
 
         # add entityId as a column if not already there or
         # fill any blanks with an empty string.
-        if not "entityId" in manifest.columns:
+        if not col_in_dataframe("entityId", manifest):
             manifest["entityId"] = ""
         else:
             manifest["entityId"].fillna("", inplace=True)
@@ -2058,7 +2058,7 @@ class TableOperations:
         
         # Iterate through columns until `Uuid` column is found
         for col in cols:
-            if col.name == 'Uuid':
+            if col.name.lower() == 'uuid':
                 # Create a new `Id` column based off of the old `Uuid` column, and store (column is empty)
                 new_col = deepcopy(col)
                 new_col['name'] = 'Id'
