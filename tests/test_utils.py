@@ -6,7 +6,10 @@ import pandas as pd
 import numpy as np
 import pytest
 
+import tempfile
+
 from pandas.testing import assert_frame_equal
+from synapseclient.core.exceptions import SynapseHTTPError
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas import df_parser
@@ -20,9 +23,21 @@ from schematic.exceptions import (
     MissingConfigAndArgumentValueError,
 )
 from schematic import LOADER
+from schematic.store.synapse import SynapseStorage
+from schematic.utils.general import entity_type_mapping
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+@pytest.fixture
+def synapse_store():
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synapse_store = SynapseStorage(access_token=access_token)
+    else:
+        synapse_store = SynapseStorage()
+    yield synapse_store
 
 
 class TestGeneral:
@@ -50,6 +65,24 @@ class TestGeneral:
         test_list = general.dict2list(mock_list)
         assert test_list == mock_list
 
+    @pytest.mark.parametrize("entity_id,expected_type", [("syn27600053","folder"), ("syn29862078", "file"), ("syn23643253", "asset view"), ("syn30988314", "folder"), ("syn51182432", "org.sagebionetworks.repo.model.table.TableEntity")])
+    def test_entity_type_mapping(self, synapse_store, entity_id, expected_type):
+        syn = synapse_store.syn
+
+        entity_type = entity_type_mapping(syn, entity_id)
+        assert entity_type == expected_type
+
+    def test_entity_type_mapping_invalid_entity_id(self, synapse_store):
+        syn = synapse_store.syn
+
+        # test with an invalid entity id
+        with pytest.raises(SynapseHTTPError) as exception_info:
+            entity_type_mapping(syn, "syn123456")
+
+    def test_download_manifest_to_temp_folder(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path_dir = general.create_temp_folder(tmpdir)
+            assert os.path.exists(path_dir)
 
 class TestCliUtils:
     def test_query_dict(self):

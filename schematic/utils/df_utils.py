@@ -1,12 +1,11 @@
 import logging
-
+from copy import deepcopy
+from time import perf_counter
+import datetime as dt
+import dateparser as dp
 import pandas as pd
 import numpy as np
-from copy import deepcopy
-import dateparser as dp
-import datetime as dt
 from pandarallel import pandarallel
-from time import perf_counter
 
 logger = logging.getLogger(__name__)
 
