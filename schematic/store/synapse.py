@@ -1244,7 +1244,7 @@ class SynapseStorage(BaseStorage):
             Manifest df with new Id and EntityId columns (and UUID values) if they were not already present.
         """
         # Add Id for table updates and fill.
-        if col_in_dataframe("Id", manifest):
+        if not col_in_dataframe("Id", manifest):
             if col_in_dataframe("Uuid", manifest):
                 manifest.rename(columns={'Uuid': 'Id'}, inplace=True)
             else:
