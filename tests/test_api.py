@@ -38,6 +38,11 @@ def test_manifest_csv(helpers):
     yield test_manifest_path
 
 @pytest.fixture(scope="class")
+def test_manifest_submit(helpers):
+    test_manifest_path = helpers.get_data_path("mock_manifests/example_biospecimen_test.csv")
+    yield test_manifest_path   
+
+@pytest.fixture(scope="class")
 def test_invalid_manifest(helpers):
     test_invalid_manifest = helpers.get_data_frame("mock_manifests/Invalid_Test_Manifest.csv", preserve_raw_input=False)
     yield test_invalid_manifest
@@ -672,13 +677,13 @@ class TestManifestOperation:
             assert isinstance(response_path, str)
             assert response_path.endswith(".csv")
 
-    def test_submit_manifest_table_and_file_replace(self, client, syn_token, data_model_jsonld, test_manifest_csv):
+    def test_submit_manifest_table_and_file_replace(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         """Testing submit manifest in a csv format as a table and a file. Only replace the table
         """
         params = {
             "access_token": syn_token,
             "schema_url": data_model_jsonld,
-            "data_type": "MockComponent",
+            "data_type": "Biospecimen",
             "restrict_rules": False, 
             "manifest_record_type": "table_and_file",
             "asset_view": "syn51514344",
@@ -687,16 +692,16 @@ class TestManifestOperation:
             "use_schema_label": True
         }
 
-        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")})
+        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200
 
-    def test_submit_manifest_file_only_replace(self, client, syn_token, data_model_jsonld, test_manifest_csv):
+    def test_submit_manifest_file_only_replace(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         """Testing submit manifest in a csv format as a file
         """
         params = {
             "access_token": syn_token,
             "schema_url": data_model_jsonld,
-            "data_type": "MockComponent",
+            "data_type": "Biospecimen",
             "restrict_rules": False, 
             "manifest_record_type": "file_only",
             "asset_view": "syn51514344",
@@ -704,17 +709,17 @@ class TestManifestOperation:
             "table_manipulation": 'replace',
             "use_schema_label": True
         }
-        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")})
+        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200 
     
     def test_submit_manifest_json_str_replace(self, client, syn_token, data_model_jsonld):
         """Submit json str as a file
         """
-        json_str = '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'
+        json_str = '[{"Sample ID": 123, "Patient ID": 1,"Tissue Status": "Healthy","Component": "Biospecimen"}]'
         params = {
             "access_token": syn_token,
             "schema_url": data_model_jsonld,
-            "data_type": "Patient",
+            "data_type": "Biospecimen",
             "json_str": json_str,
             "restrict_rules": False, 
             "manifest_record_type": "file_only",
@@ -727,11 +732,11 @@ class TestManifestOperation:
         response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
         assert response.status_code == 200
 
-    def test_submit_manifest_w_file_and_entities(self, client, syn_token, data_model_jsonld, test_manifest_csv):
+    def test_submit_manifest_w_file_and_entities(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         params = {
             "access_token": syn_token,
             "schema_url": data_model_jsonld,
-            "data_type": "MockComponent",
+            "data_type": "Biospecimen",
             "restrict_rules": False, 
             "manifest_record_type": "file_and_entities",
             "asset_view": "syn51514501",
@@ -741,7 +746,7 @@ class TestManifestOperation:
         }
 
         # test uploading a csv file
-        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")})
+        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200
 
     def test_submit_manifest_table_and_file_upsert(self, client, syn_token, data_model_jsonld, test_upsert_manifest_csv, ):
