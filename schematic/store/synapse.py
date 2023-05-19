@@ -913,7 +913,7 @@ class SynapseStorage(BaseStorage):
 
         col_schema, table_manifest = self.formatDB(se, manifest, useSchemaLabel)
 
-        manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, table_manipulation, restrict)
+        manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, table_manipulation, se, restrict,)
 
         return manifest_table_id, manifest, table_manifest
 
@@ -972,7 +972,9 @@ class SynapseStorage(BaseStorage):
         col_schema: List,
         table_manifest: pd.DataFrame,
         table_manipulation: str,
-        restrict: bool = False, 
+        se: SchemaExplorer,  
+        restrict: bool = False,
+        
         ):
         """
         Method to construct the table appropriately: create new table, replace existing, or upsert new into existing
@@ -1002,7 +1004,7 @@ class SynapseStorage(BaseStorage):
             if table_manipulation.lower() == 'replace':
                 manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
             elif table_manipulation.lower() == 'upsert':
-                manifest_table_id = TableOperations.upsertTable(self, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
+                manifest_table_id = TableOperations.upsertTable(self, se=se, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
             elif table_manipulation.lower() == 'update':
                 manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
 
@@ -1236,17 +1238,29 @@ class SynapseStorage(BaseStorage):
             ) from err
         return manifest
 
-    def _add_id_columns_to_manifest(self, manifest):
+    def _add_id_columns_to_manifest(self, manifest: pd.DataFrame, se: SchemaExplorer):
         """Helper function to add id and entityId columns to the manifest if they do not already exist, Fill id values per row.
         Args:
             Manifest loaded as a pd.Dataframe
         Returns (pd.DataFrame):
             Manifest df with new Id and EntityId columns (and UUID values) if they were not already present.
         """
+        # load the specific schema being used
+        temp_schema_explorer = deepcopy(se)
+        temp_schema_explorer.load_schema(CONFIG["model"]["input"]["location"])
+
         # Add Id for table updates and fill.
         if not col_in_dataframe("Id", manifest):
-            if col_in_dataframe("Uuid", manifest):
+            # See if schema has `Uuid` column specified
+            try:
+                uuid_col_in_schema = temp_schema_explorer.is_class_in_schema('Uuid')      
+            except (KeyError):
+                uuid_col_in_schema = False
+
+            # Rename `Uuid` column if it wasn't specified in the schema
+            if col_in_dataframe("Uuid", manifest) and not uuid_col_in_schema:
                 manifest.rename(columns={'Uuid': 'Id'}, inplace=True)
+            # If no `Uuid` column exists or it is specified in the schema, create a new `Id` column
             else:
                 manifest["Id"] = ''
 
@@ -1570,13 +1584,13 @@ class SynapseStorage(BaseStorage):
         Returns:
             manifest_synapse_file_id: SynID of manifest csv uploaded to synapse.
         """
-
-        # Read new manifest CSV:
-        manifest = self._read_manifest(metadataManifestPath)
-        manifest = self._add_id_columns_to_manifest(manifest)
         
         # get a schema explorer object to ensure schema attribute names used in manifest are translated to schema labels for synapse annotations
         se = SchemaExplorer()
+
+        # Read new manifest CSV:
+        manifest = self._read_manifest(metadataManifestPath)
+        manifest = self._add_id_columns_to_manifest(manifest, se)
 
         table_name, component_name = self._generate_table_name(manifest)
 
@@ -2112,7 +2126,7 @@ class TableOperations:
         
         return username, authtoken
 
-    def upsertTable(synStore: SynapseStorage, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
+    def upsertTable(synStore: SynapseStorage, se: SchemaExplorer, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
         For upsert functionality to work, primary keys must follow the naming convention of <componenet>_id        
@@ -2143,7 +2157,7 @@ class TableOperations:
         except(SynapseHTTPError) as ex:
             # If error is raised because Table has old `Uuid` column and not new `Id` column, then handle and re-attempt upload
             if 'Id is not a valid column name or id' in str(ex):
-                TableOperations._update_table_uuid_column(synStore, existingTableId)
+                TableOperations._update_table_uuid_column(synStore, existingTableId, se)
                 synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
             # Raise if other error
             else:
@@ -2151,7 +2165,7 @@ class TableOperations:
 
         return existingTableId
 
-    def _update_table_uuid_column(synStore: SynapseStorage, table_id: str) -> None:
+    def _update_table_uuid_column(synStore: SynapseStorage, table_id: str, se: SchemaExplorer,) -> None:
         """Removes the `Uuid` column when present, and relpaces with an `Id` column
         Used to enable backwards compatability for manifests using the old `Uuid` convention
 
@@ -2161,6 +2175,11 @@ class TableOperations:
         Returns:
             None
         """
+
+        # load the specific schema being used
+        temp_schema_explorer = deepcopy(se)
+        temp_schema_explorer.load_schema(CONFIG["model"]["input"]["location"])
+        
         # Get the columns of the schema
         schema = synStore.syn.get(table_id)
         cols = synStore.syn.getTableColumns(schema)
@@ -2168,22 +2187,36 @@ class TableOperations:
         # Iterate through columns until `Uuid` column is found
         for col in cols:
             if col.name.lower() == 'uuid':
-                # Create a new `Id` column based off of the old `Uuid` column, and store (column is empty)
-                new_col = deepcopy(col)
-                new_col['name'] = 'Id'
-                schema.addColumn(new_col)
-                schema = synStore.syn.store(schema)
+                # See if schema has `Uuid` column specified
+                try:
+                    uuid_col_in_schema = temp_schema_explorer.is_class_in_schema('Uuid')      
+                except (KeyError):
+                    uuid_col_in_schema = False
+
+                # If there is, then create a new `Id` column from scratch
+                if uuid_col_in_schema:
+                    new_col = Column(columnType = "STRING", maximumSize = 64, name = "Id")
+                    schema.addColumn(new_col)
+                    schema = synStore.syn.store(schema)
+                # If there is not, then use the old `Uuid` column as a basis for the new `Id` column
+                else:
+                    # Create a new `Id` column based off of the old `Uuid` column, and store (column is empty)
+                    new_col = deepcopy(col)
+                    new_col['name'] = 'Id'
+                    schema.addColumn(new_col)
+                    schema = synStore.syn.store(schema)
                 
-                # Recently stored column is empty, so populated with uuid values
-                TableOperations._populate_new_id_column(synStore, table_id, schema)
+                
+                    # Recently stored column is empty, so populated with uuid values
+                    TableOperations._populate_new_id_column(synStore, table_id, schema)
 
-                # get the up-to-date table, remove old `Uuid` column, and store
-                sleep(1)
-                schema = synStore.syn.get(table_id)
-                schema.removeColumn(col)
-                schema = synStore.syn.store(schema)
+                    # get the up-to-date table, remove old `Uuid` column, and store
+                    sleep(1)
+                    schema = synStore.syn.get(table_id)
+                    schema.removeColumn(col)
+                    schema = synStore.syn.store(schema)
 
-                # Exit iteration; only concerned with `Uuid` column
+                    # Exit iteration; only concerned with `Uuid` column
                 break
 
         return
