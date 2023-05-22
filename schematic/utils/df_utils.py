@@ -195,3 +195,17 @@ def col_in_dataframe(col: str, df: pd.DataFrame) -> bool:
         bool: whether or not the column name is a column in the dataframe, case agnostic
     """
     return col.lower() in [manifest_col.lower() for manifest_col in df.columns.to_list()]
+
+def populate_df_col_with_another_col(df: pd.DataFrame, source_col: str, target_col: str) -> pd.DataFrame:
+    """Copy the values from one column in a dataframe to another column in the same dataframe
+    Args:
+        df: pandas dataframe with data from manifest file.
+        source_col: column whose contents to copy over
+        target_col: column to be updated with other contents
+
+    Returns:
+        dataframe with contents updated
+    """
+    # Copy the contents over
+    df[target_col]=df[source_col]
+    return df

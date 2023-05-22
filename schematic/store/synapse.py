@@ -45,7 +45,7 @@ from schematic_db.rdb.synapse_database import SynapseDatabase
 from schematic_db.schema.schema import get_key_attribute
 
 
-from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
+from schematic.utils.df_utils import update_df, load_df, col_in_dataframe, populate_df_col_with_another_col
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.utils.general import entity_type_mapping, get_dir_size, convert_size, convert_gb_to_bytes, create_temp_folder
 from schematic.schemas.explorer import SchemaExplorer
@@ -2236,7 +2236,7 @@ class TableOperations:
         results_df = results.asDataFrame()
 
         # Copy uuid values to new column, and store in table
-        results_df['Id']=results_df['Uuid']
+        results_df = populate_df_col_with_another_col(results_df, 'Uuid', 'Id')
         table = synStore.syn.store(Table(schema, results_df, etag=results.etag))
         return
 
