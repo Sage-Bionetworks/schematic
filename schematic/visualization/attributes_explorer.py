@@ -59,17 +59,59 @@ class AttributesExplorer():
                 for the provided data model for all components in the data model. 
                 Dataframe is saved locally as a csv if save_file == True, or returned if
                 save_file == False. 
+                
+        '''
+        # get all components
+        component_dg = self.sg.se.get_digraph_by_edge_type('requiresComponent')
+        components = component_dg.nodes()
+        
+        # For each data type to be loaded gather all attribtes the user would
+        # have to provide.
+        return self._parse_attributes(components, save_file)
+    
+    def parse_component_attributes(self, component=None, save_file=True, include_index=True):
+        '''
+        Args: save_file (bool):
+                True: merged_df is saved locally to output_path.
+                False: merged_df is returned.
+              include_index (bool):
+                Whether to include the index in the returned dataframe (True) or not (False)
+
+        Returns:
+            merged_df (pd.DataFrame): dataframe containing data relating to attributes
+                for the provided data model for the specified component in the data model. 
+                Dataframe is saved locally as a csv if save_file == True, or returned if
+                save_file == False. 
+        '''        
+
+        if not component:
+            raise ValueError("You must provide a component to visualize.")
+        else:
+            return self._parse_attributes([component], save_file, include_index)
+
+    def _parse_attributes(self, components, save_file=True, include_index=True):
+        '''
+        Args: save_file (bool):
+                True: merged_df is saved locally to output_path.
+                False: merged_df is returned.
+              components (list):
+                list of components to parse attributes for
+              include_index (bool):
+                Whether to include the index in the returned dataframe (True) or not (False)
+
+        Returns:
+            merged_df (pd.DataFrame): dataframe containing data relating to attributes
+                for the provided data model for specified components in the data model. 
+                Dataframe is saved locally as a csv if save_file == True, or returned if
+                save_file == False. 
         Raises:
             ValueError:
                 If unable hits an error while attempting to get conditional requirements. 
                 This error is likely to be found if there is a mismatch in naming.
         '''
-        # get all components
-        component_dg = self.sg.se.get_digraph_by_edge_type('requiresComponent')
-        components = component_dg.nodes()
+        
         # For each data type to be loaded gather all attribtes the user would
         # have to provide.
-
         df_store = []
         for component in components:
             data_dict = {}
@@ -162,6 +204,6 @@ class AttributesExplorer():
 
         merged_attributes_df = merged_attributes_df[cols]
         if save_file == True:
-            return merged_attributes_df.to_csv(os.path.join(self.output_path, self.schema_name + 'attributes_data.vis_data.csv'))
+            return merged_attributes_df.to_csv(os.path.join(self.output_path, self.schema_name + 'attributes_data.vis_data.csv'), index=include_index)
         elif save_file == False:
-            return merged_attributes_df.to_csv()
+            return merged_attributes_df.to_csv(index=include_index)

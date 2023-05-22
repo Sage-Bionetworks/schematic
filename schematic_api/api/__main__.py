@@ -1,7 +1,4 @@
 import os
-import connexion
-from schematic import CONFIG
-from flask_cors import CORS
 from schematic_api.api import app
 
 
@@ -12,7 +9,6 @@ def main():
     port = int(port)
 
     # Launch app
-    # CORS(app, resources={r"*": {"origins": "*"}})
     app.run(host=host, port=port, debug=False)
 
 if __name__ == "__main__":

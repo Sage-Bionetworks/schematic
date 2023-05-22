@@ -11,7 +11,7 @@ from synapseclient import EntityViewSchema, Folder
 
 from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import SynapseStorage, DatasetFileView
+from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
 from schematic.utils.cli_utils import get_from_config
 from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
@@ -29,6 +29,14 @@ def synapse_store():
         synapse_store = SynapseStorage()
     yield synapse_store
 
+@pytest.fixture
+def test_download_manifest_id():
+    yield "syn51203973"
+
+@pytest.fixture
+def mock_manifest_download(synapse_store, test_download_manifest_id):
+    md = ManifestDownload(synapse_store.syn, test_download_manifest_id)
+    yield md
 
 @pytest.fixture
 def dataset_fileview(dataset_id, synapse_store):
@@ -68,8 +76,6 @@ def datasetId(synapse_store, projectId, helpers):
     datasetId = synapse_store.syn.store(dataset).id
     sleep(5)
     yield datasetId
-    synapse_store.syn.delete(datasetId)
-
 
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
@@ -196,6 +202,21 @@ class TestSynapseStorage:
 
         with pytest.raises(PermissionError):
             synapse_store.getDatasetProject("syn12345678")
+
+    @pytest.mark.parametrize("downloadFile", [True, False])
+    def test_getDatasetManifest(self, synapse_store, downloadFile):
+        # get a test manifest
+        manifest_data = synapse_store.getDatasetManifest("syn51204502", downloadFile)
+
+        #make sure the file gets downloaded
+        if downloadFile:
+            assert manifest_data['name'] == "synapse_storage_manifest_censored.csv"
+            assert os.path.exists(manifest_data['path'])
+            # clean up
+            os.remove(manifest_data['path'])
+        else: 
+            # return manifest id
+            assert manifest_data == "syn51204513"
 
 
 class TestDatasetFileView:
@@ -380,7 +401,7 @@ class TestTableOperations:
         table_name="MockRDB_synapse_storage_manifest_table".lower()
         manifest_path = "mock_manifests/rdb_table_manifest.csv"
         replacement_manifest_path = "mock_manifests/rdb_table_manifest_upsert.csv"
-        column_of_interest="MockRDB_id"   
+        column_of_interest="MockRDB_id,SourceManifest"
         
         # Check if FollowUp table exists if so delete
         existing_tables = synapse_store.get_table_info(projectId = projectId)        
@@ -412,13 +433,14 @@ class TestTableOperations:
         tableId = existing_tables[table_name]
 
         # Query table for DaystoFollowUp column        
-        IDs = synapse_store.syn.tableQuery(
+        table_query = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
 
         # assert max ID is '4' and that there are 4 entries
-        assert IDs.max() == 4
-        assert IDs.size == 4
+        assert table_query.MockRDB_id.max() == 4
+        assert table_query.MockRDB_id.size == 4
+        assert table_query['SourceManifest'][3] == 'Manifest1'
         
         # Associate new manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
@@ -435,12 +457,84 @@ class TestTableOperations:
         
         # Query table for DaystoFollowUp column        
         tableId = existing_tables[table_name]
-        IDs = synapse_store.syn.tableQuery(
+        table_query = synapse_store.syn.tableQuery(
             f"SELECT {column_of_interest} FROM {tableId}"
         ).asDataFrame().squeeze()
 
         # assert max ID is '4' and that there are 4 entries
-        assert IDs.max() == 8
-        assert IDs.size == 8
+        assert table_query.MockRDB_id.max() == 8
+        assert table_query.MockRDB_id.size == 8
+        assert table_query['SourceManifest'][3] == 'Manifest2'
         # delete table        
         synapse_store.syn.delete(tableId)
+
+
+class TestDownloadManifest:
+    @pytest.mark.parametrize("datasetFileView", [{"id": ["syn51203973", "syn51203943"], "name": ["synapse_storage_manifest.csv", "synapse_storage_manifest_censored.csv"]}, {"id": ["syn51203973"], "name": ["synapse_storage_manifest.csv"]}, {"id": ["syn51203943"], "name": ["synapse_storage_manifest_censored.csv"]}])
+    def test_get_manifest_id(self, synapse_store, datasetFileView):
+        # rows that contain the censored manifest
+        datasetFileViewDataFrame = pd.DataFrame(datasetFileView)
+        row_censored = datasetFileViewDataFrame.loc[datasetFileViewDataFrame['name'] == "synapse_storage_manifest_censored.csv"]
+        if not row_censored.empty > 0:
+            censored_manifest_id = row_censored['id'].values[0]
+        # rows that contain the uncensored manifest
+        row_uncensored = datasetFileViewDataFrame.loc[datasetFileViewDataFrame['name'] == "synapse_storage_manifest.csv"]
+        if not row_uncensored.empty > 0:
+            uncensored_manifest_id = row_uncensored['id'].values[0]
+        
+        # get id of the uncensored manifest
+        manifest_syn_id = synapse_store._get_manifest_id(datasetFileViewDataFrame)
+
+        # if there are both censored and uncensored manifests, return only id of uncensored manifest
+        if not row_uncensored.empty > 0:
+            assert manifest_syn_id == uncensored_manifest_id
+        # if only censored manifests are present, return only id of censored manifest
+        elif row_uncensored.empty and not row_censored.empty: 
+            assert manifest_syn_id == censored_manifest_id
+
+    @pytest.mark.parametrize("newManifestName",["", "Example"]) 
+    def test_download_manifest(self, config, mock_manifest_download, newManifestName):
+        # test the download function by downloading a manifest
+        manifest_data = mock_manifest_download.download_manifest(mock_manifest_download, newManifestName)
+        assert os.path.exists(manifest_data['path'])
+
+        if not newManifestName:
+            assert manifest_data["name"] == "synapse_storage_manifest.csv"
+        else:
+            assert manifest_data["name"] == "Example.csv"
+        
+        # clean up
+        os.remove(manifest_data['path'])
+
+    def test_download_access_restricted_manifest(self, synapse_store):
+        # attempt to download an uncensored manifest that has access restriction. 
+        # if the code works correctly, the censored manifest that does not have access restriction would get downloaded (see: syn29862066)
+        md = ManifestDownload(synapse_store.syn, "syn29862066")
+        manifest_data = md.download_manifest(md)
+
+        assert os.path.exists(manifest_data['path'])
+        
+        # clean up 
+        os.remove(manifest_data['path'])
+
+    def test_download_manifest_on_aws(self, mock_manifest_download, monkeypatch):
+        # mock AWS environment by providing SECRETS_MANAGER_SECRETS environment variable and attempt to download a manifest
+        monkeypatch.setenv('SECRETS_MANAGER_SECRETS', 'mock_value')
+        manifest_data = mock_manifest_download.download_manifest(mock_manifest_download)
+
+        assert os.path.exists(manifest_data['path'])
+        # clean up 
+        os.remove(manifest_data['path'])       
+
+    @pytest.mark.parametrize("entity_id", ["syn27600053", "syn29862078"])
+    def test_entity_type_checking(self, synapse_store, entity_id, caplog):
+        md = ManifestDownload(synapse_store.syn, entity_id)
+        md._entity_type_checking()
+        if entity_id == "syn27600053":
+            for record in caplog.records:
+                assert "You are using entity type: folder. Please provide a file ID" in record.message
+
+
+
+
+

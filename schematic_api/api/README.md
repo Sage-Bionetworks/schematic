@@ -1,4 +1,11 @@
+## Installation
+For unix OSs users, simply run the following poetry command to install uWSGI: 
+```bash
+poetry install --with aws
+```
+
 ## Setup
+There are two ways to run schematic APIs: 1) start a flask server and run your application locally (preferred for external users); 2) build a docker image that allows you to run a container with flask application with uWSGI (only works for unix OSs users or windows user with WSL that could install uWSGI)
 
 To start a local Flask server and test your endpoints:
 
@@ -6,6 +13,20 @@ To start a local Flask server and test your endpoints:
 source .venv/bin/activate
 python3 run_api.py
 ```
+If you define `APP_PORT` as `3001` in `docker-compose.yml`, you should be able to see the application running when visiting `http://localhost:3001/v1/ui/`
+
+After installing uWSGI, flask and connexion, to start a docker container that runs flask application with uWSGI:
+1) Comment out the first part of `docker-compose.yml` and focus only on building container `schematic-aws`.
+2) Get `service_account_creds.json` by doing `schematic init --config /path/to/config.yml`. 
+3) Make a copy of `env.example` and rename it as `.env` and keep it in the same directory as `env.example` By default, schematic uses port 7080. If port 7080 is not available, please update `SERVER_PORT` in .env file. 
+4) Copy the content of `service_account_creds.json` and put it in `.env` file after key `SERVICE_ACCOUNT_CREDS`. Remember to wrap around the credentials with single quotes.
+5) Build a docker image and spin up docker container `schematic-api-aws` by running: 
+```bash
+docker compose up
+```
+If you define the value of port as `7080` in `.env` file, you should be able to see the application running when visiting `http://localhost:7080/v1/ui/`
+
+By default, this command builds up two containers (`schematic` and `schematic-aws`). You could spin up two containers if you want. But only `schematic-aws` runs flask with uWSGI. 
 
 ## Notes on installation
 1. The warning message: "connexion.options - The swagger_ui directory could not be found." could be addressed by pip installing connexion[swagger-ui]. For Mac users, the command should be: 
@@ -40,7 +61,7 @@ Make sure that the following libraries have the correct version:
 * markupsafe version: ^2.1.0
 
 ## Notes for using schematic features and API endpoints utilizing Google Services (e.g. manifest generation): 
-Before trying out the API endpoints, please make sure that you have obtained `credentials.json`, `schematic_service_account_creds.json`, and `token.pickle`. (Instructions can be found in schematic/README.md) 
+Before trying out the API endpoints, please make sure that you have obtained `schematic_service_account_creds.json` (Instructions can be found in schematic/README.md) 
 
 
 ###  GET /manifest/generate
@@ -67,7 +88,7 @@ Note: if the dataset_id you provided is invalid, it will generate an empty manif
 
 ### POST /model/submit
     
-* For the input_token parameter, please use the value of `auth token` in your `.synapseConfig`
+* For the access_token parameter, please use the value of `auth token` in your `.synapseConfig`
 
 * For the dataset_id parameter, please create a test folder on synapse and use its synapse ID
 

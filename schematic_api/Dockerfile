@@ -1,6 +1,9 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.10
 
-# set APP_PORT to 80
+# set default APP_PORT to 80
+# the environment variables defined here are the default
+# and can be overwritten by docker run -e VARIABLE = XX
+# or can be overwritten by .env when using docker compose
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONHASHSEED=random \
@@ -70,7 +73,7 @@ WORKDIR ${APP_DIR}
 # Note: run_api.py is not needed
 COPY ./pyproject.toml ./poetry.lock ./config.yml ./main.py ./
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --no-ansi --no-root
+RUN poetry install --no-interaction --no-ansi --no-root --with aws
 
 # copy schematic_api folder
 COPY  schematic_api ./schematic_api
@@ -92,7 +95,10 @@ COPY schematic  ./schematic
 
 # change permission 
 WORKDIR /var/www/
-RUN chown www-data:www-data /var/www/
+#The -R option: make the command recursive, so it will change the owner of all files and subdirectories within a given folder.
+RUN chown -R www-data:www-data /var/www/
+
+RUN chown -R www-data:www-data /var/tmp/
 
 # change work directory back
 WORKDIR ${APP_DIR}

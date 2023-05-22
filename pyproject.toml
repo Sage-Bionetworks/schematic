@@ -72,8 +72,6 @@ dateparser = "^1.1.4"
 pandarallel = "^1.6.4"
 schematic-db = {version = "^0.0.6", extras = ["synapse"]}
 pyopenssl = "^23.0.0"
-uWSGI = "^2.0.21"
-
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
@@ -81,12 +79,15 @@ pytest-cov = "^4.0.0"
 pytest-mock = "^3.5.1"
 flake8 = "^6.0.0"
 python-dotenv = "^0.21.0"
-black = {version = "^22.6.0", allow-prereleases = true}
+black = "^22.6.0"
+mypy = "^0.982"
+pylint = "^2.16.1"
 
+[tool.poetry.group.aws.dependencies]
+uWSGI = "^2.0.21"
 
 [tool.black]
 line-length = 88
-target-version = ['py37']
 include = '\.pyi?$'
 exclude = '''
 
@@ -121,8 +122,8 @@ markers = [
     Google credentials (skipped on GitHub CI) \
     """,
     """\
-    schematic_api: marks tests requiring \
-    running API locally (skipped on GitHub CI)   
+    schematic_api: marks tests covering \
+    API functionality (skipped on regular GitHub CI test suite)   
     """,
     """\
     rule_combos: marks tests covering \
@@ -133,5 +134,9 @@ markers = [
     table_operations: marks tests covering \
     table operations that pass locally \
     but fail on CI due to interactions with Synapse (skipped on GitHub CI)   
+    """,    
+    """\
+    rule_benchmark: marks tests covering \
+    validation rule benchmarking
     """    
 ]

@@ -18,7 +18,7 @@ CRAM,,,"Genome Build, Genome FASTA",,FALSE,ValidValue,,,
 CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
 Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
-MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Regex Format, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Recommended, Check Ages, Check Unique, Check Range, Check Date",,FALSE,DataType,,,
+MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Regex Format, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Recommended, Check Ages, Check Unique, Check Range, Check Date, Check NA",,FALSE,DataType,,,
 Check List,,"ab, cd, ef, gh",,,TRUE,DataProperty,,,list strict 
 Check Regex List,,,,,TRUE,DataProperty,,,list strict::regex match [a-f]
 Check Regex Single,,,,,TRUE,DataProperty,,,regex search [a-f]
@@ -37,5 +37,7 @@ Check Ages,,,,,TRUE,DataProperty,,,protectAges
 Check Unique,,,,,TRUE,DataProperty,,,unique error
 Check Range,,,,,TRUE,DataProperty,,,inRange 50 100 error
 Check Date,,,,,TRUE,DataProperty,,,date
-MockRDB,,,"Component, MockRDB_id",,FALSE,DataType,,,
+Check NA,,,,,TRUE,DataProperty,,,int::IsNA
+MockRDB,,,"Component, MockRDB_id, SourceManifest",,FALSE,DataType,,,
 MockRDB_id,,,,,TRUE,DataProperty,,,int
+SourceManifest,,,,,TRUE,DataProperty,,,

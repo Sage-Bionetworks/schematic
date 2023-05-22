@@ -6,6 +6,8 @@ import json
 import atexit
 import logging
 import secrets
+from dataclasses import dataclass
+import tempfile
 
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
@@ -17,7 +19,6 @@ import pandas as pd
 import re
 import synapseclient
 from time import sleep
-from schematic.utils.general import get_dir_size, convert_size, convert_gb_to_bytes
 from synapseclient import (
     Synapse,
     File,
@@ -43,8 +44,12 @@ from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
 from schematic_db.schema.schema import get_key_attribute
 
+from synapseclient.entity import File
+
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.general import create_temp_folder
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+from schematic.utils.general import entity_type_mapping, get_dir_size, convert_size, convert_gb_to_bytes
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
@@ -53,6 +58,111 @@ from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 from schematic import CONFIG
 
 logger = logging.getLogger("Synapse storage")
+
+@dataclass
+class ManifestDownload(object):
+    """
+    syn: an object of type synapseclient.
+    manifest_id: id of a manifest  
+    """
+    syn: synapseclient.Synapse
+    manifest_id: str
+
+    def _download_manifest_to_folder(self) -> File:
+        """
+        try downloading a manifest to local cache or a given folder
+        manifest
+        Return: 
+            manifest_data: A Synapse file entity of the downloaded manifest
+        """
+        # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config (See issue FDS-349 in Jira)
+        # on AWS, to avoid overriding manifest, we download the manifest to a temporary folder
+        if "SECRETS_MANAGER_SECRETS" in os.environ:
+            temporary_manifest_storage = "/var/tmp/temp_manifest_download"
+            if not os.path.exists(temporary_manifest_storage):
+                os.mkdir("/var/tmp/temp_manifest_download")
+            download_location = create_temp_folder(temporary_manifest_storage)
+
+        elif CONFIG["synapse"]["manifest_folder"]:
+            download_location=CONFIG["synapse"]["manifest_folder"]
+
+        else:
+            download_location=None
+        
+        if not download_location:
+            manifest_data = self.syn.get(
+                        self.manifest_id,
+                    )
+        # if download_location is provided and it is not an empty string
+        else:
+            manifest_data = self.syn.get(
+                    self.manifest_id,
+                    downloadLocation=download_location,
+                    ifcollision="overwrite.local",
+                )
+        return manifest_data 
+
+    def _entity_type_checking(self) -> str:
+        """
+        check the entity type of the id that needs to be downloaded
+        Return: 
+             if the entity type is wrong, raise an error
+        """
+        # check the type of entity
+        entity_type = entity_type_mapping(self.syn, self.manifest_id)
+        if entity_type  != "file":
+            logger.error(f'You are using entity type: {entity_type}. Please provide a file ID')
+
+    @staticmethod
+    def download_manifest(self, newManifestName: str="", manifest_df: pd.DataFrame=pd.DataFrame()) -> Union[str,File]:
+        """
+        Download a manifest based on a given manifest id. 
+        Args:
+            newManifestName(optional): new name of a manifest that gets downloaded.
+            manifest_df(optional): a dataframe containing name and id of manifests in a given asset view
+        Return: 
+            manifest_data: synapse entity file object
+        """
+
+        # enables retrying if user does not have access to uncensored manifest
+        # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
+        manifest_data = ""
+
+        # check entity type
+        self._entity_type_checking()
+
+        # download a manifest
+        try:
+            manifest_data = self._download_manifest_to_folder()
+        except(SynapseUnmetAccessRestrictions, SynapseAuthenticationError):
+            # if there's an error getting an uncensored manifest, try getting the censored manifest
+            if not manifest_df.empty:
+                censored_regex=re.compile('.*censored.*')
+                censored = manifest_df['name'].str.contains(censored_regex)
+                new_manifest_id=manifest_df[censored]["id"][0]
+                self.manifest_id = new_manifest_id
+                try: 
+                    manifest_data = self._download_manifest_to_folder()
+                except (SynapseUnmetAccessRestrictions, SynapseAuthenticationError) as e:
+                    raise PermissionError("You don't have access to censored and uncensored manifests in this dataset.") from e
+            else:
+                logger.error(f"You don't have access to the requested resource: {self.manifest_id}")
+
+        if newManifestName and os.path.exists(manifest_data.get('path')):
+            # Rename the file we just made to the new name
+            new_manifest_filename = newManifestName + '.csv'
+
+            # get location of existing manifest. The manifest that will be renamed should live in the same folder as existing manifest.
+            parent_folder = os.path.dirname(manifest_data.get('path'))
+
+            new_manifest_path_name = os.path.join(parent_folder, new_manifest_filename)
+            os.rename(manifest_data['path'], new_manifest_path_name)
+
+            # Update file names/paths in manifest_data
+            manifest_data['name'] = new_manifest_filename
+            manifest_data['filename'] = new_manifest_filename
+            manifest_data['path'] = new_manifest_path_name
+        return manifest_data
 
 class SynapseStorage(BaseStorage):
     """Implementation of Storage interface for datasets/files stored on Synapse.
@@ -65,7 +175,6 @@ class SynapseStorage(BaseStorage):
         self,
         token: str = None,  # optional parameter retrieved from browser cookie
         access_token: str = None,
-        input_token: str = None,
         project_scope: List = None,
     ) -> None:
         """Initializes a SynapseStorage object.
@@ -83,7 +192,7 @@ class SynapseStorage(BaseStorage):
             syn_store = SynapseStorage()
         """
 
-        self.syn = self.login(token, access_token, input_token)
+        self.syn = self.login(token, access_token)
         self.project_scope = project_scope
 
 
@@ -101,22 +210,21 @@ class SynapseStorage(BaseStorage):
 
         self._query_fileview()
 
-    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/"):
+    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/", maximum_storage_allowed_cache_gb=7):
         """
         Purge synapse cache if it exceeds 7GB
         Args:
             root_dir: directory of the .synapseCache function
+            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 7 GB. 
+
         Returns: 
-            if size of cache reaches 7GB, return the number of files that get deleted
+            if size of cache reaches a certain threshold (default is 7GB), return the number of files that get deleted
             otherwise, return the total remaining space (assuming total ephemeral storage is 20GB on AWS )
         """
         # try clearing the cache
         # scan a directory and check size of files
         cache = self.syn.cache
         if os.path.exists(root_dir):
-            # set maximum synapse cache allowed
-            # set maximum ephemeral stroage allowed on AWS
-            maximum_storage_allowed_cache_gb = 7
             maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
             total_ephemeral_storag_gb = 20
             total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
@@ -130,24 +238,6 @@ class SynapseStorage(BaseStorage):
                 remaining_space = total_ephemeral_storage_bytes - nbytes
                 converted_space = convert_size(remaining_space)
                 logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
-    def checkEntityType(self, syn_id): 
-        """
-        Check the entity type of a synapse entity
-        return: type of synapse entity 
-        """
-        entity = self.syn.get(syn_id)
-        type_entity = str(type(entity))
-
-        if type_entity == "<class 'synapseclient.table.EntityViewSchema'>":
-            return "asset view"
-        elif type_entity == "<class 'synapseclient.entity.Folder'>":
-            return "folder"
-        elif type_entity == "<class 'synapseclient.entity.File'>":
-            return "file"
-        elif type_entity == "<class 'synapseclient.entity.Project'>":
-            return "project"
-        else: 
-            return type_entity
 
     def _query_fileview(self):
         self._purge_synapse_cache()
@@ -170,9 +260,9 @@ class SynapseStorage(BaseStorage):
             raise AccessCredentialsError(self.storageFileview)    
 
     @staticmethod
-    def login(token=None, access_token=None, input_token=None):
+    def login(token=None, access_token=None):
         # If no token is provided, try retrieving access token from environment
-        if not token and not access_token and not input_token:
+        if not token and not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
@@ -184,12 +274,9 @@ class SynapseStorage(BaseStorage):
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("Please make sure you are logged into synapse.org.")
         elif access_token:
-            syn = synapseclient.Synapse()
-            syn.default_headers["Authorization"] = f"Bearer {access_token}"
-        elif input_token: 
-            try: 
+            try:
                 syn = synapseclient.Synapse()
-                syn.default_headers["Authorization"] = f"Bearer {input_token}"
+                syn.default_headers["Authorization"] = f"Bearer {access_token}"
             except synapseclient.core.exceptions.SynapseHTTPError:
                 raise ValueError("No access to resources. Please make sure that your token is correct")
         else:
@@ -387,96 +474,79 @@ class SynapseStorage(BaseStorage):
 
         return file_list
 
+    def _get_manifest_id(self, manifest: pd.DataFrame) -> str:
+        """If both censored and uncensored manifests are present, return uncensored manifest; if only one manifest is present, return manifest id of that manifest; if more than two manifests are present, return the manifest id of the first one. 
+        Args:
+        manifest: a dataframe contains name and id of manifests in a given asset view
+
+        Return: 
+        manifest_syn_id: id of a given censored or uncensored manifest
+        """ 
+        censored_regex=re.compile('.*censored.*')
+        censored = manifest['name'].str.contains(censored_regex)
+        if any(censored):
+            # Try to use uncensored manifest first
+            not_censored=~censored
+            if any(not_censored):
+                manifest_syn_id=manifest[not_censored]["id"][0]
+            # if only censored manifests are available, just use the first censored manifest
+            else: 
+                manifest_syn_id = manifest["id"][0]
+
+        #otherwise, use the first (implied only) version that exists
+        else:
+            manifest_syn_id = manifest["id"][0]
+        
+        return manifest_syn_id
+
     def getDatasetManifest(
         self, datasetId: str, downloadFile: bool = False, newManifestName: str='',
-    ) -> List[str]:
+    ) -> Union[str, File]:
         """Gets the manifest associated with a given dataset.
 
         Args:
             datasetId: synapse ID of a storage dataset.
             downloadFile: boolean argument indicating if manifest file in dataset should be downloaded or not.
+            newManifestName: new name of a manifest that gets downloaded 
 
         Returns:
             manifest_syn_id (String): Synapse ID of exisiting manifest file.
             manifest_data (synapseclient.entity.File): Synapse entity if downloadFile is True.
             "" (String): No pre-exisiting manifest in dataset.
         """
+        manifest_data = ""
 
         # get a list of files containing the manifest for this dataset (if any)
         all_files = self.storageFileviewTable
 
+        # construct regex based on manifest basename in the config 
         manifest_re=re.compile(os.path.basename(self.manifest)+".*.[tc]sv")
+
+        # search manifest based on given manifest basename regex above
+        # and return a dataframe containing name and id of manifests in a given asset view
         manifest = all_files[
             (all_files['name'].str.contains(manifest_re,regex=True))
             & (all_files["parentId"] == datasetId)
         ]
 
         manifest = manifest[["id", "name"]]
-        censored_regex=re.compile('.*censored.*')
         
         # if there is no pre-exisiting manifest in the specified dataset
         if manifest.empty:
+            logger.warning(f"Could not find a manifest that fits basename {self.manifest} in asset view and dataset {datasetId}")
             return ""
 
         # if there is an exisiting manifest
         else:
-            # retrieve data from synapse
-
-            # if a censored manifest exists for this dataset
-            censored = manifest['name'].str.contains(censored_regex)
-            if any(censored):
-                # Try to use uncensored manifest first
-                not_censored=~censored
-                if any(not_censored):
-                    manifest_syn_id=manifest[not_censored]["id"][0]
-                # If only censored manifests are available, use the first censored manifest
-                else:
-                    manifest_syn_id=manifest["id"][0]
-
-            #otherwise, use the first (implied only) version that exists
-            else:
-                manifest_syn_id = manifest["id"][0]
-
-
-            # if the downloadFile option is set to True
-            if downloadFile:
-                # enables retrying if user does not have access to uncensored manifest
-                while True:
-                    # pass synID to synapseclient.Synapse.get() method to download (and overwrite) file to a location
-                    try:
-                        if 'manifest_folder' in CONFIG['synapse'].keys():
-                            manifest_data = self.syn.get(
-                                manifest_syn_id,
-                                downloadLocation=CONFIG["synapse"]["manifest_folder"],
-                                ifcollision="overwrite.local",
-                            )
-                            break
-                        # if no manifest folder is set, download to cache
-                        else:
-                            manifest_data = self.syn.get(
-                                manifest_syn_id,
-                            )
-                            break
-                    # If user does not have access to uncensored manifest, use censored instead
-                    except(SynapseUnmetAccessRestrictions):
-                            manifest_syn_id=manifest[censored]["id"][0]
-                    
-                # Rename manifest file if indicated by user.
-                if newManifestName:
-                    if os.path.exists(manifest_data['path']):
-                        # Rename the file we just made to the new name
-                        new_manifest_filename = newManifestName + '.csv'
-                        new_manifest_path_name = manifest_data['path'].replace(manifest['name'][0], new_manifest_filename)
-                        os.rename(manifest_data['path'], new_manifest_path_name)
-
-                        # Update file names/paths in manifest_data
-                        manifest_data['name'] = new_manifest_filename
-                        manifest_data['filename'] = new_manifest_filename
-                        manifest_data['path'] = new_manifest_path_name
-
+            manifest_syn_id = self._get_manifest_id(manifest)
+            if downloadFile: 
+                md = ManifestDownload(self.syn, manifest_id=manifest_syn_id)
+                manifest_data = ManifestDownload.download_manifest(md, newManifestName=newManifestName, manifest_df=manifest)
+                ## TO DO: revisit how downstream code handle manifest_data. If the downstream code would break when manifest_data is an empty string, 
+                ## then we should catch the error here without returning an empty string. 
+                if not manifest_data:
+                    logger.debug(f"No manifest data returned. Please check if you have successfully downloaded manifest: {manifest_syn_id}")
                 return manifest_data
-
-
             return manifest_syn_id
 
     def getDataTypeFromManifest(self, manifestId:str):
@@ -609,7 +679,11 @@ class SynapseStorage(BaseStorage):
                         )
 
                     manifest_info = self.getDatasetManifest(datasetId,downloadFile=True)
-                    manifest_name = manifest_info["properties"]["name"]
+                    manifest_name = manifest_info["properties"].get("name", "")
+
+                    if not manifest_name:
+                        logger.error(f'Failed to download manifests from {datasetId}') 
+
                     manifest_path = manifest_info["path"]
 
                     manifest_df = load_df(manifest_path)
@@ -1756,10 +1830,18 @@ class SynapseStorage(BaseStorage):
             str: The Synapse ID for the parent project.
         """
 
-
         # Subset main file view
         dataset_index = self.storageFileviewTable["id"] == datasetId
         dataset_row = self.storageFileviewTable[dataset_index]
+
+        # re-query if no datasets found
+        if dataset_row.empty:
+            sleep(5)
+            self._query_fileview()
+            # Subset main file view
+            dataset_index = self.storageFileviewTable["id"] == datasetId
+            dataset_row = self.storageFileviewTable[dataset_index]
+
 
         # Return `projectId` for given row if only one found
         if len(dataset_row) == 1:
@@ -1977,6 +2059,58 @@ class TableOperations:
         existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
         return existingTableId
     
+
+    def _get_schematic_db_creds(synStore):
+        username = None
+        authtoken = None
+
+
+        # Get access token from environment variable if available
+        # Primarily useful for testing environments, with other possible usefulness for containers
+        env_access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+        if env_access_token:
+            authtoken = env_access_token
+            return username, authtoken
+
+        # Get token from authorization header
+        # Primarily useful for API endpoint functionality
+        if 'Authorization' in synStore.syn.default_headers:
+            authtoken = synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
+            return username, authtoken
+
+        # retrive credentials from synapse object
+        # Primarily useful for local users, could only be stored here when a .synapseConfig file is used, but including to be safe
+        synapse_object_creds = synStore.syn.credentials
+        if hasattr(synapse_object_creds, 'username'):
+            username = synapse_object_creds.username
+        if hasattr(synapse_object_creds, '_token'):
+            authtoken = synapse_object_creds.secret
+
+        # Try getting creds from .synapseConfig file if it exists
+        # Primarily useful for local users. Seems to correlate with credentials stored in synaspe object when logged in
+        if os.path.exists(CONFIG.SYNAPSE_CONFIG_PATH):
+            config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+
+            # check which credentials are provided in file
+            if config.has_option('authentication', 'username'):
+                username = config.get('authentication', 'username')
+            if config.has_option('authentication', 'authtoken'):
+                authtoken = config.get('authentication', 'authtoken')
+        
+        # raise error if required credentials are not found
+        # providing an authtoken without a username did not prohibit upsert functionality, 
+        # but including username gathering for completeness for schematic_db
+        if not username and not authtoken:
+            raise NameError(
+                "Username and authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
+            )
+        if not authtoken:
+            raise NameError(
+                "authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
+            )
+        
+        return username, authtoken
+
     def upsertTable(synStore, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
@@ -1995,16 +2129,11 @@ class TableOperations:
 
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
-        """
-        config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+        """            
 
-        if config.has_option('authentication', 'username') and config.has_option('authentication', 'authtoken'):
-            synConfig = SynapseConfig(config.get('authentication', 'username'), config.get('authentication', 'authtoken'), synStore.getDatasetProject(datasetId) )
-        else:
-            raise KeyError(
-                "Username or authtoken credentials missing in .synapseConfig"
-            )
+        username, authtoken = TableOperations._get_schematic_db_creds(synStore)
 
+        synConfig = SynapseConfig(username, authtoken, synStore.getDatasetProject(datasetId))
         synapseDB = SynapseDatabase(synConfig)
         synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
 
