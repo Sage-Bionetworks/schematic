@@ -1253,7 +1253,7 @@ class SynapseStorage(BaseStorage):
         if not col_in_dataframe("Id", manifest):
             # See if schema has `Uuid` column specified
             try:
-                uuid_col_in_schema = temp_schema_explorer.is_class_in_schema('Uuid')      
+                uuid_col_in_schema = temp_schema_explorer.is_class_in_schema('Uuid') or temp_schema_explorer.is_class_in_schema('uuid')      
             except (KeyError):
                 uuid_col_in_schema = False
 
@@ -2189,7 +2189,7 @@ class TableOperations:
             if col.name.lower() == 'uuid':
                 # See if schema has `Uuid` column specified
                 try:
-                    uuid_col_in_schema = temp_schema_explorer.is_class_in_schema('Uuid')      
+                    uuid_col_in_schema = temp_schema_explorer.is_class_in_schema(col.name)      
                 except (KeyError):
                     uuid_col_in_schema = False
 
