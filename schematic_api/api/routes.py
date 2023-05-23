@@ -35,8 +35,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def apikey_auth(token):
-    TOKEN_DB = {token: {"uid": token}}
-    token = TOKEN_DB.get(token, None)
+    token_api = {token: {"uid": token}}
+    token = token_api.get(token, None)
     return token
 
 
