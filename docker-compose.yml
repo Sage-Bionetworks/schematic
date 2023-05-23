@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  #run schematic APIs in a docker container without uWSGI
+  # run schematic APIs in a docker container without uWSGI
   schematic:
     build:
       dockerfile: Dockerfile
@@ -17,7 +17,7 @@ services:
       SCHEMATIC_CONFIG: /schematic/config.yml
       SCHEMATIC_CONFIG_CONTENT: "${SCHEMATIC_CONFIG_CONTENT}"
       GE_HOME: /usr/src/app/great_expectations/
-  #run schematic APIs in a docker container with uWSGI
+  # run schematic APIs in a docker container with uWSGI and nginx
   schematic-aws:
     build: 
       context: ../schematic

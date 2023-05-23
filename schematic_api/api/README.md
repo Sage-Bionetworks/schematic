@@ -18,13 +18,15 @@ If you define `APP_PORT` as `3001` in `docker-compose.yml`, you should be able t
 After installing uWSGI, flask and connexion, to start a docker container that runs flask application with uWSGI:
 1) Comment out the first part of `docker-compose.yml` and focus only on building container `schematic-aws`.
 2) Get `service_account_creds.json` by doing `schematic init --config /path/to/config.yml`. 
-3) Make a copy of `env.example` and rename it as `.env` and keep it in the same directory as `env.example` By default, schematic uses port 7080. If port 7080 is not available, please update `SERVER_PORT` in .env file. 
+3) Make a copy of `env.example` and rename it as `.env` and keep it in the same directory as `env.example` By default, schematic uses port 80. If port 80 is not available, please update `USE_LISTEN_PORT` in .env file. 
 4) Copy the content of `service_account_creds.json` and put it in `.env` file after key `SERVICE_ACCOUNT_CREDS`. Remember to wrap around the credentials with single quotes.
 5) Build a docker image and spin up docker container `schematic-api-aws` by running: 
 ```bash
 docker compose up
 ```
-If you define the value of port as `7080` in `.env` file, you should be able to see the application running when visiting `http://localhost:7080/v1/ui/`
+You should be able to view your application when visit: `https://127.0.0.1/v1/ui/`. You might receive an notification like this in your browser: 
+<img width="873" alt="Screen Shot 2023-05-06 at 10 06 44 AM" src="https://github.com/Sage-Bionetworks/schematic/assets/55448354/b6b292f4-4ec5-483a-9dc1-8f03035f0c4c">
+But please click on "show details" and "visit this website" to proceed. Note that the instructions might be slightly different for different browsers. 
 
 By default, this command builds up two containers (`schematic` and `schematic-aws`). You could spin up two containers if you want. But only `schematic-aws` runs flask with uWSGI. 
 
