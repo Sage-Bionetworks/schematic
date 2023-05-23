@@ -1,6 +1,5 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.10
 
-# set default APP_PORT to 80
 # the environment variables defined here are the default
 # and can be overwritten by docker run -e VARIABLE = XX
 # or can be overwritten by .env when using docker compose
@@ -21,7 +20,10 @@ ENV PYTHONFAULTHANDLER=1 \
 # Note: 
 # The starting number of uWSGI processes is controlled by the variable UWSGI_CHEAPER, by default set to 2.
 # The maximum number of uWSGI processes is controlled by the variable UWSGI_PROCESSES, by default set to 16
+# By default, the image starts with 2 uWSGI processes running. When the server is experiencing a high load, it creates up to 16 uWSGI processes to handle it on demand.
 # NGINX_MAX_UPLOAD is set to 0 by default that allows unlimited upload file sizes
+# NGINX_WORKER_CONNECTIONS is set to 1024 by default that allows a maximum limit of 1024 connections per worker.
+# NGINX_WORKER_OPEN_FILES is set to 2048 by default that allows 2048 open files 
 
 # run open ssl and generate certificate
 RUN apt update && \
@@ -58,11 +60,11 @@ RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 WORKDIR ${APP_PARENT_DIR}
 RUN chown www-data:www-data ${APP_PARENT_DIR}
 
-# remove the old uwsgi.ini and main.py
+# remove the old uwsgi.ini and main.py from the original image
 RUN rm -rf ${APP_PARENT_DIR}/main.py
 RUN rm -rf ${APP_PARENT_DIR}/uwsgi.ini
 
-# copy relevant files and run poetry install
+# copy to use custom uwsgi.ini 
 COPY ./uwsgi.ini ./
 
 # create a separate folder called app
