@@ -26,7 +26,9 @@ docker compose up
 ```
 You should be able to view your application when visit: `https://127.0.0.1/v1/ui/`. You might receive an notification like this in your browser: 
 <img width="400" alt="Screen Shot 2023-05-23 at 3 31 46 PM" src="https://github.com/Sage-Bionetworks/schematic/assets/55448354/b5d44f56-5375-47cf-8dbd-d4d611f594c4">
-But please click on "show details" and "visit this website" to proceed. Note that the instructions might be slightly different for different browsers. 
+
+
+Please click on "show details" and "visit this website" to proceed. Note that the instructions might be slightly different for different browsers. 
 
 By default, this command builds up two containers (`schematic` and `schematic-aws`). You could spin up two containers if you want. But only `schematic-aws` runs flask with uWSGI. 
 
