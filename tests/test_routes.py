@@ -27,28 +27,42 @@ def test_manifest_generation_load_config(app, config_path, data_model_jsonld):
     mg = ManifestGeneration(
         schema_url=data_model_jsonld,
         data_type=["test_data_type"],
-        asset_view="test_asset_view",
+        asset_view="syn123",
     )
     config = mg._load_config_(app=app)
 
-    assert config["synapse"]["master_fileview"] == "test_asset_view"
+    assert config["synapse"]["master_fileview"] == "syn123"
 
 
-@pytest.mark.parametrize("data_type_lst", [["Biospecimen", "Patient"], ["Biospecimen"]])
-def test_check_dataset_match_data_type(data_type_lst, data_model_jsonld):
+def test_check_dataset_match_data_type(data_model_jsonld):
     """Test if function could raise an error when number of data types do not match number of dataset ids"""
-    test_dataset_id = ["test_dataset_id1", "test_dataset_id2"]
-    mg = ManifestGeneration(
-        schema_url=data_model_jsonld,
-        data_type=data_type_lst,
-        asset_view="test_asset_view",
-        dataset_id=test_dataset_id,
-    )
-    if len(data_type_lst) != len(test_dataset_id):
-        with pytest.raises(ValueError):
-            mg._check_dataset_match_datatype_()
-    else:
-        pass
+    with pytest.raises(ValueError):
+        mg = ManifestGeneration(
+            schema_url=data_model_jsonld,
+            data_type=["Biospecimen", "Patient"],
+            asset_view="syn123",
+            dataset_id=["syn1234"],
+        )
+
+
+def test_check_if_asset_view_valid(data_model_jsonld):
+    with pytest.raises(ValueError):
+        mg = ManifestGeneration(
+            schema_url=data_model_jsonld,
+            data_type=["Biospecimen", "Patient"],
+            asset_view="invalid asset view id",
+            dataset_id=["syn1234"],
+        )
+
+
+def test_check_if_dataset_id_valid(data_model_jsonld):
+    with pytest.raises(ValueError):
+        mg = ManifestGeneration(
+            schema_url=data_model_jsonld,
+            data_type=["Biospecimen", "Patient"],
+            asset_view="syn1234",
+            dataset_id=["invalid dataset id"],
+        )
 
 
 @pytest.mark.parametrize(
@@ -86,7 +100,7 @@ def test_create_single_manifest(output_format, data_model_jsonld):
             result = mg.create_single_manifest(
                 access_token="mock_access_token",
                 single_data_type="Patient",
-                single_dataset_id="mock dataset id",
+                single_dataset_id="syn1234",
             )
             assert result == "google_sheet_url"
     elif output_format == "dataframe":
@@ -97,7 +111,7 @@ def test_create_single_manifest(output_format, data_model_jsonld):
             result = mg.create_single_manifest(
                 access_token="mock_access_token",
                 single_data_type="Patient",
-                single_dataset_id="mock dataset id",
+                single_dataset_id="syn1234",
             )
             assert isinstance(result, pd.DataFrame)
 
@@ -126,7 +140,7 @@ def test_generate_manifest_and_collect_outputs(
         result = mg.generate_manifest_and_collect_outputs(
             access_token="mock_access_token",
             data_type_lst=data_type,
-            dataset_id=["test_dataset_id_one", "test_dataset_id_two"],
+            dataset_id=["syn1234", "syn1235"],
         )
 
         # if the output is google sheet or dataframe, the number of items that get returned should match the number of items in data_type

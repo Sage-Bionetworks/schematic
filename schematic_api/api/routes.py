@@ -3,19 +3,22 @@ from __future__ import annotations
 import logging
 import os
 import pickle
+import re
 import shutil
 import tempfile
 import urllib.request
-from dataclasses import dataclass
-from typing import BinaryIO, List, Optional
+from dataclasses import field
+from typing import BinaryIO, List, Optional, Union
 
 import connexion
 import pandas as pd
 from flask import Flask
-from flask import current_app as app, request
-from flask import send_from_directory
+from flask import current_app as app
+from flask import request, send_from_directory
 from flask_cors import cross_origin
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+from pydantic.dataclasses import dataclass
+from werkzeug.exceptions import Unauthorized
 
 from schematic import CONFIG
 from schematic.manifest.generator import ManifestGenerator
@@ -26,9 +29,6 @@ from schematic.store.synapse import ManifestDownload, SynapseStorage
 from schematic.utils.general import entity_type_mapping
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
-
-# from jose import JWTError, jwt
-from werkzeug.exceptions import Unauthorized
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -220,14 +220,15 @@ def get_temp_jsonld(schema_url):
     # get path to temporary JSON-LD file
     return tmp_file.name
 
-class ManifestGeneration(BaseModel):
+@dataclass
+class ManifestGeneration():
     schema_url: str
     data_type: List[str]
-    asset_view: Optional[str] = ''
-    dataset_id: List[str] = []
-    title: Optional[str] = ''
-    output_format: Optional[str] = "google_sheet"
-    use_annotations: Optional[bool] = False
+    asset_view: Optional[str] = None
+    dataset_id: Optional[List[str]] = None
+    title: Optional[str] = None
+    output_format: Optional[str] = field(default_factory=lambda: "google_sheet")
+    use_annotations: Optional[bool] = field(default_factory=bool)
     
     def _load_config_(self, app:Flask=app) -> CONFIG:
         """load configuration file and update asset view if needed
@@ -238,23 +239,34 @@ class ManifestGeneration(BaseModel):
         Returns:
             CONFIG: schematic configuration object
         """
-        return config_handler(app=app, asset_view = self.asset_view)
+        return config_handler(app=app, asset_view=self.asset_view)
 
-    def _check_dataset_match_datatype_(self) -> None:
-        """check if number of dataset ids matches number of data types
-
-        Raises:
-            ValueError: mismatch in the number of data_types and dataset_ids
-        """
-        # the number of dataset_ids (if applicable)
-        len_data_types = len(self.data_type)
-        len_dataset_ids = len(self.dataset_id)
-        
-        if len_data_types != len_dataset_ids:
+    def __post_init__(self):
+        # Note: all the code below could be done better using "@validate" in python3.10. 
+        # TO DO: refactor the code below after deprecating support for python3.9
+        # make sure the number of dataset ids and the number of data types are the same
+        if self.dataset_id is not None and len(self.dataset_id) != len(self.data_type):
             raise ValueError(
-                    f"There is a mismatch in the number of data_types and dataset_id's that "
-                    f"submitted. Please check your submission and try again."
-                )
+                        f"There is a mismatch in the number of data_types and dataset_id's that "
+                        f"submitted. Please check your submission and try again."
+            )
+        
+        if self.dataset_id is not None:
+            if all('' == s or s.isspace() for s in self.dataset_id):
+                raise ValueError('dataset id only contains empty value. Please check your input')
+            for id in self.dataset_id: 
+                if id and not re.search("^syn[0-9]+", id):
+                    raise ValueError(f"{id} is not a valid Synapse id. Please check your input of dataset id")
+
+        # if dataset id is provided, which means that users want to get an existing manifest, then make sure that asset view is also provided
+        if self.dataset_id is not None and self.asset_view is None: 
+            raise ValueError(
+                f"Please provide asset view for dataset id {self.dataset_id}"
+            )
+
+        # check asset_view is a valid syn id
+        if self.asset_view is not None and not re.search("^syn[0-9]+", self.asset_view):
+            raise ValueError(f"{self.asset_view} is not a valid Synapse id. Please check your input of dataset id")
 
     def _get_manifest_title(self, single_data_type:str) -> str:
         """get title of manifest
@@ -271,13 +283,13 @@ class ManifestGeneration(BaseModel):
             t = f'Example.{single_data_type}.manifest'         
         return t
 
-    def generate_manifest_and_collect_outputs(self, access_token: str, data_type_lst: List[str], dataset_id: List[str]=[]) -> List|BinaryIO:
+    def generate_manifest_and_collect_outputs(self, access_token: str, data_type_lst: List[str], dataset_id: Optional[List[str]] = None) -> List|BinaryIO:
         """trigger manifest generation and append outputs
 
         Args:
             access_token (str): access token of an asset store
             data_type_lst (List[str]): a list of data types/components.
-            dataset_id (List[str], optional): dataset id. Defaults to [].
+            dataset_id (List[str], optional): dataset id. Defaults to None.
 
         Returns:
             List|BinaryIO: returns a list of google sheet/pandas dataframe or an Excel file in attachment
@@ -289,13 +301,14 @@ class ManifestGeneration(BaseModel):
             if len(data_type_lst) > 1:
                 # warn users that only the first manifest gets returned
                 logging.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
-            # if multiple dataset ids are provided, use the first one
-            if len(dataset_id) > 1:
-                logging.warning(f'Currently we do not support returning multiple files as Excel format at once. Only manifest generated by using dataset id {dataset_id[0]} would get returned with title {t}')
+            # if dataset id is available, return an existing manifest 
+            if dataset_id:
+                if len(dataset_id) > 1:
+                    logging.warning(f'Currently we do not support returning multiple files as Excel format at once. Only manifest generated by using dataset id {dataset_id[0]} would get returned with title {t}')
                 return self.create_single_manifest(access_token=access_token, single_data_type=data_type_lst[0], title=t, single_dataset_id=dataset_id[0])
-            else:
-                return self.create_single_manifest(access_token=access_token, single_data_type=data_type_lst[0], title=t)
-
+            # return a new manifest
+            return self.create_single_manifest(access_token=access_token, single_data_type=data_type_lst[0], title=t)
+            
         else:
             # if output format is google sheet or data frame, simply create outputs and append all outputs to a list
             all_outputs = []
@@ -314,14 +327,14 @@ class ManifestGeneration(BaseModel):
             return all_outputs
                 
 
-    def create_single_manifest(self, access_token: str, single_data_type:str, single_dataset_id:str='', title:str='') -> str|pd.DataFrame|BinaryIO:
+    def create_single_manifest(self, access_token: str, single_data_type:str, single_dataset_id:Optional[str]=None, title:Optional[str]=None) -> str|pd.DataFrame|BinaryIO:
         """call get_manifest generate function to generate a new manifest
 
         Args:
             access_token (str): access token of an asset store 
-            single_data_type (str): data type of a manifest being generated. Defaults to ''.
-            single_dataset_id (str, optional): dataset id of an existing manifest. Defaults to ''.
-            title (str, optional): title of new manifest. Defaults to ''.
+            single_data_type (str): data type of a manifest being generated.
+            single_dataset_id (str, optional): dataset id of an existing manifest. Defaults to None.
+            title (str, optional): title of new manifest. Defaults to None.
 
         Returns:
             str|pd.DataFrame|BinaryIO: depends on output_format parameter, returns either a google sheet url, dataframe, or an excel file in attachment
@@ -350,17 +363,17 @@ class ManifestGeneration(BaseModel):
         return result
 
     @staticmethod
-    def get_manifests_route(schema_url: str, output_format: str ="google_sheet", use_annotations: bool=False, dataset_id: list[str]=[], data_type:list[str] = [], asset_view: str = None, title: str = '') -> str|pd.DataFrame|BinaryIO:
+    def get_manifests_route(schema_url: str, data_type:List[str], use_annotations: Optional[str]=None, dataset_id: Optional[List[str]]=None, title: Optional[str]=None, asset_view: Optional[str]=None, output_format: Optional[str]="google_sheet") -> str|pd.DataFrame|BinaryIO:
         """Generate a new manifest template or create an existing manifest in google sheet/excel/dataframe format. 
 
         Args:
             schema_url (str): data model in json ld format.
             output_format (str, optional): output format of manifests. Available options are: google sheet, excel, and dataframe. Defaults to "google_sheet".
             use_annotations (bool, optional): whether to use existing annotations during manifest generation. Defaults to False
-            dataset_id (list[str], optional): id of a given dataset. Defaults to [].
-            data_type (list[str], optional):a list of data types. Defaults to [].
+            dataset_id (list[str], optional): id of a given dataset. Defaults to None.
+            data_type (list[str], optional):a list of data types. Defaults to None.
             asset_view (str, optional): id of a file view. Defaults to None.
-            title (str, optional): title of the new manifest. Defaults to ''.
+            title (str, optional): title of the new manifest. Defaults to None.
 
         Raises:
             ValueError: could not submit data_type = "all manifests" and dataset id at the same time
@@ -378,9 +391,6 @@ class ManifestGeneration(BaseModel):
 
         # get path to temporary JSON-LD file
         jsonld = get_temp_jsonld(schema_url)
-
-        if dataset_id: 
-            mg._check_dataset_match_datatype_()
 
         # Gather all returned result urls
         if data_type[0] == 'all manifests':
