@@ -83,6 +83,9 @@ black = "^22.6.0"
 mypy = "^0.982"
 pylint = "^2.16.1"
 
+[tool.poetry.group.aws]
+optional = true
+
 [tool.poetry.group.aws.dependencies]
 uWSGI = "^2.0.21"
 
