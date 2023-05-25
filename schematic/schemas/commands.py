@@ -8,7 +8,11 @@ import re
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph
+from schematic.schemas.data_model_validator import DataModelValidator
+from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
+
 from schematic.utils.cli_utils import query_dict
+from schematic.utils.schema_util import export_schema
 from schematic.help import schema_commands
 
 logger = logging.getLogger(__name__)
@@ -62,12 +66,48 @@ def convert(schema, base_schema, output_jsonld):
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
+    breakpoint()
+
     # Convert parsed model to graph
     # Instantiate DataModelGraph
     data_model_grapher = DataModelGraph(parsed_data_model)
     
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
+    # Validate generated data model.
+    data_model_validator = DataModelValidator(data_model=graph_data_model)
+    data_model_errors = data_model_validator.run_checks()
+    
+    # If there are errors log them.
+    if data_model_errors:
+        for err in data_model_errors:
+            if isinstance(err, str):
+                logger.error(err)
+            elif isinstance(err, list):
+                for e in err:
+                    logger.error(e)
+        # Actually raise error here with message.
+
+    #data_model_jsonld_converter = DataModelJsonLD()
+    jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
+
+    # output JSON-LD file alongside CSV file by default
+    if output_jsonld is None:
+        csv_no_ext = re.sub("[.]csv$", "", schema)
+        output_jsonld = csv_no_ext + ".jsonld"
+
+        logger.info(
+            "By default, the JSON-LD output will be stored alongside the first "
+            f"input CSV file. In this case, it will appear here: '{output_jsonld}'. "
+            "You can use the `--output_jsonld` argument to specify another file path."
+        )
+
+    # saving updated schema.org schema
+    try:
+        export_schema(jsonld_data_model, output_jsonld)
+        click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
+    except:
+        click.echo(f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again")
 
     '''
     # convert RFC to Data Model

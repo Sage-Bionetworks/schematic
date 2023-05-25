@@ -1,5 +1,12 @@
+import json
+import string
+import inflection
+
 '''
+
 General methods.
+
+TODO: Type hinting
 
 '''
 
@@ -36,3 +43,20 @@ def get_class_label_from_display_name(display_name, strict_camel_case = False):
         label = inflection.camelize(display_name.strip(), uppercase_first_letter=True)
 
     return label
+
+def get_display_name_from_label(node_name, attr_relationships):
+    '''
+    TODO: if not display name raise error.
+    '''
+    if 'Attribute' in attr_relationships.keys():
+        display_name = attr_relationships['Attribute']
+    else:
+        display_name = node_name
+    return display_name
+
+def get_json_key_from_context():
+    return
+
+def export_schema(schema, file_path):
+    with open(file_path, "w") as f:
+        json.dump(schema, f, sort_keys=True, indent=4, ensure_ascii=False)
