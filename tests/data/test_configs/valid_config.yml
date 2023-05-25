@@ -14,7 +14,6 @@ manifest:
 
 model:
   location: "model.jsonld"
-  file_type: "not_local"
 
 google_sheets:
   service_acct_creds_synapse_id: "syn1"

@@ -63,8 +63,9 @@ class SynapseConfig:
 @dataclass(config=pydantic_config)
 class ManifestConfig:
     """
-    title:
-    data_type:
+    title: Title or title prefix given to generated manifest(s)
+    data_type: Data types of manifests to be generated or data type (singular) to validate
+     manifest against
     """
 
     title: str = "example"
@@ -92,14 +93,12 @@ class ManifestConfig:
 @dataclass(config=pydantic_config)
 class ModelConfig:
     """
-    location: location of the schema jsonld, either a path, ro url
-    file_type: one of ["local"]
+    location: location of the schema jsonld
     """
 
     location: str = "tests/data/example.model.jsonld"
-    file_type: str = "local"
 
-    @validator("location", "file_type")
+    @validator("location")
     @classmethod
     def validate_string_is_not_empty(cls, value: str) -> str:
         """Check if string  is not empty(has at least one char)
@@ -121,10 +120,12 @@ class ModelConfig:
 @dataclass(config=pydantic_config)
 class GoogleSheetsConfig:
     """
-    master_template_id:
-    strict_validation:
-    service_acct_creds_synapse_id:
-    service_acct_creds_basename:
+    master_template_id: The template id of the google sheet.
+    strict_validation: When doing google sheet validation (regex match) with the validation rules.
+      True is alerting the user and not allowing entry of bad values.
+      False is warning but allowing the entry on to the sheet.
+    service_acct_creds_synapse_id: The Synapse id of the Google service account credentials.
+    service_acct_creds_basename: The basename of the Google service account credentials.
     """
 
     service_acct_creds_synapse_id: str = "syn25171627"

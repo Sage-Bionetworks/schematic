@@ -146,7 +146,7 @@ class Configuration:
     def synapse_manifest_folder(self) -> str:
         """
         Returns:
-            str:
+            str:  Location where manifests will saved to
         """
         return self._synapse_config.manifest_folder
 
@@ -154,7 +154,7 @@ class Configuration:
     def manifest_title(self) -> str:
         """
         Returns:
-            str:
+            str: Title or title prefix given to generated manifest(s)
         """
         return self._manifest_config.title
 
@@ -162,7 +162,8 @@ class Configuration:
     def manifest_data_type(self) -> list[str]:
         """
         Returns:
-            list[str]:
+            list[str]: Data types of manifests to be generated or data type (singular) to validate
+              manifest against
         """
         return self._manifest_config.data_type
 
@@ -170,23 +171,15 @@ class Configuration:
     def model_location(self) -> str:
         """
         Returns:
-            str:
+            str: The path to the model.jsonld
         """
         return self._model_config.location
-
-    @property
-    def model_file_type(self) -> str:
-        """
-        Returns:
-            str:
-        """
-        return self._model_config.file_type
 
     @property
     def service_account_credentials_synapse_id(self) -> str:
         """
         Returns:
-            str:
+            str: The Synapse id of the Google service account credentials.
         """
         return self._google_sheets_config.service_acct_creds_synapse_id
 
@@ -194,7 +187,7 @@ class Configuration:
     def service_account_credentials_path(self) -> str:
         """
         Returns:
-            str:
+            str: The path of the Google service account credentials.
         """
         return self._normalize_path(
             self._google_sheets_config.service_acct_creds_basename
@@ -204,7 +197,7 @@ class Configuration:
     def google_sheets_master_template_id(self) -> str:
         """
         Returns:
-            str:
+            str: The template id of the google sheet.
         """
         return self._google_sheets_config.master_template_id
 
@@ -221,7 +214,7 @@ class Configuration:
     def google_sheets_strict_validation(self) -> bool:
         """
         Returns:
-            bool:
+            bool: Weather or not to disallow bad values in the google sheet
         """
         return self._google_sheets_config.strict_validation
 
@@ -229,7 +222,7 @@ class Configuration:
     def google_required_background_color(self) -> dict[str, float]:
         """
         Returns:
-            dict[str, float]:
+            dict[str, float]: Background color for google sheet
         """
         return {
             "red": 0.9215,
@@ -241,7 +234,7 @@ class Configuration:
     def google_optional_background_color(self) -> dict[str, float]:
         """
         Returns:
-            dict[str, float]:
+            dict[str, float]: Background color for google sheet
         """
         return {
             "red": 1.0,
