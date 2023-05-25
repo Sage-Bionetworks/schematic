@@ -10,10 +10,13 @@ from .dataclasses import (
     GoogleSheetsConfig,
 )
 
+
 class ConfigNonAllowedFieldError(Exception):
     """Raised when a user submitted config file contains non allowed fields"""
 
-    def __init__(self, message: str, fields: list[str], allowed_fields: list[str]) -> None:
+    def __init__(
+        self, message: str, fields: list[str], allowed_fields: list[str]
+    ) -> None:
         """
         Args:
             message (str):  A message describing the error
@@ -70,13 +73,15 @@ class Configuration:
         if not set(config.keys()).issubset(allowed_config_fields):
             raise ConfigNonAllowedFieldError(
                 "Non allowed fields in top level of configuration file.",
-                config.keys(),
-                allowed_config_fields
+                list(config.keys()),
+                list(allowed_config_fields),
             )
 
         self._manifest_config = ManifestConfig(**config.get("manifest", {}))
         self._model_config = ModelConfig(**config.get("model", {}))
-        self._google_sheets_config = GoogleSheetsConfig(**config.get("google_sheets", {}))
+        self._google_sheets_config = GoogleSheetsConfig(
+            **config.get("google_sheets", {})
+        )
         self._set_asset_store(config.get("asset_store", {}))
 
     def _set_asset_store(self, config: dict[str, Any]) -> None:
@@ -86,8 +91,8 @@ class Configuration:
         if not set(config.keys()).issubset(allowed_config_fields):
             raise ConfigNonAllowedFieldError(
                 "Non allowed fields in asset_store of configuration file.",
-                config.keys(),
-                allowed_config_fields
+                list(config.keys()),
+                list(allowed_config_fields),
             )
         self._synapse_config = SynapseConfig(**config["synapse"])
 

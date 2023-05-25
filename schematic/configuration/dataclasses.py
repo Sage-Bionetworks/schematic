@@ -3,10 +3,10 @@
 import re
 from dataclasses import field
 from pydantic.dataclasses import dataclass
-from pydantic import validator, ConfigDict
+from pydantic import validator, ConfigDict, Extra
 
 # This turns on validation for value assignments after creation
-pydantic_config = ConfigDict(validate_assignment=True, extra="forbid")
+pydantic_config = ConfigDict(validate_assignment=True, extra=Extra.forbid)
 
 
 @dataclass(config=pydantic_config)
