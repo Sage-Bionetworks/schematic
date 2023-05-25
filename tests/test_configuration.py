@@ -69,11 +69,11 @@ class TestDataclasses:
         """Testing for ModelConfig"""
         assert isinstance(ModelConfig(), ModelConfig)
         assert isinstance(
-            ModelConfig(location="url", file_type="local"),
+            ModelConfig(location="url"),
             ModelConfig,
         )
         with pytest.raises(ValidationError):
-            ModelConfig(location="", file_type="local")
+            ModelConfig(location="")
 
     def test_google_sheets_config(self) -> None:
         """Testing for ModelConfig"""
@@ -125,7 +125,6 @@ class TestConfiguration:
         assert config.manifest_title == "example"
         assert config.manifest_data_type == ["Biospecimen", "Patient"]
         assert config.model_location == "tests/data/example.model.jsonld"
-        assert config.model_file_type == "local"
         assert config.service_account_credentials_synapse_id
         assert (
             config.service_account_credentials_path
@@ -164,7 +163,6 @@ class TestConfiguration:
         assert config.manifest_title == "example"
         assert config.manifest_data_type == ["Biospecimen", "Patient"]
         assert config.model_location == "tests/data/example.model.jsonld"
-        assert config.model_file_type == "local"
         assert config.service_account_credentials_synapse_id
         assert (
             config.service_account_credentials_path
@@ -195,7 +193,6 @@ class TestConfiguration:
         assert config.manifest_title == "title"
         assert config.manifest_data_type == ["data_type"]
         assert config.model_location == "model.jsonld"
-        assert config.model_file_type == "not_local"
         assert config.service_account_credentials_synapse_id
         assert os.path.basename(config.service_account_credentials_path) == "creds.json"
         assert config.google_sheets_master_template_id == ""

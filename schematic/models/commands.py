@@ -114,11 +114,8 @@ def submit_manifest(
         jsonld =  CONFIG.model_location
         log_value_from_config("jsonld", jsonld)
 
-    file_type = CONFIG.model_file_type
-    log_value_from_config("file_type", file_type)
-
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType=file_type
+        inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
 
 
@@ -202,11 +199,8 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     jsonld =  CONFIG.model_location
     log_value_from_config("jsonld", jsonld)
 
-    file_type = CONFIG.model_file_type
-    log_value_from_config("file_type", file_type)
-
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType=file_type
+        inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
 
     errors, warnings = metadata_model.validateModelManifest(
