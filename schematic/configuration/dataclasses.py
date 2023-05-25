@@ -6,7 +6,7 @@ from pydantic.dataclasses import dataclass
 from pydantic import validator, ConfigDict
 
 # This turns on validation for value assignments after creation
-pydantic_config = ConfigDict(validate_assignment=True)
+pydantic_config = ConfigDict(validate_assignment=True, extra="forbid")
 
 
 @dataclass(config=pydantic_config)
