@@ -307,7 +307,7 @@ class TestTableOperations:
 
         # associate metadata with files
         manifest_path = "mock_manifests/table_manifest.csv"
-        inputModelLocaiton = helpers.get_data_path(config.model_location) 
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
         # updating file view on synapse takes a long time
@@ -346,7 +346,7 @@ class TestTableOperations:
             assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
         # associate org FollowUp metadata with files
-        inputModelLocaiton = helpers.get_data_path(config.model_location)
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
             # updating file view on synapse takes a long time
@@ -413,7 +413,7 @@ class TestTableOperations:
             assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
         # associate org FollowUp metadata with files
-        inputModelLocaiton = helpers.get_data_path(config.model_location)
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
             # updating file view on synapse takes a long time
