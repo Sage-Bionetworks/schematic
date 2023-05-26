@@ -2192,21 +2192,16 @@ class TableOperations:
                     schema = synStore.syn.store(schema)
                 # If there is not, then use the old `Uuid` column as a basis for the new `Id` column
                 else:
-                    # Create a new `Id` column based off of the old `Uuid` column, and store (column is empty)
-                    new_col = deepcopy(col)
-                    new_col['name'] = 'Id'
-                    schema.addColumn(new_col)
-                    schema = synStore.syn.store(schema)
-                
-                
-                    # Recently stored column is empty, so populated with uuid values
-                    TableOperations._populate_new_id_column(synStore, table_id, schema)
+                    pass
+                    # Build ColumnModel that will be used for new column
 
-                    # get the up-to-date table, remove old `Uuid` column, and store
-                    sleep(1)
-                    schema = synStore.syn.get(table_id)
-                    schema.removeColumn(col)
-                    schema = synStore.syn.store(schema)
+                    # Send POST /column request to define new column and get new column ID
+                    
+                    # Define columnChange body
+                    
+                    # Build body for POST request
+                    
+                    # Send POST request to change column name
 
                     # Exit iteration; only concerned with `Uuid` column
                 break
