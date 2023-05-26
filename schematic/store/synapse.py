@@ -1951,6 +1951,17 @@ class TableOperations:
                  existingTableId: str = None,
                  restrict: bool = False
                  ):
+        
+        """
+        Class governing table operations (creation, replacement, upserts, updates) in schematic
+
+        tableToLoad: manifest formatted appropriately for the table
+        tableName: name of the table to be uploaded
+        datasetId: synID of the dataset for the manifest
+        existingTableId: synId of the table currently exising on synapse (if there is one)
+        restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
+
+        """
         self.synStore = synStore
         self.tableToLoad = tableToLoad
         self.tableName = tableName
@@ -1964,13 +1975,8 @@ class TableOperations:
         Method to create a table from a metadata manifest and upload it to synapse
         
         Args:
-            tableToLoad: manifest formatted appropriately for the table
-            tableName: name of the table to be uploaded
-            datasetId: synID of the dataset for the manifest
             columnTypeDict: dictionary schema for table columns: type, size, etc
-            specifySchema: to specify a specific schema for the table format          
-            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
-            
+            specifySchema: to specify a specific schema for the table format                      
 
         Returns:
             table.schema.id: synID of the newly created table
@@ -2020,14 +2026,8 @@ class TableOperations:
         Method to replace an existing table on synapse with metadata from a new manifest
         
         Args:
-            tableToLoad: manifest formatted appropriately for the table
-            tableName: name of the table to be uploaded
-            existingTableId: synId of the existing table to be replaced
             specifySchema: to infer a schema for the table format      
-            datasetId: synID of the dataset for the manifest    
-            columnTypeDict: dictionary schema for table columns: type, size, etc
-            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
-            
+            columnTypeDict: dictionary schema for table columns: type, size, etc            
 
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
@@ -2159,13 +2159,8 @@ class TableOperations:
         
 
         Args:
-            tableToLoad: manifest formatted appropriately for the table
-            tableName: name of the table to be uploaded
-            existingTableId: synId of the existing table to be replaced     
-            datasetId: synID of the dataset for the manifest    
-            columnTypeDict: dictionary schema for table columns: type, size, etc
+            sg: SchemaGenerator instance
             
-
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
         """            
@@ -2194,7 +2189,7 @@ class TableOperations:
         Used to enable backwards compatability for manifests using the old `Uuid` convention
 
         Args:
-            table_id (str): The Synapse id of the table to be upserted into, that needs columns updated
+            sg: SchemaGenerator instance
 
         Returns:
             None
@@ -2260,11 +2255,7 @@ class TableOperations:
         Method to update an existing table with a new column
         
         Args:
-            tableToLoad: manifest formatted appropriately for the table, that contains the new column
-            existingTableId: synId of the existing table to be replaced
-            updateCol: column to index the old and new tables on
-            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
-            
+            updateCol: column to index the old and new tables on            
 
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
