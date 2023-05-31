@@ -2224,17 +2224,50 @@ class TableOperations:
                     schema = self.synStore.syn.store(schema)
                 # If there is not, then use the old `Uuid` column as a basis for the new `Id` column
                 else:
-                    pass
+                    
                     # Build ColumnModel that will be used for new column
+                    columnModelDict = {
+                        "id": None,
+                        "name": "Id",
+                        "defaultValue": None,
+                        "columnType": "STRING",
+                        "maximumSize": 64,
+                        "maximumListLength": 1,
+                    }
 
                     # Send POST /column request to define new column and get new column ID
-                    
+                    newColResponse = self.synStore._send_api_request(
+                        request_type = "restPOST",
+                        uri = "https://repo-prod.prod.sagebase.org/repo/v1/column",
+                        body = columnModelDict,
+                        headers = self.synStore.syn.default_headers
+                    )
+
                     # Define columnChange body
-                    
+                    columnChangeDict = {
+                        "concreteType": "org.sagebionetworks.repo.model.table.TableSchemaChangeRequest",
+                        "entityId": self.existingTableId,
+                        "changes": [
+                            {                        
+                                "oldColumnId": col['id'],
+                                "newColumnId": newColResponse['id'],
+                            }
+                        ]
+                    }
+
                     # Build body for POST request
+                    schemaChangeBody = {
+                        "entityId": self.existingTableId,
+                        "changes": [columnChangeDict],
+                    }
                     
                     # Send POST request to change column name
-
+                    schemaChangeResponse = self.synStore._send_api_request(
+                        request_type = "restPOST",
+                        uri = f"https://repo-prod.prod.sagebase.org/repo/v1/entity/{self.existingTableId}/table/transaction/async/start",
+                        body = schemaChangeBody,
+                        headers = self.synStore.syn.default_headers
+                    )
                     # Exit iteration; only concerned with `Uuid` column
                 break
 
