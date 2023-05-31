@@ -297,6 +297,15 @@ class SynapseStorage(BaseStorage):
                     raise ex
         return wrapper
 
+    def _send_api_request(self, request_type: str, uri: str, headers: Dict, body: Union[Dict, str], endpoint: str = None, **kwargs):
+        response = None
+        body = json.dumps(body)
+
+        request = getattr(self.syn, request_type)
+
+        response = request(uri, body, endpoint, headers)
+
+        return response
 
     def getStorageFileviewTable(self):
         """ Returns the storageFileviewTable obtained during initialization.
