@@ -286,6 +286,17 @@ class TestDfUtils:
         actual_df = df_utils.update_df(input_df, updates_df, "entityId")
         pd.testing.assert_frame_equal(expected_df, actual_df)
 
+    def test_populate_column(self):
+        input_df = pd.DataFrame(
+            {
+                "column1": ["col1Val","col1Val"],
+                "column2": [None, None]
+            }
+        )
+
+        output_df = df_utils.populate_df_col_with_another_col(input_df,'column1','column2')
+        assert (output_df["column2"].values == ["col1Val","col1Val"]).all()
+
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
