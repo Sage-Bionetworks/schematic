@@ -330,7 +330,7 @@ class SynapseStorage(BaseStorage):
 
         # Validate that entered request type is valid, and get the appropriate method from the python client
         if request_type.lower() in request_types.keys():
-            request = getattr(self.syn, request_types[request_type])
+            request = getattr(self.syn, request_types[request_type.lower()])
         else:
             raise NotImplementedError(
                 f"The selected request: {request_type} is currenlty not exposed in the synaspePythonClient and cannot be used."
