@@ -298,7 +298,9 @@ class SynapseStorage(BaseStorage):
 
     def send_api_request(self, request_type: str, uri: str, headers: Dict, body: Union[Dict, str], endpoint: str = None, **kwargs):
         response = None
-        body = json.dumps(body)
+        
+        if isinstance(body, Dict):
+            body = json.dumps(body)
 
         request = getattr(self.syn, request_type)
 
