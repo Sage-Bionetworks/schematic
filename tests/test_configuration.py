@@ -21,7 +21,7 @@ class TestDataclasses:
         assert isinstance(SynapseConfig(), SynapseConfig)
         assert isinstance(
             SynapseConfig(
-                config_basename="file_name",
+                config="file_name",
                 manifest_basename="file_name",
                 master_fileview_id="syn1",
                 manifest_folder="folder_name",
@@ -31,7 +31,7 @@ class TestDataclasses:
 
     with pytest.raises(ValidationError):
         SynapseConfig(
-            config_basename=None,
+            config=None,
             manifest_basename="file_name",
             master_fileview_id="syn1",
             manifest_folder="folder_name",
@@ -39,7 +39,7 @@ class TestDataclasses:
 
     with pytest.raises(ValidationError):
         SynapseConfig(
-            config_basename="file_name",
+            config="file_name",
             manifest_basename="file_name",
             master_fileview_id="syn",
             manifest_folder="folder_name",
@@ -47,7 +47,7 @@ class TestDataclasses:
 
     with pytest.raises(ValidationError):
         SynapseConfig(
-            config_basename="",
+            config="",
             manifest_basename="file_name",
             master_fileview_id="syn",
             manifest_folder="folder_name",
@@ -80,7 +80,7 @@ class TestDataclasses:
         assert isinstance(GoogleSheetsConfig(), GoogleSheetsConfig)
         assert isinstance(
             GoogleSheetsConfig(
-                service_acct_creds_basename="file_name",
+                service_acct_creds="file_name",
                 service_acct_creds_synapse_id="syn1",
                 master_template_id="id",
                 strict_validation=True,
@@ -89,21 +89,21 @@ class TestDataclasses:
         )
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
-                service_acct_creds_basename="file_name",
+                service_acct_creds="file_name",
                 service_acct_creds_synapse_id="syn1",
                 master_template_id="id",
                 strict_validation="tru",
             )
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
-                service_acct_creds_basename="",
+                service_acct_creds="",
                 service_acct_creds_synapse_id="syn1",
                 master_template_id="id",
                 strict_validation=True,
             )
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
-                service_acct_creds_basename="file_name",
+                service_acct_creds="file_name",
                 service_acct_creds_synapse_id="syn",
                 master_template_id="id",
                 strict_validation=True,

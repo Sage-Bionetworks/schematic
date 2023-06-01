@@ -12,13 +12,13 @@ pydantic_config = ConfigDict(validate_assignment=True, extra=Extra.forbid)
 @dataclass(config=pydantic_config)
 class SynapseConfig:
     """
-    config_basename: the basename of the synapse config file
+    config_basename: Path to the synapse config file, either absolute or relative to this file
     manifest_basename: the name of downloaded manifest files
     master_fileview_id: Synapse ID of the file view listing all project data assets.
     manifest_folder: name of the folder manifests will be saved to locally
     """
 
-    config_basename: str = ".synapseConfig"
+    config: str = ".synapseConfig"
     manifest_basename: str = "synapse_storage_manifest"
     master_fileview_id: str = "syn23643253"
     manifest_folder: str = "manifests"
@@ -41,7 +41,7 @@ class SynapseConfig:
             raise ValueError(f"{value} is not a valid Synapse id")
         return value
 
-    @validator("config_basename", "manifest_basename", "manifest_folder")
+    @validator("config", "manifest_basename", "manifest_folder")
     @classmethod
     def validate_string_is_not_empty(cls, value: str) -> str:
         """Check if string  is not empty(has at least one char)
@@ -125,15 +125,16 @@ class GoogleSheetsConfig:
       True is alerting the user and not allowing entry of bad values.
       False is warning but allowing the entry on to the sheet.
     service_acct_creds_synapse_id: The Synapse id of the Google service account credentials.
-    service_acct_creds_basename: The basename of the Google service account credentials.
+    service_acct_creds: Path to the Google service account credentials,
+     either absolute or relative to this file
     """
 
     service_acct_creds_synapse_id: str = "syn25171627"
-    service_acct_creds_basename: str = "schematic_service_account_creds.json"
+    service_acct_creds: str = "schematic_service_account_creds.json"
     master_template_id: str = "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
     strict_validation: bool = True
 
-    @validator("service_acct_creds_basename")
+    @validator("service_acct_creds")
     @classmethod
     def validate_string_is_not_empty(cls, value: str) -> str:
         """Check if string is not empty(has at least one char)

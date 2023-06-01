@@ -2,7 +2,7 @@
 
 asset_store:
   synapse:
-    config_basename: "file_name"
+    config: "file_name"
     manifest_basename: "file_name"
     master_fileview_id: "syn1"
     manifest_folder: "folder_name"
@@ -17,6 +17,6 @@ model:
 
 google_sheets:
   service_acct_creds_synapse_id: "syn1"
-  service_acct_creds_basename: "creds.json"
+  service_acct_creds: "creds.json"
   master_template_id: ""
   strict_validation: false

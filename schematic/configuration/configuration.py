@@ -115,7 +115,7 @@ class Configuration:
         Returns:
             str: The path to the synapse configuration file
         """
-        return self._normalize_path(self._synapse_config.config_basename)
+        return self._normalize_path(self._synapse_config.config)
 
     @property
     def synapse_manifest_basename(self) -> str:
@@ -190,7 +190,7 @@ class Configuration:
             str: The path of the Google service account credentials.
         """
         return self._normalize_path(
-            self._google_sheets_config.service_acct_creds_basename
+            self._google_sheets_config.service_acct_creds
         )
 
     @property
