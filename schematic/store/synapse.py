@@ -297,12 +297,25 @@ class SynapseStorage(BaseStorage):
         return wrapper
 
     def send_api_request(self, request_type: str, uri: str, headers: Dict, body: Union[Dict, str], endpoint: str = None, **kwargs):
+        request_types = {
+            'restget':  'restGET',
+            'restpost': 'restPOST',
+            'restput': 'restPUT',
+            'restdelete': 'restDELETE',
+
+        }
+        
         response = None
         
         if isinstance(body, Dict):
             body = json.dumps(body)
 
-        request = getattr(self.syn, request_type)
+        if request_type.lower() in request_types.keys():
+            request = getattr(self.syn, request_types[request_type])
+        else:
+            raise NotImplementedError(
+                "The selected request is currenlty not exposed in the synaspePythonClient and cannot be used."
+            )
 
         response = request(uri, body, endpoint, headers)
 
