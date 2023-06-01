@@ -342,7 +342,7 @@ class SynapseStorage(BaseStorage):
             )
 
         # Store request and return
-        response = request(uri, body, endpoint, headers)
+        response = request(uri, body, endpoint, headers, **kwargs)
 
         return response
 
