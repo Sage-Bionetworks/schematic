@@ -218,6 +218,32 @@ class TestSynapseStorage:
             # return manifest id
             assert manifest_data == "syn51204513"
 
+    def test_synapse_rest_request(self, synapse_store):
+        """
+        Test to ensure that we can send successfully send a request to the Synaspe API
+        TODO:
+            Add more test cases as more use cases for request method arise
+        """
+
+        # Build a dictionary to send to the API to create a new column
+        testColumnDict = {
+            "id": None,
+            "name": "TestColumn",
+            "defaultValue": None,
+            "columnType": "STRING",
+            "maximumSize": 64,
+            "maximumListLength": 1,
+        }
+
+        # Send POST /column request to define new column
+        newColResponse = synapse_store.send_api_request(
+            request_type = "restPOST",
+            uri = "https://repo-prod.prod.sagebase.org/repo/v1/column",
+            body = testColumnDict,
+        )
+
+        assert newColResponse is not None
+
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
