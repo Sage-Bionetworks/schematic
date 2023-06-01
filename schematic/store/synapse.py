@@ -308,6 +308,10 @@ class SynapseStorage(BaseStorage):
             body: body of the request, can be dictionary or JSON formatted string
             endpoint: Optional, name of the endpoint to use, defaults to none which is evaluated by the client as self.repoEndpoint
             **kwargs: other keyword arguments to pass to the request method
+
+        Returns:
+            response: response from the request sent
+        
         """
         
         # Make a dictionary for two purposes: 
