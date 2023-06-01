@@ -297,6 +297,21 @@ class SynapseStorage(BaseStorage):
         return wrapper
 
     def send_api_request(self, request_type: str, uri: str, headers: Dict, body: Union[Dict, str], endpoint: str = None, **kwargs):
+        """
+        Method to send API request to synapse via the python client
+
+        Args:
+            request_type: type of request to send (restGET, restPOST, restPUT, or restDELETE)
+            uri: uri on which request is performed
+            headers: dictionary of headers to use rather than the API-key-signed default set of headers
+            body: body of the request, can be dictionary or JSON formatted string
+            endpoint: name of the endpoint to use, defaults to none which is evaluated by the client as self.repoEndpoint
+            **kwargs: other keyword arguments to pass to the request method
+        """
+        
+        # Make a dictionary for two purposes: 
+        # to be used for chekcing that the value entered is a valid request type 
+        # and to map from any capitalization of the string to the format required by the python client
         request_types = {
             'restget':  'restGET',
             'restpost': 'restPOST',
@@ -305,11 +320,15 @@ class SynapseStorage(BaseStorage):
 
         }
         
+        # intialize response variable to None
         response = None
         
+        # If the user passed in a dictionary, convert to JSON string, 
+        # if they passed in a string, assume it's formatted appropriately
         if isinstance(body, Dict):
             body = json.dumps(body)
 
+        # Validate that entered request type is valid, and get the appropriate method from the python client
         if request_type.lower() in request_types.keys():
             request = getattr(self.syn, request_types[request_type])
         else:
@@ -317,6 +336,7 @@ class SynapseStorage(BaseStorage):
                 f"The selected request: {request_type} is currenlty not exposed in the synaspePythonClient and cannot be used."
             )
 
+        # Store request and return
         response = request(uri, body, endpoint, headers)
 
         return response
