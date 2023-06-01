@@ -189,9 +189,7 @@ class Configuration:
         Returns:
             str: The path of the Google service account credentials.
         """
-        return self._normalize_path(
-            self._google_sheets_config.service_acct_creds
-        )
+        return self._normalize_path(self._google_sheets_config.service_acct_creds)
 
     @property
     def google_sheets_master_template_id(self) -> str:
