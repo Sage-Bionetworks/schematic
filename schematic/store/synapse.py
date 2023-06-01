@@ -314,7 +314,7 @@ class SynapseStorage(BaseStorage):
             request = getattr(self.syn, request_types[request_type])
         else:
             raise NotImplementedError(
-                "The selected request is currenlty not exposed in the synaspePythonClient and cannot be used."
+                f"The selected request: {request_type} is currenlty not exposed in the synaspePythonClient and cannot be used."
             )
 
         response = request(uri, body, endpoint, headers)
