@@ -297,7 +297,7 @@ class SynapseStorage(BaseStorage):
                     raise ex
         return wrapper
 
-    def _send_api_request(self, request_type: str, uri: str, headers: Dict, body: Union[Dict, str], endpoint: str = None, **kwargs):
+    def send_api_request(self, request_type: str, uri: str, headers: Dict, body: Union[Dict, str], endpoint: str = None, **kwargs):
         response = None
         body = json.dumps(body)
 
@@ -2236,7 +2236,7 @@ class TableOperations:
                     }
 
                     # Send POST /column request to define new column and get new column ID
-                    newColResponse = self.synStore._send_api_request(
+                    newColResponse = self.synStore.send_api_request(
                         request_type = "restPOST",
                         uri = "https://repo-prod.prod.sagebase.org/repo/v1/column",
                         body = columnModelDict,
@@ -2260,9 +2260,9 @@ class TableOperations:
                         "entityId": self.existingTableId,
                         "changes": [columnChangeDict],
                     }
-                    
+
                     # Send POST request to change column name
-                    schemaChangeResponse = self.synStore._send_api_request(
+                    schemaChangeResponse = self.synStore.send_api_request(
                         request_type = "restPOST",
                         uri = f"https://repo-prod.prod.sagebase.org/repo/v1/entity/{self.existingTableId}/table/transaction/async/start",
                         body = schemaChangeBody,
