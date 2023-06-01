@@ -312,6 +312,9 @@ class SynapseStorage(BaseStorage):
         Returns:
             response: response from the request sent
         
+        TODO:
+            Allow asynchronous calls to operate asynchronously on the schematic side
+            Further generalize this function for other calls, ie. GET calls without a body
         """
         
         # Make a dictionary for two purposes: 
