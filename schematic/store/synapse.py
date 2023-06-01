@@ -2317,25 +2317,6 @@ class TableOperations:
 
         return
 
-    def _populate_new_id_column(self, table_id: str, schema: Schema) -> None:
-        """Copies the uuid values that were present in the column named `Uuid` to the new column named `Id`
-
-        Args:
-            table_id (str): The Synapse id of the table to be upserted into, that needs columns updated
-            schema (synapseclient.table.Schema): Schema of the table columns
-
-        Returns:
-            None
-        """
-        # Query the table for the old `Uuid` column and new `Id` column
-        results = self.synStore.syn.tableQuery(f"select Uuid,Id from {table_id}")
-        results_df = results.asDataFrame()
-
-        # Copy uuid values to new column, and store in table
-        results_df = populate_df_col_with_another_col(results_df, 'Uuid', 'Id')
-        table = self.synStore.syn.store(Table(schema, results_df, etag=results.etag))
-        return
-
     def updateTable(self, update_col: str = 'Id',):
         """
         Method to update an existing table with a new column
