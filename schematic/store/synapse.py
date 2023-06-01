@@ -42,7 +42,6 @@ import uuid
 
 from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
-from schematic_db.schema.schema import get_key_attribute
 
 
 from schematic.utils.df_utils import update_df, load_df, col_in_dataframe, populate_df_col_with_another_col
@@ -1014,7 +1013,7 @@ class SynapseStorage(BaseStorage):
             existing_tables=self.get_table_info(datasetId=datasetId)
             tableId=existing_tables[table_name]
             annos = self.syn.get_annotations(tableId)
-            annos['primary_key'] = get_key_attribute(table_manifest['Component'][0])
+            annos['primary_key'] = table_manifest['Component'][0] + "_id"
             annos = self.syn.set_annotations(annos)
 
         return manifest_table_id
