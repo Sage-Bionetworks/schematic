@@ -18,5 +18,4 @@ model:
 google_sheets:
   service_acct_creds_synapse_id: "syn1"
   service_acct_creds: "creds.json"
-  master_template_id: ""
   strict_validation: false

@@ -197,16 +197,7 @@ class Configuration:
         Returns:
             str: The template id of the google sheet.
         """
-        return self._google_sheets_config.master_template_id
-
-    @google_sheets_master_template_id.setter
-    def google_sheets_master_template_id(self, template_id: str) -> None:
-        """Sets the Google sheets master template ID
-
-        Args:
-            template_id (str): The template id to set
-        """
-        self._google_sheets_config.master_template_id = template_id
+        return "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
 
     @property
     def google_sheets_strict_validation(self) -> bool:

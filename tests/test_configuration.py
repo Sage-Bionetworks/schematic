@@ -82,7 +82,6 @@ class TestDataclasses:
             GoogleSheetsConfig(
                 service_acct_creds="file_name",
                 service_acct_creds_synapse_id="syn1",
-                master_template_id="id",
                 strict_validation=True,
             ),
             GoogleSheetsConfig,
@@ -91,21 +90,18 @@ class TestDataclasses:
             GoogleSheetsConfig(
                 service_acct_creds="file_name",
                 service_acct_creds_synapse_id="syn1",
-                master_template_id="id",
                 strict_validation="tru",
             )
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
                 service_acct_creds="",
                 service_acct_creds_synapse_id="syn1",
-                master_template_id="id",
                 strict_validation=True,
             )
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
                 service_acct_creds="file_name",
                 service_acct_creds_synapse_id="syn",
-                master_template_id="id",
                 strict_validation=True,
             )
 
@@ -195,7 +191,9 @@ class TestConfiguration:
         assert config.model_location == "model.jsonld"
         assert config.service_account_credentials_synapse_id
         assert os.path.basename(config.service_account_credentials_path) == "creds.json"
-        assert config.google_sheets_master_template_id == ""
+        assert config.google_sheets_master_template_id == (
+            "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
+        )
         assert not config.google_sheets_strict_validation
 
     def test_load_config3(self) -> None:
