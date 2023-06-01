@@ -296,16 +296,17 @@ class SynapseStorage(BaseStorage):
                     raise ex
         return wrapper
 
-    def send_api_request(self, request_type: str, uri: str, headers: Dict, body: Union[Dict, str], endpoint: str = None, **kwargs):
+    def send_api_request(self, request_type: str, uri: str, body: Union[Dict, str], headers: Dict = None, endpoint: str = None, **kwargs):
         """
         Method to send API request to synapse via the python client
 
         Args:
             request_type: type of request to send (restGET, restPOST, restPUT, or restDELETE)
             uri: uri on which request is performed
-            headers: dictionary of headers to use rather than the API-key-signed default set of headers
+            headers: Optional, dictionary of headers to use rather than the API-key-signed default set of headers
+                        If none passed in, use headers from synapse store object
             body: body of the request, can be dictionary or JSON formatted string
-            endpoint: name of the endpoint to use, defaults to none which is evaluated by the client as self.repoEndpoint
+            endpoint: Optional, name of the endpoint to use, defaults to none which is evaluated by the client as self.repoEndpoint
             **kwargs: other keyword arguments to pass to the request method
         """
         
@@ -322,6 +323,10 @@ class SynapseStorage(BaseStorage):
         
         # intialize response variable to None
         response = None
+
+        # Use existing headers from synapse store object if none passed in
+        if not headers:
+            headers = self.syn.default_headers
         
         # If the user passed in a dictionary, convert to JSON string, 
         # if they passed in a string, assume it's formatted appropriately
@@ -2274,7 +2279,6 @@ class TableOperations:
                         request_type = "restPOST",
                         uri = "https://repo-prod.prod.sagebase.org/repo/v1/column",
                         body = columnModelDict,
-                        headers = self.synStore.syn.default_headers
                     )
 
                     # Define columnChange body
@@ -2300,7 +2304,6 @@ class TableOperations:
                         request_type = "restPOST",
                         uri = f"https://repo-prod.prod.sagebase.org/repo/v1/entity/{self.existingTableId}/table/transaction/async/start",
                         body = schemaChangeBody,
-                        headers = self.synStore.syn.default_headers
                     )
                     # Exit iteration; only concerned with `Uuid` column
                 break
