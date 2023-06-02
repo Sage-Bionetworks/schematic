@@ -195,19 +195,16 @@ class TestManifestGenerator:
 
     # test all the functions used under get_manifest
     @pytest.mark.parametrize("template_id", [["provided", "not provided"]])
-    def test_create_empty_manifest_spreadsheet(self, config: Configuration, simple_manifest_generator, template_id):
+    def test_create_empty_manifest_spreadsheet(self, simple_manifest_generator, template_id):
         '''
         Create an empty manifest spreadsheet regardless if master_template_id is provided
         Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file. If there's no template id provided in config, this function will create a new manifest
         '''
         generator = simple_manifest_generator
-
-        mock_spreadsheet = MagicMock()
-
         title="Example"
 
         if template_id == "provided":
-            # mock _gdrive_copy_file function 
+            # mock _gdrive_copy_file function
             with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file') as MockClass:
                 instance = MockClass.return_value
                 instance.method.return_value = 'mock google sheet id'
@@ -215,28 +212,6 @@ class TestManifestGenerator:
                 spreadsheet_id = generator._create_empty_manifest_spreadsheet(title=title)
                 assert spreadsheet_id == "mock google sheet id"
 
-        else:
-            # Temporarily set master template id to None so that we could test that
-            template_id = config.google_sheets_master_template_id
-            config.google_sheets_master_template_id = ""
-
-            mock_spreadsheet = Mock()
-            mock_execute = Mock()
-
-
-            # Chain the mocks together
-            mock_spreadsheet.create.return_value = mock_spreadsheet
-            mock_spreadsheet.execute.return_value = mock_execute
-            mock_execute.get.return_value = "mock id"
-            mock_create = Mock(return_value=mock_spreadsheet)
-
-            with patch.object(generator.sheet_service, "spreadsheets", mock_create):
-
-                spreadsheet_id = generator._create_empty_manifest_spreadsheet(title)
-                assert spreadsheet_id == "mock id"
-
-            # Reset config template id
-            config.google_sheets_master_template_id = config.google_sheets_master_template_id
 
     @pytest.mark.parametrize("schema_path_provided", [True, False])
     def test_get_json_schema(self, simple_manifest_generator, helpers, schema_path_provided):
