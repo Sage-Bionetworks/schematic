@@ -49,7 +49,7 @@ def test_invalid_manifest(helpers):
 
 @pytest.fixture(scope="class")
 def test_upsert_manifest_csv(helpers):
-    test_upsert_manifest_path = helpers.get_data_path("mock_manifests/rdb_table_manifest_upsert.csv")
+    test_upsert_manifest_path = helpers.get_data_path("mock_manifests/rdb_table_manifest.csv")
     yield test_upsert_manifest_path
 
 @pytest.fixture(scope="class")
