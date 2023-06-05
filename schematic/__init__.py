@@ -41,5 +41,5 @@ def init(config):
         logger.exception(exc)
         sys.exit(1)
 
-    # download crdentials file based on selected mode of authentication
+    # download credentials file based on selected mode of authentication
     download_creds_file()

@@ -81,7 +81,7 @@ class ManifestDownload(object):
                 os.mkdir("/var/tmp/temp_manifest_download")
             download_location = create_temp_folder(temporary_manifest_storage)
         else:
-            download_location=CONFIG.synapse_manifest_folder
+            download_location=CONFIG.manifest_folder
 
         manifest_data = self.syn.get(
                 self.manifest_id,

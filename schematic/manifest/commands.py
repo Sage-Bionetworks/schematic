@@ -1,24 +1,23 @@
 import os
 import logging
 from pathlib import Path
-import click
-import click_log
-import logging
 import sys
 from typing import List
+import click
+import click_log
 
 from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_synIDs
 from schematic.help import manifest_commands
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel, export_manifest_drive_service
+from schematic.utils.google_api_utils import export_manifest_csv
 from schematic.store.synapse import SynapseStorage
+from schematic.configuration.configuration import CONFIG
 
 logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
-from schematic.configuration.configuration import CONFIG
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)

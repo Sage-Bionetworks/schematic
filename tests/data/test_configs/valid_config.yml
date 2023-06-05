@@ -5,9 +5,9 @@ asset_store:
     config: "file_name"
     manifest_basename: "file_name"
     master_fileview_id: "syn1"
-    manifest_folder: "folder_name"
 
 manifest:
+  manifest_folder: "folder_name"
   title: "title"
   data_type:
     - "data_type"

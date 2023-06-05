@@ -24,7 +24,6 @@ class TestDataclasses:
                 config="file_name",
                 manifest_basename="file_name",
                 master_fileview_id="syn1",
-                manifest_folder="folder_name",
             ),
             SynapseConfig,
         )
@@ -34,7 +33,6 @@ class TestDataclasses:
             config=None,
             manifest_basename="file_name",
             master_fileview_id="syn1",
-            manifest_folder="folder_name",
         )
 
     with pytest.raises(ValidationError):
@@ -42,7 +40,6 @@ class TestDataclasses:
             config="file_name",
             manifest_basename="file_name",
             master_fileview_id="syn",
-            manifest_folder="folder_name",
         )
 
     with pytest.raises(ValidationError):
@@ -50,7 +47,6 @@ class TestDataclasses:
             config="",
             manifest_basename="file_name",
             master_fileview_id="syn",
-            manifest_folder="folder_name",
         )
 
     def test_manifest_config(self) -> None:
@@ -117,7 +113,7 @@ class TestConfiguration:
         assert os.path.basename(config.synapse_configuration_path) == ".synapseConfig"
         assert config.synapse_manifest_basename == "synapse_storage_manifest"
         assert config.synapse_master_fileview_id == "syn23643253"
-        assert config.synapse_manifest_folder == "manifests"
+        assert config.manifest_folder == "manifests"
         assert config.manifest_title == "example"
         assert config.manifest_data_type == ["Biospecimen", "Patient"]
         assert config.model_location == "tests/data/example.model.jsonld"
@@ -155,7 +151,7 @@ class TestConfiguration:
         assert os.path.basename(config.synapse_configuration_path) == ".synapseConfig"
         assert config.synapse_manifest_basename == "synapse_storage_manifest"
         assert config.synapse_master_fileview_id == "syn23643253"
-        assert config.synapse_manifest_folder == "manifests"
+        assert config.manifest_folder == "manifests"
         assert config.manifest_title == "example"
         assert config.manifest_data_type == ["Biospecimen", "Patient"]
         assert config.model_location == "tests/data/example.model.jsonld"
@@ -185,7 +181,7 @@ class TestConfiguration:
         assert os.path.basename(config.synapse_configuration_path) == "file_name"
         assert config.synapse_manifest_basename == "file_name"
         assert config.synapse_master_fileview_id == "syn1"
-        assert config.synapse_manifest_folder == "folder_name"
+        assert config.manifest_folder == "folder_name"
         assert config.manifest_title == "title"
         assert config.manifest_data_type == ["data_type"]
         assert config.model_location == "model.jsonld"

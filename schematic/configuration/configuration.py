@@ -143,12 +143,12 @@ class Configuration:
         self._synapse_config.master_fileview_id = synapse_id
 
     @property
-    def synapse_manifest_folder(self) -> str:
+    def manifest_folder(self) -> str:
         """
         Returns:
             str:  Location where manifests will saved to
         """
-        return self._synapse_config.manifest_folder
+        return self._manifest_config.manifest_folder
 
     @property
     def manifest_title(self) -> str:

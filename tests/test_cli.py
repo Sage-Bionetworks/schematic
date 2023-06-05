@@ -88,7 +88,7 @@ class TestSchemaCli:
         output_path = helpers.get_data_path("test.xlsx")
 
         result = runner.invoke(
-            manifest, ["--config", "/home/alamb/repos/schematic/tests/data/test_config.yml",  "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_xlsx", output_path]
+            manifest, ["--config", config.config_path,  "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_xlsx", output_path]
         )
 
         assert result.exit_code == 0

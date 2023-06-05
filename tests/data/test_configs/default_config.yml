@@ -4,9 +4,9 @@ asset_store:
     config: ".synapseConfig"
     manifest_basename: 'synapse_storage_manifest'
     master_fileview_id:  'syn23643253'
-    manifest_folder:  'manifests'
 
 manifest:
+  manifest_folder:  'manifests'
   title: 'example'
   data_type:
     - 'Biospecimen'

@@ -14,7 +14,6 @@ from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
 from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
-
 from schematic.configuration.configuration import Configuration
 
 logging.basicConfig(level=logging.DEBUG)

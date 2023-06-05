@@ -599,7 +599,7 @@ class TestManifestOperation:
             assert response_dta[0]["Component"] == expected_component
 
             current_work_dir = os.getcwd()
-            folder_test_manifests = config.synapse_manifest_folder
+            folder_test_manifests = config.manifest_folder
             folder_dir = os.path.join(current_work_dir, folder_test_manifests)
 
             # if a manfiest gets renamed, get new manifest file path

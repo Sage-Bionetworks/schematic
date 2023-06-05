@@ -15,13 +15,11 @@ class SynapseConfig:
     config_basename: Path to the synapse config file, either absolute or relative to this file
     manifest_basename: the name of downloaded manifest files
     master_fileview_id: Synapse ID of the file view listing all project data assets.
-    manifest_folder: name of the folder manifests will be saved to locally
     """
 
     config: str = ".synapseConfig"
     manifest_basename: str = "synapse_storage_manifest"
     master_fileview_id: str = "syn23643253"
-    manifest_folder: str = "manifests"
 
     @validator("master_fileview_id")
     @classmethod
@@ -41,7 +39,7 @@ class SynapseConfig:
             raise ValueError(f"{value} is not a valid Synapse id")
         return value
 
-    @validator("config", "manifest_basename", "manifest_folder")
+    @validator("config", "manifest_basename")
     @classmethod
     def validate_string_is_not_empty(cls, value: str) -> str:
         """Check if string  is not empty(has at least one char)
@@ -63,15 +61,16 @@ class SynapseConfig:
 @dataclass(config=pydantic_config)
 class ManifestConfig:
     """
+    manifest_folder: name of the folder manifests will be saved to locally
     title: Title or title prefix given to generated manifest(s)
     data_type: Data types of manifests to be generated or data type (singular) to validate
      manifest against
     """
-
+    manifest_folder: str = "manifests"
     title: str = "example"
     data_type: list[str] = field(default_factory=lambda: ["Biospecimen", "Patient"])
 
-    @validator("title")
+    @validator("title",  "manifest_folder")
     @classmethod
     def validate_string_is_not_empty(cls, value: str) -> str:
         """Check if string  is not empty(has at least one char)
