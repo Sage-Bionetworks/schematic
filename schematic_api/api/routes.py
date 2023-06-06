@@ -257,8 +257,9 @@ class ManifestGeneration():
         if len(value) != len(values["data_types"]):
             raise ValueError("Make sure that the number of data types match the number of dataset ids")
         # make sure that dataset ids contain valid synapse ids
-        if all('' == dataset_id or dataset_id.isspace() for dataset_id in value):
-            raise ValueError('Dataset ids only contain empty value. Please check your input')
+        contain_empty_str = all('' == dataset_id or dataset_id.isspace() for dataset_id in value)
+        if contain_empty_str:
+            raise ValueError('Dataset ids contain at least one empty value. Please check your input')
         for dataset_id in value: 
             if dataset_id and not re.search("^syn[0-9]+$", dataset_id):
                 raise ValueError(f"{dataset_id} is not a valid Synapse id. Please check the dataset ids that you provided")
@@ -268,7 +269,7 @@ class ManifestGeneration():
         # make sure asset view is a valid syn id 
         if value is None: 
             return 
-        if re.search("^syn[0-9]+$", value):
+        if not re.search("^syn[0-9]+$", value):
             raise ValueError(f"{value} is not a valid Synapse id. Please check the input of asset view that you provided")
         
     def _get_manifest_title(self, single_data_type:str) -> str:
