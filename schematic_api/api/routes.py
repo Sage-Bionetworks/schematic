@@ -256,12 +256,13 @@ class ManifestGeneration():
         # make sure the length of data types match the length of dataset ids
         if len(value) != len(values["data_types"]):
             raise ValueError("Make sure that the number of data types match the number of dataset ids")
-        # make sure that dataset ids contain valid synapse ids
+        # make sure that list of dataset id do not contain empty space
         contain_empty_str = all('' == dataset_id or dataset_id.isspace() for dataset_id in value)
         if contain_empty_str:
             raise ValueError('Dataset ids contain at least one empty value. Please check your input')
+        # make sure that dataset ids contain valid synapse ids
         for dataset_id in value: 
-            if dataset_id and not re.search("^syn[0-9]+$", dataset_id):
+            if not re.search("^syn[0-9]+$", dataset_id):
                 raise ValueError(f"{dataset_id} is not a valid Synapse id. Please check the dataset ids that you provided")
 
     @validator('asset_view')
