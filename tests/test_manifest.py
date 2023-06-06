@@ -193,8 +193,8 @@ class TestManifestGenerator:
             os.remove(manifest)
 
     # test all the functions used under get_manifest
-    @pytest.mark.parametrize("template_id", [["provided", "not provided"]])
-    def test_create_empty_manifest_spreadsheet(self, config, simple_manifest_generator, template_id):
+    @pytest.mark.parametrize("master_template_id", [None, "mock_master_template_id"])
+    def test_create_empty_manifest_spreadsheet(self, config, simple_manifest_generator, master_template_id):
         '''
         Create an empty manifest spreadsheet regardless if master_template_id is provided
         Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file. If there's no template id provided in config, this function will create a new manifest
@@ -205,17 +205,15 @@ class TestManifestGenerator:
 
         title="Example"
 
-        if template_id == "provided":
+        if master_template_id:
             # mock _gdrive_copy_file function 
-            with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file') as MockClass:
-                instance = MockClass.return_value
-                instance.method.return_value = 'mock google sheet id'
+            config["style"]["google_manifest"]["master_template_id"] = master_template_id
+            with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file', return_value="mock google sheet id") as MockClass:
 
                 spreadsheet_id = generator._create_empty_manifest_spreadsheet(title=title)
                 assert spreadsheet_id == "mock google sheet id"
 
         else:
-            # overwrite test config so that we could test the case when manifest_template_id is not provided
             config["style"]["google_manifest"]["master_template_id"] = ""
 
             mock_spreadsheet = Mock()
