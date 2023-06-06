@@ -10,6 +10,7 @@ import urllib.request
 from dataclasses import field
 from typing import BinaryIO, List, Optional, Union
 
+
 import connexion
 import pandas as pd
 from flask import Flask
@@ -223,9 +224,9 @@ def get_temp_jsonld(schema_url):
 @dataclass
 class ManifestGeneration():
     schema_url: str
-    data_type: List[str]
+    data_types: List[str]
     asset_view: Optional[str] = None
-    dataset_id: Optional[List[str]] = None
+    dataset_ids: Optional[List[str]] = None
     title: Optional[str] = None
     output_format: Optional[str] = field(default_factory=lambda: "google_sheet")
     use_annotations: Optional[bool] = field(default_factory=bool)
@@ -241,33 +242,35 @@ class ManifestGeneration():
         """
         return config_handler(app=app, asset_view=self.asset_view)
 
-    def __post_init__(self):
-        # Note: all the code below could be done better using "@validate" in python3.10. 
-        # TO DO: refactor the code below after deprecating support for python3.9
-        # make sure the number of dataset ids and the number of data types are the same
-        if self.dataset_id is not None and len(self.dataset_id) != len(self.data_type):
-            raise ValueError(
-                        f"There is a mismatch in the number of data_types and dataset_id's that "
-                        f"submitted. Please check your submission and try again."
-            )
+    @validator('schema_url')
+    def check_schema_url(cls, value: str):
+        if " " in value:
+            raise ValueError('Please remove unnecessary space in schema url')
+        if ".jsonld" not in value:
+            raise ValueError('Please provide a valid jsonld as schema url')
+
+    @validator('dataset_ids')
+    def check_dataset_ids(cls, value: List[str], values):
+        if value is None:
+            return
+        # make sure the length of data types match the length of dataset ids
+        if len(value) != len(values["data_types"]):
+            raise ValueError("Make sure that the number of data types match the number of dataset ids")
+        # make sure that dataset ids contain valid synapse ids
+        if all('' == dataset_id or dataset_id.isspace() for dataset_id in value):
+            raise ValueError('Dataset ids only contain empty value. Please check your input')
+        for dataset_id in value: 
+            if dataset_id and not re.search("^syn[0-9]+$", dataset_id):
+                raise ValueError(f"{dataset_id} is not a valid Synapse id. Please check the dataset ids that you provided")
+
+    @validator('asset_view')
+    def check_asset_view(cls, value: str):
+        # make sure asset view is a valid syn id 
+        if value is None: 
+            return 
+        if re.search("^syn[0-9]+$", value):
+            raise ValueError(f"{value} is not a valid Synapse id. Please check the input of asset view that you provided")
         
-        if self.dataset_id is not None:
-            if all('' == s or s.isspace() for s in self.dataset_id):
-                raise ValueError('dataset id only contains empty value. Please check your input')
-            for id in self.dataset_id: 
-                if id and not re.search("^syn[0-9]+", id):
-                    raise ValueError(f"{id} is not a valid Synapse id. Please check your input of dataset id")
-
-        # if dataset id is provided, which means that users want to get an existing manifest, then make sure that asset view is also provided
-        if self.dataset_id is not None and self.asset_view is None: 
-            raise ValueError(
-                f"Please provide asset view for dataset id {self.dataset_id}"
-            )
-
-        # check asset_view is a valid syn id
-        if self.asset_view is not None and not re.search("^syn[0-9]+", self.asset_view):
-            raise ValueError(f"{self.asset_view} is not a valid Synapse id. Please check your input of dataset id")
-
     def _get_manifest_title(self, single_data_type:str) -> str:
         """get title of manifest
 
@@ -277,11 +280,8 @@ class ManifestGeneration():
         Returns: 
             str: title of manifest
         """
-        if self.title:
-            t = f'{self.title}.{single_data_type}.manifest'
-        else: 
-            t = f'Example.{single_data_type}.manifest'         
-        return t
+        prefix = self.title or "Example"
+        return f"{prefix}.{single_data_type}.manifest" 
 
     def generate_manifest_and_collect_outputs(self, access_token: str, data_type_lst: List[str], dataset_id: Optional[List[str]] = None) -> List|BinaryIO:
         """trigger manifest generation and append outputs
@@ -384,7 +384,7 @@ class ManifestGeneration():
         """
         # initalize manifest generation class
         access_token=request.headers.get('X-Auth')
-        mg = ManifestGeneration(schema_url=schema_url, access_token=access_token, output_format=output_format, title=title, use_annotations=use_annotations, dataset_id=dataset_id, data_type=data_type, asset_view=asset_view)
+        mg = ManifestGeneration(schema_url=schema_url, access_token=access_token, output_format=output_format, title=title, use_annotations=use_annotations, dataset_ids=dataset_id, data_types=data_type, asset_view=asset_view)
 
         # load configuration file
         mg._load_config_(app)
