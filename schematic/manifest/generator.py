@@ -1,12 +1,14 @@
-import os
-import logging
-from typing import Dict, List, Tuple, Union
 from collections import OrderedDict
-from tempfile import NamedTemporaryFile
-
-import pandas as pd
-import pygsheets as ps
 import json
+import logging
+from openpyxl import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+import os
+import pandas as pd
+from pathlib import Path
+import pygsheets as ps
+from tempfile import NamedTemporaryFile
+from typing import Dict, List, Tuple, Union
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import (
@@ -22,8 +24,7 @@ from schematic.store.synapse import SynapseStorage
 
 from schematic import CONFIG
 from schematic.utils.google_api_utils import export_manifest_drive_service
-from openpyxl import load_workbook
-from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
 
@@ -1453,7 +1454,7 @@ class ManifestGenerator(object):
                                                           manifest_url = empty_manifest_url,
                                                           output_location = output_path,
                                                           )
-            
+
             # populate an excel spreadsheet with the existing dataframe
             self.populate_existing_excel_spreadsheet(output_file_path, dataframe)
 
@@ -1629,11 +1630,12 @@ class ManifestGenerator(object):
         with pd.ExcelWriter(existing_excel_path, mode='a', engine='openpyxl', if_sheet_exists='replace') as writer: 
             writer.worksheets = {ws.title: ws for ws in workbook.worksheets}
             worksheet = writer.worksheets["Sheet1"]
-           
+            breakpoint()
             # overwrite existing df with new df, if there is info in the new df
             # In future depreciate using a prepopulated excel.
             if not additional_df.empty:
-                additional_df.to_excel(writer, "Sheet1", startrow=0, index = False, header=True)
+                #additional_df.to_excel(writer, "Sheet1", startrow=0, index = False, header=True)
+                additional_df.to_excel(writer, "Sheet1", startrow=1, index = False, header=False)
 
     def populate_manifest_spreadsheet(self, existing_manifest_path: str = None, empty_manifest_url: str = None, return_excel: bool = False, title: str = None):
         """Creates a google sheet manifest based on existing manifest.
