@@ -375,37 +375,38 @@ class TestSchemaGeneratorOperation:
 
 @pytest.mark.schematic_api
 class TestManifestOperation():
-    def ifExcelExists(self, response, file_name):
+    def if_excel_exists(self, response, file_name):
         # check if excel file gets returned as an attachment
         d = response.headers['content-disposition']
         fname = re.findall("filename=(.+)", d)[0]
         assert fname == file_name
     
-    def ifGoogleSheetExists(self, response):
+    def if_google_sheet_exists(self, response):
         # check if response data contains google sheet
         response_dt = json.loads(response.data)
         for i in response_dt: 
             assert i.startswith("https://docs.google.com/")
-    def ifPandasDataframe(self, response):
+
+    def if_pandas_dataframe_exists(self, response):
         # check if response data contains pandas dataframe
         response_dt = json.loads(response.data)
         for i in response_dt:
             df = pd.read_json(i)
             assert isinstance(df, pd.DataFrame)
 
-    def ifOutputCorrect(self, response, output_format, data_type, multiple_data_types=False):
+    def if_output_correct(self, response, output_format, data_type, multiple_data_types=False):
         # check if the correct output format gets generated
         # if there are multiple data types, a warning should be triggered
         if output_format == "excel":
-            self.ifExcelExists(response, f"Example.{data_type}.manifest.xlsx")
+            self.if_excel_exists(response, f"Example.{data_type}.manifest.xlsx")
             if multiple_data_types: 
                 with pytest.warns(UserWarning):
                     warnings.warn(f"Currently we do not support returning multiple files as Excel format at once. Only Example.{data_type}.manifest would get returned", UserWarning)
         # test if google sheet gets returned
         elif output_format == "google_sheet":
-            self.ifGoogleSheetExists(response)
+            self.if_google_sheet_exists(response)
         else:
-            self.ifPandasDataframe(response)
+            self.if_pandas_dataframe_exists(response)
     
     @pytest.mark.parametrize("output_format", ["google_sheet", "excel", "dataframe (only if getting existing manifests)"])
     def test_generate_existing_manifest_single_data_type(self, client, syn_token, data_model_jsonld, output_format):
@@ -425,7 +426,7 @@ class TestManifestOperation():
                 response = client.get('http://localhost:3001/v1/manifests', query_string=params, headers={'X-Auth': syn_token})
                 assert response.status_code == 200
                 # test if excel spreadsheet gets returned
-                self.ifOutputCorrect(response, output_format, data_type)
+                self.if_output_correct(response, output_format, data_type)
     
     def test_generate_existing_manifest_multi_data_types(self, client, data_model_jsonld, syn_token):
         # generate an existing manifest as a google sheet, excel, or data frame
@@ -442,7 +443,7 @@ class TestManifestOperation():
             params["output_format"] = output_format
             response = client.get('http://localhost:3001/v1/manifests', query_string=params, headers={'X-Auth': syn_token})
             assert response.status_code == 200
-            self.ifOutputCorrect(response, output_format, lst_data_types[0], multiple_data_types=True)
+            self.if_output_correct(response, output_format, lst_data_types[0], multiple_data_types=True)
 
 
     @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)", None])
@@ -476,14 +477,14 @@ class TestManifestOperation():
                 for record in caplog.records:
                     if record.message == "Currently we do not support returning multiple files as Excel format at once.":
                         assert record.levelname == "WARNING"
-                self.ifExcelExists(response, f"Example.{data_type[0]}.manifest.xlsx")
+                self.if_excel_exists(response, f"Example.{data_type[0]}.manifest.xlsx")
             else:
-                self.ifExcelExists(response, f"Example.{data_type}.manifest.xlsx")
+                self.if_excel_exists(response, f"Example.{data_type}.manifest.xlsx")
         
         # return one or multiple google sheet links in all other cases
         # note: output_format == dataframe only matters when dataset_id is not None
         else:
-            self.ifGoogleSheetExists(response)
+            self.if_google_sheet_exists(response)
             response_dt = json.loads(response.data)
 
             if data_type == "all manifests":

@@ -241,6 +241,7 @@ class ManifestGeneration():
             CONFIG: schematic configuration object
         """
         return config_handler(app=app, asset_view=self.asset_view)
+
     @classmethod
     @validator('schema_url')
     def check_schema_url(cls, value: str):
@@ -248,6 +249,7 @@ class ManifestGeneration():
             raise ValueError('Please remove unnecessary space in schema url')
         if ".jsonld" not in value:
             raise ValueError('Please provide a valid jsonld as schema url')
+
     @classmethod
     @validator('dataset_ids')
     def check_dataset_ids(cls, value: List[str], values):
@@ -264,7 +266,7 @@ class ManifestGeneration():
         for dataset_id in value: 
             if not re.search("^syn[0-9]+$", dataset_id):
                 raise ValueError(f"{dataset_id} is not a valid Synapse id. Please check the dataset ids that you provided")
-
+                
     @classmethod
     @validator('asset_view')
     def check_asset_view(cls, value: str):
