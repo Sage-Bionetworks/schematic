@@ -1,30 +1,50 @@
-## Installation
-For unix OSs users, simply run the following poetry command to install uWSGI: 
-```bash
+# Directions to run APIs locally
+## Run Schematic without uWSGI (preferred approach for external users)
+### Run Schematic APIs locally 
+1) To run Schematic API locally, simply install dependencies by doing: 
+```
+poetry install 
+```
+2) Get `service_account_creds.json` by doing `schematic init --config /path/to/config.yml`.
+3) Run the APIs by doing: 
+```
+poetry run python3 run_api.py
+```
+You should be able to see swagger UI interface when visiting `localhost:3001/v1/ui`
+
+### Run Schematic APIs in a docker container 
+To run Schematic in a docker container, check out `docker-compose.yml` file in this repository. Please comment out the second part related to building `schematic-aws` container. You could start Schematic docker container by running: 
+```
+docker compose up --build --remove-orphans
+```
+
+## Run Schematic APIs with uWSGI and nginx in a docker container (preferred approach for developers)
+### install uWSGI
+Install uWSGI by doing: 
+```
 poetry install --with aws
 ```
+Note: this approach only works for unix OSs users or windows user with WSL
 
-## Setup
-There are two ways to run schematic APIs: 1) start a flask server and run your application locally (preferred for external users); 2) build a docker image that allows you to run a container with flask application with uWSGI (only works for unix OSs users or windows user with WSL that could install uWSGI)
-
-To start a local Flask server and test your endpoints:
-
-```bash
-source .venv/bin/activate
-python3 run_api.py
-```
-If you define `APP_PORT` as `3001` in `docker-compose.yml`, you should be able to see the application running when visiting `http://localhost:3001/v1/ui/`
-
-After installing uWSGI, flask and connexion, to start a docker container that runs flask application with uWSGI:
+### Run Schematic APIs with uWSGI and nginx in a docker container
+See steps below: 
 1) Comment out the first part of `docker-compose.yml` and focus only on building container `schematic-aws`.
+
 2) Get `service_account_creds.json` by doing `schematic init --config /path/to/config.yml`. 
-3) Make a copy of `env.example` and rename it as `.env` and keep it in the same directory as `env.example` By default, schematic uses port 7080. If port 7080 is not available, please update `SERVER_PORT` in .env file. 
+
+3) Make a copy of `env.example` and rename it as `.env` and keep it in the same directory as `env.example`. By default, schematic uses port 81. If port 81 is not available, please update `USE_LISTEN_PORT` in `.env` file. 
+
 4) Copy the content of `service_account_creds.json` and put it in `.env` file after key `SERVICE_ACCOUNT_CREDS`. Remember to wrap around the credentials with single quotes.
+
 5) Build a docker image and spin up docker container `schematic-api-aws` by running: 
 ```bash
-docker compose up
+docker compose up --build --remove-orphans
 ```
-If you define the value of port as `7080` in `.env` file, you should be able to see the application running when visiting `http://localhost:7080/v1/ui/`
+You should be able to view your application when visit: `https://127.0.0.1/v1/ui/`. You might receive an notification like this in your browser: 
+
+<img width="400" alt="Screen Shot 2023-05-23 at 3 31 46 PM" src="https://github.com/Sage-Bionetworks/schematic/assets/55448354/b5d44f56-5375-47cf-8dbd-d4d611f594c4">
+
+Please click on "show details" and "visit this website" to proceed. Note that the instructions might be slightly different for different browsers. 
 
 By default, this command builds up two containers (`schematic` and `schematic-aws`). You could spin up two containers if you want. But only `schematic-aws` runs flask with uWSGI. 
 
