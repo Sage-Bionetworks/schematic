@@ -17,7 +17,6 @@ components:
       in: header
       x-apikeyInfoFunc: schematic_api.api.routes.apikey_auth
 
-# TO DO: refactor query parameters and remove access_token
 paths:
   /manifests:
     get:
