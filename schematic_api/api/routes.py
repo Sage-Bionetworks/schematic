@@ -241,14 +241,14 @@ class ManifestGeneration():
             CONFIG: schematic configuration object
         """
         return config_handler(app=app, asset_view=self.asset_view)
-
+    @classmethod
     @validator('schema_url')
     def check_schema_url(cls, value: str):
         if " " in value:
             raise ValueError('Please remove unnecessary space in schema url')
         if ".jsonld" not in value:
             raise ValueError('Please provide a valid jsonld as schema url')
-
+    @classmethod
     @validator('dataset_ids')
     def check_dataset_ids(cls, value: List[str], values):
         if value is None:
@@ -265,6 +265,7 @@ class ManifestGeneration():
             if not re.search("^syn[0-9]+$", dataset_id):
                 raise ValueError(f"{dataset_id} is not a valid Synapse id. Please check the dataset ids that you provided")
 
+    @classmethod
     @validator('asset_view')
     def check_asset_view(cls, value: str):
         # make sure asset view is a valid syn id 
@@ -328,7 +329,6 @@ class ManifestGeneration():
             
             return all_outputs
                 
-
     def create_single_manifest(self, access_token: str, single_data_type:str, single_dataset_id:Optional[str]=None, title:Optional[str]=None) -> str|pd.DataFrame|BinaryIO:
         """call get_manifest generate function to generate a new manifest
 
@@ -364,8 +364,8 @@ class ManifestGeneration():
                 
         return result
 
-    @staticmethod
-    def get_manifests_route(schema_url: str, data_type:List[str], use_annotations: Optional[str]=None, dataset_id: Optional[List[str]]=None, title: Optional[str]=None, asset_view: Optional[str]=None, output_format: Optional[str]="google_sheet") -> str|pd.DataFrame|BinaryIO:
+    @classmethod
+    def get_manifests_route(cls, schema_url: str, data_type:List[str], use_annotations: Optional[str]=None, dataset_id: Optional[List[str]]=None, title: Optional[str]=None, asset_view: Optional[str]=None, output_format: Optional[str]="google_sheet") -> str|pd.DataFrame|BinaryIO:
         """Generate a new manifest template or create an existing manifest in google sheet/excel/dataframe format. 
 
         Args:
@@ -386,7 +386,7 @@ class ManifestGeneration():
         """
         # initalize manifest generation class
         access_token=request.headers.get('X-Auth')
-        mg = ManifestGeneration(schema_url=schema_url, access_token=access_token, output_format=output_format, title=title, use_annotations=use_annotations, dataset_ids=dataset_id, data_types=data_type, asset_view=asset_view)
+        mg = cls(schema_url=schema_url, access_token=access_token, output_format=output_format, title=title, use_annotations=use_annotations, dataset_ids=dataset_id, data_types=data_type, asset_view=asset_view)
 
         # load configuration file
         mg._load_config_(app)
