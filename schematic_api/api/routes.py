@@ -229,7 +229,7 @@ class ManifestGeneration():
     dataset_ids: Optional[List[str]] = None
     title: Optional[str] = None
     output_format: Optional[str] = field(default_factory=lambda: "google_sheet")
-    use_annotations: Optional[bool] = field(default_factory=bool)
+    use_annotations: Optional[bool] = field(default_factory=bool)      
     
     def _load_config_(self, app:Flask=app) -> CONFIG:
         """load configuration file and update asset view if needed
@@ -242,16 +242,17 @@ class ManifestGeneration():
         """
         return config_handler(app=app, asset_view=self.asset_view)
 
-    @classmethod
     @validator('schema_url')
+    @classmethod
     def check_schema_url(cls, value: str):
         if " " in value:
             raise ValueError('Please remove unnecessary space in schema url')
         if ".jsonld" not in value:
             raise ValueError('Please provide a valid jsonld as schema url')
+        return value
 
-    @classmethod
     @validator('dataset_ids')
+    @classmethod
     def check_dataset_ids(cls, value: List[str], values):
         if value is None:
             return
@@ -266,15 +267,17 @@ class ManifestGeneration():
         for dataset_id in value: 
             if not re.search("^syn[0-9]+$", dataset_id):
                 raise ValueError(f"{dataset_id} is not a valid Synapse id. Please check the dataset ids that you provided")
+        return value
                 
-    @classmethod
     @validator('asset_view')
+    @classmethod
     def check_asset_view(cls, value: str):
         # make sure asset view is a valid syn id 
         if value is None: 
             return 
         if not re.search("^syn[0-9]+$", value):
             raise ValueError(f"{value} is not a valid Synapse id. Please check the input of asset view that you provided")
+        return value
         
     def _get_manifest_title(self, single_data_type:str) -> str:
         """get title of manifest
