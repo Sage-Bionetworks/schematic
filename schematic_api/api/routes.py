@@ -243,7 +243,6 @@ class ManifestGeneration():
         return config_handler(app=app, asset_view=self.asset_view)
 
     @validator('schema_url')
-    @classmethod
     def check_schema_url(cls, value: str):
         if " " in value:
             raise ValueError('Please remove unnecessary space in schema url')
@@ -252,7 +251,6 @@ class ManifestGeneration():
         return value
 
     @validator('dataset_ids')
-    @classmethod
     def check_dataset_ids(cls, value: List[str], values):
         if value is None:
             return
@@ -270,7 +268,6 @@ class ManifestGeneration():
         return value
                 
     @validator('asset_view')
-    @classmethod
     def check_asset_view(cls, value: str):
         # make sure asset view is a valid syn id 
         if value is None: 
