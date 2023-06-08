@@ -2233,7 +2233,6 @@ class TableOperations:
         except(SynapseHTTPError) as ex:
             # If error is raised because Table has old `Uuid` column and not new `Id` column, then handle and re-attempt upload
             if 'Id is not a valid column name or id' in str(ex):
-                print('triggering this function call that I want to test')
                 self._update_table_uuid_column(sg)
                 synapseDB.upsert_table_rows(table_name=self.tableName, data=self.tableToLoad)
             # Raise if other error
