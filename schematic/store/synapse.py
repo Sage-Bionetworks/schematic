@@ -2275,17 +2275,8 @@ class TableOperations:
                 else:
                     
                     # Build ColumnModel that will be used for new column
-                    columnModelDict = {
-                        "id": None,
-                        "name": "Id",
-                        "defaultValue": None,
-                        "columnType": "STRING",
-                        "maximumSize": 64,
-                        "maximumListLength": 1,
-                    }
-
-                    new_col = Column(name='Id', columnType='STRING', maximumSize=64, maximumListLength=1)
-                    newColResponse = self.synStore.syn.store(new_col)
+                    id_column = Column(name='Id', columnType='STRING', maximumSize=64, defaultValue=None, maximumListLength=1)
+                    new_col_response = self.synStore.syn.store(id_column)
 
 
                     # Define columnChange body
@@ -2295,7 +2286,7 @@ class TableOperations:
                         "changes": [
                             {                        
                                 "oldColumnId": col['id'],
-                                "newColumnId": newColResponse['id'],
+                                "newColumnId": new_col_response['id'],
                             }
                         ]
                     }
