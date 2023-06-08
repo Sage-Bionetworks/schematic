@@ -88,17 +88,69 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 
 <strong>Configure config.yml File</strong>
 
-There are some defaults in schematic that can be configured. These fields are in ``config_example.yml``. If you want to change any of these copy ``config_example.yml`` to ``config.yml``, change any fields you want to, and remove any fields you don't.
+There are some defaults in schematic that can be configured. These fields are in ``config_example.yml``:
+
+```text
+
+# This is an example config for Schematic.
+# All listed values are those that are the default if a config is not used.
+# Save this as config.yml, this will be gitignored.
+# Remove any fields in the config you don't want to change
+# Change the values of any fields you do want to change
+
+
+# This describes where assets such as manifests are stored
+asset_store:
+  # This is when assets are stored in a synapse project
+  synapse:
+    # Synapse ID of the file view listing all project data assets.
+    master_fileview_id: "syn23643253"
+    # Path to the synapse config file, either absolute or relative to this file
+    config: ".synapseConfig"
+    # Base name that manifest files will be saved as
+    manifest_basename: "synapse_storage_manifest"
+
+# This describes information about manifests as it relates to generation and validation
+manifest:
+  # Location where manifests will saved to
+  manifest_folder: "manifests"
+  # Title or title prefix given to generated manifest(s)
+  title: "example"
+  # Data types of manifests to be generated or data type (singular) to validate manifest against
+  data_type:
+    - "Biospecimen"
+    - "Patient"
+
+# Describes the location of your schema
+model:
+  # Location of your schema jsonld, it must be a path relative to this file or absolute
+  location: "tests/data/example.model.jsonld"
+
+# This section is for using google sheets with Schematic
+google_sheets:
+  # The Synapse id of the Google service account credentials.
+  service_acct_creds_synapse_id: "syn25171627"
+  # Path to the synapse config file, either absolute or relative to this file
+  service_acct_creds: "schematic_service_account_creds.json"
+  # When doing google sheet validation (regex match) with the validation rules.
+  #   true is alerting the user and not allowing entry of bad values.
+  #   false is warning but allowing the entry on to the sheet.
+  strict_validation: true
+```
+
+If you want to change any of these copy ``config_example.yml`` to ``config.yml``, change any fields you want to, and remove any fields you don't.
 
 For example if you wanted to change the folder where manifests are downloaded your config should look like:
 
-  asset_store:
-    synapse:
-      manifest_folder: "manifest_folder"
+```text
 
-*Note*: `config.yml` is ignored by git.
+manifest:
+  manifest_folder: "my_manifest_folder_path"
+```
 
-*Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
+_Note_: `config.yml` is ignored by git.
+
+_Note_: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
 6. Login to Synapse by using the command line
 On the CLI in your virtual environment, run the following command: 
