@@ -66,11 +66,12 @@ class ManifestConfig:
     data_type: Data types of manifests to be generated or data type (singular) to validate
      manifest against
     """
+
     manifest_folder: str = "manifests"
     title: str = "example"
     data_type: list[str] = field(default_factory=lambda: ["Biospecimen", "Patient"])
 
-    @validator("title",  "manifest_folder")
+    @validator("title", "manifest_folder")
     @classmethod
     def validate_string_is_not_empty(cls, value: str) -> str:
         """Check if string  is not empty(has at least one char)
