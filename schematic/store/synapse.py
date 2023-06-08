@@ -54,6 +54,8 @@ from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
 
+from schematic.utils.general import Profile
+
 logger = logging.getLogger("Synapse storage")
 
 @dataclass
@@ -2231,6 +2233,7 @@ class TableOperations:
         except(SynapseHTTPError) as ex:
             # If error is raised because Table has old `Uuid` column and not new `Id` column, then handle and re-attempt upload
             if 'Id is not a valid column name or id' in str(ex):
+                print('triggering this function call that I want to test')
                 self._update_table_uuid_column(sg)
                 synapseDB.upsert_table_rows(table_name=self.tableName, data=self.tableToLoad)
             # Raise if other error
@@ -2238,7 +2241,8 @@ class TableOperations:
                 raise ex
 
         return self.existingTableId
-
+    
+    @Profile
     def _update_table_uuid_column(self, sg: SchemaGenerator,) -> None:
         """Removes the `Uuid` column when present, and relpaces with an `Id` column
         Used to enable backwards compatability for manifests using the old `Uuid` convention
