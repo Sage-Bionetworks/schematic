@@ -2285,12 +2285,9 @@ class TableOperations:
                         "maximumListLength": 1,
                     }
 
-                    # Send POST /column request to define new column and get new column ID
-                    newColResponse = self.synStore.send_api_request(
-                        request_type = "restPOST",
-                        uri = "https://repo-prod.prod.sagebase.org/repo/v1/column",
-                        body = columnModelDict,
-                    )
+                    new_col = Column(name='Id', columnType='STRING', maximumSize=64, maximumListLength=1)
+                    newColResponse = self.synStore.syn.store(new_col)
+
 
                     # Define columnChange body
                     columnChangeDict = {
@@ -2304,19 +2301,7 @@ class TableOperations:
                         ]
                     }
 
-                    # Build body for POST request
-                    schemaChangeBody = {
-                        "entityId": self.existingTableId,
-                        "changes": [columnChangeDict],
-                    }
-
-                    # Send POST request to change column name
-                    schemaChangeResponse = self.synStore.send_api_request(
-                        request_type = "restPOST",
-                        uri = f"https://repo-prod.prod.sagebase.org/repo/v1/entity/{self.existingTableId}/table/transaction/async/start",
-                        body = schemaChangeBody,
-                    )
-                    # Exit iteration; only concerned with `Uuid` column
+                    self.synStore.syn._async_table_update(table=self.existingTableId, changes=[columnChangeDict], wait=False)
                 break
 
         return
