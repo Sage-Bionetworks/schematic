@@ -4,6 +4,8 @@ import click
 import click_log
 import logging
 import sys
+#TODO Remove timing after development
+import time
 import re
 
 from schematic.schemas.data_model_parser import DataModelParser
@@ -59,22 +61,27 @@ def convert(schema, base_schema, output_jsonld):
     """
 
     # TO DO: Throw these steps into their own function
+    
+    # get the start time
+    st = time.time()
 
     # Instantiate Parser
     data_model_parser = DataModelParser(schema, base_schema)
 
     #Parse Model
+    logger.info("Parsing data model.")
     parsed_data_model = data_model_parser.parse_model()
-
-    breakpoint()
 
     # Convert parsed model to graph
     # Instantiate DataModelGraph
     data_model_grapher = DataModelGraph(parsed_data_model)
-    
+
+    # Generate graph
+    logger.info("Generating data model graph.")
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
     # Validate generated data model.
+    logger.info("Validating the data model internally.")
     data_model_validator = DataModelValidator(data_model=graph_data_model)
     data_model_errors = data_model_validator.run_checks()
     
@@ -89,6 +96,7 @@ def convert(schema, base_schema, output_jsonld):
         # Actually raise error here with message.
 
     #data_model_jsonld_converter = DataModelJsonLD()
+    logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
 
     # output JSON-LD file alongside CSV file by default
@@ -108,6 +116,13 @@ def convert(schema, base_schema, output_jsonld):
         click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
     except:
         click.echo(f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again")
+
+    # get the end time
+    et = time.time()
+
+    # get the execution time
+    elapsed_time = (et - st)/.60
+    click.echo(f"'Execution time: {elapsed_time} minutes")
 
     '''
     # convert RFC to Data Model
