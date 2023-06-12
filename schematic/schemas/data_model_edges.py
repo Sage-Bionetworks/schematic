@@ -7,20 +7,20 @@ class DataModelEdges():
         Args:
 
         Returns:
-
-        Comment:
-            How do we best capture all the relationships we will be accounting for? 
         """
+        # For each attribute in the model.
         for attribute_display_name, relationship in data_model.items():
+            # Get the relationships for the current attribure
             relationships = relationship['Relationships']
-
-            for key, val in edge_relationships.items():
-                # For each relationship we are interested in
-                if key in relationships.keys():
-                    if node in relationships[key] and node != attribute_display_name:
-                        print('Creating edge with node ' + node + ' and attribute ' + attribute_display_name)
-                        G.add_edge(all_node_dict[node]['label'], all_node_dict[attribute_display_name]['label'], key=val)
-
+            # For each edge relationship
+            for key, csv_header in edge_relationships.items():
+                # For a given relationship in the model
+                if csv_header in relationships.keys():
+                    # if the current node is part of that relationship and is not the current node
+                    if node in relationships[csv_header] and node != attribute_display_name:
+                        #print('Creating edge relationship \"' + csv_header +'\" with node ' + node + ' and attribute ' + attribute_display_name)
+                        # Connect node to attribute as an edge.
+                        G.add_edge(all_node_dict[node]['label'], all_node_dict[attribute_display_name]['label'], key=key)
         return G
 
     def edit_edge():
