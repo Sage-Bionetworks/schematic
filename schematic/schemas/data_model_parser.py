@@ -134,7 +134,6 @@ class DataModelCSVParser():
                 )
             logger.debug("Schema definition csv ready for processing!")
         except:
-            breakpoint()
             raise ValueError(
                 f"Schema extension headers: {set(list(model_df.columns))} "
                 f"do not match required schema headers: {self.required_headers}"
@@ -154,8 +153,10 @@ class DataModelCSVParser():
 
         # Load relationships dictionary.
         self.rel_dict = self.dmr.define_data_model_relationships()
+        
         # Get the type for each value that needs to be submitted.
-        self.rel_val_types = {key:val['type']for k, v in self.rel_dict.items() for key, val in v.items() if 'type' in val.keys()}
+        # using csv_headers as keys to match required_headers/relationship_types
+        self.rel_val_types = {v['csv_header']:v['type']for k, v in self.rel_dict.items() if 'type' in v.keys()}
 
         #load into format that can be read by validator.py
         
@@ -192,15 +193,16 @@ class DataModelCSVParser():
                     if rel_val_type == bool and type(attr[relationship]) == bool:
                         rels = attr[relationship]
                     # Add other value types and adjust as needed.
-                    else:
+                    elif rel_val_type == list:
                         # Move strings to list if they are comma separated.
                         # Order from CSV is preserved here.
                         rels = attr[relationship].strip().split(',')
                         rels = [r.strip() for r in rels]
                         # Extract string from list if necessary.
                         # TODO Catch situation where len does not equal 1. Throw error.
-                        if rel_val_type == str and len(rels) == 1:
-                            rels = rels[0]
+                    elif rel_val_type == str:
+                        rels = str(attr[relationship]).strip()
+                        #rels = attr[relationship].strip()
                     attr_rel_dictionary[attr['Attribute']]['Relationships'].update({relationship:rels})
             position += 1
         return attr_rel_dictionary

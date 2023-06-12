@@ -34,18 +34,19 @@ class DataModelNodes():
             list, nodes defined by attribute_info as being related to that attribute.
         """
         # retrieve a list of relationship types that will produce nodes.
-        self.node_relationships =list(self.edge_relationships_dictionary.keys())
+        self.node_relationships =list(self.edge_relationships_dictionary.values())
 
+        # Extract attribure and relationship dictionary
         attribute, relationship = attr_info
-        relationship = relationship['Relationships']
+        relationships = relationship['Relationships']
 
         nodes = []
         if attribute not in nodes:
             nodes.append(attribute)
         for rel in self.node_relationships:
-            if rel in relationship.keys():
+            if rel in relationships.keys():
                 nodes.extend([node.strip()
-                                for node in relationship[rel]])
+                                for node in relationships[rel]])
         return nodes
 
     def gather_all_nodes(self, data_model):
@@ -66,27 +67,30 @@ class DataModelNodes():
         For each display name fill out defaults. Maybe skip default.
         """
         for k,v in self.data_model_relationships.relationships_dictionary.items():
-            for key, value in v.items():
-                if key == relationship:
-                    if 'node_dict' in value.keys():
-                        rel_key = list(value['node_dict'].keys())[0]
-                        rel_default = value['node_dict'][rel_key]
-                        return rel_key, rel_default
+            if k == relationship:
+                if 'node_attr_dict' in v.keys():
+                    rel_key = v['node_label']
+                    rel_default = v['node_attr_dict']
+                    return rel_key, rel_default
 
-    def run_rel_functions(self, rel_func, node_display_name='', attr_relationships={}):
+    def run_rel_functions(self, rel_func, node_display_name='', key='', attr_relationships=''):
         ''' This function exists to centralzie handling of functions for filling out node information.
         TODO: and an ending else statement to alert to no func being caught.
         '''
         func_output = ''
-
         if rel_func == get_display_name_from_label:
             func_output = get_display_name_from_label(node_display_name, attr_relationships)
+        elif key == 'id' and rel_func == get_class_label_from_display_name:
+            func_output = 'bts:' + get_class_label_from_display_name(node_display_name)
+        elif key == 'id' and rel_func == get_property_label_from_display_name:
+            func_output = 'bts:' + get_property_label_from_display_name(node_display_name)
         elif rel_func == get_class_label_from_display_name:
             func_output = get_class_label_from_display_name(node_display_name)
         elif rel_func == get_property_label_from_display_name:
             func_output = get_property_label_from_display_name(node_display_name)
-        elif rel_func == uri2curie:
-            func_output = uri2curie(node_display_name, self.namespaces)
+        else:
+            # raise error here to catch non valid function.
+            breakpoint()
         return func_output
 
     def generate_node_dict(self, node_display_name, data_model):
@@ -115,45 +119,30 @@ class DataModelNodes():
         node_dict = {}
 
         # Look through relationship types that represent values (i.e. do not define edges)
-        for k, v in self.value_relationships.items():
+        for key, csv_header in self.value_relationships.items():
+
             # Get key and defalt values current relationship type.
-            rel_key, rel_default = self.get_rel_default_info(k)
+            rel_key, rel_default = self.get_rel_default_info(key)
 
             # If we have information to add about this particular node
-            if attr_relationships and k in attr_relationships.keys():
-                 # Check if the default specifies calling a function.
-                if type(rel_default) == dict and 'default' in rel_default.keys() and isfunction(rel_default['default']):
+            if csv_header in attr_relationships.keys():
+                # Check if the default specifies calling a function.
+                if 'standard' in rel_default.keys() and isfunction(rel_default['standard']):
                     # Add to node_dict The value comes from the standard function call. 
-                    # TODO UPDATE TO USE FUNCTION FUNCTION
                     #breakpoint()
-                    node_dict.update({rel_key: self.run_rel_functions(rel_default['standard'], node_display_name, attr_relationships)})
-                    '''
-                    try:
-                        node_dict.update({rel_key: rel_default['standard'](node_display_name)})
-                    except:
-                        node_dict.update({rel_key: rel_default['standard'](node_display_name, self.namespaces)})
-                    '''
+                    node_dict.update({rel_key: self.run_rel_functions(rel_default['standard'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships)})
                 else:
                     # For standard entries, get information from attr_relationship dictionary
-                    node_dict.update({rel_key: attr_relationships[k]})
+                    node_dict.update({rel_key: attr_relationships[csv_header]})
             # else, add default values
             else: 
                 # Check if the default specifies calling a function.
-                if type(rel_default) == dict and 'default' in rel_default.keys() and isfunction(rel_default['default']):
+                if 'default' in rel_default.keys() and isfunction(rel_default['default']):
                     #breakpoint()
-                    node_dict.update({rel_key: self.run_rel_functions(rel_default['default'], node_display_name, attr_relationships)})
-
-                    # Add to node_dict. The value comes from the standard function call. 
-                    # TODO UPDATE TO USE FUNCTION FUNCTION
-                    '''
-                    try:
-                        node_dict.update({rel_key: rel_default['default'](node_display_name)})
-                    except:
-                        node_dict.update({rel_key: rel_default['default'](node_display_name, self.namespaces)})
-                    '''
+                    node_dict.update({rel_key: self.run_rel_functions(rel_default['default'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships)})
                 else:
                     # Set value to defaults.
-                    node_dict.update({rel_key: rel_default})
+                    node_dict.update({rel_key: rel_default['default']})
         return node_dict
 
     def generate_node(self, G, node_dict):
@@ -162,7 +151,7 @@ class DataModelNodes():
 
         Returns:
         """
-        G.add_node(node_dict['label'], **node_dict)    
+        G.add_node(node_dict['label'], **node_dict)
         return G
 
     def edit_node():
