@@ -95,14 +95,13 @@ class DataModelGraph():
 
         # Find all nodes
         all_nodes = self.dmn.gather_all_nodes(self.data_model)
-        
         all_node_dict = {}
         ## Fill in MultiDigraph with nodes and edges
         for node in all_nodes:
             
             # Gather information for each node
             node_dict = self.dmn.generate_node_dict(node, self.data_model)
-            
+
             all_node_dict[node] = node_dict
             # Generate node and attach information
             G = self.dmn.generate_node(G, node_dict)

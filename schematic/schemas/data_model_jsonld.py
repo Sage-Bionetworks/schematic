@@ -45,52 +45,58 @@ class DataModelJsonLD(object):
         """
         data_model_relationships = self.dmr.relationships_dictionary
 
-        template_keys = list(template.keys())
-        template_keys.remove('@type')
+        #template_keys = list(template.keys())
+        #template_keys.remove('@type')
 
         # For each field in template fill out with information from the graph
-        for jsonld_key in template_keys:
-
+        #for jsonld_key in template_keys:
+        for rel, rel_vals in data_model_relationships.items():
             # Get column name linked to node. Need to do this now bc of relationship_dict structure
-            node_column_name = list(data_model_relationships[jsonld_key].keys())[0]
+            #node_column_name = list(data_model_relationships[jsonld_key].keys())[0]
 
             # Fill edge information (done per edge type)
-            
-            if data_model_relationships[jsonld_key][node_column_name]['edge_rel']:
-                for node_1, node_2, rel in self.graph.edges:
-                    key_context, key_rel = jsonld_key.split(':')
-                    if rel == key_rel:
-                        if rel in ['domainIncludes', 'subClassOf']:
+            if rel_vals['edge_rel']:
+            #if data_model_relationships[jsonld_key][node_column_name]['edge_rel']:
+                for node_1, node_2, relationship in self.graph.edges:
+                    key_context, key_rel = rel_vals['jsonld_key'].split(':')
+                    if relationship == key_rel:
+                        if relationship in ['domainIncludes', 'subClassOf']:
                             if node_1 == node:
                                 # use display names for the nodes
                                 node_2_id = {'@id': 'context:'+node_2}
-                                if isinstance(template[jsonld_key], list):
-                                    # TODO Format ids properly in future to take in proper context
-                                    template[jsonld_key].append(node_2_id)
-                                else:
-                                    template[jsonld_key] == node_2
+                                try:
+                                    if isinstance(template[rel_vals['jsonld_key']], list):
+                                        # TODO Format ids properly in future to take in proper context
+                                        template[rel_vals['jsonld_key']].append(node_2_id)
+                                    else:
+                                        template[rel_vals['jsonld_key']] == node_2
+                                except:
+                                    breakpoint()
                         else:
                             if node_2 == node:
                                 # use display names for the nodes
                                 node_1_id = {'@id': 'context:'+node_1}
-                                if isinstance(template[jsonld_key], list):
-                                    # TODO Format ids properly in future to take in proper context
-                                    template[jsonld_key].append(node_1_id)
-                                else:
-                                    template[jsonld_key] == node_1
+                                try:
+                                    if isinstance(template[rel_vals['jsonld_key']], list):
+                                        # TODO Format ids properly in future to take in proper context
+                                        template[rel_vals['jsonld_key']].append(node_1_id)
+                                    else:
+                                        template[rel_vals['jsonld_key']] == node_1
+                                except:
+                                    breakpoint()
 
 
             # Fill node information
             else:
                 #if 'node_dict' in data_model_relationships[key][node_column_name].keys():
                 # attribute here refers to node attibutes (come up with better name.)
-                node_attribute_name = list(data_model_relationships[jsonld_key][node_column_name]['node_dict'].keys())[0]
-                
+                #node_attribute_name = list(data_model_relationships[jsonld_key][node_column_name]['node_dict'].keys())[0]
+                node_attribute_name = rel_vals['node_label']
                 # Get recorded info for current node, and the attribute type
                 node_info = nx.get_node_attributes(self.graph, node_attribute_name)[node]
 
                 # Add this information to the template
-                template[jsonld_key] =  node_info
+                template[rel_vals['jsonld_key']] =  node_info
         return template
 
     def property_template(self):
@@ -111,7 +117,7 @@ class DataModelJsonLD(object):
                             "schema:rangeIncludes": [],
                             "schema:isPartOf": {},
                             "sms:displayName": "",
-                            "sms:required": False,
+                            "sms:required": "False",
                             "sms:validationRules": [],
                             }
         return property_template
@@ -129,7 +135,9 @@ class DataModelJsonLD(object):
                         "schema:isPartOf": {},
                         "schema:rangeIncludes": [],
                         "sms:displayName": "",
-                        "sms:required": False,
+                        "sms:required": "False",
+                        "sms:requiresDependency": [],
+                        "sms:requiresComponent": [],
                         "sms:validationRules": [],
                     }
         return class_template
