@@ -450,7 +450,7 @@ def get_storage_projects(access_token, asset_view):
     
     return lst_storage_projects
 
-def get_storage_projects_datasets(access_token, asset_view, project_id):
+def get_storage_projects_datasets(access_token, asset_view, project_id, parent_id=None, benefactor_id=None):
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -458,7 +458,7 @@ def get_storage_projects_datasets(access_token, asset_view, project_id):
     store = SynapseStorage(access_token=access_token)
 
     # call getStorageDatasetsInProject function
-    sorted_dataset_lst = store.getStorageDatasetsInProject(projectId = project_id)
+    sorted_dataset_lst = store.getStorageDatasetsInProject(projectId = project_id, parentId=parent_id, benefactorId=benefactor_id)
     
     return sorted_dataset_lst
 

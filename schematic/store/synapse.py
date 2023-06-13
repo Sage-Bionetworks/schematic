@@ -381,7 +381,7 @@ class SynapseStorage(BaseStorage):
 
         return sorted_projects_list
 
-    def getStorageDatasetsInProject(self, projectId: str) -> List[str]:
+    def getStorageDatasetsInProject(self, projectId: str, parentId: str = '', benefactorId: str = '') -> List[str]:
         """Gets all datasets in folder under a given storage project that the current user has access to.
 
         Args:
@@ -391,16 +391,34 @@ class SynapseStorage(BaseStorage):
             A list of datasets within the given storage project; the list consists of tuples (datasetId, datasetName).
             None: If the projectId cannot be found on Synapse.
         """
+        # TODO: Raise error if parentId and benefactorId provided.
+        if parentId and benefactorId:
+            raise ValueError(f"Both parentId and benefactorId provided. Only provide a single folder, the one you want to specifically search in for datasets.")
 
         # select all folders and fetch their names from within the storage project;
         # if folder content type is defined, only select folders that contain datasets
         areDatasets = False
         if "contentType" in self.storageFileviewTable.columns:
-            foldersTable = self.storageFileviewTable[
-                (self.storageFileviewTable["contentType"] == "dataset")
-                & (self.storageFileviewTable["projectId"] == projectId)
-            ]
-            areDatasets = True
+            if parentId:
+                foldersTable = self.storageFileviewTable[
+                    (self.storageFileviewTable["contentType"] == "dataset")
+                    & (self.storageFileviewTable["projectId"] == projectId)
+                    & (self.storageFileviewTable["parentId"] == parentId)
+                ]
+                areDatasets = True
+            elif benefactorId:
+                foldersTable = self.storageFileviewTable[
+                    (self.storageFileviewTable["contentType"] == "dataset")
+                    & (self.storageFileviewTable["projectId"] == projectId)
+                    & (self.storageFileviewTable["benefactorId"] == benefactorId)
+                ]
+                areDatasets = True
+            else:
+                foldersTable = self.storageFileviewTable[
+                    (self.storageFileviewTable["contentType"] == "dataset")
+                    & (self.storageFileviewTable["projectId"] == projectId)
+                ]
+                areDatasets = True
         else:
             foldersTable = self.storageFileviewTable[
                 (self.storageFileviewTable["type"] == "folder")
