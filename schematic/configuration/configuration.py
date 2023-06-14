@@ -3,12 +3,14 @@
 from typing import Optional, Any
 import os
 import yaml
+from schematic.utils.general import normalize_path
 from .dataclasses import (
     SynapseConfig,
     ManifestConfig,
     ModelConfig,
     GoogleSheetsConfig,
 )
+
 
 
 class ConfigNonAllowedFieldError(Exception):
@@ -96,26 +98,13 @@ class Configuration:
             )
         self._synapse_config = SynapseConfig(**config["synapse"])
 
-    def _normalize_path(self, path: str) -> str:
-        """
-
-        Args:
-            path (str): The path to normalize
-
-        Returns:
-            str: The normalized path
-        """
-        if not os.path.isabs(path):
-            path = os.path.join(self._parent_directory, path)
-        return os.path.normpath(path)
-
     @property
     def synapse_configuration_path(self) -> str:
         """
         Returns:
             str: The path to the synapse configuration file
         """
-        return self._normalize_path(self._synapse_config.config)
+        return normalize_path(self._synapse_config.config, self._parent_directory)
 
     @property
     def synapse_manifest_basename(self) -> str:
@@ -189,7 +178,9 @@ class Configuration:
         Returns:
             str: The path of the Google service account credentials.
         """
-        return self._normalize_path(self._google_sheets_config.service_acct_creds)
+        return normalize_path(
+            self._google_sheets_config.service_acct_creds, self._parent_directory
+        )
 
     @property
     def google_sheets_master_template_id(self) -> str:

@@ -183,3 +183,19 @@ def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_d
         return wrapper
 
     return inner
+
+def normalize_path(path: str, parent_folder: str) -> str:
+    """
+    Normalizes a path.
+    If the path is relative, the parent_folder is added to make it an absolute path.
+
+    Args:
+        path (str): The path to the file to normalize.
+        parent_folder (str): The folder the file is in.
+
+    Returns:
+        str: The normalized path.
+    """
+    if not os.path.isabs(path):
+        path = os.path.join(parent_folder, path)
+    return os.path.normpath(path)
