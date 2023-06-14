@@ -86,4 +86,3 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest -m "schematic_api and not rule_benchmark"
-          
