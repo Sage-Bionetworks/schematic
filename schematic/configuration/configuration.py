@@ -12,7 +12,6 @@ from .dataclasses import (
 )
 
 
-
 class ConfigNonAllowedFieldError(Exception):
     """Raised when a user submitted config file contains non allowed fields"""
 
