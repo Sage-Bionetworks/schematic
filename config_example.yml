@@ -2,6 +2,7 @@
 # All listed values are those that are the default if a config is not used.
 # Save this as config.yml, this will be gitignored.
 # Remove any fields in the config you don't want to change
+# If you remove all fields from a section, the entire section should be removed including the header.
 # Change the values of any fields you do want to change
 
 
