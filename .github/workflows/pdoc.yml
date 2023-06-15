@@ -74,6 +74,7 @@ jobs:
 
       # create documentation
       - run: poetry show pdoc
+      - run: pdoc --help
       - run: poetry run pdoc --docformat google -o docs/schematic schematic/manifest schematic/models schematic/schemas schematic/store schematic/utils schematic/visualization
 
       - uses: actions/upload-pages-artifact@v1
