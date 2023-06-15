@@ -73,8 +73,8 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       # create documentation
+      - run: poetry add pdoc@13.0.0
       - run: poetry show pdoc
-      - run: poetry run pdoc --help
       - run: poetry run pdoc --docformat google -o docs/schematic schematic/manifest schematic/models schematic/schemas schematic/store schematic/utils schematic/visualization
 
       - uses: actions/upload-pages-artifact@v1
