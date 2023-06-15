@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - fix-pdoc-workflow
   workflow_dispatch:  # Allow manually triggering the workflow
 
 # security: restrict permissions for CI jobs.
