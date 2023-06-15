@@ -1,0 +1,88 @@
+# Built from:
+# https://github.com/Sage-Bionetworks/schematic/blob/develop/.github/workflows/test.yml
+
+name: Test schematic API
+
+on:
+  workflow_dispatch:
+    inputs:
+      perform_benchmarking:
+        required: true
+        type: boolean
+        description: perform benchmarking test (True) or skip (False)
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      POETRY_VERSION:  1.2.0
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10"]
+
+    steps:
+
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      #----------------------------------------------
+      #          install & configure poetry
+      #----------------------------------------------
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org \
+            | python3 - --version ${{ env.POETRY_VERSION }};
+          poetry config virtualenvs.create true;
+          poetry config virtualenvs.in-project true;
+      #----------------------------------------------
+      #       load cached venv if cache exists
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      #----------------------------------------------
+      # install dependencies if cache does not exist
+      #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root --all-extras
+
+      #----------------------------------------------
+      #    install your root project, if required
+      #----------------------------------------------
+      - name: Install library
+        run: poetry install --no-interaction
+
+      #----------------------------------------------
+      #              run API test suite
+      #----------------------------------------------
+      - name: Run all API tests
+        env:
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+        if: ${{ inputs.perform_benchmarking }}
+        run: >
+          source .venv/bin/activate;
+          pytest -m "schematic_api"
+
+      - name: Run API tests + Exclude Benchmarks
+        env:
+          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
+        if: ${{ false == inputs.perform_benchmarking }}
+        run: >
+          source .venv/bin/activate;
+          pytest -m "schematic_api and not rule_benchmark"

@@ -20,7 +20,7 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 # Installation
 ## Installation Requirements
-* Python 3.7.1 or higher
+* Python version 3.9.0≤x<3.11.0 
 
 Note: You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have the right permissions to download the Google credentials files from Synapse.
 

@@ -286,8 +286,9 @@ class MetadataModel(object):
         validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
-        input_token: str = None,
+        access_token: str = None,
         project_scope: List = None,
+        table_manipulation: str = 'replace'
     ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -305,7 +306,7 @@ class MetadataModel(object):
         #TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-        syn_store = SynapseStorage(input_token = input_token, project_scope = project_scope)
+        syn_store = SynapseStorage(access_token = access_token, project_scope = project_scope)
         manifest_id=None
         censored_manifest_id=None
         restrict_maniest=False
@@ -341,6 +342,7 @@ class MetadataModel(object):
                         manifest_record_type = manifest_record_type,
                         useSchemaLabel = use_schema_label,
                         hideBlanks = hide_blanks,
+                        table_manipulation=table_manipulation,
                     )
                     restrict_maniest = True
                 
@@ -352,6 +354,7 @@ class MetadataModel(object):
                     useSchemaLabel = use_schema_label, 
                     hideBlanks = hide_blanks,
                     restrict_manifest=restrict_maniest,
+                    table_manipulation=table_manipulation,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
@@ -372,6 +375,7 @@ class MetadataModel(object):
                 manifest_record_type=manifest_record_type,
                 useSchemaLabel=use_schema_label,
                 hideBlanks=hide_blanks,
+                table_manipulation=table_manipulation,
             )
             restrict_maniest = True
         
@@ -383,6 +387,7 @@ class MetadataModel(object):
             useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
             restrict_manifest=restrict_maniest,
+            table_manipulation=table_manipulation,
         )
 
         logger.debug(

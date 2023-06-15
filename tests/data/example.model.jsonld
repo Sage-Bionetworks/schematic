@@ -2536,6 +2536,12 @@
                 },
                 {
                     "@id": "bts:CheckRange"
+                },
+                {
+                    "@id": "bts:CheckDate"
+                },
+                {
+                    "@id": "bts:CheckNA"
                 }
             ],
             "sms:validationRules": []
@@ -2892,6 +2898,92 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Date",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "date"
+            ]
+        },
+        {
+            "@id": "bts:CheckNA",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckNA",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check NA",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "int",
+                "IsNA"
+            ]
+        },
+        {
+            "@id": "bts:MockRDB",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "MockRDB",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataType"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "MockRDB",
+            "sms:required": "sms:false",
+            "sms:requiresDependency": [
+                {
+                    "@id": "bts:Component"
+                },
+                {
+                    "@id": "bts:MockRDBId"
+                },
+                {
+                    "@id": "bts:SourceManifest"
+                }
+            ],
+            "sms:validationRules": []
+        },
+        {
+            "@id": "bts:MockRDBId",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "MockRDBId",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "MockRDB_id",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "int"
+            ]
+        },
+        {
+            "@id": "bts:SourceManifest",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "SourceManifest",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "SourceManifest",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },

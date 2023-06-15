@@ -1,13 +1,14 @@
 [tool.poetry]
 name = "schematicpy"
-version = "1.0.0"
+version = "22.3.2"
 description = "Package for biomedical data model and metadata ingress management"
 authors = [
     "Milen Nikolov <milen.nikolov@sagebase.org>",
-    "Sujay Patil <sujay.patil@sagebase.org>",
+    "Lingling Peng <lingling.peng@sagebase.org>",
+    "Mialy Defelice <mialy.defelice@sagebase.org>",
+    "Gianna Jordan <gianna.jordan@sagebase.org>",
     "Bruno Grande <bruno.grande@sagebase.org>",
     "Robert Allaway <robert.allaway@sagebionetworks.org>",
-    "Xengie Doan <xengie.doan@sagebase.org>",
 ]
 
 readme = "README.md"
@@ -35,53 +36,62 @@ schematic = "schematic.__main__:main"
 
 
 [tool.poetry.dependencies]
-python = ">=3.7.1,<3.11"
+python = ">=3.9.0,<3.11"
 
-click = "^7.1.2"
-click-log = "^0.3.2"
-google-api-python-client = "^1.12.8"
-google-auth-httplib2 = "^0.0.4"
-google-auth-oauthlib = "^0.4.2"
-graphviz = "^0.16"
+click = "^8.0.0"
+click-log = "^0.4.0"
+google-api-python-client = "^2.0.0"
+google-auth-httplib2 = "^0.1.0"
+google-auth-oauthlib = "^0.8.0"
+graphviz = "^0.20.0"
 inflection = "^0.5.1"
-jsonschema = "^3.2.0"
-networkx = "^2.5"
+jsonschema = "^4.0.0"
+networkx = ">=2.2.8"
 numpy = "^1.21.1"
-oauth2client = "<4.0.0"  # Specified because of bug in version ^4.0.0
+oauth2client = "^4.1.0"  # Specified because of bug in version ^4.0.0
 pandas = "^1.3.1"
 pygsheets = "^2.0.4"
-PyYAML = "^5.4.1"
-rdflib = "^5.0.0"
-setuptools = "^52.0.0"
-synapseclient = "^2.6.0"
+PyYAML = "^6.0.0"
+rdflib = "^6.0.0"
+setuptools = "^66.0.0"
+synapseclient = "^2.7.0"
 tenacity = "^8.0.1"
 toml = "^0.10.2"
-Flask = "^1.1.4"
+Flask = "^2.0.0"
 connexion = {extras = ["swagger-ui"], version = "^2.8.0"}
 great-expectations = "^0.15.0"
-sphinx-click = "^3.1.0"
-MarkupSafe = "2.0.1"
-itsdangerous = "1.1.0"
-Jinja2 = "2.11.3"
+sphinx-click = "^4.0.0"
+MarkupSafe = "2.1.0"
+itsdangerous = "^2.0.0"
+Jinja2 = ">2.11.3"
 openpyxl = "^3.0.9"
 "backports.zoneinfo" = {markers = "python_version < \"3.9\"", version = "^0.2.1"}
 Flask-Cors = "^3.0.10"
 pdoc = "^12.2.0"
 dateparser = "^1.1.4"
-
+pandarallel = "^1.6.4"
+schematic-db = {version = "^0.0.20", extras = ["synapse"]}
+pyopenssl = "^23.0.0"
+typing-extensions = "<4.6.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.2"
-pytest-cov = "^2.11.1"
+pytest = "^7.0.0"
+pytest-cov = "^4.0.0"
 pytest-mock = "^3.5.1"
-flake8 = "^3.8.4"
-python-dotenv = "^0.15.0"
-black = {version = "^20.8b1", allow-prereleases = true}
+flake8 = "^6.0.0"
+python-dotenv = "^0.21.0"
+black = "^22.6.0"
+mypy = "^0.982"
+pylint = "^2.16.1"
 
+[tool.poetry.group.aws]
+optional = true
+
+[tool.poetry.group.aws.dependencies]
+uWSGI = "^2.0.21"
 
 [tool.black]
 line-length = 88
-target-version = ['py37']
 include = '\.pyi?$'
 exclude = '''
 
@@ -116,8 +126,8 @@ markers = [
     Google credentials (skipped on GitHub CI) \
     """,
     """\
-    schematic_api: marks tests requiring \
-    running API locally (skipped on GitHub CI)   
+    schematic_api: marks tests covering \
+    API functionality (skipped on regular GitHub CI test suite)   
     """,
     """\
     rule_combos: marks tests covering \
@@ -128,5 +138,9 @@ markers = [
     table_operations: marks tests covering \
     table operations that pass locally \
     but fail on CI due to interactions with Synapse (skipped on GitHub CI)   
+    """,    
+    """\
+    rule_benchmark: marks tests covering \
+    validation rule benchmarking
     """    
 ]

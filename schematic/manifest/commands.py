@@ -15,7 +15,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel, export_manifest_drive_service
 from schematic.store.synapse import SynapseStorage
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
@@ -142,16 +142,25 @@ def get_manifest(
         # if output_xlsx gets specified, output_format = "excel"
         if output_xlsx: 
             output_format = "excel"
-
             # if file name is in the path, and that file does not exist
             if not os.path.exists(output_xlsx):
                 if ".xlsx" or ".xls" in output_xlsx:
                     path = Path(output_xlsx)
                     output_path = path.parent.absolute()
-                else: 
-                    logger.error(f"{output_xlsx} does not exists. Please try a valid file path")
-
-            else: 
+                    if not os.path.exists(output_path):
+                        raise ValueError(
+                            f"{output_path} does not exists. Please try a valid file path"
+                        )
+                else:
+                    raise ValueError(
+                            f"{output_xlsx} does not exists. Please try a valid file path"
+                        )
+            else:
+                # Check if base path itself exists.
+                if not os.path.exists(os.path.dirname(output_xlsx)):
+                    raise ValueError(
+                    f"{output_xlsx} does not exists. Please try a valid file path"
+                    )
                 output_path = output_xlsx
         else: 
             output_format = None
@@ -255,12 +264,9 @@ def migrate_manifests(
     """
     jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
 
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    
     full_scope = project_scope + [archive_project]
-    if access_token:
-        synStore = SynapseStorage(access_token = access_token, project_scope = full_scope)
-    else:
-        synStore = SynapseStorage(project_scope = full_scope)  
+    synStore = SynapseStorage(project_scope = full_scope)  
 
     for project in project_scope:
         if not return_entities:
