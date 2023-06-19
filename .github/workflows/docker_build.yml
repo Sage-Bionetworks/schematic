@@ -7,7 +7,13 @@ name: Create and publish a Docker image
 on:
   push:
     tags:
-      - '*beta*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'tag version number'
+        required: true
+
 
 env:
   REGISTRY: ghcr.io
@@ -45,5 +51,5 @@ jobs:
         with:
           file: schematic_api/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }} || ${{ github.event.inputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
