@@ -394,14 +394,11 @@ class TestManifestOperation():
             df = pd.read_json(i)
             assert isinstance(df, pd.DataFrame)
 
-    def if_output_correct(self, response, output_format, data_type, multiple_data_types=False):
+    def if_output_correct(self, response, output_format, data_type):
         # check if the correct output format gets generated
         # if there are multiple data types, a warning should be triggered
         if output_format == "excel":
             self.if_excel_exists(response, f"Example.{data_type}.manifest.xlsx")
-            if multiple_data_types: 
-                with pytest.warns(UserWarning):
-                    warnings.warn(f"Currently we do not support returning multiple files as Excel format at once. Only Example.{data_type}.manifest would get returned", UserWarning)
         # test if google sheet gets returned
         elif output_format == "google_sheet":
             self.if_google_sheet_exists(response)
@@ -411,11 +408,11 @@ class TestManifestOperation():
     @pytest.mark.parametrize("output_format", ["google_sheet", "excel", "dataframe (only if getting existing manifests)"])
     def test_generate_existing_manifest_single_data_type(self, client, syn_token, data_model_jsonld, output_format):
         # generate an existing manifest as an excel spreadsheet or google sheet or data frame by using only one data type
-        lst_dataset_id = ["syn42171508", "syn42171373"]
+        lst_dataset_id = ["syn51730547", "syn51730545"]
         lst_data_types = ["Biospecimen", "Patient"]
         params = {
             "schema_url": data_model_jsonld,
-            "asset_view": "syn23643253",
+            "asset_view": "syn51730541",
             "output_format": output_format
         }
 
@@ -428,23 +425,30 @@ class TestManifestOperation():
                 # test if excel spreadsheet gets returned
                 self.if_output_correct(response, output_format, data_type)
     
-    def test_generate_existing_manifest_multi_data_types(self, client, data_model_jsonld, syn_token):
+    def test_generate_existing_manifest_multi_data_types(self, client, data_model_jsonld, syn_token, caplog):
+        def make_api_call_and_test_output():
+            response = client.get('http://localhost:3001/v1/manifests', query_string=params, headers={'X-Auth': syn_token})
+            assert response.status_code == 200
+            self.if_output_correct(response, output_format, lst_data_types[0])
+
         # generate an existing manifest as a google sheet, excel, or data frame
-        lst_dataset_id = ["syn42171508", "syn42171373"]
+        lst_dataset_id = ["syn51730547", "syn51730545"]
         lst_data_types = ["Biospecimen", "Patient"]
         params = {
             "schema_url": data_model_jsonld,
-            "asset_view": "syn23643253",
+            "asset_view": "syn51730541",
             "dataset_id": lst_dataset_id,
             "data_type": lst_data_types
         }
         output_formats = ["excel","dataframe (only if getting existing manifests)", "google_sheet"]
         for output_format in output_formats:
             params["output_format"] = output_format
-            response = client.get('http://localhost:3001/v1/manifests', query_string=params, headers={'X-Auth': syn_token})
-            assert response.status_code == 200
-            self.if_output_correct(response, output_format, lst_data_types[0], multiple_data_types=True)
-
+            # make sure a warning gets triggered if users try to get multiple manifests in excel format
+            if output_format == "excel":
+                with pytest.warns(Warning):
+                    make_api_call_and_test_output()
+            else:
+                make_api_call_and_test_output()
 
     @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)", None])
     @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
