@@ -70,10 +70,11 @@ Flask-Cors = "^3.0.10"
 pdoc = "^12.2.0"
 dateparser = "^1.1.4"
 pandarallel = "^1.6.4"
-schematic-db = {version = "^0.0.6", extras = ["synapse"]}
+schematic-db = {version = "^0.0.20", extras = ["synapse"]}
 pyopenssl = "^23.0.0"
 isort = "^5.12.0"
 pydantic = "^1.10.7"
+typing-extensions = "<4.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
@@ -83,6 +84,10 @@ flake8 = "^6.0.0"
 python-dotenv = "^0.21.0"
 black = "^22.6.0"
 mypy = "^0.982"
+pylint = "^2.16.1"
+
+[tool.poetry.group.aws]
+optional = true
 
 [tool.poetry.group.aws.dependencies]
 uWSGI = "^2.0.21"

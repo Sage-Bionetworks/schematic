@@ -1,9 +1,5 @@
-## For aws deployments
-FROM python:3.10.9-slim-bullseye
+FROM tiangolo/uwsgi-nginx-flask:python3.10
 
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
-
-# set default APP_PORT to 80
 # the environment variables defined here are the default
 # and can be overwritten by docker run -e VARIABLE = XX
 # or can be overwritten by .env when using docker compose
@@ -14,39 +10,70 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=200 \
     POETRY_VERSION=1.2.0 \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \ 
-    APP_PORT=80 \
-    APP_DIR=/opt/app \ 
-    SERVER_PROTOCOL=http:// \
-    SERVER_DOMAIN=localhost \
-    SERVER_PORT=7080
+    APP_PARENT_DIR=/app \ 
+    NGINX_CONFIG=/etc/nginx/conf.d \
+    APP_DIR=/app/app \
+    ROOT=/ \
+    UWSGI_INI=/app/uwsgi.ini \
+    NGINX_WORKER_PROCESSES=1
 
-# RUN apt-get autoclean && apt-get -y autoremove
+# Note: 
+# The starting number of uWSGI processes is controlled by the variable UWSGI_CHEAPER, by default set to 2.
+# The maximum number of uWSGI processes is controlled by the variable UWSGI_PROCESSES, by default set to 16
+# By default, the image starts with 2 uWSGI processes running. When the server is experiencing a high load, it creates up to 16 uWSGI processes to handle it on demand.
+# NGINX_MAX_UPLOAD is set to 0 by default that allows unlimited upload file sizes
+# NGINX_WORKER_CONNECTIONS is set to 1024 by default that allows a maximum limit of 1024 connections per worker.
+# NGINX_WORKER_OPEN_FILES is set to 2048 by default that allows 2048 open files 
 
-RUN apt-get update -qq -y \
-    && apt-get install --no-install-recommends -qq -y \
-        build-essential \
-        gosu \
-        libpcre3 \
-        libpcre3-dev \
-        python3-dev \
-        libopenblas-dev \
-        gfortran \
-    && apt-get -y autoclean \
-    && apt-get -y autoremove \
-    && rm -rf /var/lib/apt/lists/*
+# run open ssl and generate certificate
+RUN apt update && \
+    apt-get install openssl && \
+    openssl req -x509 -nodes -days 365 \
+    -subj  "/C=CA/ST=QC/O=Company" \
+    -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key \
+    -out /etc/ssl/certs/localhost.crt;
+
+# add dhparam.pem
+# this step takes quite some time
+RUN openssl dhparam -out /etc/ssl/dhparam.pem 4096
+
+# copy config files that handle encryption to docker
+WORKDIR ${NGINX_CONFIG}
+COPY ./self-signed.conf ./ssl-params.conf ./certificate.conf ./
 
 
-# remove libtiff5 for security reasons
-# RUN apt remove -y libtiff5
-WORKDIR ${APP_DIR}
-RUN chown www-data:www-data /opt/app/
+# use custom uwsgi-nginx-entrypoint.sh
+# this uwsgi-nginx-entrypoint.sh file is derived from: https://github.com/tiangolo/uwsgi-nginx-flask-docker/blob/master/docker-images/entrypoint.sh
+# we have to modify it so that we could generate a different /etc/nginx/conf.d/nginx.conf file
+WORKDIR ${ROOT}
+COPY ./uwsgi-nginx-entrypoint.sh ./entrypoint2.sh
+COPY ./uwsgi-nginx-entrypoint.sh ./uwsgi-nginx-entrypoint2.sh
+RUN chmod +x uwsgi-nginx-entrypoint2.sh
+RUN chmod +x entrypoint2.sh
+RUN chown -R nginx /uwsgi-nginx-entrypoint2.sh
+RUN chown -R nginx /entrypoint2.sh
 
 # install poetry
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
 
-# copy relevant files and run poetry install
-COPY ./pyproject.toml ./poetry.lock ./uwsgi.ini ./config.yml ./run_api.py ./
+# set work directory
+WORKDIR ${APP_PARENT_DIR}
+RUN chown www-data:www-data ${APP_PARENT_DIR}
+
+# remove the old uwsgi.ini and main.py from the original image
+RUN rm -rf ${APP_PARENT_DIR}/main.py
+RUN rm -rf ${APP_PARENT_DIR}/uwsgi.ini
+
+# copy to use custom uwsgi.ini 
+COPY ./uwsgi.ini ./
+
+# create a separate folder called app
+RUN mkdir app 
+WORKDIR ${APP_DIR}
+
+# copy other files to app/app
+# Note: run_api.py is not needed
+COPY ./pyproject.toml ./poetry.lock ./config.yml ./main.py ./
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi --no-root --with aws
 
@@ -55,22 +82,33 @@ COPY  schematic_api ./schematic_api
 
 # copy great_expectations folder
 COPY great_expectations ./great_expectations
-RUN chown -R www-data:www-data /opt/app/great_expectations/
+
+# copy tests folder because some endpoints by default download to the tests folder
+COPY tests ./tests
+
+# change permission
+RUN chown -R www-data:www-data ${APP_DIR}
+
+# allow downloading to synapse cache 
+RUN chown -R www-data:www-data /root
 
 # copy schematic
 COPY schematic  ./schematic
 
 # change permission 
 WORKDIR /var/www/
-RUN chown www-data:www-data /var/www/
+#The -R option: make the command recursive, so it will change the owner of all files and subdirectories within a given folder.
+RUN chown -R www-data:www-data /var/www/
 
-WORKDIR /
-COPY schematic_api/docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+RUN chown -R www-data:www-data /var/tmp/
 
-EXPOSE 7080
+# change work directory back
+WORKDIR ${APP_DIR}
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# specify entrypoint again to generate config
+# have to respecify CMD too
+ENTRYPOINT ["/entrypoint2.sh"]
+CMD ["/start.sh"]
 
-# Run server in production mode
-CMD ["uwsgi", "--ini", "uwsgi.ini", "--lazy", "--http", ":7080"]
+# Expose ports
+EXPOSE 443

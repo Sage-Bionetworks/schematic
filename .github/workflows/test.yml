@@ -27,7 +27,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      POETRY_VERSION:  1.2.0rc1
+      POETRY_VERSION:  1.2.0
     strategy:
       fail-fast: false
       matrix:
@@ -108,6 +108,15 @@ jobs:
           poetry run mypy --install-types --non-interactive schematic/configuration.py
           # add here when enforced
           poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
+
+      #----------------------------------------------
+      #             linting
+      #----------------------------------------------
+      - name: Lint with pylint
+        run: |
+          # ran only on certain files for now
+          # add here when checked
+          poetry run pylint schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
 
       #----------------------------------------------
       #              run test suite

@@ -169,21 +169,15 @@ class TestManifestGenerator:
 
         # if dataset id exists, it could return pandas dataframe, google spreadsheet, or an excel spreadsheet
         if dataset_id: 
-            if output_format: 
-
-                if output_format == "dataframe":
-                    assert isinstance(manifest, pd.DataFrame)
-                elif output_format == "excel":
-                    assert os.path.exists(manifest) == True
-                else: 
-                    assert type(manifest) is str
-                    assert manifest.startswith("https://docs.google.com/spreadsheets/")
+            if output_format == "dataframe":
+                assert isinstance(manifest, pd.DataFrame)
+            elif output_format == "excel":
+                assert os.path.exists(manifest) == True
+            elif sheet_url: 
+                assert type(manifest) is str
+                assert manifest.startswith("https://docs.google.com/spreadsheets/")
             else: 
-                if sheet_url: 
-                    assert type(manifest) is str
-                    assert manifest.startswith("https://docs.google.com/spreadsheets/")
-                else: 
-                    assert isinstance(manifest, pd.DataFrame)
+                assert isinstance(manifest, pd.DataFrame)
         
         # if dataset id does not exist, it could return an empty google sheet or an empty excel spreadsheet exported from google
         else:
@@ -199,8 +193,8 @@ class TestManifestGenerator:
             os.remove(manifest)
 
     # test all the functions used under get_manifest
-    @pytest.mark.parametrize("template_id", [["provided", "not provided"]])
-    def test_create_empty_manifest_spreadsheet(self, config, simple_manifest_generator, template_id):
+    @pytest.mark.parametrize("master_template_id", [None, "mock_master_template_id"])
+    def test_create_empty_manifest_spreadsheet(self, config, simple_manifest_generator, master_template_id):
         '''
         Create an empty manifest spreadsheet regardless if master_template_id is provided
         Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file. If there's no template id provided in config, this function will create a new manifest
@@ -211,17 +205,15 @@ class TestManifestGenerator:
 
         title="Example"
 
-        if template_id == "provided":
+        if master_template_id:
             # mock _gdrive_copy_file function 
-            with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file') as MockClass:
-                instance = MockClass.return_value
-                instance.method.return_value = 'mock google sheet id'
+            config["style"]["google_manifest"]["master_template_id"] = master_template_id
+            with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file', return_value="mock google sheet id") as MockClass:
 
                 spreadsheet_id = generator._create_empty_manifest_spreadsheet(title=title)
                 assert spreadsheet_id == "mock google sheet id"
 
         else:
-            # overwrite test config so that we could test the case when manifest_template_id is not provided
             config["style"]["google_manifest"]["master_template_id"] = ""
 
             mock_spreadsheet = Mock()
@@ -286,13 +278,69 @@ class TestManifestGenerator:
         generator = simple_manifest_generator
 
         manifest_test_df = pd.DataFrame(columns = manifest_columns)
-        missing_columns = generator._get_missing_columns(wb_headers, manifest_test_df)
-        if "column four" not in wb_headers:
-            assert "column four" in missing_columns 
-        else: 
-            assert "column four" not in missing_columns
+        manifest_test_df_headers = list(manifest_test_df.columns)
+        out_of_schema_columns = generator._get_missing_columns(manifest_test_df_headers, wb_headers)
 
-    
+        if "column four" not in wb_headers:
+            assert "column four" in out_of_schema_columns 
+        else: 
+            assert "column four" not in out_of_schema_columns
+
+    # Need to actually put in different dfs
+    @pytest.mark.parametrize("existing_manifest", [{"Patient ID": ["1738"], "Sex": ["Male"], "Year of Birth": ["1999"], "Diagnosis": [""], 'Component': [""], 'Cancer Type': [""], 'Family History': [""]},
+                                                   {"Patient ID": ["1738"], "Sex": ["Male"], "Year of Birth": ["1999"], "Diagnosis": [""], 'Component': [""], 'Cancer Type': [""], 'Family History': [""], 'Non Schema Column': [""]},
+                                                   {"Patient ID": ["1738"], "Sex": ["Male"]},
+                                                   None])
+    @pytest.mark.google_credentials_needed
+    def test_update_dataframe_with_existing_df(self, helpers, existing_manifest):
+        '''
+        Tests the following discrepancies with an existing schema:
+            - schema has matching columns to existing_df
+            - existing_df has columns the schema does not
+            - schema has columns the existing_df does not.
+            - No existing manifest
+        '''
+        data_type = "Patient"
+        sheet_url = True
+
+        # Instantiate the Manifest Generator.
+        generator = ManifestGenerator(path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+                                      root=data_type,
+                                      use_annotations=False,
+                                      )
+
+        # Generate a google sheet url for a blank manifest.
+        empty_manifest_url= generator.get_manifest(sheet_url = sheet_url)
+
+        # Loading existing manifest
+        existing_manifest_df = pd.DataFrame(existing_manifest)
+
+        # Update the empty manifest with the existing manifest
+        updated_df = generator._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url,
+                                                                  existing_df = existing_manifest_df,
+                                                                  )[0]
+
+        # Check that update happened as intended.
+        # If the existing manifest is emtpy, the columns will not change, no data will be added
+        if existing_manifest_df.empty:
+            assert updated_df.empty == True
+            assert list(updated_df.columns) == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component',
+                                             'Cancer Type', 'Family History']
+        # If the existing manifest has only 2 of the schema columns, the columns should match the schema, data is added.
+        elif len(existing_manifest_df.columns) == 2:
+            assert updated_df['Patient ID'][0] == '1738'
+            assert list(updated_df.columns) == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component',
+                                             'Cancer Type', 'Family History']
+        # If the existing manifest has matching columns to the schema, the columns should remain the same, data is added.
+        elif len(existing_manifest_df.columns) == 7:
+            assert updated_df['Patient ID'][0] == '1738'
+            assert list(updated_df.columns) == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component',
+                                             'Cancer Type', 'Family History']
+        # If the existing manifest has an extra column that is not in the schema, the new column should be added, data is added.
+        elif len(existing_manifest_df.columns) == 8:
+            assert updated_df['Patient ID'][0] == '1738'
+            assert list(updated_df.columns) == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component',
+                                             'Cancer Type', 'Family History','Non Schema Column']
 
     @pytest.mark.parametrize("additional_df_dict", [{"Filename": ['a', 'b'], "Sample ID": ['a', 'b'], "File Format": ['a', 'b'], "Component": ['a', 'b'], "Genome Build": ['a', 'b'], "Genome FASTA": ['a', 'b'], "test_one_column": ['a', 'b'], "test_two_column": ['c', 'd']}, None])
     def test_populate_existing_excel_spreadsheet(self, simple_manifest_generator, simple_test_manifest_excel, additional_df_dict):
@@ -314,14 +362,15 @@ class TestManifestGenerator:
 
         # if we are not adding any additional content
         if additional_test_df.empty:
+
             # make sure that new content also gets added 
             assert len(new_df.columns) == 6
         # we should be able to see new columns get added 
         else: 
             # new columns get added
             assert not new_df[["test_one_column", "test_two_column"]].empty
-            assert len(new_df.test_one_column.value_counts()) > 0 
-            assert len(new_df.test_two_column.value_counts()) > 0 
+            assert len(new_df.test_one_column.value_counts()) > 0
+            assert len(new_df.test_two_column.value_counts()) > 0
 
         # remove file
         os.remove(dummy_output_path)
