@@ -12,9 +12,11 @@ import numpy as np
 import pandas as pd  # third party library import
 import pytest
 
+from schematic.configuration.configuration import Configuration
 from schematic.schemas.generator import \
     SchemaGenerator  # Local application/library specific imports.
 from schematic_api.api import create_app
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
