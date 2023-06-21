@@ -54,6 +54,8 @@ from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic import CONFIG
 
+from schematic.utils.general import profile
+
 logger = logging.getLogger("Synapse storage")
 
 @dataclass
@@ -2238,7 +2240,8 @@ class TableOperations:
                 raise ex
 
         return self.existingTableId
-
+    
+    @profile(sort_by='cumulative', strip_dirs=True)
     def _update_table_uuid_column(self, sg: SchemaGenerator,) -> None:
         """Removes the `Uuid` column when present, and relpaces with an `Id` column
         Used to enable backwards compatability for manifests using the old `Uuid` convention
@@ -2272,21 +2275,9 @@ class TableOperations:
                 else:
                     
                     # Build ColumnModel that will be used for new column
-                    columnModelDict = {
-                        "id": None,
-                        "name": "Id",
-                        "defaultValue": None,
-                        "columnType": "STRING",
-                        "maximumSize": 64,
-                        "maximumListLength": 1,
-                    }
+                    id_column = Column(name='Id', columnType='STRING', maximumSize=64, defaultValue=None, maximumListLength=1)
+                    new_col_response = self.synStore.syn.store(id_column)
 
-                    # Send POST /column request to define new column and get new column ID
-                    newColResponse = self.synStore.send_api_request(
-                        request_type = "restPOST",
-                        uri = "https://repo-prod.prod.sagebase.org/repo/v1/column",
-                        body = columnModelDict,
-                    )
 
                     # Define columnChange body
                     columnChangeDict = {
@@ -2295,24 +2286,12 @@ class TableOperations:
                         "changes": [
                             {                        
                                 "oldColumnId": col['id'],
-                                "newColumnId": newColResponse['id'],
+                                "newColumnId": new_col_response['id'],
                             }
                         ]
                     }
 
-                    # Build body for POST request
-                    schemaChangeBody = {
-                        "entityId": self.existingTableId,
-                        "changes": [columnChangeDict],
-                    }
-
-                    # Send POST request to change column name
-                    schemaChangeResponse = self.synStore.send_api_request(
-                        request_type = "restPOST",
-                        uri = f"https://repo-prod.prod.sagebase.org/repo/v1/entity/{self.existingTableId}/table/transaction/async/start",
-                        body = schemaChangeBody,
-                    )
-                    # Exit iteration; only concerned with `Uuid` column
+                    self.synStore.syn._async_table_update(table=self.existingTableId, changes=[columnChangeDict], wait=False)
                 break
 
         return
