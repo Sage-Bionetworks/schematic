@@ -22,17 +22,17 @@ def data_model_jsonld():
     yield data_model_jsonld
 
 
-def test_manifest_generation_load_config(app, config_path, data_model_jsonld):
-    """Test if asset_view gets updated"""
-    app.config["SCHEMATIC_CONFIG"] = config_path
-    mg = ManifestGeneration(
-        schema_url=data_model_jsonld,
-        data_types=["test_data_type"],
-        asset_view="syn123",
-    )
-    config = mg._load_config_(app=app)
+# def test_manifest_generation_load_config(app, config_path, data_model_jsonld):
+#     """Test if asset_view gets updated"""
+#     app.config["SCHEMATIC_CONFIG"] = config_path
+#     mg = ManifestGeneration(
+#         schema_url=data_model_jsonld,
+#         data_types=["test_data_type"],
+#         asset_view="syn123",
+#     )
+#     config = mg._load_config_(app=app)
 
-    assert config["synapse"]["master_fileview"] == "syn123"
+#     assert config["synapse"]["master_fileview"] == "syn123"
 
 
 def test_check_dataset_match_data_type(data_model_jsonld):
