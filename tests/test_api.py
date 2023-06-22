@@ -451,6 +451,7 @@ class TestManifestOperation():
             if output_format == "excel":
                 with pytest.warns(Warning):
                     make_api_call_and_test_output()
+                    assert "Currently we do not support returning multiple files as Excel format at once." in caplog.text
             else:
                 make_api_call_and_test_output()
 
