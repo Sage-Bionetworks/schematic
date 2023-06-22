@@ -121,8 +121,8 @@ def convert(schema, base_schema, output_jsonld):
     et = time.time()
 
     # get the execution time
-    elapsed_time = (et - st)/.60
-    click.echo(f"'Execution time: {elapsed_time} minutes")
+    elapsed_time = time.strftime("%M:%S", time.gmtime(et - st))
+    click.echo(f"Execution time: {elapsed_time} (M:S)")
 
     '''
     # convert RFC to Data Model

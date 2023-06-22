@@ -60,10 +60,14 @@ class DataModelJsonLD(object):
                 for node_1, node_2, relationship in self.graph.edges:
                     key_context, key_rel = rel_vals['jsonld_key'].split(':')
                     if relationship == key_rel:
+                        '''
                         if relationship in ['domainIncludes', 'subClassOf']:
+                        #if relationship in ['domainIncludes', 'subClassOf']:
                             if node_1 == node:
+                                if node_1 == 'Patient' and node_2 == 'HTANParticipantID':
+                                    breakpoint()
                                 # use display names for the nodes
-                                node_2_id = {'@id': 'context:'+node_2}
+                                node_2_id = {'@id': 'bts:'+ node_2}
                                 try:
                                     if isinstance(template[rel_vals['jsonld_key']], list):
                                         # TODO Format ids properly in future to take in proper context
@@ -75,7 +79,7 @@ class DataModelJsonLD(object):
                         else:
                             if node_2 == node:
                                 # use display names for the nodes
-                                node_1_id = {'@id': 'context:'+node_1}
+                                node_1_id = {'@id': 'bts:'+node_1}
                                 try:
                                     if isinstance(template[rel_vals['jsonld_key']], list):
                                         # TODO Format ids properly in future to take in proper context
@@ -84,6 +88,18 @@ class DataModelJsonLD(object):
                                         template[rel_vals['jsonld_key']] == node_1
                                 except:
                                     breakpoint()
+                        '''
+                        if node_2 == node:
+                            # use display names for the nodes
+                            node_1_id = {'@id': 'bts:'+node_1}
+                            try:
+                                if isinstance(template[rel_vals['jsonld_key']], list):
+                                    # TODO Format ids properly in future to take in proper context
+                                    template[rel_vals['jsonld_key']].append(node_1_id)
+                                else:
+                                    template[rel_vals['jsonld_key']] == node_1
+                            except:
+                                breakpoint()
 
 
             # Fill node information
@@ -117,7 +133,7 @@ class DataModelJsonLD(object):
                             "schema:rangeIncludes": [],
                             "schema:isPartOf": {},
                             "sms:displayName": "",
-                            "sms:required": "False",
+                            "sms:required": "sms:false",
                             "sms:validationRules": [],
                             }
         return property_template
@@ -135,7 +151,7 @@ class DataModelJsonLD(object):
                         "schema:isPartOf": {},
                         "schema:rangeIncludes": [],
                         "sms:displayName": "",
-                        "sms:required": "False",
+                        "sms:required": "sms:false",
                         "sms:requiresDependency": [],
                         "sms:requiresComponent": [],
                         "sms:validationRules": [],
