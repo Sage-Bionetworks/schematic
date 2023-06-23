@@ -8,12 +8,6 @@ on:
   push:
     tags:
       - 'v[0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z]+)?'
-  workflow_dispatch:
-    inputs:
-      tags:
-        description: 'Please only use existing tags'
-        required: true
-
 
 env:
   REGISTRY: ghcr.io
