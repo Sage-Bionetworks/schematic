@@ -7,13 +7,7 @@ name: Create and publish a Docker image
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-  workflow_dispatch:
-    inputs:
-      tags:
-        description: 'Please only use existing tags'
-        required: true
-
+      - '*beta*'
 
 env:
   REGISTRY: ghcr.io
@@ -45,7 +39,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern={{raw}},value=${{ env.TAG || github.event.inputs.tags }}
+            type=semver,pattern={{raw}}
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
