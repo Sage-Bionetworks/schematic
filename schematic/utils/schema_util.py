@@ -52,10 +52,10 @@ def get_display_name_from_label(node_name, attr_relationships):
         display_name = attr_relationships['Attribute']
     else:
         display_name = node_name
-    return display_name
+    return display_name    
 
-def get_json_key_from_context():
-    return
+def convert_bool(provided_bool):
+    return str(provided_bool)
 
 def export_schema(schema, file_path):
     with open(file_path, "w") as f:
