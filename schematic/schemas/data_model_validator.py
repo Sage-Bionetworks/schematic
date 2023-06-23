@@ -53,6 +53,10 @@ class DataModelValidator():
 		Check if name is repeated.
 		TODO:
 			- Add unit test to verify this works properly.
+			- The way this looks, it wont find namespace overlaps,
+			Have to go back to loading the csv and looking before overlaps have been removed.
+			Look for duplicate attributes.
+			Look for valid values that overlap with attributes and flag.
 		'''
 		error = []
 		if len(self.data_model.nodes.keys()) != set(list(self.data_model.nodes.keys())):
