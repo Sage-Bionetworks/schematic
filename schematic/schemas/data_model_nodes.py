@@ -5,7 +5,7 @@ from schematic.schemas.data_model_relationships import (
     DataModelRelationships
     )
 
-from schematic.utils.schema_util import get_property_label_from_display_name, get_class_label_from_display_name, get_display_name_from_label
+from schematic.utils.schema_util import get_property_label_from_display_name, get_class_label_from_display_name, get_display_name_from_label, convert_bool
 from schematic.utils.validate_rules_utils import validate_schema_rules
 from schematic.schemas.curie import uri2curie, curie2uri
 
@@ -59,7 +59,7 @@ class DataModelNodes():
         for attr_info in data_model.items():
             nodes = self.gather_nodes(attr_info=attr_info)
             all_nodes.extend(nodes)
-        all_nodes = [*set(all_nodes)]
+        all_nodes = list(dict.fromkeys(all_nodes).keys())
         return all_nodes
 
     def get_rel_default_info(self, relationship):
@@ -73,9 +73,11 @@ class DataModelNodes():
                     rel_default = v['node_attr_dict']
                     return rel_key, rel_default
 
-    def run_rel_functions(self, rel_func, node_display_name='', key='', attr_relationships=''):
+    def run_rel_functions(self, rel_func, node_display_name='', key='', attr_relationships='', csv_header=''):
         ''' This function exists to centralzie handling of functions for filling out node information.
         TODO: and an ending else statement to alert to no func being caught.
+        - Implement using a factory pattern.
+
         '''
         func_output = ''
         if rel_func == get_display_name_from_label:
@@ -88,6 +90,8 @@ class DataModelNodes():
             func_output = get_class_label_from_display_name(node_display_name)
         elif rel_func == get_property_label_from_display_name:
             func_output = get_property_label_from_display_name(node_display_name)
+        elif rel_func == convert_bool:
+            func_output == 'sms:' + convert_bool(attr_relationships[csv_header]).lower()
         else:
             # raise error here to catch non valid function.
             breakpoint()
@@ -129,8 +133,7 @@ class DataModelNodes():
                 # Check if the default specifies calling a function.
                 if 'standard' in rel_default.keys() and isfunction(rel_default['standard']):
                     # Add to node_dict The value comes from the standard function call. 
-                    #breakpoint()
-                    node_dict.update({rel_key: self.run_rel_functions(rel_default['standard'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships)})
+                    node_dict.update({rel_key: self.run_rel_functions(rel_default['standard'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships, csv_header=csv_header)})
                 else:
                     # For standard entries, get information from attr_relationship dictionary
                     node_dict.update({rel_key: attr_relationships[csv_header]})
@@ -138,11 +141,11 @@ class DataModelNodes():
             else: 
                 # Check if the default specifies calling a function.
                 if 'default' in rel_default.keys() and isfunction(rel_default['default']):
-                    #breakpoint()
-                    node_dict.update({rel_key: self.run_rel_functions(rel_default['default'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships)})
+                    node_dict.update({rel_key: self.run_rel_functions(rel_default['default'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships, csv_header=csv_header)})
                 else:
                     # Set value to defaults.
                     node_dict.update({rel_key: rel_default['default']})
+
         return node_dict
 
     def generate_node(self, G, node_dict):
