@@ -60,18 +60,26 @@ class DataModelJsonLD(object):
                 for node_1, node_2, relationship in self.graph.edges:
                     key_context, key_rel = rel_vals['jsonld_key'].split(':')
                     if relationship == key_rel:
-                        if node_2 == node:
-                            node_1_id = {'@id': 'bts:'+node_1}
-                            # Make sure the key is in the template (differs between properties and classes)
-                            if rel_vals['jsonld_key'] in template.keys():
-                                # TODO Move this to a helper function to clear up.
-                                try:
+                        if key_rel == 'domainIncludes':
+                            if node_1 == node:
+                                node_2_id = {'@id': 'bts:'+node_2}
+                                # Make sure the key is in the template (differs between properties and classes)
+                                if rel_vals['jsonld_key'] in template.keys():
+                                    # TODO Move this to a helper function to clear up.
+                                    if isinstance(template[rel_vals['jsonld_key']], list):
+                                        template[rel_vals['jsonld_key']].append(node_2_id)
+                                    else:
+                                        template[rel_vals['jsonld_key']] == node_2
+                        else:
+                            if node_2 == node:
+                                node_1_id = {'@id': 'bts:'+node_1}
+                                # Make sure the key is in the template (differs between properties and classes)
+                                if rel_vals['jsonld_key'] in template.keys():
+                                    # TODO Move this to a helper function to clear up.
                                     if isinstance(template[rel_vals['jsonld_key']], list):
                                         template[rel_vals['jsonld_key']].append(node_1_id)
                                     else:
                                         template[rel_vals['jsonld_key']] == node_1
-                                except:
-                                    breakpoint()
 
             # Fill node information
             else:
@@ -164,8 +172,6 @@ class DataModelJsonLD(object):
             else:
                 obj = self.create_object(template = self.class_template(), node = node)
             self.json_ld_object['@graph'].append(obj)
-            if node in properties:
-                breakpoint()
         return self.json_ld_object
 
 """

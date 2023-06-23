@@ -188,8 +188,6 @@ class DataModelCSVParser():
                 rel_val_type = self.rel_val_types[relationship]
                 if not pd.isnull(attr[relationship]):
                     # Fill in relationships based on type:
-                    # TODO Look for matching types and handle non matches in function.
-                    # Add boolean type value
                     if rel_val_type == bool and type(attr[relationship]) == bool:
                         rels = attr[relationship]
                     # Add other value types and adjust as needed.
@@ -205,6 +203,7 @@ class DataModelCSVParser():
                         #rels = attr[relationship].strip()
                     attr_rel_dictionary[attr['Attribute']]['Relationships'].update({relationship:rels})
             position += 1
+
         return attr_rel_dictionary
 
 
