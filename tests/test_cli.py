@@ -61,6 +61,7 @@ class TestSchemaCli:
     @pytest.mark.google_credentials_needed
     def test_get_example_manifest_default(self, runner, helpers, config: Configuration, data_model_jsonld):
         output_path = helpers.get_data_path("example.Patient.manifest.csv")
+        config.load_config("config_example.yml")
 
         result = runner.invoke(
             manifest, ["--config", config.config_path, "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld]
@@ -75,6 +76,7 @@ class TestSchemaCli:
     @pytest.mark.google_credentials_needed
     def test_get_example_manifest_csv(self, runner, helpers, config: Configuration, data_model_jsonld):
         output_path = helpers.get_data_path("test.csv")
+        config.load_config("config_example.yml")
 
         result = runner.invoke(
             manifest, ["--config", config.config_path, "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_csv", output_path]
@@ -86,6 +88,7 @@ class TestSchemaCli:
     @pytest.mark.google_credentials_needed
     def test_get_example_manifest_excel(self, runner, helpers, config: Configuration, data_model_jsonld):
         output_path = helpers.get_data_path("test.xlsx")
+        config.load_config("config_example.yml")
 
         result = runner.invoke(
             manifest, ["--config", config.config_path,  "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_xlsx", output_path]
