@@ -5,17 +5,20 @@ from schematic.schemas.data_model_relationships import (
     DataModelRelationships
     )
 
-from schematic.utils.schema_util import get_property_label_from_display_name, get_class_label_from_display_name, get_display_name_from_label, convert_bool
+from schematic.utils.schema_util import get_label_from_display_name, get_display_name_from_label, convert_bool
 from schematic.utils.validate_rules_utils import validate_schema_rules
 from schematic.schemas.curie import uri2curie, curie2uri
 
 
 class DataModelNodes():
-    def __init__(self):
+    def __init__(self, attribute_relationships_dict):
         self.namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
         self.data_model_relationships = DataModelRelationships()
         self.value_relationships = self.data_model_relationships.define_value_relationships()
         self.edge_relationships_dictionary = self.data_model_relationships.define_edge_relationships()
+        self.ar_dict = attribute_relationships_dict
+        # Identify all properties
+        self.properties = self.get_data_model_properties(ar_dict=self.ar_dict)
         
         
         return
@@ -73,23 +76,39 @@ class DataModelNodes():
                     rel_default = v['node_attr_dict']
                     return rel_key, rel_default
 
-    def run_rel_functions(self, rel_func, node_display_name='', key='', attr_relationships='', csv_header=''):
+    def get_data_model_properties(self, ar_dict):
+        properties=[]
+        for attribute, relationships in ar_dict.items():
+            if 'Properties' in relationships['Relationships'].keys():
+                properties.extend(relationships['Relationships']['Properties'])
+        properties = list(set(properties))
+        return properties
+
+    def get_entry_type(self, node_display_name):
+        if node_display_name in self.properties:
+                entry_type = 'property'
+        else:
+            entry_type = 'class'
+        return entry_type
+
+    def run_rel_functions(self, rel_func, node_display_name='', key='', attr_relationships='', csv_header='', entry_type=''):
         ''' This function exists to centralzie handling of functions for filling out node information.
         TODO: and an ending else statement to alert to no func being caught.
         - Implement using a factory pattern.
-
+        elif key == 'id' and rel_func == get_property_label_from_display_name:
+            func_output = 'bts:' + get_property_label_from_display_name(node_display_name)
+        
+        elif rel_func == get_class_label_from_display_name:
+            func_output = get_class_label_from_display_name(node_display_name)
         '''
+
         func_output = ''
         if rel_func == get_display_name_from_label:
             func_output = get_display_name_from_label(node_display_name, attr_relationships)
-        elif key == 'id' and rel_func == get_class_label_from_display_name:
-            func_output = 'bts:' + get_class_label_from_display_name(node_display_name)
-        elif key == 'id' and rel_func == get_property_label_from_display_name:
-            func_output = 'bts:' + get_property_label_from_display_name(node_display_name)
-        elif rel_func == get_class_label_from_display_name:
-            func_output = get_class_label_from_display_name(node_display_name)
-        elif rel_func == get_property_label_from_display_name:
-            func_output = get_property_label_from_display_name(node_display_name)
+        elif key == 'id' and rel_func == get_label_from_display_name:
+            func_output = 'bts:' + get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)
+        elif rel_func == get_label_from_display_name:
+            func_output = get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)
         elif rel_func == convert_bool:
             func_output = 'sms:' + convert_bool(attr_relationships[csv_header]).lower()
         else:
@@ -113,6 +132,9 @@ class DataModelNodes():
 
         # Strip whitespace from node display name
         node_display_name = node_display_name.strip()
+
+        # Determine if property or class
+        entry_type = self.get_entry_type(node_display_name=node_display_name)
         
         # If the node is an attribute, find its relationships.
         attr_relationships = {}
@@ -133,7 +155,7 @@ class DataModelNodes():
                 # Check if the default specifies calling a function.
                 if 'standard' in rel_default.keys() and isfunction(rel_default['standard']):
                     # Add to node_dict The value comes from the standard function call. 
-                    node_dict.update({rel_key: self.run_rel_functions(rel_default['standard'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships, csv_header=csv_header)})
+                    node_dict.update({rel_key: self.run_rel_functions(rel_default['standard'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships, csv_header=csv_header, entry_type=entry_type)})
                 else:
                     # For standard entries, get information from attr_relationship dictionary
                     node_dict.update({rel_key: attr_relationships[csv_header]})
@@ -141,7 +163,7 @@ class DataModelNodes():
             else: 
                 # Check if the default specifies calling a function.
                 if 'default' in rel_default.keys() and isfunction(rel_default['default']):
-                    node_dict.update({rel_key: self.run_rel_functions(rel_default['default'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships, csv_header=csv_header)})
+                    node_dict.update({rel_key: self.run_rel_functions(rel_default['default'], node_display_name=node_display_name, key=key, attr_relationships=attr_relationships, csv_header=csv_header, entry_type=entry_type)})
                 else:
                     # Set value to defaults.
                     node_dict.update({rel_key: rel_default['default']})

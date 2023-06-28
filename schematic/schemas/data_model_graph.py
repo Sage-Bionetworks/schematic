@@ -68,16 +68,16 @@ class DataModelGraph():
     '''
     __metaclass__ = DataModelGraphMeta
 
-    def __init__(self, parsed_data_model):
+    def __init__(self, attribute_relationships_dict):
         '''Load parsed data model.
         '''
         
-        self.data_model = parsed_data_model
-        self.dmn = DataModelNodes()
+        self.attribute_relationships_dict = attribute_relationships_dict
+        self.dmn = DataModelNodes(self.attribute_relationships_dict)
         self.dme = DataModelEdges()
         self.data_model_relationships = DataModelRelationships()
 
-        if not self.data_model:
+        if not self.attribute_relationships_dict:
             raise ValueError(
                     "Something has gone wrong, a data model was not loaded into the DataModelGraph Class. Please check that your paths are correct"
                 )
@@ -94,13 +94,13 @@ class DataModelGraph():
         G = nx.MultiDiGraph()
 
         # Find all nodes
-        all_nodes = self.dmn.gather_all_nodes(self.data_model)
+        all_nodes = self.dmn.gather_all_nodes(self.attribute_relationships_dict)
         all_node_dict = {}
         ## Fill in MultiDigraph with nodes and edges
         for node in all_nodes:
             
             # Gather information for each node
-            node_dict = self.dmn.generate_node_dict(node, self.data_model)
+            node_dict = self.dmn.generate_node_dict(node, self.attribute_relationships_dict)
 
             all_node_dict[node] = node_dict
             # Generate node and attach information
@@ -108,7 +108,7 @@ class DataModelGraph():
 
         for node in all_nodes:
             # Generate edges
-            G = self.dme.generate_edge(G, node, all_node_dict, self.data_model, edge_relationships)
+            G = self.dme.generate_edge(G, node, all_node_dict, self.attribute_relationships_dict, edge_relationships)
         return G
 
 class DataModelGraphExporer():

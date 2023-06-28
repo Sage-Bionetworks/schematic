@@ -206,7 +206,6 @@ class DataModelJsonLD(object):
         '''        
         # Get properties.
         properties = self.DME.find_properties()
-        #classes = self.DME.find_classes()
         # Get JSONLD Template
         self.json_ld_object = self.base_jsonld_template()
         

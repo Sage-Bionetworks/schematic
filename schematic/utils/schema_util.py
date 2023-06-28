@@ -52,7 +52,16 @@ def get_display_name_from_label(node_name, attr_relationships):
         display_name = attr_relationships['Attribute']
     else:
         display_name = node_name
-    return display_name    
+    return display_name
+
+def get_label_from_display_name(display_name, entry_type, strict_camel_case = False):
+    
+    if entry_type.lower()=='class':
+        label = get_class_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+    
+    elif entry_type.lower()=='property':
+        label=get_property_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+    return label
 
 def convert_bool(provided_bool):
     return str(provided_bool)
