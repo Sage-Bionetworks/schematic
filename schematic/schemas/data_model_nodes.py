@@ -91,7 +91,7 @@ class DataModelNodes():
         elif rel_func == get_property_label_from_display_name:
             func_output = get_property_label_from_display_name(node_display_name)
         elif rel_func == convert_bool:
-            func_output == 'sms:' + convert_bool(attr_relationships[csv_header]).lower()
+            func_output = 'sms:' + convert_bool(attr_relationships[csv_header]).lower()
         else:
             # raise error here to catch non valid function.
             breakpoint()
