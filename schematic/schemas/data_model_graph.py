@@ -120,6 +120,9 @@ class DataModelGraphExporer():
         self.graph = G
 
     def find_properties(self):
+        """
+        TODO: handle 'domainIncludes' with relationship edge parameters.
+        """
         properties=[]
         for node_1, node_2, rel in self.graph.edges:
             if rel == 'domainIncludes':
