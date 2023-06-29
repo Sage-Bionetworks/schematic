@@ -1081,6 +1081,7 @@ class ManifestGenerator(object):
         ordered_metadata_fields,
         json_schema,
         spreadsheet_id,
+        sheet_url,
     ):
         """Create and store all formatting changes for the google sheet to
         execute at once.
@@ -1103,9 +1104,13 @@ class ManifestGenerator(object):
         requests_body = {}
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
-            # Gather validation rules and valid values for attribute
-            validation_rules = self.sg.get_node_validation_rules(req)
+            # Gather validation rules and valid values for attribute, if using google sheets.
+            if sheet_url:
+                validation_rules = self.sg.get_node_validation_rules(req)
+            else:
+                validation_rules = ""
 
+            
             if validation_rules:
                 requests_body =self._request_regex_match_vr_formatting(
                         validation_rules, i, spreadsheet_id, requests_body
@@ -1164,7 +1169,7 @@ class ManifestGenerator(object):
             requests_body["requests"].append(borders_formatting)
         return requests_body
 
-    def _create_empty_gs(self, required_metadata_fields, json_schema, spreadsheet_id):
+    def _create_empty_gs(self, required_metadata_fields, json_schema, spreadsheet_id, sheet_url):
         """Generate requests to add columns and format the google sheet.
         Args:
             required_metadata_fields(dict):
@@ -1194,6 +1199,7 @@ class ManifestGenerator(object):
             ordered_metadata_fields,
             json_schema,
             spreadsheet_id,
+            sheet_url,
         )
 
         # Execute requests
@@ -1236,7 +1242,7 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, json_schema_filepath=None):
+    def get_empty_manifest(self, json_schema_filepath=None, sheet_url=None):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
@@ -1254,7 +1260,7 @@ class ManifestGenerator(object):
         )
 
         manifest_url = self._create_empty_gs(
-            required_metadata_fields, json_schema, spreadsheet_id
+            required_metadata_fields, json_schema, spreadsheet_id, sheet_url=sheet_url,
         )
         return manifest_url
 
@@ -1353,7 +1359,7 @@ class ManifestGenerator(object):
         return annotations.rename(columns=label_map)
 
     def get_manifest_with_annotations(
-        self, annotations: pd.DataFrame
+        self, annotations: pd.DataFrame, sheet_url:bool,
     ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
         """Generate manifest, optionally with annotations (if requested).
 
@@ -1378,7 +1384,7 @@ class ManifestGenerator(object):
         self.additional_metadata = annotations_dict
 
         # Generate empty manifest using `additional_metadata`
-        manifest_url = self.get_empty_manifest()
+        manifest_url = self.get_empty_manifest(sheet_url)
         manifest_df = self.get_dataframe_by_url(manifest_url)
 
         # Annotations clashing with manifest attributes are skipped
@@ -1489,7 +1495,7 @@ class ManifestGenerator(object):
 
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema)
+            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema, sheet_url=sheet_url)
 
             # if output_form parameter is set to "excel", return an excel spreadsheet
             if output_format == "excel": 
@@ -1514,7 +1520,7 @@ class ManifestGenerator(object):
         manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
-        empty_manifest_url = self.get_empty_manifest()
+        empty_manifest_url = self.get_empty_manifest(sheet_url=sheet_url)
 
         # Populate empty template with existing manifest
         if manifest_record:
@@ -1545,7 +1551,7 @@ class ManifestGenerator(object):
 
             # if there are no files with annotations just generate an empty manifest
             if annotations.empty:
-                manifest_url = self.get_empty_manifest()
+                manifest_url = self.get_empty_manifest(sheet_url=sheet_url)
                 manifest_df = self.get_dataframe_by_url(manifest_url)
             else:
                 # Subset columns if no interested in user-defined annotations and there are files present
@@ -1553,7 +1559,7 @@ class ManifestGenerator(object):
                     annotations = annotations[["Filename", "eTag", "entityId"]]
 
                 # Update `additional_metadata` and generate manifest
-                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
+                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations, sheet_url=sheet_url)
             
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
