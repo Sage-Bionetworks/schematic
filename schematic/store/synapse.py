@@ -298,63 +298,6 @@ class SynapseStorage(BaseStorage):
                     raise ex
         return wrapper
 
-    def send_api_request(self, request_type: str, uri: str, body: Union[Dict, str], headers: Dict = None, endpoint: str = None, **kwargs):
-        """
-        Method to send API request to synapse via the python client
-
-        Args:
-            request_type: type of request to send (restGET, restPOST, restPUT, or restDELETE)
-            uri: uri on which request is performed
-            headers: Optional, dictionary of headers to use rather than the API-key-signed default set of headers
-                        If none passed in, use headers from synapse store object
-            body: body of the request, can be dictionary or JSON formatted string
-            endpoint: Optional, name of the endpoint to use, defaults to none which is evaluated by the client as self.repoEndpoint
-            **kwargs: other keyword arguments to pass to the request method
-
-        Returns:
-            response: response from the request sent
-        
-        TODO:
-            Allow asynchronous calls to operate asynchronously on the schematic side
-            Further generalize this function for other calls, ie. GET calls without a body
-        """
-        
-        # Make a dictionary for two purposes: 
-        # to be used for chekcing that the value entered is a valid request type 
-        # and to map from any capitalization of the string to the format required by the python client
-        request_types = {
-            'restget':  'restGET',
-            'restpost': 'restPOST',
-            'restput': 'restPUT',
-            'restdelete': 'restDELETE',
-
-        }
-        
-        # intialize response variable to None
-        response = None
-
-        # Use existing headers from synapse store object if none passed in
-        if not headers:
-            headers = self.syn.default_headers
-        
-        # If the user passed in a dictionary, convert to JSON string, 
-        # if they passed in a string, assume it's formatted appropriately
-        if isinstance(body, Dict):
-            body = json.dumps(body)
-
-        # Validate that entered request type is valid, and get the appropriate method from the python client
-        if request_type.lower() in request_types.keys():
-            request = getattr(self.syn, request_types[request_type.lower()])
-        else:
-            raise NotImplementedError(
-                f"The selected request: {request_type} is currenlty not exposed in the synaspePythonClient and cannot be used."
-            )
-
-        # Store request and return
-        response = request(uri, body, endpoint, headers, **kwargs)
-
-        return response
-
     def getStorageFileviewTable(self):
         """ Returns the storageFileviewTable obtained during initialization.
         """
