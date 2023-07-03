@@ -1461,8 +1461,8 @@ class ManifestGenerator(object):
 
             return output_file_path
         
-        # Return google sheet if sheet_url flag is raised.
-        elif sheet_url: 
+        # Return google sheet if sheet_url flag is raised or output_format="google_sheet".
+        elif sheet_url or output_format=="google_sheet": 
             manifest_sh = self.set_dataframe_by_url(manifest_url=empty_manifest_url, manifest_df=dataframe, out_of_schema_columns=out_of_schema_columns)
             return manifest_sh.url
         
@@ -1512,7 +1512,6 @@ class ManifestGenerator(object):
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
         manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
-
         # get URL of an empty manifest file created based on schema component
         empty_manifest_url = self.get_empty_manifest()
 
