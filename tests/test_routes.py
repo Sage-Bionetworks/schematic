@@ -26,6 +26,11 @@ def test_yaml_config_file(helpers):
     # Create the YAML file inside the temporary directory
     yaml_file_path = helpers.get_data_path("test_routes_config.yml")
     yaml_content = """
+    definitions:
+        creds_path: "../../credentials.json"
+        token_pickle: "token.pickle"
+        synapse_config: "../../.synapseConfig" ### Note: this key is required for people who use Synapse token authentication approach. 
+        service_acct_creds: "../../schematic_service_account_creds.json" ## Note: this key is required for google drive services 
     synapse:
         master_fileview: "syn23643253"
         manifest_basename: "synapse_storage_manifest"
@@ -50,7 +55,7 @@ def test_example_patient_manifest_generation(data_model_jsonld):
     )
     yield mg
 
-def test_manifest_generation_load_config(app, data_model_jsonld, test_yaml_config_file):
+def test_manifest_generation_load_config(app, data_model_jsonld, test_yaml_config_file, config_path):
     """Test if asset_view gets updated"""
     app.config["SCHEMATIC_CONFIG"] = test_yaml_config_file
     mg = ManifestGeneration(
@@ -60,6 +65,16 @@ def test_manifest_generation_load_config(app, data_model_jsonld, test_yaml_confi
     )
     config = mg._load_config_(app=app)
     assert config["synapse"]["master_fileview"] == "syn123"
+
+    # reset
+    app.config["SCHEMATIC_CONFIG"] = config_path
+    mg = ManifestGeneration(
+        schema_url=data_model_jsonld,
+        data_types=["test_data_type"],
+        asset_view="syn23643253",
+    )
+    config = mg._load_config_(app=app)
+    assert config["synapse"]["master_fileview"] == "syn23643253"
 
 def test_check_dataset_match_data_type(data_model_jsonld):
     """Test if function could raise an error when number of data types do not match number of dataset ids"""
