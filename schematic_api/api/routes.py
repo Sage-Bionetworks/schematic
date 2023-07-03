@@ -10,9 +10,9 @@ import urllib.request
 from dataclasses import field
 from typing import BinaryIO, List, Optional, Union
 
-
 import connexion
 import pandas as pd
+import requests
 from flask import Flask
 from flask import current_app as app
 from flask import request, send_from_directory
@@ -245,9 +245,12 @@ class ManifestGeneration():
     @validator('schema_url')
     def check_schema_url(cls, value: str):
         if " " in value:
-            raise ValueError('Please remove unnecessary space in schema url')
+            raise ValueError('Please remove unnecessary space in schema')
         if ".jsonld" not in value:
-            raise ValueError('Please provide a valid jsonld as schema url')
+            raise ValueError('Please provide a valid jsonld as schema')
+        response = requests.get(value)
+        if response.status_code != 200:
+            raise ValueError(f'Failed to open {value}. Please make sure the jsonld that you provided is valid.') 
         return value
 
     @validator('dataset_ids')

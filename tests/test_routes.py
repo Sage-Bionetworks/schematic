@@ -1,4 +1,4 @@
-import logging
+import os
 import warnings
 from unittest.mock import patch
 
@@ -21,19 +21,36 @@ def data_model_jsonld():
     data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
     yield data_model_jsonld
 
+@pytest.fixture
+def test_yaml_config_file(helpers):
+    # Create the YAML file inside the temporary directory
+    yaml_file_path = helpers.get_data_path("test_routes_config.yml")
+    yaml_content = """
+    synapse:
+        master_fileview: "syn23643253"
+        manifest_basename: "synapse_storage_manifest"
+        manifest_folder: "manifests"
+    """
 
-# def test_manifest_generation_load_config(app, config_path, data_model_jsonld):
-#     """Test if asset_view gets updated"""
-#     app.config["SCHEMATIC_CONFIG"] = config_path
-#     mg = ManifestGeneration(
-#         schema_url=data_model_jsonld,
-#         data_types=["test_data_type"],
-#         asset_view="syn123",
-#     )
-#     config = mg._load_config_(app=app)
+    with open(yaml_file_path, "w") as f:
+        f.write(yaml_content)
 
-#     assert config["synapse"]["master_fileview"] == "syn123"
+    # Yield the file path to the test
+    yield yaml_file_path
 
+    # Teardown: Remove the YAML file and temporary directory
+    os.remove(yaml_file_path)
+
+def test_manifest_generation_load_config(app, data_model_jsonld, test_yaml_config_file):
+    """Test if asset_view gets updated"""
+    app.config["SCHEMATIC_CONFIG"] = test_yaml_config_file
+    mg = ManifestGeneration(
+        schema_url=data_model_jsonld,
+        data_types=["test_data_type"],
+        asset_view="syn123",
+    )
+    config = mg._load_config_(app=app)
+    assert config["synapse"]["master_fileview"] == "syn123"
 
 def test_check_dataset_match_data_type(data_model_jsonld):
     """Test if function could raise an error when number of data types do not match number of dataset ids"""
@@ -45,8 +62,8 @@ def test_check_dataset_match_data_type(data_model_jsonld):
             dataset_ids=["syn1234"],
         )
 
-
-def test_check_if_asset_view_valid(data_model_jsonld):
+def test_check_invalid_asset_view(data_model_jsonld):
+    """Test if function could raise an error when asset view is invalid"""
     with pytest.raises(ValueError):
         mg = ManifestGeneration(
             schema_url=data_model_jsonld,
@@ -56,7 +73,8 @@ def test_check_if_asset_view_valid(data_model_jsonld):
         )
 
 
-def test_check_if_dataset_id_valid(data_model_jsonld):
+def test_check_invalid_dataset(data_model_jsonld):
+    """Test if function could raise an error when dataset id view is invalid"""
     with pytest.raises(ValueError):
         mg = ManifestGeneration(
             schema_url=data_model_jsonld,
@@ -65,6 +83,16 @@ def test_check_if_dataset_id_valid(data_model_jsonld):
             dataset_ids=["invalid dataset id"],
         )
 
+@pytest.mark.parametrize("invalid_json_ld", ["www.google.com", "https://github.com/Sage-Bionetworks/schematic/blob/develop/tests/data/example.model.json"])
+def test_check_invalid_jsonld(invalid_json_ld):
+    """Test if function could raise an error when schema url is not valid"""
+    with pytest.raises(ValueError):
+        mg = ManifestGeneration(
+            schema_url=invalid_json_ld,
+            data_types=["Biospecimen", "Patient"],
+            asset_view="syn1234",
+            dataset_ids="syn1234",
+        )
 
 @pytest.mark.parametrize(
     "test_title, mock_datatype, expected_title",
