@@ -686,6 +686,7 @@ class TestManifestOperation():
             "schema_url": data_model_jsonld,
             "data_type": "Biospecimen",
             "restrict_rules": False, 
+            "hide_blanks": False, 
             "manifest_record_type": "table_and_file",
             "asset_view": "syn51514344",
             "dataset_id": "syn51514345",

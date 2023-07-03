@@ -451,7 +451,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None, hide_blanks=False):
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -496,6 +496,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         access_token=access_token, 
         manifest_record_type = manifest_record_type, 
         restrict_rules = restrict_rules, 
+        hide_blanks=hide_blanks,
         table_manipulation = table_manipulation, 
         use_schema_label=use_schema_label)
 
