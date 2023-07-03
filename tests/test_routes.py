@@ -41,6 +41,15 @@ def test_yaml_config_file(helpers):
     # Teardown: Remove the YAML file and temporary directory
     os.remove(yaml_file_path)
 
+@pytest.fixture
+def test_example_patient_manifest_generation(data_model_jsonld):
+    mg = ManifestGeneration(
+        schema_url=data_model_jsonld,
+        data_types=["Patient"],
+        output_format="google_sheet",
+    )
+    yield mg
+
 def test_manifest_generation_load_config(app, data_model_jsonld, test_yaml_config_file):
     """Test if asset_view gets updated"""
     app.config["SCHEMATIC_CONFIG"] = test_yaml_config_file
@@ -111,41 +120,29 @@ def test_get_manifest_title(
     title = mg._get_manifest_title(single_data_type=mock_datatype)
     assert title == expected_title
 
+def test_create_single_manifest_google_sheet(test_example_patient_manifest_generation):
+    # assume get_manifest correctly returns a google sheet url
+    with patch.object(
+        ManifestGenerator, "get_manifest", return_value="google_sheet_url"
+    ) as mock_method:
+        result = test_example_patient_manifest_generation.create_single_manifest(
+            access_token="mock_access_token",
+            single_data_type="Patient",
+            single_dataset_id="syn1234",
+        )
+        assert result == "google_sheet_url"
 
-@pytest.mark.parametrize("output_format", ["google_sheet"])
-def test_create_single_manifest(output_format, data_model_jsonld):
-    """create_single_manifest wraps around manifest_generator.get_manifest function.
-    TODO: add test for output_format="excel"
-    """
-    mg = ManifestGeneration(
-        schema_url=data_model_jsonld,
-        data_types=["Patient"],
-        output_format=output_format,
-    )
-
-    if output_format == "google_sheet":
-        # assume get_manifest correctly returns a google sheet url
-        with patch.object(
-            ManifestGenerator, "get_manifest", return_value="google_sheet_url"
-        ) as mock_method:
-            result = mg.create_single_manifest(
-                access_token="mock_access_token",
-                single_data_type="Patient",
-                single_dataset_id="syn1234",
-            )
-            assert result == "google_sheet_url"
-    elif output_format == "dataframe":
-        # assume get_manifest correctly returns a dataframe
-        with patch.object(
+def test_create_single_manifest_dataframe(test_example_patient_manifest_generation):
+    # assume get_manifest correctly returns a dataframe
+    with patch.object(
             ManifestGenerator, "get_manifest", return_value=pd.DataFrame()
-        ) as mock_method:
-            result = mg.create_single_manifest(
-                access_token="mock_access_token",
-                single_data_type="Patient",
-                single_dataset_id="syn1234",
-            )
-            assert isinstance(result, pd.DataFrame)
-
+    ) as mock_method:
+        result = test_example_patient_manifest_generation.create_single_manifest(
+                    access_token="mock_access_token",
+                    single_data_type="Patient",
+                    single_dataset_id="syn1234",
+                )
+        assert isinstance(result, pd.DataFrame)
 
 @pytest.mark.parametrize("data_type", [["Patient, Biospecimen"], ["Patient"]])
 @pytest.mark.parametrize("output_format", ["google_sheet", "dataframe", "excel"])
