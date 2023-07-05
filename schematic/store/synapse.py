@@ -601,7 +601,7 @@ class SynapseStorage(BaseStorage):
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
         if dataset_files:
-            new_files = self._get_file_entityIDs(manifest, dataset_files, True)
+            new_files = self._get_file_entityIDs(manifest=manifest, dataset_files=dataset_files, only_new_files=True)
 
             # update manifest so that it contain new files
             new_files = pd.DataFrame(new_files)
@@ -1382,7 +1382,7 @@ class SynapseStorage(BaseStorage):
         if 'filename' in [col.lower() for col in manifest.columns]:
             # get current list of files and store as dataframe
             dataset_files = self.getFilesInStorageDataset(datasetId)
-            files = self._get_file_entityIDs(manifest, dataset_files, False)
+            files = self._get_file_entityIDs(manifest=manifest,dataset_files=dataset_files, only_new_files=False)
             file_df = pd.DataFrame(files)
             
             # TODO: Adjust merge params according to expected behavior ie. inner vs outer join, dropping of entityId col
