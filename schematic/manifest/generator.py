@@ -1,12 +1,15 @@
-import os
-import logging
-from typing import Dict, List, Tuple, Union
 from collections import OrderedDict
-from tempfile import NamedTemporaryFile
-
-import pandas as pd
-import pygsheets as ps
 import json
+import logging
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+import os
+import pandas as pd
+from pathlib import Path
+import pygsheets as ps
+from tempfile import NamedTemporaryFile
+from typing import Dict, List, Tuple, Union
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import (
@@ -20,10 +23,9 @@ from schematic.utils.validate_utils import rule_in_rule_list
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
 from schematic.utils.google_api_utils import export_manifest_drive_service
-from openpyxl import load_workbook
-from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
 
@@ -127,13 +129,9 @@ class ManifestGenerator(object):
         col_letter = self._column_to_letter(column_idx)
 
         if not required:
-            bg_color = CONFIG["style"]["google_manifest"].get(
-                "opt_bg_color", {"red": 1.0, "green": 1.0, "blue": 0.9019,},
-            )
+            bg_color = CONFIG.google_optional_background_color
         else:
-            bg_color = CONFIG["style"]["google_manifest"].get(
-                "req_bg_color", {"red": 0.9215, "green": 0.9725, "blue": 0.9803,},
-            )
+            bg_color = CONFIG.google_required_background_color
 
         boolean_rule = {
             "condition": {
@@ -172,22 +170,33 @@ class ManifestGenerator(object):
             .execute()["id"]
         )
 
-    def _create_empty_manifest_spreadsheet(self, title):
-        if CONFIG["style"]["google_manifest"]["master_template_id"]:
+    def _create_empty_manifest_spreadsheet(self, title:str) -> str:
+        """
+        Creates an empty google spreadsheet returning the id.
+        If the configuration has a template id it will be used
 
-            # if provided with a template manifest google sheet, use it
-            spreadsheet_id = self._gdrive_copy_file(
-                CONFIG["style"]["google_manifest"]["master_template_id"], title
-            )
+        Args:
+            title (str): The title of the spreadsheet
+
+        Returns:
+            str: The id of the created spreadsheet
+        """
+        template_id = CONFIG.google_sheets_master_template_id
+
+        if template_id:
+            spreadsheet_id = self._gdrive_copy_file(template_id, title)
 
         else:
             spreadsheet_body = {
-            'properties': {
-                'title': title
-            }}
+                'properties': {
+                    'title': title
+                }
+            }
 
-            # if no template, create an empty spreadsheet
-            spreadsheet_id = self.sheet_service.spreadsheets().create(body=spreadsheet_body, fields="spreadsheetId").execute().get("spreadsheetId")
+            spreadsheet_id = self.sheet_service.spreadsheets().create(
+                body=spreadsheet_body,
+                fields="spreadsheetId").execute().get("spreadsheetId"
+            )
 
         return spreadsheet_id
 
@@ -287,8 +296,7 @@ class ManifestGenerator(object):
 
         # set validation strictness to config file default if None indicated.
         if strict == None:
-            strict = CONFIG["style"]["google_manifest"].get("strict_validation", True)
-        
+            strict = CONFIG.google_sheets_strict_validation
         #store valid values explicitly in workbook at the provided range to use as validation values
         if validation_type == "ONE_OF_RANGE":
             valid_values=self._store_valid_values_as_data_dictionary(column_id, valid_values, spreadsheet_id)
@@ -893,14 +901,7 @@ class ManifestGenerator(object):
         """
         # check if attribute is required and set a corresponding color
         if req in json_schema["required"]:
-            bg_color = CONFIG["style"]["google_manifest"].get(
-                "req_bg_color",
-                {
-                    "red": 0.9215,
-                    "green": 0.9725,
-                    "blue": 0.9803,
-                },
-            )
+            bg_color = CONFIG.google_required_background_color
 
             req_format_body = {
                 "requests": [
@@ -1453,7 +1454,7 @@ class ManifestGenerator(object):
                                                           manifest_url = empty_manifest_url,
                                                           output_location = output_path,
                                                           )
-            
+
             # populate an excel spreadsheet with the existing dataframe
             self.populate_existing_excel_spreadsheet(output_file_path, dataframe)
 
@@ -1612,28 +1613,62 @@ class ManifestGenerator(object):
 
         return updated_df, out_of_schema_columns
 
+    def _format_new_excel_column(self, worksheet, new_column_index: int, col: str):
+        """Add new column to an openpyxl worksheet and format header.
+        Args:
+            worksheet: openpyxl worksheet
+            new_column_index, int: index to add new column
+        Return:
+            modified worksheet
+        """
+        # Add column header
+        worksheet.cell(row=1, column=new_column_index+1).value = col
+        # Format new column header 
+        worksheet.cell(row=1, column=new_column_index+1).font = Font(size=8, bold=True, color="FF000000")
+        worksheet.cell(row=1, column=new_column_index+1).alignment = Alignment(horizontal="center", vertical="bottom")
+        worksheet.cell(row=1, column=new_column_index+1).fill = PatternFill(start_color='FFE0E0E0', end_color='FFE0E0E0', fill_type='solid')
+        return worksheet
+
     def populate_existing_excel_spreadsheet(self, existing_excel_path: str = None, additional_df: pd.DataFrame = None):
         '''Populate an existing excel spreadsheet by using an additional dataframe (to avoid sending metadata directly to Google APIs)
+        New columns will be placed at the end of the spreadsheet.
         Args:
             existing_excel_path: path of an existing excel spreadsheet
             additional_df: additional dataframe
         Return: 
             added new dataframe to the existing excel path.
-        TODO:
-            - The naming of existing and additional df is a bit confusing. 
+        Note:
+            - Done by rows and column as a way to preserve formatting. 
+            Doing a complete replacement will remove all conditional formatting and dropdowns.
         '''
         # load workbook
         workbook = load_workbook(existing_excel_path)
+        worksheet = workbook.active
 
-        # initalize excel writer
-        with pd.ExcelWriter(existing_excel_path, mode='a', engine='openpyxl', if_sheet_exists='replace') as writer: 
-            writer.worksheets = {ws.title: ws for ws in workbook.worksheets}
-            worksheet = writer.worksheets["Sheet1"]
-           
-            # overwrite existing df with new df, if there is info in the new df
-            # In future depreciate using a prepopulated excel.
-            if not additional_df.empty:
-                additional_df.to_excel(writer, "Sheet1", startrow=0, index = False, header=True)
+        # Add new data to existing excel
+        if not additional_df.empty:
+            existing_excel_headers = [cell.value for cell in worksheet[1] if cell.value != None]
+
+            new_column_index = len(existing_excel_headers)
+            df_columns = additional_df.columns
+
+            # Iteratively fill workbook with contents of additional_df
+            for row_num, row_contents in enumerate(dataframe_to_rows(additional_df, index=False, header=False), 2):
+                for index, col in enumerate(df_columns):
+                    if col in existing_excel_headers:
+                        # Get index of column header in existing excel to ensure no values are placed in incorrect spot.
+                        existing_column_index = existing_excel_headers.index(col)
+                        worksheet.cell(row=row_num, column=existing_column_index+1).value = row_contents[index]
+                    else:
+                        # Add new col to excel worksheet and format.
+                        worksheet = self._format_new_excel_column(worksheet=worksheet, new_column_index=new_column_index, col=col)
+                        # Add data to column
+                        worksheet.cell(row=row_num, column=new_column_index+1).value = row_contents[index]
+                        # Add new column to headers so it can be accounted for.
+                        existing_excel_headers.append(col)
+                        # Update index for adding new columns.
+                        new_column_index+=1                   
+        workbook.save(existing_excel_path)
 
     def populate_manifest_spreadsheet(self, existing_manifest_path: str = None, empty_manifest_url: str = None, return_excel: bool = False, title: str = None):
         """Creates a google sheet manifest based on existing manifest.

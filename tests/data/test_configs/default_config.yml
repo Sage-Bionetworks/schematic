@@ -1,0 +1,21 @@
+# This config has the same default values as schematic itself has
+asset_store:
+  synapse:
+    config: ".synapseConfig"
+    manifest_basename: 'synapse_storage_manifest'
+    master_fileview_id:  'syn23643253'
+
+manifest:
+  manifest_folder:  'manifests'
+  title: 'example'
+  data_type:
+    - 'Biospecimen'
+    - 'Patient'
+
+model:
+  location: 'tests/data/example.model.jsonld'
+
+google_sheets:
+  service_acct_creds_synapse_id: 'syn25171627'
+  service_acct_creds: "schematic_service_account_creds.json"
+  strict_validation: true

@@ -18,7 +18,7 @@ from flask import current_app as app
 import pandas as pd
 import json
 
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 from schematic.manifest.generator import ManifestGenerator
@@ -32,24 +32,13 @@ from schematic.utils.general import entity_type_mapping
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-def config_handler(asset_view=None):
-    path_to_config = app.config["SCHEMATIC_CONFIG"]
-
-    # if content of the config file is provided: 
-    content_of_config = app.config["SCHEMATIC_CONFIG_CONTENT"]
-
-    # if the environment variable exists
-    if content_of_config:
-        CONFIG.load_config_content_from_env()
-    
+def config_handler(asset_view: str=None):
     # check if path to config is provided
-    if os.path.isfile(path_to_config):
-        CONFIG.load_config(path_to_config, asset_view = asset_view)
-
-    else:
-        raise FileNotFoundError(
-            f"No configuration file was found at this path: {path_to_config}"
-        )
+    path_to_config = app.config["SCHEMATIC_CONFIG"]
+    if path_to_config is not None and os.path.isfile(path_to_config):
+        CONFIG.load_config(path_to_config)
+    if asset_view is not None:
+        CONFIG.synapse_master_fileview_id = asset_view
 
 class JsonConverter:
     '''
@@ -370,7 +359,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None):
+def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None, hide_blanks=False):
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -415,6 +404,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         access_token=access_token, 
         manifest_record_type = manifest_record_type, 
         restrict_rules = restrict_rules, 
+        hide_blanks=hide_blanks,
         table_manipulation = table_manipulation, 
         use_schema_label=use_schema_label)
 
