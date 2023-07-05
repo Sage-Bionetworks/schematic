@@ -12,9 +12,9 @@ from synapseclient import EntityViewSchema, Folder
 from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
-from schematic.utils.cli_utils import get_from_config
 from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
+from schematic.configuration.configuration import Configuration
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -113,12 +113,11 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
-    def test_annotation_submission(self, synapse_store, helpers, config):
+    def test_annotation_submission(self, synapse_store, helpers, config: Configuration):
         manifest_path = "mock_manifests/annotations_test_manifest.csv"
 
         # Upload dataset annotations
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
-        sg = SchemaGenerator(inputModelLocaiton)
+        sg = SchemaGenerator(config.model_location)
 
         try:        
             for attempt in Retrying(
@@ -291,7 +290,7 @@ class TestDatasetFileView:
 @pytest.mark.table_operations
 class TestTableOperations:
 
-    def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
+    def test_createTable(self, helpers, synapse_store, config: Configuration, projectId, datasetId):
         table_manipulation = None
 
         # Check if FollowUp table exists if so delete
@@ -307,7 +306,7 @@ class TestTableOperations:
 
         # associate metadata with files
         manifest_path = "mock_manifests/table_manifest.csv"
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
         # updating file view on synapse takes a long time
@@ -328,7 +327,7 @@ class TestTableOperations:
         # assert table exists
         assert table_name in existing_tables.keys()
 
-    def test_replaceTable(self, helpers, synapse_store, config, projectId, datasetId):
+    def test_replaceTable(self, helpers, synapse_store, config: Configuration, projectId, datasetId):
         table_manipulation = 'replace'
 
         table_name='followup_synapse_storage_manifest_table'
@@ -346,7 +345,7 @@ class TestTableOperations:
             assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
         # associate org FollowUp metadata with files
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
             # updating file view on synapse takes a long time
@@ -395,7 +394,7 @@ class TestTableOperations:
         # delete table        
         synapse_store.syn.delete(tableId)
 
-    def test_upsertTable(self, helpers, synapse_store, config, projectId, datasetId):
+    def test_upsertTable(self, helpers, synapse_store, config:Configuration, projectId, datasetId):
         table_manipulation = "upsert"
 
         table_name="MockRDB_synapse_storage_manifest_table".lower()
@@ -413,7 +412,7 @@ class TestTableOperations:
             assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
         # associate org FollowUp metadata with files
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
             # updating file view on synapse takes a long time
@@ -493,7 +492,7 @@ class TestDownloadManifest:
             assert manifest_syn_id == censored_manifest_id
 
     @pytest.mark.parametrize("newManifestName",["", "Example"]) 
-    def test_download_manifest(self, config, mock_manifest_download, newManifestName):
+    def test_download_manifest(self, mock_manifest_download, newManifestName):
         # test the download function by downloading a manifest
         manifest_data = mock_manifest_download.download_manifest(mock_manifest_download, newManifestName)
         assert os.path.exists(manifest_data['path'])

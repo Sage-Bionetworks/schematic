@@ -12,7 +12,6 @@ from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema, rule_in_rule_list
 
-from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -689,31 +688,19 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
 
-        # Check if config value is provided; otherwise, set to None
-        json_schema_log_file = query_dict(
-            CONFIG.DATA, ("model", "input", "log_location")
-        )
-
         # If no config value and SchemaGenerator was initialized with
         # a JSON-LD path, construct
-        if json_schema_log_file is None and self.jsonld_path is not None:
+        if self.jsonld_path is not None:
             prefix = self.jsonld_path_root
             prefix_root, prefix_ext = os.path.splitext(prefix)
             if prefix_ext == ".model":
                 prefix = prefix_root
             json_schema_log_file = f"{prefix}.{source_node}.schema.json"
 
-        if json_schema_log_file is None:
-            logger.info(
-                "The JSON schema file can be inspected by setting the following "
-                "nested key in the configuration: (model > input > log_location)."
-            )
-        else:
-            json_schema_dirname = os.path.dirname(json_schema_log_file)
-            if json_schema_dirname != '':
-                os.makedirs(json_schema_dirname, exist_ok=True)
-            with open(json_schema_log_file, "w") as js_f:
-                json.dump(json_schema, js_f, indent=2)
+        logger.info(
+            "The JSON schema file can be inspected by setting the following "
+            "nested key in the configuration: (model > input > log_location)."
+        )
 
         logger.info(f"JSON schema file log stored as {json_schema_log_file}")
 

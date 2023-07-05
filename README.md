@@ -88,45 +88,69 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 
 <strong>Configure config.yml File</strong>
 
-*Note*: Below is only a brief explanation of some attributes in `config.yml`. <strong>Please use the link [here](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml) to get the latest version of `config.yml` in `develop` branch</strong>.
+There are some defaults in schematic that can be configured. These fields are in ``config_example.yml``:
 
-Description of `config.yml` attributes
+```text
 
-    definitions:
-        synapse_config: "~/path/to/.synapseConfig"
-        service_acct_creds: "~/path/to/service_account_creds.json"
+# This is an example config for Schematic.
+# All listed values are those that are the default if a config is not used.
+# Save this as config.yml, this will be gitignored.
+# Remove any fields in the config you don't want to change
+# Change the values of any fields you do want to change
 
-    synapse:
-        master_fileview: "syn23643253" # fileview of project with datasets on Synapse
-        manifest_folder: "~/path/to/manifest_folder/" # manifests will be downloaded to this folder
-        manifest_basename: "filename" # base name of the manifest file in the project dataset, without extension
-        service_acct_creds: "syn25171627" # synapse ID of service_account_creds.json file
 
-    manifest:
-        title: "example" # title of metadata manifest file
-        # to make all manifests enter only 'all manifests'
-        data_type: 
-          - "Biospecimen"
-          - "Patient"
+# This describes where assets such as manifests are stored
+asset_store:
+  # This is when assets are stored in a synapse project
+  synapse:
+    # Synapse ID of the file view listing all project data assets.
+    master_fileview_id: "syn23643253"
+    # Path to the synapse config file, either absolute or relative to this file
+    config: ".synapseConfig"
+    # Base name that manifest files will be saved as
+    manifest_basename: "synapse_storage_manifest"
 
-    model:
-        input:
-            location: "data/schema_org_schemas/example.jsonld" # path to JSON-LD data model
-            file_type: "local" # only type "local" is supported currently
-    style: # configuration of google sheet
-        google_manifest:
-          req_bg_color:
-            red: 0.9215
-            green: 0.9725
-            blue: 0.9803
-          opt_bg_color:
-            red: 1.0
-            green: 1.0
-            blue: 0.9019
-          master_template_id: '1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU'
-          strict_validation: true
+# This describes information about manifests as it relates to generation and validation
+manifest:
+  # Location where manifests will saved to
+  manifest_folder: "manifests"
+  # Title or title prefix given to generated manifest(s)
+  title: "example"
+  # Data types of manifests to be generated or data type (singular) to validate manifest against
+  data_type:
+    - "Biospecimen"
+    - "Patient"
 
-*Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
+# Describes the location of your schema
+model:
+  # Location of your schema jsonld, it must be a path relative to this file or absolute
+  location: "tests/data/example.model.jsonld"
+
+# This section is for using google sheets with Schematic
+google_sheets:
+  # The Synapse id of the Google service account credentials.
+  service_acct_creds_synapse_id: "syn25171627"
+  # Path to the synapse config file, either absolute or relative to this file
+  service_acct_creds: "schematic_service_account_creds.json"
+  # When doing google sheet validation (regex match) with the validation rules.
+  #   true is alerting the user and not allowing entry of bad values.
+  #   false is warning but allowing the entry on to the sheet.
+  strict_validation: true
+```
+
+If you want to change any of these copy ``config_example.yml`` to ``config.yml``, change any fields you want to, and remove any fields you don't.
+
+For example if you wanted to change the folder where manifests are downloaded your config should look like:
+
+```text
+
+manifest:
+  manifest_folder: "my_manifest_folder_path"
+```
+
+_Note_: `config.yml` is ignored by git.
+
+_Note_: Paths can be specified relative to the `config.yml` file or as absolute paths.
 
 6. Login to Synapse by using the command line
 On the CLI in your virtual environment, run the following command: 

@@ -52,7 +52,7 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
 
 logger = logging.getLogger("Synapse storage")
 
@@ -69,35 +69,23 @@ class ManifestDownload(object):
         """
         try downloading a manifest to local cache or a given folder
         manifest
-        Return: 
+        Return:
             manifest_data: A Synapse file entity of the downloaded manifest
         """
-        # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config (See issue FDS-349 in Jira)
-        # on AWS, to avoid overriding manifest, we download the manifest to a temporary folder
         if "SECRETS_MANAGER_SECRETS" in os.environ:
             temporary_manifest_storage = "/var/tmp/temp_manifest_download"
             if not os.path.exists(temporary_manifest_storage):
                 os.mkdir("/var/tmp/temp_manifest_download")
             download_location = create_temp_folder(temporary_manifest_storage)
-
-        elif CONFIG["synapse"]["manifest_folder"]:
-            download_location=CONFIG["synapse"]["manifest_folder"]
-
         else:
-            download_location=None
-        
-        if not download_location:
-            manifest_data = self.syn.get(
-                        self.manifest_id,
-                    )
-        # if download_location is provided and it is not an empty string
-        else:
-            manifest_data = self.syn.get(
-                    self.manifest_id,
-                    downloadLocation=download_location,
-                    ifcollision="overwrite.local",
-                )
-        return manifest_data 
+            download_location=CONFIG.manifest_folder
+
+        manifest_data = self.syn.get(
+                self.manifest_id,
+                downloadLocation=download_location,
+                ifcollision="overwrite.local",
+            )
+        return manifest_data
 
     def _entity_type_checking(self) -> str:
         """
@@ -191,20 +179,8 @@ class SynapseStorage(BaseStorage):
 
         self.syn = self.login(token, access_token)
         self.project_scope = project_scope
-
-
-        # check if "master_fileview" has been set
-        try: 
-            self.storageFileview = CONFIG["synapse"]["master_fileview"]
-        except KeyError: 
-            raise MissingConfigValueError(("synapse", "master_fileview"))
-
-        # check if "manifest_basename" has been set
-        try: 
-            self.manifest = CONFIG["synapse"]["manifest_basename"]
-        except KeyError: 
-            raise MissingConfigValueError(("synapse", "manifest_basename"))
-
+        self.storageFileview = CONFIG.synapse_master_fileview_id
+        self.manifest = CONFIG.synapse_manifest_basename
         self._query_fileview()
 
     def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/", maximum_storage_allowed_cache_gb=7):
@@ -239,8 +215,8 @@ class SynapseStorage(BaseStorage):
     def _query_fileview(self):
         self._purge_synapse_cache()
         try:
-            self.storageFileview = CONFIG["synapse"]["master_fileview"]
-            self.manifest = CONFIG["synapse"]["manifest_basename"]
+            self.storageFileview = CONFIG.synapse_master_fileview_id
+            self.manifest = CONFIG.synapse_manifest_basename
             if self.project_scope:
                 self.storageFileviewTable = self.syn.tableQuery(
                     f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
@@ -250,9 +226,6 @@ class SynapseStorage(BaseStorage):
                 self.storageFileviewTable = self.syn.tableQuery(
                     "SELECT * FROM " + self.storageFileview
                 ).asDataFrame()
-
-        except AttributeError:
-            raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
             raise AccessCredentialsError(self.storageFileview)    
 
@@ -278,9 +251,8 @@ class SynapseStorage(BaseStorage):
                 raise ValueError("No access to resources. Please make sure that your token is correct")
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
-            syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+            syn = synapseclient.Synapse(configPath=CONFIG.synapse_configuration_path)
             syn.login(silent=True)
-            
         return syn
 
     def missing_entity_handler(method):
@@ -1030,9 +1002,9 @@ class SynapseStorage(BaseStorage):
 
         # Differentiate "censored" and "uncensored" manifest
         if "censored" in file_name_full: 
-            file_name_new = os.path.basename(CONFIG["synapse"]["manifest_basename"]) + "_" + component_name + "_censored" + '.' + file_extension
+            file_name_new = os.path.basename(CONFIG.synapse_manifest_basename) + "_" + component_name + "_censored" + '.' + file_extension
         else: 
-            file_name_new = os.path.basename(CONFIG["synapse"]["manifest_basename"]) + "_" + component_name + '.' + file_extension
+            file_name_new = os.path.basename(CONFIG.synapse_manifest_basename) + "_" + component_name + '.' + file_extension
 
         manifestSynapseFile = File(
             metadataManifestPath,
@@ -2098,8 +2070,8 @@ class TableOperations:
 
         # Try getting creds from .synapseConfig file if it exists
         # Primarily useful for local users. Seems to correlate with credentials stored in synaspe object when logged in
-        if os.path.exists(CONFIG.SYNAPSE_CONFIG_PATH):
-            config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+        if os.path.exists(CONFIG.synapse_configuration_path):
+            config = synStore.syn.getConfigFile(CONFIG.synapse_configuration_path)
 
             # check which credentials are provided in file
             if config.has_option('authentication', 'username'):
