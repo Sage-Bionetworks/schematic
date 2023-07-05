@@ -1377,15 +1377,33 @@ class SynapseStorage(BaseStorage):
             manifest (pd.DataFrame): modified to add entitiyId as appropriate.
 
         '''
+
+        # Expected behavior is to annotate files if `Filename` is present regardless of `-mrt` setting
+        if 'filename' in [col.lower() for col in manifest.columns]:
+            # get current list of files and store as dataframe
+            dataset_files = self.getFilesInStorageDataset(datasetId)
+            files = self._get_file_entityIDs(manifest, dataset_files, False)
+            file_df = pd.DataFrame(files)
+            
+            # TODO: Adjust merge params according to expected behavior ie. inner vs outer join, dropping of entityId col
+            # Add the file entityIDs to the manifest
+            manifest = manifest.merge(file_df, how = 'left', on='Filename', suffixes=['_x',None]).drop('entityId_x',axis=1)
+
+
         for idx, row in manifest.iterrows():
-            if not row["entityId"] and (manifest_record_type == 'file_and_entities' or 
-                manifest_record_type == 'table_file_and_entities'):
-                manifest, entityId = self._create_entity_id(idx, row, manifest, datasetId)
-            elif not row["entityId"] and manifest_record_type == 'table_and_file':
-                # If not using entityIds, fill with manifest_table_id so 
-                row["entityId"] = manifest_synapse_table_id
-                manifest.loc[idx, "entityId"] = manifest_synapse_table_id
-                entityId = ''
+            if 'filename' not in [col.lower() for col in manifest.columns]:
+                if not row["entityId"] and (manifest_record_type == 'file_and_entities' or 
+                    manifest_record_type == 'table_file_and_entities'):
+                    manifest, entityId = self._create_entity_id(idx, row, manifest, datasetId)
+                elif not row["entityId"] and manifest_record_type == 'table_and_file':
+                    # If not using entityIds, fill with manifest_table_id so 
+                    row["entityId"] = manifest_synapse_table_id
+                    manifest.loc[idx, "entityId"] = manifest_synapse_table_id
+                    entityId = ''
+                else:
+                    # get the entity id corresponding to this row
+                    entityId = row["entityId"]
+            # If entityIds were gathered from files, just read what was stored
             else:
                 # get the entity id corresponding to this row
                 entityId = row["entityId"]
