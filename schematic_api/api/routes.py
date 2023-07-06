@@ -196,7 +196,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None):
+def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None, strict_validation:bool=True):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -206,6 +206,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             use_annotations: Whether to use existing annotations during manifest generation
             asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
             access_token: Token
+            strict: bool, strictness with which to apply validation rules to google sheets.
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
@@ -220,7 +221,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     all_args = connexion.request.args
     args_dict = dict(all_args.lists())
     data_type = args_dict['data_type']
-    
+
     # Gather all dataset_ids
     try:
         dataset_ids = args_dict['dataset_id']
@@ -251,7 +252,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 )
 
 
-    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None):
+    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None, strict=strict_validation):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -267,7 +268,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 output_format = "dataframe"
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token
+            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token, strict=strict,
         )
 
         # return an excel file if output_format is set to "excel"
