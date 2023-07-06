@@ -2156,7 +2156,6 @@ class TableOperations:
 
         return self.existingTableId
     
-    @profile(sort_by='cumulative', strip_dirs=True)
     def _update_table_uuid_column(self, sg: SchemaGenerator,) -> None:
         """Removes the `Uuid` column when present, and relpaces with an `Id` column
         Used to enable backwards compatability for manifests using the old `Uuid` convention
