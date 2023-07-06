@@ -173,3 +173,10 @@ tests/data/mock_manifests/Rule_Combo_Manifest_censored.csv
 
 # Pickle file
 tests/data/schema.gpickle
+
+# Created during testting
+Example*
+manifests/*
+
+# schematic config file
+config.yml
