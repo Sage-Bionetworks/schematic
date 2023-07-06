@@ -217,7 +217,6 @@ class TestSynapseStorage:
             # return manifest id
             assert manifest_data == "syn51204513"
 
-
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
 
