@@ -1372,8 +1372,7 @@ class SynapseStorage(BaseStorage):
             files = self._get_file_entityIDs(manifest=manifest,dataset_files=dataset_files, only_new_files=False)
             file_df = pd.DataFrame(files)
             
-            # TODO: Adjust merge params according to expected behavior ie. inner vs outer join, dropping of entityId col
-            # Add the file entityIDs to the manifest
+            # Merge dataframes to add entityIds
             manifest = manifest.merge(file_df, how = 'left', on='Filename', suffixes=['_x',None]).drop('entityId_x',axis=1)
 
 
