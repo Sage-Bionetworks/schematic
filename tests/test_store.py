@@ -113,9 +113,11 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
-    def test_annotation_submission(self, synapse_store, helpers, config: Configuration):
-        manifest_path = "mock_manifests/annotations_test_manifest.csv"
-
+    @pytest.mark.parametrize('manifest_path, test_annotations',
+                             [
+                                 ("mock_manifests/annotations_test_manifest.csv", {'CheckInt': '7', 'CheckList': 'valid, list, values'}),
+                              ])
+    def test_annotation_submission(self, synapse_store, helpers, manifest_path, test_annotations, config: Configuration):
         # Upload dataset annotations
         sg = SchemaGenerator(config.model_location)
 
@@ -143,9 +145,12 @@ class TestSynapseStorage:
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         # Check annotations of interest
-        assert annotations['CheckInt'] == '7'
-        assert annotations['CheckList'] == 'valid, list, values'
-        assert 'CheckRecommended' not in annotations.keys()
+        for key in test_annotations.keys():
+            assert key in annotations.keys()
+            assert annotations[key] == test_annotations[key]
+
+        if manifest_path.endswith('annoations_tset_manifest.csv'):
+            assert 'CheckRecommended' not in annotations.keys()
 
 
 
