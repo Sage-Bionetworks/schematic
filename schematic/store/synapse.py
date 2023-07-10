@@ -1374,8 +1374,8 @@ class SynapseStorage(BaseStorage):
         if 'filename' in [col.lower() for col in manifest.columns]:
             # get current list of files and store as dataframe
             dataset_files = self.getFilesInStorageDataset(datasetId)
-            files = self._get_file_entityIDs(dataset_files=dataset_files, only_new_files=False)
-            file_df = pd.DataFrame(files)
+            files_and_entityIds = self._get_file_entityIDs(dataset_files=dataset_files, only_new_files=False)
+            file_df = pd.DataFrame(files_and_entityIds)
             
             # Merge dataframes to add entityIds
             manifest = manifest.merge(file_df, how = 'left', on='Filename', suffixes=['_x',None]).drop('entityId_x',axis=1)
