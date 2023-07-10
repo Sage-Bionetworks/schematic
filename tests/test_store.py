@@ -14,6 +14,7 @@ from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
 from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
+from synapseclient.entity import File
 from schematic.configuration.configuration import Configuration
 
 logging.basicConfig(level=logging.DEBUG)
@@ -113,11 +114,12 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
-    @pytest.mark.parametrize('manifest_path, test_annotations',
-                             [
-                                 ("mock_manifests/annotations_test_manifest.csv", {'CheckInt': '7', 'CheckList': 'valid, list, values'}),
-                              ])
-    def test_annotation_submission(self, synapse_store, helpers, manifest_path, test_annotations, config: Configuration):
+    @pytest.mark.parametrize('manifest_path, test_annotations, datasetId, manifest_record_type',
+                             [  ("mock_manifests/annotations_test_manifest.csv", {'CheckInt': '7', 'CheckList': 'valid, list, values'}, 'syn34295552', 'file_and_entities'),
+                                ("mock_manifests/test_BulkRNAseq.csv", {'FileFormat': 'BAM', 'GenomeBuild': 'GRCh38'}, 'syn39241199', 'table_and_file')],
+                            ids = ['non file-based',
+                                    'file-based'])
+    def test_annotation_submission(self, synapse_store, helpers, manifest_path, test_annotations, datasetId, manifest_record_type, config: Configuration):
         # Upload dataset annotations
         sg = SchemaGenerator(config.model_location)
 
@@ -131,8 +133,8 @@ class TestSynapseStorage:
                     manifest_id = synapse_store.associateMetadataWithFiles(
                         schemaGenerator = sg,
                         metadataManifestPath = helpers.get_data_path(manifest_path),
-                        datasetId = 'syn34295552',
-                        manifest_record_type = 'file_and_entities',
+                        datasetId = datasetId,
+                        manifest_record_type = manifest_record_type,
                         useSchemaLabel = True,
                         hideBlanks = True,
                         restrict_manifest = False,
@@ -141,7 +143,7 @@ class TestSynapseStorage:
             pass
 
         # Retrive annotations
-        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
+        entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         # Check annotations of interest
@@ -151,6 +153,9 @@ class TestSynapseStorage:
 
         if manifest_path.endswith('annoations_tset_manifest.csv'):
             assert 'CheckRecommended' not in annotations.keys()
+        elif manifest_path.endswith('test_BulkRNAseq.csv'):
+            entity = synapse_store.syn.get(entity_id)
+            assert type(entity) == File
 
 
 
