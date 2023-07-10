@@ -128,7 +128,17 @@ class TestManifestValidation:
             module_to_call = 'search',
             invalid_entry = 'q',
             sg = sg,
-            )[0] in errors   
+            )[0] in errors
+
+        assert GenerateError.generate_regex_error(
+            val_rule = 'regex',
+            reg_expression = '^\d+$',
+            row_num = '2',
+            attribute_name = 'Check Regex Integer',
+            module_to_call = 'search',
+            invalid_entry = '5.4',
+            sg = sg,
+            )[0] in errors 
 
         assert GenerateError.generate_url_error(
             val_rule = 'url',
