@@ -574,7 +574,7 @@ class SynapseStorage(BaseStorage):
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
         if dataset_files:
-            new_files = self._get_file_entityIDs(manifest=manifest, dataset_files=dataset_files, only_new_files=True)
+            new_files = self._get_file_entityIDs(dataset_files=dataset_files, manifest=manifest, only_new_files=True)
 
             # update manifest so that it contain new files
             new_files = pd.DataFrame(new_files)
@@ -595,7 +595,7 @@ class SynapseStorage(BaseStorage):
         
         return manifest_id, manifest
     
-    def _get_file_entityIDs(self, manifest: pd.DataFrame, dataset_files: List, only_new_files: bool = False):
+    def _get_file_entityIDs(self, dataset_files: List, manifest: pd.DataFrame = None, only_new_files: bool = False):
         """
         Get a dictionary of files in a dataset. Either files that are not in the current manifest or all files
         
@@ -1369,7 +1369,7 @@ class SynapseStorage(BaseStorage):
         if 'filename' in [col.lower() for col in manifest.columns]:
             # get current list of files and store as dataframe
             dataset_files = self.getFilesInStorageDataset(datasetId)
-            files = self._get_file_entityIDs(manifest=manifest,dataset_files=dataset_files, only_new_files=False)
+            files = self._get_file_entityIDs(dataset_files=dataset_files, manifest=manifest, only_new_files=False)
             file_df = pd.DataFrame(files)
             
             # Merge dataframes to add entityIds
