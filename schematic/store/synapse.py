@@ -1377,19 +1377,14 @@ class SynapseStorage(BaseStorage):
 
 
         for idx, row in manifest.iterrows():
-            if 'filename' not in [col.lower() for col in manifest.columns]:
-                if not row["entityId"] and (manifest_record_type == 'file_and_entities' or 
-                    manifest_record_type == 'table_file_and_entities'):
-                    manifest, entityId = self._create_entity_id(idx, row, manifest, datasetId)
-                elif not row["entityId"] and manifest_record_type == 'table_and_file':
-                    # If not using entityIds, fill with manifest_table_id so 
-                    row["entityId"] = manifest_synapse_table_id
-                    manifest.loc[idx, "entityId"] = manifest_synapse_table_id
-                    entityId = ''
-                else:
-                    # get the entity id corresponding to this row
-                    entityId = row["entityId"]
-            # If entityIds were gathered from files, just read what was stored
+            if not row["entityId"] and (manifest_record_type == 'file_and_entities' or 
+                manifest_record_type == 'table_file_and_entities'):
+                manifest, entityId = self._create_entity_id(idx, row, manifest, datasetId)
+            elif not row["entityId"] and manifest_record_type == 'table_and_file':
+                # If not using entityIds, fill with manifest_table_id so 
+                row["entityId"] = manifest_synapse_table_id
+                manifest.loc[idx, "entityId"] = manifest_synapse_table_id
+                entityId = ''
             else:
                 # get the entity id corresponding to this row
                 entityId = row["entityId"]
