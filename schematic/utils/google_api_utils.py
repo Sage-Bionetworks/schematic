@@ -11,7 +11,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
 from schematic.store.synapse import SynapseStorage
 import pandas as pd
 
@@ -23,30 +23,6 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
 ]
-
-
-# it will create 'token.pickle' based on credentials.json
-def generate_token() -> Credentials:
-    creds = None
-    # The file token.pickle stores the user's access and refresh tokens,
-    # and is created automatically when the authorization flow completes for the first time.
-    if os.path.exists(CONFIG.TOKEN_PICKLE):
-        with open(CONFIG.TOKEN_PICKLE, "rb") as token:
-            creds = pickle.load(token)
-
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CONFIG.CREDS_PATH, SCOPES)
-            creds = flow.run_console()  ### don't have to deal with ports
-        # Save the credentials for the next run
-        with open(CONFIG.TOKEN_PICKLE, "wb") as token:
-            pickle.dump(creds, token)
-
-    return creds
-
 
 # TODO: replace by pygsheets calls?
 def build_credentials() -> Dict[str, Any]:
@@ -76,7 +52,7 @@ def build_service_account_creds() -> Dict[str, Any]:
         credentials = service_account.Credentials.from_service_account_info(dict_creds, scopes=SCOPES)
     else:
         credentials = service_account.Credentials.from_service_account_file(
-            CONFIG.SERVICE_ACCT_CREDS, scopes=SCOPES
+            CONFIG.service_account_credentials_path, scopes=SCOPES
         )
 
     # get a Google Sheet API service
@@ -97,21 +73,21 @@ def download_creds_file() -> None:
     # if file path of service_account does not exist
     # and if an environment variable related to service account is not found
     # regenerate service_account credentials
-    if not os.path.exists(CONFIG.SERVICE_ACCT_CREDS) and "SERVICE_ACCOUNT_CREDS" not in os.environ:
+    if not os.path.exists(CONFIG.service_account_credentials_path) and "SERVICE_ACCOUNT_CREDS" not in os.environ:
 
         # synapse ID of the 'schematic_service_account_creds.json' file
-        API_CREDS = CONFIG["synapse"]["service_acct_creds"]
+        API_CREDS = CONFIG.service_account_credentials_synapse_id
 
         # Download in parent directory of SERVICE_ACCT_CREDS to
         # ensure same file system for os.rename()
-        creds_dir = os.path.dirname(CONFIG.SERVICE_ACCT_CREDS)
+        creds_dir = os.path.dirname(CONFIG.service_account_credentials_path)
 
         creds_file = syn.get(API_CREDS, downloadLocation=creds_dir)
-        os.rename(creds_file.path, CONFIG.SERVICE_ACCT_CREDS)
+        os.rename(creds_file.path, CONFIG.service_account_credentials_path)
 
         logger.info(
             "The credentials file has been downloaded "
-            f"to '{CONFIG.SERVICE_ACCT_CREDS}'"
+            f"to '{CONFIG.service_account_credentials_path}'"
         )
 
     elif "SERVICE_ACCOUNT_CREDS" in os.environ:

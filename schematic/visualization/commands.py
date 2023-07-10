@@ -8,10 +8,10 @@ import click_log
 
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict
+from schematic.utils.cli_utils import log_value_from_config, query_dict
 from schematic.help import viz_commands
 from schematic.help import model_commands
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
 
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
@@ -35,7 +35,8 @@ def viz(ctx, config):  # use as `schematic model ...`
     """
     try:
         logger.debug(f"Loading config file contents in '{config}'")
-        ctx.obj = CONFIG.load_config(config)
+        CONFIG.load_config(config)
+        ctx.obj =  CONFIG
     except ValueError as e:
         logger.error("'--config' not provided or environment variable not set.")
         logger.exception(e)
@@ -52,7 +53,8 @@ def get_attributes(ctx):
     
     """
     # Get JSONLD file path
-    path_to_jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
+    path_to_jsonld = CONFIG.model_location
+    log_value_from_config("jsonld", path_to_jsonld)
     # Run attributes explorer
     AttributesExplorer(path_to_jsonld).parse_attributes(save_file=True)
     return
@@ -79,7 +81,8 @@ def get_tangled_tree_text(ctx, figure_type, text_format):
     """ Get text to be placed on the tangled tree visualization.
     """
     # Get JSONLD file path
-    path_to_jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
+    path_to_jsonld = CONFIG.model_location
+    log_value_from_config("jsonld", path_to_jsonld)
     
     # Initialize TangledTree
     tangled_tree = TangledTree(path_to_jsonld, figure_type)
@@ -104,7 +107,8 @@ def get_tangled_tree_component_layers(ctx, figure_type):
     ''' Get the components that belong in each layer of the tangled tree visualization.
     '''
     # Get JSONLD file path
-    path_to_jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
+    path_to_jsonld = CONFIG.model_location
+    log_value_from_config("jsonld", path_to_jsonld)
     
     # Initialize Tangled Tree
     tangled_tree = TangledTree(path_to_jsonld, figure_type)

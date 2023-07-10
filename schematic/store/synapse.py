@@ -52,7 +52,9 @@ from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
+
+from schematic.utils.general import profile
 
 logger = logging.getLogger("Synapse storage")
 
@@ -69,35 +71,23 @@ class ManifestDownload(object):
         """
         try downloading a manifest to local cache or a given folder
         manifest
-        Return: 
+        Return:
             manifest_data: A Synapse file entity of the downloaded manifest
         """
-        # TO DO: potentially deprecate the if else statement because "manifest_folder" key always exist in config (See issue FDS-349 in Jira)
-        # on AWS, to avoid overriding manifest, we download the manifest to a temporary folder
         if "SECRETS_MANAGER_SECRETS" in os.environ:
             temporary_manifest_storage = "/var/tmp/temp_manifest_download"
             if not os.path.exists(temporary_manifest_storage):
                 os.mkdir("/var/tmp/temp_manifest_download")
             download_location = create_temp_folder(temporary_manifest_storage)
-
-        elif CONFIG["synapse"]["manifest_folder"]:
-            download_location=CONFIG["synapse"]["manifest_folder"]
-
         else:
-            download_location=None
-        
-        if not download_location:
-            manifest_data = self.syn.get(
-                        self.manifest_id,
-                    )
-        # if download_location is provided and it is not an empty string
-        else:
-            manifest_data = self.syn.get(
-                    self.manifest_id,
-                    downloadLocation=download_location,
-                    ifcollision="overwrite.local",
-                )
-        return manifest_data 
+            download_location=CONFIG.manifest_folder
+
+        manifest_data = self.syn.get(
+                self.manifest_id,
+                downloadLocation=download_location,
+                ifcollision="overwrite.local",
+            )
+        return manifest_data
 
     def _entity_type_checking(self) -> str:
         """
@@ -191,20 +181,8 @@ class SynapseStorage(BaseStorage):
 
         self.syn = self.login(token, access_token)
         self.project_scope = project_scope
-
-
-        # check if "master_fileview" has been set
-        try: 
-            self.storageFileview = CONFIG["synapse"]["master_fileview"]
-        except KeyError: 
-            raise MissingConfigValueError(("synapse", "master_fileview"))
-
-        # check if "manifest_basename" has been set
-        try: 
-            self.manifest = CONFIG["synapse"]["manifest_basename"]
-        except KeyError: 
-            raise MissingConfigValueError(("synapse", "manifest_basename"))
-
+        self.storageFileview = CONFIG.synapse_master_fileview_id
+        self.manifest = CONFIG.synapse_manifest_basename
         self._query_fileview()
 
     def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/", maximum_storage_allowed_cache_gb=7):
@@ -239,8 +217,8 @@ class SynapseStorage(BaseStorage):
     def _query_fileview(self):
         self._purge_synapse_cache()
         try:
-            self.storageFileview = CONFIG["synapse"]["master_fileview"]
-            self.manifest = CONFIG["synapse"]["manifest_basename"]
+            self.storageFileview = CONFIG.synapse_master_fileview_id
+            self.manifest = CONFIG.synapse_manifest_basename
             if self.project_scope:
                 self.storageFileviewTable = self.syn.tableQuery(
                     f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
@@ -250,9 +228,6 @@ class SynapseStorage(BaseStorage):
                 self.storageFileviewTable = self.syn.tableQuery(
                     "SELECT * FROM " + self.storageFileview
                 ).asDataFrame()
-
-        except AttributeError:
-            raise AttributeError("storageFileview attribute has not been set.")
         except SynapseHTTPError:
             raise AccessCredentialsError(self.storageFileview)    
 
@@ -278,9 +253,8 @@ class SynapseStorage(BaseStorage):
                 raise ValueError("No access to resources. Please make sure that your token is correct")
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
-            syn = synapseclient.Synapse(configPath=CONFIG.SYNAPSE_CONFIG_PATH)
+            syn = synapseclient.Synapse(configPath=CONFIG.synapse_configuration_path)
             syn.login(silent=True)
-            
         return syn
 
     def missing_entity_handler(method):
@@ -295,7 +269,6 @@ class SynapseStorage(BaseStorage):
                 else:
                     raise ex
         return wrapper
-
 
     def getStorageFileviewTable(self):
         """ Returns the storageFileviewTable obtained during initialization.
@@ -995,17 +968,31 @@ class SynapseStorage(BaseStorage):
         # Put table manifest onto synapse
         schema = Schema(name=table_name, columns=col_schema, parent=self.getDatasetProject(datasetId))
 
-        
+        if table_name in table_info:
+            existingTableId = table_info[table_name]
+        else:
+            existingTableId = None
+
+
+        tableOps = TableOperations(
+            synStore = self,  
+            tableToLoad = table_manifest,
+            tableName = table_name,
+            datasetId = datasetId, 
+            existingTableId = existingTableId,
+            restrict = restrict,
+            )
+
         if not table_manipulation or table_name not in table_info.keys():
-            manifest_table_id = TableOperations.createTable(self, tableToLoad=table_manifest, tableName=table_name, datasetId=datasetId, columnTypeDict=col_schema, specifySchema=True, restrict=restrict)
+            manifest_table_id = tableOps.createTable(columnTypeDict=col_schema, specifySchema=True,)
         elif table_name in table_info.keys() and table_info[table_name]:
 
             if table_manipulation.lower() == 'replace':
-                manifest_table_id = TableOperations.replaceTable(self, tableToLoad=table_manifest, tableName=table_name, existingTableId=table_info[table_name], specifySchema = True, datasetId = datasetId, columnTypeDict=col_schema, restrict=restrict)
+                manifest_table_id = tableOps.replaceTable(specifySchema = True, columnTypeDict=col_schema,)
             elif table_manipulation.lower() == 'upsert':
-                manifest_table_id = TableOperations.upsertTable(self, sg=sg, tableToLoad = table_manifest, tableName=table_name, existingTableId=table_info[table_name], datasetId=datasetId)
+                manifest_table_id = tableOps.upsertTable(sg=sg,)
             elif table_manipulation.lower() == 'update':
-                manifest_table_id = TableOperations.updateTable(self, tableToLoad=table_manifest, existingTableId=table_info[table_name], restrict=restrict)
+                manifest_table_id = tableOps.updateTable()
 
 
 
@@ -1030,9 +1017,9 @@ class SynapseStorage(BaseStorage):
 
         # Differentiate "censored" and "uncensored" manifest
         if "censored" in file_name_full: 
-            file_name_new = os.path.basename(CONFIG["synapse"]["manifest_basename"]) + "_" + component_name + "_censored" + '.' + file_extension
+            file_name_new = os.path.basename(CONFIG.synapse_manifest_basename) + "_" + component_name + "_censored" + '.' + file_extension
         else: 
-            file_name_new = os.path.basename(CONFIG["synapse"]["manifest_basename"]) + "_" + component_name + '.' + file_extension
+            file_name_new = os.path.basename(CONFIG.synapse_manifest_basename) + "_" + component_name + '.' + file_extension
 
         manifestSynapseFile = File(
             metadataManifestPath,
@@ -1928,38 +1915,58 @@ class TableOperations:
     Operations currently in development are:
     upsertTable: add metadata from a manifest to an existing table that contains metadata from another manifest
     """
+    def __init__(self, 
+                 synStore: SynapseStorage, 
+                 tableToLoad: pd.DataFrame = None, 
+                 tableName: str = None, 
+                 datasetId: str = None, 
+                 existingTableId: str = None,
+                 restrict: bool = False
+                 ):
+        
+        """
+        Class governing table operations (creation, replacement, upserts, updates) in schematic
+
+        tableToLoad: manifest formatted appropriately for the table
+        tableName: name of the table to be uploaded
+        datasetId: synID of the dataset for the manifest
+        existingTableId: synId of the table currently exising on synapse (if there is one)
+        restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
+
+        """
+        self.synStore = synStore
+        self.tableToLoad = tableToLoad
+        self.tableName = tableName
+        self.datasetId = datasetId
+        self.existingTableId = existingTableId
+        self.restrict = restrict
 
 
-    def createTable(synStore: SynapseStorage, tableToLoad: pd.DataFrame = None, tableName: str = None, datasetId: str = None, columnTypeDict: dict = None, specifySchema: bool = True, restrict: bool = False):
+    def createTable(self, columnTypeDict: dict = None, specifySchema: bool = True,):
         """
         Method to create a table from a metadata manifest and upload it to synapse
         
         Args:
-            tableToLoad: manifest formatted appropriately for the table
-            tableName: name of the table to be uploaded
-            datasetId: synID of the dataset for the manifest
             columnTypeDict: dictionary schema for table columns: type, size, etc
-            specifySchema: to specify a specific schema for the table format          
-            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
-            
+            specifySchema: to specify a specific schema for the table format                      
 
         Returns:
             table.schema.id: synID of the newly created table
         """
 
-        datasetEntity = synStore.syn.get(datasetId, downloadFile = False)
+        datasetEntity = self.synStore.syn.get(self.datasetId, downloadFile = False)
         datasetName = datasetEntity.name
-        table_schema_by_cname = synStore._get_table_schema_by_cname(columnTypeDict) 
+        table_schema_by_cname = self.synStore._get_table_schema_by_cname(columnTypeDict) 
 
-        if not tableName:
-            tableName = datasetName + 'table'
-        datasetParentProject = synStore.getDatasetProject(datasetId)
+        if not self.tableName:
+            self.tableName = datasetName + 'table'
+        datasetParentProject = self.synStore.getDatasetProject(self.datasetId)
         if specifySchema:
             if columnTypeDict == {}:
                 logger.error("Did not provide a columnTypeDict.")
             #create list of columns:
             cols = []
-            for col in tableToLoad.columns:
+            for col in self.tableToLoad.columns:
                 if col in table_schema_by_cname:
                     col_type = table_schema_by_cname[col]['columnType']
                     max_size = table_schema_by_cname[col]['maximumSize'] if 'maximumSize' in table_schema_by_cname[col].keys() else 100
@@ -1975,62 +1982,56 @@ class TableOperations:
                 else:
                     #TODO add warning that the given col was not found and it's max size is set to 100
                     cols.append(Column(name=col, columnType='STRING', maximumSize=100))
-            schema = Schema(name=tableName, columns=cols, parent=datasetParentProject)
-            table = Table(schema, tableToLoad)
-            table = synStore.syn.store(table, isRestricted = restrict)
+            schema = Schema(name=self.tableName, columns=cols, parent=datasetParentProject)
+            table = Table(schema, self.tableToLoad)
+            table = self.synStore.syn.store(table, isRestricted = self.restrict)
             return table.schema.id
         else:
             # For just uploading the tables to synapse using default
             # column types.
-            table = build_table(tableName, datasetParentProject, tableToLoad)
-            table = synStore.syn.store(table, isRestricted = restrict)
+            table = build_table(self.tableName, datasetParentProject, self.tableToLoad)
+            table = self.synStore.syn.store(table, isRestricted = self.restrict)
             return table.schema.id
 
-    def replaceTable(synStore: SynapseStorage, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None, specifySchema: bool = True, datasetId: str = None, columnTypeDict: dict = None, restrict: bool = False):
+    def replaceTable(self, specifySchema: bool = True, columnTypeDict: dict = None,):
         """
         Method to replace an existing table on synapse with metadata from a new manifest
         
         Args:
-            tableToLoad: manifest formatted appropriately for the table
-            tableName: name of the table to be uploaded
-            existingTableId: synId of the existing table to be replaced
             specifySchema: to infer a schema for the table format      
-            datasetId: synID of the dataset for the manifest    
-            columnTypeDict: dictionary schema for table columns: type, size, etc
-            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
-            
+            columnTypeDict: dictionary schema for table columns: type, size, etc            
 
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
         """
-        datasetEntity = synStore.syn.get(datasetId, downloadFile = False)
+        datasetEntity = self.synStore.syn.get(self.datasetId, downloadFile = False)
         datasetName = datasetEntity.name
-        table_schema_by_cname = synStore._get_table_schema_by_cname(columnTypeDict) 
-        existing_table, existing_results = synStore.get_synapse_table(existingTableId)
+        table_schema_by_cname = self.synStore._get_table_schema_by_cname(columnTypeDict) 
+        existing_table, existing_results = self.synStore.get_synapse_table(self.existingTableId)
         # remove rows
-        synStore.syn.delete(existing_results)
+        self.synStore.syn.delete(existing_results)
         # wait for row deletion to finish on synapse before getting empty table
         sleep(10)
         
         # removes all current columns
-        current_table = synStore.syn.get(existingTableId)
-        current_columns = synStore.syn.getTableColumns(current_table)
+        current_table = self.synStore.syn.get(self.existingTableId)
+        current_columns = self.synStore.syn.getTableColumns(current_table)
         for col in current_columns:
             current_table.removeColumn(col)
 
-        if not tableName:
-            tableName = datasetName + 'table'
+        if not self.tableName:
+            self.tableName = datasetName + 'table'
         
         # Process columns according to manifest entries
-        table_schema_by_cname = synStore._get_table_schema_by_cname(columnTypeDict) 
-        datasetParentProject = synStore.getDatasetProject(datasetId)
+        table_schema_by_cname = self.synStore._get_table_schema_by_cname(columnTypeDict) 
+        datasetParentProject = self.synStore.getDatasetProject(self.datasetId)
         if specifySchema:
             if columnTypeDict == {}:
                 logger.error("Did not provide a columnTypeDict.")
             #create list of columns:
             cols = []
             
-            for col in tableToLoad.columns:
+            for col in self.tableToLoad.columns:
                 
                 if col in table_schema_by_cname:
                     col_type = table_schema_by_cname[col]['columnType']
@@ -2052,25 +2053,25 @@ class TableOperations:
             # adds new columns to schema
             for col in cols:
                 current_table.addColumn(col)
-            synStore.syn.store(current_table, isRestricted = restrict)
+            self.synStore.syn.store(current_table, isRestricted = self.restrict)
 
             # wait for synapse store to finish
             sleep(1)
 
             # build schema and table from columns and store with necessary restrictions
-            schema = Schema(name=tableName, columns=cols, parent=datasetParentProject)
-            schema.id = existingTableId
-            table = Table(schema, tableToLoad, etag = existing_results.etag)
-            table = synStore.syn.store(table, isRestricted = restrict)
+            schema = Schema(name=self.tableName, columns=cols, parent=datasetParentProject)
+            schema.id = self.existingTableId
+            table = Table(schema, self.tableToLoad, etag = existing_results.etag)
+            table = self.synStore.syn.store(table, isRestricted = self.restrict)
         else:
             logging.error("Must specify a schema for table replacements")
 
         # remove system metadata from manifest
         existing_table.drop(columns = ['ROW_ID', 'ROW_VERSION'], inplace = True)
-        return existingTableId
+        return self.existingTableId
     
 
-    def _get_schematic_db_creds(synStore: SynapseStorage):
+    def _get_schematic_db_creds(self,):
         username = None
         authtoken = None
 
@@ -2084,13 +2085,13 @@ class TableOperations:
 
         # Get token from authorization header
         # Primarily useful for API endpoint functionality
-        if 'Authorization' in synStore.syn.default_headers:
-            authtoken = synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
+        if 'Authorization' in self.synStore.syn.default_headers:
+            authtoken = self.synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
             return username, authtoken
 
         # retrive credentials from synapse object
         # Primarily useful for local users, could only be stored here when a .synapseConfig file is used, but including to be safe
-        synapse_object_creds = synStore.syn.credentials
+        synapse_object_creds = self.synStore.syn.credentials
         if hasattr(synapse_object_creds, 'username'):
             username = synapse_object_creds.username
         if hasattr(synapse_object_creds, '_token'):
@@ -2098,8 +2099,8 @@ class TableOperations:
 
         # Try getting creds from .synapseConfig file if it exists
         # Primarily useful for local users. Seems to correlate with credentials stored in synaspe object when logged in
-        if os.path.exists(CONFIG.SYNAPSE_CONFIG_PATH):
-            config = synStore.syn.getConfigFile(CONFIG.SYNAPSE_CONFIG_PATH)
+        if os.path.exists(CONFIG.synapse_configuration_path):
+            config = self.synStore.syn.getConfigFile(CONFIG.synapse_configuration_path)
 
             # check which credentials are provided in file
             if config.has_option('authentication', 'username'):
@@ -2121,7 +2122,7 @@ class TableOperations:
         
         return username, authtoken
 
-    def upsertTable(synStore: SynapseStorage, sg: SchemaGenerator, tableToLoad: pd.DataFrame = None, tableName: str = None, existingTableId: str = None,  datasetId: str = None):
+    def upsertTable(self, sg: SchemaGenerator,):
         """
         Method to upsert rows from a new manifest into an existing table on synapse
         For upsert functionality to work, primary keys must follow the naming convention of <componenet>_id        
@@ -2130,50 +2131,45 @@ class TableOperations:
         
 
         Args:
-            tableToLoad: manifest formatted appropriately for the table
-            tableName: name of the table to be uploaded
-            existingTableId: synId of the existing table to be replaced     
-            datasetId: synID of the dataset for the manifest    
-            columnTypeDict: dictionary schema for table columns: type, size, etc
+            sg: SchemaGenerator instance
             
-
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
         """            
 
-        username, authtoken = TableOperations._get_schematic_db_creds(synStore)
+        username, authtoken = self._get_schematic_db_creds()
 
-        synConfig = SynapseConfig(username, authtoken, synStore.getDatasetProject(datasetId))
+        synConfig = SynapseConfig(username, authtoken, self.synStore.getDatasetProject(self.datasetId))
         synapseDB = SynapseDatabase(synConfig)
 
         try:
             # Try performing upsert
-            synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+            synapseDB.upsert_table_rows(table_name=self.tableName, data=self.tableToLoad)
         except(SynapseHTTPError) as ex:
             # If error is raised because Table has old `Uuid` column and not new `Id` column, then handle and re-attempt upload
             if 'Id is not a valid column name or id' in str(ex):
-                TableOperations._update_table_uuid_column(synStore, existingTableId, sg)
-                synapseDB.upsert_table_rows(table_name=tableName, data=tableToLoad)
+                self._update_table_uuid_column(sg)
+                synapseDB.upsert_table_rows(table_name=self.tableName, data=self.tableToLoad)
             # Raise if other error
             else:
                 raise ex
 
-        return existingTableId
-
-    def _update_table_uuid_column(synStore: SynapseStorage, table_id: str, sg: SchemaGenerator,) -> None:
+        return self.existingTableId
+    
+    def _update_table_uuid_column(self, sg: SchemaGenerator,) -> None:
         """Removes the `Uuid` column when present, and relpaces with an `Id` column
         Used to enable backwards compatability for manifests using the old `Uuid` convention
 
         Args:
-            table_id (str): The Synapse id of the table to be upserted into, that needs columns updated
+            sg: SchemaGenerator instance
 
         Returns:
             None
         """
 
         # Get the columns of the schema
-        schema = synStore.syn.get(table_id)
-        cols = synStore.syn.getTableColumns(schema)
+        schema = self.synStore.syn.get(self.existingTableId)
+        cols = self.synStore.syn.getTableColumns(schema)
         
         # Iterate through columns until `Uuid` column is found
         for col in cols:
@@ -2188,70 +2184,49 @@ class TableOperations:
                 if uuid_col_in_schema:
                     new_col = Column(columnType = "STRING", maximumSize = 64, name = "Id")
                     schema.addColumn(new_col)
-                    schema = synStore.syn.store(schema)
+                    schema = self.synStore.syn.store(schema)
                 # If there is not, then use the old `Uuid` column as a basis for the new `Id` column
                 else:
-                    # Create a new `Id` column based off of the old `Uuid` column, and store (column is empty)
-                    new_col = deepcopy(col)
-                    new_col['name'] = 'Id'
-                    schema.addColumn(new_col)
-                    schema = synStore.syn.store(schema)
-                
-                
-                    # Recently stored column is empty, so populated with uuid values
-                    TableOperations._populate_new_id_column(synStore, table_id, schema)
+                    
+                    # Build ColumnModel that will be used for new column
+                    id_column = Column(name='Id', columnType='STRING', maximumSize=64, defaultValue=None, maximumListLength=1)
+                    new_col_response = self.synStore.syn.store(id_column)
 
-                    # get the up-to-date table, remove old `Uuid` column, and store
-                    sleep(1)
-                    schema = synStore.syn.get(table_id)
-                    schema.removeColumn(col)
-                    schema = synStore.syn.store(schema)
 
-                    # Exit iteration; only concerned with `Uuid` column
+                    # Define columnChange body
+                    columnChangeDict = {
+                        "concreteType": "org.sagebionetworks.repo.model.table.TableSchemaChangeRequest",
+                        "entityId": self.existingTableId,
+                        "changes": [
+                            {                        
+                                "oldColumnId": col['id'],
+                                "newColumnId": new_col_response['id'],
+                            }
+                        ]
+                    }
+
+                    self.synStore.syn._async_table_update(table=self.existingTableId, changes=[columnChangeDict], wait=False)
                 break
 
         return
 
-    def _populate_new_id_column(synStore: SynapseStorage, table_id: str, schema: Schema) -> None:
-        """Copies the uuid values that were present in the column named `Uuid` to the new column named `Id`
-
-        Args:
-            table_id (str): The Synapse id of the table to be upserted into, that needs columns updated
-            schema (synapseclient.table.Schema): Schema of the table columns
-
-        Returns:
-            None
-        """
-        # Query the table for the old `Uuid` column and new `Id` column
-        results = synStore.syn.tableQuery(f"select Uuid,Id from {table_id}")
-        results_df = results.asDataFrame()
-
-        # Copy uuid values to new column, and store in table
-        results_df = populate_df_col_with_another_col(results_df, 'Uuid', 'Id')
-        table = synStore.syn.store(Table(schema, results_df, etag=results.etag))
-        return
-
-    def updateTable(synStore: SynapseStorage, tableToLoad: pd.DataFrame = None, existingTableId: str = None,  update_col: str = 'Id',  restrict: bool = False):
+    def updateTable(self, update_col: str = 'Id',):
         """
         Method to update an existing table with a new column
         
         Args:
-            tableToLoad: manifest formatted appropriately for the table, that contains the new column
-            existingTableId: synId of the existing table to be replaced
-            updateCol: column to index the old and new tables on
-            restrict: bool, whether or not the manifest contains sensitive data that will need additional access restrictions 
-            
+            updateCol: column to index the old and new tables on            
 
         Returns:
            existingTableId: synID of the already existing table that had its metadata replaced
         """
-        existing_table, existing_results = synStore.get_synapse_table(existingTableId)
+        existing_table, existing_results = self.synStore.get_synapse_table(self.existingTableId)
         
-        tableToLoad = update_df(existing_table, tableToLoad, update_col)
+        self.tableToLoad = update_df(existing_table, self.tableToLoad, update_col)
         # store table with existing etag data and impose restrictions as appropriate
-        synStore.syn.store(Table(existingTableId, tableToLoad, etag = existing_results.etag), isRestricted = restrict)
+        self.synStore.syn.store(Table(self.existingTableId, self.tableToLoad, etag = existing_results.etag), isRestricted = self.restrict)
 
-        return existingTableId
+        return self.existingTableId
 
 
 class DatasetFileView:

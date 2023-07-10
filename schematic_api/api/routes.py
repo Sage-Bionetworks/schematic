@@ -18,7 +18,7 @@ from flask import current_app as app
 import pandas as pd
 import json
 
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 from schematic.manifest.generator import ManifestGenerator
@@ -32,24 +32,13 @@ from schematic.utils.general import entity_type_mapping
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-def config_handler(asset_view=None):
-    path_to_config = app.config["SCHEMATIC_CONFIG"]
-
-    # if content of the config file is provided: 
-    content_of_config = app.config["SCHEMATIC_CONFIG_CONTENT"]
-
-    # if the environment variable exists
-    if content_of_config:
-        CONFIG.load_config_content_from_env()
-    
+def config_handler(asset_view: str=None):
     # check if path to config is provided
-    if os.path.isfile(path_to_config):
-        CONFIG.load_config(path_to_config, asset_view = asset_view)
-
-    else:
-        raise FileNotFoundError(
-            f"No configuration file was found at this path: {path_to_config}"
-        )
+    path_to_config = app.config["SCHEMATIC_CONFIG"]
+    if path_to_config is not None and os.path.isfile(path_to_config):
+        CONFIG.load_config(path_to_config)
+    if asset_view is not None:
+        CONFIG.synapse_master_fileview_id = asset_view
 
 class JsonConverter:
     '''
@@ -207,7 +196,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None):
+def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None, strict_validation:bool=True):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -217,6 +206,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             use_annotations: Whether to use existing annotations during manifest generation
             asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
             access_token: Token
+            strict: bool, strictness with which to apply validation rules to google sheets.
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
@@ -231,7 +221,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     all_args = connexion.request.args
     args_dict = dict(all_args.lists())
     data_type = args_dict['data_type']
-    
+
     # Gather all dataset_ids
     try:
         dataset_ids = args_dict['dataset_id']
@@ -262,7 +252,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 )
 
 
-    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None):
+    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None, strict=strict_validation):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
@@ -278,7 +268,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                 output_format = "dataframe"
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token
+            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token, strict=strict,
         )
 
         # return an excel file if output_format is set to "excel"

@@ -3,7 +3,7 @@ import pandas as pd
 from jsonschema import validate
 from re import compile, search, IGNORECASE
 from schematic.utils.io_utils import load_json
-from schematic import CONFIG, LOADER
+from schematic import LOADER
 from typing import List
 import numpy as np
 
