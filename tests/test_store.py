@@ -235,7 +235,7 @@ class TestSynapseStorage:
             manifest = manifest.join(entityIds)
             
             # get entityIds for new files
-            files_and_Ids = synapse_store._get_file_entityIDs(dataset_files=dataset_files, only_new_files=only_new_files, manifest=manifest)
+            files_and_Ids = synapse_store._get_file_entityIds(dataset_files=dataset_files, only_new_files=only_new_files, manifest=manifest)
 
             # Assert that there are no new files
             for value in files_and_Ids.values():
@@ -243,7 +243,7 @@ class TestSynapseStorage:
             
         else:
             # get entityIds for all files
-            files_and_Ids = synapse_store._get_file_entityIDs(dataset_files=dataset_files, only_new_files=only_new_files)
+            files_and_Ids = synapse_store._get_file_entityIds(dataset_files=dataset_files, only_new_files=only_new_files)
 
             # assert that the correct number of files were found
             assert len(files_and_Ids['entityId']) == 2
