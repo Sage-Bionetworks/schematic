@@ -1490,7 +1490,7 @@ class ManifestGenerator(object):
 
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            manifest_url = self.get_empty_manifest(strict=strict)
+            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema, strict=strict)
 
             # if output_form parameter is set to "excel", return an excel spreadsheet
             if output_format == "excel": 
