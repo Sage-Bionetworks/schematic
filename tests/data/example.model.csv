@@ -1,4 +1,5 @@
 Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules
+Component,,,,,TRUE,,,,
 Patient,,,"Patient ID, Sex, Year of Birth, Diagnosis, Component",,FALSE,DataType,,,
 Patient ID,,,,,TRUE,DataProperty,,,
 Sex,,"Female, Male, Other",,,TRUE,DataProperty,,,
