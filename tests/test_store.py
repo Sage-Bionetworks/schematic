@@ -472,7 +472,6 @@ class TestTableOperations:
         # delete table        
         synapse_store.syn.delete(tableId)
 
-
 class TestDownloadManifest:
     @pytest.mark.parametrize("datasetFileView", [{"id": ["syn51203973", "syn51203943"], "name": ["synapse_storage_manifest.csv", "synapse_storage_manifest_censored.csv"]}, {"id": ["syn51203973"], "name": ["synapse_storage_manifest.csv"]}, {"id": ["syn51203943"], "name": ["synapse_storage_manifest_censored.csv"]}])
     def test_get_manifest_id(self, synapse_store, datasetFileView):
