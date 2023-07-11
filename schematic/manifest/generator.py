@@ -346,22 +346,12 @@ class ManifestGenerator(object):
             return []
 
 
-    def _get_json_schema(self, json_schema_filepath: str) -> Dict:
+    def _get_json_schema(self) -> Dict:
         """Open json schema as a dictionary.
-        Args:
-            json_schema_filepath(str): path to json schema file
         Returns:
             Dictionary, containing portions of the json schema
         """
-        if not json_schema_filepath:
-            # if no json schema is provided; there must be
-            # schema explorer defined for schema.org schema
-            # o.w. this will throw an error
-            # TODO: catch error
-            json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
-        else:
-            with open(json_schema_filepath) as jsonfile:
-                json_schema = json.load(jsonfile)
+        json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
         return json_schema
 
     def _get_required_metadata_fields(self, json_schema, fields):
@@ -1236,18 +1226,18 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, json_schema_filepath=None, strict=None):
+    def get_empty_manifest(self, strict: bool=None):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
-            json_schema_filepath (str): path to json schema file
+            strict (bool): strictness with which to apply validation rules to google sheets.
         Returns:
             manifest_url (str): url of the google sheet manifest.
         TODO:
             Refactor to not be dependent on GS.
         """
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
-        json_schema = self._get_json_schema(json_schema_filepath)
+        json_schema = self._get_json_schema()
 
         required_metadata_fields = self._gather_all_fields(
             json_schema["properties"].keys(), json_schema
@@ -1378,7 +1368,7 @@ class ManifestGenerator(object):
         self.additional_metadata = annotations_dict
 
         # Generate empty manifest using `additional_metadata`
-        manifest_url = self.get_empty_manifest(strict)
+        manifest_url = self.get_empty_manifest(strict=strict)
         manifest_df = self.get_dataframe_by_url(manifest_url)
 
         # Annotations clashing with manifest attributes are skipped
@@ -1489,7 +1479,7 @@ class ManifestGenerator(object):
 
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema, strict=strict)
+            manifest_url = self.get_empty_manifest(strict=strict)
 
             # if output_form parameter is set to "excel", return an excel spreadsheet
             if output_format == "excel": 
@@ -1514,7 +1504,7 @@ class ManifestGenerator(object):
         manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
-        empty_manifest_url = self.get_empty_manifest(strict)
+        empty_manifest_url = self.get_empty_manifest(strict=strict)
 
         # Populate empty template with existing manifest
         if manifest_record:
@@ -1545,7 +1535,7 @@ class ManifestGenerator(object):
 
             # if there are no files with annotations just generate an empty manifest
             if annotations.empty:
-                manifest_url = self.get_empty_manifest(strict)
+                manifest_url = self.get_empty_manifest(strict=strict)
                 manifest_df = self.get_dataframe_by_url(manifest_url)
             else:
                 # Subset columns if no interested in user-defined annotations and there are files present
