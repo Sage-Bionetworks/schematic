@@ -401,8 +401,7 @@ class TestManifestOperation:
 
     #@pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
     @pytest.mark.parametrize("output_format", ["excel"])
-    @pytest.mark.parametrize("data_type", ["Biospecimen"])
-    # @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
+    @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
     def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog):
         # set dataset
         if data_type == "Patient":
