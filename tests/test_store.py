@@ -157,10 +157,6 @@ class TestSynapseStorage:
             entity = synapse_store.syn.get(entity_id)
             assert type(entity) == File
 
-
-
-
-
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
         expected_df = pd.DataFrame.from_records(
