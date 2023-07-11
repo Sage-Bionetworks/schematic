@@ -346,12 +346,22 @@ class ManifestGenerator(object):
             return []
 
 
-    def _get_json_schema(self) -> Dict:
+    def _get_json_schema(self, json_schema_filepath: str) -> Dict:
         """Open json schema as a dictionary.
+        Args:
+            json_schema_filepath(str): path to json schema file
         Returns:
             Dictionary, containing portions of the json schema
         """
-        json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
+        if not json_schema_filepath:
+            # if no json schema is provided; there must be
+            # schema explorer defined for schema.org schema
+            # o.w. this will throw an error
+            # TODO: catch error
+            json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
+        else:
+            with open(json_schema_filepath) as jsonfile:
+                json_schema = json.load(jsonfile)
         return json_schema
 
     def _get_required_metadata_fields(self, json_schema, fields):
@@ -1226,18 +1236,19 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, strict: bool=None):
+    def get_empty_manifest(self, strict: bool=None, json_schema_filepath: str=None,):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
             strict (bool): strictness with which to apply validation rules to google sheets.
+            json_schema_filepath (str): path to json schema file
         Returns:
             manifest_url (str): url of the google sheet manifest.
         TODO:
             Refactor to not be dependent on GS.
         """
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
-        json_schema = self._get_json_schema()
+        json_schema = self._get_json_schema(json_schema_filepath=json_schema_filepath)
 
         required_metadata_fields = self._gather_all_fields(
             json_schema["properties"].keys(), json_schema
