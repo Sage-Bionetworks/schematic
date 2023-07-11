@@ -223,6 +223,31 @@ class TestSynapseStorage:
             # return manifest id
             assert manifest_data == "syn51204513"
 
+    @pytest.mark.parametrize('only_new_files',[True, False])
+    def test_file_entityIds(self, helpers, synapse_store, only_new_files):
+        manifest_path = "mock_manifests/test_BulkRNAseq.csv"
+        dataset_files = synapse_store.getFilesInStorageDataset('syn39241199')
+
+        if only_new_files:
+            # Prepare manifest is getting Ids for new files only
+            manifest = helpers.get_data_frame(manifest_path)
+            entityIds = pd.DataFrame({'entityId': ['syn39242580', 'syn51900502']})
+            manifest = manifest.join(entityIds)
+            
+            # get entityIds for new files
+            files_and_Ids = synapse_store._get_file_entityIDs(dataset_files=dataset_files, only_new_files=only_new_files, manifest=manifest)
+
+            # Assert that there are no new files
+            for value in files_and_Ids.values():
+                assert value == []
+            
+        else:
+            # get entityIds for all files
+            files_and_Ids = synapse_store._get_file_entityIDs(dataset_files=dataset_files, only_new_files=only_new_files)
+
+            # assert that the correct number of files were found
+            assert len(files_and_Ids['entityId']) == 2
+
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
 
