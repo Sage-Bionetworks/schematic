@@ -609,7 +609,7 @@ class SynapseStorage(BaseStorage):
         files = {"Filename": [], "entityId": []}
 
         if only_new_files:
-            if not manifest:
+            if manifest is None:
                 raise UnboundLocalError(
                     "No manifest was passed in, a manifest is required when `only_new_files` is True."
                 )
