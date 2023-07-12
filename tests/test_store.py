@@ -176,7 +176,7 @@ class TestSynapseStorage:
             assert key in annotations.keys()
             assert annotations[key] == test_annotations[key]
 
-        if manifest_path.endswith('annoations_tset_manifest.csv'):
+        if manifest_path.endswith('annotations_test_manifest.csv'):
             assert 'CheckRecommended' not in annotations.keys()
         elif manifest_path.endswith('test_BulkRNAseq.csv'):
             entity = synapse_store.syn.get(entity_id)
