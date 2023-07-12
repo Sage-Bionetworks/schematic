@@ -81,7 +81,7 @@ pytest-mock = "^3.5.1"
 flake8 = "^6.0.0"
 python-dotenv = "^0.21.0"
 black = "^23.7.0"
-mypy = "^0.982"
+mypy = "^1.4.1"
 pylint = "^2.16.1"
 
 [tool.poetry.group.aws]
