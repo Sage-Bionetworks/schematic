@@ -115,7 +115,7 @@ class TestSynapseStorage:
         assert expected_dict == actual_dict
 
     @pytest.mark.parametrize('only_new_files',[True, False])
-    def test_file_entityIds(self, helpers, synapse_store, only_new_files):
+    def test_get_file_entityIds(self, helpers, synapse_store, only_new_files):
         manifest_path = "mock_manifests/test_BulkRNAseq.csv"
         dataset_files = synapse_store.getFilesInStorageDataset('syn39241199')
 
