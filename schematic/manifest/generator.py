@@ -1462,7 +1462,7 @@ class ManifestGenerator(object):
             return output_file_path
         
         # Return google sheet if sheet_url flag is raised.
-        elif sheet_url: 
+        elif sheet_url:
             manifest_sh = self.set_dataframe_by_url(manifest_url=empty_manifest_url, manifest_df=dataframe, out_of_schema_columns=out_of_schema_columns)
             return manifest_sh.url
         
@@ -1520,7 +1520,7 @@ class ManifestGenerator(object):
         if manifest_record:
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
-
+            breakpoint()
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_record[1])
 
@@ -1554,7 +1554,7 @@ class ManifestGenerator(object):
 
                 # Update `additional_metadata` and generate manifest
                 manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
-            
+            breakpoint()
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
 
@@ -1564,6 +1564,7 @@ class ManifestGenerator(object):
                                                       sheet_url = sheet_url,
                                                       empty_manifest_url=empty_manifest_url,
                                                       dataframe = manifest_df,
+                                                      out_of_schema_columns = out_of_schema_columns,
                                                       )
             return result
 
