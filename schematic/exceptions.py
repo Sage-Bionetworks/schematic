@@ -13,7 +13,9 @@ class MissingConfigValueError(Exception):
         message.
     """
 
-    def __init__(self, config_keys: Sequence[Any], message: Optional[str] = None) -> None:
+    def __init__(
+        self, config_keys: Sequence[Any], message: Optional[str] = None
+    ) -> None:
         config_keys_str = " > ".join(config_keys)
         self.message = (
             "The configuration value corresponding to the argument "
