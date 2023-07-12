@@ -614,7 +614,7 @@ class SynapseStorage(BaseStorage):
                     "No manifest was passed in, a manifest is required when `only_new_files` is True."
                 )
             
-            # find new files if any
+            # find new files (that are not in the current manifest) if any
             for file_id, file_name in dataset_files:
                 if not file_id in manifest["entityId"].values:
                     files["Filename"].append(file_name)
