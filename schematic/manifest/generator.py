@@ -1165,7 +1165,7 @@ class ManifestGenerator(object):
             requests_body["requests"].append(borders_formatting)
         return requests_body
 
-    def _create_empty_gs(self, required_metadata_fields, json_schema, spreadsheet_id, sheet_url, strict=None):
+    def _create_empty_gs(self, required_metadata_fields, json_schema, spreadsheet_id, sheet_url, strict: Optional[bool]):
         """Generate requests to add columns and format the google sheet.
         Args:
             required_metadata_fields(dict):
@@ -1176,6 +1176,8 @@ class ManifestGenerator(object):
                 representing the data model, including: '$schema', '$id', 'title',
                 'type', 'properties', 'required'
             spreadsheet_id: str, of the id for the google sheet
+            sheet_url (str): google sheet url of template manifest
+            strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
         Returns:
             manifest_url (str): url of the google sheet manifest.
         """
