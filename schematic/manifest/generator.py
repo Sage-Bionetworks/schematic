@@ -1080,7 +1080,7 @@ class ManifestGenerator(object):
         json_schema,
         spreadsheet_id,
         sheet_url,
-        strict=None,
+        strict: Optional[bool],
     ):
         """Create and store all formatting changes for the google sheet to
         execute at once.
