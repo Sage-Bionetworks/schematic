@@ -1308,7 +1308,7 @@ class ManifestGenerator(object):
 
         return sh
 
-    def get_dataframe_by_url(self, manifest_url: str, strict=None) -> pd.DataFrame:
+    def get_dataframe_by_url(self, manifest_url: str) -> pd.DataFrame:
         """Retrieve pandas DataFrame from table in Google Sheets.
 
         Args:
