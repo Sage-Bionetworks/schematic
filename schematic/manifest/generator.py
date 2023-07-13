@@ -1243,7 +1243,7 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, json_schema_filepath=None, sheet_url=None, strict: Optional[bool]):
+    def get_empty_manifest(self, json_schema_filepath=None, sheet_url=None, strict: Optional[bool]=None):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
@@ -1362,7 +1362,7 @@ class ManifestGenerator(object):
         return annotations.rename(columns=label_map)
 
     def get_manifest_with_annotations(
-        self, annotations: pd.DataFrame, strict: Optional[bool], sheet_url:bool=None,
+        self, annotations: pd.DataFrame, sheet_url:bool=None, strict: Optional[bool]=None,
     ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
         """Generate manifest, optionally with annotations (if requested).
 
@@ -1482,7 +1482,7 @@ class ManifestGenerator(object):
             return dataframe
 
     def get_manifest(
-        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, access_token: str = None, strict: Optional[bool],
+        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, access_token: str = None, strict: Optional[bool]=None,
     ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
            TODO: move this function to class MetadatModel (after MetadataModel is refactored)
@@ -1556,14 +1556,14 @@ class ManifestGenerator(object):
 
             # if there are no files with annotations just generate an empty manifest
             if annotations.empty:
-                manifest_df = self.get_dataframe_by_url(manifest_url=manifest_url)
+                manifest_df = self.get_dataframe_by_url(manifest_url=empty_manifest_url)
             else:
                 # Subset columns if no interested in user-defined annotations and there are files present
                 if self.is_file_based and not self.use_annotations:
                     annotations = annotations[["Filename", "eTag", "entityId"]]
 
                 # Update `additional_metadata` and generate manifest
-                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations, sheet_url=sheet_url)
+                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations, sheet_url=sheet_url, strict=strict)
             
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
