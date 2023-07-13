@@ -1241,7 +1241,7 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, json_schema_filepath=None, sheet_url=None, strict=None):
+    def get_empty_manifest(self, json_schema_filepath=None, sheet_url=None, strict: Optional[bool]):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
@@ -1551,7 +1551,7 @@ class ManifestGenerator(object):
 
             # if there are no files with annotations just generate an empty manifest
             if annotations.empty:
-                manifest_df = self.get_dataframe_by_url(manifest_url=manifest_url, sheet_url=sheet_url)
+                manifest_df = self.get_dataframe_by_url(manifest_url=manifest_url)
             else:
                 # Subset columns if no interested in user-defined annotations and there are files present
                 if self.is_file_based and not self.use_annotations:
