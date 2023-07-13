@@ -288,7 +288,7 @@ class ManifestGenerator(object):
         spreadsheet_id,
         valid_values,
         column_id,
-        strict,
+        strict:Optional[bool],
         validation_type="ONE_OF_LIST",
         custom_ui=True,
         input_message="Choose one from dropdown",
@@ -1095,6 +1095,8 @@ class ManifestGenerator(object):
                 representing the data model, including: '$schema', '$id', 'title',
                 'type', 'properties', 'required'
             spreadsheet_id: str, of the id for the google sheet
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
+            strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
         Return:
             requests_body(dict):
                 containing all the update requests to add to the gs
@@ -1246,6 +1248,8 @@ class ManifestGenerator(object):
         json schema.
         Args:
             json_schema_filepath (str): path to json schema file
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
+            strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
         Returns:
             manifest_url (str): url of the google sheet manifest.
         TODO:
@@ -1364,7 +1368,8 @@ class ManifestGenerator(object):
 
         Args:
             annotations (pd.DataFrame): Annotations table (can be empty).
-
+            strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
         Returns:
             Tuple[ps.Spreadsheet, pd.DataFrame]: Both the Google Sheet
             URL and the corresponding data frame is returned.
@@ -1484,7 +1489,7 @@ class ManifestGenerator(object):
 
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
-            sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
             output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             output_path: Determines the output path of the exported manifest
             access_token: Token in .synapseConfig. Since we could not pre-load access_token as an environment variable on AWS, we have to add this variable. 
