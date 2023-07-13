@@ -1103,10 +1103,10 @@ class ManifestGenerator(object):
         requests_body = {}
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
-            # Gather validation rules and valid values for attribute, if using google sheets.
-
+            # Gather validation rules and valid values for attribute.
             validation_rules = self.sg.get_node_validation_rules(req)
             
+            # Add regex match validaiton rule to Google Sheets.
             if validation_rules and sheet_url:
                 requests_body =self._request_regex_match_vr_formatting(
                         validation_rules, i, spreadsheet_id, requests_body, strict
