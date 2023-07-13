@@ -9,7 +9,7 @@ import pandas as pd
 from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Optional
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import (
@@ -1236,7 +1236,7 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, strict: bool=None, json_schema_filepath: str=None,):
+    def get_empty_manifest(self, strict: Optional[bool], json_schema_filepath: str=None):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
