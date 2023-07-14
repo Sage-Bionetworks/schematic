@@ -1240,7 +1240,7 @@ class ManifestGenerator(object):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
-            strict (bool): strictness with which to apply validation rules to google sheets.
+            strict (bool): strictness with which to apply validation rules to google sheets. If true, blocks incorrect entries; if false, raises a warning
             json_schema_filepath (str): path to json schema file
         Returns:
             manifest_url (str): url of the google sheet manifest.
