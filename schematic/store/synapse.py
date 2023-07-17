@@ -40,7 +40,6 @@ from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
-from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
 
 
@@ -2137,10 +2136,9 @@ class TableOperations:
            existingTableId: synID of the already existing table that had its metadata replaced
         """            
 
-        username, authtoken = self._get_schematic_db_creds()
+        authtoken = self._get_schematic_db_creds()
 
-        synConfig = SynapseConfig(username, authtoken, self.synStore.getDatasetProject(self.datasetId))
-        synapseDB = SynapseDatabase(synConfig)
+        synapseDB = SynapseDatabase(authtoken=authtoken, project_id=self.synStore.getDatasetProject(self.datasetId))
 
         try:
             # Try performing upsert
