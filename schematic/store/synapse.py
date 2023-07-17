@@ -573,13 +573,7 @@ class SynapseStorage(BaseStorage):
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
         if dataset_files:
-            new_files = {"Filename": [], "entityId": []}
-
-            # find new files if any
-            for file_id, file_name in dataset_files:
-                if not file_id in manifest["entityId"].values:
-                    new_files["Filename"].append(file_name)
-                    new_files["entityId"].append(file_id)
+            new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
 
             # update manifest so that it contain new files
             new_files = pd.DataFrame(new_files)
@@ -599,6 +593,38 @@ class SynapseStorage(BaseStorage):
         manifest = manifest.fillna("") 
         
         return manifest_id, manifest
+    
+    def _get_file_entityIds(self, dataset_files: List,  only_new_files: bool = False, manifest: pd.DataFrame = None):
+        """
+        Get a dictionary of files in a dataset. Either files that are not in the current manifest or all files
+        
+        Args:
+            manifest: metadata manifest
+            dataset_file: List of all files in a dataset
+            only_new_files: boolean to control whether only new files are returned or all files in the dataset
+        Returns:
+            files: dictionary of file names and entityIDs, with scope as specified by `only_new_files`
+        """
+        files = {"Filename": [], "entityId": []}
+
+        if only_new_files:
+            if manifest is None:
+                raise UnboundLocalError(
+                    "No manifest was passed in, a manifest is required when `only_new_files` is True."
+                )
+            
+            # find new files (that are not in the current manifest) if any
+            for file_id, file_name in dataset_files:
+                if not file_id in manifest["entityId"].values:
+                    files["Filename"].append(file_name)
+                    files["entityId"].append(file_id)
+        else:
+            # get all files
+            for file_id, file_name in dataset_files:
+                files["Filename"].append(file_name)
+                files["entityId"].append(file_id)
+
+        return files
 
     def getProjectManifests(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
@@ -1342,6 +1368,18 @@ class SynapseStorage(BaseStorage):
             manifest (pd.DataFrame): modified to add entitiyId as appropriate.
 
         '''
+
+        # Expected behavior is to annotate files if `Filename` is present regardless of `-mrt` setting
+        if 'filename' in [col.lower() for col in manifest.columns]:
+            # get current list of files and store as dataframe
+            dataset_files = self.getFilesInStorageDataset(datasetId)
+            files_and_entityIds = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=False)
+            file_df = pd.DataFrame(files_and_entityIds)
+            
+            # Merge dataframes to add entityIds
+            manifest = manifest.merge(file_df, how = 'left', on='Filename', suffixes=['_x',None]).drop('entityId_x',axis=1)
+
+        # Fill `entityId` for each row if missing and annotate entity as appropriate
         for idx, row in manifest.iterrows():
             if not row["entityId"] and (manifest_record_type == 'file_and_entities' or 
                 manifest_record_type == 'table_file_and_entities'):

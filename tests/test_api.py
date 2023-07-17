@@ -405,11 +405,11 @@ class TestManifestOperation:
     def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog):
         # set dataset
         if data_type == "Patient":
-            dataset_id = ["syn42171373"] #Mock Patient Manifest folder on synapse
+            dataset_id = ["syn51730545"] #Mock Patient Manifest folder on synapse
         elif data_type == "Biospecimen":
-            dataset_id = ["syn42171508"] #Mock biospecimen manifest folder
+            dataset_id = ["syn51730547"] #Mock biospecimen manifest folder
         elif data_type == ["Biospecimen", "Patient"]:
-            dataset_id = ["syn42171508", "syn42171373"]
+            dataset_id = ["syn51730547", "syn51730545"]
         else: 
             dataset_id = None #if "all manifests", dataset id is None
 

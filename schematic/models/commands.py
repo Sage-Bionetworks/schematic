@@ -110,9 +110,9 @@ def submit_manifest(
     """
     Running CLI with manifest validation (optional) and submission options.
     """
-    if jsonld is None:
-        jsonld =  CONFIG.model_location
-        log_value_from_config("jsonld", jsonld)
+    
+    jsonld =  CONFIG.model_location
+    log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld, inputMModelLocationType="local"
