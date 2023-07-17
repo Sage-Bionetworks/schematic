@@ -40,7 +40,6 @@ from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
-from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
 
 
@@ -2109,29 +2108,25 @@ class TableOperations:
         return self.existingTableId
     
 
-    def _get_schematic_db_creds(self,):
-        username = None
+    def _get_auth_token(self,):
         authtoken = None
-
 
         # Get access token from environment variable if available
         # Primarily useful for testing environments, with other possible usefulness for containers
         env_access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
         if env_access_token:
             authtoken = env_access_token
-            return username, authtoken
+            return authtoken
 
         # Get token from authorization header
         # Primarily useful for API endpoint functionality
         if 'Authorization' in self.synStore.syn.default_headers:
             authtoken = self.synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
-            return username, authtoken
+            return authtoken
 
         # retrive credentials from synapse object
         # Primarily useful for local users, could only be stored here when a .synapseConfig file is used, but including to be safe
         synapse_object_creds = self.synStore.syn.credentials
-        if hasattr(synapse_object_creds, 'username'):
-            username = synapse_object_creds.username
         if hasattr(synapse_object_creds, '_token'):
             authtoken = synapse_object_creds.secret
 
@@ -2141,24 +2136,16 @@ class TableOperations:
             config = self.synStore.syn.getConfigFile(CONFIG.synapse_configuration_path)
 
             # check which credentials are provided in file
-            if config.has_option('authentication', 'username'):
-                username = config.get('authentication', 'username')
             if config.has_option('authentication', 'authtoken'):
                 authtoken = config.get('authentication', 'authtoken')
         
         # raise error if required credentials are not found
-        # providing an authtoken without a username did not prohibit upsert functionality, 
-        # but including username gathering for completeness for schematic_db
-        if not username and not authtoken:
-            raise NameError(
-                "Username and authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
-            )
         if not authtoken:
             raise NameError(
                 "authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
             )
         
-        return username, authtoken
+        return authtoken
 
     def upsertTable(self, sg: SchemaGenerator,):
         """
@@ -2175,10 +2162,9 @@ class TableOperations:
            existingTableId: synID of the already existing table that had its metadata replaced
         """            
 
-        username, authtoken = self._get_schematic_db_creds()
+        authtoken = self._get_auth_token()
 
-        synConfig = SynapseConfig(username, authtoken, self.synStore.getDatasetProject(self.datasetId))
-        synapseDB = SynapseDatabase(synConfig)
+        synapseDB = SynapseDatabase(auth_token=authtoken, project_id=self.synStore.getDatasetProject(self.datasetId))
 
         try:
             # Try performing upsert
