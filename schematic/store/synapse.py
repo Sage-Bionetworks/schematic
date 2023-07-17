@@ -2164,7 +2164,7 @@ class TableOperations:
 
         authtoken = self._get_auth_token()
 
-        synapseDB = SynapseDatabase(authtoken=authtoken, project_id=self.synStore.getDatasetProject(self.datasetId))
+        synapseDB = SynapseDatabase(auth_token=authtoken, project_id=self.synStore.getDatasetProject(self.datasetId))
 
         try:
             # Try performing upsert
