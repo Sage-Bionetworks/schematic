@@ -73,7 +73,9 @@ WORKDIR ${APP_DIR}
 
 # copy other files to app/app
 # Note: run_api.py is not needed
-COPY ./pyproject.toml ./poetry.lock ./config.yml ./main.py ./
+
+COPY ./pyproject.toml ./poetry.lock ./main.py ./
+COPY ./config-example.yml ./config.yml
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi --no-root --with aws
 
