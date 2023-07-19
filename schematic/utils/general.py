@@ -6,6 +6,7 @@ import logging
 import pstats
 from cProfile import Profile
 from functools import wraps
+import subprocess
 
 import tempfile
 
@@ -57,6 +58,24 @@ def get_dir_size(path: str):
                 total += get_dir_size(entry.path)
     return total
 
+def check_synapse_cache_size(directory='/root/.synapseCache'):
+    command = ['du', '-sh', directory]
+    output = subprocess.check_output(command).decode('utf-8')
+    
+    # Parsing the output to extract the directory size
+    size = output.split('\t')[0]
+    if "K" in size:
+        size_in_kb = float(size.rstrip('K'))
+        byte_size = size_in_kb * 1000
+    elif "M" in size:
+        size_in_mb = float(size.rstrip('M'))
+        byte_size = size_in_mb * 1000000
+    elif "G" in size: 
+        size_in_gb = float(size.rstrip('G'))
+        byte_size = convert_gb_to_bytes(size_in_gb)
+    else:
+        logger.error('Cannot recongize')
+    return byte_size
 
 def convert_size(size_bytes: int):
     """convert bytes to a human readable format
@@ -83,6 +102,10 @@ def convert_gb_to_bytes(gb: int):
     return: total number of bytes
     """
     return gb * 1024 * 1024 * 1024
+
+def convert_mb_to_bytes(mb: int):
+    return mb * 1000000
+
 
 def entity_type_mapping(syn, entity_id):
     """

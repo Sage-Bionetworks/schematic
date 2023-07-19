@@ -8,6 +8,7 @@ import logging
 import secrets
 from dataclasses import dataclass
 import tempfile
+import subprocess
 
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
@@ -44,9 +45,9 @@ from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
 
 
-from schematic.utils.df_utils import update_df, load_df, col_in_dataframe, populate_df_col_with_another_col
+from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
-from schematic.utils.general import entity_type_mapping, get_dir_size, convert_size, convert_gb_to_bytes, create_temp_folder
+from schematic.utils.general import entity_type_mapping, get_dir_size,convert_gb_to_bytes, create_temp_folder, check_synapse_cache_size
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
@@ -183,36 +184,32 @@ class SynapseStorage(BaseStorage):
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
+        self.root_synapse_cache = "/root/.synapseCache"
         self._query_fileview()
 
-    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/", maximum_storage_allowed_cache_gb=7):
+    def _purge_synapse_cache(self, maximum_storage_allowed_cache_gb=1):
         """
-        Purge synapse cache if it exceeds 7GB
+        Purge synapse cache if it exceeds 1GB
         Args:
-            root_dir: directory of the .synapseCache function
-            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 7 GB. 
-
+            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 1 GB. 
         Returns: 
-            if size of cache reaches a certain threshold (default is 7GB), return the number of files that get deleted
-            otherwise, return the total remaining space (assuming total ephemeral storage is 20GB on AWS )
+            if size of cache reaches a certain threshold (default is 1GB), return the number of files that get deleted
+            otherwise, return the current size of .synapseCache
         """
         # try clearing the cache
         # scan a directory and check size of files
         cache = self.syn.cache
-        if os.path.exists(root_dir):
+        if os.path.exists(self.root_synapse_cache):
             maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
-            total_ephemeral_storag_gb = 20
-            total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
-            nbytes = get_dir_size(root_dir)
-            # if 7 GB has already been taken, purge cache before 15 min
-            if nbytes >= maximum_storage_allowed_cache_bytes:
+            nbytes = get_dir_size(self.root_synapse_cache)
+            dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
+            # if 1 GB has already been taken, purge cache before 15 min
+            if dir_size_bytes >= maximum_storage_allowed_cache_bytes:
                 minutes_earlier = datetime.strftime(datetime.utcnow()- timedelta(minutes = 15), '%s')
                 num_of_deleted_files = cache.purge(before_date = int(minutes_earlier))
-                logger.info(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
+                logger.info(f'{num_of_deleted_files} number of files have been deleted from {self.root_synapse_cache}')
             else:
-                remaining_space = total_ephemeral_storage_bytes - nbytes
-                converted_space = convert_size(remaining_space)
-                logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
+                logger.info(f'the total size of .synapseCache is: {nbytes} bytes')
 
     def _query_fileview(self):
         self._purge_synapse_cache()
