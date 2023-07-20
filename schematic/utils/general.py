@@ -1,18 +1,18 @@
 # allows specifying explicit variable types
-from typing import Union
-import os
-import math
 import logging
+import math
+import os
 import pstats
-from cProfile import Profile
-from functools import wraps
 import subprocess
-
 import tempfile
+from cProfile import Profile
+from datetime import datetime, timedelta
+from functools import wraps
+from typing import Union
 
 from synapseclient.core.exceptions import SynapseHTTPError
-from synapseclient.table import EntityViewSchema
 from synapseclient.entity import File, Folder, Project
+from synapseclient.table import EntityViewSchema
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +57,24 @@ def get_dir_size(path: str):
             elif entry.is_dir():
                 total += get_dir_size(entry.path)
     return total
+
+def calculate_datetime(minutes: int, input_date: datetime, before_or_after: str = "before") -> datetime:
+    """calculate date time 
+
+    Args:
+        input_date (datetime): date time object provided by users
+        minutes (int): number of minutes
+        before_or_after (str): default to "before". if "before", calculate x minutes before current date time. if "after", calculate x minutes after current date time. 
+
+    Returns:
+        datetime:  return result of date time calculation
+    """
+    if before_or_after=="before": 
+        date_time_result = input_date - timedelta(minutes=minutes)
+    else:
+        date_time_result = input_date - timedelta(minutes=minutes)
+    return date_time_result
+
 
 def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int]:
     """use du --sh command to calculate size of .synapseCache.

@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import pytest
@@ -25,7 +26,7 @@ from schematic.exceptions import (
 )
 from schematic import LOADER
 from schematic.store.synapse import SynapseStorage
-from schematic.utils.general import entity_type_mapping, check_synapse_cache_size
+from schematic.utils.general import entity_type_mapping, check_synapse_cache_size, calculate_datetime
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -43,6 +44,12 @@ def synapse_store():
 
 
 class TestGeneral:
+    def test_calculate_datetime(self):
+        input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
+        minutes_before = calculate_datetime(input_date=input_date, minutes=10, before_or_after="before")
+        expected_result_date = datetime.strptime("07/20/23 17:26:34", '%m/%d/%y %H:%M:%S')
+        assert minutes_before == expected_result_date
+        
     @pytest.mark.skipif(str(IN_GITHUB_ACTIONS), reason="does not work in GH action")
     def test_check_synapse_cache_size(self, helpers):
         # set mock synapse cache folder path
