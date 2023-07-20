@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import shutil
 
 import pandas as pd
 import numpy as np
@@ -24,7 +25,7 @@ from schematic.exceptions import (
 )
 from schematic import LOADER
 from schematic.store.synapse import SynapseStorage
-from schematic.utils.general import entity_type_mapping
+from schematic.utils.general import entity_type_mapping, check_synapse_cache_size
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -41,6 +42,21 @@ def synapse_store():
 
 
 class TestGeneral:
+    def test_check_synapse_cache_size(self, helpers):
+        # set mock synapse cache folder path
+        mock_synapse_cache_folder = helpers.get_data_path("mock_data_folder")
+        # clear up previous results 
+        if os.path.exists(mock_synapse_cache_folder):
+            shutil.rmtree(mock_synapse_cache_folder)
+        
+        #temporarily create a new directory
+        os.makedirs(mock_synapse_cache_folder)
+        test_manifest_path = helpers.get_data_path("mock_data_folder/temp.txt")
+        with open(test_manifest_path, 'w', encoding='utf8') as f:
+            f.write("example file for calculating cache")
+        file_size = check_synapse_cache_size(mock_synapse_cache_folder)
+        assert file_size == 4000
+
     def test_find_duplicates(self):
 
         mock_list = ["foo", "bar", "foo"]
@@ -83,6 +99,7 @@ class TestGeneral:
         with tempfile.TemporaryDirectory() as tmpdir:
             path_dir = general.create_temp_folder(tmpdir)
             assert os.path.exists(path_dir)
+
 
 class TestCliUtils:
     def test_query_dict(self):
