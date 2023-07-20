@@ -7,8 +7,7 @@ import atexit
 import logging
 import secrets
 from dataclasses import dataclass
-import tempfile
-import subprocess
+import shutil
 
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
@@ -77,12 +76,16 @@ class ManifestDownload(object):
         """
         if "SECRETS_MANAGER_SECRETS" in os.environ:
             temporary_manifest_storage = "/var/tmp/temp_manifest_download"
+            # clear out all the existing manifests
+            if os.path.exists(temporary_manifest_storage):
+                shutil.rmtree(temporary_manifest_storage)
+            # create a new directory to store manifest
             if not os.path.exists(temporary_manifest_storage):
-                os.mkdir("/var/tmp/temp_manifest_download")
+                os.mkdir(temporary_manifest_storage)
+            # create temporary folders for storing manifests
             download_location = create_temp_folder(temporary_manifest_storage)
         else:
             download_location=CONFIG.manifest_folder
-
         manifest_data = self.syn.get(
                 self.manifest_id,
                 downloadLocation=download_location,
