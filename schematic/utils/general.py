@@ -1,5 +1,5 @@
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text
+from typing import Union
 import os
 import math
 import logging
@@ -58,7 +58,15 @@ def get_dir_size(path: str):
                 total += get_dir_size(entry.path)
     return total
 
-def check_synapse_cache_size(directory='/root/.synapseCache'):
+def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int]:
+    """use du --sh command to calculate size of .synapseCache.
+
+    Args:
+        directory (str, optional): .synapseCache directory. Defaults to '/root/.synapseCache'
+
+    Returns:
+        float or integer: returns size of .synapsecache directory in bytes
+    """
     command = ['du', '-sh', directory]
     output = subprocess.check_output(command).decode('utf-8')
     
