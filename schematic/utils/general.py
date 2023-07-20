@@ -104,7 +104,6 @@ def convert_size(size_bytes: int):
     size_bytes_converted = round(size_bytes / power_cal, 2)
     return f"{size_bytes_converted} {size_name[index_int]})"
 
-
 def convert_gb_to_bytes(gb: int):
     """convert gb to bytes
     Args:
@@ -112,9 +111,6 @@ def convert_gb_to_bytes(gb: int):
     return: total number of bytes
     """
     return gb * 1024 * 1024 * 1024
-
-def convert_mb_to_bytes(mb: int):
-    return mb * 1000000
 
 
 def entity_type_mapping(syn, entity_id):
