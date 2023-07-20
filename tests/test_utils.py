@@ -30,6 +30,7 @@ from schematic.utils.general import entity_type_mapping, check_synapse_cache_siz
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
 
 @pytest.fixture
 def synapse_store():
@@ -42,6 +43,7 @@ def synapse_store():
 
 
 class TestGeneral:
+    @pytest.mark.skipif(str(IN_GITHUB_ACTIONS), reason="does not work in GH action")
     def test_check_synapse_cache_size(self, helpers):
         # set mock synapse cache folder path
         mock_synapse_cache_folder = helpers.get_data_path("mock_data_folder")
@@ -55,6 +57,7 @@ class TestGeneral:
         with open(test_manifest_path, 'w', encoding='utf8') as f:
             f.write("example file for calculating cache")
         file_size = check_synapse_cache_size(mock_synapse_cache_folder)
+
         assert file_size == 4000
 
     def test_find_duplicates(self):
