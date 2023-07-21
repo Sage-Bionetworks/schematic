@@ -1581,15 +1581,11 @@ class ManifestGenerator(object):
         # Identify columns to add to the end of the manifest
         end_columns = list(out_of_schema_columns)
         
-        # Make sure want Uuids at the end before entityId is at the end of the list
-        for id_name in ['Uuid', 'Id']:
+        # Make sure want Ids are placed at end of manifest, in given order.
+        for id_name in ['Uuid', 'Id', 'entityId']:
             if id_name in end_columns:
                 end_columns.remove(id_name)
                 end_columns.append(id_name)
-
-        if 'entityId' in end_columns:
-            end_columns.remove('entityId')
-            end_columns.append('entityId')
         
         # Add entity_id to the end columns if it should be there but isn't
         elif 'entityId' in (current_schema_headers or existing_manfiest_headers) and 'entityId' not in end_columns:
