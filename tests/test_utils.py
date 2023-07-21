@@ -50,7 +50,6 @@ class TestGeneral:
         expected_result_date = datetime.strptime("07/20/23 17:26:34", '%m/%d/%y %H:%M:%S')
         assert minutes_before == expected_result_date
         
-    @pytest.mark.skipif(str(IN_GITHUB_ACTIONS), reason="does not work in GH action")
     def test_check_synapse_cache_size(self, helpers):
         # set mock synapse cache folder path
         mock_synapse_cache_folder = helpers.get_data_path("mock_data_folder")
@@ -66,6 +65,8 @@ class TestGeneral:
         file_size = check_synapse_cache_size(mock_synapse_cache_folder)
 
         assert file_size == 4000
+        if IN_GITHUB_ACTIONS:
+            assert file_size == 8000
 
     def test_find_duplicates(self):
 
