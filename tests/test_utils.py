@@ -64,9 +64,10 @@ class TestGeneral:
             f.write("example file for calculating cache")
         file_size = check_synapse_cache_size(mock_synapse_cache_folder)
 
-        assert file_size == 4000
         if IN_GITHUB_ACTIONS:
             assert file_size == 8000
+        else:
+            assert file_size == 4000
 
     def test_find_duplicates(self):
 
