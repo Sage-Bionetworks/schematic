@@ -28,7 +28,6 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage, ManifestDownload
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions, SynapseNoCredentialsError, SynapseTimeoutError
 from schematic.utils.general import entity_type_mapping
-from synapseclient.client import Synapse
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
