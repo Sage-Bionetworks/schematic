@@ -9,7 +9,7 @@ import pandas as pd
 from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Tuple, Union, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import (
@@ -288,7 +288,7 @@ class ManifestGenerator(object):
         spreadsheet_id,
         valid_values,
         column_id,
-        strict,
+        strict:Optional[bool],
         validation_type="ONE_OF_LIST",
         custom_ui=True,
         input_message="Choose one from dropdown",
@@ -706,7 +706,7 @@ class ManifestGenerator(object):
         return requests_vr
 
     def _request_regex_match_vr_formatting(self, validation_rules: List[str], i: int,
-        spreadsheet_id: str, requests_body: dict, strict: bool = None,
+        spreadsheet_id: str, requests_body: dict, strict: Optional[bool],
         ):
         """
         Purpose:
@@ -1079,7 +1079,8 @@ class ManifestGenerator(object):
         ordered_metadata_fields,
         json_schema,
         spreadsheet_id,
-        strict=None,
+        sheet_url,
+        strict: Optional[bool],
     ):
         """Create and store all formatting changes for the google sheet to
         execute at once.
@@ -1094,6 +1095,8 @@ class ManifestGenerator(object):
                 representing the data model, including: '$schema', '$id', 'title',
                 'type', 'properties', 'required'
             spreadsheet_id: str, of the id for the google sheet
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
+            strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
         Return:
             requests_body(dict):
                 containing all the update requests to add to the gs
@@ -1102,10 +1105,11 @@ class ManifestGenerator(object):
         requests_body = {}
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
-            # Gather validation rules and valid values for attribute
+            # Gather validation rules and valid values for attribute.
             validation_rules = self.sg.get_node_validation_rules(req)
-
-            if validation_rules:
+            
+            # Add regex match validaiton rule to Google Sheets.
+            if validation_rules and sheet_url:
                 requests_body =self._request_regex_match_vr_formatting(
                         validation_rules, i, spreadsheet_id, requests_body, strict
                         )
@@ -1163,7 +1167,7 @@ class ManifestGenerator(object):
             requests_body["requests"].append(borders_formatting)
         return requests_body
 
-    def _create_empty_gs(self, required_metadata_fields, json_schema, spreadsheet_id, strict=None):
+    def _create_empty_gs(self, required_metadata_fields, json_schema, spreadsheet_id, sheet_url, strict: Optional[bool]):
         """Generate requests to add columns and format the google sheet.
         Args:
             required_metadata_fields(dict):
@@ -1174,6 +1178,8 @@ class ManifestGenerator(object):
                 representing the data model, including: '$schema', '$id', 'title',
                 'type', 'properties', 'required'
             spreadsheet_id: str, of the id for the google sheet
+            sheet_url (str): google sheet url of template manifest
+            strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
         Returns:
             manifest_url (str): url of the google sheet manifest.
         """
@@ -1193,6 +1199,7 @@ class ManifestGenerator(object):
             ordered_metadata_fields,
             json_schema,
             spreadsheet_id,
+            sheet_url,
             strict,
         )
 
@@ -1236,12 +1243,14 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, strict: Optional[bool], json_schema_filepath: str=None):
+    def get_empty_manifest(self, strict: Optional[bool], json_schema_filepath: str=None, sheet_url: Optional[bool]=None):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
             strict (bool): strictness with which to apply validation rules to google sheets. If true, blocks incorrect entries; if false, raises a warning
             json_schema_filepath (str): path to json schema file
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
+            strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
         Returns:
             manifest_url (str): url of the google sheet manifest.
         TODO:
@@ -1255,7 +1264,7 @@ class ManifestGenerator(object):
         )
 
         manifest_url = self._create_empty_gs(
-            required_metadata_fields, json_schema, spreadsheet_id, strict
+            required_metadata_fields, json_schema, spreadsheet_id, sheet_url=sheet_url, strict=strict,
         )
         return manifest_url
 
@@ -1356,13 +1365,14 @@ class ManifestGenerator(object):
         return annotations.rename(columns=label_map)
 
     def get_manifest_with_annotations(
-        self, annotations: pd.DataFrame, strict: bool=None,
+        self, annotations: pd.DataFrame, sheet_url:bool=None, strict: Optional[bool]=None,
     ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
         """Generate manifest, optionally with annotations (if requested).
 
         Args:
             annotations (pd.DataFrame): Annotations table (can be empty).
-
+            strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
         Returns:
             Tuple[ps.Spreadsheet, pd.DataFrame]: Both the Google Sheet
             URL and the corresponding data frame is returned.
@@ -1381,8 +1391,8 @@ class ManifestGenerator(object):
         self.additional_metadata = annotations_dict
 
         # Generate empty manifest using `additional_metadata`
-        manifest_url = self.get_empty_manifest(strict=strict)
-        manifest_df = self.get_dataframe_by_url(manifest_url)
+        manifest_url = self.get_empty_manifest(sheet_url=sheet_url, strict=strict)
+        manifest_df = self.get_dataframe_by_url(manifest_url=manifest_url)
 
         # Annotations clashing with manifest attributes are skipped
         # during empty manifest generation. For more info, search
@@ -1474,14 +1484,14 @@ class ManifestGenerator(object):
             return dataframe
 
     def get_manifest(
-        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, access_token: str = None, strict: bool = None,
+        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, access_token: str = None, strict: Optional[bool]=None,
     ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
            TODO: move this function to class MetadatModel (after MetadataModel is refactored)
 
         Args:
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
-            sheet_url: Determines if googlesheet URL or pandas dataframe should be returned.
+            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
             output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             output_path: Determines the output path of the exported manifest
             access_token: Token in .synapseConfig. Since we could not pre-load access_token as an environment variable on AWS, we have to add this variable. 
@@ -1492,7 +1502,7 @@ class ManifestGenerator(object):
 
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema, strict=strict)
+            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema, strict=strict, sheet_url=sheet_url)
 
             # if output_form parameter is set to "excel", return an excel spreadsheet
             if output_format == "excel": 
@@ -1517,7 +1527,7 @@ class ManifestGenerator(object):
         manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
-        empty_manifest_url = self.get_empty_manifest(strict=strict)
+        empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=sheet_url)
 
         # Populate empty template with existing manifest
         if manifest_record:
@@ -1555,7 +1565,8 @@ class ManifestGenerator(object):
                     annotations = annotations[["Filename", "eTag", "entityId"]]
 
                 # Update `additional_metadata` and generate manifest
-                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations)
+                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations, sheet_url=sheet_url, strict=strict)
+
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
 
@@ -1609,8 +1620,8 @@ class ManifestGenerator(object):
         """
 
         # Get headers for the current schema and existing manifest df.
-        current_schema_headers = list(self.get_dataframe_by_url(empty_manifest_url).columns)
-        existing_manifest_headers = list(existing_df.columns)
+        current_schema_headers = list(self.get_dataframe_by_url(manifest_url=empty_manifest_url).columns)
+        existing_manfiest_headers = list(existing_df.columns)
 
         # Find columns that exist in the current schema, but are not in the manifest being downloaded.
         new_columns = self._get_missing_columns(current_schema_headers, existing_manifest_headers)
