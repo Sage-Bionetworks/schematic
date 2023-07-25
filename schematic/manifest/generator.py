@@ -1243,10 +1243,11 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, json_schema_filepath=None, sheet_url=None, strict: Optional[bool]=None):
+    def get_empty_manifest(self, strict: Optional[bool], json_schema_filepath: str=None, sheet_url: Optional[bool]=None):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
+            strict (bool): strictness with which to apply validation rules to google sheets. If true, blocks incorrect entries; if false, raises a warning
             json_schema_filepath (str): path to json schema file
             sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
             strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
@@ -1256,7 +1257,7 @@ class ManifestGenerator(object):
             Refactor to not be dependent on GS.
         """
         spreadsheet_id = self._create_empty_manifest_spreadsheet(self.title)
-        json_schema = self._get_json_schema(json_schema_filepath)
+        json_schema = self._get_json_schema(json_schema_filepath=json_schema_filepath)
 
         required_metadata_fields = self._gather_all_fields(
             json_schema["properties"].keys(), json_schema
@@ -1389,7 +1390,6 @@ class ManifestGenerator(object):
 
         # Generate empty manifest using `additional_metadata`
         manifest_url = self.get_empty_manifest(sheet_url=sheet_url, strict=strict)
-
         manifest_df = self.get_dataframe_by_url(manifest_url=manifest_url)
 
         # Annotations clashing with manifest attributes are skipped
@@ -1556,7 +1556,8 @@ class ManifestGenerator(object):
 
             # if there are no files with annotations just generate an empty manifest
             if annotations.empty:
-                manifest_df = self.get_dataframe_by_url(manifest_url=empty_manifest_url)
+                manifest_url = self.get_empty_manifest(strict=strict)
+                manifest_df = self.get_dataframe_by_url(manifest_url)
             else:
                 # Subset columns if no interested in user-defined annotations and there are files present
                 if self.is_file_based and not self.use_annotations:

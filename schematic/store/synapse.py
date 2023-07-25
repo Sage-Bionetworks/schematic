@@ -40,7 +40,6 @@ from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
-from schematic_db.synapse.synapse import SynapseConfig
 from schematic_db.rdb.synapse_database import SynapseDatabase
 
 
@@ -574,13 +573,7 @@ class SynapseStorage(BaseStorage):
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
         if dataset_files:
-            new_files = {"Filename": [], "entityId": []}
-
-            # find new files if any
-            for file_id, file_name in dataset_files:
-                if not file_id in manifest["entityId"].values:
-                    new_files["Filename"].append(file_name)
-                    new_files["entityId"].append(file_id)
+            new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
 
             # update manifest so that it contain new files
             new_files = pd.DataFrame(new_files)
@@ -600,6 +593,38 @@ class SynapseStorage(BaseStorage):
         manifest = manifest.fillna("") 
         
         return manifest_id, manifest
+    
+    def _get_file_entityIds(self, dataset_files: List,  only_new_files: bool = False, manifest: pd.DataFrame = None):
+        """
+        Get a dictionary of files in a dataset. Either files that are not in the current manifest or all files
+        
+        Args:
+            manifest: metadata manifest
+            dataset_file: List of all files in a dataset
+            only_new_files: boolean to control whether only new files are returned or all files in the dataset
+        Returns:
+            files: dictionary of file names and entityIDs, with scope as specified by `only_new_files`
+        """
+        files = {"Filename": [], "entityId": []}
+
+        if only_new_files:
+            if manifest is None:
+                raise UnboundLocalError(
+                    "No manifest was passed in, a manifest is required when `only_new_files` is True."
+                )
+            
+            # find new files (that are not in the current manifest) if any
+            for file_id, file_name in dataset_files:
+                if not file_id in manifest["entityId"].values:
+                    files["Filename"].append(file_name)
+                    files["entityId"].append(file_id)
+        else:
+            # get all files
+            for file_id, file_name in dataset_files:
+                files["Filename"].append(file_name)
+                files["entityId"].append(file_id)
+
+        return files
 
     def getProjectManifests(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
@@ -1343,6 +1368,18 @@ class SynapseStorage(BaseStorage):
             manifest (pd.DataFrame): modified to add entitiyId as appropriate.
 
         '''
+
+        # Expected behavior is to annotate files if `Filename` is present regardless of `-mrt` setting
+        if 'filename' in [col.lower() for col in manifest.columns]:
+            # get current list of files and store as dataframe
+            dataset_files = self.getFilesInStorageDataset(datasetId)
+            files_and_entityIds = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=False)
+            file_df = pd.DataFrame(files_and_entityIds)
+            
+            # Merge dataframes to add entityIds
+            manifest = manifest.merge(file_df, how = 'left', on='Filename', suffixes=['_x',None]).drop('entityId_x',axis=1)
+
+        # Fill `entityId` for each row if missing and annotate entity as appropriate
         for idx, row in manifest.iterrows():
             if not row["entityId"] and (manifest_record_type == 'file_and_entities' or 
                 manifest_record_type == 'table_file_and_entities'):
@@ -2071,29 +2108,25 @@ class TableOperations:
         return self.existingTableId
     
 
-    def _get_schematic_db_creds(self,):
-        username = None
+    def _get_auth_token(self,):
         authtoken = None
-
 
         # Get access token from environment variable if available
         # Primarily useful for testing environments, with other possible usefulness for containers
         env_access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
         if env_access_token:
             authtoken = env_access_token
-            return username, authtoken
+            return authtoken
 
         # Get token from authorization header
         # Primarily useful for API endpoint functionality
         if 'Authorization' in self.synStore.syn.default_headers:
             authtoken = self.synStore.syn.default_headers['Authorization'].split('Bearer ')[-1]
-            return username, authtoken
+            return authtoken
 
         # retrive credentials from synapse object
         # Primarily useful for local users, could only be stored here when a .synapseConfig file is used, but including to be safe
         synapse_object_creds = self.synStore.syn.credentials
-        if hasattr(synapse_object_creds, 'username'):
-            username = synapse_object_creds.username
         if hasattr(synapse_object_creds, '_token'):
             authtoken = synapse_object_creds.secret
 
@@ -2103,24 +2136,16 @@ class TableOperations:
             config = self.synStore.syn.getConfigFile(CONFIG.synapse_configuration_path)
 
             # check which credentials are provided in file
-            if config.has_option('authentication', 'username'):
-                username = config.get('authentication', 'username')
             if config.has_option('authentication', 'authtoken'):
                 authtoken = config.get('authentication', 'authtoken')
         
         # raise error if required credentials are not found
-        # providing an authtoken without a username did not prohibit upsert functionality, 
-        # but including username gathering for completeness for schematic_db
-        if not username and not authtoken:
-            raise NameError(
-                "Username and authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
-            )
         if not authtoken:
             raise NameError(
                 "authtoken credentials could not be found in the environment, synapse object, or the .synapseConfig file"
             )
         
-        return username, authtoken
+        return authtoken
 
     def upsertTable(self, sg: SchemaGenerator,):
         """
@@ -2137,10 +2162,9 @@ class TableOperations:
            existingTableId: synID of the already existing table that had its metadata replaced
         """            
 
-        username, authtoken = self._get_schematic_db_creds()
+        authtoken = self._get_auth_token()
 
-        synConfig = SynapseConfig(username, authtoken, self.synStore.getDatasetProject(self.datasetId))
-        synapseDB = SynapseDatabase(synConfig)
+        synapseDB = SynapseDatabase(auth_token=authtoken, project_id=self.synStore.getDatasetProject(self.datasetId))
 
         try:
             # Try performing upsert
