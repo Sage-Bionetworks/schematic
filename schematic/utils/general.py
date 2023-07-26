@@ -105,23 +105,6 @@ def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int
         logger.error('Cannot recongize')
     return byte_size
 
-def convert_size(size_bytes: int):
-    """convert bytes to a human readable format
-    Args:
-        size_bytes: total byte sizes
-    return: a string that indicates bytes in a different format
-    """
-    if size_bytes == 0:
-        return "0B"
-    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-    # calculate the log of size (in bytes) to base 1024 and run it down to the nearest integer
-    index_int = int(math.floor(math.log(size_bytes, 1024)))
-    # return the value of 1024 raised to the power of index
-    power_cal = math.pow(1024, index_int)
-    # convert bytes to a different unit if applicable
-    size_bytes_converted = round(size_bytes / power_cal, 2)
-    return f"{size_bytes_converted} {size_name[index_int]})"
-
 def convert_gb_to_bytes(gb: int):
     """convert gb to bytes
     Args:
