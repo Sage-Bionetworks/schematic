@@ -13,6 +13,7 @@ from typing import Union
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File, Folder, Project
 from synapseclient.table import EntityViewSchema
+from schematic.store.synapse import SynapseStorage
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +113,20 @@ def convert_gb_to_bytes(gb: int):
     return: total number of bytes
     """
     return gb * 1024 * 1024 * 1024
+
+def clear_synapse_cache(syn: SynapseStorage, minutes: int, directory='/root/.synapseCache') -> int:
+    """Deletes files in .synapseCache that were last updated in a specified period
+
+    Args:
+        syn (SynapseStorage class): synapse storage class
+        minutes (int): all files before this minute will be removed 
+        directory (str): .synapseCache directory. Defaults to '/root/.synapseCache'
+    """
+    cache = syn.cache
+    current_date = datetime.now()
+    minutes_earlier = calculate_datetime(input_date=current_date, minutes=15, before_or_after="before")
+    num_of_deleted_files = cache.purge(before_date = int(minutes_earlier))
+    return num_of_deleted_files
 
 
 def entity_type_mapping(syn, entity_id):

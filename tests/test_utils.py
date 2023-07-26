@@ -26,7 +26,7 @@ from schematic.exceptions import (
 )
 from schematic import LOADER
 from schematic.store.synapse import SynapseStorage
-from schematic.utils.general import entity_type_mapping, check_synapse_cache_size, calculate_datetime
+from schematic.utils.general import entity_type_mapping, check_synapse_cache_size, calculate_datetime, purge
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -42,8 +42,11 @@ def synapse_store():
         synapse_store = SynapseStorage()
     yield synapse_store
 
-
 class TestGeneral:
+    def test_clear_synapse_cache(self, synapse_store):
+        temp_synapse_cache_dir = os.mkdir("temp_cache_folder")
+        synapse_store.root_synapse_cache = "temp_synapse_cache_dir"
+
     def test_calculate_datetime(self):
         input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
         minutes_before = calculate_datetime(input_date=input_date, minutes=10, before_or_after="before")
@@ -68,6 +71,7 @@ class TestGeneral:
             assert file_size == 8000
         else:
             assert file_size == 4000
+    
 
     def test_find_duplicates(self):
 

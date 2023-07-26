@@ -54,7 +54,7 @@ from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic.configuration.configuration import CONFIG
 
-from schematic.utils.general import profile, calculate_datetime
+from schematic.utils.general import profile, calculate_datetime, clear_synapse_cache
 
 logger = logging.getLogger("Synapse storage")
 
@@ -201,16 +201,13 @@ class SynapseStorage(BaseStorage):
         """
         # try clearing the cache
         # scan a directory and check size of files
-        cache = self.syn.cache
         if os.path.exists(self.root_synapse_cache):
             maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
             nbytes = get_dir_size(self.root_synapse_cache)
             dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
             # if 1 GB has already been taken, purge cache before 15 min
             if dir_size_bytes >= maximum_storage_allowed_cache_bytes:
-                current_date = datetime.now()
-                minutes_earlier = calculate_datetime(input_date=current_date, minutes=15, before_or_after="before")
-                num_of_deleted_files = cache.purge(before_date = int(minutes_earlier))
+                num_of_deleted_files = clear_synapse_cache(self.syn, minutes=15, directory=self.root_synapse_cache)
                 logger.info(f'{num_of_deleted_files}  files have been deleted from {self.root_synapse_cache}')
             else:
                 logger.info(f'the total size of .synapseCache is: {nbytes} bytes')
