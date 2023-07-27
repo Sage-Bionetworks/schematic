@@ -113,7 +113,7 @@ jobs:
           # See also: https://api.slack.com/methods/chat.postMessage#channels
           # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
           # ibc-fair-data channel and data-curator-schematic channel
-          channel-id: 'C01HSSMPQBG,C01ANC02U59'
+          channel-id: 'C050YD75QRL,C01ANC02U59'
           # For posting a simple plain text message
           slack-message: "Schematic has just been released. Check out new version: ${{ github.ref_name }}"
         env:
