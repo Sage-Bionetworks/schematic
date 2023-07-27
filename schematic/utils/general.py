@@ -14,6 +14,8 @@ from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File, Folder, Project
 from synapseclient.table import EntityViewSchema
 
+import synapseclient.core.cache as cache
+
 logger = logging.getLogger(__name__)
 
 def find_duplicates(_list):
@@ -72,7 +74,7 @@ def calculate_datetime(minutes: int, input_date: datetime, before_or_after: str 
     if before_or_after=="before": 
         date_time_result = input_date - timedelta(minutes=minutes)
     else:
-        date_time_result = input_date - timedelta(minutes=minutes)
+        date_time_result = input_date + timedelta(minutes=minutes)
     return date_time_result
 
 
@@ -104,6 +106,20 @@ def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int
     else:
         logger.error('Cannot recongize')
     return byte_size
+
+def clear_synapse_cache(cache: cache.Cache, minutes: int) -> int:
+    """clear synapse cache before a certain time
+
+    Args:
+        cache: an object of synapseclient Cache.
+        minutes (int): all files before this minute will be removed
+    Returns:
+        int: number of files that get deleted
+    """
+    current_date = datetime.utcnow()
+    minutes_earlier = calculate_datetime(input_date=current_date, minutes=minutes, before_or_after="before")
+    num_of_deleted_files = cache.purge(before_date = minutes_earlier)
+    return num_of_deleted_files
 
 def convert_gb_to_bytes(gb: int):
     """convert gb to bytes

@@ -1,32 +1,31 @@
-import logging
 import json
+import logging
 import os
 import shutil
-
-from datetime import datetime
-import pandas as pd
-import numpy as np
-import pytest
-
 import tempfile
+import time
+from datetime import datetime
+from unittest import mock
 
+import numpy as np
+import pandas as pd
+import pytest
+import synapseclient
+import synapseclient.core.cache as cache
 from pandas.testing import assert_frame_equal
 from synapseclient.core.exceptions import SynapseHTTPError
 
-from schematic.schemas.explorer import SchemaExplorer
-from schematic.schemas import df_parser
-from schematic.utils import general
-from schematic.utils import cli_utils
-from schematic.utils import io_utils
-from schematic.utils import df_utils
-from schematic.utils import validate_utils
-from schematic.exceptions import (
-    MissingConfigValueError,
-    MissingConfigAndArgumentValueError,
-)
 from schematic import LOADER
+from schematic.exceptions import (MissingConfigAndArgumentValueError,
+                                  MissingConfigValueError)
+from schematic.schemas import df_parser
+from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage
-from schematic.utils.general import entity_type_mapping, check_synapse_cache_size, calculate_datetime
+from schematic.utils import (cli_utils, df_utils, general, io_utils,
+                             validate_utils)
+from schematic.utils.general import (calculate_datetime,
+                                     check_synapse_cache_size,
+                                     clear_synapse_cache, entity_type_mapping)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -42,27 +41,53 @@ def synapse_store():
         synapse_store = SynapseStorage()
     yield synapse_store
 
-
 class TestGeneral:
+    def test_clear_synapse_cache(self, tmp_path):
+        # define location of mock synapse cache
+        mock_synapse_cache_dir = tmp_path / ".synapseCache/"
+        mock_synapse_cache_dir.mkdir()
+        mock_sub_folder = mock_synapse_cache_dir / "123"
+        mock_sub_folder.mkdir()
+        mock_table_query_folder = mock_sub_folder/ "456"
+        mock_table_query_folder.mkdir()
+
+        # create mock table query csv and a mock cache map
+        mock_synapse_table_query_csv = mock_table_query_folder/ "mock_synapse_table_query.csv"
+        mock_synapse_table_query_csv.write_text("mock table query content")
+        mock_cache_map = mock_table_query_folder/ ".cacheMap"
+        mock_cache_map.write_text(f"{mock_synapse_table_query_csv}: '2022-06-13T19:24:27.000Z'")
+
+        assert os.path.exists(mock_synapse_table_query_csv)
+
+        # since synapse python client would compare last modified date and before date
+        # we have to create a little time gap here
+        time.sleep(1)
+
+        # clear cache
+        my_cache = cache.Cache(cache_root_dir=mock_synapse_cache_dir)
+        clear_synapse_cache(my_cache, minutes=0.0001)
+        # make sure that cache files are now gone
+        assert os.path.exists(mock_synapse_table_query_csv) == False
+        assert os.path.exists(mock_cache_map) == False
+
     def test_calculate_datetime(self):
         input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
         minutes_before = calculate_datetime(input_date=input_date, minutes=10, before_or_after="before")
-        expected_result_date = datetime.strptime("07/20/23 17:26:34", '%m/%d/%y %H:%M:%S')
-        assert minutes_before == expected_result_date
+        expected_result_date_before = datetime.strptime("07/20/23 17:26:34", '%m/%d/%y %H:%M:%S')
+
+        minutes_after = calculate_datetime(input_date=input_date, minutes=10, before_or_after="after")
+        expected_result_date_after = datetime.strptime("07/20/23 17:46:34", '%m/%d/%y %H:%M:%S')
+        assert minutes_before == expected_result_date_before
+        assert minutes_after == expected_result_date_after
         
-    def test_check_synapse_cache_size(self, helpers):
-        # set mock synapse cache folder path
-        mock_synapse_cache_folder = helpers.get_data_path("mock_data_folder")
-        # clear up previous results 
-        if os.path.exists(mock_synapse_cache_folder):
-            shutil.rmtree(mock_synapse_cache_folder)
-        
-        #temporarily create a new directory
-        os.makedirs(mock_synapse_cache_folder)
-        test_manifest_path = helpers.get_data_path("mock_data_folder/temp.txt")
-        with open(test_manifest_path, 'w', encoding='utf8') as f:
-            f.write("example file for calculating cache")
-        file_size = check_synapse_cache_size(mock_synapse_cache_folder)
+    def test_check_synapse_cache_size(self,tmp_path):
+        mock_synapse_cache_dir = tmp_path / ".synapseCache"
+        mock_synapse_cache_dir.mkdir()
+
+        mock_synapse_table_query_csv = mock_synapse_cache_dir/ "mock_synapse_table_query.csv"
+        mock_synapse_table_query_csv.write_text("example file for calculating cache")
+
+        file_size = check_synapse_cache_size(mock_synapse_cache_dir)
 
         if IN_GITHUB_ACTIONS:
             assert file_size == 8000
