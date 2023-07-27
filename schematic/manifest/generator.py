@@ -1308,6 +1308,8 @@ class ManifestGenerator(object):
             start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
             end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
+        
+
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
 
@@ -1473,7 +1475,7 @@ class ManifestGenerator(object):
             return output_file_path
         
         # Return google sheet if sheet_url flag is raised.
-        elif sheet_url: 
+        elif sheet_url:
             manifest_sh = self.set_dataframe_by_url(manifest_url=empty_manifest_url, manifest_df=dataframe, out_of_schema_columns=out_of_schema_columns)
             return manifest_sh.url
         
@@ -1531,7 +1533,6 @@ class ManifestGenerator(object):
         if manifest_record:
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
-
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_record[1])
 
@@ -1574,9 +1575,34 @@ class ManifestGenerator(object):
                                                       output_path = output_path,
                                                       sheet_url = sheet_url,
                                                       empty_manifest_url=empty_manifest_url,
-                                                      dataframe = manifest_df,
+                                                      dataframe = updated_df,
+                                                      out_of_schema_columns = out_of_schema_columns,
                                                       )
             return result
+
+    def _get_end_columns(self, current_schema_headers, existing_manifest_headers, out_of_schema_columns):
+        """
+        Gather columns to be added to the end of the manifest, and ensure entityId is at the end.
+        Args:
+            current_schema_headers: list, columns in the current manifest schema
+            existing_manifest_headers: list, columns in the existing manifest
+            out_of_schema_columns: set, columns that are in the existing manifest, but not the current schema
+        Returns:
+            end_columns: list of columns to be added to the end of the manifest.
+        """
+        # Identify columns to add to the end of the manifest
+        end_columns = list(out_of_schema_columns)
+        
+        # Make sure want Ids are placed at end of manifest, in given order.
+        for id_name in ['Uuid', 'Id', 'entityId']:
+            if id_name in end_columns:
+                end_columns.remove(id_name)
+                end_columns.append(id_name)
+        
+        # Add entity_id to the end columns if it should be there but isn't
+        if 'entityId' in (current_schema_headers or existing_manfiest_headers) and 'entityId' not in end_columns:
+            end_columns.append('entityId')
+        return end_columns
 
     def _update_dataframe_with_existing_df(self, empty_manifest_url: str, existing_df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -1598,10 +1624,10 @@ class ManifestGenerator(object):
         existing_manfiest_headers = list(existing_df.columns)
 
         # Find columns that exist in the current schema, but are not in the manifest being downloaded.
-        new_columns = self._get_missing_columns(current_schema_headers, existing_manfiest_headers)
+        new_columns = self._get_missing_columns(current_schema_headers, existing_manifest_headers)
 
         # Find columns that exist in the manifest being downloaded, but not in the current schema.
-        out_of_schema_columns = self._get_missing_columns(existing_manfiest_headers, current_schema_headers)
+        out_of_schema_columns = self._get_missing_columns(existing_manifest_headers, current_schema_headers)
 
         # clean empty columns if any are present (there should be none)
         # TODO: Remove this line once we start preventing empty column names
@@ -1617,12 +1643,17 @@ class ManifestGenerator(object):
                 **dict(zip(new_columns, len(new_columns) * [""]))
             )
 
+        end_columns = self._get_end_columns(current_schema_headers=current_schema_headers,
+                                           existing_manifest_headers=existing_manifest_headers,
+                                           out_of_schema_columns=out_of_schema_columns)
+        
         # sort columns in the updated manifest:
         # match latest schema order
         # move obsolete columns at the end
         updated_df = updated_df[self.sort_manifest_fields(updated_df.columns)]
-        updated_df = updated_df[[c for c in updated_df if c not in out_of_schema_columns] + list(out_of_schema_columns)]
 
+        # move obsolete columns at the end with entityId at the very end
+        updated_df = updated_df[[c for c in updated_df if c not in end_columns] + list(end_columns)]
         return updated_df, out_of_schema_columns
 
     def _format_new_excel_column(self, worksheet, new_column_index: int, col: str):
