@@ -11,10 +11,10 @@ import click_log
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict, parse_synIDs, parse_comma_str_to_list
+from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_synIDs, parse_comma_str_to_list
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
 
 logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
@@ -38,7 +38,8 @@ def model(ctx, config):  # use as `schematic model ...`
     """
     try:
         logger.debug(f"Loading config file contents in '{config}'")
-        ctx.obj = CONFIG.load_config(config)
+        CONFIG.load_config(config)
+        ctx.obj =  CONFIG
     except ValueError as e:
         logger.error("'--config' not provided or environment variable not set.")
         logger.exception(e)
@@ -110,12 +111,11 @@ def submit_manifest(
     Running CLI with manifest validation (optional) and submission options.
     """
     
-    jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
-
-    model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
+    jsonld =  CONFIG.model_location
+    log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
+        inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
 
 
@@ -181,9 +181,10 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     """
     Running CLI for manifest validation.
     """
-    if not data_type:
-        data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
-    
+    if data_type is None:
+        data_type =  CONFIG.manifest_data_type
+        log_value_from_config("data_type", data_type)
+ 
     try:
         len(data_type) == 1
     except:
@@ -193,19 +194,13 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
 
     data_type = data_type[0]
 
-    json_schema = fill_in_from_config(
-        "json_schema",
-        json_schema,
-        ("model", "input", "validation_schema"),
-        allow_none=True,
-    )
     t_validate = perf_counter()
-    jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
-    model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
+    jsonld =  CONFIG.model_location
+    log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
+        inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
 
     errors, warnings = metadata_model.validateModelManifest(

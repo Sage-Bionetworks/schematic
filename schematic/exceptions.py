@@ -1,5 +1,5 @@
 """Schematic Exceptions"""
-from typing import Any, Sequence
+from typing import Optional, Any, Sequence
 
 
 class MissingConfigValueError(Exception):
@@ -13,7 +13,9 @@ class MissingConfigValueError(Exception):
         message.
     """
 
-    def __init__(self, config_keys: Sequence[Any], message: str = None) -> None:
+    def __init__(
+        self, config_keys: Sequence[Any], message: Optional[str] = None
+    ) -> None:
         config_keys_str = " > ".join(config_keys)
         self.message = (
             "The configuration value corresponding to the argument "
@@ -41,7 +43,7 @@ class WrongEntityTypeError(Exception):
         message.
     """
 
-    def __init__(self, syn_id: str, message: str = None) -> None:
+    def __init__(self, syn_id: str, message: Optional[str] = None) -> None:
         self.message = (
             f"'{syn_id}'' is not a desired entity type"
             "Please ensure that you put in the right syn_id"
@@ -69,7 +71,7 @@ class MissingConfigAndArgumentValueError(Exception):
     """
 
     def __init__(
-        self, arg_name: str, config_keys: Sequence[Any], message: str = None
+        self, arg_name: str, config_keys: Sequence[Any], message: Optional[str] = None
     ) -> None:
         config_keys_str = " > ".join(config_keys)
         self.message = (
@@ -99,7 +101,7 @@ class AccessCredentialsError(Exception):
         message.
     """
 
-    def __init__(self, project: str, message: str = None) -> None:
+    def __init__(self, project: str, message: Optional[str] = None) -> None:
         self.message = (
             f"Your access to '{project}'' could not be resolved. "
             "Please check your credentials and try again."

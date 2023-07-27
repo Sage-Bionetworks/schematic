@@ -9,7 +9,7 @@ import pandas as pd
 from dotenv import load_dotenv, find_dotenv
 
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.configuration import CONFIG
+from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
 
 load_dotenv()
@@ -27,8 +27,6 @@ logging.getLogger("google_auth_httplib2").setLevel(logging.INFO)
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(TESTS_DIR, "data")
-CONFIG_PATH = os.path.join(DATA_DIR, "test_config.yml")
-CONFIG.load_config(CONFIG_PATH)
 
 @pytest.fixture(scope="session")
 def dataset_id():
@@ -92,7 +90,3 @@ def helpers():
 @pytest.fixture(scope="session")
 def config():
     yield CONFIG
-
-@pytest.fixture(scope="session")
-def config_path():
-    yield CONFIG_PATH

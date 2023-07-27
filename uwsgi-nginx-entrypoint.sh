@@ -19,6 +19,9 @@ else
     content_server=$content_server"    listen ${USE_LISTEN_PORT} default_server;\n"
     content_server=$content_server"    listen [::]:${USE_LISTEN_PORT} default_server;\n"
     content_server=$content_server'    server_name 127.0.0.1;\n'
+    content_server=$content_server'    proxy_read_timeout 300;\n'
+    content_server=$content_server'    proxy_connect_timeout 300;\n'
+    content_server=$content_server'    proxy_send_timeout 300;\n'
     content_server=$content_server'    location / {\n'
     content_server=$content_server'        try_files $uri @app;\n'
     content_server=$content_server'    }\n'

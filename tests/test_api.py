@@ -12,9 +12,11 @@ import numpy as np
 import pandas as pd  # third party library import
 import pytest
 
+from schematic.configuration.configuration import Configuration
 from schematic.schemas.generator import \
     SchemaGenerator  # Local application/library specific imports.
 from schematic_api.api import create_app
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,8 +28,8 @@ def app():
     yield app
 
 @pytest.fixture(scope="class")
-def client(app, config_path):
-    app.config['SCHEMATIC_CONFIG'] = config_path
+def client(app):
+    app.config['SCHEMATIC_CONFIG'] = None
 
     with app.test_client() as client:
         yield client
@@ -80,8 +82,8 @@ def get_MockComponent_attribute():
         yield MockComponent_attribute   
 
 @pytest.fixture(scope="class")
-def syn_token(config):
-    synapse_config_path = config.SYNAPSE_CONFIG_PATH
+def syn_token(config:Configuration):
+    synapse_config_path = config.synapse_configuration_path
     config_parser = configparser.ConfigParser()
     config_parser.read(synapse_config_path)
     # try using synapse access token
@@ -403,11 +405,11 @@ class TestManifestOperation:
     def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog):
         # set dataset
         if data_type == "Patient":
-            dataset_id = ["syn42171373"] #Mock Patient Manifest folder on synapse
+            dataset_id = ["syn51730545"] #Mock Patient Manifest folder on synapse
         elif data_type == "Biospecimen":
-            dataset_id = ["syn42171508"] #Mock biospecimen manifest folder
+            dataset_id = ["syn51730547"] #Mock biospecimen manifest folder
         elif data_type == ["Biospecimen", "Patient"]:
-            dataset_id = ["syn42171508", "syn42171373"]
+            dataset_id = ["syn51730547", "syn51730545"]
         else: 
             dataset_id = None #if "all manifests", dataset id is None
 
@@ -588,7 +590,7 @@ class TestManifestOperation:
     @pytest.mark.parametrize("manifest_id, expected_component, expected_file_name", [("syn51078535", "BulkRNA-seqAssay", "synapse_storage_manifest.csv"), ("syn51156998", "Biospecimen", "synapse_storage_manifest_biospecimen.csv")])
     @pytest.mark.parametrize("new_manifest_name",[None,"Example.csv"]) 
     @pytest.mark.parametrize("as_json",[None,True,False]) 
-    def test_manifest_download(self, config, client, syn_token, manifest_id, new_manifest_name, as_json, expected_component, expected_file_name):
+    def test_manifest_download(self, config: Configuration, client, syn_token, manifest_id, new_manifest_name, as_json, expected_component, expected_file_name):
         params = {
             "access_token": syn_token,
             "manifest_id": manifest_id,
@@ -608,7 +610,7 @@ class TestManifestOperation:
             assert response_dta[0]["Component"] == expected_component
 
             current_work_dir = os.getcwd()
-            folder_test_manifests = config["synapse"]["manifest_folder"]
+            folder_test_manifests = config.manifest_folder
             folder_dir = os.path.join(current_work_dir, folder_test_manifests)
 
             # if a manfiest gets renamed, get new manifest file path

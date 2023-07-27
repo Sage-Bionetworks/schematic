@@ -12,9 +12,10 @@ from synapseclient import EntityViewSchema, Folder
 from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
-from schematic.utils.cli_utils import get_from_config
 from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
+from synapseclient.entity import File
+from schematic.configuration.configuration import Configuration
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -113,12 +114,39 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
-    def test_annotation_submission(self, synapse_store, helpers, config):
-        manifest_path = "mock_manifests/annotations_test_manifest.csv"
+    @pytest.mark.parametrize('only_new_files',[True, False])
+    def test_get_file_entityIds(self, helpers, synapse_store, only_new_files):
+        manifest_path = "mock_manifests/test_BulkRNAseq.csv"
+        dataset_files = synapse_store.getFilesInStorageDataset('syn39241199')
 
+        if only_new_files:
+            # Prepare manifest is getting Ids for new files only
+            manifest = helpers.get_data_frame(manifest_path)
+            entityIds = pd.DataFrame({'entityId': ['syn39242580', 'syn51900502']})
+            manifest = manifest.join(entityIds)
+            
+            # get entityIds for new files
+            files_and_Ids = synapse_store._get_file_entityIds(dataset_files=dataset_files, only_new_files=only_new_files, manifest=manifest)
+
+            # Assert that there are no new files
+            for value in files_and_Ids.values():
+                assert value == []
+            
+        else:
+            # get entityIds for all files
+            files_and_Ids = synapse_store._get_file_entityIds(dataset_files=dataset_files, only_new_files=only_new_files)
+
+            # assert that the correct number of files were found
+            assert len(files_and_Ids['entityId']) == 2
+
+    @pytest.mark.parametrize('manifest_path, test_annotations, datasetId, manifest_record_type',
+                             [  ("mock_manifests/annotations_test_manifest.csv", {'CheckInt': '7', 'CheckList': 'valid, list, values'}, 'syn34295552', 'file_and_entities'),
+                                ("mock_manifests/test_BulkRNAseq.csv", {'FileFormat': 'BAM', 'GenomeBuild': 'GRCh38'}, 'syn39241199', 'table_and_file')],
+                            ids = ['non file-based',
+                                    'file-based'])
+    def test_annotation_submission(self, synapse_store, helpers, manifest_path, test_annotations, datasetId, manifest_record_type, config: Configuration):
         # Upload dataset annotations
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
-        sg = SchemaGenerator(inputModelLocaiton)
+        sg = SchemaGenerator(config.model_location)
 
         try:        
             for attempt in Retrying(
@@ -130,8 +158,8 @@ class TestSynapseStorage:
                     manifest_id = synapse_store.associateMetadataWithFiles(
                         schemaGenerator = sg,
                         metadataManifestPath = helpers.get_data_path(manifest_path),
-                        datasetId = 'syn34295552',
-                        manifest_record_type = 'file_and_entities',
+                        datasetId = datasetId,
+                        manifest_record_type = manifest_record_type,
                         useSchemaLabel = True,
                         hideBlanks = True,
                         restrict_manifest = False,
@@ -140,17 +168,19 @@ class TestSynapseStorage:
             pass
 
         # Retrive annotations
-        entity_id, entity_id_spare = helpers.get_data_frame(manifest_path)["entityId"][0:2]
+        entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         # Check annotations of interest
-        assert annotations['CheckInt'] == '7'
-        assert annotations['CheckList'] == 'valid, list, values'
-        assert 'CheckRecommended' not in annotations.keys()
+        for key in test_annotations.keys():
+            assert key in annotations.keys()
+            assert annotations[key] == test_annotations[key]
 
-
-
-
+        if manifest_path.endswith('annotations_test_manifest.csv'):
+            assert 'CheckRecommended' not in annotations.keys()
+        elif manifest_path.endswith('test_BulkRNAseq.csv'):
+            entity = synapse_store.syn.get(entity_id)
+            assert type(entity) == File
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
@@ -217,7 +247,6 @@ class TestSynapseStorage:
         else: 
             # return manifest id
             assert manifest_data == "syn51204513"
-
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
@@ -291,7 +320,7 @@ class TestDatasetFileView:
 @pytest.mark.table_operations
 class TestTableOperations:
 
-    def test_createTable(self, helpers, synapse_store, config, projectId, datasetId):
+    def test_createTable(self, helpers, synapse_store, config: Configuration, projectId, datasetId):
         table_manipulation = None
 
         # Check if FollowUp table exists if so delete
@@ -307,7 +336,7 @@ class TestTableOperations:
 
         # associate metadata with files
         manifest_path = "mock_manifests/table_manifest.csv"
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
         # updating file view on synapse takes a long time
@@ -328,7 +357,7 @@ class TestTableOperations:
         # assert table exists
         assert table_name in existing_tables.keys()
 
-    def test_replaceTable(self, helpers, synapse_store, config, projectId, datasetId):
+    def test_replaceTable(self, helpers, synapse_store, config: Configuration, projectId, datasetId):
         table_manipulation = 'replace'
 
         table_name='followup_synapse_storage_manifest_table'
@@ -346,7 +375,7 @@ class TestTableOperations:
             assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
         # associate org FollowUp metadata with files
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
             # updating file view on synapse takes a long time
@@ -395,7 +424,7 @@ class TestTableOperations:
         # delete table        
         synapse_store.syn.delete(tableId)
 
-    def test_upsertTable(self, helpers, synapse_store, config, projectId, datasetId):
+    def test_upsertTable(self, helpers, synapse_store, config:Configuration, projectId, datasetId):
         table_manipulation = "upsert"
 
         table_name="MockRDB_synapse_storage_manifest_table".lower()
@@ -413,7 +442,7 @@ class TestTableOperations:
             assert table_name not in synapse_store.get_table_info(projectId = projectId).keys()
 
         # associate org FollowUp metadata with files
-        inputModelLocaiton = helpers.get_data_path(get_from_config(config.DATA, ("model", "input", "location")))
+        inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
         sg = SchemaGenerator(inputModelLocaiton)
 
             # updating file view on synapse takes a long time
@@ -468,7 +497,6 @@ class TestTableOperations:
         # delete table        
         synapse_store.syn.delete(tableId)
 
-
 class TestDownloadManifest:
     @pytest.mark.parametrize("datasetFileView", [{"id": ["syn51203973", "syn51203943"], "name": ["synapse_storage_manifest.csv", "synapse_storage_manifest_censored.csv"]}, {"id": ["syn51203973"], "name": ["synapse_storage_manifest.csv"]}, {"id": ["syn51203943"], "name": ["synapse_storage_manifest_censored.csv"]}])
     def test_get_manifest_id(self, synapse_store, datasetFileView):
@@ -493,7 +521,7 @@ class TestDownloadManifest:
             assert manifest_syn_id == censored_manifest_id
 
     @pytest.mark.parametrize("newManifestName",["", "Example"]) 
-    def test_download_manifest(self, config, mock_manifest_download, newManifestName):
+    def test_download_manifest(self, mock_manifest_download, newManifestName):
         # test the download function by downloading a manifest
         manifest_data = mock_manifest_download.download_manifest(mock_manifest_download, newManifestName)
         assert os.path.exists(manifest_data['path'])

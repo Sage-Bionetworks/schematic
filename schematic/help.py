@@ -48,7 +48,7 @@ manifest_commands = {
             "json_schema": (
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
-                "as a value for the `(model > input > validation_schema)` key."
+                "as a value for the `(model > location)` key."
             ),
             "alphabetize_valid_values": (
                 "Specify to alphabetize valid attribute values either ascending (a) or descending (d)."
