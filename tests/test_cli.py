@@ -6,8 +6,8 @@ from click.testing import CliRunner
 
 # from schematic import init
 from schematic.schemas.commands import schema
-from schematic.utils.google_api_utils import download_creds_file
 from schematic.manifest.commands import manifest
+from schematic.configuration.configuration import Configuration
 
 @pytest.fixture
 def runner() -> CliRunner:
@@ -38,7 +38,7 @@ class TestSchemaCli:
         except: 
             pass
 
-    def test_schema_convert_cli(self, runner, config_path, helpers):
+    def test_schema_convert_cli(self, runner, helpers):
 
         data_model_csv_path = helpers.get_data_path("example.model.csv")
 
@@ -59,11 +59,12 @@ class TestSchemaCli:
     # get manifest by default
     # by default this should download the manifest as a CSV file
     @pytest.mark.google_credentials_needed
-    def test_get_example_manifest_default(self, runner, helpers, config, data_model_jsonld):
+    def test_get_example_manifest_default(self, runner, helpers, config: Configuration, data_model_jsonld):
         output_path = helpers.get_data_path("example.Patient.manifest.csv")
+        config.load_config("config_example.yml")
 
         result = runner.invoke(
-            manifest, ["--config", config.CONFIG_PATH, "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld]
+            manifest, ["--config", config.config_path, "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld]
         )
 
 
@@ -73,22 +74,24 @@ class TestSchemaCli:
     # get manifest as a csv
     # use google drive to export
     @pytest.mark.google_credentials_needed
-    def test_get_example_manifest_csv(self, runner, helpers, config, data_model_jsonld):
+    def test_get_example_manifest_csv(self, runner, helpers, config: Configuration, data_model_jsonld):
         output_path = helpers.get_data_path("test.csv")
+        config.load_config("config_example.yml")
 
         result = runner.invoke(
-            manifest, ["--config", config.CONFIG_PATH, "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_csv", output_path]
+            manifest, ["--config", config.config_path, "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_csv", output_path]
         )
         assert result.exit_code == 0
         self.assert_expected_file(result, output_path)
 
     # get manifest as an excel spreadsheet
     @pytest.mark.google_credentials_needed
-    def test_get_example_manifest_excel(self, runner, helpers, config, data_model_jsonld):
+    def test_get_example_manifest_excel(self, runner, helpers, config: Configuration, data_model_jsonld):
         output_path = helpers.get_data_path("test.xlsx")
+        config.load_config("config_example.yml")
 
         result = runner.invoke(
-            manifest, ["--config", config.CONFIG_PATH,  "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_xlsx", output_path]
+            manifest, ["--config", config.config_path,  "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_xlsx", output_path]
         )
 
         assert result.exit_code == 0

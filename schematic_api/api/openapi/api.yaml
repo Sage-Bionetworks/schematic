@@ -9,6 +9,7 @@ info:
 servers:
   - url: /v1
 
+# TO DO: refactor query parameters and remove access_token
 paths:
   /manifest/generate:
     get:
@@ -24,7 +25,7 @@ paths:
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
           description: Token is needed if getting an existing manifest on AWS
@@ -85,7 +86,14 @@ paths:
             enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]
           description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
           required: false
-      operationId: api.routes.get_manifest_route
+        - in: query
+          name: strict_validation
+          schema:
+            type: boolean
+            default: True
+          description: If using Google Sheets, can set the strictness of Google Sheets regex match validation. True (default) will block users from entering incorrect values, False will throw a warning to users.
+          required: false
+      operationId: schematic_api.api.routes.get_manifest_route
       responses:
         "200":
           description: Googlesheet link created OR an excel file gets returned OR pandas dataframe gets returned
@@ -101,11 +109,60 @@ paths:
         - Manifest Operations
   /manifest/download:
     get:
-      summary: Endpoint to download an existing manifest
-      description: Endpoint to download an existing manifest
+      summary: Endpoint to download an existing manifest by using a manifest id
+      description: Endpoint to download an existing manifest by using a manifest id
       parameters:
         - in: query
-          name: input_token
+          name: access_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: manifest_id
+          schema:
+            type: string
+            nullable: true
+          description: manifest id
+          example: syn51078535
+          required: true
+        - in: query
+          name: new_manifest_name
+          schema:
+            type: string
+            nullable: true
+          description: Fill in if you want to change the filename of the downloaded manifest.
+          required: false
+        - in: query
+          name: as_json
+          schema:
+            type: boolean
+            default: True
+          description: if True return the manifest in JSON format. Default to True
+          required: false
+      operationId: schematic_api.api.routes.download_manifest
+      responses:
+        "200":
+          description: A manifest gets downloaded and local file path of the manifest gets returned.
+          content:
+            text/csv:
+              schema:
+                type: string
+        "403":
+          description: You don't have access to the requested resources. 
+        "500":
+          description: Please check schematic log
+      tags:
+        - Manifest Operations            
+  /dataset/manifest/download:
+    get:
+      summary: Endpoint to download an existing manifest by using a dataset id
+      description: Endpoint to download an existing manifest by using a dataset id
+      parameters:
+        - in: query
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -142,7 +199,7 @@ paths:
             nullable: true
           description: Fill in if you want to change the filename of the downloaded manifest.
           required: false
-      operationId: api.routes.download_manifest
+      operationId: schematic_api.api.routes.download_dataset_manifest
       responses:
         "200":
           description: A manifest gets downloaded and local file path of the manifest gets returned.
@@ -186,6 +243,13 @@ paths:
           example: Patient
           required: true
         - in: query
+          name: restrict_rules
+          schema:
+            type: boolean
+            default: false
+          description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
+          required: false
+        - in: query
           name: json_str
           required: false
           schema:
@@ -202,7 +266,7 @@ paths:
           "Family History": "Breast, Lung",
           }]'
 
-      operationId: api.routes.validate_manifest_route
+      operationId: schematic_api.api.routes.validate_manifest_route
       responses:
         "200":
           description: Manifest Validated
@@ -249,9 +313,8 @@ paths:
           schema:
             type: string
             nullable: true
-          description: Data Model Component
+          description: Data Model Component. Providing a data type will also validate the manfiest against the rules specified for the data type's attributes.
           example: Patient
-          required: true
         - in: query
           name: dataset_id
           schema:
@@ -263,9 +326,9 @@ paths:
           name: manifest_record_type
           schema:
             type: string
-            enum: [ "table", "entity", "both"]
-          description: Manifest storage type.
-          example: 'table'
+            enum: ["file_only", "file_and_entities", "table_and_file", "table_file_and_entities"]
+          description: Manifest storage type, will default to "table_file_and_entities" if none selected.'file_and_entities' will store the manifest as a csv and create Synapse files for each row in the manifest. 'table_and_file' will store the manifest as a table and a csv on Synapse. 'file_only' will store the manifest as a csv only on Synapse. 'table_file_and_entities' will perform the options file_with_entites and table in combination.
+          example: 'table_and_file'
         - in: query
           name: restrict_rules
           schema:
@@ -274,7 +337,14 @@ paths:
           description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
           required: true
         - in: query
-          name: input_token
+          name: hide_blanks
+          schema:
+            type: boolean
+          description: If true, annotations with blank values will be hidden from a dataset's annotation list in Synaspe. If false, annotations with blank values will be displayed. Default to false
+          required: false
+          example: false
+        - in: query
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -311,7 +381,14 @@ paths:
             type: string
             enum: ["replace", "upsert"]
           required: false
-      operationId: api.routes.submit_manifest_route
+        - in: query
+          name: use_schema_label
+          description: "Store attributes using the schema label (true, default) or store attributes using the display label (false). Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
+          schema:
+            type: boolean
+            default: true
+          required: false
+      operationId: schematic_api.api.routes.submit_manifest_route
       responses:
         "200":
           description: Manifest ID (e.g. Synapse ID if your asset management platform is Synapse)
@@ -350,7 +427,7 @@ paths:
             default: false
           description: if False return component requirements as a list; if True return component requirements as a dependency graph (i.e. a DAG)
           required: true
-      operationId: api.routes.get_component_requirements
+      operationId: schematic_api.api.routes.get_component_requirements
       responses:
         "200":
           description: A list of required components associated with the source component.
@@ -405,7 +482,7 @@ paths:
             nullable: true
           description: If true, this would return an Excel spreadsheet.(This approach would avoid sending metadata to Google sheet APIs)
           required: false
-      operationId: api.routes.populate_manifest_route
+      operationId: schematic_api.api.routes.populate_manifest_route
       responses:
         "200":
           description: Googlesheet link created
@@ -421,10 +498,10 @@ paths:
     get:
       summary:  Get datatype of attributes in manifest
       description: Get datatype of attributes in manifest
-      operationId: api.routes.get_manifest_datatype
+      operationId: schematic_api.api.routes.get_manifest_datatype
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -458,10 +535,10 @@ paths:
     get:
       summary: Get all storage projects the current user has access to
       description: Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
-      operationId: api.routes.get_storage_projects
+      operationId: schematic_api.api.routes.get_storage_projects
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -487,10 +564,10 @@ paths:
     get:
       summary: Gets all datasets in folder under a given storage project that the current user has access to.
       description: Gets all datasets in folder under a given storage project that the current user has access to.
-      operationId: api.routes.get_storage_projects_datasets
+      operationId: schematic_api.api.routes.get_storage_projects_datasets
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -524,10 +601,10 @@ paths:
     get:
       summary: Get all files in a given dataset folder
       description: Get all files in a given dataset folder
-      operationId: api.routes.get_files_storage_dataset
+      operationId: schematic_api.api.routes.get_files_storage_dataset
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -577,10 +654,10 @@ paths:
     get:
       summary: Retrieve asset view table as a dataframe.
       description: Retrieve asset view table as a dataframe.
-      operationId: api.routes.get_asset_view_table
+      operationId: schematic_api.api.routes.get_asset_view_table
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -614,10 +691,10 @@ paths:
     get:
       summary: Gets all metadata manifest files across all datasets in a specified project.
       description: Gets all metadata manifest files across all datasets in a specified project.
-      operationId: api.routes.get_project_manifests
+      operationId: schematic_api.api.routes.get_project_manifests
       parameters:
         - in: query
-          name: input_token
+          name: access_token
           schema:
             type: string
             nullable: false
@@ -658,11 +735,78 @@ paths:
           description: Check schematic log. 
       tags:
         - Synapse Storage
+  /storage/entity/type:
+    get:
+      summary: Check type of an entity
+      description: Check type of an entity and return entity type
+      operationId: schematic_api.api.routes.check_entity_type
+      parameters:
+        - in: query
+          name: access_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: entity_id
+          schema:
+            type: string
+            nullable: false
+          description: ID of an entity. It could be a file, a folder, a project, or an asset view
+          example: syn30988314
+          required: true
+      responses:
+        "200":
+          description: return type of a schematic entity
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
+
+  /storage/if_in_asset_view:
+    get:
+      summary: Check if a file or a folder is in a given asset view. Return "true" or "false"
+      description: Check if a file or a folder is in a given asset view. Return "true" or "false"
+      operationId: schematic_api.api.routes.check_if_files_in_assetview
+      parameters:
+        - in: query
+          name: access_token
+          schema:
+            type: string
+            nullable: false
+          description: Token
+          example: Token
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: entity_id
+          schema:
+            type: string
+            nullable: false
+          description: ID of file or folder. For example, for Synapse this would be the Synapse ID. 
+          example: syn30988314
+          required: true
+      responses:
+        "200":
+          description: return "true" or "false"
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
   /schemas/get/schema:
     get:
       summary: Return schema as a pickle file
       description: Return schema as a pickle file
-      operationId: api.routes.get_schema_pickle
+      operationId: schematic_api.api.routes.get_schema_pickle
       parameters:
         - in: query
           name: schema_url
@@ -688,7 +832,7 @@ paths:
     get:
       summary: Find properties specifically associated with a given class
       description: Find properties specifically associated with a given class
-      operationId: api.routes.find_class_specific_properties
+      operationId: schematic_api.api.routes.find_class_specific_properties
       parameters:
         - in: query
           name: schema_url
@@ -717,7 +861,7 @@ paths:
     get:
       summary: Get a subgraph containing all edges of a given type (aka relationship)
       description: Get a subgraph containing all edges of a given type (aka relationship)
-      operationId: api.routes.get_subgraph_by_edge_type
+      operationId: schematic_api.api.routes.get_subgraph_by_edge_type
       parameters:
         - in: query
           name: schema_url
@@ -757,7 +901,7 @@ paths:
     get:
       summary: Check if a node is required or not
       description: Check if a node is required or not
-      operationId: api.routes.get_if_node_required
+      operationId: schematic_api.api.routes.get_if_node_required
       parameters:
         - in: query
           name: schema_url
@@ -787,7 +931,7 @@ paths:
     get:
       summary: Get display names for nodes labels in a list.
       description: et display names for nodes labels in a list.
-      operationId: api.routes.get_nodes_display_names
+      operationId: schematic_api.api.routes.get_nodes_display_names
       parameters:
         - in: query
           name: schema_url
@@ -820,7 +964,7 @@ paths:
     get:
       summary: Get validation rules for a given node
       description: Get validation rules for a given node
-      operationId: api.routes.get_node_validation_rules
+      operationId: schematic_api.api.routes.get_node_validation_rules
       parameters:
         - in: query
           name: schema_url
@@ -850,7 +994,7 @@ paths:
     get:
       summary: Get the immediate dependencies that are related to a given source node
       description: Get the immediate dependencies that are related to a given source node
-      operationId: api.routes.get_node_dependencies
+      operationId: schematic_api.api.routes.get_node_dependencies
       parameters:
         - in: query
           name: schema_url
@@ -896,7 +1040,7 @@ paths:
     get:
       summary: Converts a given display name string into a proper property label string
       description: Converts a given display name string into a proper property label string
-      operationId: api.routes.get_property_label_from_display_name
+      operationId: schematic_api.api.routes.get_property_label_from_display_name
       parameters:
         - in: query
           name: schema_url
@@ -933,7 +1077,7 @@ paths:
     get:
       summary: Get all the valid values that are associated with a node label.
       description: Get all the valid values that are associated with a node label.
-      operationId: api.routes.get_node_range
+      operationId: schematic_api.api.routes.get_node_range
       parameters:
         - in: query
           name: schema_url
@@ -971,7 +1115,7 @@ paths:
       summary: Get layers of tangled tree.
       description: >-
         Get tangled tree node layers to display for a given data model and figure type
-      operationId: api.routes.get_viz_tangled_tree_layers
+      operationId: schematic_api.api.routes.get_viz_tangled_tree_layers
       parameters:
         - in: query
           name: schema_url
@@ -1003,7 +1147,7 @@ paths:
       summary: Get text to display on tangled tree.
       description: >-
         Get tangled tree plain or higlighted text to display for a given data model, text formatting and figure type
-      operationId: api.routes.get_viz_tangled_tree_text
+      operationId: schematic_api.api.routes.get_viz_tangled_tree_text
       parameters:
         - in: query
           name: schema_url
@@ -1044,7 +1188,7 @@ paths:
       description: >-
         Get all the attributes associated with a data model formatted as a
         dataframe (stored as a JSON String) for use in Observable visualization.
-      operationId: api.routes.get_viz_attributes_explorer
+      operationId: schematic_api.api.routes.get_viz_attributes_explorer
       parameters:
         - in: query
           name: schema_url
@@ -1063,3 +1207,59 @@ paths:
                 type: string
       tags:
         - Visualization Operations
+  /visualize/component:
+    get:
+      summary: Get an attributes table for a specific component of a data model, as a CSV (JSON String)
+      description: >-
+        Get all the attributes associated with a specific data model component formatted as a
+        dataframe (stored as a JSON String).
+      operationId: schematic_api.api.routes.get_viz_component_attributes_explorer
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: component
+          schema:
+            type: string
+          description: Component of the data model to explore
+          example: >-
+            Patient
+          required: true
+        - in: query
+          name: include_index
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include the indexes of the datafram in the returned JSON string (true) or not (false).
+          required: true
+      responses:
+        "200":
+          description: Returns a CSV as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component
+
+                          Component,Component,TBD,False,,,,Patient
+                          
+                          Patient ID,PatientID,TBD,True,,,,Patient
+                          
+                          Year of Birth,YearofBirth,TBD,False,,,,Patient
+
+                          Sex,Sex,TBD,True,,"['Female', 'Other', 'Male']",,Patient                      
+
+                          Diagnosis,Diagnosis,TBD,True,,"['Cancer', 'Healthy']",,Patient
+
+                          Cancer Type,CancerType,TBD,False,True,"['Lung', 'Skin', 'Colorectal', 'Breast', 'Prostate', '']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient
+
+                          Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
+      tags:
+        - Visualization Operations
+        

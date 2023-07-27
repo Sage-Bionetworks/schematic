@@ -1,3 +1,5 @@
+"""Help messages for CLI commands"""
+# pylint: disable=line-too-long
 #!/usr/bin/env python3
 
 # `schematic manifest` related sub-commands description
@@ -36,7 +38,9 @@ manifest_commands = {
                 "to the metadata manifest file. If not it will produce a pandas dataframe for the same."
             ),
             "output_csv": ("Path to where the CSV manifest template should be stored."),
-            "output_xlsx": ("Path to where the Excel manifest template should be stored."),
+            "output_xlsx": (
+                "Path to where the Excel manifest template should be stored."
+            ),
             "use_annotations": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, it will prepopulate template "
                 "with existing annotations from Synapse."
@@ -44,10 +48,10 @@ manifest_commands = {
             "json_schema": (
                 "Specify the path to the JSON Validation Schema for this argument. "
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
-                "as a value for the `(model > input > validation_schema)` key."
+                "as a value for the `(model > location)` key."
             ),
             "alphabetize_valid_values": (
-                "Specify to alphabetize valid attribute values either ascending (a) or descending (d)." 
+                "Specify to alphabetize valid attribute values either ascending (a) or descending (d)."
                 "Optional"
             ),
         },
@@ -102,22 +106,29 @@ model_commands = {
                 "(--use_display_label). Attribute display names in the schema must not only include characters that are "
                 "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
             ),
-            "hide_blanks":(
+            "hide_blanks": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, annotations with blank values will be hidden from a dataset's annotation list in Synaspe."
                 "If not, annotations with blank values will be displayed."
             ),
-            "manifest_record_type":(
-                "Specify the way the manifest should be store as on Synapse. Options are 'entity', 'table' and "
-                "'both'. 'entity' will store the manifest as a csv and create Synapse files for each row in the manifest. "
-                "'table' will store the manifest as a table and a csv on Synapse. 'both' will do both of the options specified above. "
-                "Default value is 'table'."
-            ),      
-            "table_manipulation":(
+            "manifest_record_type": (
+                "Specify the way the manifest should be store as on Synapse. Options are 'file_only', 'file_and_entities', 'table_and_file' and "
+                "'table_file_and_entities'. 'file_and_entities' will store the manifest as a csv and create Synapse files for each row in the manifest. "
+                "'table_and_file' will store the manifest as a table and a csv on Synapse. "
+                "'file_only' will store the manifest as a csv only on Synapse."
+                "'table_file_and_entities' will perform the options file_with_entites and table in combination."
+                "Default value is 'table_file_and_entities'."
+            ),
+            "table_manipulation": (
                 "Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'. "
                 "'replace' will remove the rows and columns from the existing table and store the new rows and columns, preserving the name and synID. "
                 "'upsert' will add the new rows to the table and preserve the exisitng rows and columns in the existing table. "
                 "Default value is 'replace'. "
-            ),  
+                "Upsert specific requirements: {\n}"
+                "'upsert' should be used for initial table uploads if users intend to upsert into them at a later time."
+                "Using 'upsert' at creation will generate the metadata necessary for upsert functionality."
+                "Upsert functionality requires primary keys to be specified in the data model and manfiest as <component>_id."
+                "Currently it is required to use -dl/--use_display_label with table upserts."
+            ),
         },
         "validate": {
             "short_help": ("Validation of manifest files."),
@@ -135,7 +146,7 @@ model_commands = {
                 "You can either explicitly pass the `.json` file here or provide it in the `config.yml` file "
                 "as a value for the `(model > input > validation_schema)` key."
             ),
-            "restrict_rules":(
+            "restrict_rules": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, validation suite will only run with in-house validation rules, "
                 "and Great Expectations rules and suite will not be utilized."
                 "If not, the Great Expectations suite will be utilized and all rules will be available."
@@ -182,11 +193,12 @@ viz_commands = {
             "Specify the path to the `config.yml` using this option. This is a required argument."
         ),
         "tangled_tree": {
-            "figure_type": ("Specify the type of schema visualization to make. Either 'dependency' or 'component'."
-                ),
-            "text_format": ("Specify the type of text to gather for tangled tree visualization, either 'plain' or 'highlighted'."
-                ),
-        }
+            "figure_type": (
+                "Specify the type of schema visualization to make. Either 'dependency' or 'component'."
+            ),
+            "text_format": (
+                "Specify the type of text to gather for tangled tree visualization, either 'plain' or 'highlighted'."
+            ),
+        },
     }
-    
 }

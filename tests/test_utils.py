@@ -6,7 +6,10 @@ import pandas as pd
 import numpy as np
 import pytest
 
+import tempfile
+
 from pandas.testing import assert_frame_equal
+from synapseclient.core.exceptions import SynapseHTTPError
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas import df_parser
@@ -20,9 +23,21 @@ from schematic.exceptions import (
     MissingConfigAndArgumentValueError,
 )
 from schematic import LOADER
+from schematic.store.synapse import SynapseStorage
+from schematic.utils.general import entity_type_mapping
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+@pytest.fixture
+def synapse_store():
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synapse_store = SynapseStorage(access_token=access_token)
+    else:
+        synapse_store = SynapseStorage()
+    yield synapse_store
 
 
 class TestGeneral:
@@ -50,6 +65,24 @@ class TestGeneral:
         test_list = general.dict2list(mock_list)
         assert test_list == mock_list
 
+    @pytest.mark.parametrize("entity_id,expected_type", [("syn27600053","folder"), ("syn29862078", "file"), ("syn23643253", "asset view"), ("syn30988314", "folder"), ("syn51182432", "org.sagebionetworks.repo.model.table.TableEntity")])
+    def test_entity_type_mapping(self, synapse_store, entity_id, expected_type):
+        syn = synapse_store.syn
+
+        entity_type = entity_type_mapping(syn, entity_id)
+        assert entity_type == expected_type
+
+    def test_entity_type_mapping_invalid_entity_id(self, synapse_store):
+        syn = synapse_store.syn
+
+        # test with an invalid entity id
+        with pytest.raises(SynapseHTTPError) as exception_info:
+            entity_type_mapping(syn, "syn123456")
+
+    def test_download_manifest_to_temp_folder(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path_dir = general.create_temp_folder(tmpdir)
+            assert os.path.exists(path_dir)
 
 class TestCliUtils:
     def test_query_dict(self):
@@ -63,41 +96,6 @@ class TestCliUtils:
 
         assert test_result_valid == "foobar"
         assert test_result_invalid is None
-
-    def test_get_from_config(self):
-
-        mock_dict = {"k1": {"k2": {"k3": "foobar"}}}
-        mock_keys_valid = ["k1", "k2", "k3"]
-        mock_keys_invalid = ["k1", "k2", "k4"]
-
-        test_result_valid = cli_utils.get_from_config(mock_dict, mock_keys_valid)
-
-        assert test_result_valid == "foobar"
-
-        with pytest.raises(MissingConfigValueError):
-            cli_utils.get_from_config(mock_dict, mock_keys_invalid)
-
-    def test_fill_in_from_config(self, mocker):
-
-        jsonld = "/path/to/one"
-        jsonld_none = None
-
-        mock_config = {"model": {"path": "/path/to/two"}}
-        mock_keys = ["model", "path"]
-        mock_keys_invalid = ["model", "file"]
-
-        mocker.patch("schematic.CONFIG.DATA", mock_config)
-
-        result1 = cli_utils.fill_in_from_config("jsonld", jsonld, mock_keys)
-        result2 = cli_utils.fill_in_from_config("jsonld", jsonld, mock_keys)
-        result3 = cli_utils.fill_in_from_config("jsonld_none", jsonld_none, mock_keys)
-
-        assert result1 == "/path/to/one"
-        assert result2 == "/path/to/one"
-        assert result3 == "/path/to/two"
-
-        with pytest.raises(MissingConfigAndArgumentValueError):
-            cli_utils.fill_in_from_config("jsonld_none", jsonld_none, mock_keys_invalid)
 
 
 class FakeResponse:
@@ -252,6 +250,17 @@ class TestDfUtils:
 
         actual_df = df_utils.update_df(input_df, updates_df, "entityId")
         pd.testing.assert_frame_equal(expected_df, actual_df)
+
+    def test_populate_column(self):
+        input_df = pd.DataFrame(
+            {
+                "column1": ["col1Val","col1Val"],
+                "column2": [None, None]
+            }
+        )
+
+        output_df = df_utils.populate_df_col_with_another_col(input_df,'column1','column2')
+        assert (output_df["column2"].values == ["col1Val","col1Val"]).all()
 
 
 class TestValidateUtils:

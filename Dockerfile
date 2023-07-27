@@ -7,7 +7,7 @@ ENV PYTHONFAULTHANDLER=1 \
   PIP_NO_CACHE_DIR=off \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=200 \
-  POETRY_VERSION=1.2.0rc1
+  POETRY_VERSION=1.2.0
 
 WORKDIR /usr/src/app
 
@@ -28,3 +28,5 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY . ./
+
+RUN poetry install --only-root

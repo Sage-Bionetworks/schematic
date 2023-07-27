@@ -17,7 +17,7 @@ from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_util import export_schema
 from schematic.help import schema_commands
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options

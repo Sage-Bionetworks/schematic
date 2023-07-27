@@ -1,3 +1,6 @@
+"""Loader"""
+from typing import Any
+from collections.abc import Iterable
 from errno import ENOENT
 from os import pathsep
 from re import split
@@ -17,23 +20,23 @@ class InvalidResourceError(Exception):
         that did not exist or was malformed.
     """
 
-    def __init__(self, namespace, requested_uri):
+    def __init__(self, namespace: str, requested_uri: str) -> None:
         self.namespace = namespace
         self.requested_uri = requested_uri
         self.message = "Resource does not exist or is declared incorrectly"
         self.errno = ENOENT
-        super(InvalidResourceError, self).__init__(self.message)
+        super().__init__(self.message)
 
-    def __str__(self):
-        return '{}({}), "{}" of {}'.format(
-            self.message, self.errno, self.requested_uri, self.namespace
+    def __str__(self) -> str:
+        return (
+            f'{self.message}({self.errno}), "{self.requested_uri}" of {self.namespace}'
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 
-class Loader(object):
+class Loader:
     """
     Args:
     namespace {String}: The namespace within the package (relative to the package root)
@@ -45,7 +48,7 @@ class Loader(object):
     located in a single place the uri's will be prefixed automatically by the loader.
     """
 
-    def __init__(self, namespace, **opts):
+    def __init__(self, namespace: str, **opts: Any) -> None:
         self.namespace = namespace
         self.prefix = opts.get("prefix", "")
         self.local = opts.get("local", False)
@@ -53,54 +56,54 @@ class Loader(object):
         if not self.local:
             self.namespace = split(r"\.|\\|\/", self.namespace)[0]
 
-    def _resolve(self, uri):
+    def _resolve(self, uri: str) -> tuple[str, str]:
         resource_uri = "/".join([self.prefix] + uri.split(pathsep))
-        ns = self.namespace
+        namespace = self.namespace
 
-        if not resource_exists(ns, resource_uri):
-            raise InvalidResourceError(ns, resource_uri)
+        if not resource_exists(namespace, resource_uri):
+            raise InvalidResourceError(namespace, resource_uri)
 
-        return ns, resource_uri
+        return namespace, resource_uri
 
-    def read(self, uri):
+    def read(self, uri: str) -> Any:
         """
         Read entire contents of resource. Same as open('path...').read()
 
         Args:
             uri {String}: URI of the resource.
         """
-        ns, uri = self._resolve(uri)
-        return resource_string(ns, uri)
+        namespace, uri = self._resolve(uri)
+        return resource_string(namespace, uri)
 
-    def open(self, uri):
+    def open(self, uri: str) -> Any:
         """
         Open a file object like handle to the resource. Same as open('path...')
 
         Args:
             uri {String}: URI of the resource.
         """
-        ns, uri = self._resolve(uri)
-        return resource_stream(ns, uri)
+        namespace, uri = self._resolve(uri)
+        return resource_stream(namespace, uri)
 
-    def filename(self, uri):
+    def filename(self, uri: str) -> str:
         """
         Return the "most correct" filename for a resource. Same as os.path.normpath('path...')
 
         Args:
             uri {String}: URI of the resource.
         """
-        ns, uri = self._resolve(uri)
-        return resource_filename(ns, uri)
+        namespace, uri = self._resolve(uri)
+        return resource_filename(namespace, uri)
 
-    def list(self, url):
+    def list(self, url: str) -> Iterable[str]:
         """
         Return a list of all resources within the given URL
 
         Args:
             url {String}: URL of the resources.
         """
-        ns, uri = self._resolve(url)
-        return map(lambda x: url + "/" + x, resource_listdir(ns, uri))
+        namespace, uri = self._resolve(url)
+        return map(lambda x: url + "/" + x, resource_listdir(namespace, uri))
 
 
 # call Loader() and pass `schematic`, which is the global package namespace

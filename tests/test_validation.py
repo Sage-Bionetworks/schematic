@@ -68,7 +68,7 @@ class TestManifestValidation:
         #Check errors
         assert GenerateError.generate_type_error(
             val_rule = 'num',
-            row_num = 3,
+            row_num = '3',
             attribute_name = 'Check Num', 
             invalid_entry = 'c',
             sg = sg,
@@ -76,17 +76,17 @@ class TestManifestValidation:
 
         assert GenerateError.generate_type_error(
             val_rule = 'int',
-            row_num = 3,
+            row_num = '3',
             attribute_name = 'Check Int', 
-            invalid_entry = 5.63,
+            invalid_entry = '5.63',
             sg = sg,
             )[0] in errors
 
         assert GenerateError.generate_type_error(
             val_rule = 'str',
-            row_num = 3,
+            row_num = '3',
             attribute_name = 'Check String', 
-            invalid_entry = 94,
+            invalid_entry = '94',
             sg = sg,
             )[0] in errors
 
@@ -128,7 +128,17 @@ class TestManifestValidation:
             module_to_call = 'search',
             invalid_entry = 'q',
             sg = sg,
-            )[0] in errors   
+            )[0] in errors
+
+        assert GenerateError.generate_regex_error(
+            val_rule = 'regex',
+            reg_expression = '^\d+$',
+            row_num = '2',
+            attribute_name = 'Check Regex Integer',
+            module_to_call = 'search',
+            invalid_entry = '5.4',
+            sg = sg,
+            )[0] in errors 
 
         assert GenerateError.generate_url_error(
             val_rule = 'url',
@@ -141,11 +151,22 @@ class TestManifestValidation:
             sg = sg,
             )[0] in errors
 
+
+        date_err = GenerateError.generate_content_error(
+            val_rule = 'date',
+            attribute_name = 'Check Date',
+            sg = sg,
+            row_num = ['2','3','4'],
+            error_val = ['84-43-094', '32-984', 'notADate'],
+            )[0]
+        error_in_list = [date_err[2] in error for error in errors]
+        assert any(error_in_list)
+
         assert GenerateError.generate_content_error(
             val_rule = 'unique error', 
             attribute_name = 'Check Unique',
             sg = sg,
-            row_num = [2,3,4],
+            row_num = ['2','3','4'],
             error_val = ['str1'],  
             )[0] in errors
 
@@ -153,8 +174,8 @@ class TestManifestValidation:
             val_rule = 'inRange 50 100 error', 
             attribute_name = 'Check Range',
             sg = sg,
-            row_num = [3],
-            error_val = [30], 
+            row_num = ['3'],
+            error_val = ['30'], 
             )[0] in errors
 
         #check warnings
@@ -168,24 +189,24 @@ class TestManifestValidation:
             val_rule = 'protectAges', 
             attribute_name = 'Check Ages',
             sg = sg,
-            row_num = [2,3],
-            error_val = [6549,32851], 
+            row_num = ['2','3'],
+            error_val = ['6549','32851'], 
             )[1] in warnings
 
         assert GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name='Check Match at Least',
-            invalid_entry = '[7163]',
+            invalid_entry = ['7163'],
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
             sg = sg,
             )[1] in warnings
 
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name = 'Check Match at Least values',
-            invalid_entry = '[51100]',
+            invalid_entry = ['51100'],
             sg = sg,
             )[1] in warnings      
 
@@ -203,14 +224,18 @@ class TestManifestValidation:
             matching_manifests = ['syn29862066', 'syn27648165'],
             sg = sg,
             )[1] in warnings
-                    
-        assert  GenerateError.generate_cross_warning(
+
+
+        cross_warning = GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[2, 3, 4]',
+            row_num = ['2', '3', '4'],
             attribute_name='Check Match Exactly values',
-            invalid_entry = '[71738, 98085, 210065]',
+            invalid_entry = ['71738', '98085', '210065'],
             sg = sg,
-            )[1] in warnings 
+            )[1]
+        warning_in_list = [cross_warning[1] in warning for warning in warnings]
+        assert any(warning_in_list)
+
         
         
 
@@ -246,6 +271,14 @@ class TestManifestValidation:
             row_num = '3',
             attribute_name = 'Check String', 
             invalid_entry = '94',
+            sg = sg,
+            )[0] in errors
+        
+        assert GenerateError.generate_type_error(
+            val_rule = 'int',
+            row_num = '3',
+            attribute_name = 'Check NA', 
+            invalid_entry = '9.5',
             sg = sg,
             )[0] in errors
             
@@ -304,18 +337,18 @@ class TestManifestValidation:
         #Check Warnings
         assert GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name='Check Match at Least',
-            invalid_entry = '[7163]',
+            invalid_entry = ['7163'],
             missing_manifest_ID = ['syn27600110', 'syn29381803'],
             sg = sg,
             )[1] in warnings
 
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value',
-            row_num = '[3]',
+            row_num = ['3'],
             attribute_name = 'Check Match at Least values',
-            invalid_entry = '[51100]',
+            invalid_entry = ['51100'],
             sg = sg,
             )[1] in warnings      
 
@@ -336,9 +369,9 @@ class TestManifestValidation:
                     
         assert  GenerateError.generate_cross_warning(
             val_rule = 'matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value',
-            row_num = '[2, 3, 4]',
+            row_num = ['2', '3', '4'],
             attribute_name='Check Match Exactly values',
-            invalid_entry = '[71738, 98085, 210065]',
+            invalid_entry = ['71738', '98085', '210065'],
             sg = sg,
             )[1] in warnings 
         
@@ -352,11 +385,19 @@ class TestManifestValidation:
         manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
         manifest = helpers.get_data_frame(manifestPath)
 
+        # adjust rules and arguments as necessary for testing combinations
         for attribute in sg.se.schema['@graph']: #Doing it in a loop becasue of sg.se.edit_class design
             if 'sms:validationRules' in attribute and attribute['sms:validationRules']: 
-                if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
+                # remove default combination for attribute's reules
+                if attribute['sms:displayName'] == 'Check NA':
+                    attribute['sms:validationRules'].remove('int')
                     
-                    #Add rule args if necessary
+                    # update class 
+                    sg.se.edit_class(attribute)
+                    break
+
+                # Add rule args if necessary
+                if base_rule in attribute['sms:validationRules'] or re.match(rule_regex, attribute['sms:validationRules'][0]):
                     if second_rule.startswith('matchAtLeastOne') or second_rule.startswith('matchExactlyOne'):
                         rule_args = f" MockComponent.{attribute['rdfs:label']} Patient.PatientID"
                     elif second_rule.startswith('inRange'):
@@ -367,6 +408,8 @@ class TestManifestValidation:
                         rule_args = ''
             
                     attribute['sms:validationRules'].append(second_rule + rule_args)
+                    
+                    # update class 
                     sg.se.edit_class(attribute)
                     break
 

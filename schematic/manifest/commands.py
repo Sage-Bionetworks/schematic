@@ -1,25 +1,23 @@
 import os
 import logging
 from pathlib import Path
-import click
-import click_log
-import logging
 import sys
 from typing import List
+import click
+import click_log
 
 from schematic.manifest.generator import ManifestGenerator
-from schematic.utils.cli_utils import fill_in_from_config, query_dict, parse_synIDs
+from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_synIDs
 from schematic.help import manifest_commands
-from schematic import CONFIG
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.google_api_utils import export_manifest_csv, export_manifest_excel, export_manifest_drive_service
+from schematic.utils.google_api_utils import export_manifest_csv
 from schematic.store.synapse import SynapseStorage
+from schematic.configuration.configuration import CONFIG
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('schematic')
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
-
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -37,7 +35,8 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     """
     try:
         logger.debug(f"Loading config file contents in '{config}'")
-        ctx.obj = CONFIG.load_config(config)
+        CONFIG.load_config(config)
+        ctx.obj = CONFIG
     except ValueError as e:
         logger.error("'--config' not provided or environment variable not set.")
         logger.exception(e)
@@ -117,17 +116,18 @@ def get_manifest(
     """
     Running CLI with manifest generation options.
     """
-    # optional parameters that need to be passed to ManifestGenerator()
-    # can be read from config.yml as well
-    data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
-    jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
-    title = fill_in_from_config("title", title, ("manifest", "title"), allow_none=True)
-    json_schema = fill_in_from_config(
-        "json_schema",
-        json_schema,
-        ("model", "input", "validation_schema"),
-        allow_none=True,
-    )
+    # Optional parameters that need to be passed to ManifestGenerator()
+    # If CLI parameters are None they are gotten from the CONFIG object and logged
+    if data_type is None:
+        data_type =  CONFIG.manifest_data_type
+        log_value_from_config("data_type", data_type)
+    if jsonld is None:
+        jsonld =  CONFIG.model_location
+        log_value_from_config("jsonld", jsonld)
+    if title is None:
+        title =  CONFIG.manifest_title
+        log_value_from_config("title", title)
+
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -142,16 +142,25 @@ def get_manifest(
         # if output_xlsx gets specified, output_format = "excel"
         if output_xlsx: 
             output_format = "excel"
-
             # if file name is in the path, and that file does not exist
             if not os.path.exists(output_xlsx):
                 if ".xlsx" or ".xls" in output_xlsx:
                     path = Path(output_xlsx)
                     output_path = path.parent.absolute()
-                else: 
-                    logger.error(f"{output_xlsx} does not exists. Please try a valid file path")
-
-            else: 
+                    if not os.path.exists(output_path):
+                        raise ValueError(
+                            f"{output_path} does not exists. Please try a valid file path"
+                        )
+                else:
+                    raise ValueError(
+                            f"{output_xlsx} does not exists. Please try a valid file path"
+                        )
+            else:
+                # Check if base path itself exists.
+                if not os.path.exists(os.path.dirname(output_xlsx)):
+                    raise ValueError(
+                    f"{output_xlsx} does not exists. Please try a valid file path"
+                    )
                 output_path = output_xlsx
         else: 
             output_format = None
@@ -253,14 +262,12 @@ def migrate_manifests(
     """
     Running CLI with manifest migration options.
     """
-    jsonld = fill_in_from_config("jsonld", jsonld, ("model", "input", "location"))
+    if jsonld is None:
+        jsonld =  CONFIG.model_location
+        log_value_from_config("jsonld", jsonld)
 
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
     full_scope = project_scope + [archive_project]
-    if access_token:
-        synStore = SynapseStorage(access_token = access_token, project_scope = full_scope)
-    else:
-        synStore = SynapseStorage(project_scope = full_scope)  
+    synStore = SynapseStorage(project_scope = full_scope)  
 
     for project in project_scope:
         if not return_entities:
