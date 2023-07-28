@@ -75,7 +75,7 @@ This command will install the dependencies based on what we specify in poetry.lo
 *Note*: If you won't interact with Synapse, please ignore this section.
 
 There are two main configuration files that need to be edited:
-[config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml)
+config.yml
 and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig)
 
 <strong>Configure .synapseConfig File</strong>
@@ -288,7 +288,7 @@ docker run -v %cd%:/schematic \
 If you install external libraries by using `poetry add <name of library>`, please make sure that you include `pyproject.toml` and `poetry.lock` file in your commit.
 
 ## Reporting bugs or feature requests
-You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues) tab to **create bug and feature requests**. Providing enough details to the developers to verify and troubleshoot your issue is paramount:
+You can **create bug and feature requests** through [Sage Bionetwork's FAIR Data service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8). Providing enough details to the developers to verify and troubleshoot your issue is paramount:
 - **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
 - **Describe the exact steps which reproduce the problem** in as many details as possible.
 - **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.

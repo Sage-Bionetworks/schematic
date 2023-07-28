@@ -2516,6 +2516,9 @@
                     "@id": "bts:CheckRegexFormat"
                 },
                 {
+                    "@id": "bts:CheckRegexInteger"
+                },
+                {
                     "@id": "bts:CheckNum"
                 },
                 {
@@ -2652,6 +2655,25 @@
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "regex match [a-f]"
+            ]
+        },
+        {
+            "@id": "bts:CheckRegexInteger",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckRegexInteger",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Regex Integer",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "regex search ^\\d+$"
             ]
         },
         {

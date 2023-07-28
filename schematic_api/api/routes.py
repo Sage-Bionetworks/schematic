@@ -560,10 +560,8 @@ def download_manifest(access_token, manifest_id, new_manifest_name='', as_json=T
     # call config_handler()
     config_handler()
 
-    # use Synapse Storage
-    store = SynapseStorage(access_token=access_token)
-    # try logging in to asset store
-    syn = store.login(access_token=access_token)
+    # use login method in synapse storage
+    syn = SynapseStorage.login(access_token=access_token)
     try: 
         md = ManifestDownload(syn, manifest_id)
         manifest_data = ManifestDownload.download_manifest(md, new_manifest_name)
