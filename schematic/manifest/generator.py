@@ -1621,7 +1621,7 @@ class ManifestGenerator(object):
 
         # Get headers for the current schema and existing manifest df.
         current_schema_headers = list(self.get_dataframe_by_url(manifest_url=empty_manifest_url).columns)
-        existing_manfiest_headers = list(existing_df.columns)
+        existing_manifest_headers = list(existing_df.columns)
 
         # Find columns that exist in the current schema, but are not in the manifest being downloaded.
         new_columns = self._get_missing_columns(current_schema_headers, existing_manifest_headers)
