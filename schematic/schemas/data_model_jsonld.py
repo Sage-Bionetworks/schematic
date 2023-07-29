@@ -36,6 +36,7 @@ class DataModelJsonLD(object):
 
     def create_object(self, template, node):
         data_model_relationships = self.dmr.relationships_dictionary
+        #edge_to_jsonld_keys = {rel_vals['edge_key']: rel_vals['jsonld_key'] for rel, rel_vals in data_model_relationships.items() if rel_vals['edge_rel']}
 
         # For each field in template fill out with information from the graph
         for rel, rel_vals in data_model_relationships.items():
@@ -50,13 +51,51 @@ class DataModelJsonLD(object):
 
                 for node_1, node_2, weight in node_edges:
                     # Get 'AtlasView'('relationship':{weight:value}) of edge
+                    # need to convert this relationship back to the JSONLD key_rel
                     node_edge_relationships = self.graph[node_1][node_2]
+                    edge_rel = rel_vals['edge_key']
+                    
+                    #node_edge_key_rels  = [for rel in node_edge_relationships.keys]
                     
                     # Check if key_rel is even one of the relationships for this node pair.
-                    if key_rel in node_edge_relationships:
+                    #if key_rel in node_edge_relationships:
+                    if edge_rel in node_edge_relationships:
+                        
                         for relationship, weight_dict in node_edge_relationships.items():
-                            if relationship == key_rel:
+                            #if relationship == key_rel:
+                            if relationship == edge_rel:
+                                #if edge_rel == 'parentOf':
+                                #    breakpoint()
+                                #if key_rel in ['domainIncludes']:
+                                if edge_rel in ['domainIncludes', 'parentOf']:
+                                    #breakpoint()
+                                    if node_2 == node:
+                                        # Make sure the key is in the template (differs between properties and classes)
+                                        if rel_vals['jsonld_key'] in template.keys():
+                                            node_1_id = {'@id': 'bts:'+node_1}
+                                            # TODO Move this to a helper function to clear up.
+                                            if (isinstance(template[rel_vals['jsonld_key']], list) and
+                                                node_1_id not in template[rel_vals['jsonld_key']]):
+                                                template[rel_vals['jsonld_key']].append(node_1_id)
+                                            else:
+                                                template[rel_vals['jsonld_key']] == node_1
+                                else:
+                                    if node_1 == node:
+                                        # Make sure the key is in the template (differs between properties and classes)
+                                        if rel_vals['jsonld_key'] in template.keys():
+                                            node_2_id = {'@id': 'bts:'+node_2}
+                                            # TODO Move this to a helper function to clear up.
+                                            if (isinstance(template[rel_vals['jsonld_key']], list) and
+                                                node_2_id not in template[rel_vals['jsonld_key']]):
+                                                # could possibly keep track of weights here but that might slow things down
+                                                template[rel_vals['jsonld_key']].append(node_2_id)
+                                            else:
+                                                template[rel_vals['jsonld_key']] == node_2
+                                    #elif node_2 == node:
+                                    #    breakpoint()
+                                '''
                                 if key_rel == 'domainIncludes':
+                                    breakpoint()
                                     if node_1 == node:
                                         # Make sure the key is in the template (differs between properties and classes)
                                         if rel_vals['jsonld_key'] in template.keys():
@@ -68,6 +107,7 @@ class DataModelJsonLD(object):
                                             else:
                                                 template[rel_vals['jsonld_key']] == node_2
                                 else:
+                                    breakpoint()
                                     if node_2 == node:
                                         # Make sure the key is in the template (differs between properties and classes)
                                         if rel_vals['jsonld_key'] in template.keys():
@@ -79,14 +119,14 @@ class DataModelJsonLD(object):
                                                 template[rel_vals['jsonld_key']].append(node_1_id)
                                             else:
                                                 template[rel_vals['jsonld_key']] == node_1
-            else:
+                                '''
+            else:               
                 # attribute here refers to node attibutes (come up with better name.)
                 node_attribute_name = rel_vals['node_label']
                 # Get recorded info for current node, and the attribute type
                 node_info = nx.get_node_attributes(self.graph, node_attribute_name)[node]
                 # Add this information to the template
                 template[rel_vals['jsonld_key']] =  node_info
-        
         # Clean up template
         template = self.clean_template(template=template,
                                        data_model_relationships=data_model_relationships,
@@ -136,6 +176,7 @@ class DataModelJsonLD(object):
                 key = [k for k, v in data_model_relationships.items() if jsonld_key == v['jsonld_key']][0]
                 # TODO: 
                 # Get edge weights for values in the list.
+                #breakpoint()
                 if data_model_relationships[key]['jsonld_direction'] == 'out':
                     #use outedges
                     original_edge_weights_dict = {attached_node:self.graph[template_node][attached_node][key]['weight']

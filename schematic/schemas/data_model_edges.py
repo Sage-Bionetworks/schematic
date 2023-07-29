@@ -1,6 +1,11 @@
+from schematic.schemas.data_model_relationships import (
+    DataModelRelationships
+    )
+
 class DataModelEdges():
     def __init__(self):
-        return
+        self.dmr = DataModelRelationships()
+        self.data_model_relationships = self.dmr.relationships_dictionary
 
     def generate_edge(self, G, node, all_node_dict, data_model, edge_relationships):
         """
@@ -32,11 +37,15 @@ class DataModelEdges():
                         else:
                             weight = 0
                         # Here the first added node to the edge is the value that would be the valid value to the second node which is the attribute.
-                        G.add_edge(all_node_dict[node]['label'], all_node_dict[attribute_display_name]['label'], key=key, weight=weight)
+                        edge_key = self.data_model_relationships[key]['edge_key']
+                        if key in ['subClassOf', 'domainIncludes']:
+                            G.add_edge(all_node_dict[node]['label'], all_node_dict[attribute_display_name]['label'], key=edge_key, weight=weight)
+                        else:
+                            G.add_edge(all_node_dict[attribute_display_name]['label'], all_node_dict[node]['label'], key=edge_key, weight=weight)
                         # Add additional valid value edges
                         if key == 'rangeIncludes':
                             # Add this relationships for classes.
-                            G.add_edge(all_node_dict[attribute_display_name]['label'], all_node_dict[node]['label'],  key='subClassOf', weight=weight)
+                            G.add_edge(all_node_dict[attribute_display_name]['label'], all_node_dict[node]['label'],  key=edge_key, weight=weight)
 
         return G
 

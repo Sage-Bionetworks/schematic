@@ -47,7 +47,7 @@ class DataModelRelationships():
             Default in.
             Out domainIncludes.
         TODO:
-        - Use class inheritance to set up relationships.
+        - Use class inheritance to set up
         """
         map_data_model_relationships = {
                 
@@ -86,7 +86,7 @@ class DataModelRelationships():
                     'jsonld_key': 'schema:rangeIncludes',
                     'csv_header': 'Valid Values',
                     'edge_key': 'rangeValue',
-                    'jsonld_direction': 'in',
+                    'jsonld_direction': 'out',
                     'edge_dir': 'out',
                     'type': list,
                     'edge_rel': True,
@@ -96,8 +96,8 @@ class DataModelRelationships():
                     'jsonld_key': 'sms:requiresDependency',
                     'csv_header': 'DependsOn',
                     'edge_key': 'requiresDependency',
-                    'jsonld_direction': 'in',
-                    'edge_dir': 'in',
+                    'jsonld_direction': 'out',
+                    'edge_dir': 'out',
                     'type': list,
                     'edge_rel': True,
                     'required_header': True,
@@ -106,8 +106,8 @@ class DataModelRelationships():
                     'jsonld_key': 'sms:requiresComponent',
                     'csv_header': 'DependsOn Component',
                     'edge_key': 'requiresComponent',
-                    'jsonld_direction': 'in',
-                    'edge_dir': 'in',
+                    'jsonld_direction': 'out',
+                    'edge_dir': 'out',
                     'type': list,
                     'edge_rel': True,
                     'required_header': True,
@@ -127,9 +127,9 @@ class DataModelRelationships():
                     'jsonld_key': 'rdfs:subClassOf',
                     'csv_header': 'Parent',
                     'edge_key': 'parentOf',
-                    'jsonld_direction': 'in',
-                    'edge_dir': 'in',
-                    'jsonld_default': [{"@id": "schema:Thing"}],
+                    'jsonld_direction': 'out',
+                    'edge_dir': 'out',
+                    'jsonld_default': [{"@id": "bts:Thing"}],
                     'type': list,
                     'edge_rel': True,
                     'required_header': True,
@@ -138,8 +138,8 @@ class DataModelRelationships():
                     'jsonld_key': 'sms:validationRules',
                     'csv_header': 'Validation Rules',
                     'node_label': 'validationRules',
-                    'jsonld_direction': 'in',
-                    'edge_dir': 'in',
+                    'jsonld_direction': 'out',
+                    'edge_dir': 'out',
                     'jsonld_default': [],
                     'type': list,
                     'edge_rel': False,
@@ -151,8 +151,8 @@ class DataModelRelationships():
                     'jsonld_key': 'schema:domainIncludes',
                     'csv_header': 'Properties',
                     'edge_key': 'domainValue',
-                    'jsonld_direction': 'out',
-                    'edge_dir': 'out',
+                    'jsonld_direction': 'in',
+                    'edge_dir': 'in',
                     'type': list,
                     'edge_rel': True,
                     'required_header': True,

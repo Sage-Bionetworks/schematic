@@ -81,6 +81,7 @@ class DataModelGraph():
             raise ValueError(
                     "Something has gone wrong, a data model was not loaded into the DataModelGraph Class. Please check that your paths are correct"
                 )
+        self.graph = self.generate_data_model_graph()
 
 
     def generate_data_model_graph(self):
@@ -121,16 +122,17 @@ class DataModelGraphExporer():
 
     def find_properties(self):
         """
-        TODO: handle 'domainIncludes' with relationship edge parameters.
+        TODO: handle 'domainValue' with relationship edge parameters.
         """
         properties=[]
         for node_1, node_2, rel in self.graph.edges:
-            if rel == 'domainIncludes':
+            if rel == 'domainValue':
                 properties.append(node_1)
         properties = set(properties)
         return properties
 
     def find_classes(self):
+        #checked
         nodes = self.graph.nodes
         properties = self.find_properties()
         classes = nodes - properties
@@ -147,6 +149,7 @@ class DataModelGraphExporer():
 
         Returns:
             List of nodes that are adjacent to the given node.
+        #checked
         """
         nodes = set()
 
@@ -195,7 +198,7 @@ class DataModelGraphExporer():
 
         # get the subgraph induced on required component nodes
         req_components_graph = self.get_subgraph_by_edge_type(
-            self.mm_graph, requires_component_relationship
+            self.graph, requires_component_relationship
         ).subgraph(req_components)
 
         return req_components_graph
@@ -221,11 +224,12 @@ class DataModelGraphExporer():
             List of nodes that are descendants from a particular node (sorted / unsorted)
         """
 
-        root_descendants = nx.descendants(self.mm_graph, source_node)
+        root_descendants = nx.descendants(self.graph, source_node)
+        breakpoint()
 
         subgraph_nodes = list(root_descendants)
         subgraph_nodes.append(source_node)
-        descendants_subgraph = self.mm_graph.subgraph(subgraph_nodes)
+        descendants_subgraph = self.graph.subgraph(subgraph_nodes)
 
         # prune the descendants subgraph so as to include only those edges that match the relationship type
         rel_edges = []
@@ -268,7 +272,7 @@ class DataModelGraphExporer():
     def get_digraph_by_edge_type(self):
 
         digraph = nx.DiGraph()
-        for (u, v, key, c) in self.mm_graph.edges(data=True, keys=True):
+        for (u, v, key, c) in self.graph.edges(data=True, keys=True):
             if key == edge_type:
                 digraph.add_edge(u, v)
 
@@ -292,7 +296,7 @@ class DataModelGraphExporer():
         """
         edges = []
 
-        for (u, v, key, c) in self.mm_graph.out_edges(node, data=True, keys=True):
+        for (u, v, key, c) in self.graph.out_edges(node, data=True, keys=True):
             if key == relationship:
                 edges.append((u, v))
 
@@ -312,7 +316,7 @@ class DataModelGraphExporer():
         if not node_label:
             return ""
 
-        node_definition = self.mm_graph.nodes[node_label]["comment"]
+        node_definition = self.graph.nodes[node_label]["comment"]
         return node_definition
 
 
@@ -349,7 +353,7 @@ class DataModelGraphExporer():
             dependencies_display_names = []
 
             for req in required_dependencies:
-                dependencies_display_names.append(self.mm_graph.nodes[req]["displayName"])
+                dependencies_display_names.append(self.graph.nodes[req]["displayName"])
 
             return dependencies_display_names
 
@@ -373,9 +377,9 @@ class DataModelGraphExporer():
             node_display_name
         )
 
-        if node_class_label in self.mm_graph.nodes:
+        if node_class_label in self.graph.nodes:
             node_label = node_class_label
-        elif node_property_label in self.mm_graph.nodes:
+        elif node_property_label in self.graph.nodes:
             node_label = node_property_label
         else:
             node_label = ""
@@ -400,7 +404,7 @@ class DataModelGraphExporer():
         # Needs to be refactored no longer be JSONLD specific
         
         breakpoint()
-        schema_uri = self.mm_graph.nodes[schema_class]["uri"]
+        schema_uri = self.graph.nodes[schema_class]["uri"]
         properties = []
         for record in self.schema["@graph"]:
             if record["@type"] == "rdf:Property":
@@ -442,7 +446,7 @@ class DataModelGraphExporer():
         """
         node_label = self.get_node_label(node_display_name)
 
-        node_required = self.mm_graph.nodes[node_label]["required"]
+        node_required = self.graph.nodes[node_label]["required"]
 
         return node_required
 
