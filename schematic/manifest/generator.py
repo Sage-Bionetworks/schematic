@@ -1600,7 +1600,7 @@ class ManifestGenerator(object):
                 end_columns.append(id_name)
         
         # Add entity_id to the end columns if it should be there but isn't
-        if 'entityId' in (current_schema_headers or existing_manfiest_headers) and 'entityId' not in end_columns:
+        if 'entityId' in (current_schema_headers or existing_manifest_headers) and 'entityId' not in end_columns:
             end_columns.append('entityId')
         return end_columns
 
@@ -1621,7 +1621,7 @@ class ManifestGenerator(object):
 
         # Get headers for the current schema and existing manifest df.
         current_schema_headers = list(self.get_dataframe_by_url(manifest_url=empty_manifest_url).columns)
-        existing_manfiest_headers = list(existing_df.columns)
+        existing_manifest_headers = list(existing_df.columns)
 
         # Find columns that exist in the current schema, but are not in the manifest being downloaded.
         new_columns = self._get_missing_columns(current_schema_headers, existing_manifest_headers)
