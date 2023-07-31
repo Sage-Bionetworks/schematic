@@ -1,13 +1,17 @@
 # FROM python:3.10.6
 FROM python:3.10.8-slim-bullseye
 
+# add version as a build argument
+ARG tag
+
 ENV PYTHONFAULTHANDLER=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONHASHSEED=random \
   PIP_NO_CACHE_DIR=off \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=200 \
-  POETRY_VERSION=1.2.0
+  POETRY_VERSION=1.2.0 \
+  VERSION=$tag
 
 WORKDIR /usr/src/app
 
