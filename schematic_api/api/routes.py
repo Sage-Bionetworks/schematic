@@ -819,4 +819,6 @@ def get_schematic_version() -> str:
     """
     Return the current version of schematic
     """
-    return json.dumps("v0.1.55-betaTEST")
+    if "VERSION" in os.environ:
+        version = os.environ["VERSION"]
+    return json.dumps(version)
