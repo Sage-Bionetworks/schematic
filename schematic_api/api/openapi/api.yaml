@@ -1262,7 +1262,7 @@ paths:
                           Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
       tags:
         - Visualization Operations
-        
+
   /version:
     get:
       summary: Get the version of schematic currently being used
@@ -1277,7 +1277,7 @@ paths:
               schema:
                 type: string
         "500":
-          description: Version not found.
+          description: Schematic version was not able to be identified.
           content:
             text/json:
               schema:
