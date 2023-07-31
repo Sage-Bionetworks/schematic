@@ -821,4 +821,4 @@ def get_schematic_version() -> str:
     """
     if "VERSION" in os.environ:
         version = os.environ["VERSION"]
-    return json.dumps(version)
+    return version
