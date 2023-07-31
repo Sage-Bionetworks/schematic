@@ -1262,4 +1262,19 @@ paths:
                           Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
       tags:
         - Visualization Operations
+  /version:
+    get:
+      summary: Get the version of schematic currently being used
+      description: >-
+        Get the version of schematic that is currently deployed and being used
+      operationId: schematic_api.api.routes.get_schematic_version
+      responses:
+        "200":
+          description: Returns a JSON String containing the version of schematic.
+          content:
+            text/json:
+              schema:
+                type: string
+      tags:
+        - Version
         
