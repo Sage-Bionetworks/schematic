@@ -886,7 +886,7 @@ class ManifestGenerator(object):
         else:
             return
 
-    def _request_notes_comments(self, i, req, json_schema):
+    def _set_required_columns_color(self, i, req, json_schema):
         """Update background colors so that columns that are required are highlighted
         Args:
             i (int): column index
@@ -1127,7 +1127,7 @@ class ManifestGenerator(object):
                 requests_body["requests"].append(get_row_formatting)
 
             # Add notes to headers to provide descriptions of the attribute
-            header_notes = self._request_notes_comments(i, req, json_schema)
+            header_notes = self._set_required_columns_color(i, req, json_schema)
             if header_notes:
                 requests_body["requests"].append(header_notes)
             # Add note on how to use multi-select, when appropriate
