@@ -2,7 +2,7 @@
 FROM python:3.10.8-slim-bullseye
 
 # add version as a build argument
-ARG tag
+ARG TAG
 
 ENV PYTHONFAULTHANDLER=1 \
   PYTHONUNBUFFERED=1 \
@@ -11,7 +11,7 @@ ENV PYTHONFAULTHANDLER=1 \
   PIP_DISABLE_PIP_VERSION_CHECK=on \
   PIP_DEFAULT_TIMEOUT=200 \
   POETRY_VERSION=1.2.0 \
-  VERSION=$tag
+  VERSION=$TAG
 
 WORKDIR /usr/src/app
 
