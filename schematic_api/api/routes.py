@@ -815,3 +815,8 @@ def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
     node_display_names = gen.get_nodes_display_names(node_list, mm_graph)
     return node_display_names
 
+def get_schematic_version() -> str:
+    """
+    Return the current version of schematic
+    """
+    return json.dumps("v0.1.55-betaTEST")
