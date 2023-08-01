@@ -225,7 +225,6 @@ class DataModelGraphExporer():
         """
 
         root_descendants = nx.descendants(self.graph, source_node)
-        breakpoint()
 
         subgraph_nodes = list(root_descendants)
         subgraph_nodes.append(source_node)

@@ -48,6 +48,7 @@ class DataModelRelationships():
             Out domainIncludes.
         TODO:
         - Use class inheritance to set up
+        - Check 'subClassOf' edge_dir
         """
         map_data_model_relationships = {
                 
@@ -127,7 +128,7 @@ class DataModelRelationships():
                     'jsonld_key': 'rdfs:subClassOf',
                     'csv_header': 'Parent',
                     'edge_key': 'parentOf',
-                    'jsonld_direction': 'out',
+                    'jsonld_direction': 'in',
                     'edge_dir': 'out',
                     'jsonld_default': [{"@id": "bts:Thing"}],
                     'type': list,

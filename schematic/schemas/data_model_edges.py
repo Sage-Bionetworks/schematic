@@ -45,7 +45,7 @@ class DataModelEdges():
                         # Add additional valid value edges
                         if key == 'rangeIncludes':
                             # Add this relationships for classes.
-                            G.add_edge(all_node_dict[attribute_display_name]['label'], all_node_dict[node]['label'],  key=edge_key, weight=weight)
+                            G.add_edge(all_node_dict[attribute_display_name]['label'], all_node_dict[node]['label'],  key='parentOf', weight=weight)
 
         return G
 

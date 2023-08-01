@@ -54,6 +54,8 @@ class DataModelJsonLD(object):
                     # need to convert this relationship back to the JSONLD key_rel
                     node_edge_relationships = self.graph[node_1][node_2]
                     edge_rel = rel_vals['edge_key']
+
+
                     
                     #node_edge_key_rels  = [for rel in node_edge_relationships.keys]
                     
@@ -64,9 +66,7 @@ class DataModelJsonLD(object):
                         for relationship, weight_dict in node_edge_relationships.items():
                             #if relationship == key_rel:
                             if relationship == edge_rel:
-                                #if edge_rel == 'parentOf':
-                                #    breakpoint()
-                                #if key_rel in ['domainIncludes']:
+                                
                                 if edge_rel in ['domainIncludes', 'parentOf']:
                                     #breakpoint()
                                     if node_2 == node:
@@ -172,25 +172,27 @@ class DataModelJsonLD(object):
         for jsonld_key, entry in template.items():
             #if the entry is of type list and theres more than one value in the list attempt to reorder
             if isinstance(entry, list) and len(entry)>1:
-                # Get relationship key from JSONLD Key:
-                key = [k for k, v in data_model_relationships.items() if jsonld_key == v['jsonld_key']][0]
+                # Get edge key from data_model_relationships using the jsonld_key:
+                key, edge_key = [(k, v['edge_key']) for k, v in data_model_relationships.items() if jsonld_key == v['jsonld_key']][0]
                 # TODO: 
                 # Get edge weights for values in the list.
-                #breakpoint()
+                
                 if data_model_relationships[key]['jsonld_direction'] == 'out':
                     #use outedges
-                    original_edge_weights_dict = {attached_node:self.graph[template_node][attached_node][key]['weight']
+                    
+                    original_edge_weights_dict = {attached_node:self.graph[template_node][attached_node][edge_key]['weight']
                                     for template_node, attached_node  in self.graph.out_edges(template_id)
-                                    if key in self.graph[template_node][attached_node]
+                                    if edge_key in self.graph[template_node][attached_node]
                                     }                    
                 else:
                     #use inedges
-                    original_edge_weights_dict = {attached_node:self.graph[attached_node][template_node][key]['weight']
+                    original_edge_weights_dict = {attached_node:self.graph[attached_node][template_node][edge_key]['weight']
                                     for attached_node, template_node in self.graph.in_edges(template_id)
-                                    if key in self.graph[attached_node][template_node]
+                                    if edge_key in self.graph[attached_node][template_node]
                                     }
 
                 # TODO: MOVE TO HELPER
+                # would topological sort work here?
                 sorted_edges = list(dict(sorted(original_edge_weights_dict.items(), key=lambda item: item[1])).keys())
                 edge_weights_dict={edge:i for i, edge in enumerate(sorted_edges)}
                 ordered_edges = [0]*len(edge_weights_dict.keys())
@@ -254,10 +256,8 @@ class DataModelJsonLD(object):
         for node in self.graph.nodes:
             if node in properties:
                 obj = self.create_object(template = self.property_template(), node = node)
-                #obj = self.create_object_optimized(template=self.property_template(), node=node)
             else:
                 obj = self.create_object(template = self.class_template(), node = node)
-                #obj = self.create_object_optimized(template=self.class_template(), node=node)
             self.json_ld_object['@graph'].append(obj)
         return self.json_ld_object
 
