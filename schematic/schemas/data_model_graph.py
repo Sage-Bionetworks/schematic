@@ -75,7 +75,7 @@ class DataModelGraph():
         self.attribute_relationships_dict = attribute_relationships_dict
         self.dmn = DataModelNodes(self.attribute_relationships_dict)
         self.dme = DataModelEdges()
-        self.data_model_relationships = DataModelRelationships()
+        self.dmr = DataModelRelationships()
 
         if not self.attribute_relationships_dict:
             raise ValueError(
@@ -89,7 +89,7 @@ class DataModelGraph():
         
         '''
         # Get all relationships with edges
-        edge_relationships = self.data_model_relationships.define_edge_relationships()
+        edge_relationships = self.dmr.define_edge_relationships()
 
         # Instantiate NetworkX MultiDigraph
         G = nx.MultiDiGraph()
@@ -119,14 +119,30 @@ class DataModelGraphExporer():
         Load data model graph as a singleton.
         '''
         self.graph = G
+        self.dmr = DataModelRelationships()
+        self.rel_dict = self.dmr.relationships_dictionary
+
+        # TODO: Clean up to create variables within a loop. 
+        # Creating variables here so its cleaner to know all the references at the top of the class
+        # Get node labels and edge keys for all referenced relationships
+        # Edge Keys
+        self.domainIncludes_ek = self.rel_dict['domainIncludes']['edge_key']
+        self.reqComp_ek = self.rel_dict['requiresComponent']['edge_key']
+        self.reqDep_ek = self.rel_dict['requiresDependency']['edge_key']
+        self.subClassOf_ek = self.rel_dict['subClassOf']['edge_key']
+
+        # Node Labels
+        self.displayName_nl = self.rel_dict['displayName']['node_label']
+        self.comment_nl = self.rel_dict['comment']['node_label']
+        self.validationRules_nl = self.rel_dict['validationRules']['node_label']
 
     def find_properties(self):
         """
-        TODO: handle 'domainValue' with relationship edge parameters.
         """
+
         properties=[]
         for node_1, node_2, rel in self.graph.edges:
-            if rel == 'domainValue':
+            if rel == self.domainIncludes_ek:
                 properties.append(node_1)
         properties = set(properties)
         return properties
@@ -161,7 +177,7 @@ class DataModelGraphExporer():
 
     def get_component_requirements(self,
                                    source_component: str,
-                                   requires_component_relationship: str = "requiresComponent") -> List[str]:
+                                   ) -> List[str]:
         """Get all components that are associated with a given source component and are required by it.
 
         Args:
@@ -169,12 +185,13 @@ class DataModelGraphExporer():
 
         Returns:
             List of nodes that are descendants from the source component are are related to the source through a specific component relationship.
+        # Tested
         """
 
         req_components = list(
             reversed(
                 self.get_descendants_by_edge_type(
-                    source_component, requires_component_relationship, ordered=True
+                    source_component, self.reqComp_ek, ordered=True
                 )
             )
         )
@@ -183,7 +200,7 @@ class DataModelGraphExporer():
 
     def get_component_requirements_graph(self,
                                          source_component: str,
-                                         requires_component_relationship: str = "requiresComponent") -> nx.DiGraph:
+                                         ) -> nx.DiGraph:
         """Get all components that are associated with a given source component and are required by it; return the components as a dependency graph (i.e. a DAG).
 
         Args:
@@ -198,7 +215,7 @@ class DataModelGraphExporer():
 
         # get the subgraph induced on required component nodes
         req_components_graph = self.get_subgraph_by_edge_type(
-            self.graph, requires_component_relationship
+            self.graph, self.reqComp_ek,
         ).subgraph(req_components)
 
         return req_components_graph
@@ -222,6 +239,7 @@ class DataModelGraphExporer():
 
         Returns:
             List of nodes that are descendants from a particular node (sorted / unsorted)
+        # Tested
         """
 
         root_descendants = nx.descendants(self.graph, source_node)
@@ -301,7 +319,34 @@ class DataModelGraphExporer():
 
         return edges
 
-    def get_node_definition(self, node_display_name: str) -> str:
+    
+
+    def get_ordered_entry(self, key: str, source_node_label:str):
+        
+        # Check if node is in the graph, if not throw an error.
+        edge_key = self.rel_dict[key]['edge_key']
+        if self.rel_dict[key]['jsonld_direction'] == 'out':
+            #use outedges
+            
+            original_edge_weights_dict = {attached_node:self.graph[source_node][attached_node][edge_key]['weight']
+                            for source_node, attached_node  in self.graph.out_edges(source_node_label)
+                            if edge_key in self.graph[source_node][attached_node]
+                            }                    
+        else:
+            #use inedges
+            original_edge_weights_dict = {attached_node:self.graph[attached_node][source_node][edge_key]['weight']
+                            for attached_node, source_node in self.graph.in_edges(source_node_label)
+                            if edge_key in self.graph[attached_node][source_node]
+                            }
+
+        sorted_edges = list(dict(sorted(original_edge_weights_dict.items(), key=lambda item: item[1])).keys())
+        
+        return sorted_edges
+
+    # Get values associated with a node
+    # TODO: make sure all these gets follow the same pattern for clarity
+
+    def get_node_comment(self, node_display_name: str = None, node_label: str= None) -> str:
         """Get the node definition, i.e., the "comment" associated with a given node display name.
 
         Args:
@@ -309,21 +354,22 @@ class DataModelGraphExporer():
 
         Returns:
             Comment associated with node, as a string.
+        TODO: add to args
         """
-        node_label = self.get_node_label(node_display_name)
+        if not node_label:
+            node_label = self.get_node_label(node_display_name)
 
         if not node_label:
             return ""
 
-        node_definition = self.graph.nodes[node_label]["comment"]
+        node_definition = self.graph.nodes[node_label][self.comment_nl]
         return node_definition
 
 
     def get_node_dependencies(self,
                               source_node: str,
                               display_names: bool = True,
-                              schema_ordered: bool = True,
-                              requires_dependency_relationship: str = "requiresDependency", 
+                              schema_ordered: bool = True, 
     ) -> List[str]:
         """Get the immediate dependencies that are related to a given source node.
 
@@ -338,25 +384,40 @@ class DataModelGraphExporer():
             List of nodes that are dependent on the source node.
         """
 
-        # NOTE might not be necessary to move through explore_class in this refactored version.
         if schema_ordered:
             # get dependencies in the same order in which they are defined in the schema
-            required_dependencies = self.explore_class(source_node)["dependencies"]
+            required_dependencies = self.get_ordered_entry(key=self.reqDep_ek, source_node_label=source_node)
         else:
             required_dependencies = self.get_adjacent_nodes_by_relationship(
-                source_node, self.requires_dependency_relationship
-            )
+                node = source_node, relationship = self.reqDep_ek)
 
         if display_names:
             # get display names of dependencies
             dependencies_display_names = []
 
             for req in required_dependencies:
-                dependencies_display_names.append(self.graph.nodes[req]["displayName"])
+                dependencies_display_names.append(self.graph.nodes[req][self.displayName_nl])
 
             return dependencies_display_names
 
         return required_dependencies
+
+    def get_nodes_display_names(
+        self, node_list: List[str],
+    ) -> List[str]:
+        """Get display names associated with the given list of nodes.
+
+        Args:
+            node_list: List of nodes whose display names we need to retrieve.
+
+        Returns:
+            List of display names.
+        """
+        node_list_display_names = [
+            self.graph.nodes[node][self.displayName_nl] for node in node_list
+        ]
+
+        return node_list_display_names
 
     def get_node_label(self, node_display_name: str) -> str:
         """Get the node label for a given display name.
@@ -371,9 +432,9 @@ class DataModelGraphExporer():
             KeyError: If the node cannot be found in the graph.
         """
 
-        node_class_label = SchemaUtils.get_class_label_from_display_name(node_display_name)
-        node_property_label = SchemaUtils.get_property_label_from_display_name(
-            node_display_name
+        node_class_label = get_class_label_from_display_name(display_name = node_display_name)
+        node_property_label = get_property_label_from_display_name(
+            display_name = node_display_name
         )
 
         if node_class_label in self.graph.nodes:
@@ -385,9 +446,47 @@ class DataModelGraphExporer():
 
         return node_label
 
-    def find_adjacent_child_classes(self, schema_class):
+    def get_node_required(self, node_display_name: str = None, node_label:str = None) -> bool:
+        """Check if a given node is required or not.
 
-        return self.get_adjacent_nodes_by_relationship(schema_class, "parentOf")
+        Note: The possible options that a node can be associated with -- "required" / "optional".
+
+        Args:
+            node_display_name: Display name of the node which you want to get the label for.
+
+        Returns:
+            True: If the given node is a "required" node.
+            False: If the given node is not a "required" (i.e., an "optional") node.
+        """
+        if not node_label:
+            node_label = self.get_node_label(node_display_name)
+
+        rel_node_label = self.rel_dict["required"]["node_label"]
+        node_required = self.graph.nodes[node_label][rel_node_label]
+        return node_required
+
+    def get_node_validation_rules(self, node_display_name: str = None, node_label: str = None) -> str:
+        """Get validation rules associated with a node,
+
+        Args:
+            node_display_name: Display name of the node which you want to get the label for.
+
+        Returns:
+            A set of validation rules associated with node, as a list.
+        """
+        if not node_label:
+            node_label = self.get_node_label(node_display_name)
+
+        if not node_label:
+            return []
+
+        node_validation_rules = self.graph.nodes[node_label]["validationRules"]
+
+        return node_validation_rules
+
+
+    def find_adjacent_child_classes(self, schema_class):
+        return self.get_adjacent_nodes_by_relationship(node = schema_class, relationship = self.subClassOf_ek)
 
     def find_all_class_properties(self):
         """
@@ -431,25 +530,9 @@ class DataModelGraphExporer():
         """
         return
 
-    def is_node_required(self, node_display_name: str) -> bool:
-        """Check if a given node is required or not.
+    
 
-        Note: The possible options that a node can be associated with -- "required" / "optional".
-
-        Args:
-            node_display_name: Display name of the node which you want to get the label for.
-
-        Returns:
-            True: If the given node is a "required" node.
-            False: If the given node is not a "required" (i.e., an "optional") node.
-        """
-        node_label = self.get_node_label(node_display_name)
-
-        node_required = self.graph.nodes[node_label]["required"]
-
-        return node_required
-
-    def explore_class(self):
+    def explore_class(self, source_node):
         """
         nx specific version of this? This might not be necessary since each nx node should already contain all required information.
         Put this here for now as a dummy function so this can be explored more.

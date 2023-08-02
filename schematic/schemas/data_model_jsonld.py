@@ -4,6 +4,7 @@ import networkx as nx
 
 from schematic.schemas.data_model_graph import DataModelGraphExporer
 from schematic.schemas.data_model_relationships import DataModelRelationships
+from schematic.utils.schema_util import get_label_from_display_name, get_display_name_from_label, convert_bool
 
 
 class DataModelJsonLD(object):
@@ -15,6 +16,7 @@ class DataModelJsonLD(object):
         # Setup
         self.graph = Graph
         self.dmr = DataModelRelationships()
+        self.rel_dict = self.dmr.relationships_dictionary
         '''
         self.jsonld_object = JSONLD_object(DataModelJsonLD)
         self.jsonld_class = JSONLD_class(self.jsonld_object)
@@ -91,35 +93,6 @@ class DataModelJsonLD(object):
                                                 template[rel_vals['jsonld_key']].append(node_2_id)
                                             else:
                                                 template[rel_vals['jsonld_key']] == node_2
-                                    #elif node_2 == node:
-                                    #    breakpoint()
-                                '''
-                                if key_rel == 'domainIncludes':
-                                    breakpoint()
-                                    if node_1 == node:
-                                        # Make sure the key is in the template (differs between properties and classes)
-                                        if rel_vals['jsonld_key'] in template.keys():
-                                            node_2_id = {'@id': 'bts:'+node_2}
-                                            # TODO Move this to a helper function to clear up.
-                                            if (isinstance(template[rel_vals['jsonld_key']], list) and
-                                                node_2_id not in template[rel_vals['jsonld_key']]):
-                                                template[rel_vals['jsonld_key']].append(node_2_id)
-                                            else:
-                                                template[rel_vals['jsonld_key']] == node_2
-                                else:
-                                    breakpoint()
-                                    if node_2 == node:
-                                        # Make sure the key is in the template (differs between properties and classes)
-                                        if rel_vals['jsonld_key'] in template.keys():
-                                            node_1_id = {'@id': 'bts:'+node_1}
-                                            # TODO Move this to a helper function to clear up.
-                                            if (isinstance(template[rel_vals['jsonld_key']], list) and
-                                                node_1_id not in template[rel_vals['jsonld_key']]):
-                                                # could possibly keep track of weights here but that might slow things down
-                                                template[rel_vals['jsonld_key']].append(node_1_id)
-                                            else:
-                                                template[rel_vals['jsonld_key']] == node_1
-                                '''
             else:               
                 # attribute here refers to node attibutes (come up with better name.)
                 node_attribute_name = rel_vals['node_label']
@@ -132,8 +105,30 @@ class DataModelJsonLD(object):
                                        data_model_relationships=data_model_relationships,
                                        )
         # Reorder lists based on weights:
-        template = self.reorder_entries(template=template,)
+        template = self.reorder_template_entries(template=template,)
 
+        # Add contexts back
+        template = self.add_contexts_to_entries(template=template,)
+
+        return template
+
+    def add_contexts_to_entries(self, template):
+        for jsonld_key, entry in template.items():
+            try:
+                key= [k for k, v in self.rel_dict.items() if jsonld_key == v['jsonld_key']][0]
+            except:
+                continue
+            if 'node_attr_dict' in self.rel_dict[key].keys():
+                # Changes to data_model_relationships may mean this part will need to be updated.
+                try:
+                    rel_func = self.rel_dict[key]['node_attr_dict']['standard']
+                except:
+                    rel_func = self.rel_dict[key]['node_attr_dict']['default']
+                if key == 'id' and rel_func == get_label_from_display_name:
+                    template[jsonld_key] = 'bts:' + template[jsonld_key]
+                elif key == 'required' and rel_func == convert_bool:
+                    #clean up use of convert bool here.
+                    template[jsonld_key] = 'sms:' + str(template[jsonld_key]).lower()
         return template
 
     def clean_template(self, template, data_model_relationships):
@@ -155,7 +150,7 @@ class DataModelJsonLD(object):
             context, v = context_value.split('@')
         return context, v
 
-    def reorder_entries(self, template):
+    def reorder_template_entries(self, template):
         '''In JSONLD some classes or property keys have list values. We want to make sure these lists are ordered according to the order supplied by the user.
         This will look specically in lists and reorder those.
         Args:
@@ -164,46 +159,27 @@ class DataModelJsonLD(object):
             template (dict): list entries re-ordered to match user supplied order.
 
         '''
-        data_model_relationships = self.dmr.relationships_dictionary
+       
 
         # user order only matters for nodes that are also attributes
-        template_id = template['rdfs:label']
+        template_label = template['rdfs:label']
 
         for jsonld_key, entry in template.items():
             #if the entry is of type list and theres more than one value in the list attempt to reorder
             if isinstance(entry, list) and len(entry)>1:
                 # Get edge key from data_model_relationships using the jsonld_key:
-                key, edge_key = [(k, v['edge_key']) for k, v in data_model_relationships.items() if jsonld_key == v['jsonld_key']][0]
-                # TODO: 
-                # Get edge weights for values in the list.
-                
-                if data_model_relationships[key]['jsonld_direction'] == 'out':
-                    #use outedges
-                    
-                    original_edge_weights_dict = {attached_node:self.graph[template_node][attached_node][edge_key]['weight']
-                                    for template_node, attached_node  in self.graph.out_edges(template_id)
-                                    if edge_key in self.graph[template_node][attached_node]
-                                    }                    
-                else:
-                    #use inedges
-                    original_edge_weights_dict = {attached_node:self.graph[attached_node][template_node][edge_key]['weight']
-                                    for attached_node, template_node in self.graph.in_edges(template_id)
-                                    if edge_key in self.graph[attached_node][template_node]
-                                    }
+                key, edge_key = [(k, v['edge_key']) for k, v in self.rel_dict.items() if jsonld_key == v['jsonld_key']][0]
 
-                # TODO: MOVE TO HELPER
-                # would topological sort work here?
-                sorted_edges = list(dict(sorted(original_edge_weights_dict.items(), key=lambda item: item[1])).keys())
+                # Order edges
+                sorted_edges = self.DME.get_ordered_entry(key=key, source_node_label=template_label)
                 edge_weights_dict={edge:i for i, edge in enumerate(sorted_edges)}
                 ordered_edges = [0]*len(edge_weights_dict.keys())
-
                 for k,v in edge_weights_dict.items():
                     ordered_edges[v] = {'@id': 'bts:' + k}
                 
                 # TODO: Throw an error if ordered_edges does not get fully filled as expected.
                 if 0 in ordered_edges:
                     breakpoint()
-
                 template[jsonld_key] = ordered_edges
         return template
 

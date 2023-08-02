@@ -33,7 +33,7 @@ class DataModelParser():
     def __init__(
         self,
         path_to_data_model: str,
-        base_schema_path: None,
+        base_schema_path: str = None,
         ) -> None:
 
         self.path_to_data_model = path_to_data_model
@@ -73,7 +73,7 @@ class DataModelParser():
 
         '''
 
-        if self.base_schema_path == 'No base model':
+        if not self.base_schema_path:
             return
         else:
             # determine base schema path
@@ -106,8 +106,13 @@ class DataModelCSVParser():
     def __init__(
         self
         ):
+        # Instantiate DataModelRelationships
         self.dmr = DataModelRelationships()
+        # Load relationships dictionary.
+        self.rel_dict = self.dmr.define_data_model_relationships()
+        # Load required csv headers
         self.required_headers = self.dmr.define_required_csv_headers()
+
 
 
     def check_schema_definition(self, model_df: pd.DataFrame) -> bool:
@@ -151,8 +156,6 @@ class DataModelCSVParser():
         # Check csv schema follows expectations.
         self.check_schema_definition(model_df)
 
-        # Load relationships dictionary.
-        self.rel_dict = self.dmr.define_data_model_relationships()
         
         # Get the type for each value that needs to be submitted.
         # using csv_headers as keys to match required_headers/relationship_types
@@ -203,7 +206,6 @@ class DataModelCSVParser():
                         #rels = attr[relationship].strip()
                     attr_rel_dictionary[attr['Attribute']]['Relationships'].update({relationship:rels})
             position += 1
-
         return attr_rel_dictionary
 
 
@@ -236,7 +238,10 @@ class DataModelJSONLDParser():
 
         '''
 
-        self.data_model_relationships = DataModelRelationships()
+        # Instantiate DataModelRelationships
+        self.dmr = DataModelRelationships()
+        # Load relationships dictionary.
+        self.rel_dict = self.dmr.define_data_model_relationships()
 
     def gather_jsonld_attributes_relationships(
         self,
@@ -248,41 +253,68 @@ class DataModelJSONLDParser():
         
         Make sure we can take in list of types.
         '''
-        model_ids = [v['rdfs:label'] for v in model_jsonld]
+        #label_jsonld_key = self.rel_dict['label']['jsonld_key']
+        #subclassof_jsonld_key = self.rel_dict['subClassOf']['jsonld_key']
+
+        jsonld_keys_to_extract = ['label', 'subClassOf', 'id']
+        label_jsonld_key, subclassof_jsonld_key, id_jsonld_key = [self.rel_dict[key]['jsonld_key']
+                                                    for key in jsonld_keys_to_extract ]
+        
+        model_ids = [v[label_jsonld_key] for v in model_jsonld]
         attr_rel_dictionary = {}
         # For each entry in the jsonld model
         for entry in model_jsonld:
             # Check to see if it has been assigned as a subclass as an attribute or parent.
-            if 'rdfs:subClassOf' in entry.keys():
+            if subclassof_jsonld_key in entry.keys():
 
                 # Checking if subclass type is list, actually gets rid of Biothings.
-                # TODO: Allow biothings in future.
-                if type(entry['rdfs:subClassOf']) == list:
+                # TODO: Allow biothings in future (would need to handle as a dictionary)
+                if type(entry[subclassof_jsonld_key]) == list and entry[subclassof_jsonld_key]:
                     
                     # Determine if the id the entry has been assigned as a sublcass of is also recoreded
                     # as a model id. If it is, then the entry is not an attribute itself, but a valid value.
-                    subclass_id = entry['rdfs:subClassOf'][0]['rdfs:label']
+                    subclass_id = entry[subclassof_jsonld_key][0][id_jsonld_key]
+
                     if not subclass_id in model_ids:
                         
                         # Get the label of the entry
-                        ## To allow for contexts split by the delimiter
-                        entry_id = entry['rdfs:label'].split(':')[1]
+                        entry_id = entry[label_jsonld_key]
 
                         # If the entry is an attribute that has not already been added to the dictionary, add it.
                         if entry_id not in attr_rel_dictionary.keys():
                             attr_rel_dictionary.update({entry_id: {'Relationships': {}}})
                         
-                        for relationship in self.data_model_relationships.keys():
-                            if relationship in entry.keys():
-                                if entry[relationship] != []:
-                                    if type(entry[relationship][0]) == dict:
-                                        rels = [r['rdfs:label'].split(':')[1] for r in entry[relationship]]
-                                    else:
-                                        rels = entry[relationship]
+                        # Add relationships for each attribute
+                        # Right now, here we are stripping contexts, will need to track them in the future.
+                        for key, val in self.rel_dict.items():
+                            if val['jsonld_key'] in entry.keys() and 'csv_header' in val.keys():
+                                rel_entry = entry[val['jsonld_key']]
+                                if rel_entry != []:
+                                    try:
+                                        # add dictionary entry by itself.
+                                        if type(rel_entry) == dict:
+                                            rels = entry.get(val['jsonld_key'])['@id']
+                                         # parse list of dictionaries to make a list of entries with context stripped (will update this section when contexts added.)
+                                        elif type(rel_entry[0]) == dict:
+                                            rels = [r[id_jsonld_key].split(':')[1] for r in rel_entry]
+                                        elif type(rel_entry) == str:
+                                            if ':' in rel_entry and 'http:' not in rel_entry:
+                                                rels = rel_entry.split(':')[1]
+                                                # Convert true/false strings to boolean
+                                                if rels.lower() =='true':
+                                                    rels = True
+                                                elif rels.lower == 'false':
+                                                    rels == False
+                                            else:
+                                                rels = rel_entry
+                                        else:
+                                            rels = rel_entry
+                                    except:
+                                        breakpoint()
+
                                     attr_rel_dictionary[
                                         entry_id]['Relationships'].update(
-                                                {k: rels for k in self.data_model_relationships[relationship].keys()})
-                
+                                                {self.rel_dict[key]['csv_header']: rels})
         return attr_rel_dictionary
 
     def parse_jsonld_model(

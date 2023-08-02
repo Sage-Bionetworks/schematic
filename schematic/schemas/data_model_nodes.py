@@ -106,11 +106,19 @@ class DataModelNodes():
         if rel_func == get_display_name_from_label:
             func_output = get_display_name_from_label(node_display_name, attr_relationships)
         elif key == 'id' and rel_func == get_label_from_display_name:
-            func_output = 'bts:' + get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)
+            #func_output = 'bts:' + get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)
+            func_output = get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)
         elif rel_func == get_label_from_display_name:
             func_output = get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)
         elif rel_func == convert_bool:
-            func_output = 'sms:' + convert_bool(attr_relationships[csv_header]).lower()
+            #func_output = 'sms:' + convert_bool(attr_relationships[csv_header]).lower()
+            if type(attr_relationships[csv_header]) == str:
+                if attr_relationships[csv_header].lower() == 'true':
+                    func_output = True
+                elif attr_relationships[csv_header].lower() == 'false':
+                    func_output = False
+            elif type(attr_relationships[csv_header]) == bool:
+                func_output = attr_relationships[csv_header]
         else:
             # raise error here to catch non valid function.
             breakpoint()

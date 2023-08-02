@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import json
 import logging
+import networkx as nx
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -11,7 +12,8 @@ import pygsheets as ps
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, Optional, Tuple, Union
 
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_graph import DataModelGraphExporer
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.utils.google_api_utils import (
     execute_google_api_requests,
     build_service_account_creds,
@@ -35,6 +37,7 @@ class ManifestGenerator(object):
     def __init__(
         self,
         path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
+        graph: nx.MultiDiGraph,
         alphabetize_valid_values: str = 'ascending',
         title: str = None,  # manifest sheet title
         root: str = None,
@@ -52,6 +55,11 @@ class ManifestGenerator(object):
 
         # google service credentials object
         self.creds = services_creds["creds"]
+
+        # Path to jsonld
+        self.jsonld_path = path_to_json_ld
+        # Graph
+        self.graph = graph
 
         # schema root
         self.root = root
@@ -74,8 +82,8 @@ class ManifestGenerator(object):
                 "when there is no manifest file for the dataset in question."
             )
 
-        # SchemaGenerator() object
-        self.sg = SchemaGenerator(path_to_json_ld)
+        # Data Model Explorer object
+        self.DME = DataModelGraphExporer(self.graph)
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
@@ -83,7 +91,7 @@ class ManifestGenerator(object):
         # Determine whether current data type is file-based
         is_file_based = False
         if self.root:
-            is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
+            is_file_based = "Filename" in self.DME.get_node_dependencies(self.root)
         self.is_file_based = is_file_based
 
     def _attribute_to_letter(self, attribute, manifest_fields):
@@ -352,13 +360,16 @@ class ManifestGenerator(object):
             json_schema_filepath(str): path to json schema file
         Returns:
             Dictionary, containing portions of the json schema
+        TODO: Do we even allow people to provide a json_schema_filepath anyore?
         """
         if not json_schema_filepath:
             # if no json schema is provided; there must be
             # schema explorer defined for schema.org schema
             # o.w. this will throw an error
             # TODO: catch error
-            json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
+            data_model_js = DataModelJSONSchema(jsonld_path=self.jsonld_path, graph=self.graph)
+            json_schema = data_model_js.get_json_validation_schema(source_node=self.root, schema_name=self.title)
+            breakpoint()
         else:
             with open(json_schema_filepath) as jsonfile:
                 json_schema = json.load(jsonfile)
@@ -802,9 +813,9 @@ class ManifestGenerator(object):
             notes_body["requests"] (dict): with information on note
                 to add to the column header. This notes body will be added to a request.
         """
-        if self.sg.se:
+        if self.DME:
             # get node definition
-            note = self.sg.get_node_definition(req)
+            note = self.DME.get_node_comment(node_display_name = req)
 
             notes_body = {
                 "requests": [
@@ -1003,8 +1014,7 @@ class ManifestGenerator(object):
         dependency_formatting_body = {"requests": []}
         for j, val_dep in enumerate(val_dependencies):
             is_required = False
-
-            if self.sg.is_node_required(val_dep):
+            if self.DME.get_node_required(node_display_name=val_dep):
                 is_required = True
             else:
                 is_required = False
@@ -1047,13 +1057,13 @@ class ManifestGenerator(object):
         for req_val in req_vals:
             # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
             req_val = req_val["userEnteredValue"]
-            req_val_node_label = self.sg.get_node_label(req_val)
+            req_val_node_label = self.DME.get_node_label(req_val)
             if not req_val_node_label:
                 # if this node is not in the graph
                 # continue - there are no dependencies for it
                 continue
             # check if this required/valid value has additional dependency attributes
-            val_dependencies = self.sg.get_node_dependencies(
+            val_dependencies = self.DME.get_node_dependencies(
                 req_val_node_label, schema_ordered=False
             )
 
@@ -1106,7 +1116,7 @@ class ManifestGenerator(object):
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
             # Gather validation rules and valid values for attribute.
-            validation_rules = self.sg.get_node_validation_rules(req)
+            validation_rules = self.DME.get_node_validation_rules(node_display_name=req)
             
             # Add regex match validaiton rule to Google Sheets.
             if validation_rules and sheet_url:
@@ -1353,7 +1363,7 @@ class ManifestGenerator(object):
             pd.DataFrame: Annotations table with updated column headers.
         """
         # Get list of attribute nodes from data model
-        model_nodes = self.sg.se.get_nx_schema().nodes
+        model_nodes = self.graph.nodes
 
         # Subset annotations to those appearing as a label in the model
         labels = filter(lambda x: x in model_nodes, annotations.columns)
@@ -1524,7 +1534,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
-        manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
+        manifest_record = store.updateDatasetManifestFiles(self.DME, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
         empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=sheet_url)
@@ -1752,9 +1762,9 @@ class ManifestGenerator(object):
 
         # order manifest fields based on data-model schema
         if order == "schema":
-            if self.sg and self.root:
+            if self.DME and self.root:
                 # get display names of dependencies
-                dependencies_display_names = self.sg.get_node_dependencies(self.root)
+                dependencies_display_names = self.DME.get_node_dependencies(self.root)
 
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(
