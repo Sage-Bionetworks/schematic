@@ -1296,12 +1296,12 @@ class ManifestGenerator(object):
                                 "startColumnIndex": start_col,
                                 "endColumnIndex": end_col
                             },
-                            "fields": "userEnteredFormat"
+                            "cell": {"userEnteredFormat":{"": {"bold": True}}},
+                            "fields": "userEnteredFormat.textFormat.bold"
                         }
                     }
                 ]
         }
-        print('gong to clear formattting')
         # Execute requests
         execute_google_api_requests(
             self.sheet_service,
@@ -1340,7 +1340,7 @@ class ManifestGenerator(object):
             start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
             end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
-            #self.clear_conditional_formatting(spreadsheet_url = manifest_url, worksheet_id=wb.id, start_col=len(manifest_df.columns) - num_out_of_schema_columns, end_col=len(manifest_df.columns) + 1)
+            self.clear_conditional_formatting(spreadsheet_url = manifest_url, worksheet_id=wb.id, start_col=len(manifest_df.columns) - num_out_of_schema_columns, end_col=len(manifest_df.columns) + 1)
             #wb.clear_conditional_formatting(start=start_col, end=end_col)
             #wb.add_conditional_formatting(start = start_col, end = end_col, condition_type = '', format='', condition_values=None)
 
