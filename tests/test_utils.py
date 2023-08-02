@@ -89,6 +89,7 @@ class TestGeneral:
 
         file_size = check_synapse_cache_size(mock_synapse_cache_dir)
 
+        # For some reasons, when running in github action, the size of file changes.
         if IN_GITHUB_ACTIONS:
             assert file_size == 8000
         else:
