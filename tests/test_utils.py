@@ -87,7 +87,8 @@ class TestGeneral:
             input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
             minutes = calculate_datetime(input_date=input_date, minutes=10, before_or_after="error")
     
-        
+    # this test might fail for windows machine
+    @pytest.mark.not_windows
     def test_check_synapse_cache_size(self,tmp_path):
         mock_synapse_cache_dir = tmp_path / ".synapseCache"
         mock_synapse_cache_dir.mkdir()
