@@ -90,7 +90,7 @@ def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int
         float or integer: returns size of .synapsecache directory in bytes
     """
     command = ['du', '-sh', directory]
-    output = subprocess.check_output(command).decode('utf-8')
+    output = subprocess.run(command, capture_output=True).stdout.decode('utf-8')
     
     # Parsing the output to extract the directory size
     size = output.split('\t')[0]
