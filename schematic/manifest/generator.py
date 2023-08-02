@@ -1279,6 +1279,38 @@ class ManifestGenerator(object):
         """
         return set(headers_1) - set(headers_2)
 
+    def extract_spreadsheet_id(self, spreadsheet_url):
+        spreadsheet_id = spreadsheet_url.split('d/')[-1]
+        return spreadsheet_id
+
+    def clear_conditional_formatting(self,spreadsheet_url, start_col, end_col, worksheet_id=0):
+        # send request to clear conditional formatting for out of schema column
+        spreadsheet_id = self.extract_spreadsheet_id(spreadsheet_url)
+        body = {
+                "requests": [
+                    {
+                        "repeatCell": {
+                            "range": {
+                                "sheetId": worksheet_id,
+                                "startRowIndex": 1,
+                                "startColumnIndex": start_col,
+                                "endColumnIndex": end_col
+                            },
+                            "fields": "userEnteredFormat"
+                        }
+                    }
+                ]
+        }
+        print('gong to clear formattting')
+        # Execute requests
+        execute_google_api_requests(
+            self.sheet_service,
+            body,
+            service_type="batch_update",
+            spreadsheet_id=spreadsheet_id,
+        )
+
+
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame, out_of_schema_columns: set =None,
     ) -> ps.Spreadsheet:
@@ -1308,7 +1340,9 @@ class ManifestGenerator(object):
             start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
             end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
-        
+            #self.clear_conditional_formatting(spreadsheet_url = manifest_url, worksheet_id=wb.id, start_col=len(manifest_df.columns) - num_out_of_schema_columns, end_col=len(manifest_df.columns) + 1)
+            #wb.clear_conditional_formatting(start=start_col, end=end_col)
+            #wb.add_conditional_formatting(start = start_col, end = end_col, condition_type = '', format='', condition_values=None)
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
