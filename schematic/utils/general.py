@@ -106,7 +106,7 @@ def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int
     elif "B" in size:
         byte_size = float(size.rstrip('B'))
     else:
-        logger.error('Cannot recongize')
+        logger.error('Cannot recongize the file size unit')
     return byte_size
 
 def clear_synapse_cache(cache: cache.Cache, minutes: int) -> int:
