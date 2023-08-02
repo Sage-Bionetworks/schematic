@@ -191,7 +191,7 @@ class SynapseStorage(BaseStorage):
 
     def _purge_synapse_cache(self, maximum_storage_allowed_cache_gb=1):
         """
-        Purge synapse cache if it exceeds 1GB
+        Purge synapse cache if it exceeds a certain size. Default to 1GB. 
         Args:
             maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 1 GB. 
         """
