@@ -69,16 +69,24 @@ class TestGeneral:
         # make sure that cache files are now gone
         assert os.path.exists(mock_synapse_table_query_csv) == False
         assert os.path.exists(mock_cache_map) == False
-
-    def test_calculate_datetime(self):
+    
+    def test_calculate_datetime_before_minutes(self):
         input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
         minutes_before = calculate_datetime(input_date=input_date, minutes=10, before_or_after="before")
         expected_result_date_before = datetime.strptime("07/20/23 17:26:34", '%m/%d/%y %H:%M:%S')
+        assert minutes_before == expected_result_date_before
 
+    def test_calculate_datetime_after_minutes(self):
+        input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
         minutes_after = calculate_datetime(input_date=input_date, minutes=10, before_or_after="after")
         expected_result_date_after = datetime.strptime("07/20/23 17:46:34", '%m/%d/%y %H:%M:%S')
-        assert minutes_before == expected_result_date_before
         assert minutes_after == expected_result_date_after
+
+    def test_calculate_datetime_raise_error(self):
+        with pytest.raises(ValueError):
+            input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
+            minutes = calculate_datetime(input_date=input_date, minutes=10, before_or_after="error")
+    
         
     def test_check_synapse_cache_size(self,tmp_path):
         mock_synapse_cache_dir = tmp_path / ".synapseCache"

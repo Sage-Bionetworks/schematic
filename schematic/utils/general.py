@@ -73,8 +73,10 @@ def calculate_datetime(minutes: int, input_date: datetime, before_or_after: str 
     """
     if before_or_after=="before": 
         date_time_result = input_date - timedelta(minutes=minutes)
-    else:
+    elif before_or_after=="after":
         date_time_result = input_date + timedelta(minutes=minutes)
+    else:
+        raise ValueError("Invalid value. Use either 'before' or 'after'.")
     return date_time_result
 
 
