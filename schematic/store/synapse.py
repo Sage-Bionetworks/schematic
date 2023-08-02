@@ -206,6 +206,8 @@ class SynapseStorage(BaseStorage):
                 num_of_deleted_files = clear_synapse_cache(self.syn.cache, minutes=15)
                 logger.info(f'{num_of_deleted_files}  files have been deleted from {self.root_synapse_cache}')
             else:
+                # on AWS, OS takes around 14-17% of our ephemeral storage (20GiB)
+                # instead of guessing how much space that we left, print out .synapseCache here
                 logger.info(f'the total size of .synapseCache is: {nbytes} bytes')
 
     def _query_fileview(self):
