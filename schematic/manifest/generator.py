@@ -369,7 +369,6 @@ class ManifestGenerator(object):
             # TODO: catch error
             data_model_js = DataModelJSONSchema(jsonld_path=self.jsonld_path, graph=self.graph)
             json_schema = data_model_js.get_json_validation_schema(source_node=self.root, schema_name=self.title)
-            breakpoint()
         else:
             with open(json_schema_filepath) as jsonfile:
                 json_schema = json.load(jsonfile)
