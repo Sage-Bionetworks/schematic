@@ -821,4 +821,8 @@ def get_schematic_version() -> str:
     """
     if "VERSION" in os.environ:
         version = os.environ["VERSION"]
+    else:
+        raise NotImplementedError(
+            "Using this endpoint to check the version of schematic is only supported when the API is running in a docker container."
+        )
     return version
