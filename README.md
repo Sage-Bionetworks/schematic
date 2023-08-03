@@ -75,7 +75,7 @@ This command will install the dependencies based on what we specify in poetry.lo
 *Note*: If you won't interact with Synapse, please ignore this section.
 
 There are two main configuration files that need to be edited:
-[config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml)
+config.yml
 and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig)
 
 <strong>Configure .synapseConfig File</strong>

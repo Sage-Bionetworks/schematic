@@ -1,5 +1,8 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.10
 
+# add version tag as a build argument
+ARG TAG
+
 # the environment variables defined here are the default
 # and can be overwritten by docker run -e VARIABLE = XX
 # or can be overwritten by .env when using docker compose
@@ -15,7 +18,8 @@ ENV PYTHONFAULTHANDLER=1 \
     APP_DIR=/app/app \
     ROOT=/ \
     UWSGI_INI=/app/uwsgi.ini \
-    NGINX_WORKER_PROCESSES=1
+    NGINX_WORKER_PROCESSES=1 \
+    VERSION=$TAG
 
 # Note: 
 # The starting number of uWSGI processes is controlled by the variable UWSGI_CHEAPER, by default set to 2.
@@ -73,7 +77,9 @@ WORKDIR ${APP_DIR}
 
 # copy other files to app/app
 # Note: run_api.py is not needed
-COPY ./pyproject.toml ./poetry.lock ./config.yml ./main.py ./
+
+COPY ./pyproject.toml ./poetry.lock ./main.py ./
+COPY ./config_example.yml ./config.yml
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi --no-root --with aws
 
