@@ -319,8 +319,6 @@ class DataModelGraphExporer():
 
         return edges
 
-    
-
     def get_ordered_entry(self, key: str, source_node_label:str):
         
         # Check if node is in the graph, if not throw an error.
@@ -488,13 +486,6 @@ class DataModelGraphExporer():
     def find_adjacent_child_classes(self, schema_class):
         return self.get_adjacent_nodes_by_relationship(node = schema_class, relationship = self.subClassOf_ek)
 
-    def find_all_class_properties(self):
-        """
-        does not seem used. do not transfer now.
-        """
-        breakpoint()
-        return
-
     def find_class_specific_properties(self, schema_class):
         """Find properties specifically associated with a given class"""
         
@@ -522,26 +513,3 @@ class DataModelGraphExporer():
                 ):
                     properties.append(record["rdfs:label"])
         return properties
-        return
-
-    def find_class_usages(self):
-        """
-        Does not look used, do not transfer for now.
-        """
-        return
-
-    
-
-    def explore_class(self, source_node):
-        """
-        nx specific version of this? This might not be necessary since each nx node should already contain all required information.
-        Put this here for now as a dummy function so this can be explored more.
-        """
-        breakpoint()
-        return
-
-    def explore_property(self):
-        breakpoint()
-        return
-
-    
