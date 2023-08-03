@@ -126,6 +126,9 @@ markers = [
     Google credentials (skipped on GitHub CI) \
     """,
     """\
+    not_windows: tests that don't work on on windows machine
+    """,
+    """\
     schematic_api: marks tests covering \
     API functionality (skipped on regular GitHub CI test suite)   
     """,
