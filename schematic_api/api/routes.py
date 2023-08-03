@@ -815,3 +815,14 @@ def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
     node_display_names = gen.get_nodes_display_names(node_list, mm_graph)
     return node_display_names
 
+def get_schematic_version() -> str:
+    """
+    Return the current version of schematic
+    """
+    if "VERSION" in os.environ:
+        version = os.environ["VERSION"]
+    else:
+        raise NotImplementedError(
+            "Using this endpoint to check the version of schematic is only supported when the API is running in a docker container."
+        )
+    return version
