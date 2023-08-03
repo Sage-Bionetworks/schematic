@@ -18,6 +18,7 @@ class DataModelJSONSchema:
 		self.dmr = DataModelRelationships()
 		self.rel_dict = self.dmr.relationships_dictionary
 		
+		# Edge Keys
 		self.reqDep_ek = self.rel_dict['requiresDependency']['edge_key']
 		self.rangeIncludes_ek = self.rel_dict['rangeIncludes']['edge_key']
 		self.reqComp_ek = self.rel_dict['requiresComponent']['edge_key']
