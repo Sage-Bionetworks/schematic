@@ -1803,7 +1803,6 @@ class SynapseStorage(BaseStorage):
         # Batch mode
         try_batch = len(dataset_files) >= 50 or force_batch
         if try_batch:
-            table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
             try:
                 logger.info("Trying batch mode for retrieving Synapse annotations")
                 table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
