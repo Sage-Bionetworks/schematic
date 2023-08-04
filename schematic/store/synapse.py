@@ -541,6 +541,28 @@ class SynapseStorage(BaseStorage):
 
         return result_dict
 
+    def fill_in_entity_id_filename(self, datasetId: str, manifest: pd.DataFrame):
+        # get current list of files
+        dataset_files = self.getFilesInStorageDataset(datasetId)
+
+        # update manifest with additional filenames, if any
+        # note that if there is an existing manifest and there are files in the dataset
+        # the columns Filename and entityId are assumed to be present in manifest schema
+        # TODO: use idiomatic panda syntax
+        if dataset_files:
+            new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
+
+            # update manifest so that it contain new files
+            new_files = pd.DataFrame(new_files)
+            manifest = (
+                pd.concat([manifest, new_files], sort=False)
+                .reset_index()
+                .drop("index", axis=1)
+            )
+
+        manifest = manifest.fillna("") 
+        return dataset_files, manifest
+        
     def updateDatasetManifestFiles(self, sg: SchemaGenerator, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 
@@ -572,16 +594,10 @@ class SynapseStorage(BaseStorage):
         # note that if there is an existing manifest and there are files in the dataset
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
-        if dataset_files:
-            new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
 
-            # update manifest so that it contain new files
-            new_files = pd.DataFrame(new_files)
-            manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-            )
+        dataset_files, manifest = self.fill_in_entity_id_filename(datasetId, manifest)
+        if dataset_files:
+
 
             # update the manifest file, so that it contains the relevant entity IDs
             if store:
@@ -590,7 +606,6 @@ class SynapseStorage(BaseStorage):
                 # store manifest and update associated metadata with manifest on Synapse
                 manifest_id = self.associateMetadataWithFiles(sg, manifest_filepath, datasetId)
 
-        manifest = manifest.fillna("") 
         
         return manifest_id, manifest
     
@@ -615,7 +630,14 @@ class SynapseStorage(BaseStorage):
             
             # find new files (that are not in the current manifest) if any
             for file_id, file_name in dataset_files:
-                if not file_id in manifest["entityId"].values:
+                if "entityId" in manifest.columns:
+                    if not file_id in manifest["entityId"].values:
+                        files["Filename"].append(file_name)
+                        files["entityId"].append(file_id)
+                # when use_annotations = True and there is no existing manifest, 
+                # entity id column is not present in existing manifest 
+                # but we would still want to add `entityId` column
+                else:
                     files["Filename"].append(file_name)
                     files["entityId"].append(file_id)
         else:
@@ -1781,6 +1803,7 @@ class SynapseStorage(BaseStorage):
         # Batch mode
         try_batch = len(dataset_files) >= 50 or force_batch
         if try_batch:
+            table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
             try:
                 logger.info("Trying batch mode for retrieving Synapse annotations")
                 table = self.getDatasetAnnotationsBatch(datasetId, dataset_file_ids)
@@ -1803,6 +1826,10 @@ class SynapseStorage(BaseStorage):
 
         # Add filenames for the files that "survived" annotation retrieval
         filenames = [dataset_files_map[i] for i in table["entityId"]]
+        print('entity id', table["entityId"])
+        print('filenames', filenames)
+
+        breakpoint()
 
         if 'Filename' not in table.columns:
             table.insert(0, "Filename", filenames)
@@ -2326,6 +2353,8 @@ class DatasetFileView:
         if self.table is None or force:
             fileview_id = self.view_schema["id"]
             self.results = self.synapse.tableQuery(f"select * from {fileview_id}")
+            print('result', self.results)
+            breakpoint()
             self.table = self.results.asDataFrame(rowIdAndVersionInIndex=False)
         if tidy:
             self.tidy_table()
