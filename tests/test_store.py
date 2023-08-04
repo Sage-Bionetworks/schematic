@@ -252,12 +252,15 @@ class TestSynapseStorage:
             # return manifest id
             assert manifest_data == "syn51204513"
 
-    def test_fill_in_entity_id_filename(self, synapse_store):
+    @pytest.mark.parametrize("existing_manifest_df", [pd.DataFrame(), pd.DataFrame({"Filename": ["existing_mock_file_path"], "entityId": ["existing_mock_entity_id"]})])
+    def test_fill_in_entity_id_filename(self, synapse_store, existing_manifest_df):
         with patch("schematic.store.synapse.SynapseStorage.getFilesInStorageDataset", return_value=["syn123", "syn124", "syn125"]) as mock_get_file_storage, \
         patch("schematic.store.synapse.SynapseStorage._get_file_entityIds", return_value={"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]}) as mock_get_file_entity_id:
-            dataset_files, new_manifest = synapse_store.fill_in_entity_id_filename(datasetId="test_syn_id", manifest=pd.DataFrame({"Filename": ["existing_mock_file_path"], "entityId": ["existing_mock_entity_id"]}))
-            
-            expected_df=pd.DataFrame({"Filename": ["existing_mock_file_path", "mock_file_path"], "entityId": ["existing_mock_entity_id", "mock_entity_id"]})
+            dataset_files, new_manifest = synapse_store.fill_in_entity_id_filename(datasetId="test_syn_id", manifest=existing_manifest_df)
+            if not existing_manifest_df.empty:
+                expected_df=pd.DataFrame({"Filename": ["existing_mock_file_path", "mock_file_path"], "entityId": ["existing_mock_entity_id", "mock_entity_id"]})
+            else:
+                expected_df=pd.DataFrame({"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]})
             assert_frame_equal(new_manifest, expected_df)
             assert dataset_files == ["syn123", "syn124", "syn125"]
 
