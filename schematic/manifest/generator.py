@@ -1526,7 +1526,7 @@ class ManifestGenerator(object):
         manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
-        empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=True)
+        empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=sheet_url)
 
         # Populate empty template with existing manifest
         if manifest_record:
@@ -1563,9 +1563,9 @@ class ManifestGenerator(object):
                     manifest_df = self.get_dataframe_by_url(empty_manifest_url)
 
             # else:
-                # Subset columns if no interested in user-defined annotations and there are files present
-                # if self.is_file_based:
-                #     annotations = annotations[["Filename", "eTag", "entityId"]]
+            #     Subset columns if no interested in user-defined annotations and there are files present
+            #     if self.is_file_based:
+            #         annotations = annotations[["Filename", "eTag", "entityId"]]
         
             # Update `additional_metadata` and generate manifest
             manifest_url, manifest_df = self.get_manifest_with_annotations(annotations, sheet_url=sheet_url, strict=strict)
