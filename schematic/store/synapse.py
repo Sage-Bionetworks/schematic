@@ -1825,10 +1825,6 @@ class SynapseStorage(BaseStorage):
 
         # Add filenames for the files that "survived" annotation retrieval
         filenames = [dataset_files_map[i] for i in table["entityId"]]
-        print('entity id', table["entityId"])
-        print('filenames', filenames)
-
-        breakpoint()
 
         if 'Filename' not in table.columns:
             table.insert(0, "Filename", filenames)
@@ -2352,8 +2348,6 @@ class DatasetFileView:
         if self.table is None or force:
             fileview_id = self.view_schema["id"]
             self.results = self.synapse.tableQuery(f"select * from {fileview_id}")
-            print('result', self.results)
-            breakpoint()
             self.table = self.results.asDataFrame(rowIdAndVersionInIndex=False)
         if tidy:
             self.tidy_table()
