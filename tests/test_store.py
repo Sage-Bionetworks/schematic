@@ -7,6 +7,7 @@ from time import sleep
 from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
 
 import pandas as pd
+from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 
 from schematic.models.metadata import MetadataModel
@@ -16,6 +17,9 @@ from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 from schematic.configuration.configuration import Configuration
+
+from unittest.mock import Mock
+from unittest.mock import patch
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -247,6 +251,15 @@ class TestSynapseStorage:
         else: 
             # return manifest id
             assert manifest_data == "syn51204513"
+
+    def test_fill_in_entity_id_filename(self, synapse_store):
+        with patch("schematic.store.synapse.SynapseStorage.getFilesInStorageDataset", return_value=["syn123", "syn124", "syn125"]) as mock_get_file_storage, \
+        patch("schematic.store.synapse.SynapseStorage._get_file_entityIds", return_value={"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]}) as mock_get_file_entity_id:
+            dataset_files, new_manifest = synapse_store.fill_in_entity_id_filename(datasetId="test_syn_id", manifest=pd.DataFrame({"Filename": ["existing_mock_file_path"], "entityId": ["existing_mock_entity_id"]}))
+            
+            expected_df=pd.DataFrame({"Filename": ["existing_mock_file_path", "mock_file_path"], "entityId": ["existing_mock_entity_id", "mock_entity_id"]})
+            assert_frame_equal(new_manifest, expected_df)
+            assert dataset_files == ["syn123", "syn124", "syn125"]
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
