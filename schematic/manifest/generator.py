@@ -1559,22 +1559,20 @@ class ManifestGenerator(object):
 
                 # if there are no files with annotations just generate an empty manifest
                 if annotations.empty:
-                    #manifest_url = self.get_empty_manifest(strict=strict)
                     manifest_df = self.get_dataframe_by_url(empty_manifest_url)
 
             # else:
             #     Subset columns if no interested in user-defined annotations and there are files present
             #     if self.is_file_based:
             #         annotations = annotations[["Filename", "eTag", "entityId"]]
-        
             # Update `additional_metadata` and generate manifest
             manifest_url, manifest_df = self.get_manifest_with_annotations(annotations, sheet_url=sheet_url, strict=strict)
 
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
 
-            # if dataset id is provided, try getting a list of filenames and fill in to manifest
-            if dataset_id:
+            # For file-based manifest, make sure that entityId column and Filename column still gets filled even though use_annotations gets set to False
+            if self.is_file_based and dataset_id and not self.use_annotations:
                 dataset_files, updated_manifest = store.fill_in_entity_id_filename(dataset_id, updated_df)
             else:
                 updated_manifest = updated_df
