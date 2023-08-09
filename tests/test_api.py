@@ -678,7 +678,8 @@ class TestManifestOperation:
 
             assert isinstance(response_path, str)
             assert response_path.endswith(".csv")
-
+    
+    @pytest.mark.submission
     def test_submit_manifest_table_and_file_replace(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         """Testing submit manifest in a csv format as a table and a file. Only replace the table
         """
@@ -698,6 +699,7 @@ class TestManifestOperation:
         response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200
 
+    @pytest.mark.submission
     def test_submit_manifest_file_only_replace(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         """Testing submit manifest in a csv format as a file
         """
@@ -715,6 +717,7 @@ class TestManifestOperation:
         response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200 
     
+    @pytest.mark.submission
     def test_submit_manifest_json_str_replace(self, client, syn_token, data_model_jsonld):
         """Submit json str as a file
         """
@@ -735,6 +738,7 @@ class TestManifestOperation:
         response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
         assert response.status_code == 200
 
+    @pytest.mark.submission
     def test_submit_manifest_w_file_and_entities(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         params = {
             "access_token": syn_token,
@@ -752,6 +756,7 @@ class TestManifestOperation:
         response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200
 
+    @pytest.mark.submission
     def test_submit_manifest_table_and_file_upsert(self, client, syn_token, data_model_jsonld, test_upsert_manifest_csv, ):
         params = {
             "access_token": syn_token,
