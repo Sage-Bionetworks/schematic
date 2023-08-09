@@ -1571,12 +1571,11 @@ class ManifestGenerator(object):
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
 
-            # For file-based manifest, make sure that entityId column and Filename column still gets filled even though use_annotations gets set to False
+            # For file-based manifest, make sure that entityId column and Filename column still get filled even though use_annotations gets set to False
             if self.is_file_based and dataset_id and not self.use_annotations:
-                dataset_files, updated_manifest = store.fill_in_entity_id_filename(dataset_id, updated_df)
+                updated_manifest = store.add_entity_id_and_filename(dataset_id, updated_df)
             else:
                 updated_manifest = updated_df
-
             # determine the format of manifest that gets return 
             result = self._handle_output_format_logic(output_format = output_format,
                                                       output_path = output_path,
