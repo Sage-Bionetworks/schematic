@@ -1558,7 +1558,7 @@ class ManifestGenerator(object):
                 empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
                 if self.is_file_based:
                     # for file-based manifest, make sure that entityId column and Filename column still gets filled even though use_annotations gets set to False
-                    dataset_files, manifest_df = store.fill_in_entity_id_filename(dataset_id,empty_manifest_df)
+                    dataset_files, manifest_df = store.add_entity_id_and_filename(dataset_id,empty_manifest_df)
                 else:
                     manifest_df = empty_manifest_df
 

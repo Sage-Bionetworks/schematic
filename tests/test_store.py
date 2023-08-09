@@ -264,6 +264,20 @@ class TestSynapseStorage:
             assert_frame_equal(new_manifest, expected_df)
             assert dataset_files == ["syn123", "syn124", "syn125"]
 
+    def test_add_entity_id_and_filename(self, synapse_store):
+        with patch("schematic.store.synapse.SynapseStorage._get_files_under_datasets", return_value={"Filename": ["test_file1", "test_file2"], "entityId": ["syn123", "syn124"]}):
+            mock_manifest = pd.DataFrame.from_dict({"Filename": [""], "Component": ["MockComponent"], "Sample ID": [""]}).reset_index(drop=True)
+            manifest_to_return = synapse_store.add_entity_id_and_filename(datasetId="mock_syn_id", manifest=mock_manifest)
+            expected_df = pd.DataFrame.from_dict({"Filename": ["test_file1", "test_file2"], "Component": ["MockComponent", "MockComponent"], "Sample ID": ["", ""], "entityId": ["syn123", "syn124"]})
+            assert_frame_equal(manifest_to_return, expected_df)
+
+    def test_get_files_under_datasets(self, synapse_store):
+        patch_get_children = [{'name': 'test_A.txt', 'id': 'syn123', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:19.684Z', 'modifiedOn': '2021-07-29T23:53:03.485Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}, {'name': 'test_B.txt', 'id': 'syn456', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:21.476Z', 'modifiedOn': '2021-07-29T23:53:18.995Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}]
+        with patch("synapseclient.client.Synapse.getChildren", return_value=patch_get_children):
+            dataset_file_names_id_dict = synapse_store._get_files_under_datasets("mock dataset id")
+            expected_file_names_id_dict = {"Filename": ["test_A.txt", "test_B.txt"], "entityId": ["syn123", "syn456"]}
+            assert dataset_file_names_id_dict == expected_file_names_id_dict
+
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
 
