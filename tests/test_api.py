@@ -503,6 +503,60 @@ class TestManifestOperation:
                 assert len(response_dt) == 2
             else: 
                 assert len(response_dt) == 1
+    
+    # test case: generate a manifest when use_annotations is set to True for a file-based component 
+    # the dataset folder does not contain an existing manifest 
+    def test_generate_manifest_file_based_with_annotations(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "BulkRNA-seqAssay",
+            "dataset_id": "syn25614635",
+            "asset_view": "syn51707141",
+            "output_format": "google_sheet", 
+            "use_annotations": True         
+        }
+
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        assert response.status_code == 200
+
+        response_google_sheet = json.loads(response.data)
+        
+        # open the google sheet 
+        google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
+        
+        # make sure that columns for annotations show up and entityId is at the end
+        assert google_sheet_df.columns.to_list() == ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'impact', 'Year of Birth', 'date', 'confidence', 'IsImportantBool', 'IsImportantText', 'author', 'eTag', 'entityId']
+
+        # make sure Filename and entityId get filled with correct value
+        assert google_sheet_df["Filename"].to_list() == ["TestDataset-Annotations-v3/Sample_A.txt", "TestDataset-Annotations-v3/Sample_B.txt", "TestDataset-Annotations-v3/Sample_C.txt"]
+        assert google_sheet_df["entityId"].to_list() == ["syn25614636", "syn25614637", "syn25614638"]
+
+    # test case: generate a manifest with annotations when use_annotations is set to False for a file-based component
+    # the dataset folder does not contain an existing manifest 
+    def test_generate_manifest_file_based_without_annotations(self, client, data_model_jsonld):        
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "BulkRNA-seqAssay",
+            "dataset_id": "syn25614635",
+            "asset_view": "syn51707141",
+            "output_format": "google_sheet", 
+            "use_annotations": False        
+        }
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        assert response.status_code == 200
+
+        response_google_sheet = json.loads(response.data)
+        
+        # open the google sheet 
+        google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
+
+        # make sure that Filename and entityId gets filled 
+        assert google_sheet_df["Filename"].to_list() == ["Sample_A.txt", "Sample_B.txt", "Sample_C.txt"]
+        assert google_sheet_df["entityId"].to_list() == ["syn25614636", "syn25614637", "syn25614638"]
+
+        # make sure that no annotations (no extra column) get added
+        assert google_sheet_df.columns == ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'entityId']
+
 
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
