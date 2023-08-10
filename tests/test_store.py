@@ -1,21 +1,25 @@
 from __future__ import annotations
-import os
-import math
+
 import logging
-import pytest
-from time import sleep 
-from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
+import math
+import os
+from time import sleep
+from unittest.mock import patch
 
 import pandas as pd
+import pytest
 from synapseclient import EntityViewSchema, Folder
-
-from schematic.models.metadata import MetadataModel
-from schematic.store.base import BaseStorage
-from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
-from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
+from tenacity import (RetryError, Retrying, stop_after_attempt,
+                      wait_random_exponential)
+
 from schematic.configuration.configuration import Configuration
+from schematic.models.metadata import MetadataModel
+from schematic.schemas.generator import SchemaGenerator
+from schematic.store.base import BaseStorage
+from schematic.store.synapse import (DatasetFileView, ManifestDownload,
+                                     SynapseStorage)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -232,6 +236,25 @@ class TestSynapseStorage:
 
         with pytest.raises(PermissionError):
             synapse_store.getDatasetProject("syn12345678")
+    
+    def test_getFilesInStorageDataset(self, synapse_store):
+        mock_return = [
+        (
+            ("parent_folder", "syn123"),
+            [("test_folder", "syn124")],
+            [("test_file", "syn126")],
+        ),
+        (
+            (os.path.join("parent_folder", "test_folder"), "syn124"),
+            [],
+            [("test_file_2", "syn125")],
+        ),
+        ]
+        expected_return = [('syn126', 'parent_folder/test_file'), ('syn125', 'parent_folder/test_folder/test_file_2')]
+        with patch('synapseutils.walk_functions._helpWalk', return_value=mock_return):
+            file_list = synapse_store.getFilesInStorageDataset(datasetId="syn_mock", fileNames=None, fullpath=True)
+            assert file_list == expected_return
+
 
     @pytest.mark.parametrize("downloadFile", [True, False])
     def test_getDatasetManifest(self, synapse_store, downloadFile):
