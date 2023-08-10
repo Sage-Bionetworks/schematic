@@ -413,7 +413,7 @@ class SynapseStorage(BaseStorage):
         """
 
         # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = walk(self.syn, datasetId)
+        walked_path = walk(self.syn, datasetId, includeTypes=["folder", "file"])
 
         file_list = []
 
