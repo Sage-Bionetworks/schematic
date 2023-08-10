@@ -1,25 +1,26 @@
 from __future__ import annotations
-import os
-import math
+
 import logging
-import pytest
-from time import sleep 
-from tenacity import Retrying, RetryError, stop_after_attempt, wait_random_exponential
+import math
+import os
+from time import sleep
+from unittest.mock import Mock, patch
 
 import pandas as pd
+import pytest
 from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
-
-from schematic.models.metadata import MetadataModel
-from schematic.store.base import BaseStorage
-from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
-from schematic.schemas.generator import SchemaGenerator
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
-from schematic.configuration.configuration import Configuration
+from tenacity import (RetryError, Retrying, stop_after_attempt,
+                      wait_random_exponential)
 
-from unittest.mock import Mock
-from unittest.mock import patch
+from schematic.configuration.configuration import Configuration
+from schematic.models.metadata import MetadataModel
+from schematic.schemas.generator import SchemaGenerator
+from schematic.store.base import BaseStorage
+from schematic.store.synapse import (DatasetFileView, ManifestDownload,
+                                     SynapseStorage)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -236,6 +237,25 @@ class TestSynapseStorage:
 
         with pytest.raises(PermissionError):
             synapse_store.getDatasetProject("syn12345678")
+    
+    def test_getFilesInStorageDataset(self, synapse_store):
+        mock_return = [
+        (
+            ("parent_folder", "syn123"),
+            [("test_folder", "syn124")],
+            [("test_file", "syn126")],
+        ),
+        (
+            (os.path.join("parent_folder", "test_folder"), "syn124"),
+            [],
+            [("test_file_2", "syn125")],
+        ),
+        ]
+        expected_return = [('syn126', 'parent_folder/test_file'), ('syn125', 'parent_folder/test_folder/test_file_2')]
+        with patch('synapseutils.walk_functions._helpWalk', return_value=mock_return):
+            file_list = synapse_store.getFilesInStorageDataset(datasetId="syn_mock", fileNames=None, fullpath=True)
+            assert file_list == expected_return
+
 
     @pytest.mark.parametrize("downloadFile", [True, False])
     def test_getDatasetManifest(self, synapse_store, downloadFile):
@@ -272,10 +292,10 @@ class TestSynapseStorage:
             assert_frame_equal(manifest_to_return, expected_df)
 
     def test_get_files_under_datasets(self, synapse_store):
-        patch_get_children = [{'name': 'test_A.txt', 'id': 'syn123', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:19.684Z', 'modifiedOn': '2021-07-29T23:53:03.485Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}, {'name': 'test_B.txt', 'id': 'syn456', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:21.476Z', 'modifiedOn': '2021-07-29T23:53:18.995Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}]
+        patch_get_children = [{'name': 'parent_folder/test_A.txt', 'id': 'syn123', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:19.684Z', 'modifiedOn': '2021-07-29T23:53:03.485Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}, {'name': 'parent_folder/test_B.txt', 'id': 'syn456', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:21.476Z', 'modifiedOn': '2021-07-29T23:53:18.995Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}]
         with patch("synapseclient.client.Synapse.getChildren", return_value=patch_get_children):
             dataset_file_names_id_dict = synapse_store._get_files_under_datasets("mock dataset id")
-            expected_file_names_id_dict = {"Filename": ["test_A.txt", "test_B.txt"], "entityId": ["syn123", "syn456"]}
+            expected_file_names_id_dict = {"Filename": ["parent_folder/test_A.txt", "parent_folder/test_B.txt"], "entityId": ["syn123", "syn456"]}
             assert dataset_file_names_id_dict == expected_file_names_id_dict
 
 class TestDatasetFileView:
