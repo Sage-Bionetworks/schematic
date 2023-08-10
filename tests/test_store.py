@@ -237,7 +237,8 @@ class TestSynapseStorage:
         with pytest.raises(PermissionError):
             synapse_store.getDatasetProject("syn12345678")
     
-    def test_getFilesInStorageDataset(self, synapse_store):
+    @pytest.mark.parametrize("full_path", [True, False])
+    def test_getFilesInStorageDataset(self, synapse_store, full_path):
         mock_return = [
         (
             ("parent_folder", "syn123"),
@@ -250,11 +251,14 @@ class TestSynapseStorage:
             [("test_file_2", "syn125")],
         ),
         ]
-        expected_return = [('syn126', 'parent_folder/test_file'), ('syn125', 'parent_folder/test_folder/test_file_2')]
+        expected_return_full_path = [('syn126', 'parent_folder/test_file'), ('syn125', 'parent_folder/test_folder/test_file_2')]
+        expected_return_not_full_path = [('syn126', 'test_file'), ('syn125', 'test_file_2')]
         with patch('synapseutils.walk_functions._helpWalk', return_value=mock_return):
-            file_list = synapse_store.getFilesInStorageDataset(datasetId="syn_mock", fileNames=None, fullpath=True)
-            assert file_list == expected_return
-
+            file_list = synapse_store.getFilesInStorageDataset(datasetId="syn_mock", fileNames=None, fullpath=full_path)
+            if full_path:
+                assert file_list == expected_return_full_path
+            else:
+                assert file_list == expected_return_not_full_path
 
     @pytest.mark.parametrize("downloadFile", [True, False])
     def test_getDatasetManifest(self, synapse_store, downloadFile):
