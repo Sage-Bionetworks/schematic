@@ -1,17 +1,20 @@
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text
-import os
-import math
 import logging
+import math
+import os
 import pstats
-from cProfile import Profile
-from functools import wraps
-
+import subprocess
 import tempfile
+from cProfile import Profile
+from datetime import datetime, timedelta
+from functools import wraps
+from typing import Union
 
 from synapseclient.core.exceptions import SynapseHTTPError
-from synapseclient.table import EntityViewSchema
 from synapseclient.entity import File, Folder, Project
+from synapseclient.table import EntityViewSchema
+
+import synapseclient.core.cache as cache
 
 logger = logging.getLogger(__name__)
 
@@ -57,24 +60,69 @@ def get_dir_size(path: str):
                 total += get_dir_size(entry.path)
     return total
 
+def calculate_datetime(minutes: int, input_date: datetime, before_or_after: str = "before") -> datetime:
+    """calculate date time 
 
-def convert_size(size_bytes: int):
-    """convert bytes to a human readable format
     Args:
-        size_bytes: total byte sizes
-    return: a string that indicates bytes in a different format
-    """
-    if size_bytes == 0:
-        return "0B"
-    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-    # calculate the log of size (in bytes) to base 1024 and run it down to the nearest integer
-    index_int = int(math.floor(math.log(size_bytes, 1024)))
-    # return the value of 1024 raised to the power of index
-    power_cal = math.pow(1024, index_int)
-    # convert bytes to a different unit if applicable
-    size_bytes_converted = round(size_bytes / power_cal, 2)
-    return f"{size_bytes_converted} {size_name[index_int]})"
+        input_date (datetime): date time object provided by users
+        minutes (int): number of minutes
+        before_or_after (str): default to "before". if "before", calculate x minutes before current date time. if "after", calculate x minutes after current date time. 
 
+    Returns:
+        datetime:  return result of date time calculation
+    """
+    if before_or_after=="before": 
+        date_time_result = input_date - timedelta(minutes=minutes)
+    elif before_or_after=="after":
+        date_time_result = input_date + timedelta(minutes=minutes)
+    else:
+        raise ValueError("Invalid value. Use either 'before' or 'after'.")
+    return date_time_result
+
+
+def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int]:
+    """use du --sh command to calculate size of .synapseCache.
+
+    Args:
+        directory (str, optional): .synapseCache directory. Defaults to '/root/.synapseCache'
+
+    Returns:
+        float or integer: returns size of .synapsecache directory in bytes
+    """
+    # Note: this command might fail on windows user. But since this command is primarily for running on AWS, it is fine. 
+    command = ['du', '-sh', directory]
+    output = subprocess.run(command, capture_output=True).stdout.decode('utf-8')
+    
+    # Parsing the output to extract the directory size
+    size = output.split('\t')[0]
+    if "K" in size:
+        size_in_kb = float(size.rstrip('K'))
+        byte_size = size_in_kb * 1000
+    elif "M" in size:
+        size_in_mb = float(size.rstrip('M'))
+        byte_size = size_in_mb * 1000000
+    elif "G" in size: 
+        size_in_gb = float(size.rstrip('G'))
+        byte_size = convert_gb_to_bytes(size_in_gb)
+    elif "B" in size:
+        byte_size = float(size.rstrip('B'))
+    else:
+        logger.error('Cannot recongize the file size unit')
+    return byte_size
+
+def clear_synapse_cache(cache: cache.Cache, minutes: int) -> int:
+    """clear synapse cache before a certain time
+
+    Args:
+        cache: an object of synapseclient Cache.
+        minutes (int): all files before this minute will be removed
+    Returns:
+        int: number of files that get deleted
+    """
+    current_date = datetime.utcnow()
+    minutes_earlier = calculate_datetime(input_date=current_date, minutes=minutes, before_or_after="before")
+    num_of_deleted_files = cache.purge(before_date = minutes_earlier)
+    return num_of_deleted_files
 
 def convert_gb_to_bytes(gb: int):
     """convert gb to bytes
@@ -83,6 +131,7 @@ def convert_gb_to_bytes(gb: int):
     return: total number of bytes
     """
     return gb * 1024 * 1024 * 1024
+
 
 def entity_type_mapping(syn, entity_id):
     """

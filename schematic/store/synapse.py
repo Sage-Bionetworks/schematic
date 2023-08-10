@@ -7,7 +7,7 @@ import atexit
 import logging
 import secrets
 from dataclasses import dataclass
-import tempfile
+import shutil
 
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union
@@ -43,9 +43,9 @@ import uuid
 from schematic_db.rdb.synapse_database import SynapseDatabase
 
 
-from schematic.utils.df_utils import update_df, load_df, col_in_dataframe, populate_df_col_with_another_col
+from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
-from schematic.utils.general import entity_type_mapping, get_dir_size, convert_size, convert_gb_to_bytes, create_temp_folder
+from schematic.utils.general import entity_type_mapping, get_dir_size, convert_gb_to_bytes, create_temp_folder, check_synapse_cache_size, clear_synapse_cache
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
@@ -53,7 +53,7 @@ from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
 
 from schematic.configuration.configuration import CONFIG
 
-from schematic.utils.general import profile
+from schematic.utils.general import profile, calculate_datetime
 
 logger = logging.getLogger("Synapse storage")
 
@@ -75,12 +75,16 @@ class ManifestDownload(object):
         """
         if "SECRETS_MANAGER_SECRETS" in os.environ:
             temporary_manifest_storage = "/var/tmp/temp_manifest_download"
+            # clear out all the existing manifests
+            if os.path.exists(temporary_manifest_storage):
+                shutil.rmtree(temporary_manifest_storage)
+            # create a new directory to store manifest
             if not os.path.exists(temporary_manifest_storage):
-                os.mkdir("/var/tmp/temp_manifest_download")
+                os.mkdir(temporary_manifest_storage)
+            # create temporary folders for storing manifests
             download_location = create_temp_folder(temporary_manifest_storage)
         else:
             download_location=CONFIG.manifest_folder
-
         manifest_data = self.syn.get(
                 self.manifest_id,
                 downloadLocation=download_location,
@@ -177,41 +181,34 @@ class SynapseStorage(BaseStorage):
         Typical usage example:
             syn_store = SynapseStorage()
         """
-
+        # TODO: turn root_synapse_cache to a parameter in init
         self.syn = self.login(token, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
+        self.root_synapse_cache = "/root/.synapseCache"
         self._query_fileview()
 
-    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/", maximum_storage_allowed_cache_gb=7):
+    def _purge_synapse_cache(self, maximum_storage_allowed_cache_gb=1):
         """
-        Purge synapse cache if it exceeds 7GB
+        Purge synapse cache if it exceeds a certain size. Default to 1GB. 
         Args:
-            root_dir: directory of the .synapseCache function
-            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 7 GB. 
-
-        Returns: 
-            if size of cache reaches a certain threshold (default is 7GB), return the number of files that get deleted
-            otherwise, return the total remaining space (assuming total ephemeral storage is 20GB on AWS )
+            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 1 GB. 
         """
         # try clearing the cache
         # scan a directory and check size of files
-        cache = self.syn.cache
-        if os.path.exists(root_dir):
+        if os.path.exists(self.root_synapse_cache):
             maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
-            total_ephemeral_storag_gb = 20
-            total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
-            nbytes = get_dir_size(root_dir)
-            # if 7 GB has already been taken, purge cache before 15 min
-            if nbytes >= maximum_storage_allowed_cache_bytes:
-                minutes_earlier = datetime.strftime(datetime.utcnow()- timedelta(minutes = 15), '%s')
-                num_of_deleted_files = cache.purge(before_date = int(minutes_earlier))
-                logger.info(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
+            nbytes = get_dir_size(self.root_synapse_cache)
+            dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
+            # if 1 GB has already been taken, purge cache before 15 min
+            if dir_size_bytes >= maximum_storage_allowed_cache_bytes:
+                num_of_deleted_files = clear_synapse_cache(self.syn.cache, minutes=15)
+                logger.info(f'{num_of_deleted_files}  files have been deleted from {self.root_synapse_cache}')
             else:
-                remaining_space = total_ephemeral_storage_bytes - nbytes
-                converted_space = convert_size(remaining_space)
-                logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
+                # on AWS, OS takes around 14-17% of our ephemeral storage (20GiB)
+                # instead of guessing how much space that we left, print out .synapseCache here
+                logger.info(f'the total size of .synapseCache is: {nbytes} bytes')
 
     def _query_fileview(self):
         self._purge_synapse_cache()
@@ -416,7 +413,7 @@ class SynapseStorage(BaseStorage):
         """
 
         # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = walk(self.syn, datasetId)
+        walked_path = walk(self.syn, datasetId, includeTypes=["folder", "file"])
 
         file_list = []
 
