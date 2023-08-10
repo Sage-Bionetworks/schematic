@@ -292,10 +292,10 @@ class TestSynapseStorage:
             assert_frame_equal(manifest_to_return, expected_df)
 
     def test_get_files_under_datasets(self, synapse_store):
-        patch_get_children = [{'name': 'test_A.txt', 'id': 'syn123', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:19.684Z', 'modifiedOn': '2021-07-29T23:53:03.485Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}, {'name': 'test_B.txt', 'id': 'syn456', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:21.476Z', 'modifiedOn': '2021-07-29T23:53:18.995Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}]
+        patch_get_children = [{'name': 'parent_folder/test_A.txt', 'id': 'syn123', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:19.684Z', 'modifiedOn': '2021-07-29T23:53:03.485Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}, {'name': 'parent_folder/test_B.txt', 'id': 'syn456', 'type': 'org.sagebionetworks.repo.model.FileEntity', 'versionNumber': 1, 'versionLabel': '1', 'isLatestVersion': True, 'benefactorId': 24239829, 'createdOn': '2021-04-27T23:20:21.476Z', 'modifiedOn': '2021-07-29T23:53:18.995Z', 'createdBy': '3413689', 'modifiedBy': '3413689'}]
         with patch("synapseclient.client.Synapse.getChildren", return_value=patch_get_children):
             dataset_file_names_id_dict = synapse_store._get_files_under_datasets("mock dataset id")
-            expected_file_names_id_dict = {"Filename": ["test_A.txt", "test_B.txt"], "entityId": ["syn123", "syn456"]}
+            expected_file_names_id_dict = {"Filename": ["parent_folder/test_A.txt", "parent_folder/test_B.txt"], "entityId": ["syn123", "syn456"]}
             assert dataset_file_names_id_dict == expected_file_names_id_dict
 
 class TestDatasetFileView:

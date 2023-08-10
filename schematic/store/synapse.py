@@ -547,12 +547,12 @@ class SynapseStorage(BaseStorage):
         Returns:
             a dictionary that contains filename and entityid under a given datasetId
         """
-        file_lst = self.syn.getChildren(datasetId, includeTypes=["folder", "file"])
+        dataset_files = self.getFilesInStorageDataset(datasetId)
         dataset_file_names_id_dict = {"Filename": [], "entityId": []}
 
-        for i in file_lst: 
-            dataset_file_names_id_dict["Filename"].append(i["name"])
-            dataset_file_names_id_dict["entityId"].append(i["id"])
+        for entity_id, file_name in dataset_files: 
+            dataset_file_names_id_dict["Filename"].append(file_name)
+            dataset_file_names_id_dict["entityId"].append(entity_id)
 
         return dataset_file_names_id_dict
 
