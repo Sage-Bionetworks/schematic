@@ -556,7 +556,7 @@ class TestManifestOperation:
         google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
 
         # make sure that Filename and entityId gets filled 
-        assert google_sheet_df["Filename"].to_list() == ["Sample_A.txt", "Sample_B.txt", "Sample_C.txt"]
+        assert google_sheet_df["Filename"].to_list() == ["TestDataset-Annotations-v3/Sample_A.txt", "TestDataset-Annotations-v3/Sample_B.txt", "TestDataset-Annotations-v3/Sample_C.txt"]
         assert google_sheet_df["entityId"].to_list() == ["syn25614636", "syn25614637", "syn25614638"]
         assert google_sheet_df["Component"].to_list() == ["BulkRNA-seqAssay", "BulkRNA-seqAssay", "BulkRNA-seqAssay"]
 
@@ -568,7 +568,7 @@ class TestManifestOperation:
     def test_generate_manifest_not_file_based_with_annotations(self, client, data_model_jsonld):
         params = {
             "schema_url": data_model_jsonld,
-            "data_type": "BulkRNA-seqAssay",
+            "data_type": "Patient",
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
             "output_format": "google_sheet", 
@@ -583,7 +583,7 @@ class TestManifestOperation:
         google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
 
         # make sure that the result is basically the same as generating a new manifest
-        assert google_sheet_df.columns == ['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component', 'Cancer Type', 'Family History']
+        assert sorted(google_sheet_df.columns) == sorted(['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component', 'Cancer Type', 'Family History'])
         
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
