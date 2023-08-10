@@ -557,7 +557,7 @@ class SynapseStorage(BaseStorage):
         return dataset_file_names_id_dict
 
     def add_entity_id_and_filename(self,  datasetId: str, manifest: pd.DataFrame) -> pd.DataFrame:
-        """add entityid and filename column to an existing manifest
+        """add entityid and filename column to an existing manifest assuming EntityId column is not already present
 
         Args:
             datasetId (str): dataset syn id
@@ -590,6 +590,15 @@ class SynapseStorage(BaseStorage):
         return manifest_new
 
     def fill_in_entity_id_filename(self, datasetId: str, manifest: pd.DataFrame) -> Tuple[List, pd.DataFrame]:
+        """fill in Filename column and EntityId column. This function assumes that entityId column already exists
+
+        Args:
+            datasetId (str): dataset syn id
+            manifest (pd.DataFrame): existing manifest dataframe
+
+        Returns:
+            Tuple[List, pd.DataFrame]: a list of synIds that are under a given datasetId folder and updated manifest dataframe
+        """
         # get dataset file names and entity id as a list of tuple
         dataset_files = self.getFilesInStorageDataset(datasetId)
 
