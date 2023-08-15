@@ -516,7 +516,8 @@ class TestManifestOperation:
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
             "output_format": "google_sheet", 
-            "use_annotations": use_annotations        }
+            "use_annotations": use_annotations
+        }
 
         response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
         assert response.status_code == 200
@@ -528,7 +529,7 @@ class TestManifestOperation:
         
         # make sure that columns used in annotations get added
         # and also make sure that entityId column appears in the end
-        
+
         assert google_sheet_df.columns.to_list()[-1] == "entityId"
         assert sorted(google_sheet_df.columns.to_list()) == sorted(expected)
 
