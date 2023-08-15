@@ -504,17 +504,19 @@ class TestManifestOperation:
             else: 
                 assert len(response_dt) == 1
     
-    # test case: generate a manifest when use_annotations is set to True for a file-based component 
+    # test case: generate a manifest when use_annotations is set to True/False for a file-based component
+    # based on the parameter, the columns in the manifests would be different
     # the dataset folder does not contain an existing manifest 
-    def test_generate_manifest_file_based_with_annotations(self, client, data_model_jsonld):
+    @pytest.mark.parametrize("use_annotations,expected",[(True, ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'impact', 'Year of Birth', 'date', 'confidence', 'IsImportantBool', 'IsImportantText', 'author', 'eTag', 'entityId']), 
+    (False, ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'entityId'])])
+    def test_generate_manifest_file_based_annotations(self, client, use_annotations, expected, data_model_jsonld):
         params = {
             "schema_url": data_model_jsonld,
             "data_type": "BulkRNA-seqAssay",
             "dataset_id": "syn25614635",
             "asset_view": "syn51707141",
             "output_format": "google_sheet", 
-            "use_annotations": True         
-        }
+            "use_annotations": use_annotations        }
 
         response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
         assert response.status_code == 200
@@ -526,42 +528,14 @@ class TestManifestOperation:
         
         # make sure that columns used in annotations get added
         # and also make sure that entityId column appears in the end
-        expected_list = ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'impact', 'Year of Birth', 'date', 'confidence', 'IsImportantBool', 'IsImportantText', 'author', 'eTag', 'entityId']
+        
         assert google_sheet_df.columns.to_list()[-1] == "entityId"
-        assert sorted(google_sheet_df.columns.to_list()) == sorted(expected_list)
+        assert sorted(google_sheet_df.columns.to_list()) == sorted(expected)
 
         # make sure Filename, entityId, and component get filled with correct value
         assert google_sheet_df["Filename"].to_list() == ["TestDataset-Annotations-v3/Sample_A.txt", "TestDataset-Annotations-v3/Sample_B.txt", "TestDataset-Annotations-v3/Sample_C.txt"]
         assert google_sheet_df["entityId"].to_list() == ["syn25614636", "syn25614637", "syn25614638"]
         assert google_sheet_df["Component"].to_list() == ["BulkRNA-seqAssay", "BulkRNA-seqAssay", "BulkRNA-seqAssay"]
-
-
-    # test case: generate a manifest with annotations when use_annotations is set to False for a file-based component
-    # the dataset folder does not contain an existing manifest 
-    def test_generate_manifest_file_based_without_annotations(self, client, data_model_jsonld):        
-        params = {
-            "schema_url": data_model_jsonld,
-            "data_type": "BulkRNA-seqAssay",
-            "dataset_id": "syn25614635",
-            "asset_view": "syn51707141",
-            "output_format": "google_sheet", 
-            "use_annotations": False        
-        }
-        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
-        assert response.status_code == 200
-
-        response_google_sheet = json.loads(response.data)
-        
-        # open the google sheet 
-        google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
-
-        # make sure that Filename and entityId gets filled 
-        assert google_sheet_df["Filename"].to_list() == ["TestDataset-Annotations-v3/Sample_A.txt", "TestDataset-Annotations-v3/Sample_B.txt", "TestDataset-Annotations-v3/Sample_C.txt"]
-        assert google_sheet_df["entityId"].to_list() == ["syn25614636", "syn25614637", "syn25614638"]
-        assert google_sheet_df["Component"].to_list() == ["BulkRNA-seqAssay", "BulkRNA-seqAssay", "BulkRNA-seqAssay"]
-
-        # make sure that no annotations (no extra column) get added
-        assert sorted(google_sheet_df.columns) == sorted(['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'entityId'])
 
     # test case: generate a manifest with annotations when use_annotations is set to True for a component that is not file-based
     # the dataset folder does not contain an existing manifest 
