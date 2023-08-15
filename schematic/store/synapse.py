@@ -35,7 +35,7 @@ from synapseclient.entity import File
 from synapseclient.table import CsvFileTable, build_table, Schema
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
-from synapseutils import walk
+import synapseutils
 from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
@@ -413,7 +413,7 @@ class SynapseStorage(BaseStorage):
         """
 
         # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = walk(self.syn, datasetId)
+        walked_path = synapseutils.walk(self.syn, datasetId, includeTypes=["folder", "file"])
 
         file_list = []
 
