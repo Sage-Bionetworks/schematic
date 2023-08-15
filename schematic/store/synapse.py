@@ -35,7 +35,7 @@ from synapseclient.entity import File
 from synapseclient.table import CsvFileTable, build_table, Schema
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
-from synapseutils import walk
+import synapseutils
 from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
@@ -413,7 +413,7 @@ class SynapseStorage(BaseStorage):
         """
 
         # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = walk(self.syn, datasetId, includeTypes=["folder", "file"])
+        walked_path = synapseutils.walk(self.syn, datasetId, includeTypes=["folder", "file"])
 
         file_list = []
 
@@ -557,11 +557,11 @@ class SynapseStorage(BaseStorage):
         return dataset_file_names_id_dict
 
     def add_entity_id_and_filename(self,  datasetId: str, manifest: pd.DataFrame) -> pd.DataFrame:
-        """add entityid and filename column to an existing manifest assuming EntityId column is not already present
+        """add entityid and filename column to an existing manifest assuming entityId column is not already present
 
         Args:
             datasetId (str): dataset syn id
-            manifest (pd.DataFrame): existing manifest dataframe
+            manifest (pd.DataFrame): existing manifest dataframe, assuming this dataframe does not have an entityId column and Filename column is present but completely empty 
 
         Returns:
             pd.DataFrame: returns a pandas dataframe 
@@ -590,11 +590,11 @@ class SynapseStorage(BaseStorage):
         return manifest_new
 
     def fill_in_entity_id_filename(self, datasetId: str, manifest: pd.DataFrame) -> Tuple[List, pd.DataFrame]:
-        """fill in Filename column and EntityId column. This function assumes that entityId column already exists
+        """fill in Filename column and EntityId column. This function assumes that entityId column and Filename column already exist
 
         Args:
             datasetId (str): dataset syn id
-            manifest (pd.DataFrame): existing manifest dataframe
+            manifest (pd.DataFrame): existing manifest dataframe, assuming entityId column and Filename column are both present and potentially not empty. 
 
         Returns:
             Tuple[List, pd.DataFrame]: a list of synIds that are under a given datasetId folder and updated manifest dataframe
@@ -685,14 +685,7 @@ class SynapseStorage(BaseStorage):
             
             # find new files (that are not in the current manifest) if any
             for file_id, file_name in dataset_files:
-                if "entityId" in manifest.columns:
-                    if not file_id in manifest["entityId"].values:
-                        files["Filename"].append(file_name)
-                        files["entityId"].append(file_id)
-                # when use_annotations = True and there is no existing manifest, 
-                # entity id column is not present in existing manifest 
-                # but we would still want to add `entityId` column
-                else:
+                if not file_id in manifest["entityId"].values:
                     files["Filename"].append(file_name)
                     files["entityId"].append(file_id)
         else:
