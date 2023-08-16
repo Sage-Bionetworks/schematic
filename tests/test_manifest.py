@@ -241,11 +241,37 @@ class TestManifestGenerator:
             with patch('schematic.manifest.generator.ManifestGenerator._gather_dependency_requirements') as MockRequirement:
                 MockRequirement.return_value = "mock required metadata fields"
                 with patch('schematic.manifest.generator.ManifestGenerator._get_additional_metadata') as MockAdditionalData:
-                    MockAdditionalData.return_value = "mock required metadata fields"
+                    MockAdditionalData.return_value = "required metadata fields"
                     required_metadata = generator._gather_all_fields("mock fields", "mock json schema")
 
                     assert required_metadata == "mock required metadata fields"
+    
+    # test add root node as a metadata component gets added in additional_metadata dictionary
+    # assume there is no existing additional metadata
+    @pytest.mark.parametrize("data_type,required_metadata_fields,expected", [("Patient", {"Component": []}, {'Component': ['Patient']}), ("BulkRNA-seqAssay", {"Filename": [], "Component":[]}, {'Component': ['BulkRNA-seqAssay']})])
+    def test_add_root_to_component_without_additional_metadata(self, helpers, data_type, required_metadata_fields, expected):
+        manifest_generator = ManifestGenerator(
+        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        root=data_type,
+        )
+        manifest_generator._add_root_to_component(required_metadata_fields)
+        assert manifest_generator.additional_metadata == expected
+    
+    # test add root node as a metadata component gets added in additional_metadata dictionary
+    # also make sure that length entry of column Component is the same as length of entry of column Filename
+    # assume there is additional metadata
+    @pytest.mark.parametrize("additional_metadata", [{'author': ['test', '', ], 'Filename': ['test.txt', 'test2.txt'], 'Component': []}, {'Year of Birth': ['1988'], 'Filename': ['test.txt'], 'Component': []}])
+    def test_add_root_to_component_with_additional_metadata(self, helpers, additional_metadata):
+        manifest_generator = ManifestGenerator(
+        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        root="BulkRNA-seqAssay"
+        )
+        # add mock additional metadata
+        manifest_generator.additional_metadata = additional_metadata
 
+        mock_required_metadata_fields = {"Filename": [], "Component":[]}
+        manifest_generator._add_root_to_component(mock_required_metadata_fields)
+        assert len(manifest_generator.additional_metadata["Component"]) == len(additional_metadata["Filename"])
     # TO DO: add tests for: test_create_empty_gs
 
                             
