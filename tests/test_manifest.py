@@ -241,7 +241,7 @@ class TestManifestGenerator:
             with patch('schematic.manifest.generator.ManifestGenerator._gather_dependency_requirements') as MockRequirement:
                 MockRequirement.return_value = "mock required metadata fields"
                 with patch('schematic.manifest.generator.ManifestGenerator._get_additional_metadata') as MockAdditionalData:
-                    MockAdditionalData.return_value = "required metadata fields"
+                    MockAdditionalData.return_value = "mock required metadata fields"
                     required_metadata = generator._gather_all_fields("mock fields", "mock json schema")
 
                     assert required_metadata == "mock required metadata fields"
