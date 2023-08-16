@@ -208,6 +208,8 @@ class DataModelRelationships():
     def define_value_relationships(self):
         """
         Think about changing outputs.
+        Change to node_relationships. 
+        Use node_label to pull info. Save node_label instead?
         """
         value_relationships = {}
         for k, v in self.relationships_dictionary.items():
