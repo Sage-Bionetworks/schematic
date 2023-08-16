@@ -482,6 +482,31 @@ class DataModelGraphExporer():
 
         return node_validation_rules
 
+    def get_subgraph_by_edge_type(
+        self, relationship: str
+    ) -> nx.DiGraph:
+        """Get a subgraph containing all edges of a given type (aka relationship).
+
+        Args:
+            graph: input multi digraph (aka hypergraph)
+            relationship: edge / link relationship type with possible values same as in above docs.
+
+        Returns:
+            Directed graph on edges of a particular type (aka relationship)
+        """
+
+        # prune the metadata model graph so as to include only those edges that match the relationship type
+        rel_edges = []
+        for (u, v, key, c) in self.graph.out_edges(data=True, keys=True):
+            if key == relationship:
+                rel_edges.append((u, v))
+
+        relationship_subgraph = nx.DiGraph()
+        relationship_subgraph.add_edges_from(rel_edges)
+
+        return relationship_subgraph
+
+
 
     def find_adjacent_child_classes(self, schema_class):
         return self.get_adjacent_nodes_by_relationship(node = schema_class, relationship = self.subClassOf_ek)
