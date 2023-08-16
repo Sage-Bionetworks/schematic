@@ -97,7 +97,7 @@ class DataModelParser():
 
         base_model = self.parse_base_model()
         return model_dict
-
+    
 class DataModelCSVParser():
     '''
     
@@ -110,6 +110,7 @@ class DataModelCSVParser():
         self.dmr = DataModelRelationships()
         # Load relationships dictionary.
         self.rel_dict = self.dmr.define_data_model_relationships()
+        self.edge_relationships_dictionary = self.dmr.define_edge_relationships()
         # Load required csv headers
         self.required_headers = self.dmr.define_required_csv_headers()
 
@@ -250,12 +251,17 @@ class DataModelJSONLDParser():
         Note: unlike a CSV the JSONLD might already have the biothings schema attached to it.
         So the output may not initially look identical.
         TODO Check relationship attribute types like in CSV
-        
-        Make sure we can take in list of types.
-        '''
-        #label_jsonld_key = self.rel_dict['label']['jsonld_key']
-        #subclassof_jsonld_key = self.rel_dict['subClassOf']['jsonld_key']
 
+        It is also just about impossible to extract attributes explicitly. Using a dictionary should avoid duplications.
+        
+        This is a close approximation to finding attributes and relationships but will not be convertable between csv and jsonld
+        since jsonld does not have the concept of attributes. 
+        
+        TODO: Simplify or change this dictionary capture.
+        '''
+        
+
+        # TODO: define this within the relationships class
         jsonld_keys_to_extract = ['label', 'subClassOf', 'id']
         label_jsonld_key, subclassof_jsonld_key, id_jsonld_key = [self.rel_dict[key]['jsonld_key']
                                                     for key in jsonld_keys_to_extract ]
@@ -332,5 +338,3 @@ class DataModelJSONLDParser():
         json_load = load_json(path_to_data_model)
         model_dict = self.gather_jsonld_attributes_relationships(json_load['@graph'])
         return model_dict
-
-
