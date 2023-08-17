@@ -10,7 +10,7 @@ from dataclasses import dataclass
 import shutil
 
 # allows specifying explicit variable types
-from typing import Dict, List, Tuple, Sequence, Union
+from typing import Dict, List, Tuple, Sequence, Union, Optional
 from collections import OrderedDict
 from tenacity import retry, stop_after_attempt, wait_chain, wait_fixed, retry_if_exception_type
 
@@ -538,23 +538,21 @@ class SynapseStorage(BaseStorage):
 
         return result_dict
 
-    def _get_files_metadata_from_dataset(self, datasetId: str) -> dict:
+    def _get_files_metadata_from_dataset(self, datasetId: str, only_new_files: bool, manifest=None) -> Optional[dict]:
         """retrieve file ids under a particular datasetId
 
         Args:
             datasetId (str): a dataset id 
 
         Returns:
-            a dictionary that contains filename and entityid under a given datasetId
+            a dictionary that contains filename and entityid under a given datasetId or None if there is nothing under a given dataset id are not available
         """
         dataset_files = self.getFilesInStorageDataset(datasetId)
-        dataset_file_names_id_dict = {"Filename": [], "entityId": []}
-
-        for entity_id, file_name in dataset_files: 
-            dataset_file_names_id_dict["Filename"].append(file_name)
-            dataset_file_names_id_dict["entityId"].append(entity_id)
-
-        return dataset_file_names_id_dict
+        if dataset_files:
+            dataset_file_names_id_dict = self._get_file_entityIds(dataset_files, only_new_file=only_new_files, manifest=manifest)
+            return dataset_file_names_id_dict
+        else:
+            return None
 
     def add_entity_id_and_filename(self,  datasetId: str, manifest: pd.DataFrame) -> pd.DataFrame:
         """add entityid and filename column to an existing manifest assuming entityId column is not already present
@@ -567,29 +565,33 @@ class SynapseStorage(BaseStorage):
             pd.DataFrame: returns a pandas dataframe 
         """
         # get file names and entity ids of a given dataset 
-        dataset_files_dict = self._get_files_metadata_from_dataset(datasetId)
-        # turn manifest dataframe back to a dictionary for operation 
-        manifest_dict = manifest.to_dict('list')
+        dataset_files_dict = self._get_files_metadata_from_dataset(datasetId, only_new_files=False)
 
-        # update Filename column
-        # add entityId column to the end
-        manifest_dict.update(dataset_files_dict)
-        
-        # if the component column exists in existing manifest, fill up that column 
-        if "Component" in manifest_dict.keys():
-            manifest_dict["Component"] = manifest_dict["Component"] * max(1, len(manifest_dict["Filename"]))
-        
-        # turn dictionary back to a dataframe
-        manifest_dict_index = pd.DataFrame.from_dict(manifest_dict, orient='index')
-        manifest_dict_updated = manifest_dict_index.transpose()
+        if dataset_files_dict: 
+            # turn manifest dataframe back to a dictionary for operation 
+            manifest_dict = manifest.to_dict('list')
 
-        # fill na with empty string
-        manifest_dict_updated = manifest_dict_updated.fillna("")
+            # update Filename column
+            # add entityId column to the end
+            manifest_dict.update(dataset_files_dict)
+            
+            # if the component column exists in existing manifest, fill up that column 
+            if "Component" in manifest_dict.keys():
+                manifest_dict["Component"] = manifest_dict["Component"] * max(1, len(manifest_dict["Filename"]))
+            
+            # turn dictionary back to a dataframe
+            manifest_dict_index = pd.DataFrame.from_dict(manifest_dict, orient='index')
+            manifest_dict_updated = manifest_dict_index.transpose()
 
-        # drop index
-        manifest_dict_updated = manifest_dict_updated.reset_index(drop=True)
+            # fill na with empty string
+            manifest_dict_updated = manifest_dict_updated.fillna("")
 
-        return manifest_dict_updated
+            # drop index
+            manifest_dict_updated = manifest_dict_updated.reset_index(drop=True)
+
+            return manifest_dict_updated
+        else:
+            return manifest
 
     def fill_in_entity_id_filename(self, datasetId: str, manifest: pd.DataFrame) -> Tuple[List, pd.DataFrame]:
         """fill in Filename column and EntityId column. This function assumes that entityId column and Filename column already exist
@@ -611,13 +613,13 @@ class SynapseStorage(BaseStorage):
         if dataset_files:
             new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
 
-            # update manifest so that it contain new files
-            new_files = pd.DataFrame(new_files)
-            manifest = (
+        # update manifest so that it contain new files
+        new_files = pd.DataFrame(new_files)
+        manifest = (
                 pd.concat([manifest, new_files], sort=False)
                 .reset_index()
                 .drop("index", axis=1)
-            )
+        )
 
         manifest = manifest.fillna("") 
         return dataset_files, manifest

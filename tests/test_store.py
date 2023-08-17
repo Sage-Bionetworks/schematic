@@ -301,10 +301,11 @@ class TestSynapseStorage:
 
     def test_get_files_metadata_from_dataset(self, synapse_store):
         patch_get_children = [('syn123', 'parent_folder/test_A.txt'), ('syn456', 'parent_folder/test_B.txt')]
+        mock_file_entityId = {"Filename": ["parent_folder/test_A.txt", "parent_folder/test_B.txt"], "entityId": ["syn123", "syn456"]}
         with patch("schematic.store.synapse.SynapseStorage.getFilesInStorageDataset", return_value=patch_get_children):
-            dataset_file_names_id_dict = synapse_store._get_files_metadata_from_dataset("mock dataset id")
-            expected_file_names_id_dict = {"Filename": ["parent_folder/test_A.txt", "parent_folder/test_B.txt"], "entityId": ["syn123", "syn456"]}
-            assert dataset_file_names_id_dict == expected_file_names_id_dict
+            with patch("schematic.store.synapse.SynapseStorage._get_file_entityIds", return_value=mock_file_entityId):
+                dataset_file_names_id_dict = synapse_store._get_files_metadata_from_dataset("mock dataset id", only_new_files=True)
+                assert dataset_file_names_id_dict ==  {"Filename": ["parent_folder/test_A.txt", "parent_folder/test_B.txt"], "entityId": ["syn123", "syn456"]}
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
