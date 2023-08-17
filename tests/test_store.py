@@ -284,16 +284,16 @@ class TestSynapseStorage:
             assert dataset_files == ["syn123", "syn124", "syn125"]
 
     def test_add_entity_id_and_filename(self, synapse_store):
-        with patch("schematic.store.synapse.SynapseStorage._get_files_under_datasets", return_value={"Filename": ["test_file1", "test_file2"], "entityId": ["syn123", "syn124"]}):
+        with patch("schematic.store.synapse.SynapseStorage._get_files_metadata_from_dataset", return_value={"Filename": ["test_file1", "test_file2"], "entityId": ["syn123", "syn124"]}):
             mock_manifest = pd.DataFrame.from_dict({"Filename": [""], "Component": ["MockComponent"], "Sample ID": [""]}).reset_index(drop=True)
             manifest_to_return = synapse_store.add_entity_id_and_filename(datasetId="mock_syn_id", manifest=mock_manifest)
             expected_df = pd.DataFrame.from_dict({"Filename": ["test_file1", "test_file2"], "Component": ["MockComponent", "MockComponent"], "Sample ID": ["", ""], "entityId": ["syn123", "syn124"]})
             assert_frame_equal(manifest_to_return, expected_df)
 
-    def test_get_files_under_datasets(self, synapse_store):
+    def test_get_files_metadata_from_dataset(self, synapse_store):
         patch_get_children = [('syn123', 'parent_folder/test_A.txt'), ('syn456', 'parent_folder/test_B.txt')]
         with patch("schematic.store.synapse.SynapseStorage.getFilesInStorageDataset", return_value=patch_get_children):
-            dataset_file_names_id_dict = synapse_store._get_files_under_datasets("mock dataset id")
+            dataset_file_names_id_dict = synapse_store._get_files_metadata_from_dataset("mock dataset id")
             expected_file_names_id_dict = {"Filename": ["parent_folder/test_A.txt", "parent_folder/test_B.txt"], "entityId": ["syn123", "syn456"]}
             assert dataset_file_names_id_dict == expected_file_names_id_dict
 

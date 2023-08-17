@@ -538,7 +538,7 @@ class SynapseStorage(BaseStorage):
 
         return result_dict
 
-    def _get_files_under_datasets(self, datasetId: str) -> dict:
+    def _get_files_metadata_from_dataset(self, datasetId: str) -> dict:
         """retrieve file ids under a particular datasetId
 
         Args:
@@ -567,7 +567,7 @@ class SynapseStorage(BaseStorage):
             pd.DataFrame: returns a pandas dataframe 
         """
         # get file names and entity ids of a given dataset 
-        dataset_files_dict = self._get_files_under_datasets(datasetId)
+        dataset_files_dict = self._get_files_metadata_from_dataset(datasetId)
         new_files = pd.DataFrame(dataset_files_dict)
         # concatenate the two dataframes together 
         manifest = (
