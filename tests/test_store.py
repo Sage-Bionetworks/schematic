@@ -283,11 +283,20 @@ class TestSynapseStorage:
             assert_frame_equal(new_manifest, expected_df)
             assert dataset_files == ["syn123", "syn124", "syn125"]
 
-    def test_add_entity_id_and_filename(self, synapse_store):
+    # Test case: make sure that Filename and entityId column get filled and component column has the same length as filename column
+    def test_add_entity_id_and_filename_with_component_col(self, synapse_store):
         with patch("schematic.store.synapse.SynapseStorage._get_files_metadata_from_dataset", return_value={"Filename": ["test_file1", "test_file2"], "entityId": ["syn123", "syn124"]}):
             mock_manifest = pd.DataFrame.from_dict({"Filename": [""], "Component": ["MockComponent"], "Sample ID": [""]}).reset_index(drop=True)
             manifest_to_return = synapse_store.add_entity_id_and_filename(datasetId="mock_syn_id", manifest=mock_manifest)
             expected_df = pd.DataFrame.from_dict({"Filename": ["test_file1", "test_file2"], "Component": ["MockComponent", "MockComponent"], "Sample ID": ["", ""], "entityId": ["syn123", "syn124"]})
+            assert_frame_equal(manifest_to_return, expected_df)
+
+    # Test case: make sure that Filename and entityId column get filled when component column does not exist 
+    def test_add_entity_id_and_filename_without_component_col(self, synapse_store):
+        with patch("schematic.store.synapse.SynapseStorage._get_files_metadata_from_dataset", return_value={"Filename": ["test_file1", "test_file2"], "entityId": ["syn123", "syn124"]}):
+            mock_manifest = pd.DataFrame.from_dict({"Filename": [""], "Sample ID": [""]}).reset_index(drop=True)
+            manifest_to_return = synapse_store.add_entity_id_and_filename(datasetId="mock_syn_id", manifest=mock_manifest)
+            expected_df = pd.DataFrame.from_dict({"Filename": ["test_file1", "test_file2"], "Sample ID": ["", ""], "entityId": ["syn123", "syn124"]})
             assert_frame_equal(manifest_to_return, expected_df)
 
     def test_get_files_metadata_from_dataset(self, synapse_store):

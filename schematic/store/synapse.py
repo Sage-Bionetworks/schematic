@@ -568,26 +568,28 @@ class SynapseStorage(BaseStorage):
         """
         # get file names and entity ids of a given dataset 
         dataset_files_dict = self._get_files_metadata_from_dataset(datasetId)
-        new_files = pd.DataFrame(dataset_files_dict)
-        # concatenate the two dataframes together 
-        manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-        )
-        # fill the rest of component column by component name
-        component_name = manifest.iloc[0]['Component']
-        manifest_new = manifest.assign(Component = component_name)
+        # turn manifest dataframe back to a dictionary for operation 
+        manifest_dict = manifest.to_dict('list')
 
-        # assume that first row does not contain any info other than component name
-        # remove the first row 
-        manifest_new = manifest_new.iloc[1:, :]
-        manifest_new = manifest_new.fillna("")
+        # update Filename column
+        # add entityId column to the end
+        manifest_dict.update(dataset_files_dict)
+        
+        # if the component column exists in existing manifest, fill up that column 
+        if "Component" in manifest_dict.keys():
+            manifest_dict["Component"] = manifest_dict["Component"] * max(1, len(manifest_dict["Filename"]))
+        
+        # turn dictionary back to a dataframe
+        manifest_dict_index = pd.DataFrame.from_dict(manifest_dict, orient='index')
+        manifest_dict_updated = manifest_dict_index.transpose()
 
-        # reset index again
-        manifest_new = manifest_new.reset_index(drop=True)
+        # fill na with empty string
+        manifest_dict_updated = manifest_dict_updated.fillna("")
 
-        return manifest_new
+        # drop index
+        manifest_dict_updated = manifest_dict_updated.reset_index(drop=True)
+
+        return manifest_dict_updated
 
     def fill_in_entity_id_filename(self, datasetId: str, manifest: pd.DataFrame) -> Tuple[List, pd.DataFrame]:
         """fill in Filename column and EntityId column. This function assumes that entityId column and Filename column already exist
