@@ -1027,6 +1027,7 @@ class ManifestGenerator(object):
             dependency_formatting_body["requests"].append(
                             conditional_format_rule
                         )
+        print('all dependency formatting', dependency_formatting_body)       
         return dependency_formatting_body["requests"]
 
     def _request_dependency_formatting(
@@ -1216,6 +1217,7 @@ class ManifestGenerator(object):
 
         # generating spreadsheet URL
         manifest_url = "https://docs.google.com/spreadsheets/d/" + spreadsheet_id
+        
         return manifest_url
 
     def _gather_all_fields(self, fields, json_schema):
@@ -1232,10 +1234,10 @@ class ManifestGenerator(object):
         required_metadata_fields = self._get_required_metadata_fields(
             json_schema, fields
         )
-        # Add additional dependencies
-        required_metadata_fields = self._gather_dependency_requirements(
-            json_schema, required_metadata_fields
-        )
+        # # Add additional dependencies
+        # required_metadata_fields = self._gather_dependency_requirements(
+        #     json_schema, required_metadata_fields
+        # )
 
         # Add additional metadata as entries to columns
         required_metadata_fields = self._get_additional_metadata(
@@ -1266,6 +1268,7 @@ class ManifestGenerator(object):
         manifest_url = self._create_empty_gs(
             required_metadata_fields, json_schema, spreadsheet_id, sheet_url=sheet_url, strict=strict,
         )
+
         return manifest_url
 
     def _get_missing_columns(self, headers_1:list , headers_2:list) -> list:
@@ -1278,6 +1281,40 @@ class ManifestGenerator(object):
 
         """
         return set(headers_1) - set(headers_2)
+
+    def _clear_format_out_of_schema_cols(self, spreadsheet_id, start, end):
+        """clear conditional formats from out of schema columns
+        """
+        request_body={"requests": [{
+            "updateCells": {
+                "range": {
+                "sheetId": 0,
+                "startRowIndex": 1,
+                "startColumnIndex": start,
+                "endColumnIndex": end
+                },
+                "fields": "userEnteredFormat"
+            }
+            }
+        ]
+        }
+
+        execute_google_api_requests(
+            self.sheet_service,
+            request_body,
+            service_type="batch_update",
+            spreadsheet_id=spreadsheet_id,
+        )
+
+    def _get_conditional_format_rules(self, spreadsheet_id, end_col):
+        # check if the last column has conditional formatting rules
+        print('clear')
+
+    def _extract_spreadsheet_id_from_url(self, url:str):
+        spreadsheet_id = url.split('/')[-1]
+
+        return spreadsheet_id
+
 
     def set_dataframe_by_url(
         self, manifest_url: str, manifest_df: pd.DataFrame, out_of_schema_columns: set =None,
@@ -1299,19 +1336,27 @@ class ManifestGenerator(object):
         sh = gc.open_by_url(manifest_url)
         wb = sh[0]
 
+        # extract spreadsheet id
+        spreadsheet_id = self._extract_spreadsheet_id_from_url(manifest_url)
+
         wb.set_dataframe(manifest_df, (1, 1))
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
         if out_of_schema_columns:
             num_out_of_schema_columns = len(out_of_schema_columns)
-            start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
-            end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
+            start_col_index = len(manifest_df.columns) - num_out_of_schema_columns
+            end_col_index = len(manifest_df.columns) + 1
+            start_col = self._column_to_letter(start_col_index) # find start of out of schema columns
+            end_col = self._column_to_letter(end_col_index) # find end of out of schema columns
+            self._clear_format_out_of_schema_cols(spreadsheet_id=spreadsheet_id, start=start_col_index, end=end_col_index)
             wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
+
         
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
+
 
         return sh
 
