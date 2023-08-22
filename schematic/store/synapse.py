@@ -538,18 +538,20 @@ class SynapseStorage(BaseStorage):
 
         return result_dict
 
-    def _get_files_metadata_from_dataset(self, datasetId: str, only_new_files: bool, manifest=None) -> Optional[dict]:
+    def _get_files_metadata_from_dataset(self, datasetId: str, only_new_files: bool, manifest:pd.DataFrame=None) -> Optional[dict]:
         """retrieve file ids under a particular datasetId
 
         Args:
             datasetId (str): a dataset id 
+            only_new_files (bool): if only adding new files that are not already exist 
+            manifest (pd.DataFrame): metadata manifest dataframe. Default to None. 
 
         Returns:
             a dictionary that contains filename and entityid under a given datasetId or None if there is nothing under a given dataset id are not available
         """
         dataset_files = self.getFilesInStorageDataset(datasetId)
         if dataset_files:
-            dataset_file_names_id_dict = self._get_file_entityIds(dataset_files, only_new_file=only_new_files, manifest=manifest)
+            dataset_file_names_id_dict = self._get_file_entityIds(dataset_files, only_new_files=only_new_files, manifest=manifest)
             return dataset_file_names_id_dict
         else:
             return None
