@@ -582,16 +582,16 @@ class SynapseStorage(BaseStorage):
                 manifest_dict["Component"] = manifest_dict["Component"] * max(1, len(manifest_dict["Filename"]))
             
             # turn dictionary back to a dataframe
-            manifest_dict_index = pd.DataFrame.from_dict(manifest_dict, orient='index')
-            manifest_dict_updated = manifest_dict_index.transpose()
+            manifest_df_index = pd.DataFrame.from_dict(manifest_dict, orient='index')
+            manifest_df_updated = manifest_df_index.transpose()
 
             # fill na with empty string
-            manifest_dict_updated = manifest_dict_updated.fillna("")
+            manifest_df_updated = manifest_df_updated.fillna("")
 
             # drop index
-            manifest_dict_updated = manifest_dict_updated.reset_index(drop=True)
+            manifest_df_updated = manifest_df_updated.reset_index(drop=True)
 
-            return manifest_dict_updated
+            return manifest_df_updated
         else:
             return manifest
 
