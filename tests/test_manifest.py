@@ -246,7 +246,8 @@ class TestManifestGenerator:
 
                     assert required_metadata == "mock required metadata fields"
     
-    # test add root node as a metadata component gets added in additional_metadata dictionary
+    # test: test and make sure root node as a metadata component get added in additional_metadata dictionary
+    # test cases: 1) component as Patient; 2) component as BulkRNA-seqAssay
     # assume there is no existing additional metadata
     @pytest.mark.parametrize("data_type,required_metadata_fields,expected", [("Patient", {"Component": []}, {'Component': ['Patient']}), ("BulkRNA-seqAssay", {"Filename": [], "Component":[]}, {'Component': ['BulkRNA-seqAssay']})])
     def test_add_root_to_component_without_additional_metadata(self, helpers, data_type, required_metadata_fields, expected):
@@ -257,8 +258,9 @@ class TestManifestGenerator:
         manifest_generator._add_root_to_component(required_metadata_fields)
         assert manifest_generator.additional_metadata == expected
     
-    # test add root node as a metadata component gets added in additional_metadata dictionary
+    # test and make sure root node as a metadata component get added in additional_metadata dictionary
     # also make sure that length entry of column Component is the same as length of entry of column Filename
+    # test cases: different length of Filename column in additional metadata
     # assume there is additional metadata
     @pytest.mark.parametrize("additional_metadata", [{'author': ['test', '', ], 'Filename': ['test.txt', 'test2.txt'], 'Component': []}, {'Year of Birth': ['1988'], 'Filename': ['test.txt'], 'Component': []}])
     def test_add_root_to_component_with_additional_metadata(self, helpers, additional_metadata):
@@ -266,6 +268,7 @@ class TestManifestGenerator:
         path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
         root="BulkRNA-seqAssay"
         )
+
         # add mock additional metadata
         manifest_generator.additional_metadata = additional_metadata
 
