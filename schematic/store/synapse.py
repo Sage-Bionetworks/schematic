@@ -596,11 +596,11 @@ class SynapseStorage(BaseStorage):
             return manifest
 
     def fill_in_entity_id_filename(self, datasetId: str, manifest: pd.DataFrame) -> Tuple[List, pd.DataFrame]:
-        """fill in Filename column and EntityId column. This function assumes that entityId column and Filename column already exist
+        """fill in Filename column and EntityId column. EntityId column and Filename column will be created if not already present. 
 
         Args:
             datasetId (str): dataset syn id
-            manifest (pd.DataFrame): existing manifest dataframe, assuming entityId column and Filename column are both present and potentially not empty. 
+            manifest (pd.DataFrame): existing manifest dataframe.
 
         Returns:
             Tuple[List, pd.DataFrame]: a list of synIds that are under a given datasetId folder and updated manifest dataframe
