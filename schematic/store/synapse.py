@@ -650,9 +650,6 @@ class SynapseStorage(BaseStorage):
         manifest_filepath = self.syn.get(manifest_id).path
         manifest = load_df(manifest_filepath)
 
-        # get current list of files
-        dataset_files = self.getFilesInStorageDataset(datasetId)
-
         # update manifest with additional filenames, if any
         # note that if there is an existing manifest and there are files in the dataset
         # the columns Filename and entityId are assumed to be present in manifest schema
