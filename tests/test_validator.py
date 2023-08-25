@@ -8,7 +8,7 @@ import logging
 
 
 from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExporer
+from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_validator import DataModelValidator
 from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
 
@@ -99,7 +99,8 @@ class TestDataModelValidator:
         # Run validation
         validator_errors = DMV.check_is_dag()
 
-        expected_error = ['Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: Patient and PatientID, please remove this loop from your model and submit again.']
-        
-        assert expected_error == validator_errors
+        # nodes could be in different order so need to account for that
+        expected_errors = ['Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: Patient and PatientID, please remove this loop from your model and submit again.',
+                          'Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: PatientID and Patient, please remove this loop from your model and submit again.']
+        assert validator_errors[0] in expected_errors
         

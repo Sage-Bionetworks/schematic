@@ -12,7 +12,11 @@ from synapseclient import EntityViewSchema, Folder
 from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage, DatasetFileView, ManifestDownload
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_relationships import DataModelRelationships
+
+
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 from schematic.configuration.configuration import Configuration
@@ -146,7 +150,21 @@ class TestSynapseStorage:
                                     'file-based'])
     def test_annotation_submission(self, synapse_store, helpers, manifest_path, test_annotations, datasetId, manifest_record_type, config: Configuration):
         # Upload dataset annotations
-        sg = SchemaGenerator(config.model_location)
+
+        # Instantiate DataModelParser
+        data_model_parser = DataModelParser(path_to_data_model = config.model_location)
+        
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Instantiate DataModelGraphExplorer
+        DME = DataModelGraphExplorer(graph_data_model)
 
         try:        
             for attempt in Retrying(
@@ -156,7 +174,7 @@ class TestSynapseStorage:
                 ):
                 with attempt:         
                     manifest_id = synapse_store.associateMetadataWithFiles(
-                        schemaGenerator = sg,
+                        DME = DME,
                         metadataManifestPath = helpers.get_data_path(manifest_path),
                         datasetId = datasetId,
                         manifest_record_type = manifest_record_type,
@@ -337,11 +355,25 @@ class TestTableOperations:
         # associate metadata with files
         manifest_path = "mock_manifests/table_manifest.csv"
         inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
-        sg = SchemaGenerator(inputModelLocaiton)
+        #sg = SchemaGenerator(inputModelLocaiton)
+        
+        # Instantiate DataModelParser
+        data_model_parser = DataModelParser(path_to_data_model = inputModelLocaiton)
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Instantiate DataModelGraphExplorer
+        DME = DataModelGraphExplorer(graph_data_model)
 
         # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
-            schemaGenerator = sg,
+            DME = DME,
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
@@ -376,11 +408,24 @@ class TestTableOperations:
 
         # associate org FollowUp metadata with files
         inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
-        sg = SchemaGenerator(inputModelLocaiton)
+        #sg = SchemaGenerator(inputModelLocaiton)
+
+        data_model_parser = DataModelParser(path_to_data_model = inputModelLocaiton)
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Instantiate DataModelGraphExplorer
+        DME = DataModelGraphExplorer(graph_data_model)
 
             # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
-            schemaGenerator = sg,
+            DME = DME,
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
@@ -402,7 +447,7 @@ class TestTableOperations:
         
         # Associate replacement manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
-            schemaGenerator = sg,
+            DME = DME,
             metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
@@ -443,11 +488,23 @@ class TestTableOperations:
 
         # associate org FollowUp metadata with files
         inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
-        sg = SchemaGenerator(inputModelLocaiton)
+
+        data_model_parser = DataModelParser(path_to_data_model = inputModelLocaiton)
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Instantiate DataModelGraphExplorer
+        DME = DataModelGraphExplorer(graph_data_model)
 
             # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
-            schemaGenerator = sg,
+            DME = DME,
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
@@ -473,7 +530,7 @@ class TestTableOperations:
         
         # Associate new manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
-            schemaGenerator = sg,
+            DME = DME,
             metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
             datasetId = datasetId, 
             manifest_record_type = 'table_and_file',

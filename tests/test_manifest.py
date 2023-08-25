@@ -7,7 +7,9 @@ from unittest.mock import Mock
 from unittest.mock import patch
 from unittest.mock import MagicMock
 from schematic.manifest.generator import ManifestGenerator
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph,DataModelGraphExplorer
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.configuration.configuration import Configuration
 from schematic.utils.google_api_utils import execute_google_api_requests
 
@@ -17,6 +19,25 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
+def generate_graph_data_model(helpers, path_to_data_model):
+    """
+    Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
+    """
+    
+    # Instantiate Parser
+    data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Convert parsed model to graph
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    return graph_data_model
 
 @pytest.fixture(
     params=[
@@ -32,13 +53,21 @@ logger = logging.getLogger(__name__)
         "skip_annotations-BulkRNAseqAssay",
     ],
 )
+
 def manifest_generator(helpers, request):
 
     # Rename request param for readability
     use_annotations, data_type = request.param
 
+    path_to_data_model = helpers.get_data_path("example.model.jsonld")
+    
+    # Get graph data model
+    graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+
+
     manifest_generator = ManifestGenerator(
-        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        path_to_json_ld=path_to_data_model,
+        graph=graph_data_model,
         root=data_type,
         use_annotations=use_annotations,
     )
@@ -83,16 +112,22 @@ def manifest(dataset_id, manifest_generator, request):
 class TestManifestGenerator:
 
     def test_init(self, helpers):
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+    
+        # Get graph data model
+        graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+
 
         generator = ManifestGenerator(
+            graph=graph_data_model,
             title="mock_title",
-            path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            path_to_json_ld=path_to_data_model,
         )
 
         assert type(generator.title) is str
         # assert generator.sheet_service == mock_creds["sheet_service"]
         assert generator.root is None
-        assert type(generator.sg) is SchemaGenerator
+        assert type(generator.DME) is DataModelGraphExplorer
 
     @pytest.mark.google_credentials_needed
     def test_get_manifest_first_time(self, manifest):
@@ -159,12 +194,18 @@ class TestManifestGenerator:
 
         data_type = "Patient"
 
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+    
+        # Get graph data model
+        graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+
+
         generator = ManifestGenerator(
-        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        path_to_json_ld=path_to_data_model,
+        graph=graph_data_model,
         root=data_type,
         use_annotations=False,
         )
-
 
         manifest= generator.get_manifest(dataset_id=dataset_id, sheet_url = sheet_url, output_format = output_format)
 
@@ -222,7 +263,7 @@ class TestManifestGenerator:
         else:
             mock_json_schema = Mock()
             mock_json_schema.return_value = "mock json ld"
-            with patch.object(SchemaGenerator, "get_json_schema_requirements",mock_json_schema):
+            with patch.object(DataModelJSONSchema, "get_json_validation_schema",mock_json_schema):
                 json_schema = generator._get_json_schema(json_schema_filepath=None)
                 assert json_schema == "mock json ld"
             
@@ -280,8 +321,15 @@ class TestManifestGenerator:
         data_type = "Patient"
         sheet_url = True
 
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+    
+        # Get graph data model
+        graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+
+
         # Instantiate the Manifest Generator.
-        generator = ManifestGenerator(path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        generator = ManifestGenerator(path_to_json_ld=path_to_data_model,
+                                      graph=graph_data_model,
                                       root=data_type,
                                       use_annotations=False,
                                       )
