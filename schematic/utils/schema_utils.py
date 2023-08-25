@@ -1,264 +1,69 @@
-import networkx as nx
+import inflection
 import json
-
-from schematic.utils.curie_utils import extract_name_from_uri_or_curie
-from schematic.utils.validate_utils import validate_class_schema
-from schematic.utils.validate_rules_utils import validate_schema_rules
+import networkx as nx
+import string
 
 
-def load_schema_into_networkx(schema):
-    G = nx.MultiDiGraph()
-    for record in schema["@graph"]:
+def get_property_label_from_display_name(display_name, strict_camel_case = False):
+        """Convert a given display name string into a proper property label string"""
+        """
+        label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))
+        label = label[:1].lower() + label[1:] if label else ''
+        """
+        # This is the newer more strict method
+        if strict_camel_case:
+            display_name = display_name.strip().translate({ord(c): "_" for c in string.whitespace})
+            label = inflection.camelize(display_name, uppercase_first_letter=False)
 
-        # TODO: clean up obsolete code
-        # if record["@type"] == "rdfs:Class":
-
-        # creation of nodes
-        # adding nodes to the graph
-        node = {}
-        for (k, value) in record.items():
-            # Some keys in the current schema.org schema have a dictionary entry for their value that includes keys @language and @value, 
-            # for parity with other schemas, we just want the value
-            if isinstance(value,dict) and "@language" in value.keys():
-                record[k] = record[k]["@value"]
-            if ":" in k:
-                key = k.split(":")[1]
-                node[key] = value
-            elif "@" in k:
-                key = k[1:]
-                node[key] = value
-            else:
-                node[k] = value
-
-        # creation of edges
-        # adding edges to the graph
-        if "rdfs:subClassOf" in record:
-            parents = record["rdfs:subClassOf"]
-            if type(parents) == list:
-                for _parent in parents:
-                    n1 = extract_name_from_uri_or_curie(_parent["@id"])
-                    n2 = record["rdfs:label"]
-
-                    # do not allow self-loops
-                    if n1 != n2:
-                        G.add_edge(n1, n2, key="parentOf")
-            elif type(parents) == dict:
-                n1 = extract_name_from_uri_or_curie(parents["@id"])
-                n2 = record["rdfs:label"]
-
-                # do not allow self-loops
-                if n1 != n2:
-                    G.add_edge(n1, n2, key="parentOf")
-
-        # TODO: refactor: abstract adding relationship method
-        if "sms:requiresDependency" in record:
-            dependencies = record["sms:requiresDependency"]
-            if type(dependencies) == list:
-                for _dep in dependencies:
-                    n1 = record["rdfs:label"]
-                    n2 = extract_name_from_uri_or_curie(_dep["@id"])
-                    # do not allow self-loops
-                    if n1 != n2:
-                        G.add_edge(n1, n2, key="requiresDependency")
-
-        if "sms:requiresComponent" in record:
-            components = record["sms:requiresComponent"]
-            if type(components) == list:
-                for _comp in components:
-                    n1 = record["rdfs:label"]
-                    n2 = extract_name_from_uri_or_curie(_comp["@id"])
-                    # do not allow self-loops
-                    if n1 != n2:
-                        G.add_edge(n1, n2, key="requiresComponent")
-
-        if "schema:rangeIncludes" in record:
-            range_nodes = record["schema:rangeIncludes"]
-            if type(range_nodes) == list:
-                for _range_node in range_nodes:
-                    n1 = record["rdfs:label"]
-                    n2 = extract_name_from_uri_or_curie(_range_node["@id"])
-                    # do not allow self-loops
-                    if n1 != n2:
-                        G.add_edge(n1, n2, key="rangeValue")
-            elif type(range_nodes) == dict:
-                n1 = record["rdfs:label"]
-                n2 = extract_name_from_uri_or_curie(range_nodes["@id"])
-                # do not allow self-loops
-                if n1 != n2:
-                    G.add_edge(n1, n2, key="rangeValue")
-
-        if "schema:domainIncludes" in record:
-            domain_nodes = record["schema:domainIncludes"]
-            if type(domain_nodes) == list:
-                for _domain_node in domain_nodes:
-                    n1 = extract_name_from_uri_or_curie(_domain_node["@id"])
-                    n2 = record["rdfs:label"]
-                    # do not allow self-loops
-                    if n1 != n2:
-                        G.add_edge(n1, n2, key="domainValue")
-            elif type(domain_nodes) == dict:
-                n1 = extract_name_from_uri_or_curie(domain_nodes["@id"])
-                n2 = record["rdfs:label"]
-                # do not allow self-loops
-                if n1 != n2:
-                    G.add_edge(n1, n2, key="domainValue")
-
-        # check schema generator (JSON validation schema gen)
-        if (
-            "requiresChildAsValue" in node
-            and node["requiresChildAsValue"]["@id"] == "sms:True"
-        ):
-            node["requiresChildAsValue"] = True
-
-        if "required" in node:
-            if "sms:true" == record["sms:required"]:
-                node["required"] = True
-            else:
-                node["required"] = False
-
-        # not sure if this is required?
-        if "sms:validationRules" in record:
-            node["validationRules"] = record["sms:validationRules"]
-            if node["validationRules"]:
-                validate_vr = validate_schema_rules(
-                                record["sms:validationRules"],
-                                record["rdfs:label"],
-                                input_filetype = 'json_schema')
+        # This method remains for backwards compatibility
         else:
-            node["validationRules"] = []
+            display_name = display_name.translate({ord(c): None for c in string.whitespace})
+            label = inflection.camelize(display_name.strip(), uppercase_first_letter=False)
 
-        node["uri"] = record["@id"]
-        node["description"] = record["rdfs:comment"]
-        G.add_node(record["rdfs:label"], **node)
-        # print(node)
-        # print(G.nodes())
+        return label
 
-    return G
-
-
-def node_attrs_cleanup(class_add_mod: dict) -> dict:
-    # clean map that will be inputted into the node/graph
-    node = {}
-    for (k, value) in class_add_mod.items():
-        if ":" in k:
-            key = k.split(":")[1]
-            node[key] = value
-        elif "@" in k:
-            key = k[1:]
-            node[key] = value
-        else:
-            node[k] = value
-
-    return node
-
-
-def relationship_edges(
-    schema_graph_nx: nx.MultiDiGraph, class_add_mod: dict, **kwargs
-) -> nx.MultiDiGraph:
+def get_class_label_from_display_name(display_name, strict_camel_case = False):
+    """Convert a given display name string into a proper class label string"""
     """
-    Notes:
-    =====
-    # pass the below dictionary as the third argument (kwargs) to relationship_edges().
-    # "in" indicates that the relationship has an in-edges behaviour.
-    # "out" indicates that the relationship has an out-edges behaviour.
+    label = ''.join(x.capitalize() or ' ' for x in display_name.split(' '))"""
+    # This is the newer more strict method
+    if strict_camel_case:
+        display_name = display_name.strip().translate({ord(c): "_" for c in string.whitespace})
+        label = inflection.camelize(display_name, uppercase_first_letter=True)
 
-    rel_dict = {
-        "rdfs:subClassOf": {
-            "parentOf": "in"
-        },
-        "schema:domainIncludes": {
-            "domainValue": "in"
-        },
-        "sms:requiresDependency": {
-            "requiresDependency": "out"
-        },
-        "sms:requiresComponent": {
-            "requiresComponent": "out"
-        },
-        "schema:rangeIncludes": {
-            "rangeValue": "out"
-        }
-    }
-    """
-    for rel, rel_lab_node_type in kwargs.items():
-        for rel_label, node_type in rel_lab_node_type.items():
-            if rel in class_add_mod:
-                parents = class_add_mod[rel]
-                if type(parents) == list:
-                    for _parent in parents:
-
-                        if node_type == "in":
-                            n1 = extract_name_from_uri_or_curie(_parent["@id"])
-                            n2 = class_add_mod["rdfs:label"]
-
-                        if node_type == "out":
-                            n1 = class_add_mod["rdfs:label"]
-                            n2 = extract_name_from_uri_or_curie(_parent["@id"])
-
-                        # do not allow self-loops
-                        if n1 != n2:
-                            schema_graph_nx.add_edge(n1, n2, key=rel_label)
-                elif type(parents) == dict:
-                    if node_type == "in":
-                        n1 = extract_name_from_uri_or_curie(parents["@id"])
-                        n2 = class_add_mod["rdfs:label"]
-
-                    if node_type == "out":
-                        n1 = class_add_mod["rdfs:label"]
-                        n2 = extract_name_from_uri_or_curie(parents["@id"])
-
-                    # do not allow self-loops
-                    if n1 != n2:
-                        schema_graph_nx.add_edge(n1, n2, key=rel_label)
-
-    return schema_graph_nx
-
-
-def class_to_node(class_to_convert: dict) -> nx.Graph:
-    G = nx.Graph()
-
-    node = {}  # node to be added the above graph and returned
-    for (k, v) in class_to_convert.items():
-        if ":" in k:  # if ":" is present in key
-            key = k.split(":")[1]
-            node[key] = v
-        elif "@" in k:  # if "@" is present in key
-            key = k[1:]
-            node[key] = v
-        else:
-            node[k] = v
-
-    if "required" in node:
-        if class_to_convert["sms:required"] == "sms:true":
-            node["required"] = True
-        else:
-            node["required"] = False
-
-    if "sms:validationRules" in class_to_convert:
-        node["validationRules"] = class_to_convert["sms:validationRules"]
+    # This method remains for backwards compatibility
     else:
-        node["validationRules"] = []
+        display_name = display_name.translate({ord(c): None for c in string.whitespace})
+        label = inflection.camelize(display_name.strip(), uppercase_first_letter=True)
 
-    node["uri"] = class_to_convert["@id"]  # add separate "uri" key
-    node["description"] = class_to_convert[
-        "rdfs:comment"
-    ]  # separately store "comment" as "description"
-    G.add_node(class_to_convert["rdfs:label"], **node)
+    return label
 
-    return G
+def get_display_name_from_label(node_name, attr_relationships):
+    '''
+    TODO: if not display name raise error.
+    '''
+    if 'Attribute' in attr_relationships.keys():
+        display_name = attr_relationships['Attribute']
+    else:
+        display_name = node_name
+    return display_name
 
+def get_label_from_display_name(display_name, entry_type, strict_camel_case = False):
+    
+    if entry_type.lower()=='class':
+        label = get_class_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+    
+    elif entry_type.lower()=='property':
+        label=get_property_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+    return label
 
-def replace_node_in_schema(schema: nx.MultiDiGraph, class_add_mod: dict) -> None:
-    # part of the code that replaces the modified class in the original JSON-LD schema (not in the data/ folder though)
-    for i, schema_class in enumerate(schema["@graph"]):
-        if schema_class["rdfs:label"] == class_add_mod["rdfs:label"]:
-            validate_class_schema(
-                class_add_mod
-            )  # validate that the class to be modified follows the structure for any generic class (node)
+def convert_bool(provided_bool):
+    return str(provided_bool)
 
-            schema["@graph"][i] = class_add_mod
-            break
-
+def parse_validation_rules(validation_rules:list) -> list:
+    if validation_rules and '::' in validation_rules[0]:
+        validation_rules = validation_rules[0].split('::')
+    return validation_rules
 
 def export_schema(schema, file_path):
     with open(file_path, "w") as f:

@@ -6,7 +6,10 @@ import os
 import pandas as pd
 from typing import Any, Dict, Optional, Text, List
 
-from schematic.schemas import SchemaGenerator
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+
 from schematic.utils.io_utils import load_json
 
 logger = logging.getLogger(__name__)
@@ -17,12 +20,27 @@ class AttributesExplorer():
                  )-> None:
         
         self.path_to_jsonld = path_to_jsonld
-        self.json_data_model = load_json(self.path_to_jsonld)
+
         self.jsonld = load_json(self.path_to_jsonld)
 
-        # instantiate a schema generator to retrieve db schema graph from metadata model graph
-        self.sg = SchemaGenerator(self.path_to_jsonld)
+        # Instantiate Data Model Parser
+        data_model_parser = DataModelParser(path_to_data_model = self.path_to_jsonld)
+        
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
 
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        self.graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Instantiate Data Model Graph Explorer
+        self.DME = DataModelGraphExplorer(self.graph_data_model)
+
+        # Instantiate Data Model Json Schema
+        self.data_model_js = DataModelJSONSchema(jsonld_path=self.path_to_jsonld, graph=self.graph_data_model)
+        
         self.output_path = self.create_output_path('merged_csv')
     
     def create_output_path(self, terminal_folder):
@@ -62,7 +80,7 @@ class AttributesExplorer():
                 
         '''
         # get all components
-        component_dg = self.sg.se.get_digraph_by_edge_type('requiresComponent')
+        component_dg = self.DME.get_digraph_by_edge_type('requiresComponent')
         components = component_dg.nodes()
         
         # For each data type to be loaded gather all attribtes the user would
@@ -115,9 +133,9 @@ class AttributesExplorer():
         df_store = []
         for component in components:
             data_dict = {}
+
             # get the json schema
-            json_schema = self.sg.get_json_schema_requirements(
-                source_node=component, schema_name=self.path_to_jsonld)
+            json_schema = self.data_model_js.get_json_validation_schema(source_node=component, schema_name=self.path_to_jsonld)
 
             # Gather all attribues, their valid values and requirements
             for key, value in json_schema['properties'].items():

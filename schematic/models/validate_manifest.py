@@ -19,7 +19,8 @@ from urllib.request import Request
 from urllib import error
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
-from schematic.schemas.generator import SchemaGenerator
+#from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from schematic.utils.validate_rules_utils import validation_rule_info
@@ -28,11 +29,11 @@ from schematic.utils.validate_utils import rule_in_rule_list
 logger = logging.getLogger(__name__)
 
 class ValidateManifest(object):
-    def __init__(self, errors, manifest, manifestPath, sg, jsonSchema):
+    def __init__(self, errors, manifest, manifestPath, DME, jsonSchema):
         self.errors = errors
         self.manifest = manifest
         self.manifestPath = manifestPath
-        self.sg = sg
+        self.DME = DME
         self.jsonSchema = jsonSchema       
 
     def get_multiple_types_error(
@@ -62,7 +63,7 @@ class ValidateManifest(object):
         return ["NA", error_col, error_message, error_val]
 
     def validate_manifest_rules(
-        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator, restrict_rules: bool, project_scope: List,
+        self, manifest: pd.core.frame.DataFrame, DME: DataModelGraphExplorer, restrict_rules: bool, project_scope: List,
     ) -> (pd.core.frame.DataFrame, List[List[str]]):
         """
         Purpose:
@@ -72,7 +73,7 @@ class ValidateManifest(object):
             manifest: pd.core.frame.DataFrame
                 imported from models/metadata.py
                 contains metadata input from user for each attribute.
-            sg: SchemaGenerator
+            DME: DataModelGraphExplorer
                 initialized within models/metadata.py
         Returns:
             manifest: pd.core.frame.DataFrame
@@ -129,7 +130,7 @@ class ValidateManifest(object):
             t_GE = perf_counter()
             #operations necessary to set up and run ge suite validation
             ge_helpers=GreatExpectationsHelpers(
-                sg=sg,
+                DME=DME,
                 unimplemented_expectations=unimplemented_expectations,
                 manifest = manifest,
                 manifestPath = self.manifestPath,
@@ -154,8 +155,7 @@ class ValidateManifest(object):
             finally:
                 ge_helpers.context.delete_checkpoint(ge_helpers.checkpoint_name) 
         
-            validation_results = results.list_validation_results()
-            
+            validation_results = results.list_validation_results()            
 
             #parse validation results dict and generate errors
             errors, warnings = ge_helpers.generate_errors(
@@ -163,7 +163,7 @@ class ValidateManifest(object):
                 warnings = warnings,
                 validation_results = validation_results,
                 validation_types = validation_types,
-                sg = sg,
+                DME = DME,
                 )        
             logger.debug(f"GE elapsed time {perf_counter()-t_GE}")       
         else:             
@@ -175,7 +175,11 @@ class ValidateManifest(object):
             
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            validation_rules = sg.get_node_validation_rules(col)
+            validation_rules = DME.get_node_validation_rules(col)
+
+            #TODO: Can remove when handling updated so split within graph
+            if validation_rules and '::' in validation_rules[0]:
+                validation_rules = validation_rules[0].split("::")
 
             # Check that attribute rules conform to limits:
             # no more than two rules for an attribute. 
@@ -203,16 +207,16 @@ class ValidateManifest(object):
 
                     if validation_type == "list":
                         vr_errors, vr_warnings, manifest_col = validation_method(
-                            self, rule, manifest[col], sg,
+                            self, rule, manifest[col], DME,
                         )
                         manifest[col] = manifest_col
                     elif validation_type.lower().startswith("match"):
                         vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], project_scope, sg,
+                            self, rule, manifest[col], project_scope, DME,
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], sg,
+                            self, rule, manifest[col], DME,
                         )
                     # Check for validation rule errors and add them to other errors.
                     if vr_errors:
@@ -223,7 +227,7 @@ class ValidateManifest(object):
         logger.debug(f"In House validation elapsed time {perf_counter()-t_err}")
         return manifest, errors, warnings
 
-    def validate_manifest_values(self, manifest, jsonSchema, sg
+    def validate_manifest_values(self, manifest, jsonSchema, DME,
     ) -> (List[List[str]], List[List[str]]):
         t_json_schema = perf_counter()
 
@@ -246,7 +250,7 @@ class ValidateManifest(object):
                 errorMsg = error.message[0:500]
                 errorVal = error.instance if len(error.path) > 0 else "Wrong schema"
 
-                val_errors, val_warnings =  GenerateError.generate_schema_error(row_num = errorRow, attribute_name = errorColName, error_msg = errorMsg, invalid_entry = errorVal, sg = sg)
+                val_errors, val_warnings =  GenerateError.generate_schema_error(row_num = errorRow, attribute_name = errorColName, error_msg = errorMsg, invalid_entry = errorVal, DME = DME)
 
                 if val_errors:
                     errors.append(val_errors)
@@ -256,15 +260,15 @@ class ValidateManifest(object):
         return errors, warnings
 
 
-def validate_all(self, errors, warnings, manifest, manifestPath, sg, jsonSchema, restrict_rules, project_scope: List):
-    vm = ValidateManifest(errors, manifest, manifestPath, sg, jsonSchema)
-    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, sg, restrict_rules, project_scope)
+def validate_all(self, errors, warnings, manifest, manifestPath, DME, jsonSchema, restrict_rules, project_scope: List):
+    vm = ValidateManifest(errors, manifest, manifestPath, DME, jsonSchema)
+    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, DME, restrict_rules, project_scope)
     if vmr_errors:
         errors.extend(vmr_errors)
     if vmr_warnings:
         warnings.extend(vmr_warnings)
 
-    vmv_errors, vmv_warnings = vm.validate_manifest_values(manifest, jsonSchema, sg)
+    vmv_errors, vmv_warnings = vm.validate_manifest_values(manifest, jsonSchema, DME)
     if vmv_errors:
         errors.extend(vmv_errors)
     if vmv_warnings:

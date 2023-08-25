@@ -12,12 +12,12 @@ from os.path import exists
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
 
-# handle schema logic; to be refactored as SchemaExplorer matures into a package
-# as collaboration with Biothings progresses
 
-from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+
 
 #TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
@@ -25,7 +25,7 @@ from schematic.store.synapse import SynapseStorage
 
 from schematic.utils.df_utils import load_df
 
-from schematic.models.validate_attribute import ValidateAttribute
+#from schematic.models.validate_attribute import ValidateAttribute #looks unused.
 from schematic.models.validate_manifest import validate_all
 
 
@@ -55,11 +55,22 @@ class MetadataModel(object):
         # ensure that it is necessarily pointing to a '.jsonld' file
         if inputMModelLocation.rpartition(".")[-1] == "jsonld":
             logger.debug(
-                f"Initializing SchemaGenerator object from {inputMModelLocation} schema."
+                f"Initializing DataModelGraphExplorer object from {inputMModelLocation} schema."
             )
             self.inputMModelLocation = inputMModelLocation
 
-            self.sg = SchemaGenerator(inputMModelLocation)
+            data_model_parser = DataModelParser(path_to_data_model = self.inputMModelLocation)
+            #Parse Model
+            parsed_data_model = data_model_parser.parse_model()
+
+            # Instantiate DataModelGraph
+            data_model_grapher = DataModelGraph(parsed_data_model)
+
+            # Generate graph
+            self.graph_data_model = data_model_grapher.generate_data_model_graph()
+            
+            self.DME = DataModelGraphExplorer(self.graph_data_model)
+
         else:
             raise TypeError(
                 f"Please make sure {inputMModelLocation} is a .jsonld file."
@@ -102,7 +113,7 @@ class MetadataModel(object):
         Raises:
             ValueError: rootNode not found in metadata model.
         """
-        ordered_nodes = self.sg.get_descendants_by_edge_type(
+        ordered_nodes = self.DME.get_descendants_by_edge_type(
             rootNode, relationshipType, connected=True, ordered=True
         )
 
@@ -140,6 +151,7 @@ class MetadataModel(object):
 
         mg = ManifestGenerator(
             path_to_json_ld=self.inputMModelLocation,
+            graph = self.graph_data_model,
             title=title,
             root=rootNode,
             additional_metadata=additionalMetadata,
@@ -169,11 +181,11 @@ class MetadataModel(object):
         """
 
         # get required components for the input/source component
-        req_components = self.sg.get_component_requirements(source_component)
+        req_components = self.DME.get_component_requirements(source_component)
 
         # retreive components as graph
         if as_graph:
-            req_components_graph = self.sg.get_component_requirements_graph(
+            req_components_graph = self.DME.get_component_requirements_graph(
                 source_component
             )
 
@@ -205,7 +217,11 @@ class MetadataModel(object):
         # get validation schema for a given node in the data model, if the user has not provided input validation schema
         
         if not jsonSchema:
-            jsonSchema = self.sg.get_json_schema_requirements(
+            
+            # Instantiate Data Model Json Schema
+            self.data_model_js = DataModelJSONSchema(jsonld_path=self.inputMModelLocation, graph=self.graph_data_model)
+            
+            jsonSchema = self.data_model_js.get_json_validation_schema(
                 rootNode, rootNode + "_validation"
             )
 
@@ -251,7 +267,15 @@ class MetadataModel(object):
 
             return errors, warnings
 
-        errors, warnings, manifest = validate_all(self, errors, warnings, manifest, manifestPath, self.sg, jsonSchema, restrict_rules, project_scope)
+        errors, warnings, manifest = validate_all(self, 
+                                                  errors=errors,
+                                                  warnings=warnings,
+                                                  manifest=manifest,
+                                                  manifestPath=manifestPath,
+                                                  DME=self.DME,
+                                                  jsonSchema=jsonSchema,
+                                                  restrict_rules=restrict_rules,
+                                                  project_scope=project_scope)
         return errors, warnings
 
     def populateModelManifest(self, title, manifestPath: str, rootNode: str, return_excel = False) -> str:
@@ -269,7 +293,7 @@ class MetadataModel(object):
             ValueError: rootNode not found in metadata model.
         """
         mg = ManifestGenerator(
-            path_to_json_ld=self.inputMModelLocation, title=title, root=rootNode
+            path_to_json_ld=self.inputMModelLocation, graph = self.graph_data_model, title=title, root=rootNode
         )
 
         emptyManifestURL = mg.get_manifest()
@@ -316,7 +340,7 @@ class MetadataModel(object):
 
             try:
                 # check if the component ("class" in schema) passed as argument is valid (present in schema) or not
-                self.sg.se.is_class_in_schema(validate_component)
+                self.DME.is_class_in_schema(validate_component)
             except:
                 # a KeyError exception is raised when validate_component fails in the try-block above
                 # here, we are suppressing the KeyError exception and replacing it with a more
@@ -336,7 +360,7 @@ class MetadataModel(object):
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if exists(censored_manifest_path):
                     censored_manifest_id = syn_store.associateMetadataWithFiles(
-                        schemaGenerator = self.sg,
+                        DME = self.DME,
                         metadataManifestPath = censored_manifest_path,
                         datasetId = dataset_id, 
                         manifest_record_type = manifest_record_type,
@@ -347,7 +371,7 @@ class MetadataModel(object):
                     restrict_maniest = True
                 
                 manifest_id = syn_store.associateMetadataWithFiles(
-                    schemaGenerator = self.sg,
+                    DME = self.DME,
                     metadataManifestPath = manifest_path, 
                     datasetId = dataset_id, 
                     manifest_record_type = manifest_record_type,
@@ -369,7 +393,7 @@ class MetadataModel(object):
         # no need to perform validation, just submit/associate the metadata manifest file
         if exists(censored_manifest_path):
             censored_manifest_id = syn_store.associateMetadataWithFiles(
-                schemaGenerator = self.sg,
+                DME = self.DME,
                 metadataManifestPath=censored_manifest_path,
                 datasetId=dataset_id,
                 manifest_record_type=manifest_record_type,
@@ -380,7 +404,7 @@ class MetadataModel(object):
             restrict_maniest = True
         
         manifest_id = syn_store.associateMetadataWithFiles(
-            schemaGenerator = self.sg,
+            DME = self.DME,
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             manifest_record_type=manifest_record_type,

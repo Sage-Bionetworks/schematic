@@ -12,7 +12,7 @@ import pygsheets as ps
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, Optional, Tuple, Union
 
-from schematic.schemas.data_model_graph import DataModelGraphExporer
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.utils.google_api_utils import (
     execute_google_api_requests,
@@ -83,7 +83,7 @@ class ManifestGenerator(object):
             )
 
         # Data Model Explorer object
-        self.DME = DataModelGraphExporer(self.graph)
+        self.DME = DataModelGraphExplorer(self.graph)
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
@@ -1630,7 +1630,7 @@ class ManifestGenerator(object):
 
         # Get headers for the current schema and existing manifest df.
         current_schema_headers = list(self.get_dataframe_by_url(manifest_url=empty_manifest_url).columns)
-        existing_manfiest_headers = list(existing_df.columns)
+        existing_manifest_headers = list(existing_df.columns)
 
         # Find columns that exist in the current schema, but are not in the manifest being downloaded.
         new_columns = self._get_missing_columns(current_schema_headers, existing_manifest_headers)

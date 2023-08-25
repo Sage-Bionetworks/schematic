@@ -5,7 +5,7 @@ from schematic.schemas.data_model_relationships import (
     DataModelRelationships
     )
 
-from schematic.utils.schema_util import get_label_from_display_name, get_display_name_from_label, convert_bool
+from schematic.utils.schema_utils import get_label_from_display_name, get_display_name_from_label, convert_bool, parse_validation_rules
 from schematic.utils.validate_rules_utils import validate_schema_rules
 from schematic.schemas.curie import uri2curie, curie2uri
 
@@ -105,6 +105,8 @@ class DataModelNodes():
         func_output = ''
         if rel_func == get_display_name_from_label:
             func_output = get_display_name_from_label(node_display_name, attr_relationships)
+        elif rel_func == parse_validation_rules:
+            func_output = parse_validation_rules(attr_relationships[csv_header])
         elif key == 'id' and rel_func == get_label_from_display_name:
             #func_output = 'bts:' + get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)
             func_output = get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)

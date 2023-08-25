@@ -6,11 +6,14 @@ from typing import List
 import click
 import click_log
 
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.manifest.generator import ManifestGenerator
+
 from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_synIDs
-from schematic.help import manifest_commands
-from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import export_manifest_csv
+from schematic.help import manifest_commands
+
 from schematic.store.synapse import SynapseStorage
 from schematic.configuration.configuration import CONFIG
 
@@ -128,10 +131,24 @@ def get_manifest(
         title =  CONFIG.manifest_title
         log_value_from_config("title", title)
 
+    data_model_parser = DataModelParser(path_to_data_model = jsonld)
+
+    #Parse Model
+    logger.info("Parsing data model.")
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    logger.info("Generating data model graph.")
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
+            graph = graph_data_model,
             title=t,
             root=data_type,
             use_annotations=use_annotations,
@@ -194,9 +211,10 @@ def get_manifest(
     if type(data_type) is str:
         data_type = [data_type]
 
-    if data_type[0] == 'all manifests':
-        sg = SchemaGenerator(path_to_json_ld=jsonld)
-        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+    if data_type[0] == 'all manifests':      
+        # Feed graph into the data model graph explorer
+        DME = DataModelGraphExplorer(graph_data_model)
+        component_digraph = DME.get_digraph_by_edge_type('requiresComponent')
         components = component_digraph.nodes()
         for component in components:
             t = f'{title}.{component}.manifest'

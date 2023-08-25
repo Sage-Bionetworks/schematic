@@ -16,7 +16,8 @@ import numpy as np
 import pandas as pd
 from jsonschema import ValidationError
 
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
+
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
@@ -31,7 +32,7 @@ from schematic.utils.validate_utils import (comma_separated_list_regex,
 logger = logging.getLogger(__name__)
 
 class GenerateError:
-    def generate_schema_error(row_num: str, attribute_name: str, error_msg: str, invalid_entry: str, sg: SchemaGenerator,)-> List[str]:
+    def generate_schema_error(row_num: str, attribute_name: str, error_msg: str, invalid_entry: str, DME: DataModelGraphExplorer,)-> List[str]:
         '''
         Purpose: Process error messages generated from schema
         Input:
@@ -49,7 +50,7 @@ class GenerateError:
             raises = GenerateError.get_message_level(
                 val_rule = 'schema',
                 attribute_name = attribute_name,
-                sg = sg,
+                DME = DME,
                 )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -77,7 +78,7 @@ class GenerateError:
 
     def generate_list_error(
         list_string: str, row_num: str, attribute_name: str, list_error: str,
-        invalid_entry:str, sg: SchemaGenerator, val_rule: str,
+        invalid_entry:str, DME: DataModelGraphExplorer, val_rule: str,
     ) -> List[str]:
         """
             Purpose:
@@ -100,7 +101,7 @@ class GenerateError:
         raises = GenerateError.get_message_level(
             val_rule = val_rule,
             attribute_name = attribute_name,
-            sg = sg,
+            DME = DME,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -137,7 +138,7 @@ class GenerateError:
         module_to_call: str,
         attribute_name: str,
         invalid_entry: str,
-        sg: SchemaGenerator,
+        DME: DataModelGraphExplorer,
     ) -> List[str]:
         """
             Purpose:
@@ -161,7 +162,7 @@ class GenerateError:
         raises = GenerateError.get_message_level(
             val_rule = val_rule,
             attribute_name = attribute_name,
-            sg = sg,
+            DME = DME,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -190,7 +191,7 @@ class GenerateError:
         return error_list, warning_list       
 
     def generate_type_error(
-        val_rule: str, row_num: str, attribute_name: str, invalid_entry:str, sg: SchemaGenerator,
+        val_rule: str, row_num: str, attribute_name: str, invalid_entry:str, DME: DataModelGraphExplorer,
     ) -> List[str]:
         """
             Purpose:
@@ -208,12 +209,12 @@ class GenerateError:
 
         error_list = []
         warning_list = []
-        
+
         #Determine which, if any, message to raise
         raises = GenerateError.get_message_level(
-            val_rule = val_rule,
+            DME = DME,
             attribute_name = attribute_name,
-            sg = sg,
+            val_rule = val_rule,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -231,8 +232,15 @@ class GenerateError:
         error_message = type_error_str
         error_val = invalid_entry
 
+        #TODO: not sure if this i needed (to split)
+        validation_rules=DME.get_node_validation_rules(attribute_name)
+
+        #TODO: Can remove when handling updated so split within graph
+        if validation_rules and '::' in validation_rules[0]:
+                validation_rules = validation_rules[0].split("::")
+
         # If IsNA rule is being used to allow `Not Applicable` entries, do not log a message
-        if error_val.lower() == 'not applicable' and rule_in_rule_list('IsNA', sg.get_node_validation_rules(sg.get_node_label(attribute_name))):
+        if error_val.lower() == 'not applicable' and rule_in_rule_list('IsNA', validation_rules):
           pass  
         else:
             logLevel(type_error_str)
@@ -247,7 +255,7 @@ class GenerateError:
 
     def generate_url_error(
         url: str, url_error: str, row_num: str, attribute_name: str, argument: str,
-        invalid_entry:str, sg: SchemaGenerator, val_rule: str,
+        invalid_entry:str, DME: DataModelGraphExplorer, val_rule: str,
     ) -> List[str]:
         """
             Purpose:
@@ -281,7 +289,7 @@ class GenerateError:
         raises = GenerateError.get_message_level(
             val_rule = val_rule,
             attribute_name = attribute_name,
-            sg = sg,
+            DME = DME,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -331,7 +339,7 @@ class GenerateError:
     def generate_cross_warning(
         val_rule: str,
         attribute_name: str,
-        sg: SchemaGenerator,
+        DME: DataModelGraphExplorer,
         matching_manifests = [],
         missing_manifest_ID = None,
         invalid_entry = None,
@@ -361,7 +369,7 @@ class GenerateError:
         raises = GenerateError.get_message_level(
             val_rule = val_rule,
             attribute_name = attribute_name,
-            sg = sg,
+            DME = DME,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -409,7 +417,7 @@ class GenerateError:
     def generate_content_error(
         val_rule: str,
         attribute_name: str,
-        sg: SchemaGenerator,
+        DME: DataModelGraphExplorer,
         row_num = None,
         error_val = None,    
     ) -> (List[str], List[str]):
@@ -424,7 +432,7 @@ class GenerateError:
         Input:
                 val_rule: str, defined in the schema.
                 attribute_name: str, attribute being validated
-                sg: schemaGenerator object
+                DME: DataModelGraphExplorer object
                 row_num: str, row where the error was detected
                 error_val: value duplicated
 
@@ -443,7 +451,7 @@ class GenerateError:
         raises = GenerateError.get_message_level(
             val_rule=val_rule,
             attribute_name = attribute_name,
-            sg = sg,
+            DME = DME,
             )
 
         #if a message needs to be raised, get the approrpiate function to do so
@@ -505,7 +513,7 @@ class GenerateError:
         return error_list, warning_list
 
     def get_message_level(
-        sg: SchemaGenerator,
+        DME: DataModelGraphExplorer,
         attribute_name: str,
         val_rule: str,
         ) -> str:
@@ -521,7 +529,7 @@ class GenerateError:
 
         Input:
                 val_rule: str, defined in the schema.
-                sg: schemaGenerator object
+                DME: DataModelGraphExplorer object
                 attribute_name: str, attribute being validated
         Returns:
             'error', 'warning' or None
@@ -535,16 +543,15 @@ class GenerateError:
         #set message level to default and change after
         if rule_parts[0] != 'schema':
             level = rule_info[rule_parts[0]]['default_message_level']
-
         # Parse rule for level, set to default if not specified
         if rule_parts[-1].lower() == 'error' or rule_parts[0] == 'schema':
             level = 'error'
         elif rule_parts[-1].lower() == 'warning':
             level = 'warning'        
-        elif not sg.is_node_required(node_display_name=attribute_name):
+        elif not DME.get_node_required(node_display_name=attribute_name):
             # If not required raise warnings to notify
             level = 'warning' 
-        elif sg.is_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
+        elif DME.get_node_required(node_display_name=attribute_name) and 'recommended' in val_rule:
             level = None
             
         return level
@@ -589,7 +596,7 @@ class ValidateAttribute(object):
         return synStore, target_manifest_IDs, target_dataset_IDs    
 
     def list_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, DME: DataModelGraphExplorer,
     ) -> (List[List[str]], List[List[str]], pd.core.series.Series):
         """
         Purpose:
@@ -630,7 +637,7 @@ class ValidateAttribute(object):
                             attribute_name=manifest_col.name,
                             list_error=list_error,
                             invalid_entry=manifest_col[i],
-                            sg = sg,
+                            DME = DME,
                             val_rule = val_rule, 
                         )
                     if vr_errors:
@@ -645,7 +652,7 @@ class ValidateAttribute(object):
         return errors, warnings, manifest_col
 
     def regex_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, DME: DataModelGraphExplorer,
     ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
@@ -655,6 +662,7 @@ class ValidateAttribute(object):
             - val_rule: str, Validation rule
             - manifest_col: pd.core.series.Series, column for a given
                 attribute in the manifest
+            - DME: DataModelGraphExplorer Object
             Using this module requres validation rules written in the following manner:
                 'regex module regular expression'
                 - regex: is an exact string specifying that the input is to be validated as a 
@@ -685,7 +693,10 @@ class ValidateAttribute(object):
 
         errors = []
         warnings = []
-        validation_rules=self.sg.se.get_class_validation_rules(self.sg.se.get_class_label_from_display_name(manifest_col.name))
+
+        validation_rules = DME.get_node_validation_rules(manifest_col.name)
+        if validation_rules and '::' in validation_rules[0]:
+                validation_rules = validation_rules[0].split("::")
         # Handle case where validating re's within a list.
         if re.search('list',"|".join(validation_rules)):
             if type(manifest_col[0]) == str:
@@ -705,7 +716,7 @@ class ValidateAttribute(object):
                                 module_to_call=reg_exp_rules[1],
                                 attribute_name=manifest_col.name,
                                 invalid_entry=manifest_col[i],
-                                sg = sg,
+                                DME = DME,
                             )
                         if vr_errors:
                             errors.append(vr_errors)
@@ -726,7 +737,7 @@ class ValidateAttribute(object):
                             module_to_call=reg_exp_rules[1],
                             attribute_name=manifest_col.name,
                             invalid_entry=manifest_col[i],
-                            sg = sg,
+                            DME = DME,
                         )
                     if vr_errors:
                         errors.append(vr_errors)
@@ -736,7 +747,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def type_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, DME: DataModelGraphExplorer,
     ) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
@@ -747,6 +758,7 @@ class ValidateAttribute(object):
                 'float', 'int', 'num', 'str'
             - manifest_col: pd.core.series.Series, column for a given
                 attribute in the manifest
+            - DME: DataModelGraphExplorer Object
         Returns:
             -This function will return errors when the user input value
             does not match schema specifications.
@@ -774,7 +786,7 @@ class ValidateAttribute(object):
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             invalid_entry=str(manifest_col[i]),
-                            sg = sg,
+                            DME = DME,
                         )
                     if vr_errors:
                         errors.append(vr_errors)
@@ -788,7 +800,7 @@ class ValidateAttribute(object):
                             row_num=str(i + 2),
                             attribute_name=manifest_col.name,
                             invalid_entry=str(manifest_col[i]),
-                            sg = sg,
+                            DME = DME,
                         )
                     if vr_errors:
                         errors.append(vr_errors)
@@ -796,7 +808,7 @@ class ValidateAttribute(object):
                         warnings.append(vr_warnings)
         return errors, warnings
 
-    def url_validation(self, val_rule: str, manifest_col: str, sg: SchemaGenerator,) -> (List[List[str]], List[List[str]]):
+    def url_validation(self, val_rule: str, manifest_col: str, DME: DataModelGraphExplorer) -> (List[List[str]], List[List[str]]):
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
@@ -806,6 +818,7 @@ class ValidateAttribute(object):
             - val_rule: str, Validation rule
             - manifest_col: pd.core.series.Series, column for a given
                 attribute in the manifest
+            - DME: DataModelGraphExplorer Object
         Output:
             This function will return errors when the user input value
             does not match schema specifications.
@@ -835,7 +848,7 @@ class ValidateAttribute(object):
                         attribute_name=manifest_col.name,
                         argument=url_args,
                         invalid_entry=manifest_col[i],
-                        sg = sg,
+                        DME = DME,
                         val_rule = val_rule,
                     )
                 if vr_errors:
@@ -863,7 +876,7 @@ class ValidateAttribute(object):
                             attribute_name=manifest_col.name,
                             argument=url_args,
                             invalid_entry=manifest_col[i],
-                            sg = sg,
+                            DME = DME,
                             val_rule = val_rule,
                         )
                     if vr_errors:
@@ -883,7 +896,7 @@ class ValidateAttribute(object):
                                     attribute_name=manifest_col.name,
                                     argument=arg,
                                     invalid_entry=manifest_col[i],
-                                    sg = sg,
+                                    DME = DME,
                                     val_rule = val_rule,
                                 )
                             if vr_errors:
@@ -893,7 +906,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, DME: DataModelGraphExplorer,
     ) -> List[List[str]]:
         """
         Purpose:
@@ -903,6 +916,7 @@ class ValidateAttribute(object):
             - val_rule: str, Validation rule
             - manifest_col: pd.core.series.Series, column for a given
                 attribute in the manifest
+            - DME: DataModelGraphExplorer Object
         Output:
             This function will return errors when values in the current manifest's attribute 
             are not fully present in the correct amount of other manifests.
@@ -980,7 +994,7 @@ class ValidateAttribute(object):
                         row_num = missing_rows,
                         attribute_name = source_attribute,
                         invalid_entry = iterable_to_str_list(missing_values),
-                        sg = sg,
+                        DME = DME,
                     )
                 if vr_errors:
                     errors.append(vr_errors)
@@ -995,7 +1009,7 @@ class ValidateAttribute(object):
                         row_num = invalid_rows,
                         attribute_name = source_attribute, 
                         invalid_entry = iterable_to_str_list(invalid_values.squeeze()),
-                        sg = sg,
+                        DME = DME,
                     )
                 if vr_errors:
                     errors.append(vr_errors)
@@ -1022,7 +1036,7 @@ class ValidateAttribute(object):
                         attribute_name = source_attribute,
                         invalid_entry = missing_values,
                         missing_manifest_ID = missing_manifest_IDs,
-                        sg = sg,
+                        DME = DME,
                     )
                 if vr_errors:
                     errors.append(vr_errors)
@@ -1033,7 +1047,7 @@ class ValidateAttribute(object):
                         val_rule = val_rule,
                         attribute_name = source_attribute,
                         matching_manifests = present_manifest_log,
-                        sg = sg,
+                        DME = DME,
                     )
                 if vr_errors:
                     errors.append(vr_errors)

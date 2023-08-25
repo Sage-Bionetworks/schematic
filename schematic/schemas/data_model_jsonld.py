@@ -2,9 +2,9 @@ from functools import wraps
 from typing import Any, Dict, Optional, Text, List
 import networkx as nx
 
-from schematic.schemas.data_model_graph import DataModelGraphExporer
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.utils.schema_util import get_label_from_display_name, get_display_name_from_label, convert_bool
+from schematic.utils.schema_utils import get_label_from_display_name, get_display_name_from_label, convert_bool
 
 
 class DataModelJsonLD(object):
@@ -12,7 +12,7 @@ class DataModelJsonLD(object):
     #Interface to JSONLD_object
     '''
 
-    def __init__(self, Graph: nx.MultiDiGraph):
+    def __init__(self, Graph: nx.MultiDiGraph, output_path:str = ''):
         # Setup
         self.graph = Graph
         self.dmr = DataModelRelationships()
@@ -22,7 +22,8 @@ class DataModelJsonLD(object):
         self.jsonld_class = JSONLD_class(self.jsonld_object)
         self.jsonld_property = JSONLD_property(self.jsonld_object)
         '''
-        self.DME = DataModelGraphExporer(self.graph)
+        self.DME = DataModelGraphExplorer(self.graph)
+        self.output_path = output_path
 
     
     def base_jsonld_template(self):
@@ -30,7 +31,14 @@ class DataModelJsonLD(object):
         #Base starter template, to be filled out with model. For entire file.
         TODO: when done adding contexts fill out this section here.
         """
-        base_template = {"@context": {},
+        base_template = {
+                        "@context": {
+                            "bts": "http://schema.biothings.io/",
+                            "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+                            "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+                            "schema": "http://schema.org/",
+                            "xsd": "http://www.w3.org/2001/XMLSchema#",
+                            },
                          "@graph": [],
                          "@id": "http://schema.biothings.io/#0.1",
                         }
@@ -57,10 +65,6 @@ class DataModelJsonLD(object):
                     node_edge_relationships = self.graph[node_1][node_2]
                     edge_rel = rel_vals['edge_key']
 
-
-                    
-                    #node_edge_key_rels  = [for rel in node_edge_relationships.keys]
-                    
                     # Check if key_rel is even one of the relationships for this node pair.
                     #if key_rel in node_edge_relationships:
                     if edge_rel in node_edge_relationships:
@@ -70,7 +74,6 @@ class DataModelJsonLD(object):
                             if relationship == edge_rel:
                                 
                                 if edge_rel in ['domainIncludes', 'parentOf']:
-                                    #breakpoint()
                                     if node_2 == node:
                                         # Make sure the key is in the template (differs between properties and classes)
                                         if rel_vals['jsonld_key'] in template.keys():
@@ -96,8 +99,10 @@ class DataModelJsonLD(object):
             else:               
                 # attribute here refers to node attibutes (come up with better name.)
                 node_attribute_name = rel_vals['node_label']
+                
                 # Get recorded info for current node, and the attribute type
                 node_info = nx.get_node_attributes(self.graph, node_attribute_name)[node]
+                
                 # Add this information to the template
                 template[rel_vals['jsonld_key']] =  node_info
         # Clean up template
@@ -159,17 +164,17 @@ class DataModelJsonLD(object):
             template (dict): list entries re-ordered to match user supplied order.
 
         '''
-       
-
         # user order only matters for nodes that are also attributes
         template_label = template['rdfs:label']
 
         for jsonld_key, entry in template.items():
+            # Make sure dealing with an edge relationship:
+            is_edge = ['True' for k, v in self.rel_dict.items() if v['jsonld_key']==jsonld_key if v['edge_rel'] == True]
+            
             #if the entry is of type list and theres more than one value in the list attempt to reorder
-            if isinstance(entry, list) and len(entry)>1:
+            if is_edge and isinstance(entry, list) and len(entry)>1:
                 # Get edge key from data_model_relationships using the jsonld_key:
                 key, edge_key = [(k, v['edge_key']) for k, v in self.rel_dict.items() if jsonld_key == v['jsonld_key']][0]
-
                 # Order edges
                 sorted_edges = self.DME.get_ordered_entry(key=key, source_node_label=template_label)
                 edge_weights_dict={edge:i for i, edge in enumerate(sorted_edges)}
@@ -177,9 +182,9 @@ class DataModelJsonLD(object):
                 for k,v in edge_weights_dict.items():
                     ordered_edges[v] = {'@id': 'bts:' + k}
                 
-                # TODO: Throw an error if ordered_edges does not get fully filled as expected.
+                # Throw an error if ordered_edges does not get fully filled as expected.
                 if 0 in ordered_edges:
-                    breakpoint()
+                    logger.error("There was an issue getting values to match order specified in the data model, please submit a help request.")
                 template[jsonld_key] = ordered_edges
         return template
 
@@ -249,7 +254,7 @@ class DataModelJsonLD(object):
         self.jsonld_object = JSONLD_object(DataModelJsonLD)
         self.jsonld_class = JSONLD_class(self.jsonld_object)
         self.jsonld_property = JSONLD_property(self.jsonld_object)
-        self.DME = DataModelGraphExporer(self.graph)
+        self.DME = DataModelGraphExplorer(self.graph)
 
     def generate_jsonld_object(self):
         '''

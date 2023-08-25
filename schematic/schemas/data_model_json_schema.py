@@ -3,7 +3,7 @@ import networkx as nx
 import os
 from typing import Any, Dict, Optional, Text, List
 
-from schematic.schemas.data_model_graph import DataModelGraphExporer
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 from schematic.utils.validate_utils import rule_in_rule_list
@@ -14,7 +14,7 @@ class DataModelJSONSchema:
 				 ):
 		self.jsonld_path = jsonld_path
 		self.graph = graph
-		self.DME = DataModelGraphExporer(self.graph)
+		self.DME = DataModelGraphExplorer(self.graph)
 		self.dmr = DataModelRelationships()
 		self.rel_dict = self.dmr.relationships_dictionary
 		

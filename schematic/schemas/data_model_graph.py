@@ -27,7 +27,7 @@ from schematic.utils.curie_utils import (
 from schematic.utils.general import find_duplicates
 
 from schematic.utils.io_utils import load_default, load_json, load_schemaorg
-from schematic.utils.schema_util import get_property_label_from_display_name, get_class_label_from_display_name
+from schematic.utils.schema_utils import get_property_label_from_display_name, get_class_label_from_display_name
 from schematic.utils.general import dict2list, unlist
 from schematic.utils.viz_utils import visualize
 from schematic.utils.validate_utils import (
@@ -112,7 +112,7 @@ class DataModelGraph():
             G = self.dme.generate_edge(G, node, all_node_dict, self.attribute_relationships_dict, edge_relationships)
         return G
 
-class DataModelGraphExporer():
+class DataModelGraphExplorer():
     def __init__(self,
                  G,):
         '''
@@ -130,6 +130,7 @@ class DataModelGraphExporer():
         self.reqComp_ek = self.rel_dict['requiresComponent']['edge_key']
         self.reqDep_ek = self.rel_dict['requiresDependency']['edge_key']
         self.subClassOf_ek = self.rel_dict['subClassOf']['edge_key']
+        self.rangeIncludes_ek = self.rel_dict['rangeIncludes']['edge_key']
 
         # Node Labels
         self.displayName_nl = self.rel_dict['displayName']['node_label']
@@ -153,6 +154,15 @@ class DataModelGraphExporer():
         properties = self.find_properties()
         classes = nodes - properties
         return classes
+
+    def find_node_range(self, attribute):
+        valid_values=[]
+        for node_1, node_2, rel in self.graph.edges:
+            if node_1 == attribute and rel == self.rangeIncludes_ek:
+                valid_values.append(node_2)
+        valid_values = list(set(valid_values))
+        return valid_values
+
 
     def get_adjacent_nodes_by_relationship(self,
                                            node: str,
@@ -215,7 +225,7 @@ class DataModelGraphExporer():
 
         # get the subgraph induced on required component nodes
         req_components_graph = self.get_subgraph_by_edge_type(
-            self.graph, self.reqComp_ek,
+            self.reqComp_ek,
         ).subgraph(req_components)
 
         return req_components_graph
@@ -286,7 +296,10 @@ class DataModelGraphExporer():
 
         return list(descendants)
 
-    def get_digraph_by_edge_type(self):
+    def get_digraph_by_edge_type(self, edge_type):
+        '''
+        TODO: rename to get_digraph, since edge type parameter is not used, will take it now for legacy.
+        '''
 
         digraph = nx.DiGraph()
         for (u, v, key, c) in self.graph.edges(data=True, keys=True):
@@ -344,6 +357,16 @@ class DataModelGraphExporer():
     # Get values associated with a node
     # TODO: make sure all these gets follow the same pattern for clarity
 
+    def get_nodes_ancestors(self, graph, component):
+        """
+        Return a list of nodes reachable from source in graph 
+        graph: networkx graph object
+        component: any given node
+        """
+        all_ancestors = list(nx.ancestors(graph, component))
+
+        return all_ancestors
+
     def get_node_comment(self, node_display_name: str = None, node_label: str= None) -> str:
         """Get the node definition, i.e., the "comment" associated with a given node display name.
 
@@ -400,6 +423,16 @@ class DataModelGraphExporer():
 
         return required_dependencies
 
+    def get_nodes_descendants(self, component):
+        """
+        Return a list of nodes reachable from source in graph 
+        graph: networkx graph object
+        component: any given node
+        """
+        all_descendants = list(nx.descendants(self.graph, component))
+
+        return all_descendants
+
     def get_nodes_display_names(
         self, node_list: List[str],
     ) -> List[str]:
@@ -443,6 +476,36 @@ class DataModelGraphExporer():
             node_label = ""
 
         return node_label
+
+    def get_node_range(self, node_label: str, display_names: bool = True) -> List[str]:
+        """Get the range, i.e., all the valid values that are associated with a node label.
+
+        Args:
+            node_label: Node / termn for which you need to retrieve the range.
+
+        Returns:
+            List of display names of nodes associateed with the given node.
+        """
+        try:
+            # get node range in the order defined in schema for given node
+            #required_range = self.graph.explore_class(node_label)["range"]
+            required_range = self.find_node_range(attribute = node_label)
+        except KeyError:
+            raise ValueError(
+                f"The source node {node_label} does not exist in the graph. "
+                "Please use a different node."
+            )
+
+        if display_names:
+            # get the display name(s) of all dependencies
+            dependencies_display_names = []
+
+            for req in required_range:
+                dependencies_display_names.append(self.graph.nodes[req]["displayName"])
+
+            return dependencies_display_names
+
+        return required_range
 
     def get_node_required(self, node_display_name: str = None, node_label:str = None) -> bool:
         """Check if a given node is required or not.
@@ -511,15 +574,23 @@ class DataModelGraphExporer():
     def find_adjacent_child_classes(self, schema_class):
         return self.get_adjacent_nodes_by_relationship(node = schema_class, relationship = self.subClassOf_ek)
 
+    def find_child_classes(self, schema_class):
+        """Find schema classes that inherit from the given class"""
+        return unlist(list(self.graph.successors(schema_class)))
+
     def find_class_specific_properties(self, schema_class):
         """Find properties specifically associated with a given class"""
         
         #This is called directly from the API
         # Needs to be refactored no longer be JSONLD specific
-        
-        breakpoint()
-        schema_uri = self.graph.nodes[schema_class]["uri"]
+        breakpoint()        
+        #schema_uri = self.graph.nodes[schema_class]["uri"]
         properties = []
+        for k, v in self.graph[schema_class]:
+            if 'domainIncludes' in v.keys():
+                properties.append(k)
+        '''
+        
         for record in self.schema["@graph"]:
             if record["@type"] == "rdf:Property":
                 if (
@@ -537,4 +608,49 @@ class DataModelGraphExporer():
                     != []
                 ):
                     properties.append(record["rdfs:label"])
+        '''
         return properties
+
+    def find_parent_classes(self, schema_class):
+        """Find all parents of the class"""
+
+        digraph = self.get_digraph_by_edge_type("parentOf")
+
+        root_node = list(nx.topological_sort(digraph))[0]
+
+        paths = nx.all_simple_paths(
+            self.graph, source=root_node, target=schema_class
+        )
+        # print(root_node)
+        return [_path[:-1] for _path in paths]
+
+    def full_schema_graph(self, size=None):
+        edges = self.graph.edges()
+        return visualize(edges, size=size)
+
+    def is_class_in_schema(self, class_label):
+        if self.graph.nodes[class_label]:
+            return True
+        else:
+            return False
+
+    def sub_schema_graph(self, source, direction, size=None):
+        if direction == "down":
+            edges = list(nx.edge_bfs(self.graph, [source]))
+            return visualize(edges, size=size)
+        elif direction == "up":
+            paths = self.find_parent_classes(source)
+            edges = []
+            for _path in paths:
+                _path.append(source)
+                for i in range(0, len(_path) - 1):
+                    edges.append((_path[i], _path[i + 1]))
+            return visualize(edges, size=size)
+        elif direction == "both":
+            paths = self.find_parent_classes(source)
+            edges = list(nx.edge_bfs(self.graph, [source]))
+            for _path in paths:
+                _path.append(source)
+                for i in range(0, len(_path) - 1):
+                    edges.append((_path[i], _path[i + 1]))
+            return visualize(edges, size=size)

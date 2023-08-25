@@ -23,11 +23,15 @@ from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 from schematic.manifest.generator import ManifestGenerator
 from schematic.models.metadata import MetadataModel
-from schematic.schemas.generator import SchemaGenerator
-from schematic.schemas.explorer import SchemaExplorer
+
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+#from schematic.schemas.data_model_relationships import DataModelRelationships
+
 from schematic.store.synapse import SynapseStorage, ManifestDownload
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions, SynapseNoCredentialsError, SynapseTimeoutError
 from schematic.utils.general import entity_type_mapping
+from schematic.utils.schema_utils import get_property_label_from_display_name
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -251,11 +255,23 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     f"Please check your submission and try again."
                 )
 
+    data_model_parser = DataModelParser(path_to_data_model = jsonld)
+
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
 
     def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None, strict=strict_validation):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
             path_to_json_ld=jsonld,
+            graph=graph_data_model,
             title=title,
             root=data_type,
             use_annotations=use_annotations,
@@ -283,8 +299,8 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     # Gather all returned result urls
     all_results = []
     if data_type[0] == 'all manifests':
-        sg = SchemaGenerator(path_to_json_ld=jsonld)
-        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+        DME = DataModelGraphExplorer(graph_data_model)
+        component_digraph = DME.get_digraph_by_edge_type('requiresComponent')
         components = component_digraph.nodes()
         for component in components:
             if title:
@@ -647,35 +663,41 @@ def get_manifest_datatype(access_token, manifest_id, asset_view):
     return manifest_dtypes_dict
 
 def get_schema_pickle(schema_url):
-    # load schema
-    se = SchemaExplorer()
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
 
-    se.load_schema(schema_url)
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
 
-    # get schema
-    schema_graph = se.get_nx_schema()
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
 
     # write to local pickle file
     path = os.getcwd()
     export_path = os.path.join(path, 'tests/data/schema.gpickle')
 
     with open(export_path, 'wb') as file:
-        pickle.dump(schema_graph, file)
+        pickle.dump(graph_data_model, file)
     return export_path
 
 
 def get_subgraph_by_edge_type(schema_url, relationship):
-    # use schema generator and schema explorer
-    sg = SchemaGenerator(path_to_json_ld=schema_url)
-    se = SchemaExplorer()
-    se.load_schema(schema_url)
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
 
-    # get the schema graph 
-    schema_graph = se.get_nx_schema()
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
 
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    DME = DataModelGraphExplorer(graph_data_model)
+    
     # relationship subgraph
-    relationship_subgraph = sg.get_subgraph_by_edge_type(schema_graph, relationship)
-
+    relationship_subgraph = DME.get_subgraph_by_edge_type(relationship)
     # return relationship 
     Arr = []
     for t in relationship_subgraph.edges:
@@ -686,14 +708,20 @@ def get_subgraph_by_edge_type(schema_url, relationship):
 
 
 def find_class_specific_properties(schema_url, schema_class):
-    # use schema explorer
-    se = SchemaExplorer()
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
 
-    # load schema
-    se.load_schema(schema_url)
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    DME = DataModelGraphExplorer(graph_data_model)
 
     # return properties
-    properties = se.find_class_specific_properties(schema_class)
+    properties = DME.find_class_specific_properties(schema_class)
 
     return properties
 
@@ -721,15 +749,25 @@ def get_node_dependencies(
     Returns:
         list[str]: List of nodes that are dependent on the source node.
     """
-    gen = SchemaGenerator(path_to_json_ld=schema_url)
-    dependencies = gen.get_node_dependencies(
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    DME = DataModelGraphExplorer(graph_data_model)
+    
+    dependencies = DME.get_node_dependencies(
         source_node, return_display_names, return_schema_ordered
     )
     return dependencies
 
 
-def get_property_label_from_display_name(
-    schema_url: str,
+def get_property_label_from_display_name_route(
     display_name: str,
     strict_camel_case: bool = False
 ) -> str:
@@ -744,9 +782,7 @@ def get_property_label_from_display_name(
     Returns:
         str: The property label of the display name
     """
-    explorer = SchemaExplorer()
-    explorer.load_schema(schema_url)
-    label = explorer.get_property_label_from_display_name(display_name, strict_camel_case)
+    label = get_property_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
     return label
 
 
@@ -766,8 +802,19 @@ def get_node_range(
     Returns:
         list[str]: A list of nodes
     """
-    gen = SchemaGenerator(path_to_json_ld=schema_url)
-    node_range = gen.get_node_range(node_label, return_display_names)
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    DME = DataModelGraphExplorer(graph_data_model)
+
+    node_range = DME.get_node_range(node_label, return_display_names)
     return node_range
 
 def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
@@ -781,8 +828,19 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
         True: If the given node is a "required" node.
         False: If the given node is not a "required" (i.e., an "optional") node.
     """
-    gen = SchemaGenerator(path_to_json_ld=schema_url)
-    is_required = gen.is_node_required(node_display_name)
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    DME = DataModelGraphExplorer(graph_data_model)
+
+    is_required = DME.get_node_required(node_display_name)
 
     return is_required
 
@@ -794,8 +852,22 @@ def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
     Returns:
         List of valiation rules for a given node.
     """
-    gen = SchemaGenerator(path_to_json_ld=schema_url)
-    node_validation_rules = gen.get_node_validation_rules(node_display_name)
+    # Instantiate DataModelParser
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    #Instantiate DataModelGraphExplorer
+    DME = DataModelGraphExplorer(graph_data_model)
+
+    node_validation_rules = DME.get_node_validation_rules(node_display_name)
 
     return node_validation_rules
 
@@ -810,8 +882,21 @@ def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
         node_display_names (List[str]): List of node display names.
 
     """
-    gen = SchemaGenerator(path_to_json_ld=schema_url)
-    mm_graph = gen.se.get_nx_schema()
-    node_display_names = gen.get_nodes_display_names(node_list, mm_graph)
+    # Instantiate DataModelParser
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    #Instantiate DataModelGraphExplorer
+    DME = DataModelGraphExplorer(graph_data_model)
+
+    node_display_names = DME.get_nodes_display_names(node_list)
     return node_display_names
 

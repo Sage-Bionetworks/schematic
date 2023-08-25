@@ -4,17 +4,16 @@ import click
 import click_log
 import logging
 import sys
-#TODO Remove timing after development
 import time
 import re
 
 from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_validator import DataModelValidator
 from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
 
 from schematic.utils.cli_utils import query_dict
-from schematic.utils.schema_util import export_schema
+from schematic.utils.schema_utils import export_schema
 from schematic.help import schema_commands
 
 logger = logging.getLogger('schematic')
@@ -58,9 +57,9 @@ def convert(schema, base_schema, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
-    """
 
-    # TO DO: Throw these steps into their own function
+    TODO: Throw actual errors in the future rather than just logging.
+    """
     
     # get the start time
     st = time.time()
@@ -82,7 +81,7 @@ def convert(schema, base_schema, output_jsonld):
 
     # Validate generated data model.
     logger.info("Validating the data model internally.")
-    data_model_validator = DataModelValidator(data_model=graph_data_model)
+    data_model_validator = DataModelValidator(graph=graph_data_model)
     data_model_errors = data_model_validator.run_checks()
     
     # If there are errors log them.
@@ -93,9 +92,7 @@ def convert(schema, base_schema, output_jsonld):
             elif isinstance(err, list):
                 for e in err:
                     logger.error(e)
-        # Actually raise error here with message.
-
-    #data_model_jsonld_converter = DataModelJsonLD()
+        
     logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
 
@@ -123,26 +120,3 @@ def convert(schema, base_schema, output_jsonld):
     # get the execution time
     elapsed_time = time.strftime("%M:%S", time.gmtime(et - st))
     click.echo(f"Execution time: {elapsed_time} (M:S)")
-
-    '''
-    # convert RFC to Data Model
-    base_se = _convert_csv_to_data_model(schema_csv, base_schema)
-
-    # output JSON-LD file alongside CSV file by default
-    if output_jsonld is None:
-        csv_no_ext = re.sub("[.]csv$", "", schema_csv)
-        output_jsonld = csv_no_ext + ".jsonld"
-
-        logger.info(
-            "By default, the JSON-LD output will be stored alongside the first "
-            f"input CSV file. In this case, it will appear here: '{output_jsonld}'. "
-            "You can use the `--output_jsonld` argument to specify another file path."
-        )
-
-    # saving updated schema.org schema
-    try:
-        base_se.export_schema(output_jsonld)
-        click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
-    except:
-        click.echo(f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again")
-    '''
