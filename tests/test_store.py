@@ -4,10 +4,11 @@ import logging
 import math
 import os
 from time import sleep
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
+from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
@@ -269,6 +270,42 @@ class TestSynapseStorage:
         else: 
             # return manifest id
             assert manifest_data == "syn51204513"
+
+    @pytest.mark.parametrize("existing_manifest_df", [pd.DataFrame(), pd.DataFrame({"Filename": ["existing_mock_file_path"], "entityId": ["existing_mock_entity_id"]})])
+    def test_fill_in_entity_id_filename(self, synapse_store, existing_manifest_df):
+        with patch("schematic.store.synapse.SynapseStorage.getFilesInStorageDataset", return_value=["syn123", "syn124", "syn125"]) as mock_get_file_storage, \
+        patch("schematic.store.synapse.SynapseStorage._get_file_entityIds", return_value={"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]}) as mock_get_file_entity_id:
+            dataset_files, new_manifest = synapse_store.fill_in_entity_id_filename(datasetId="test_syn_id", manifest=existing_manifest_df)
+            if not existing_manifest_df.empty:
+                expected_df=pd.DataFrame({"Filename": ["existing_mock_file_path", "mock_file_path"], "entityId": ["existing_mock_entity_id", "mock_entity_id"]})
+            else:
+                expected_df=pd.DataFrame({"Filename": ["mock_file_path"], "entityId": ["mock_entity_id"]})
+            assert_frame_equal(new_manifest, expected_df)
+            assert dataset_files == ["syn123", "syn124", "syn125"]
+
+    # Test case: make sure that Filename and entityId column get filled and component column has the same length as filename column
+    def test_add_entity_id_and_filename_with_component_col(self, synapse_store):
+        with patch("schematic.store.synapse.SynapseStorage._get_files_metadata_from_dataset", return_value={"Filename": ["test_file1", "test_file2"], "entityId": ["syn123", "syn124"]}):
+            mock_manifest = pd.DataFrame.from_dict({"Filename": [""], "Component": ["MockComponent"], "Sample ID": [""]}).reset_index(drop=True)
+            manifest_to_return = synapse_store.add_entity_id_and_filename(datasetId="mock_syn_id", manifest=mock_manifest)
+            expected_df = pd.DataFrame.from_dict({"Filename": ["test_file1", "test_file2"], "Component": ["MockComponent", "MockComponent"], "Sample ID": ["", ""], "entityId": ["syn123", "syn124"]})
+            assert_frame_equal(manifest_to_return, expected_df)
+
+    # Test case: make sure that Filename and entityId column get filled when component column does not exist 
+    def test_add_entity_id_and_filename_without_component_col(self, synapse_store):
+        with patch("schematic.store.synapse.SynapseStorage._get_files_metadata_from_dataset", return_value={"Filename": ["test_file1", "test_file2"], "entityId": ["syn123", "syn124"]}):
+            mock_manifest = pd.DataFrame.from_dict({"Filename": [""], "Sample ID": [""]}).reset_index(drop=True)
+            manifest_to_return = synapse_store.add_entity_id_and_filename(datasetId="mock_syn_id", manifest=mock_manifest)
+            expected_df = pd.DataFrame.from_dict({"Filename": ["test_file1", "test_file2"], "Sample ID": ["", ""], "entityId": ["syn123", "syn124"]})
+            assert_frame_equal(manifest_to_return, expected_df)
+
+    def test_get_files_metadata_from_dataset(self, synapse_store):
+        patch_get_children = [('syn123', 'parent_folder/test_A.txt'), ('syn456', 'parent_folder/test_B.txt')]
+        mock_file_entityId = {"Filename": ["parent_folder/test_A.txt", "parent_folder/test_B.txt"], "entityId": ["syn123", "syn456"]}
+        with patch("schematic.store.synapse.SynapseStorage.getFilesInStorageDataset", return_value=patch_get_children):
+            with patch("schematic.store.synapse.SynapseStorage._get_file_entityIds", return_value=mock_file_entityId):
+                dataset_file_names_id_dict = synapse_store._get_files_metadata_from_dataset("mock dataset id", only_new_files=True)
+                assert dataset_file_names_id_dict ==  {"Filename": ["parent_folder/test_A.txt", "parent_folder/test_B.txt"], "entityId": ["syn123", "syn456"]}
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):

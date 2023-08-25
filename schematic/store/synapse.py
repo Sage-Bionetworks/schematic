@@ -10,7 +10,7 @@ from dataclasses import dataclass
 import shutil
 
 # allows specifying explicit variable types
-from typing import Dict, List, Tuple, Sequence, Union
+from typing import Dict, List, Tuple, Sequence, Union, Optional
 from collections import OrderedDict
 from tenacity import retry, stop_after_attempt, wait_chain, wait_fixed, retry_if_exception_type
 
@@ -538,6 +538,94 @@ class SynapseStorage(BaseStorage):
 
         return result_dict
 
+    def _get_files_metadata_from_dataset(self, datasetId: str, only_new_files: bool, manifest:pd.DataFrame=None) -> Optional[dict]:
+        """retrieve file ids under a particular datasetId
+
+        Args:
+            datasetId (str): a dataset id 
+            only_new_files (bool): if only adding new files that are not already exist 
+            manifest (pd.DataFrame): metadata manifest dataframe. Default to None. 
+
+        Returns:
+            a dictionary that contains filename and entityid under a given datasetId or None if there is nothing under a given dataset id are not available
+        """
+        dataset_files = self.getFilesInStorageDataset(datasetId)
+        if dataset_files:
+            dataset_file_names_id_dict = self._get_file_entityIds(dataset_files, only_new_files=only_new_files, manifest=manifest)
+            return dataset_file_names_id_dict
+        else:
+            return None
+
+    def add_entity_id_and_filename(self,  datasetId: str, manifest: pd.DataFrame) -> pd.DataFrame:
+        """add entityid and filename column to an existing manifest assuming entityId column is not already present
+
+        Args:
+            datasetId (str): dataset syn id
+            manifest (pd.DataFrame): existing manifest dataframe, assuming this dataframe does not have an entityId column and Filename column is present but completely empty 
+
+        Returns:
+            pd.DataFrame: returns a pandas dataframe 
+        """
+        # get file names and entity ids of a given dataset 
+        dataset_files_dict = self._get_files_metadata_from_dataset(datasetId, only_new_files=False)
+
+        if dataset_files_dict: 
+            # turn manifest dataframe back to a dictionary for operation 
+            manifest_dict = manifest.to_dict('list')
+
+            # update Filename column
+            # add entityId column to the end
+            manifest_dict.update(dataset_files_dict)
+            
+            # if the component column exists in existing manifest, fill up that column 
+            if "Component" in manifest_dict.keys():
+                manifest_dict["Component"] = manifest_dict["Component"] * max(1, len(manifest_dict["Filename"]))
+            
+            # turn dictionary back to a dataframe
+            manifest_df_index = pd.DataFrame.from_dict(manifest_dict, orient='index')
+            manifest_df_updated = manifest_df_index.transpose()
+
+            # fill na with empty string
+            manifest_df_updated = manifest_df_updated.fillna("")
+
+            # drop index
+            manifest_df_updated = manifest_df_updated.reset_index(drop=True)
+
+            return manifest_df_updated
+        else:
+            return manifest
+
+    def fill_in_entity_id_filename(self, datasetId: str, manifest: pd.DataFrame) -> Tuple[List, pd.DataFrame]:
+        """fill in Filename column and EntityId column. EntityId column and Filename column will be created if not already present. 
+
+        Args:
+            datasetId (str): dataset syn id
+            manifest (pd.DataFrame): existing manifest dataframe.
+
+        Returns:
+            Tuple[List, pd.DataFrame]: a list of synIds that are under a given datasetId folder and updated manifest dataframe
+        """
+        # get dataset file names and entity id as a list of tuple
+        dataset_files = self.getFilesInStorageDataset(datasetId)
+
+        # update manifest with additional filenames, if any
+        # note that if there is an existing manifest and there are files in the dataset
+        # the columns Filename and entityId are assumed to be present in manifest schema
+        # TODO: use idiomatic panda syntax
+        if dataset_files:
+            new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
+
+        # update manifest so that it contain new files
+        new_files = pd.DataFrame(new_files)
+        manifest = (
+                pd.concat([manifest, new_files], sort=False)
+                .reset_index()
+                .drop("index", axis=1)
+        )
+
+        manifest = manifest.fillna("") 
+        return dataset_files, manifest
+        
     def updateDatasetManifestFiles(self, sg: SchemaGenerator, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 
@@ -562,24 +650,13 @@ class SynapseStorage(BaseStorage):
         manifest_filepath = self.syn.get(manifest_id).path
         manifest = load_df(manifest_filepath)
 
-        # get current list of files
-        dataset_files = self.getFilesInStorageDataset(datasetId)
-
         # update manifest with additional filenames, if any
         # note that if there is an existing manifest and there are files in the dataset
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
+
+        dataset_files, manifest = self.fill_in_entity_id_filename(datasetId, manifest)
         if dataset_files:
-            new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
-
-            # update manifest so that it contain new files
-            new_files = pd.DataFrame(new_files)
-            manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-            )
-
             # update the manifest file, so that it contains the relevant entity IDs
             if store:
                 manifest.to_csv(manifest_filepath, index=False)
@@ -587,7 +664,6 @@ class SynapseStorage(BaseStorage):
                 # store manifest and update associated metadata with manifest on Synapse
                 manifest_id = self.associateMetadataWithFiles(sg, manifest_filepath, datasetId)
 
-        manifest = manifest.fillna("") 
         
         return manifest_id, manifest
     
