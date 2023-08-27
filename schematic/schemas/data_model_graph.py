@@ -14,7 +14,6 @@ from networkx.readwrite import json_graph
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes 
-
 from schematic.schemas.data_model_relationships import (
     DataModelRelationships
     )

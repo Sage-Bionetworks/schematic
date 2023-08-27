@@ -1,24 +1,25 @@
-from datetime import datetime, timedelta
-from copy import deepcopy
-import os
-import uuid  # used to generate unique names for entities
-import json
 import atexit
-import logging
-import secrets
-from dataclasses import dataclass
-import tempfile
-
-# allows specifying explicit variable types
-from typing import Dict, List, Tuple, Sequence, Union
 from collections import OrderedDict
-from tenacity import retry, stop_after_attempt, wait_chain, wait_fixed, retry_if_exception_type
-
+from copy import deepcopy
+from datetime import datetime, timedelta
+from dataclasses import dataclass
+import json
+import logging
 import numpy as np
 import pandas as pd
+import os
 import re
+import secrets
+import shutil
 import synapseclient
+import uuid  # used to generate unique names for entities
+
+from tenacity import retry, stop_after_attempt, wait_chain, wait_fixed, retry_if_exception_type
 from time import sleep
+# allows specifying explicit variable types
+from typing import Dict, List, Tuple, Sequence, Union, Optional
+
+
 from synapseclient import (
     Synapse,
     File,
@@ -30,31 +31,33 @@ from synapseclient import (
     Column,
     as_table_columns,
 )
-
 from synapseclient.entity import File
 from synapseclient.table import CsvFileTable, build_table, Schema
 from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import SynapseHTTPError, SynapseAuthenticationError, SynapseUnmetAccessRestrictions
-from synapseutils import walk
+import synapseutils
 from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
 from schematic_db.rdb.synapse_database import SynapseDatabase
 
-
-from schematic.utils.df_utils import update_df, load_df, col_in_dataframe, populate_df_col_with_another_col
-from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
-from schematic.utils.general import entity_type_mapping, get_dir_size, convert_size, convert_gb_to_bytes, create_temp_folder
-from schematic.utils.schema_utils import get_class_label_from_display_name
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
+
+from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
+from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+from schematic.utils.general import (entity_type_mapping,
+                                     get_dir_size,
+                                     convert_size,
+                                     convert_gb_to_bytes,
+                                     create_temp_folder,
+                                     profile,
+                                     calculate_datetime)
+from schematic.utils.schema_utils import get_class_label_from_display_name
 
 from schematic.store.base import BaseStorage
 from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
-
 from schematic.configuration.configuration import CONFIG
-
-from schematic.utils.general import profile
 
 logger = logging.getLogger("Synapse storage")
 
@@ -76,12 +79,16 @@ class ManifestDownload(object):
         """
         if "SECRETS_MANAGER_SECRETS" in os.environ:
             temporary_manifest_storage = "/var/tmp/temp_manifest_download"
+            # clear out all the existing manifests
+            if os.path.exists(temporary_manifest_storage):
+                shutil.rmtree(temporary_manifest_storage)
+            # create a new directory to store manifest
             if not os.path.exists(temporary_manifest_storage):
-                os.mkdir("/var/tmp/temp_manifest_download")
+                os.mkdir(temporary_manifest_storage)
+            # create temporary folders for storing manifests
             download_location = create_temp_folder(temporary_manifest_storage)
         else:
             download_location=CONFIG.manifest_folder
-
         manifest_data = self.syn.get(
                 self.manifest_id,
                 downloadLocation=download_location,
@@ -178,41 +185,34 @@ class SynapseStorage(BaseStorage):
         Typical usage example:
             syn_store = SynapseStorage()
         """
-
+        # TODO: turn root_synapse_cache to a parameter in init
         self.syn = self.login(token, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
+        self.root_synapse_cache = "/root/.synapseCache"
         self._query_fileview()
 
-    def _purge_synapse_cache(self, root_dir: str = "/var/www/.synapseCache/", maximum_storage_allowed_cache_gb=7):
+    def _purge_synapse_cache(self, maximum_storage_allowed_cache_gb=1):
         """
-        Purge synapse cache if it exceeds 7GB
+        Purge synapse cache if it exceeds a certain size. Default to 1GB. 
         Args:
-            root_dir: directory of the .synapseCache function
-            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 7 GB. 
-
-        Returns: 
-            if size of cache reaches a certain threshold (default is 7GB), return the number of files that get deleted
-            otherwise, return the total remaining space (assuming total ephemeral storage is 20GB on AWS )
+            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 1 GB. 
         """
         # try clearing the cache
         # scan a directory and check size of files
-        cache = self.syn.cache
-        if os.path.exists(root_dir):
+        if os.path.exists(self.root_synapse_cache):
             maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(maximum_storage_allowed_cache_gb)
-            total_ephemeral_storag_gb = 20
-            total_ephemeral_storage_bytes = convert_gb_to_bytes(total_ephemeral_storag_gb)
-            nbytes = get_dir_size(root_dir)
-            # if 7 GB has already been taken, purge cache before 15 min
-            if nbytes >= maximum_storage_allowed_cache_bytes:
-                minutes_earlier = datetime.strftime(datetime.utcnow()- timedelta(minutes = 15), '%s')
-                num_of_deleted_files = cache.purge(before_date = int(minutes_earlier))
-                logger.info(f'{num_of_deleted_files} number of files have been deleted from {root_dir}')
+            nbytes = get_dir_size(self.root_synapse_cache)
+            dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
+            # if 1 GB has already been taken, purge cache before 15 min
+            if dir_size_bytes >= maximum_storage_allowed_cache_bytes:
+                num_of_deleted_files = clear_synapse_cache(self.syn.cache, minutes=15)
+                logger.info(f'{num_of_deleted_files}  files have been deleted from {self.root_synapse_cache}')
             else:
-                remaining_space = total_ephemeral_storage_bytes - nbytes
-                converted_space = convert_size(remaining_space)
-                logger.info(f'Estimated {remaining_space} bytes (which is approximately {converted_space}) remained in ephemeral storage after calculating size of .synapseCache excluding OS')
+                # on AWS, OS takes around 14-17% of our ephemeral storage (20GiB)
+                # instead of guessing how much space that we left, print out .synapseCache here
+                logger.info(f'the total size of .synapseCache is: {nbytes} bytes')
 
     def _query_fileview(self):
         self._purge_synapse_cache()
@@ -417,7 +417,7 @@ class SynapseStorage(BaseStorage):
         """
 
         # select all files within a given storage dataset folder (top level folder in a Synapse storage project or folder marked with contentType = 'dataset')
-        walked_path = walk(self.syn, datasetId)
+        walked_path = synapseutils.walk(self.syn, datasetId, includeTypes=["folder", "file"])
 
         file_list = []
 
@@ -542,6 +542,94 @@ class SynapseStorage(BaseStorage):
 
         return result_dict
 
+    def _get_files_metadata_from_dataset(self, datasetId: str, only_new_files: bool, manifest:pd.DataFrame=None) -> Optional[dict]:
+        """retrieve file ids under a particular datasetId
+
+        Args:
+            datasetId (str): a dataset id 
+            only_new_files (bool): if only adding new files that are not already exist 
+            manifest (pd.DataFrame): metadata manifest dataframe. Default to None. 
+
+        Returns:
+            a dictionary that contains filename and entityid under a given datasetId or None if there is nothing under a given dataset id are not available
+        """
+        dataset_files = self.getFilesInStorageDataset(datasetId)
+        if dataset_files:
+            dataset_file_names_id_dict = self._get_file_entityIds(dataset_files, only_new_files=only_new_files, manifest=manifest)
+            return dataset_file_names_id_dict
+        else:
+            return None
+
+    def add_entity_id_and_filename(self,  datasetId: str, manifest: pd.DataFrame) -> pd.DataFrame:
+        """add entityid and filename column to an existing manifest assuming entityId column is not already present
+
+        Args:
+            datasetId (str): dataset syn id
+            manifest (pd.DataFrame): existing manifest dataframe, assuming this dataframe does not have an entityId column and Filename column is present but completely empty 
+
+        Returns:
+            pd.DataFrame: returns a pandas dataframe 
+        """
+        # get file names and entity ids of a given dataset 
+        dataset_files_dict = self._get_files_metadata_from_dataset(datasetId, only_new_files=False)
+
+        if dataset_files_dict: 
+            # turn manifest dataframe back to a dictionary for operation 
+            manifest_dict = manifest.to_dict('list')
+
+            # update Filename column
+            # add entityId column to the end
+            manifest_dict.update(dataset_files_dict)
+            
+            # if the component column exists in existing manifest, fill up that column 
+            if "Component" in manifest_dict.keys():
+                manifest_dict["Component"] = manifest_dict["Component"] * max(1, len(manifest_dict["Filename"]))
+            
+            # turn dictionary back to a dataframe
+            manifest_df_index = pd.DataFrame.from_dict(manifest_dict, orient='index')
+            manifest_df_updated = manifest_df_index.transpose()
+
+            # fill na with empty string
+            manifest_df_updated = manifest_df_updated.fillna("")
+
+            # drop index
+            manifest_df_updated = manifest_df_updated.reset_index(drop=True)
+
+            return manifest_df_updated
+        else:
+            return manifest
+
+    def fill_in_entity_id_filename(self, datasetId: str, manifest: pd.DataFrame) -> Tuple[List, pd.DataFrame]:
+        """fill in Filename column and EntityId column. EntityId column and Filename column will be created if not already present. 
+
+        Args:
+            datasetId (str): dataset syn id
+            manifest (pd.DataFrame): existing manifest dataframe.
+
+        Returns:
+            Tuple[List, pd.DataFrame]: a list of synIds that are under a given datasetId folder and updated manifest dataframe
+        """
+        # get dataset file names and entity id as a list of tuple
+        dataset_files = self.getFilesInStorageDataset(datasetId)
+
+        # update manifest with additional filenames, if any
+        # note that if there is an existing manifest and there are files in the dataset
+        # the columns Filename and entityId are assumed to be present in manifest schema
+        # TODO: use idiomatic panda syntax
+        if dataset_files:
+            new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
+
+        # update manifest so that it contain new files
+        new_files = pd.DataFrame(new_files)
+        manifest = (
+                pd.concat([manifest, new_files], sort=False)
+                .reset_index()
+                .drop("index", axis=1)
+        )
+
+        manifest = manifest.fillna("") 
+        return dataset_files, manifest
+        
     def updateDatasetManifestFiles(self, DME: DataModelGraphExplorer, datasetId: str, store:bool = True) -> Union[Tuple[str, pd.DataFrame], None]:
         """Fetch the names and entity IDs of all current files in dataset in store, if any; update dataset's manifest with new files, if any.
 
@@ -567,24 +655,13 @@ class SynapseStorage(BaseStorage):
         manifest_filepath = self.syn.get(manifest_id).path
         manifest = load_df(manifest_filepath)
 
-        # get current list of files
-        dataset_files = self.getFilesInStorageDataset(datasetId)
-
         # update manifest with additional filenames, if any
         # note that if there is an existing manifest and there are files in the dataset
         # the columns Filename and entityId are assumed to be present in manifest schema
         # TODO: use idiomatic panda syntax
+
+        dataset_files, manifest = self.fill_in_entity_id_filename(datasetId, manifest)
         if dataset_files:
-            new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
-
-            # update manifest so that it contain new files
-            new_files = pd.DataFrame(new_files)
-            manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-            )
-
             # update the manifest file, so that it contains the relevant entity IDs
             if store:
                 manifest.to_csv(manifest_filepath, index=False)
@@ -592,7 +669,6 @@ class SynapseStorage(BaseStorage):
                 # store manifest and update associated metadata with manifest on Synapse
                 manifest_id = self.associateMetadataWithFiles(DME, manifest_filepath, datasetId)
 
-        manifest = manifest.fillna("") 
         
         return manifest_id, manifest
     
