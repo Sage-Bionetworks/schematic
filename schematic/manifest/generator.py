@@ -439,7 +439,7 @@ class ManifestGenerator(object):
 
         return required_metadata_fields
 
-    def _add_root_to_component(self, required_metadata_fields):
+    def _add_root_to_component(self, required_metadata_fields: Dict[str, List]):
         """If 'Component' is in the column set, add root node as a
         metadata component entry in the first row of that column.
         Args:
