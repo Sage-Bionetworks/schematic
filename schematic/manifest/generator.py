@@ -82,7 +82,7 @@ class ManifestGenerator(object):
                 "when there is no manifest file for the dataset in question."
             )
 
-        # Data Model Explorer object
+        # Instantiate Data Model Explorer object
         self.DME = DataModelGraphExplorer(self.graph)
 
         # additional metadata to add to manifest
@@ -363,10 +363,7 @@ class ManifestGenerator(object):
         TODO: Do we even allow people to provide a json_schema_filepath anyore?
         """
         if not json_schema_filepath:
-            # if no json schema is provided; there must be
-            # schema explorer defined for schema.org schema
-            # o.w. this will throw an error
-            # TODO: catch error
+            # TODO Catch error if no JSONLD or JSON path provided.
             data_model_js = DataModelJSONSchema(jsonld_path=self.jsonld_path, graph=self.graph)
             json_schema = data_model_js.get_json_validation_schema(source_node=self.root, schema_name=self.title)
         else:
