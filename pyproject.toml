@@ -126,6 +126,9 @@ markers = [
     Google credentials (skipped on GitHub CI) \
     """,
     """\
+    submission: tests that involve submitting manifests
+    """,
+    """\
     not_windows: tests that don't work on on windows machine
     """,
     """\
