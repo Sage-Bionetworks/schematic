@@ -615,7 +615,7 @@ class SynapseStorage(BaseStorage):
         if dataset_files:
             new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
 
-            # update manifest so that it contains new files
+            # update manifest so that it contains new dataset files
             new_files = pd.DataFrame(new_files)
             manifest = (
                     pd.concat([manifest, new_files], sort=False)
