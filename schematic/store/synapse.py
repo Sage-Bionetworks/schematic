@@ -615,13 +615,13 @@ class SynapseStorage(BaseStorage):
         if dataset_files:
             new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
 
-        # update manifest so that it contain new files
-        new_files = pd.DataFrame(new_files)
-        manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-        )
+            # update manifest so that it contains new files
+            new_files = pd.DataFrame(new_files)
+            manifest = (
+                    pd.concat([manifest, new_files], sort=False)
+                    .reset_index()
+                    .drop("index", axis=1)
+            )
 
         manifest = manifest.fillna("") 
         return dataset_files, manifest
