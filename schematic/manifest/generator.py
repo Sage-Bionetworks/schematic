@@ -1554,6 +1554,10 @@ class ManifestGenerator(object):
                     annotations = store.getDatasetAnnotations(dataset_id)
                     # Update `additional_metadata` and generate manifest
                     manifest_url, manifest_df = self.get_manifest_with_annotations(annotations,strict=strict)
+                else:
+                    empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
+                    manifest_df = empty_manifest_df
+
             else:
                 empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
                 if self.is_file_based:
