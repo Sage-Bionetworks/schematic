@@ -1562,6 +1562,8 @@ class ManifestGenerator(object):
                     empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
                     manifest_df = empty_manifest_df
 
+                    logger.warning(f"Annotations were not able to be gathered for the given parameters. This manifest will be generated from an empty manifest.")
+                    
             else:
                 empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
                 if self.is_file_based:
