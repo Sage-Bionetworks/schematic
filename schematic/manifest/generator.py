@@ -83,7 +83,14 @@ class ManifestGenerator(object):
         # Determine whether current data type is file-based
         is_file_based = False
         if self.root:
-            is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
+            try:
+                is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
+            except KeyError as e:
+               if self.root in str(e):
+                   raise LookupError(f"The DataType entered ({self.root}) could not be found in the data model schema. Please confirm that the datatype is in the data model and that the spelling matches what is in the .jsonld file.") from e
+               else:
+                   raise(e)
+
         self.is_file_based = is_file_based
 
     def _attribute_to_letter(self, attribute, manifest_fields):
