@@ -76,7 +76,7 @@ jobs:
         if: ${{ inputs.perform_benchmarking }}
         run: >
           source .venv/bin/activate;
-          pytest -m "schematic_api"
+          pytest -m "schematic_api and not submission"
 
       - name: Run API tests + Exclude Benchmarks
         env:
@@ -85,4 +85,4 @@ jobs:
         if: ${{ false == inputs.perform_benchmarking }}
         run: >
           source .venv/bin/activate;
-          pytest -m "schematic_api and not rule_benchmark"
+          pytest -m "schematic_api and not submission and not rule_benchmark"

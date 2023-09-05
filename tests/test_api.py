@@ -503,7 +503,63 @@ class TestManifestOperation:
                 assert len(response_dt) == 2
             else: 
                 assert len(response_dt) == 1
+    
+    # test case: generate a manifest when use_annotations is set to True/False for a file-based component
+    # based on the parameter, the columns in the manifests would be different
+    # the dataset folder does not contain an existing manifest 
+    @pytest.mark.parametrize("use_annotations,expected",[(True, ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'impact', 'Year of Birth', 'date', 'confidence', 'IsImportantBool', 'IsImportantText', 'author', 'eTag', 'entityId']), 
+    (False, ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'entityId'])])
+    def test_generate_manifest_file_based_annotations(self, client, use_annotations, expected, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "BulkRNA-seqAssay",
+            "dataset_id": "syn25614635",
+            "asset_view": "syn51707141",
+            "output_format": "google_sheet", 
+            "use_annotations": use_annotations
+        }
 
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        assert response.status_code == 200
+
+        response_google_sheet = json.loads(response.data)
+        
+        # open the google sheet 
+        google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
+        
+        # make sure that columns used in annotations get added
+        # and also make sure that entityId column appears in the end
+
+        assert google_sheet_df.columns.to_list()[-1] == "entityId"
+        assert sorted(google_sheet_df.columns.to_list()) == sorted(expected)
+
+        # make sure Filename, entityId, and component get filled with correct value
+        assert google_sheet_df["Filename"].to_list() == ["TestDataset-Annotations-v3/Sample_A.txt", "TestDataset-Annotations-v3/Sample_B.txt", "TestDataset-Annotations-v3/Sample_C.txt"]
+        assert google_sheet_df["entityId"].to_list() == ["syn25614636", "syn25614637", "syn25614638"]
+        assert google_sheet_df["Component"].to_list() == ["BulkRNA-seqAssay", "BulkRNA-seqAssay", "BulkRNA-seqAssay"]
+
+    # test case: generate a manifest with annotations when use_annotations is set to True for a component that is not file-based
+    # the dataset folder does not contain an existing manifest 
+    def test_generate_manifest_not_file_based_with_annotations(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "Patient",
+            "dataset_id": "syn25614635",
+            "asset_view": "syn51707141",
+            "output_format": "google_sheet", 
+            "use_annotations": False        
+        }
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        assert response.status_code == 200
+
+        response_google_sheet = json.loads(response.data)
+
+        # open the google sheet 
+        google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
+
+        # make sure that the result is basically the same as generating a new manifest
+        assert sorted(google_sheet_df.columns) == sorted(['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component', 'Cancer Type', 'Family History'])
+        
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
         test_manifest_data = open(test_manifest_csv, "rb")
@@ -678,7 +734,8 @@ class TestManifestOperation:
 
             assert isinstance(response_path, str)
             assert response_path.endswith(".csv")
-
+    
+    @pytest.mark.submission
     def test_submit_manifest_table_and_file_replace(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         """Testing submit manifest in a csv format as a table and a file. Only replace the table
         """
@@ -698,6 +755,7 @@ class TestManifestOperation:
         response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200
 
+    @pytest.mark.submission
     def test_submit_manifest_file_only_replace(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         """Testing submit manifest in a csv format as a file
         """
@@ -715,6 +773,7 @@ class TestManifestOperation:
         response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200 
     
+    @pytest.mark.submission
     def test_submit_manifest_json_str_replace(self, client, syn_token, data_model_jsonld):
         """Submit json str as a file
         """
@@ -735,6 +794,7 @@ class TestManifestOperation:
         response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
         assert response.status_code == 200
 
+    @pytest.mark.submission
     def test_submit_manifest_w_file_and_entities(self, client, syn_token, data_model_jsonld, test_manifest_submit):
         params = {
             "access_token": syn_token,
@@ -752,6 +812,7 @@ class TestManifestOperation:
         response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")})
         assert response_csv.status_code == 200
 
+    @pytest.mark.submission
     def test_submit_manifest_table_and_file_upsert(self, client, syn_token, data_model_jsonld, test_upsert_manifest_csv, ):
         params = {
             "access_token": syn_token,

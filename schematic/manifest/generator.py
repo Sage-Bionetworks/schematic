@@ -439,7 +439,7 @@ class ManifestGenerator(object):
 
         return required_metadata_fields
 
-    def _add_root_to_component(self, required_metadata_fields):
+    def _add_root_to_component(self, required_metadata_fields: Dict[str, List]):
         """If 'Component' is in the column set, add root node as a
         metadata component entry in the first row of that column.
         Args:
@@ -462,7 +462,6 @@ class ManifestGenerator(object):
                 )
             else:
                 self.additional_metadata["Component"] = [self.root]
-
         return
 
     def _get_additional_metadata(self, required_metadata_fields: dict) -> dict:
@@ -886,7 +885,7 @@ class ManifestGenerator(object):
         else:
             return
 
-    def _request_notes_comments(self, i, req, json_schema):
+    def _set_required_columns_color(self, i, req, json_schema):
         """Update background colors so that columns that are required are highlighted
         Args:
             i (int): column index
@@ -1126,10 +1125,10 @@ class ManifestGenerator(object):
             if get_row_formatting:
                 requests_body["requests"].append(get_row_formatting)
 
-            # Add notes to headers to provide descriptions of the attribute
-            header_notes = self._request_notes_comments(i, req, json_schema)
-            if header_notes:
-                requests_body["requests"].append(header_notes)
+            # set color of required columns to blue
+            required_columns_color = self._set_required_columns_color(i, req, json_schema)
+            if required_columns_color:
+                requests_body["requests"].append(required_columns_color)
             # Add note on how to use multi-select, when appropriate
             note_vv = self._request_note_valid_values(
                 i, req, validation_rules, valid_values
@@ -1365,19 +1364,16 @@ class ManifestGenerator(object):
         return annotations.rename(columns=label_map)
 
     def get_manifest_with_annotations(
-        self, annotations: pd.DataFrame, sheet_url:bool=None, strict: Optional[bool]=None,
+        self, annotations: pd.DataFrame, strict: Optional[bool]=None
     ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
         """Generate manifest, optionally with annotations (if requested).
-
         Args:
             annotations (pd.DataFrame): Annotations table (can be empty).
             strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
-            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
         Returns:
             Tuple[ps.Spreadsheet, pd.DataFrame]: Both the Google Sheet
             URL and the corresponding data frame is returned.
         """
-
         # Map annotation labels to display names to match manifest columns
         annotations = self.map_annotation_names_to_display_names(annotations)
 
@@ -1391,19 +1387,19 @@ class ManifestGenerator(object):
         self.additional_metadata = annotations_dict
 
         # Generate empty manifest using `additional_metadata`
-        manifest_url = self.get_empty_manifest(sheet_url=sheet_url, strict=strict)
+        # With annotations added, regenerate empty manifest
+        manifest_url = self.get_empty_manifest(sheet_url=True, strict=strict)
         manifest_df = self.get_dataframe_by_url(manifest_url=manifest_url)
 
         # Annotations clashing with manifest attributes are skipped
         # during empty manifest generation. For more info, search
         # for `additional_metadata` in `self.get_empty_manifest`.
         # Hence, the shared columns need to be updated separately.
-        if self.is_file_based and self.use_annotations:
-            # This approach assumes that `update_df` returns
-            # a data frame whose columns are in the same order
-            manifest_df = update_df(manifest_df, annotations)
-            manifest_sh = self.set_dataframe_by_url(manifest_url, manifest_df)
-            manifest_url = manifest_sh.url
+        # This approach assumes that `update_df` returns
+        # a data frame whose columns are in the same order
+        manifest_df = update_df(manifest_df, annotations)
+        manifest_sh = self.set_dataframe_by_url(manifest_url, manifest_df)
+        manifest_url = manifest_sh.url
 
         return manifest_url, manifest_df
 
@@ -1527,7 +1523,7 @@ class ManifestGenerator(object):
         manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
-        empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=sheet_url)
+        empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=True)
 
         # Populate empty template with existing manifest
         if manifest_record:
@@ -1547,25 +1543,24 @@ class ManifestGenerator(object):
             return result
 
         # Generate empty template and optionally fill in with annotations
+        # if there is no existing manifest and use annotations is set to True, 
+        # pull annotations (in reality, annotations should be empty when there is no existing manifest)
         else:
             # Using getDatasetAnnotations() to retrieve file names and subset
             # entities to files and folders (ignoring tables/views)
-
             annotations = pd.DataFrame()
-            if self.is_file_based:
-                annotations = store.getDatasetAnnotations(dataset_id)
-
-            # if there are no files with annotations just generate an empty manifest
-            if annotations.empty:
-                manifest_url = self.get_empty_manifest(strict=strict)
-                manifest_df = self.get_dataframe_by_url(manifest_url)
+            if self.use_annotations:
+                if self.is_file_based:
+                    annotations = store.getDatasetAnnotations(dataset_id)
+                    # Update `additional_metadata` and generate manifest
+                    manifest_url, manifest_df = self.get_manifest_with_annotations(annotations,strict=strict)
             else:
-                # Subset columns if no interested in user-defined annotations and there are files present
-                if self.is_file_based and not self.use_annotations:
-                    annotations = annotations[["Filename", "eTag", "entityId"]]
-
-                # Update `additional_metadata` and generate manifest
-                manifest_url, manifest_df = self.get_manifest_with_annotations(annotations, sheet_url=sheet_url, strict=strict)
+                empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
+                if self.is_file_based:
+                    # for file-based manifest, make sure that entityId column and Filename column still gets filled even though use_annotations gets set to False
+                    manifest_df = store.add_entity_id_and_filename(dataset_id,empty_manifest_df)
+                else:
+                    manifest_df = empty_manifest_df
 
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
