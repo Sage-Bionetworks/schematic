@@ -185,6 +185,7 @@ class SchemaExplorer:
 
     def is_class_in_schema(self, class_label):
         
+        # accessing the node in the dictionary will error out if the class is not in the schema
         try:
             node = self.schema_nx.nodes[class_label]
         except(KeyError):
