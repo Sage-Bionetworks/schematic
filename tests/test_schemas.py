@@ -280,6 +280,6 @@ class TestDfParser:
 
 class TestSchemaExplorer:
     @pytest.mark.parametrize("class_name,expected_in_schema",[("Patient",True),("ptaient",False),("Biospecimen",True),("InvalidComponent",False)])
-    def test_is_class_in_schema(sg, class_name, expected_in_schema):
+    def test_is_class_in_schema(self, sg, class_name, expected_in_schema):
 
         assert True
