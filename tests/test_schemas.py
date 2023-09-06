@@ -281,5 +281,10 @@ class TestDfParser:
 class TestSchemaExplorer:
     @pytest.mark.parametrize("class_name,expected_in_schema",[("Patient",True),("ptaient",False),("Biospecimen",True),("InvalidComponent",False)])
     def test_is_class_in_schema(self, sg, class_name, expected_in_schema):
+        """
+        Test to cover checking if a given class is in a schema.
+        `is_class_in_schema` should return `True` if the class is in the schema
+        and `False` if it is not.
+        """
 
         assert True
