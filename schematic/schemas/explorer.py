@@ -184,7 +184,13 @@ class SchemaExplorer:
         return list(nodes)
 
     def is_class_in_schema(self, class_label):
-        if self.schema_nx.nodes[class_label]:
+        
+        try:
+            node = self.schema_nx.nodes[class_label]
+        except(KeyError):
+            node = None
+        
+        if node:
             return True
         else:
             return False
