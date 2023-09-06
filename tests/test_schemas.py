@@ -287,4 +287,8 @@ class TestSchemaExplorer:
         and `False` if it is not.
         """
 
-        assert True
+        # Check if class is in schema
+        class_in_schema = sg.se.is_class_in_schema(class_name)
+
+        # Assert value is as expected
+        assert class_in_schema == expected_in_schema
