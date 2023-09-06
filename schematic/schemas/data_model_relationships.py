@@ -5,53 +5,42 @@ from schematic.schemas.curie import uri2curie, curie2uri
 class DataModelRelationships():
     def __init__(self) -> None:
         self.relationships_dictionary = self.define_data_model_relationships()
-        #self.delimiters = ['@', ':']
-        return
 
     def define_data_model_relationships(self) -> Dict:
-        """ Define the relationships in the model so they can be accessed in a central location.
-        If adding anew relationship make sure to follow the conventions closely.
-            key:{ 
-                jsonld_key:,
-
-                csv_header: 
-                jsonld_default: if at the end of processing there is no value present, this is the value we want to fill.
-                    can also fill with type to ensure the key does not get deleted.
+        """ Define the relationships and their attributes so they can be accessed through other classes.
+            The key is how it the relationship will be referenced througout Schematic.
+            Note: Though we could use other keys to determine which keys define nodes and edges,
+                edge_rel is used as an explicit definition, for easier code readablity.
+            key:
+                jsonld_key: Name for relationship in the JSONLD.
+                            Include in all sub-dictionaries.
+                csv_header: Str, name for this relationshp in the CSV data model.
+                            Enter None if not part of the CSV data model.
+                node_label: Name for relationship in the graph representation of the data model.
+                            Do not include this key for edge relationships.
+                type: type, type of expected to be read into graph creation.
                 edge_rel: True, if this relationship defines an edge
-                                  False, if is a value relationship
+                          False, if is a value relationship
+                          Include in all sub-dictionaries.
                 required_header: True, if relationship header is required for the csv
-                node_dict: set default values for this relationship
+                jsonld_default: Defines default values to fill for JSONLD generation.
+                            Used during func DataModelJsonLD.clean_template(), to fill value with a default, if not supplied in the data model.
+                node_attr_dict: This is used to add information to nodes in the model. Only include for nodes not edges.
+                                set default values for this relationship
                                     key is the node relationship name, value is the default value.
                                     If want to set default as a function create a nested dictionary.
                                         {'default': default_function, 
                                          'standard': alternative function to call if relationship is present for a node}
-                    }                   If adding new functions to node_dict will
+                                        }
+                                    If adding new functions to node_dict will
                                         need to modify data_model_nodes.generate_node_dict in 
-                }
-        TODO: 
-        Key:
-            jsonld_key: get_json_key_from_context
-            csv_header:
-            jsonld_default: if at the end of processing there is  no
-            edge_rel:
-            required_header:
-            node_label:
-            node_attr_dict:
+                edge_dir: str, 'in'/'out' is the edge an in or out edge. Define for edge relationships
+                jsonld_dir: str, 'in'/out is the direction in or out in the JSONLD.
 
-        TODO: 
-        - Functionally implement jsonld_edge key
-        - Add JSONLD Directionality:
-            Default Forward:
-            Reverse Domain Includes
-        - Add edge directionality:
-            Default in.
-            Out domainIncludes.
-        TODO:
-        - Use class inheritance to set up
-        - Check 'subClassOf' edge_dir
+            TODO:
+                - Use class inheritance to set up
         """
         map_data_model_relationships = {
-                
                 'displayName': {
                     'jsonld_key': 'sms:displayName',
                     'csv_header': 'Attribute',
@@ -118,6 +107,7 @@ class DataModelRelationships():
                     'csv_header': 'Required',
                     'node_label': 'required',
                     'type': bool,
+                    'jsonld_default': 'sms:false',
                     'edge_rel': False,
                     'required_header': True,
                     'node_attr_dict':{'default': False,
@@ -185,6 +175,10 @@ class DataModelRelationships():
         return map_data_model_relationships
 
     def define_required_csv_headers(self):
+        """Helper function to retrieve required CSV headers, alert if required header was not provided.
+            Returns:
+                required_headers: lst, Required CSV headers.
+        """
         required_headers = []
         for k, v in self.relationships_dictionary.items():
             try:
@@ -196,6 +190,10 @@ class DataModelRelationships():
         return required_headers
 
     def define_edge_relationships(self):
+        """Helper function to retrieve CSV headers for edge relationships.
+            Returns:
+                edge_relationships: dict, key: csv_header if the key represents an edge relationship.
+        """
         edge_relationships = {}
         for k, v in self.relationships_dictionary.items():
             try:
@@ -207,22 +205,15 @@ class DataModelRelationships():
         return edge_relationships
 
     def define_value_relationships(self):
-        """
-        Think about changing outputs.
-        Change to node_relationships. 
-        Use node_label to pull info. Save node_label instead?
+        """Helper function to retrieve CSV headers for non-edge (value) relationships.
+            Returns:
+                edge_relationships: dict, key: csv_header if the key represents a value relationship.
         """
         value_relationships = {}
         for k, v in self.relationships_dictionary.items():
             try:
                 if not v['edge_rel']:
                     value_relationships.update({k:v['csv_header']})
-                    '''
-                    if ':' in v['jsonld_key']:
-                        value_relationships.update({k:v['jsonld_key'].split(':')[1]})
-                    elif '@' in v['jsonld_key']:
-                        value_relationships.update({k:v['jsonld_key'].split('@')[1]})
-                    '''
             except KeyError:
                 print(f"Did not provide a 'edge_rel' for key {k}")
 
