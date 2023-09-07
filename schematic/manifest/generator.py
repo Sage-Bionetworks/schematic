@@ -82,16 +82,18 @@ class ManifestGenerator(object):
 
         # Determine whether current data type is file-based
         is_file_based = False
-        if self.root:
-            try:
-                is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
-            except KeyError as e:
-               if self.root in str(e):
-                   exception_message = f"The DataType entered ({self.root}) could not be found in the data model schema. " + \
-                                     "Please confirm that the datatype is in the data model and that the spelling matches the class label in the .jsonld file."
-                   raise LookupError(exception_message) from e
-               else:
-                   raise(e)
+
+        if self.root:    
+            # Check if the class is in the schema
+            root_in_schema = self.sg.se.is_class_in_schema(self.root)
+            
+            # If the class could not be found, give a notification
+            if not root_in_schema:
+                exception_message = f"The DataType entered ({self.root}) could not be found in the data model schema. " + \
+                                    "Please confirm that the datatype is in the data model and that the spelling matches the class label in the .jsonld file."
+                raise LookupError(exception_message) 
+            
+            is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
 
         self.is_file_based = is_file_based
 
