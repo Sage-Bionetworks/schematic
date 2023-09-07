@@ -279,7 +279,7 @@ class TestDfParser:
         assert(se_obj.get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
 
 class TestSchemaExplorer:
-    @pytest.mark.parametrize("class_name,expected_in_schema",[("Patient",True),("ptaient",False),("Biospecimen",True),("InvalidComponent",False)])
+    @pytest.mark.parametrize("class_name, expected_in_schema", [("Patient",True), ("ptaient",False), ("Biospecimen",True), ("InvalidComponent",False)])
     def test_is_class_in_schema(self, sg, class_name, expected_in_schema):
         """
         Test to cover checking if a given class is in a schema.
