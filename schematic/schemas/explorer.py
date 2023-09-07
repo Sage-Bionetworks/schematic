@@ -188,8 +188,11 @@ class SchemaExplorer:
         # accessing the node in the dictionary will error out if the class is not in the schema
         try:
             node = self.schema_nx.nodes[class_label]
-        except(KeyError):
-            node = None
+        except(KeyError) as e:
+            if class_label in str(e):
+                node = None
+            else:
+                raise(e)
         
         if node:
             return True
