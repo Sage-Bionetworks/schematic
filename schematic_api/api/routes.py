@@ -14,6 +14,7 @@ from werkzeug.debug import DebuggedApplication
 from flask_cors import cross_origin
 from flask import send_from_directory
 from flask import current_app as app
+from flask import request
 
 import pandas as pd
 import json
@@ -146,7 +147,19 @@ class JsonConverter:
         else: 
             temp_path = save_file(file_key='file_name')
             return temp_path
-        
+
+def get_access_token() -> str:
+    """Get access token from header"""
+    bearer_token = None
+    # Check if the Authorization header is present
+    if "Authorization" in request.headers:
+        auth_header = request.headers["Authorization"]
+
+        # Ensure the header starts with 'Bearer ' and retrieve the token
+        if auth_header.startswith("Bearer "):
+            bearer_token = auth_header.split(" ")[1]
+    return bearer_token
+ 
 def parse_bool(str_bool):
     if str_bool.lower().startswith('t'):
         return True
@@ -196,7 +209,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None, strict_validation:bool=True):
+def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, bearerAuth=None, strict_validation:bool=True):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -210,6 +223,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
+    access_token = get_access_token()
 
     # call config_handler()
     config_handler(asset_view = asset_view)
@@ -819,6 +833,9 @@ def get_schematic_version() -> str:
     """
     Return the current version of schematic
     """
+
+    access_token = get_access_token()
+
     if "VERSION" in os.environ:
         version = os.environ["VERSION"]
     else:
