@@ -127,7 +127,7 @@ class TestSynapseStorage:
             os.remove(response_dt)
         else: 
             pass
-
+    
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("full_path", [True, False])
     @pytest.mark.parametrize("file_names", [None, "Sample_A.txt"])
@@ -158,7 +158,6 @@ class TestSynapseStorage:
             else: 
                 assert ["syn25705259","Boolean Test"] and ["syn23667202","DataTypeX_table"] in response_dt
         
-
     @pytest.mark.synapse_credentials_needed
     def test_get_storage_project_dataset(self, request_headers, client):
         params = {
@@ -711,7 +710,7 @@ class TestManifestOperation:
         except: 
             pass
 
-    @pytest.mark.synapse_credentials_needed        
+    @pytest.mark.synapse_credentials_needed
     # test downloading a manifest with access restriction and see if the correct error message got raised
     def test_download_access_restricted_manifest(self, client, request_headers):
         params = {
@@ -723,7 +722,7 @@ class TestManifestOperation:
         with pytest.raises(TypeError) as exc_info:
             raise TypeError('the type error got raised')
         assert exc_info.value.args[0] == "the type error got raised"
-
+    
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("as_json", [None, True, False])
     @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
@@ -751,8 +750,8 @@ class TestManifestOperation:
 
             assert isinstance(response_path, str)
             assert response_path.endswith(".csv")
-    
-    @pytest.mark.synapse_credentials_needed    
+
+    @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
     def test_submit_manifest_table_and_file_replace(self, client, request_headers, data_model_jsonld, test_manifest_submit):
         """Testing submit manifest in a csv format as a table and a file. Only replace the table
@@ -789,7 +788,6 @@ class TestManifestOperation:
         }
         response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")}, headers=request_headers)
         assert response_csv.status_code == 200 
-    
     @pytest.mark.synapse_credentials_needed    
     @pytest.mark.submission
     def test_submit_manifest_json_str_replace(self, client, request_headers, data_model_jsonld):
