@@ -93,6 +93,13 @@ def syn_token(config:Configuration):
         token = config_parser["authentication"]["authtoken"]
     yield token
 
+@pytest.fixture
+def request_headers(syn_token):
+    headers = {
+        "Authorization": "Bearer " + syn_token
+    }
+    yield headers
+
 @pytest.mark.schematic_api
 class TestSynapseStorage:
     @pytest.mark.synapse_credentials_needed
