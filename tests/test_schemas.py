@@ -6,6 +6,7 @@ import pytest
 
 from schematic.schemas import df_parser
 from schematic.utils.df_utils import load_df
+from schematic.schemas.generator import SchemaGenerator
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -46,6 +47,13 @@ def extended_schema_path(helpers, tmp_path):
 
     yield extended_schema_path
 
+@pytest.fixture
+def sg(helpers):
+
+    inputModelLocation = helpers.get_data_path('example.model.jsonld')
+    sg = SchemaGenerator(inputModelLocation)
+
+    yield sg
 
 class TestDfParser:
     def test_get_class(self, helpers):
@@ -269,3 +277,18 @@ class TestDfParser:
         assert(se_obj.get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
         assert(se_obj.get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
         assert(se_obj.get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
+
+class TestSchemaExplorer:
+    @pytest.mark.parametrize("class_name, expected_in_schema", [("Patient",True), ("ptaient",False), ("Biospecimen",True), ("InvalidComponent",False)])
+    def test_is_class_in_schema(self, sg, class_name, expected_in_schema):
+        """
+        Test to cover checking if a given class is in a schema.
+        `is_class_in_schema` should return `True` if the class is in the schema
+        and `False` if it is not.
+        """
+
+        # Check if class is in schema
+        class_in_schema = sg.se.is_class_in_schema(class_name)
+
+        # Assert value is as expected
+        assert class_in_schema == expected_in_schema
