@@ -14,6 +14,7 @@ from werkzeug.debug import DebuggedApplication
 from flask_cors import cross_origin
 from flask import send_from_directory
 from flask import current_app as app
+from flask import request
 
 import pandas as pd
 import json
@@ -146,6 +147,18 @@ class JsonConverter:
         else: 
             temp_path = save_file(file_key='file_name')
             return temp_path
+
+def get_access_token() -> str:
+    """Get access token from header"""
+    bearer_token = None
+    # Check if the Authorization header is present
+    if "Authorization" in request.headers:
+        auth_header = request.headers["Authorization"]
+
+        # Ensure the header starts with 'Bearer ' and retrieve the token
+        if auth_header.startswith("Bearer "):
+            bearer_token = auth_header.split(" ")[1]
+    return bearer_token
         
 def parse_bool(str_bool):
     if str_bool.lower().startswith('t'):
