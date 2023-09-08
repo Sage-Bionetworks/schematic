@@ -218,7 +218,6 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
             output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
             use_annotations: Whether to use existing annotations during manifest generation
             asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
-            access_token: Token
             strict: bool, strictness with which to apply validation rules to google sheets.
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
@@ -267,7 +266,8 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     f"Please check your submission and try again."
                 )
 
-
+    # Since this function is called in `get_manifest_route`, 
+    # it can use the access_token passed in from there and retain `access_token` as a parameter
     def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None, strict=strict_validation):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -393,7 +393,8 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     metadata_model = initalize_metadata_model(schema_url)
 
-    access_token = connexion.request.args["access_token"]
+    # Access token now stored in request header
+    access_token = get_access_token()
 
 
     use_schema_label = connexion.request.args["use_schema_label"]
@@ -445,7 +446,10 @@ def populate_manifest_route(schema_url, title=None, data_type=None, return_excel
 
     return populated_manifest_link
 
-def get_storage_projects(access_token, asset_view):
+def get_storage_projects(asset_view):
+    # Access token now stored in request header
+    access_token = get_access_token()
+
     # call config handler 
     config_handler(asset_view=asset_view)
 
@@ -457,7 +461,10 @@ def get_storage_projects(access_token, asset_view):
     
     return lst_storage_projects
 
-def get_storage_projects_datasets(access_token, asset_view, project_id):
+def get_storage_projects_datasets(asset_view, project_id):
+    # Access token now stored in request header
+    access_token = get_access_token()
+
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -469,7 +476,10 @@ def get_storage_projects_datasets(access_token, asset_view, project_id):
     
     return sorted_dataset_lst
 
-def get_files_storage_dataset(access_token, asset_view, dataset_id, full_path, file_names=None):
+def get_files_storage_dataset(asset_view, dataset_id, full_path, file_names=None):
+    # Access token now stored in request header
+    access_token = get_access_token()
+
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -484,7 +494,10 @@ def get_files_storage_dataset(access_token, asset_view, dataset_id, full_path, f
     file_lst = store.getFilesInStorageDataset(datasetId=dataset_id, fileNames=file_names, fullpath=full_path)
     return file_lst
 
-def check_if_files_in_assetview(access_token, asset_view, entity_id):
+def check_if_files_in_assetview(asset_view, entity_id):
+    # Access token now stored in request header
+    access_token = get_access_token()
+    
     # call config handler 
     config_handler(asset_view=asset_view)
 
@@ -496,7 +509,10 @@ def check_if_files_in_assetview(access_token, asset_view, entity_id):
 
     return if_exists
 
-def check_entity_type(access_token, entity_id):
+def check_entity_type(entity_id):
+    # Access token now stored in request header
+    access_token = get_access_token()
+        
     # call config handler 
     config_handler()
 
@@ -562,17 +578,19 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     return layers[0]
 
-def download_manifest(access_token, manifest_id, new_manifest_name='', as_json=True):
+def download_manifest(manifest_id, new_manifest_name='', as_json=True):
     """
     Download a manifest based on a given manifest id. 
     Args:
-        access_token: token of asset store
         manifest_syn_id: syn id of a manifest
         newManifestName: new name of a manifest that gets downloaded.
         as_json: boolean; If true, return a manifest as a json. Default to True
     Return: 
         file path of the downloaded manifest
     """
+    # Access token now stored in request header
+    access_token = get_access_token()
+
     # call config_handler()
     config_handler()
 
@@ -592,7 +610,10 @@ def download_manifest(access_token, manifest_id, new_manifest_name='', as_json=T
         return manifest_local_file_path
 
 #@profile(sort_by='cumulative', strip_dirs=True)  
-def download_dataset_manifest(access_token, dataset_id, asset_view, as_json, new_manifest_name=''):
+def download_dataset_manifest(dataset_id, asset_view, as_json, new_manifest_name=''):
+    # Access token now stored in request header
+    access_token = get_access_token()
+        
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -616,7 +637,10 @@ def download_dataset_manifest(access_token, dataset_id, asset_view, as_json, new
 
     return manifest_local_file_path
 
-def get_asset_view_table(access_token, asset_view, return_type):
+def get_asset_view_table(asset_view, return_type):
+    # Access token now stored in request header
+    access_token = get_access_token()
+
     # call config handler
     config_handler(asset_view=asset_view)
 
@@ -637,7 +661,10 @@ def get_asset_view_table(access_token, asset_view, return_type):
         return export_path
 
 
-def get_project_manifests(access_token, project_id, asset_view):
+def get_project_manifests(project_id, asset_view):
+    # Access token now stored in request header
+    access_token = get_access_token()
+        
     # use the default asset view from config
     config_handler(asset_view=asset_view)
 
@@ -649,7 +676,10 @@ def get_project_manifests(access_token, project_id, asset_view):
 
     return lst_manifest
 
-def get_manifest_datatype(access_token, manifest_id, asset_view):
+def get_manifest_datatype(manifest_id, asset_view):
+    # Access token now stored in request header
+    access_token = get_access_token()
+    
     # use the default asset view from config
     config_handler(asset_view=asset_view)
 
