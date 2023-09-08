@@ -9,6 +9,14 @@ info:
 servers:
   - url: /v1
 
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: schematic_api.api.security_controller_.info_from_bearerAuth
+
 # TO DO: refactor query parameters and remove access_token
 paths:
   /manifest/generate:
