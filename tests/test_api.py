@@ -95,6 +95,7 @@ def syn_token(config:Configuration):
 
 @pytest.mark.schematic_api
 class TestSynapseStorage:
+    @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("return_type", ["json", "csv"])
     def test_get_storage_assets_tables(self, client, syn_token, return_type):
         params = {
@@ -121,7 +122,6 @@ class TestSynapseStorage:
         else: 
             pass
 
-    @pytest.mark.synapse_credentials_needed
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("full_path", [True, False])
     @pytest.mark.parametrize("file_names", [None, "Sample_A.txt"])
