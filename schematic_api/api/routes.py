@@ -209,7 +209,7 @@ def get_temp_jsonld(schema_url):
     return tmp_file.name
 
 # @before_request
-def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None, strict_validation:bool=True):
+def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, strict_validation:bool=True):
     """Get the immediate dependencies that are related to a given source node.
         Args:
             schema_url: link to data model in json ld format
@@ -223,6 +223,9 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
         Returns:
             Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
+
+    # Get access token from request header
+    access_token = get_access_token()
 
     # call config_handler()
     config_handler(asset_view = asset_view)

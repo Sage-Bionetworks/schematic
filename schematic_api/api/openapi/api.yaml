@@ -23,6 +23,8 @@ paths:
     get:
       summary: Endpoint to facilitate manifest generation
       description: Endpoint to create dynamically create metadata manifest files
+      security:
+        - bearerAuth: []
       parameters:
         - in: query
           name: schema_url
@@ -32,12 +34,6 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
-        - in: query
-          name: access_token
-          schema:
-            type: string
-          description: Token is needed if getting an existing manifest on AWS
-          required: false
         - in: query
           name: title
           schema:
