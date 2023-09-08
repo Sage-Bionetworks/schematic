@@ -40,32 +40,26 @@ def schema():  # use as `schematic model ...`
 @click.argument(
     "schema", type=click.Path(exists=True), metavar="<DATA_MODEL_CSV>", nargs=1
 )
-@click.option(
-    "--base_schema",
-    "-b",
-    type=click.Path(exists=True),
-    metavar="<JSON-LD_SCHEMA>",
-    help=query_dict(schema_commands, ("schema", "convert", "base_schema")),
-)
+
 @click.option(
     "--output_jsonld",
     "-o",
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
-def convert(schema, base_schema, output_jsonld):
+def convert(schema, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
 
-    TODO: Throw actual errors in the future rather than just logging.
+    Note: Currently, not configured to build off of base model, so removing --base_schema argument for now
     """
     
     # get the start time
     st = time.time()
 
     # Instantiate Parser
-    data_model_parser = DataModelParser(schema, base_schema)
+    data_model_parser = DataModelParser(schema)
 
     #Parse Model
     logger.info("Parsing data model.")
@@ -82,7 +76,7 @@ def convert(schema, base_schema, output_jsonld):
     # Validate generated data model.
     logger.info("Validating the data model internally.")
     data_model_validator = DataModelValidator(graph=graph_data_model)
-    data_model_errors = data_model_validator.run_checks()
+    data_model_errors, data_model_warnings = data_model_validator.run_checks()
     
     # If there are errors log them.
     if data_model_errors:
@@ -92,11 +86,21 @@ def convert(schema, base_schema, output_jsonld):
             elif isinstance(err, list):
                 for e in err:
                     logger.error(e)
+
+    # If there are warnings log them.
+    if data_model_warnings:
+        for war in data_model_warnings:
+            if isinstance(war, str):
+                logger.warning(war)
+            elif isinstance(war, list):
+                for w in war:
+                    logger.warning(w)
+
         
     logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
 
-    # output JSON-LD file alongside CSV file by default
+    # output JSON-LD file alongside CSV file by default, get path.
     if output_jsonld is None:
         csv_no_ext = re.sub("[.]csv$", "", schema)
         output_jsonld = csv_no_ext + ".jsonld"
