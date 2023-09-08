@@ -148,5 +148,13 @@ markers = [
     """\
     rule_benchmark: marks tests covering \
     validation rule benchmarking
-    """    
+    """,
+    """\
+    synapse_credentials_needed: marks api tests that \
+    require synapse credentials to run
+    """,
+    """\
+    emptyToken: marks api tests that \
+    send empty credentials in the request
+    """
 ]
