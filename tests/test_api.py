@@ -488,7 +488,7 @@ class TestManifestOperation:
             params["output_format"] = output_format
     
 
-        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params, headers=request_headers)
         assert response.status_code == 200
 
 
