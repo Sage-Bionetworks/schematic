@@ -25,6 +25,7 @@ paths:
       description: Endpoint to create dynamically create metadata manifest files
       security:
         - bearerAuth: []
+        - {}
       parameters:
         - in: query
           name: schema_url
