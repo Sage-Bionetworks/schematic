@@ -1,5 +1,5 @@
 from typing import Dict
-from schematic.utils.schema_utils import get_label_from_display_name, get_display_name_from_label, convert_bool, parse_validation_rules
+from schematic.utils.schema_utils import get_label_from_display_name, get_attribute_display_name_from_label, convert_bool_to_str, parse_validation_rules
 from schematic.schemas.curie import uri2curie, curie2uri
 
 class DataModelRelationships():
@@ -48,8 +48,8 @@ class DataModelRelationships():
                     'type': str,
                     'edge_rel': False,
                     'required_header': True,
-                    'node_attr_dict':{'default': get_display_name_from_label,
-                                    'standard': get_display_name_from_label,
+                    'node_attr_dict':{'default': get_attribute_display_name_from_label,
+                                    'standard': get_attribute_display_name_from_label,
                                     },
                 },
                'label':{
@@ -111,7 +111,7 @@ class DataModelRelationships():
                     'edge_rel': False,
                     'required_header': True,
                     'node_attr_dict':{'default': False,
-                                      'standard': convert_bool,
+                                      'standard': convert_bool_to_str,
                                 },
                 },
                 'subClassOf': {
