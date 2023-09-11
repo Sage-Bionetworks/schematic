@@ -17,15 +17,7 @@ class DataModelJSONSchema:
 		self.DME = DataModelGraphExplorer(self.graph)
 		self.dmr = DataModelRelationships()
 		self.rel_dict = self.dmr.relationships_dictionary
-		
-		# Edge Keys
-		self.reqDep_ek = self.rel_dict['requiresDependency']['edge_key']
-		self.rangeIncludes_ek = self.rel_dict['rangeIncludes']['edge_key']
-		self.reqComp_ek = self.rel_dict['requiresComponent']['edge_key']
-
-		# Node Labels
-		self.displayName_nl = self.rel_dict['displayName']['node_label']
-	
+			
 	def get_array_schema(
 		self, node_range: List[str], node_name: str, blank=False
 	) -> Dict[str, Dict[str, List[str]]]:
@@ -40,7 +32,6 @@ class DataModelJSONSchema:
 
 		Returns:
 			JSON object with array validation rule.
-		TODO: used?
 		"""
 
 		schema_node_range_array = {
@@ -63,8 +54,6 @@ class DataModelJSONSchema:
 
 		Returns:
 			Schema rule as a JSON object.
-		TODO:
-			Used?
 		"""
 		non_blank_schema = {node_name: {"not": {"type": "null"}, "minLength": 1}}
 
@@ -83,8 +72,6 @@ class DataModelJSONSchema:
 
 		Returns:
 			JSON object with nodes.
-		TODO:
-			Used?
 		"""
 		if blank:
 			schema_node_range = {node_name: {"enum": node_range + [""]}}
@@ -120,9 +107,6 @@ class DataModelJSONSchema:
 			"allOf": [],
 		}
 
-		# get graph corresponding to data model schema
-		#mm_graph = self.se.get_nx_schema()
-
 		nodes_to_process = (
 			[]
 		)  # list of nodes to be checked for dependencies, starting with the source node
@@ -138,7 +122,7 @@ class DataModelJSONSchema:
 		# the domain node is very likely the parentof ("parentOf" relationship) of the range node
 
 		root_dependencies = self.DME.get_adjacent_nodes_by_relationship(
-			node = source_node, relationship=self.reqDep_ek,
+			node = source_node, relationship=self.rel_dict['requiresDependency']['edge_key'],
 		)
 
 		# if root_dependencies is empty it means that a class with name 'source_node' exists
@@ -157,7 +141,7 @@ class DataModelJSONSchema:
 				node_is_processed = True
 
 				node_range = self.DME.get_adjacent_nodes_by_relationship(
-					node=process_node, relationship=self.rangeIncludes_ek,
+					node=process_node, relationship=self.rel_dict['rangeIncludes']['edge_key'],
 				)
 
 
@@ -165,11 +149,11 @@ class DataModelJSONSchema:
 				node_range_d = self.DME.get_nodes_display_names(node_list=node_range)
 
 				node_dependencies = self.DME.get_adjacent_nodes_by_relationship(
-					node=process_node, relationship=self.reqDep_ek,
+					node=process_node, relationship=self.rel_dict['requiresDependency']['edge_key'],
 				)
 
 				# get process node display name
-				node_display_name = self.graph.nodes[process_node][self.displayName_nl]
+				node_display_name = self.graph.nodes[process_node][self.rel_dict['displayName']['node_label']]
 
 				# updating map between node and node's valid values
 				for n in node_range_d:
