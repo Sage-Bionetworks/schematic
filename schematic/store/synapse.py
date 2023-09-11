@@ -48,7 +48,6 @@ from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 from schematic.utils.general import (entity_type_mapping,
                                      get_dir_size,
-                                     convert_size,
                                      convert_gb_to_bytes,
                                      create_temp_folder,
                                      profile,
