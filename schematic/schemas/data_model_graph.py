@@ -1,3 +1,4 @@
+import graphviz
 import os
 import string
 import json
@@ -61,16 +62,22 @@ class DataModelGraphMeta(object):
 class DataModelGraph():
     '''
     Generate graph network (networkx) from the attributes and relationships returned
-    fromt he data model parser.
+    fromt the data model parser.
 
     Create a singleton.
     '''
     __metaclass__ = DataModelGraphMeta
 
-    def __init__(self, attribute_relationships_dict):
+    def __init__(self, attribute_relationships_dict: dict) -> None:
         '''Load parsed data model.
+        Args:
+            attributes_relationship_dict, dict: generated in data_model_parser
+                {Attribute Display Name: {
+                        Relationships: {
+                                    CSV Header: Value}}}
+        Raises:
+            ValueError, attribute_relationship_dict not loaded.
         '''
-        
         self.attribute_relationships_dict = attribute_relationships_dict
         self.dmn = DataModelNodes(self.attribute_relationships_dict)
         self.dme = DataModelEdges()
@@ -83,29 +90,34 @@ class DataModelGraph():
         self.graph = self.generate_data_model_graph()
 
 
-    def generate_data_model_graph(self):
+    def generate_data_model_graph(self) -> nx.MultiDiGraph:
         '''Generate NetworkX Graph from the Relationships/attributes dictionary
-        
+        Returns:
+            G: nx.MultiDiGraph, networkx graph representation of the data model
         '''
         # Get all relationships with edges
         edge_relationships = self.dmr.define_edge_relationships()
 
+        # Find all nodes
+        all_nodes = self.dmn.gather_all_nodes(attr_rel_dict=self.attribute_relationships_dict)
+
         # Instantiate NetworkX MultiDigraph
         G = nx.MultiDiGraph()
-
-        # Find all nodes
-        all_nodes = self.dmn.gather_all_nodes(self.attribute_relationships_dict)
+        
         all_node_dict = {}
-        ## Fill in MultiDigraph with nodes and edges
+        
+        ## Fill in MultiDigraph with nodes
         for node in all_nodes:
-            
             # Gather information for each node
             node_dict = self.dmn.generate_node_dict(node, self.attribute_relationships_dict)
 
+            # Add each node to the all_node_dict to be used for generating edges
             all_node_dict[node] = node_dict
+
             # Generate node and attach information
             G = self.dmn.generate_node(G, node_dict)
 
+        ## Connect nodes via edges
         for node in all_nodes:
             # Generate edges
             G = self.dme.generate_edge(G, node, all_node_dict, self.attribute_relationships_dict, edge_relationships)
@@ -114,62 +126,62 @@ class DataModelGraph():
 class DataModelGraphExplorer():
     def __init__(self,
                  G,):
-        '''
-        Load data model graph as a singleton.
+        ''' Load data model graph as a singleton.
+        Args:
+            G: nx.MultiDiGraph, networkx graph representation of the data model
         '''
         self.graph = G
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
 
-        # TODO: Clean up to create variables within a loop. 
-        # Creating variables here so its cleaner to know all the references at the top of the class
-        # Get node labels and edge keys for all referenced relationships
-        # Edge Keys
-        self.domainIncludes_ek = self.rel_dict['domainIncludes']['edge_key']
-        self.reqComp_ek = self.rel_dict['requiresComponent']['edge_key']
-        self.reqDep_ek = self.rel_dict['requiresDependency']['edge_key']
-        self.subClassOf_ek = self.rel_dict['subClassOf']['edge_key']
-        self.rangeIncludes_ek = self.rel_dict['rangeIncludes']['edge_key']
-
-        # Node Labels
-        self.displayName_nl = self.rel_dict['displayName']['node_label']
-        self.comment_nl = self.rel_dict['comment']['node_label']
-        self.validationRules_nl = self.rel_dict['validationRules']['node_label']
-
-    def find_properties(self):
+    def find_properties(self) -> set:
+        """Identify all properties, as defined by the first node in a pair, connected with 'domainIncludes' edge type
+        Returns:
+            properties, set: All properties defined in the data model, each property name is defined by its label.
         """
-        """
-
         properties=[]
         for node_1, node_2, rel in self.graph.edges:
-            if rel == self.domainIncludes_ek:
+            if rel == self.rel_dict['domainIncludes']['edge_key']:
                 properties.append(node_1)
         properties = set(properties)
         return properties
 
-    def find_classes(self):
-        #checked
+    def find_classes(self) -> set:
+        """Identify all classes, as defined but all nodes, minus all properties (which are explicitly defined)
+        Returns:
+            classes, set:  All classes defined in the data model, each class name is defined by its label.
+        """
         nodes = self.graph.nodes
         properties = self.find_properties()
         classes = nodes - properties
         return classes
 
-    def find_node_range(self, attribute):
+    def find_node_range(self, node_label:Optional[bool], node_display_name:Optional[bool]) -> list:
+        """Get valid values for the given node (attribute)
+        Args:
+            node_label, str, Optional[bool]: label of the node for which to retrieve valid values 
+            node_display_name, str, Optional[bool]: Display Name of the node for which to retrieve valid values
+        Returns:
+            valid_values, list: List of valid values associated with the provided node.
+        """
+        if not node_label:
+            node_label = self.get_node_label(display_name)
+
         valid_values=[]
         for node_1, node_2, rel in self.graph.edges:
-            if node_1 == attribute and rel == self.rangeIncludes_ek:
+            if node_1 == node_label and rel == self.rel_dict['rangeIncludes']['edge_key']:
                 valid_values.append(node_2)
         valid_values = list(set(valid_values))
         return valid_values
 
 
     def get_adjacent_nodes_by_relationship(self,
-                                           node: str,
+                                           node_label: str,
                                            relationship: str) -> List[str]:
         """Get a list of nodes that is / are adjacent to a given node, based on a relationship type.
 
         Args:
-            node: the node whose edges we need to look at.
+            node_label: label of the the node whose edges we need to look at.
             relationship: the type of link(s) that the above node and its immediate neighbors share.
 
         Returns:
@@ -178,7 +190,7 @@ class DataModelGraphExplorer():
         """
         nodes = set()
 
-        for (u, v, key, c) in self.graph.out_edges(node, data=True, keys=True):
+        for (u, v, key, c) in self.graph.out_edges(node=node_label, data=True, keys=True):
             if key == relationship:
                 nodes.add(v)
 
@@ -194,13 +206,12 @@ class DataModelGraphExplorer():
 
         Returns:
             List of nodes that are descendants from the source component are are related to the source through a specific component relationship.
-        # Tested
         """
 
         req_components = list(
             reversed(
                 self.get_descendants_by_edge_type(
-                    source_component, self.reqComp_ek, ordered=True
+                    source_component, self.rel_dict['requiresComponent']['edge_key'], ordered=True
                 )
             )
         )
@@ -213,7 +224,7 @@ class DataModelGraphExplorer():
         """Get all components that are associated with a given source component and are required by it; return the components as a dependency graph (i.e. a DAG).
 
         Args:
-            source_component: source component for which we need to find all required downstream components.
+            source_component, str: source component for which we need to find all required downstream components.
 
         Returns:
             A subgraph of the schema graph induced on nodes that are descendants from the source component and are related to the source through a specific component relationship.
@@ -224,7 +235,7 @@ class DataModelGraphExplorer():
 
         # get the subgraph induced on required component nodes
         req_components_graph = self.get_subgraph_by_edge_type(
-            self.reqComp_ek,
+            self.rel_dict['requiresComponent']['edge_key'],
         ).subgraph(req_components)
 
         return req_components_graph
@@ -248,7 +259,6 @@ class DataModelGraphExplorer():
 
         Returns:
             List of nodes that are descendants from a particular node (sorted / unsorted)
-        # Tested
         """
 
         root_descendants = nx.descendants(self.graph, source_node)
@@ -295,16 +305,17 @@ class DataModelGraphExplorer():
 
         return list(descendants)
 
-    def get_digraph_by_edge_type(self, edge_type):
+    def get_digraph_by_edge_type(self, edge_type:str) -> nx.DiGraph:
+        '''Get a networkx digraph of the nodes connected via a given edge_type.
+        Args:
+            edge_type:
+                Edge type to search for, possible types are defined by 'edge_key' in relationship class
+        Returns:
         '''
-        TODO: rename to get_digraph, since edge type parameter is not used, will take it now for legacy.
-        '''
-
         digraph = nx.DiGraph()
         for (u, v, key, c) in self.graph.edges(data=True, keys=True):
             if key == edge_type:
                 digraph.add_edge(u, v)
-
         return digraph
 
     def get_edges_by_relationship(self,
@@ -314,7 +325,6 @@ class DataModelGraphExplorer():
         """Get a list of out-edges of a node where the edges match a specifc type of relationship.
 
         i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf" (set of edges to children / sub-class nodes).
-        Note: possible edge relationships are -- parentOf, rangeValue, requiresDependency.
 
         Args:
             node: the node whose edges we need to look at.
@@ -331,9 +341,22 @@ class DataModelGraphExplorer():
 
         return edges
 
-    def get_ordered_entry(self, key: str, source_node_label:str):
-        
+    def get_ordered_entry(self, key: str, source_node_label:str) -> list:
+        """Order the values associated with a particular node and edge_key to match original ordering in schema.
+        Args:
+            key: a key representing and edge relationship in DataModelRelationships.relationships_dictionary
+            source_node_label, str: node to look for edges of and order
+        Returns:
+            sorted_nodes, list: list of sorted nodes, that share the specified relationship with the source node
+            Example:
+                For the example data model, for key='rangeIncludes', source_node_label='CancerType' the return would be ['Breast, 'Colorectal', 'Lung', 'Prostate', 'Skin'] in that exact order.
+        Raises:
+            KeyError, cannot find source node in graph
+        """
         # Check if node is in the graph, if not throw an error.
+        if not self.is_class_in_schema(node_label=source_node_label):
+            raise KeyError(f"Cannot find node: {source_node_label} in the graph, please check entry.")
+
         edge_key = self.rel_dict[key]['edge_key']
         if self.rel_dict[key]['jsonld_direction'] == 'out':
             #use outedges
@@ -349,20 +372,19 @@ class DataModelGraphExplorer():
                             if edge_key in self.graph[attached_node][source_node]
                             }
 
-        sorted_edges = list(dict(sorted(original_edge_weights_dict.items(), key=lambda item: item[1])).keys())
+        sorted_nodes = list(dict(sorted(original_edge_weights_dict.items(), key=lambda item: item[1])).keys())
         
-        return sorted_edges
+        return sorted_nodes
 
     # Get values associated with a node
-    # TODO: make sure all these gets follow the same pattern for clarity
-
-    def get_nodes_ancestors(self, graph, component):
+    def get_nodes_ancestors(self, node_label:str) -> list:
+        """Get a list of nodes reachable from source component in graph 
+        Args:
+            node_labe, str: label of node to find ancestors for
+        Returns:
+            all_ancestors, list: nodes reachable from source in graph 
         """
-        Return a list of nodes reachable from source in graph 
-        graph: networkx graph object
-        component: any given node
-        """
-        all_ancestors = list(nx.ancestors(graph, component))
+        all_ancestors = list(nx.ancestors(self.graph, component))
 
         return all_ancestors
 
@@ -370,11 +392,10 @@ class DataModelGraphExplorer():
         """Get the node definition, i.e., the "comment" associated with a given node display name.
 
         Args:
-            node_display_name: Display name of the node which you want to get the label for.
-
+            node_display_name, str: Display name of the node which you want to get the comment for.
+            node_label, str: Label of the node you would want to get the comment for.
         Returns:
             Comment associated with node, as a string.
-        TODO: add to args
         """
         if not node_label:
             node_label = self.get_node_label(node_display_name)
@@ -382,7 +403,7 @@ class DataModelGraphExplorer():
         if not node_label:
             return ""
 
-        node_definition = self.graph.nodes[node_label][self.comment_nl]
+        node_definition = self.graph.nodes[node_label][self.rel_dict['comment']['node_label']]
         return node_definition
 
 
@@ -409,24 +430,25 @@ class DataModelGraphExplorer():
             required_dependencies = self.get_ordered_entry(key=self.reqDep_ek, source_node_label=source_node)
         else:
             required_dependencies = self.get_adjacent_nodes_by_relationship(
-                node = source_node, relationship = self.reqDep_ek)
+                node_label = source_node, relationship = self.reqDep_ek)
 
         if display_names:
             # get display names of dependencies
             dependencies_display_names = []
 
             for req in required_dependencies:
-                dependencies_display_names.append(self.graph.nodes[req][self.displayName_nl])
+                dependencies_display_names.append(self.graph.nodes[req][self.rel_dict['displayName']['node_label']])
 
             return dependencies_display_names
 
         return required_dependencies
 
-    def get_nodes_descendants(self, component):
-        """
-        Return a list of nodes reachable from source in graph 
-        graph: networkx graph object
-        component: any given node
+    def get_nodes_descendants(self, node_label:str) -> list:
+        """Return a list of nodes reachable from source in graph
+        Args:
+            node_label, str: any given node
+        Return:
+            all_descendants, list: nodes reachable from source in graph
         """
         all_descendants = list(nx.descendants(self.graph, component))
 
@@ -444,7 +466,7 @@ class DataModelGraphExplorer():
             List of display names.
         """
         node_list_display_names = [
-            self.graph.nodes[node][self.displayName_nl] for node in node_list
+            self.graph.nodes[node][self.rel_dict['displayName']['node_label']] for node in node_list
         ]
 
         return node_list_display_names
@@ -454,10 +476,8 @@ class DataModelGraphExplorer():
 
         Args:
             node_display_name: Display name of the node which you want to get the label for.
-
         Returns:
             Node label associated with given node.
-
         Raises:
             KeyError: If the node cannot be found in the graph.
         """
@@ -472,23 +492,29 @@ class DataModelGraphExplorer():
         elif node_property_label in self.graph.nodes:
             node_label = node_property_label
         else:
-            node_label = ""
+            raise KeyError(f"Cannot find node: {node_display_name} in the graph, please check entry.")
 
         return node_label
 
-    def get_node_range(self, node_label: str, display_names: bool = True) -> List[str]:
+    def get_node_range(self, node_label: Optional[bool], node_display_name: Optional[bool]) -> List[str]:
         """Get the range, i.e., all the valid values that are associated with a node label.
 
         Args:
-            node_label: Node / termn for which you need to retrieve the range.
-
+            node_label: Node for which you need to retrieve the range.
+            display_names, bool: True
         Returns:
-            List of display names of nodes associateed with the given node.
+            required_range: Returned if display_names=False, list of valid values (labels) associated with a given node.
+            dependencies_display_name: Returned if display_names=True, 
+                List of valid values (display names) associated with a given node
+        Raises:
+            ValueError: If the node cannot be found in the graph.
         """
+        if not node_label:
+            node_label = self.get_node_label(node_display_name)
+
         try:
             # get node range in the order defined in schema for given node
-            #required_range = self.graph.explore_class(node_label)["range"]
-            required_range = self.find_node_range(attribute = node_label)
+            required_range = self.find_node_range(node_label = node_label)
         except KeyError:
             raise ValueError(
                 f"The source node {node_label} does not exist in the graph. "
@@ -506,13 +532,14 @@ class DataModelGraphExplorer():
 
         return required_range
 
-    def get_node_required(self, node_display_name: str = None, node_label:str = None) -> bool:
+    def get_node_required(self, node_label:Optional[bool], node_display_name: Optional[bool]) -> bool:
         """Check if a given node is required or not.
 
         Note: The possible options that a node can be associated with -- "required" / "optional".
 
         Args:
-            node_display_name: Display name of the node which you want to get the label for.
+            node_display_name: Display name of the node for which you want look up.
+            node_label: Label of the node for which you need to look up.
 
         Returns:
             True: If the given node is a "required" node.
@@ -525,7 +552,7 @@ class DataModelGraphExplorer():
         node_required = self.graph.nodes[node_label][rel_node_label]
         return node_required
 
-    def get_node_validation_rules(self, node_display_name: str = None, node_label: str = None) -> str:
+    def get_node_validation_rules(self, node_label: Optional[bool], node_display_name: Optional[bool]) -> str:
         """Get validation rules associated with a node,
 
         Args:
@@ -550,7 +577,6 @@ class DataModelGraphExplorer():
         """Get a subgraph containing all edges of a given type (aka relationship).
 
         Args:
-            graph: input multi digraph (aka hypergraph)
             relationship: edge / link relationship type with possible values same as in above docs.
 
         Returns:
@@ -569,12 +595,23 @@ class DataModelGraphExplorer():
         return relationship_subgraph
 
 
+    def find_adjacent_child_classes(self, node_label: Optional[bool], node_display_name: Optional[bool])->List[str]:
+        '''Find child classes of a given node.
+        Args:
+            node_display_name: Display name of the node to look up.
+            node_label: Label of the node to look up.
+        Returns:
+            List of nodes that are adjacent to the given node, by SubclassOf relationship.
+        '''
+        return self.get_adjacent_nodes_by_relationship(node_label = schema_class, relationship = self.rel_dict['subClassOf']['edge_key'])
 
-    def find_adjacent_child_classes(self, schema_class):
-        return self.get_adjacent_nodes_by_relationship(node = schema_class, relationship = self.subClassOf_ek)
-
-    def find_child_classes(self, schema_class):
-        """Find schema classes that inherit from the given class"""
+    def find_child_classes(self, schema_class: str) -> list:
+        """Find schema classes that inherit from the given class
+        Args:
+            schema_class: node label for the class to from which to look for children.
+        Returns:
+            list of children to the schema_class.
+        """
         return unlist(list(self.graph.successors(schema_class)))
 
     def find_class_specific_properties(self, schema_class):
@@ -610,30 +647,58 @@ class DataModelGraphExplorer():
         '''
         return properties
 
-    def find_parent_classes(self, schema_class):
-        """Find all parents of the class"""
-
+    def find_parent_classes(self, node_label:str) -> List[list]:
+        """Find all parents of the provided node
+        Args:
+            node_label: label of the node to find parents of
+        Returns:
+            List of list of Parents to the given node.
+        """
+        # Get digraph of nodes with parents
         digraph = self.get_digraph_by_edge_type("parentOf")
 
+        # Get root node
         root_node = list(nx.topological_sort(digraph))[0]
 
+        # Get paths between root_node and the target node.
         paths = nx.all_simple_paths(
-            self.graph, source=root_node, target=schema_class
+            self.graph, source=root_node, target=node_label
         )
-        # print(root_node)
+
         return [_path[:-1] for _path in paths]
 
-    def full_schema_graph(self, size=None):
+    def full_schema_graph(self, size:Optional[bool])-> graphviz.Digraph:
+        """Create a graph of the data model.
+        Args:
+            size, float: max height and width of the graph, if one value provided it is used for both.
+        Returns:
+            schema graph viz
+        """
         edges = self.graph.edges()
         return visualize(edges, size=size)
 
-    def is_class_in_schema(self, class_label):
-        if self.graph.nodes[class_label]:
+    def is_class_in_schema(self, node_label: str) -> bool:
+        """Determine if provided node_label is in the schema graph/data model.
+        Args:
+            class_label: label of node to search for in the
+        Returns:
+            True, if node is in the graph schema
+            False, if node is not in graph schema
+        """
+        if node_label in self.graph.nodes():
             return True
         else:
             return False
 
-    def sub_schema_graph(self, source, direction, size=None):
+    def sub_schema_graph(self, source, direction, size=None) -> graphviz.Digraph:
+        """Create a sub-schema graph
+        Args:
+            source, str: source node label to start graph
+            direction, str: direction to create the vizualization, choose from "up", "down", "both"
+            size, float: max height and width of the graph, if one value provided it is used for both. 
+        Returns:
+            Sub-schema graph viz
+        """
         if direction == "down":
             edges = list(nx.edge_bfs(self.graph, [source]))
             return visualize(edges, size=size)
