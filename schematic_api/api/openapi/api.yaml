@@ -11,7 +11,7 @@ servers:
 
 components:
   securitySchemes:
-    bearerAuth:
+    access_token:
       type: http
       scheme: bearer
       bearerFormat: JWT
@@ -24,7 +24,7 @@ paths:
       summary: Endpoint to facilitate manifest generation
       description: Endpoint to create dynamically create metadata manifest files
       security:
-        - bearerAuth: []
+        - access_token: []
         - {}
       parameters:
         - in: query
@@ -117,7 +117,7 @@ paths:
       summary: Endpoint to download an existing manifest by using a manifest id
       description: Endpoint to download an existing manifest by using a manifest id
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: manifest_id
@@ -160,7 +160,7 @@ paths:
       summary: Endpoint to download an existing manifest by using a dataset id
       description: Endpoint to download an existing manifest by using a dataset id
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: asset_view
@@ -293,7 +293,7 @@ paths:
                   type: string
                   format: binary
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: schema_url
@@ -488,7 +488,7 @@ paths:
       description: Get datatype of attributes in manifest
       operationId: schematic_api.api.routes.get_manifest_datatype
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: asset_view
@@ -519,7 +519,7 @@ paths:
       description: Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
       operationId: schematic_api.api.routes.get_storage_projects
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: asset_view
@@ -542,7 +542,7 @@ paths:
       description: Gets all datasets in folder under a given storage project that the current user has access to.
       operationId: schematic_api.api.routes.get_storage_projects_datasets
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: asset_view
@@ -573,7 +573,7 @@ paths:
       description: Get all files in a given dataset folder
       operationId: schematic_api.api.routes.get_files_storage_dataset
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: asset_view
@@ -620,7 +620,7 @@ paths:
       description: Retrieve asset view table as a dataframe.
       operationId: schematic_api.api.routes.get_asset_view_table
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: asset_view
@@ -651,7 +651,7 @@ paths:
       description: Gets all metadata manifest files across all datasets in a specified project.
       operationId: schematic_api.api.routes.get_project_manifests
       security:
-        - bearerAuth: []
+        - access_token: []
       parameters:
         - in: query
           name: project_id
@@ -693,7 +693,7 @@ paths:
       description: Check type of an entity and return entity type
       operationId: schematic_api.api.routes.check_entity_type
       security:
-        - bearerAuth: []      
+        - access_token: []      
       parameters:
         - in: query
           name: entity_id
@@ -717,7 +717,7 @@ paths:
       description: Check if a file or a folder is in a given asset view. Return "true" or "false"
       operationId: schematic_api.api.routes.check_if_files_in_assetview
       security:
-        - bearerAuth: []      
+        - access_token: []      
       parameters:
         - in: query
           name: asset_view
