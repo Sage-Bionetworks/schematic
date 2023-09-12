@@ -10,7 +10,7 @@ class DataModelEdges():
         self.data_model_relationships = self.dmr.relationships_dictionary
 
     def generate_edge(self, G: nx.MultiDiGraph, node: str, all_node_dict: dict, attr_rel_dict: dict, edge_relationships: dict) -> nx.MultiDiGraph:
-        """Generate an edge between a target node and relevant other nodes the data model
+        """Generate an edge between a target node and relevant other nodes the data model. In short, does this current node belong to a recorded relationship in the attribute, relationshps dictionary. Go through each attribute and relationship to find where the node may be.
         Args:
             G, nx.MultiDiGraph: networkx graph representation of the data model, that is in the process of being fully built.
             node, str: target node to look for connecting edges
@@ -51,7 +51,6 @@ class DataModelEdges():
                             weight = 0
                         # Get the edge_key for the edge relationship we are adding at this step
                         edge_key = self.data_model_relationships[key]['edge_key']
-                        
                         # Add edges, in a manner that preserves directionality
                         # TODO: rewrite to use edge_dir
                         if key in ['subClassOf', 'domainIncludes']:
