@@ -615,36 +615,22 @@ class DataModelGraphExplorer():
         return unlist(list(self.graph.successors(schema_class)))
 
     def find_class_specific_properties(self, schema_class):
-        """Find properties specifically associated with a given class"""
+        """Find properties specifically associated with a given class
+        Args:
+            schema_class, str: node/class label, to identify properties for.
+        Returns:
+            properties, list: List of properties associate with a given schema class.
+        Raises:
+            KeyError: Key error is raised if the provded schema_class is not in the graph
+        """
         
-        #This is called directly from the API
-        # Needs to be refactored no longer be JSONLD specific
-        breakpoint()        
-        #schema_uri = self.graph.nodes[schema_class]["uri"]
+        if not self.is_class_in_schema(schema_class):
+            raise KeyError(f"Schema_class provided: {schema_class} is not in the data model, please check that you are providing the proper class/node label")
+
         properties = []
-        for k, v in self.graph[schema_class]:
-            if 'domainIncludes' in v.keys():
-                properties.append(k)
-        '''
-        
-        for record in self.schema["@graph"]:
-            if record["@type"] == "rdf:Property":
-                if (
-                    type(record["schema:domainIncludes"]) == dict
-                    and record["schema:domainIncludes"]["@id"] == schema_uri
-                ):
-                    properties.append(record["rdfs:label"])
-                elif (
-                    type(record["schema:domainIncludes"]) == list
-                    and [
-                        item
-                        for item in record["schema:domainIncludes"]
-                        if item["@id"] == schema_uri
-                    ]
-                    != []
-                ):
-                    properties.append(record["rdfs:label"])
-        '''
+        for n1, n2 in self.graph.edges():
+            if n2==schema_class and 'domainValue' in self.graph[n1][schema_class]:
+                properties.append(n1)
         return properties
 
     def find_parent_classes(self, node_label:str) -> List[list]:
