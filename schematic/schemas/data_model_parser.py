@@ -248,11 +248,16 @@ class DataModelJSONLDParser():
         # Move through each entry in the jsonld model
         for entry in model_jsonld:
             # Get the label of the entry
-            entry_display_name = entry[dn_jsonld_key]
+            try:
+                # Get the entry display name (if recorded)
+                entry_name = entry[dn_jsonld_key]
+            except:
+                # If no display name, get the label.
+                entry_name = entry[label_jsonld_key]
 
             # If the entry is an attribute that has not already been added to the dictionary, add it.
-            if entry_display_name not in attr_rel_dictionary.keys():
-                attr_rel_dictionary.update({entry_display_name: {'Relationships': {}}})
+            if entry_name not in attr_rel_dictionary.keys():
+                attr_rel_dictionary.update({entry_name: {'Relationships': {}}})
             
             # Add relationships for each attribute
             # 
@@ -287,7 +292,7 @@ class DataModelJSONLDParser():
                             parsed_rel_entry = rel_entry
                         # Add relationships for each attribute and relationship to the dictionary
                         attr_rel_dictionary[
-                            entry_display_name]['Relationships'].update(
+                            entry_name]['Relationships'].update(
                                     {self.rel_dict[key]['csv_header']: parsed_rel_entry})
         return attr_rel_dictionary
 
