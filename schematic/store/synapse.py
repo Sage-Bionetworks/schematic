@@ -1412,7 +1412,7 @@ class SynapseStorage(BaseStorage):
         manifest.loc[idx, "entityId"] = entityId
         return manifest, entityId
 
-    def add_entities(
+    def add_annotations_to_entities_files(
                     self,
                     se,
                     schemaGenerator,
@@ -1457,12 +1457,13 @@ class SynapseStorage(BaseStorage):
                 manifest.loc[idx, "entityId"] = manifest_synapse_table_id
                 entityId = ''
             else:
-                # get the entity id corresponding to this row
+                # get the file id of the file to annotate, collected in above step.
                 entityId = row["entityId"]
 
             # Adding annotations to connected files.
             if entityId:
                 self._add_annotations(se, schemaGenerator, row, entityId, hideBlanks)
+                logger.info(f"Added annotations to entity: {entityId}")
         return manifest
 
     def upload_manifest_as_table(
@@ -1506,7 +1507,7 @@ class SynapseStorage(BaseStorage):
                                                     useSchemaLabel,
                                                     table_manipulation)
 
-        manifest = self.add_entities(se, schemaGenerator, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
+        manifest = self.add_annotations_to_entities_files(se, schemaGenerator, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(manifest, metadataManifestPath, datasetId, restrict, component_name = component_name)
         
@@ -1540,8 +1541,7 @@ class SynapseStorage(BaseStorage):
                             restrict,
                             manifest_record_type,
                             hideBlanks,
-                            component_name,
-                            with_entities = False,):
+                            component_name):
         """Upload manifest to Synapse as a csv only.
         Args:
             se: SchemaExplorer object
@@ -1557,8 +1557,8 @@ class SynapseStorage(BaseStorage):
         Return:
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
-        if with_entities:
-            manifest = self.add_entities(se, schemaGenerator, manifest, manifest_record_type, datasetId, hideBlanks)
+        # remove with_entities parameter and rename add_annotations, as add_annototaions_to_files_entities.
+        manifest = self.add_annotations_to_entities_files(se, schemaGenerator, manifest, manifest_record_type, datasetId, hideBlanks)
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(manifest,
@@ -1613,7 +1613,7 @@ class SynapseStorage(BaseStorage):
                                                     useSchemaLabel=useSchemaLabel,
                                                     table_manipulation=table_manipulation,)
 
-        manifest = self.add_entities(se, schemaGenerator, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
+        manifest = self.add_annotations_to_entities_files(se, schemaGenerator, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
         
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(manifest, metadataManifestPath, datasetId, restrict, component_name)
@@ -1690,7 +1690,6 @@ class SynapseStorage(BaseStorage):
                                         hideBlanks=hideBlanks,
                                         manifest_record_type=manifest_record_type,
                                         component_name = component_name,
-                                        with_entities = False,
                                         )
         elif manifest_record_type == "table_and_file":
             manifest_synapse_file_id = self.upload_manifest_as_table(
@@ -1718,7 +1717,6 @@ class SynapseStorage(BaseStorage):
                                         hideBlanks=hideBlanks,
                                         manifest_record_type=manifest_record_type,
                                         component_name = component_name,
-                                        with_entities=True,
                                         )
         elif manifest_record_type == "table_file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_combo(
