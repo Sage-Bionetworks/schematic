@@ -94,6 +94,24 @@ class TestManifestGenerator:
         assert generator.root is None
         assert type(generator.sg) is SchemaGenerator
 
+    def test_missing_root_error(self, helpers):
+        """
+        The ManifestGenerator should raise a LookupError during initialization if a data_type is passed in that can't be found in the schema.
+        """
+        # Choose a data type that is not in the schema
+        data_type = "MissingComponent"
+
+        # A LookupError should be raised and include message when the component cannot be found
+        with pytest.raises(LookupError) as e:
+            generator = ManifestGenerator(
+            path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            root=data_type,
+            use_annotations=False,
+            )        
+
+        # Check message contents
+        assert f"({data_type}) could not be found in the data model schema" in str(e)
+
     @pytest.mark.google_credentials_needed
     def test_get_manifest_first_time(self, manifest):
 
@@ -145,7 +163,7 @@ class TestManifestGenerator:
         # An annotation merged with an attribute from the data model
         if use_annotations:
             assert output["File Format"].tolist() == ["txt", "csv", "fastq"]
-      
+
     @pytest.mark.parametrize("output_format", [None, "dataframe", "excel", "google_sheet"])
     @pytest.mark.parametrize("sheet_url", [None, True, False])
     @pytest.mark.parametrize("dataset_id", [None, "syn27600056"])
@@ -380,6 +398,4 @@ class TestManifestGenerator:
 
         # remove file
         os.remove(dummy_output_path)
-
-
 
