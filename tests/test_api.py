@@ -407,7 +407,7 @@ class TestManifestOperation:
             assert isinstance(df, pd.DataFrame)
 
 
-    @pytest.mark.emptyToken
+    @pytest.mark.empty_token
     #@pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
     @pytest.mark.parametrize("output_format", ["excel"])
     @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
@@ -464,7 +464,7 @@ class TestManifestOperation:
             self.ifGoogleSheetExists(response_dt)
 
 
-    @pytest.mark.emptyToken
+    @pytest.mark.empty_token
     @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)", None])
     @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
     def test_generate_new_manifest(self, caplog, client, data_model_jsonld, data_type, output_format):

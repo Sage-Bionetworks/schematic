@@ -154,7 +154,7 @@ markers = [
     require synapse credentials to run
     """,
     """\
-    emptyToken: marks api tests that \
+    empty_token: marks api tests that \
     send empty credentials in the request
     """
 ]
