@@ -4,7 +4,7 @@ import networkx as nx
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.utils.schema_utils import get_label_from_display_name, get_display_name_from_label, convert_bool
+from schematic.utils.schema_utils import get_label_from_display_name, convert_bool_to_str
 
 
 class DataModelJsonLD(object):
@@ -147,7 +147,7 @@ class DataModelJsonLD(object):
                 # Add appropritae contexts that have been removed in previous steps (for JSONLD) or did not exist to begin with (csv)
                 if key == 'id' and rel_func == get_label_from_display_name:
                     template[jsonld_key] = 'bts:' + template[jsonld_key]
-                elif key == 'required' and rel_func == convert_bool:
+                elif key == 'required' and rel_func == convert_bool_to_str:
                     template[jsonld_key] = 'sms:' + str(template[jsonld_key]).lower()
         return template
 
