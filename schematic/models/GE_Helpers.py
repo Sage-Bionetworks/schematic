@@ -159,14 +159,11 @@ class GreatExpectationsHelpers(object):
             
             # remove trailing/leading whitespaces from manifest
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            validation_rules = self.DME.get_node_validation_rules(col)
+            validation_rules = self.DME.get_node_validation_rules(node_display_name=col)
 
             #check if attribute has any rules associated with it
             if validation_rules:
                 #iterate through all validation rules for an attribute
-                #TODO: Can remove when handling updated so split within graph
-                if '::' in validation_rules[0]:
-                    validation_rules = validation_rules[0].split("::")
                 for rule in validation_rules:
                     base_rule = rule.split(" ")[0]
             
