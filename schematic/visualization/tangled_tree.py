@@ -738,7 +738,7 @@ class TangledTree(object):
         """
         all_parent_children = {}
         for component in components: 
-            all_ancestors = self.DME.get_nodes_ancestors(subgraph, component)
+            all_ancestors = self.DME.get_nodes_ancestors(subgraph=subgraph, node_label=component)
             all_parent_children[component] = all_ancestors
 
         return all_parent_children
