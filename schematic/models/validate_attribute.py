@@ -233,7 +233,7 @@ class GenerateError:
         error_val = invalid_entry
 
         #TODO: not sure if this i needed (to split)
-        validation_rules=DME.get_node_validation_rules(attribute_name)
+        validation_rules=DME.get_node_validation_rules(node_display_name=attribute_name)
 
         #TODO: Can remove when handling updated so split within graph
         if validation_rules and '::' in validation_rules[0]:
@@ -694,7 +694,7 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
 
-        validation_rules = DME.get_node_validation_rules(manifest_col.name)
+        validation_rules = DME.get_node_validation_rules(node_display_name=manifest_col.name)
         if validation_rules and '::' in validation_rules[0]:
                 validation_rules = validation_rules[0].split("::")
         # Handle case where validating re's within a list.
