@@ -69,7 +69,7 @@ class MetadataModel(object):
 
         # Generate graph
         self.graph_data_model = data_model_grapher.generate_data_model_graph()
-        
+
         self.DME = DataModelGraphExplorer(self.graph_data_model)
 
         # check if the type of MModel file is "local"
