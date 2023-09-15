@@ -53,6 +53,7 @@ class DataModelParser():
             path_to_data_model, str: path to data model
         Returns:
             str: uppercase, data model file extension.
+        Note: Consider moving this to Utils.
         '''
         return pathlib.Path(path_to_data_model).suffix.replace('.', '').upper()
 
@@ -309,6 +310,8 @@ class DataModelJSONLDParser():
                     {Relationships: {
                                      CSV Header: Value}}}
         '''
+        # Log warning that JSONLD parsing is in beta mode.
+        logger.warning('JSONLD parsing is in Beta Mode. Please inspect outputs carefully and report any errors.')
         # Load the json_ld model to df
         json_load = load_json(path_to_data_model)
         # Convert dataframe to attributes relationship dictionary.
