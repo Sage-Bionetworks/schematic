@@ -156,11 +156,11 @@ class DataModelGraphExplorer():
         classes = nodes - properties
         return classes
 
-    def find_node_range(self, node_label:Optional[bool], node_display_name:Optional[bool]) -> list:
+    def find_node_range(self, node_label:Optional[str]=None, node_display_name:Optional[str]=None) -> list:
         """Get valid values for the given node (attribute)
         Args:
-            node_label, str, Optional[bool]: label of the node for which to retrieve valid values 
-            node_display_name, str, Optional[bool]: Display Name of the node for which to retrieve valid values
+            node_label, str, Optional[str]: label of the node for which to retrieve valid values 
+            node_display_name, str, Optional[str]: Display Name of the node for which to retrieve valid values
         Returns:
             valid_values, list: List of valid values associated with the provided node.
         """
@@ -189,8 +189,7 @@ class DataModelGraphExplorer():
         #checked
         """
         nodes = set()
-
-        for (u, v, key, c) in self.graph.out_edges(node=node_label, data=True, keys=True):
+        for (u, v, key, c) in self.graph.out_edges(node_label, data=True, keys=True):
             if key == relationship:
                 nodes.add(v)
 
@@ -377,14 +376,15 @@ class DataModelGraphExplorer():
         return sorted_nodes
 
     # Get values associated with a node
-    def get_nodes_ancestors(self, node_label:str) -> list:
+    def get_nodes_ancestors(self, subgraph, node_label:str) -> list:
         """Get a list of nodes reachable from source component in graph 
         Args:
-            node_labe, str: label of node to find ancestors for
+            subgraph: networkx graph object
+            node_label, str: label of node to find ancestors for
         Returns:
             all_ancestors, list: nodes reachable from source in graph 
         """
-        all_ancestors = list(nx.ancestors(self.graph, component))
+        all_ancestors = list(nx.ancestors(subgraph, node_label))
 
         return all_ancestors
 
@@ -427,10 +427,10 @@ class DataModelGraphExplorer():
 
         if schema_ordered:
             # get dependencies in the same order in which they are defined in the schema
-            required_dependencies = self.get_ordered_entry(key=self.reqDep_ek, source_node_label=source_node)
+            required_dependencies = self.get_ordered_entry(key=self.rel_dict['requiresDependency']['edge_key'], source_node_label=source_node)
         else:
             required_dependencies = self.get_adjacent_nodes_by_relationship(
-                node_label = source_node, relationship = self.reqDep_ek)
+                node_label = source_node, relationship = self.rel_dict['requiresDependency']['edge_key'])
 
         if display_names:
             # get display names of dependencies
@@ -478,8 +478,7 @@ class DataModelGraphExplorer():
             node_display_name: Display name of the node which you want to get the label for.
         Returns:
             Node label associated with given node.
-        Raises:
-            KeyError: If the node cannot be found in the graph.
+            If display name not part of schema, return an empty string.
         """
 
         node_class_label = get_class_label_from_display_name(display_name = node_display_name)
@@ -492,11 +491,11 @@ class DataModelGraphExplorer():
         elif node_property_label in self.graph.nodes:
             node_label = node_property_label
         else:
-            raise KeyError(f"Cannot find node: {node_display_name} in the graph, please check entry.")
-
+            node_label=""
+    
         return node_label
 
-    def get_node_range(self, node_label: Optional[bool], node_display_name: Optional[bool]) -> List[str]:
+    def get_node_range(self, node_label: Optional[str] = None, node_display_name: Optional[str] = None, display_names: bool=False) -> List[str]:
         """Get the range, i.e., all the valid values that are associated with a node label.
 
         Args:
@@ -532,7 +531,7 @@ class DataModelGraphExplorer():
 
         return required_range
 
-    def get_node_required(self, node_label:Optional[bool], node_display_name: Optional[bool]) -> bool:
+    def get_node_required(self, node_label:Optional[str]=None, node_display_name: Optional[str]=None) -> bool:
         """Check if a given node is required or not.
 
         Note: The possible options that a node can be associated with -- "required" / "optional".
@@ -552,7 +551,7 @@ class DataModelGraphExplorer():
         node_required = self.graph.nodes[node_label][rel_node_label]
         return node_required
 
-    def get_node_validation_rules(self, node_label: Optional[bool], node_display_name: Optional[bool]) -> str:
+    def get_node_validation_rules(self, node_label: Optional[str]=None, node_display_name: Optional[str]=None) -> str:
         """Get validation rules associated with a node,
 
         Args:
@@ -595,7 +594,7 @@ class DataModelGraphExplorer():
         return relationship_subgraph
 
 
-    def find_adjacent_child_classes(self, node_label: Optional[bool], node_display_name: Optional[bool])->List[str]:
+    def find_adjacent_child_classes(self, node_label: Optional[str]=None, node_display_name: Optional[str]=None)->List[str]:
         '''Find child classes of a given node.
         Args:
             node_display_name: Display name of the node to look up.
@@ -653,7 +652,7 @@ class DataModelGraphExplorer():
 
         return [_path[:-1] for _path in paths]
 
-    def full_schema_graph(self, size:Optional[bool])-> graphviz.Digraph:
+    def full_schema_graph(self, size:Optional[int]=None)-> graphviz.Digraph:
         """Create a graph of the data model.
         Args:
             size, float: max height and width of the graph, if one value provided it is used for both.
