@@ -175,7 +175,7 @@ class ValidateManifest(object):
             
             # remove trailing/leading whitespaces from manifest
             manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            validation_rules = DME.get_node_validation_rules(col)
+            validation_rules = DME.get_node_validation_rules(node_display_name=col)
 
             #TODO: Can remove when handling updated so split within graph
             if validation_rules and '::' in validation_rules[0]:
