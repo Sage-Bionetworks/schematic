@@ -122,7 +122,7 @@ class DataModelJSONSchema:
 		# the domain node is very likely the parentof ("parentOf" relationship) of the range node
 
 		root_dependencies = self.DME.get_adjacent_nodes_by_relationship(
-			node = source_node, relationship=self.rel_dict['requiresDependency']['edge_key'],
+			node_label = source_node, relationship=self.rel_dict['requiresDependency']['edge_key'],
 		)
 
 		# if root_dependencies is empty it means that a class with name 'source_node' exists
@@ -141,7 +141,7 @@ class DataModelJSONSchema:
 				node_is_processed = True
 
 				node_range = self.DME.get_adjacent_nodes_by_relationship(
-					node=process_node, relationship=self.rel_dict['rangeIncludes']['edge_key'],
+					node_label=process_node, relationship=self.rel_dict['rangeIncludes']['edge_key'],
 				)
 
 
@@ -149,7 +149,7 @@ class DataModelJSONSchema:
 				node_range_d = self.DME.get_nodes_display_names(node_list=node_range)
 
 				node_dependencies = self.DME.get_adjacent_nodes_by_relationship(
-					node=process_node, relationship=self.rel_dict['requiresDependency']['edge_key'],
+					node_label=process_node, relationship=self.rel_dict['requiresDependency']['edge_key'],
 				)
 
 				# get process node display name
