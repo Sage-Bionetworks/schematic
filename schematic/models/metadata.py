@@ -53,28 +53,24 @@ class MetadataModel(object):
         """
         # extract extension of 'inputMModelLocation'
         # ensure that it is necessarily pointing to a '.jsonld' file
-        if inputMModelLocation.rpartition(".")[-1] == "jsonld":
-            logger.debug(
-                f"Initializing DataModelGraphExplorer object from {inputMModelLocation} schema."
-            )
-            self.inputMModelLocation = inputMModelLocation
 
-            data_model_parser = DataModelParser(path_to_data_model = self.inputMModelLocation)
-            #Parse Model
-            parsed_data_model = data_model_parser.parse_model()
+        logger.debug(
+            f"Initializing DataModelGraphExplorer object from {inputMModelLocation} schema."
+        )
 
-            # Instantiate DataModelGraph
-            data_model_grapher = DataModelGraph(parsed_data_model)
+        self.inputMModelLocation = inputMModelLocation
 
-            # Generate graph
-            self.graph_data_model = data_model_grapher.generate_data_model_graph()
-            
-            self.DME = DataModelGraphExplorer(self.graph_data_model)
+        data_model_parser = DataModelParser(path_to_data_model = self.inputMModelLocation)
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
 
-        else:
-            raise TypeError(
-                f"Please make sure {inputMModelLocation} is a .jsonld file."
-            )
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        self.graph_data_model = data_model_grapher.generate_data_model_graph()
+        
+        self.DME = DataModelGraphExplorer(self.graph_data_model)
 
         # check if the type of MModel file is "local"
         # currently, the application only supports reading from local JSON-LD files
