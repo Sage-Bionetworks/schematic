@@ -58,6 +58,7 @@ class ManifestGenerator(object):
 
         # Path to jsonld
         self.jsonld_path = path_to_json_ld
+
         # Graph
         self.graph = graph
 
