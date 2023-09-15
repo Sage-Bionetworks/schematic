@@ -494,6 +494,7 @@ class TestCsvUtils:
 
         This test also ensures that the CSV and JSON-LD
         files for the example data model stay in sync.
+        TODO: This probably should be moved out of here and to test_schemas
         """
         csv_path = helpers.get_data_path("example.model.csv")
 
