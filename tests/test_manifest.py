@@ -60,7 +60,7 @@ def manifest_generator(helpers, request):
     use_annotations, data_type = request.param
 
     path_to_data_model = helpers.get_data_path("example.model.jsonld")
-    
+
     # Get graph data model
     graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
 
@@ -113,7 +113,7 @@ class TestManifestGenerator:
 
     def test_init(self, helpers):
         path_to_data_model = helpers.get_data_path("example.model.jsonld")
-    
+
         # Get graph data model
         graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
 
@@ -142,7 +142,6 @@ class TestManifestGenerator:
             return
 
         # Beyond this point, the output is assumed to be a data frame
-
         # Update expectations based on whether the data type is file-based
         is_file_based = data_type in ["BulkRNA-seqAssay"]
 
@@ -194,8 +193,9 @@ class TestManifestGenerator:
 
         data_type = "Patient"
 
+        # Get path to data model
         path_to_data_model = helpers.get_data_path("example.model.jsonld")
-    
+
         # Get graph data model
         graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
 
@@ -244,9 +244,17 @@ class TestManifestGenerator:
         # Use a non-file based DataType
         data_type = "Patient"
 
+        # Get path to data model
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+
+        # Get graph data model
+        graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+
+
         # Instantiate object with use_annotations set to True
         generator = ManifestGenerator(
-        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        path_to_json_ld=path_to_data_model,
+        graph=graph_data_model,
         root=data_type,
         use_annotations=True,
         )
@@ -323,8 +331,15 @@ class TestManifestGenerator:
     # assume there is no existing additional metadata
     @pytest.mark.parametrize("data_type,required_metadata_fields,expected", [("Patient", {"Component": []}, {'Component': ['Patient']}), ("BulkRNA-seqAssay", {"Filename": [], "Component":[]}, {'Component': ['BulkRNA-seqAssay']})])
     def test_add_root_to_component_without_additional_metadata(self, helpers, data_type, required_metadata_fields, expected):
+        # Get path to data model
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+
+        # Get graph data model
+        graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+
         manifest_generator = ManifestGenerator(
-        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        path_to_json_ld=path_to_data_model,
+        graph=graph_data_model,
         root=data_type,
         )
         manifest_generator._add_root_to_component(required_metadata_fields)
@@ -336,8 +351,15 @@ class TestManifestGenerator:
     # assume there is additional metadata
     @pytest.mark.parametrize("additional_metadata", [{'author': ['test', '', ], 'Filename': ['test.txt', 'test2.txt'], 'Component': []}, {'Year of Birth': ['1988'], 'Filename': ['test.txt'], 'Component': []}])
     def test_add_root_to_component_with_additional_metadata(self, helpers, additional_metadata):
+        # Get path to data model
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+
+        # Get graph data model
+        graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+
         manifest_generator = ManifestGenerator(
-        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        path_to_json_ld=path_to_data_model,
+        graph=graph_data_model,
         root="BulkRNA-seqAssay"
         )
 
@@ -382,7 +404,7 @@ class TestManifestGenerator:
         sheet_url = True
 
         path_to_data_model = helpers.get_data_path("example.model.jsonld")
-    
+
         # Get graph data model
         graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
 
