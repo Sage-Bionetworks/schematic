@@ -5,6 +5,7 @@ import tempfile
 import shutil
 import urllib.request
 import logging
+import pathlib
 import pickle
 
 import connexion
@@ -184,9 +185,12 @@ def save_file(file_key="csv_file"):
     return temp_path
 
 def initalize_metadata_model(schema_url):
-    jsonld = get_temp_jsonld(schema_url)
+    # get path to temp data model file (csv or jsonld) as appropriate
+    data_model = get_temp_model_path(schema_url)
+
+    
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
+        inputMModelLocation=data_model, inputMModelLocationType="local"
     )
     return metadata_model
 
@@ -199,11 +203,32 @@ def get_temp_jsonld(schema_url):
     # get path to temporary JSON-LD file
     return tmp_file.name
 
+def get_temp_csv(schema_url):
+    # retrieve a CSV via URL and store it in a temporary location
+    with urllib.request.urlopen(schema_url) as response:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".model.csv") as tmp_file:
+            shutil.copyfileobj(response, tmp_file)
+
+    # get path to temporary csv file
+    return tmp_file.name
+
+def get_temp_model_path(schema_url):
+    # Get model type:
+    model_extension = pathlib.Path(schema_url).suffix.replace('.', '').upper()
+    if model_extension == 'CSV':
+        temp_path = get_temp_csv(schema_url)
+    elif model_extension == 'JSONLD':
+        temp_path = get_temp_jsonld(schema_url)
+    else:
+        raise ValueError("Did not provide a valid model type CSV or JSONLD, please check submission and try again.")
+    return temp_path
+
+
 # @before_request
 def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None, asset_view = None, output_format=None, title=None, access_token=None, strict_validation:bool=True):
     """Get the immediate dependencies that are related to a given source node.
         Args:
-            schema_url: link to data model in json ld format
+            schema_url: link to data model in json ld or csv format
             title: title of a given manifest. 
             dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
             output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
@@ -217,10 +242,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
     # call config_handler()
     config_handler(asset_view = asset_view)
-
-    # get path to temporary JSON-LD file
-    jsonld = get_temp_jsonld(schema_url)
-
+    
     # Gather all data_types to make manifests for.
     all_args = connexion.request.args
     args_dict = dict(all_args.lists())
@@ -255,7 +277,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     f"Please check your submission and try again."
                 )
 
-    data_model_parser = DataModelParser(path_to_data_model = jsonld)
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
 
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
@@ -270,7 +292,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None, strict=strict_validation):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
-            path_to_json_ld=jsonld,
+            path_to_json_ld=schema_url,
             graph=graph_data_model,
             title=title,
             root=data_type,
@@ -359,11 +381,11 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
     else: 
         temp_path = jsc.convert_json_file_to_csv("file_name")
 
-    # get path to temporary JSON-LD file
-    jsonld = get_temp_jsonld(schema_url)
+    # get path to temp data model file (csv or jsonld) as appropriate
+    data_model = get_temp_model_path(schema_url)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
+        inputMModelLocation=data_model, inputMModelLocationType="local"
     )
 
     errors, warnings = metadata_model.validateModelManifest(
@@ -412,9 +434,12 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         validate_component = None
     else:
         validate_component = data_type
+    
+    # get path to temp data model file (csv or jsonld) as appropriate
+    data_model = get_temp_model_path(schema_url)
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld = schema_url, 
+        path_to_json_ld = data_model, 
         manifest_path=temp_path, 
         dataset_id=dataset_id, 
         validate_component=validate_component, 
@@ -431,14 +456,14 @@ def populate_manifest_route(schema_url, title=None, data_type=None, return_excel
     # call config_handler()
     config_handler()
 
-    # get path to temporary JSON-LD file
-    jsonld = get_temp_jsonld(schema_url)
-
     # Get path to temp file where manifest file contents will be saved
     temp_path = save_file()
+
+    # get path to temp data model file (csv or jsonld) as appropriate
+    data_model = get_temp_model_path(schema_url)
    
     #Initalize MetadataModel
-    metadata_model = MetadataModel(inputMModelLocation=jsonld, inputMModelLocationType='local')
+    metadata_model = MetadataModel(inputMModelLocation=data_model, inputMModelLocationType='local')
 
     #Call populateModelManifest class
     populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type, return_excel=return_excel)
@@ -517,9 +542,10 @@ def get_viz_attributes_explorer(schema_url):
     # call config_handler()
     config_handler()
 
-    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+    # get path to temp data model file (csv or jsonld) as appropriate
+    data_model = get_temp_model_path(schema_url)
 
-    attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_attributes(save_file=False)
+    attributes_csv = AttributesExplorer(data_model).parse_attributes(save_file=False)
 
     return attributes_csv
 
@@ -527,19 +553,21 @@ def get_viz_component_attributes_explorer(schema_url, component, include_index):
     # call config_handler()
     config_handler()
 
-    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+     # get path to temp data model file (csv or jsonld) as appropriate
+    data_model = get_temp_model_path(schema_url)
 
-    attributes_csv = AttributesExplorer(temp_path_to_jsonld).parse_component_attributes(component, save_file=False, include_index=include_index)
+    attributes_csv = AttributesExplorer(data_model).parse_component_attributes(component, save_file=False, include_index=include_index)
 
     return attributes_csv
 
 @cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
 def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
    
-    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+     # get path to temp data model file (csv or jsonld) as appropriate
+    data_model = get_temp_model_path(schema_url)
 
     # Initialize TangledTree
-    tangled_tree = TangledTree(temp_path_to_jsonld, figure_type)
+    tangled_tree = TangledTree(data_model, figure_type)
 
     # Get text for tangled tree.
     text_df = tangled_tree.get_text_for_tangled_tree(text_format, save_file=False)
@@ -552,10 +580,11 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
     # call config_handler()
     config_handler()
 
-    temp_path_to_jsonld = get_temp_jsonld(schema_url)
+    # get path to temp data model file (csv or jsonld) as appropriate
+    data_model = get_temp_model_path(schema_url)
 
     # Initialize Tangled Tree
-    tangled_tree = TangledTree(temp_path_to_jsonld, figure_type)
+    tangled_tree = TangledTree(data_model, figure_type)
     
     # Get tangled trees layers JSON.
     layers = tangled_tree.get_tangled_tree_layers(save_file=False)
