@@ -1370,19 +1370,16 @@ class ManifestGenerator(object):
         return annotations.rename(columns=label_map)
 
     def get_manifest_with_annotations(
-        self, annotations: pd.DataFrame, sheet_url:bool=None, strict: Optional[bool]=None,
+        self, annotations: pd.DataFrame, strict: Optional[bool]=None
     ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
         """Generate manifest, optionally with annotations (if requested).
-
         Args:
             annotations (pd.DataFrame): Annotations table (can be empty).
             strict (Optional Bool): strictness with which to apply validation rules to google sheets. True, blocks incorrect entries, False, raises a warning
-            sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
         Returns:
             Tuple[ps.Spreadsheet, pd.DataFrame]: Both the Google Sheet
             URL and the corresponding data frame is returned.
         """
-
         # Map annotation labels to display names to match manifest columns
         annotations = self.map_annotation_names_to_display_names(annotations)
 
@@ -1396,19 +1393,19 @@ class ManifestGenerator(object):
         self.additional_metadata = annotations_dict
 
         # Generate empty manifest using `additional_metadata`
-        manifest_url = self.get_empty_manifest(sheet_url=sheet_url, strict=strict)
+        # With annotations added, regenerate empty manifest
+        manifest_url = self.get_empty_manifest(sheet_url=True, strict=strict)
         manifest_df = self.get_dataframe_by_url(manifest_url=manifest_url)
 
         # Annotations clashing with manifest attributes are skipped
         # during empty manifest generation. For more info, search
         # for `additional_metadata` in `self.get_empty_manifest`.
         # Hence, the shared columns need to be updated separately.
-        if self.is_file_based and self.use_annotations:
-            # This approach assumes that `update_df` returns
-            # a data frame whose columns are in the same order
-            manifest_df = update_df(manifest_df, annotations)
-            manifest_sh = self.set_dataframe_by_url(manifest_url, manifest_df)
-            manifest_url = manifest_sh.url
+        # This approach assumes that `update_df` returns
+        # a data frame whose columns are in the same order
+        manifest_df = update_df(manifest_df, annotations)
+        manifest_sh = self.set_dataframe_by_url(manifest_url, manifest_df)
+        manifest_url = manifest_sh.url
 
         return manifest_url, manifest_df
 
@@ -1532,7 +1529,7 @@ class ManifestGenerator(object):
         manifest_record = store.updateDatasetManifestFiles(self.DME, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
-        empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=sheet_url)
+        empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=True)
 
         # Populate empty template with existing manifest
         if manifest_record:
@@ -1561,33 +1558,35 @@ class ManifestGenerator(object):
             if self.use_annotations:
                 if self.is_file_based:
                     annotations = store.getDatasetAnnotations(dataset_id)
-                    # in the old code, we take a subset of columns if no interested in user-defined annotations and there are files present
-
-                # if there are no files with annotations just generate an empty manifest
+                    # Update `additional_metadata` and generate manifest
+                    manifest_url, manifest_df = self.get_manifest_with_annotations(annotations,strict=strict)
+                
+                # If the annotations are empty, 
+                # ie if there are no annotations to pull or annotations were unable to be pulled because the metadata is not file based, 
+                # then create manifest from an empty manifest
                 if annotations.empty:
-                    manifest_df = self.get_dataframe_by_url(empty_manifest_url)
+                    empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
+                    manifest_df = empty_manifest_df
 
-            # else:
-            #     Subset columns if no interested in user-defined annotations and there are files present
-            #     if self.is_file_based:
-            #         annotations = annotations[["Filename", "eTag", "entityId"]]
-            # Update `additional_metadata` and generate manifest
-            manifest_url, manifest_df = self.get_manifest_with_annotations(annotations, sheet_url=sheet_url, strict=strict)
+                    logger.warning(f"Annotations were not able to be gathered for the given parameters. This manifest will be generated from an empty manifest.")
+                    
+            else:
+                empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
+                if self.is_file_based:
+                    # for file-based manifest, make sure that entityId column and Filename column still gets filled even though use_annotations gets set to False
+                    manifest_df = store.add_entity_id_and_filename(dataset_id,empty_manifest_df)
+                else:
+                    manifest_df = empty_manifest_df
 
             # Update df with existing manifest. Agnostic to output format
             updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
 
-            # For file-based manifest, make sure that entityId column and Filename column still get filled even though use_annotations gets set to False
-            if self.is_file_based and dataset_id and not self.use_annotations:
-                updated_manifest = store.add_entity_id_and_filename(dataset_id, updated_df)
-            else:
-                updated_manifest = updated_df
             # determine the format of manifest that gets return 
             result = self._handle_output_format_logic(output_format = output_format,
                                                       output_path = output_path,
                                                       sheet_url = sheet_url,
                                                       empty_manifest_url=empty_manifest_url,
-                                                      dataframe = updated_manifest,
+                                                      dataframe = updated_df,
                                                       out_of_schema_columns = out_of_schema_columns,
                                                       )
             return result

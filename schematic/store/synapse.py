@@ -618,13 +618,13 @@ class SynapseStorage(BaseStorage):
         if dataset_files:
             new_files = self._get_file_entityIds(dataset_files=dataset_files, only_new_files=True, manifest=manifest)
 
-        # update manifest so that it contain new files
-        new_files = pd.DataFrame(new_files)
-        manifest = (
-                pd.concat([manifest, new_files], sort=False)
-                .reset_index()
-                .drop("index", axis=1)
-        )
+            # update manifest so that it contains new dataset files
+            new_files = pd.DataFrame(new_files)
+            manifest = (
+                    pd.concat([manifest, new_files], sort=False)
+                    .reset_index()
+                    .drop("index", axis=1)
+            )
 
         manifest = manifest.fillna("") 
         return dataset_files, manifest
@@ -1427,7 +1427,7 @@ class SynapseStorage(BaseStorage):
         manifest.loc[idx, "entityId"] = entityId
         return manifest, entityId
 
-    def add_entities(
+    def add_annotations_to_entities_files(
                     self,
                     DME,
                     manifest,
@@ -1470,12 +1470,13 @@ class SynapseStorage(BaseStorage):
                 manifest.loc[idx, "entityId"] = manifest_synapse_table_id
                 entityId = ''
             else:
-                # get the entity id corresponding to this row
+                # get the file id of the file to annotate, collected in above step.
                 entityId = row["entityId"]
 
             # Adding annotations to connected files.
             if entityId:
                 self._add_annotations(DME, row, entityId, hideBlanks)
+                logger.info(f"Added annotations to entity: {entityId}")
         return manifest
 
     def upload_manifest_as_table(
@@ -1517,7 +1518,7 @@ class SynapseStorage(BaseStorage):
                                                     useSchemaLabel,
                                                     table_manipulation)
 
-        manifest = self.add_entities(DME, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
+        manifest = self.add_annotations_to_entities_files(DME, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(manifest, metadataManifestPath, datasetId, restrict, component_name = component_name)
         
@@ -1550,8 +1551,7 @@ class SynapseStorage(BaseStorage):
                             restrict,
                             manifest_record_type,
                             hideBlanks,
-                            component_name,
-                            with_entities = False,):
+                            component_name):
         """Upload manifest to Synapse as a csv only.
         Args:
             DME: DataModelGraphExplorer object
@@ -1566,8 +1566,8 @@ class SynapseStorage(BaseStorage):
         Return:
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
-        if with_entities:
-            manifest = self.add_entities(DME, manifest, manifest_record_type, datasetId, hideBlanks)
+
+        manifest = self.add_annotations_to_entities_files(DME, manifest, manifest_record_type, datasetId, hideBlanks)
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(manifest,
@@ -1620,7 +1620,7 @@ class SynapseStorage(BaseStorage):
                                                     useSchemaLabel=useSchemaLabel,
                                                     table_manipulation=table_manipulation,)
 
-        manifest = self.add_entities(DME, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
+        manifest = self.add_annotations_to_entities_files(DME, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
         
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(manifest, metadataManifestPath, datasetId, restrict, component_name)
@@ -1693,7 +1693,6 @@ class SynapseStorage(BaseStorage):
                                         hideBlanks=hideBlanks,
                                         manifest_record_type=manifest_record_type,
                                         component_name = component_name,
-                                        with_entities = False,
                                         )
         elif manifest_record_type == "table_and_file":
             manifest_synapse_file_id = self.upload_manifest_as_table(
@@ -1719,7 +1718,6 @@ class SynapseStorage(BaseStorage):
                                         hideBlanks=hideBlanks,
                                         manifest_record_type=manifest_record_type,
                                         component_name = component_name,
-                                        with_entities=True,
                                         )
         elif manifest_record_type == "table_file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_combo(

@@ -6,6 +6,7 @@ import pytest
 
 #from schematic.schemas import df_parser
 from schematic.utils.df_utils import load_df
+from schematic.schemas.generator import SchemaGenerator
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -53,6 +54,13 @@ def extended_schema_path(helpers, tmp_path):
 
     yield extended_schema_path
 
+@pytest.fixture
+def sg(helpers):
+
+    inputModelLocation = helpers.get_data_path('example.model.jsonld')
+    sg = SchemaGenerator(inputModelLocation)
+
+    yield sg
 
 class TestDfParser:
     def test_get_class(self, helpers):
@@ -214,4 +222,84 @@ class TestDfParser:
         attribute_present = df_parser.attribute_exists(extended_csv_model_se, "Assay")
 
         assert attribute_present
+<<<<<<< HEAD
 '''
+=======
+
+    def test_get_property_label_from_display_name(self, helpers):
+        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+
+        # tests where strict_camel_case is the same
+        assert(se_obj.get_property_label_from_display_name("howToAcquire") == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("howToAcquire", strict_camel_case = True) == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("how_to_acquire") == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("how_to_acquire", strict_camel_case = True) == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("howtoAcquire") == "howtoAcquire")
+        assert(se_obj.get_property_label_from_display_name("howtoAcquire", strict_camel_case = True) == "howtoAcquire")
+        assert(se_obj.get_property_label_from_display_name("How To Acquire") == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("How To Acquire", strict_camel_case = True) == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("Model Of Manifestation") == "modelOfManifestation")
+        assert(se_obj.get_property_label_from_display_name("Model Of Manifestation", strict_camel_case = True) == "modelOfManifestation")
+        assert(se_obj.get_property_label_from_display_name("ModelOfManifestation") == "modelOfManifestation")
+        assert(se_obj.get_property_label_from_display_name("ModelOfManifestation", strict_camel_case = True) == "modelOfManifestation")
+        assert(se_obj.get_property_label_from_display_name("model Of Manifestation") == "modelOfManifestation")
+        assert(se_obj.get_property_label_from_display_name("model Of Manifestation", strict_camel_case = True) == "modelOfManifestation")
+
+        # tests where strict_camel_case changes the result
+        assert(se_obj.get_property_label_from_display_name("how to Acquire") == "howtoAcquire")
+        assert(se_obj.get_property_label_from_display_name("how to Acquire", strict_camel_case = True) == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("How to Acquire") == "howtoAcquire")
+        assert(se_obj.get_property_label_from_display_name("How to Acquire", strict_camel_case = True) == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("how to acquire") == "howtoacquire")
+        assert(se_obj.get_property_label_from_display_name("how to acquire", strict_camel_case = True) == "howToAcquire")
+        assert(se_obj.get_property_label_from_display_name("model of manifestation") == "modelofmanifestation")
+        assert(se_obj.get_property_label_from_display_name("model of manifestation", strict_camel_case = True) == "modelOfManifestation")
+        assert(se_obj.get_property_label_from_display_name("model of manifestation") == "modelofmanifestation")
+        assert(se_obj.get_property_label_from_display_name("model of manifestation", strict_camel_case = True) == "modelOfManifestation")
+
+    def test_get_class_label_from_display_name(self, helpers):
+        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+
+        # tests where strict_camel_case is the same
+        assert(se_obj.get_class_label_from_display_name("howToAcquire") == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("howToAcquire", strict_camel_case = True) == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("how_to_acquire") == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("how_to_acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("howtoAcquire") == "HowtoAcquire")
+        assert(se_obj.get_class_label_from_display_name("howtoAcquire", strict_camel_case = True) == "HowtoAcquire")
+        assert(se_obj.get_class_label_from_display_name("How To Acquire") == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("How To Acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("Model Of Manifestation") == "ModelOfManifestation")
+        assert(se_obj.get_class_label_from_display_name("Model Of Manifestation", strict_camel_case = True) == "ModelOfManifestation")
+        assert(se_obj.get_class_label_from_display_name("ModelOfManifestation") == "ModelOfManifestation")
+        assert(se_obj.get_class_label_from_display_name("ModelOfManifestation", strict_camel_case = True) == "ModelOfManifestation")
+        assert(se_obj.get_class_label_from_display_name("model Of Manifestation") == "ModelOfManifestation")
+        assert(se_obj.get_class_label_from_display_name("model Of Manifestation", strict_camel_case = True) == "ModelOfManifestation")
+
+        # tests where strict_camel_case changes the result
+        assert(se_obj.get_class_label_from_display_name("how to Acquire") == "HowtoAcquire")
+        assert(se_obj.get_class_label_from_display_name("how to Acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("How to Acquire") == "HowtoAcquire")
+        assert(se_obj.get_class_label_from_display_name("How to Acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("how to acquire") == "Howtoacquire")
+        assert(se_obj.get_class_label_from_display_name("how to acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(se_obj.get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
+        assert(se_obj.get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
+        assert(se_obj.get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
+        assert(se_obj.get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
+
+class TestSchemaExplorer:
+    @pytest.mark.parametrize("class_name, expected_in_schema", [("Patient",True), ("ptaient",False), ("Biospecimen",True), ("InvalidComponent",False)])
+    def test_is_class_in_schema(self, sg, class_name, expected_in_schema):
+        """
+        Test to cover checking if a given class is in a schema.
+        `is_class_in_schema` should return `True` if the class is in the schema
+        and `False` if it is not.
+        """
+
+        # Check if class is in schema
+        class_in_schema = sg.se.is_class_in_schema(class_name)
+
+        # Assert value is as expected
+        assert class_in_schema == expected_in_schema
+>>>>>>> ca5f2938123180b2b3a3448ea2c4b86af9cbe453
