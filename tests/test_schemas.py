@@ -6,291 +6,156 @@ import pytest
 
 #from schematic.schemas import df_parser
 from schematic.utils.df_utils import load_df
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_graph import DataModelGraph
+from schematic.schemas.data_model_nodes import DataModelNodes
+from schematic.schemas.data_model_edges import DataModelEdges
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
+from schematic.schemas.data_model_relationships import DataModelRelationships
+from schematic.schemas.data_model_jsonld import DataModelJsonLD
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+from schematic.schemas.data_model_parser import DataModelParser
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-class TestDataModelEdges():
-    def test_generate_edge(self,helpers):
+def generate_graph_data_model(helpers, path_to_data_model):
+    """
+    Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
+    """
+    
+    # Instantiate Parser
+    data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Convert parsed model to graph
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    return graph_data_model
+
+@pytest.fixture
+def DME(helpers, data_model_name='example.model.csv'):
+    path_to_data_model = helpers.get_data_path("example.model.jsonld")
+
+    graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+    DME = DataModelGraphExplorer(graph_data_model)
+    yield DME
+
+class TestDataModelParser:
+    def test_get_base_schema_path(self, helpers):
         return
 
-class TestDataModelGraph():
-    
+    def test_get_model_type(self):
+        return
 
-'''
-@pytest.fixture
-def extended_schema_path(helpers, tmp_path):
-    data_model_csv_path = helpers.get_data_path("example.model.csv")
+    def test_parse_model(self):
+        return
 
-    example_model_df = load_df(data_model_csv_path)
+class TestDataModelCsvParser:
+    def test_check_schema_definition(self):
+        return
+    def test_gather_csv_attributes_relationships(self):
+        return
+    def test_parse_csv_model(self ):
+        return
 
-    # additional "Assay" attribute to be added to example schema
-    assay_attr_row = {
-        "Attribute": "Assay",
-        "Description": (
-            "A planned process with the objective to produce information "
-            "about the material entity that is the evaluant, by physically "
-            "examining it or its proxies.[OBI_0000070]"
-        ),
-        "Valid Values": "",
-        "DependsOn": "",
-        "Properties": "",
-        "Required": False,
-        "Parent": "",
-        "DependsOn Component": "",
-        "Source": "http://purl.obolibrary.org/obo/OBI_0000070",
-        "Validation Rules": "",
-    }
+class TestDataModelJsonLdParser:
+    def test_gather_jsonld_attributes_relationships(self):
+        return
+    def test_parse_jsonld_model(self):
+        return
 
-    example_model_df = example_model_df.append(assay_attr_row, ignore_index=True)
+class TestDataModelRelationships:
+    def test_define_data_model_relationships(self):
+        return
+    def test_define_required_csv_headers(self):
+        return
+    def test_define_edge_relationships(self):
+        return
+    def test_define_value_relationships(self):
+        return
 
-    # create empty temporary file to write extended schema to
-    schemas_folder = tmp_path / "schemas"
-    schemas_folder.mkdir()
-    extended_schema_path = schemas_folder / "extended_example.model.csv"
+class TestDataModelGraph:
+    def test_generate_data_model_graph(self):
+        return
 
-    example_model_df.to_csv(extended_schema_path)
+class TestDataModelGraphExplorer:
+    def test_find_properties(self):
+        return
 
-    yield extended_schema_path
+    def test_find_classes(self):
+        return
 
-@pytest.fixture
-def sg(helpers):
+    def test_find_node_range(self):
+        return
 
-    inputModelLocation = helpers.get_data_path('example.model.jsonld')
-    sg = SchemaGenerator(inputModelLocation)
+    def test_get_adjacent_nodes_by_relationship(self):
+        return
 
-    yield sg
+    def test_get_component_requirements(self):
+        return
 
-class TestDfParser:
-    def test_get_class(self, helpers):
+    def test_get_component_requirements_graph(self):
+        return
 
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+    def get_descendants_by_edge_type(self):
+        return
 
-        actual = df_parser.get_class(
-            se=se_obj,
-            class_display_name="Test",
-            description="This is a dummy test class",
-            subclass_of=["Thing"],
-            requires_dependencies=["Test_Dep_1", "Test_Dep_2"],
-            requires_range=["Test_Start", "Test_End"],
-            requires_components=["Test_Comp_1", "Test_Comp_2"],
-            required=True,
-            validation_rules=["Rule_1", "Rule_2"],
-        )
+    def test_get_digraph_by_edge_type(self):
+        return
 
-        expected = {
-            "@id": "bts:Test",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "This is a dummy test class",
-            "rdfs:label": "Test",
-            "rdfs:subClassOf": [{"@id": "bts:Thing"}],
-            "schema:isPartOf": {"@id": "http://schema.biothings.io"},
-            "schema:rangeIncludes": [{"@id": "bts:TestStart"}, {"@id": "bts:TestEnd"}],
-            "sms:displayName": "Test",
-            "sms:required": "sms:true",
-            "sms:requiresComponent": [
-                {"@id": "bts:Test_Comp_1"},
-                {"@id": "bts:Test_Comp_2"},
-            ],
-            "sms:requiresDependency": [
-                {"@id": "bts:Test_Dep_1"},
-                {"@id": "bts:Test_Dep_2"},
-            ],
-            "sms:validationRules": ["Rule_1", "Rule_2"],
-        }
+    def test_get_edges_by_relationship(self):
+        return
 
-        assert expected == actual
+    def test_get_ordered_entry(self):
+        return
 
-    def test_get_property(self, helpers):
+    def test_get_nodes_ancestors(self):
+        return
 
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+    def test_get_node_comment(self):
+        return
 
-        actual = df_parser.get_property(
-            se=se_obj,
-            property_display_name="Test",
-            property_class_names=["Prop_Class"],
-            description="This is a dummy test property",
-            requires_range=["Test_Start", "Test_End"],
-            requires_dependencies=["Test_Dep_1", "Test_Dep_2"],
-            required=True,
-            validation_rules=["Rule_1", "Rule_2"],
-        )
+    def test_get_node_dependencies(self):
+        return
 
-        expected = {
-            "@id": "bts:test",
-            "@type": "rdf:Property",
-            "rdfs:comment": "This is a dummy test property",
-            "rdfs:label": "test",
-            "schema:isPartOf": {"@id": "http://schema.biothings.io"},
-            "schema:rangeIncludes": [{"@id": "bts:TestStart"}, {"@id": "bts:TestEnd"}],
-            "sms:displayName": "Test",
-            "sms:required": "sms:true",
-            "schema:domainIncludes": [{"@id": "bts:PropClass"}],
-            "sms:requiresDependency": [
-                {"@id": "bts:Test_Dep_1"},
-                {"@id": "bts:Test_Dep_2"},
-            ],
-            "sms:validationRules": ["Rule_1", "Rule_2"],
-        }
+    def test_get_nodes_descendants(self):
+        return
 
-        assert expected == actual
+    def test_get_nodes_display_names(self):
+        return
 
-    def test_attribute_exists(self, helpers):
+    def test_get_node_label(self):
+        return
 
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+    def test_get_node_range(self):
+        return
 
-        # test when attribute is present in data model
-        attribute_present = df_parser.attribute_exists(se_obj, "Patient")
+    def test_get_node_required(self):
+        return
 
-        # test when attribute is not present in data model
-        attribute_absent = df_parser.attribute_exists(se_obj, "RandomAttribute")
+    def test_get_node_validation_rules(self):
+        return
 
-        assert attribute_present
-        assert not attribute_absent
+    def test_get_subgraph_by_edge_type(self):
+        return
 
-    def test_check_schema_definition(self, helpers):
+    def test_find_adjacent_child_classes(self):
+        return
 
-        data_model_csv_path = helpers.get_data_path("example.model.csv")
+    def test_find_parent_classes(self):
+        return
 
-        example_model_df = load_df(data_model_csv_path)
+    def test_full_schema_graph(self):
+        return
 
-        # when all required headers are provided in the CSV data model
-        actual_df = df_parser.check_schema_definition(example_model_df)
-
-        assert actual_df is None
-
-        # when either "Requires" or "Requires Component" is present
-        # in column headers, raise ValueError
-        if "DependsOn Component" in example_model_df.columns:
-            del example_model_df["DependsOn Component"]
-
-            example_model_df["Requires Component"] = ""
-
-            with pytest.raises(ValueError):
-                df_parser.check_schema_definition(example_model_df)
-
-    def test_create_nx_schema_objects(self, helpers, extended_schema_path):
-
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
-
-        # path to extended CSV data model which has one additional attribute
-        # namely, "Assay"
-        extended_csv_model_path = helpers.get_data_path(extended_schema_path)
-
-        extended_model_df = load_df(extended_csv_model_path, data_model=True)
-
-        extended_csv_model_se = df_parser.create_nx_schema_objects(
-            extended_model_df, se_obj
-        )
-
-        # check if the "Assay" attribute has been added to the new SchemaExplorer
-        # object with attributes from the extended schema
-        result = df_parser.attribute_exists(extended_csv_model_se, "Assay")
-
-        assert result
-
-    def test_get_base_schema_path(self):
-
-        base_schema_path = "/path/to/base_schema.jsonld"
-
-        # path to base schema is returned when base_schema is passed
-        result_path = df_parser._get_base_schema_path(base_schema=base_schema_path)
-
-        assert result_path == "/path/to/base_schema.jsonld"
-
-        # path to default BioThings data model is returned when no
-        # base schema path is passed explicitly
-        biothings_path = df_parser._get_base_schema_path()
-
-        assert os.path.basename(biothings_path) == "biothings.model.jsonld"
-
-    def test_convert_csv_to_data_model(self, helpers, extended_schema_path):
-
-        csv_path = helpers.get_data_path("example.model.jsonld")
-
-        extended_csv_model_path = helpers.get_data_path(extended_schema_path)
-
-        # convert extended CSV data model to JSON-LD using provided
-        # CSV data model as base schema
-        extended_csv_model_se = df_parser._convert_csv_to_data_model(
-            extended_csv_model_path, csv_path
-        )
-
-        # if new attribute can be found in extended_csv_model_se
-        # we know the conversion was successful
-        attribute_present = df_parser.attribute_exists(extended_csv_model_se, "Assay")
-
-        assert attribute_present
-<<<<<<< HEAD
-'''
-=======
-
-    def test_get_property_label_from_display_name(self, helpers):
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
-
-        # tests where strict_camel_case is the same
-        assert(se_obj.get_property_label_from_display_name("howToAcquire") == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("howToAcquire", strict_camel_case = True) == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("how_to_acquire") == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("how_to_acquire", strict_camel_case = True) == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("howtoAcquire") == "howtoAcquire")
-        assert(se_obj.get_property_label_from_display_name("howtoAcquire", strict_camel_case = True) == "howtoAcquire")
-        assert(se_obj.get_property_label_from_display_name("How To Acquire") == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("How To Acquire", strict_camel_case = True) == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("Model Of Manifestation") == "modelOfManifestation")
-        assert(se_obj.get_property_label_from_display_name("Model Of Manifestation", strict_camel_case = True) == "modelOfManifestation")
-        assert(se_obj.get_property_label_from_display_name("ModelOfManifestation") == "modelOfManifestation")
-        assert(se_obj.get_property_label_from_display_name("ModelOfManifestation", strict_camel_case = True) == "modelOfManifestation")
-        assert(se_obj.get_property_label_from_display_name("model Of Manifestation") == "modelOfManifestation")
-        assert(se_obj.get_property_label_from_display_name("model Of Manifestation", strict_camel_case = True) == "modelOfManifestation")
-
-        # tests where strict_camel_case changes the result
-        assert(se_obj.get_property_label_from_display_name("how to Acquire") == "howtoAcquire")
-        assert(se_obj.get_property_label_from_display_name("how to Acquire", strict_camel_case = True) == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("How to Acquire") == "howtoAcquire")
-        assert(se_obj.get_property_label_from_display_name("How to Acquire", strict_camel_case = True) == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("how to acquire") == "howtoacquire")
-        assert(se_obj.get_property_label_from_display_name("how to acquire", strict_camel_case = True) == "howToAcquire")
-        assert(se_obj.get_property_label_from_display_name("model of manifestation") == "modelofmanifestation")
-        assert(se_obj.get_property_label_from_display_name("model of manifestation", strict_camel_case = True) == "modelOfManifestation")
-        assert(se_obj.get_property_label_from_display_name("model of manifestation") == "modelofmanifestation")
-        assert(se_obj.get_property_label_from_display_name("model of manifestation", strict_camel_case = True) == "modelOfManifestation")
-
-    def test_get_class_label_from_display_name(self, helpers):
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
-
-        # tests where strict_camel_case is the same
-        assert(se_obj.get_class_label_from_display_name("howToAcquire") == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("howToAcquire", strict_camel_case = True) == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("how_to_acquire") == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("how_to_acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("howtoAcquire") == "HowtoAcquire")
-        assert(se_obj.get_class_label_from_display_name("howtoAcquire", strict_camel_case = True) == "HowtoAcquire")
-        assert(se_obj.get_class_label_from_display_name("How To Acquire") == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("How To Acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("Model Of Manifestation") == "ModelOfManifestation")
-        assert(se_obj.get_class_label_from_display_name("Model Of Manifestation", strict_camel_case = True) == "ModelOfManifestation")
-        assert(se_obj.get_class_label_from_display_name("ModelOfManifestation") == "ModelOfManifestation")
-        assert(se_obj.get_class_label_from_display_name("ModelOfManifestation", strict_camel_case = True) == "ModelOfManifestation")
-        assert(se_obj.get_class_label_from_display_name("model Of Manifestation") == "ModelOfManifestation")
-        assert(se_obj.get_class_label_from_display_name("model Of Manifestation", strict_camel_case = True) == "ModelOfManifestation")
-
-        # tests where strict_camel_case changes the result
-        assert(se_obj.get_class_label_from_display_name("how to Acquire") == "HowtoAcquire")
-        assert(se_obj.get_class_label_from_display_name("how to Acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("How to Acquire") == "HowtoAcquire")
-        assert(se_obj.get_class_label_from_display_name("How to Acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("how to acquire") == "Howtoacquire")
-        assert(se_obj.get_class_label_from_display_name("how to acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(se_obj.get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
-        assert(se_obj.get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
-        assert(se_obj.get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
-        assert(se_obj.get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
-
-class TestSchemaExplorer:
     @pytest.mark.parametrize("class_name, expected_in_schema", [("Patient",True), ("ptaient",False), ("Biospecimen",True), ("InvalidComponent",False)])
-    def test_is_class_in_schema(self, sg, class_name, expected_in_schema):
+    def test_is_class_in_schema(self, DME, class_name, expected_in_schema):
         """
         Test to cover checking if a given class is in a schema.
         `is_class_in_schema` should return `True` if the class is in the schema
@@ -298,8 +163,69 @@ class TestSchemaExplorer:
         """
 
         # Check if class is in schema
-        class_in_schema = sg.se.is_class_in_schema(class_name)
+        class_in_schema = DME.is_class_in_schema(class_name)
 
         # Assert value is as expected
         assert class_in_schema == expected_in_schema
->>>>>>> ca5f2938123180b2b3a3448ea2c4b86af9cbe453
+
+    def test_sub_schema_graph(self):
+        return
+
+class TestDataModelNodes:
+    def test_gather_nodes(self):
+        return
+    def test_gather_all_nodes(self):
+        return
+    def test_get_rel_node_dict_info(self):
+        return
+    def test_get_data_model_properties(self):
+        return
+    def test_get_entry_type(self):
+        return
+    def test_run_rel_functions(self):
+        return
+    def test_generate_node_dict(self):
+        return
+    def test_generate_node(self):
+        return
+
+class TestDataModelEdges:
+    def test_generate_edge(self,helpers):
+        return
+
+
+class TestDataModelJsonSchema:
+    def test_get_array_schema(self):
+        return
+    def test_get_non_blank_schema(self):
+        return
+    def test_get_json_validation_schema(self):
+        return
+
+class TestDataModelJsonLd:
+    def test_base_jsonld_template(self):
+        return
+    def test_create_object(self):
+        return
+    def test_add_contexts_to_entries(self):
+        return
+    def test_clean_template(self):
+        return
+    def test_strip_context(self):
+        return
+    def test_reorder_template_entries(self):
+        return
+    def test_property_template(self):
+        return
+    def test_class_template(self):
+        return
+    def test_generate_jsonld_object(self):
+        return
+    def test_convert_graph_to_jsonld(self):
+        return
+class TestSchemas:
+    def test_convert_csv_to_graph(self, helpers):
+        return
+    def test_convert_jsonld_to_graph(self, helpers):
+        return
+
