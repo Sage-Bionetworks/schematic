@@ -54,7 +54,11 @@ class ManifestGenerator(object):
         self.creds = services_creds["creds"]
 
         # schema root
-        self.root = root
+        if root:
+            self.root = root
+        # Raise an error if no DataType has been provided
+        else:
+            raise ValueError("No DataType has been provided.")
 
         # alphabetize valid values
         self.alphabetize = alphabetize_valid_values
@@ -79,10 +83,6 @@ class ManifestGenerator(object):
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
-
-        # Raise an error if no DataType has been provided
-        if not self.root:
-            raise ValueError("No DataType has been provided.")
    
         # Check if the class is in the schema
         root_in_schema = self.sg.se.is_class_in_schema(self.root)
