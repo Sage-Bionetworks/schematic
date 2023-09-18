@@ -100,7 +100,7 @@ class TestManifestGenerator:
                                ids = ["DataType not found in Schema", "No DataType provided"])
     def test_missing_root_error(self, helpers, data_type, exc, exc_message):
         """
-        The ManifestGenerator should raise a LookupError during initialization if a data_type is passed in that can't be found in the schema.
+        Test for errors when either no DataType is provided or when a DataType is provided but not found in the schema
         """
 
         # A LookupError should be raised and include message when the component cannot be found
