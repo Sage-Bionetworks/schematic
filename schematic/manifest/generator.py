@@ -80,22 +80,22 @@ class ManifestGenerator(object):
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
 
+        # Raise an error if no DataType has been provided
+        if not self.root:
+            raise ValueError("No DataType has been provided.")
+   
+        # Check if the class is in the schema
+        root_in_schema = self.sg.se.is_class_in_schema(self.root)
+        
+        # If the class could not be found, give a notification
+        if not root_in_schema:
+            exception_message = f"The DataType entered ({self.root}) could not be found in the data model schema. " + \
+                                "Please confirm that the datatype is in the data model and that the spelling matches the class label in the .jsonld file."
+            raise LookupError(exception_message) 
+
         # Determine whether current data type is file-based
-        is_file_based = False
+        self.is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
 
-        if self.root:    
-            # Check if the class is in the schema
-            root_in_schema = self.sg.se.is_class_in_schema(self.root)
-            
-            # If the class could not be found, give a notification
-            if not root_in_schema:
-                exception_message = f"The DataType entered ({self.root}) could not be found in the data model schema. " + \
-                                    "Please confirm that the datatype is in the data model and that the spelling matches the class label in the .jsonld file."
-                raise LookupError(exception_message) 
-            
-            is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
-
-        self.is_file_based = is_file_based
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet"""
