@@ -46,6 +46,11 @@ def DME(helpers, data_model_name='example.model.csv'):
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
 
+@pytest.fixture(name="dmr_object")
+def dmr():
+    """Yields a data model relationships object for testing"""
+    yield DataModelRelationships()
+
 class TestDataModelParser:
     def test_get_base_schema_path(self, helpers):
         return
@@ -71,14 +76,30 @@ class TestDataModelJsonLdParser:
         return
 
 class TestDataModelRelationships:
-    def test_define_data_model_relationships(self):
-        return
-    def test_define_required_csv_headers(self):
-        return
-    def test_define_edge_relationships(self):
-        return
-    def test_define_value_relationships(self):
-        return
+    """Tests for DataModelRelationships class"""
+    def test_define_data_model_relationships(self, dmr_object: DataModelRelationships):
+        """Tests relationships_dictionary attribute created"""
+        relationships = dmr_object.relationships_dictionary
+        assert isinstance(relationships, dict)
+        assert relationships
+
+    def test_define_required_csv_headers(self, dmr_object: DataModelRelationships):
+        """Tests method returns a list"""
+        csv_headers = dmr_object.define_required_csv_headers()
+        assert isinstance(csv_headers, list)
+        assert csv_headers
+
+    def test_define_edge_relationships(self, dmr_object: DataModelRelationships):
+        """Tests method returns a dict"""
+        edge_relationships = dmr_object.define_edge_relationships()
+        assert isinstance(edge_relationships, dict)
+        assert edge_relationships
+
+    def test_define_value_relationships(self, dmr_object: DataModelRelationships):
+        """Tests method returns a dict"""
+        value_relationships = dmr_object.define_value_relationships()
+        assert isinstance(value_relationships, dict)
+        assert value_relationships
 
 class TestDataModelGraph:
     def test_generate_data_model_graph(self):
