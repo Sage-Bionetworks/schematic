@@ -224,8 +224,33 @@ class TestDataModelJsonLd:
     def test_convert_graph_to_jsonld(self):
         return
 class TestSchemas:
-    def test_convert_csv_to_graph(self, helpers):
-        return
-    def test_convert_jsonld_to_graph(self, helpers):
-        return
+    @pytest.mark.parametrize("data_model", ['tests/data/example.model.csv', 'tests/data/example.model.jsonld'], ids=["csv", "jsonld"])
+    def test_convert_data_model_to_graph(self, helpers, data_model):
+        '''Check that data model graph is constructed properly, requires calling various classes.
+        
+        '''
+        graph = generate_graph_data_model(helpers=helpers, path_to_data_model=data_model)
+        
+        #Check that some edges are present as expected:
+        assert True == (('FamilyHistory', 'Breast') in graph.edges('FamilyHistory'))
+        assert True == (('BulkRNA-seqAssay', 'Biospecimen') in graph.edges('BulkRNA-seqAssay'))
+        assert ['Ab', 'Cd', 'Ef', 'Gh'] == [k for k,v in graph['CheckList'].items() for vk, vv in v.items() if vk == 'rangeValue']
 
+        # Check that all relationships recorded between 'CheckList' and 'Ab' are present
+        assert True == ('rangeValue' and 'parentOf' in graph['CheckList']['Ab'])
+        assert False == ('requiresDependency' in graph['CheckList']['Ab'])
+        
+        # Check nodes:
+        # JSONLD will add 'Thing' to compare between CSV and JSONLD just compare all nodes except 'Thing'.
+        assert 66 ==(len([node for node in graph.nodes if node != 'Thing']))
+        assert True == ('Patient' in graph.nodes)
+        assert True == ('GRCh38' in graph.nodes)
+
+
+        # Check weights
+        assert True == (graph['Sex']['Female']['rangeValue']['weight'] == 0)
+        assert True == (graph['MockComponent']['CheckRegexFormat']['requiresDependency']['weight'] == 4)
+
+        # Check Edge directions
+        assert 4 == (len(graph.out_edges('TissueStatus')))
+        assert 2 == (len(graph.in_edges('TissueStatus')))
