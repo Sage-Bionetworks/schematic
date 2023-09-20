@@ -40,15 +40,36 @@ def generate_graph_data_model(helpers, path_to_data_model):
 
 @pytest.fixture
 def DME(helpers, data_model_name='example.model.csv'):
-    path_to_data_model = helpers.get_data_path("example.model.jsonld")
+    '''
+    In future could pull using helpers.
+    '''
+    path_to_data_model = helpers.get_data_path(data_model_name)
 
     graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
-
+'''
+@pytest.fixture
+def data_model_parser(helper, data_model_name:str='example.model.csv'):
+    path_to_data_model = helpers.get_data_path(data_model_name)
+    data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+    yield data_model_parser
+'''
 class TestDataModelParser:
     def test_get_base_schema_path(self, helpers):
-        return
+        '''Test that base schema path is returned properly.
+        Note:
+            data model parser class does not currently accept an new path to a base schema,
+            so just test that default BioThings data model path is returned.
+        '''
+        # Instantiate DMP, Data model parser.
+        path_to_data_model = helpers.get_data_path('example.model.csv')
+        DMP = DataModelParser(path_to_data_model=path_to_data_model)
+
+        # Get path to default biothings model.
+        biothings_path = DMP._get_base_schema_path(base_schema=None)
+
+        assert os.path.basename(biothings_path) == "biothings.model.jsonld"
 
     def test_get_model_type(self):
         return
