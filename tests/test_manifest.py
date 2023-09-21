@@ -193,6 +193,37 @@ class TestManifestGenerator:
         if type(manifest) is str and os.path.exists(manifest): 
             os.remove(manifest)
 
+    @pytest.mark.parametrize("dataset_id", [("syn27600056"), ("syn52397659")], ids=["Annotations present", "Annotations not present"])
+    def test_get_manifest_no_annos(self, helpers, dataset_id):
+        """
+        Test to cover manifest generation under the case where use_annotations is True 
+        but there are no annotations in the dataset
+        """
+
+        # Use a non-file based DataType
+        data_type = "Patient"
+
+        # Instantiate object with use_annotations set to True
+        generator = ManifestGenerator(
+        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        root=data_type,
+        use_annotations=True,
+        )
+
+        # Get manifest as a dataframe
+        manifest = generator.get_manifest(dataset_id = dataset_id, sheet_url = False, output_format = "dataframe")
+
+        # Case where annotations are present in the dataset
+        # manifest should have pulled in the annotations
+        if dataset_id == "syn27600056":
+            assert manifest["Patient ID"].size > 1
+
+        # Case where annotations are not present in the dataset
+        # manifest should be empty (One column will have the component filled so not truly empty)
+        elif dataset_id == "syn52397659":
+            assert manifest["Patient ID"].size == 1
+
+
     # test all the functions used under get_manifest
     def test_create_empty_manifest_spreadsheet(self, simple_manifest_generator):
         '''
