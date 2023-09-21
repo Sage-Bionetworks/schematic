@@ -87,11 +87,12 @@ class TestManifestGenerator:
         generator = ManifestGenerator(
             title="mock_title",
             path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            root = "Patient"
         )
 
         assert type(generator.title) is str
         # assert generator.sheet_service == mock_creds["sheet_service"]
-        assert generator.root is None
+        assert generator.root is "Patient"
         assert type(generator.sg) is SchemaGenerator
 
     @pytest.mark.parametrize("data_type, exc, exc_message",
