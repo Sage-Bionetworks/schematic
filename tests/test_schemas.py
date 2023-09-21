@@ -46,8 +46,8 @@ def DME(helpers, data_model_name='example.model.csv'):
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
 
-@pytest.fixture(name="dmr_object")
-def dmr():
+@pytest.fixture(name="dmr")
+def fixture_dmr():
     """Yields a data model relationships object for testing"""
     yield DataModelRelationships()
 
@@ -77,29 +77,66 @@ class TestDataModelJsonLdParser:
 
 class TestDataModelRelationships:
     """Tests for DataModelRelationships class"""
-    def test_define_data_model_relationships(self, dmr_object: DataModelRelationships):
-        """Tests relationships_dictionary attribute created"""
-        relationships = dmr_object.relationships_dictionary
-        assert isinstance(relationships, dict)
-        assert relationships
+    def test_define_data_model_relationships(self, dmr: DataModelRelationships):
+        """Tests relationships_dictionary created has correct keys"""
+        required_keys = [
+            'jsonld_key',
+            'csv_header',
+            'type',
+            'edge_rel',
+            'required_header'
+        ]
+        required_edge_keys = ['edge_key', 'edge_dir']
+        required_node_keys = ['node_label', 'node_attr_dict']
 
-    def test_define_required_csv_headers(self, dmr_object: DataModelRelationships):
-        """Tests method returns a list"""
-        csv_headers = dmr_object.define_required_csv_headers()
-        assert isinstance(csv_headers, list)
-        assert csv_headers
+        relationships = dmr.relationships_dictionary
 
-    def test_define_edge_relationships(self, dmr_object: DataModelRelationships):
-        """Tests method returns a dict"""
-        edge_relationships = dmr_object.define_edge_relationships()
-        assert isinstance(edge_relationships, dict)
-        assert edge_relationships
+        for relationship in relationships.values():
+            for key in required_keys:
+                assert key in relationship.keys()
+            if relationship['edge_rel']:
+                for key in required_edge_keys:
+                    assert key in relationship.keys()
+            else:
+                for key in required_node_keys:
+                    assert key in relationship.keys()
 
-    def test_define_value_relationships(self, dmr_object: DataModelRelationships):
-        """Tests method returns a dict"""
-        value_relationships = dmr_object.define_value_relationships()
-        assert isinstance(value_relationships, dict)
-        assert value_relationships
+    def test_define_required_csv_headers(self, dmr: DataModelRelationships):
+        """Tests method returns correct values"""
+        assert dmr.define_required_csv_headers() == [
+            'Attribute',
+            'Description',
+            'Valid Values',
+            'DependsOn',
+            'DependsOn Component',
+            'Required', 'Parent',
+            'Validation Rules',
+            'Properties',
+            'Source'
+        ]
+
+    def test_define_edge_relationships(self, dmr: DataModelRelationships):
+        """Tests method returns correct values"""
+        assert dmr.define_edge_relationships() == {
+            'rangeIncludes': 'Valid Values',
+            'requiresDependency': 'DependsOn',
+            'requiresComponent': 'DependsOn Component',
+            'subClassOf': 'Parent',
+            'domainIncludes': 'Properties'
+        }
+
+    def test_define_value_relationships(self, dmr: DataModelRelationships):
+        """Tests method returns correct values"""
+        assert dmr.define_value_relationships() == {
+            'displayName': 'Attribute',
+            'label': None,
+            'comment': 'Description',
+            'required': 'Required',
+            'validationRules': 'Validation Rules',
+            'isPartOf': None,
+            'id': 'Source'
+        }
+
 
 class TestDataModelGraph:
     def test_generate_data_model_graph(self):
