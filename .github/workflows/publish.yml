@@ -8,6 +8,8 @@ on:
 jobs:
   pypi_release:
     runs-on: ubuntu-latest
+    env:
+      POETRY_VERSION:  1.2.0
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     steps:
       #----------------------------------------------
