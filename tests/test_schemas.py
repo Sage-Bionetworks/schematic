@@ -18,13 +18,13 @@ from schematic.schemas.data_model_parser import DataModelParser
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def generate_graph_data_model(helpers, path_to_data_model):
+def generate_graph_data_model(helpers, data_model_name):
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
     """
     
     # Instantiate Parser
-    data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+    data_model_parser = helpers.get_data_model_parser(data_model_name=data_model_name)
 
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
@@ -43,9 +43,7 @@ def DME(helpers, data_model_name='example.model.csv'):
     '''
     In future could pull using helpers.
     '''
-    path_to_data_model = helpers.get_data_path(data_model_name)
-
-    graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+    graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model_name)
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
 
@@ -57,18 +55,18 @@ class TestDataModelParser:
             data model parser class does not currently accept an new path to a base schema,
             so just test that default BioThings data model path is returned.
         '''
-        # Instantiate DMP, Data model parser.
-        data_model_parser = helpers.get_data_model_parser(path_to_data_model=path_to_data_model)
+        # Instantiate Data model parser.
+        data_model_parser = helpers.get_data_model_parser(data_model_name='example.model.csv')
 
         # Get path to default biothings model.
-        biothings_path = DMP._get_base_schema_path(base_schema=None)
+        biothings_path = data_model_parser._get_base_schema_path(base_schema=None)
 
         assert os.path.basename(biothings_path) == "biothings.model.jsonld"
 
     @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
     def test_get_model_type(self, helpers, data_model):
-        # Instantiate DMP, Data model parser.
-        data_model_parser = helpers.get_data_model_parser(path_to_data_model=path_to_data_model)
+        # Instantiate Data model parser.
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
 
         # Check the data model type
         assert (data_model == 'example.model.csv') == (data_model_parser.model_type == 'CSV')
@@ -78,7 +76,7 @@ class TestDataModelParser:
     def test_parse_model(self, helpers, data_model):
         '''Test that the correct parser is called and that a dictionary is returned in the expected structure.
         '''
-        # Instantiate DMP, Data model parser.
+        # Instantiate Data model parser.
         data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
         # Parse Model
         model_dict = data_model_parser.parse_model()
