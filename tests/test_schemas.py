@@ -71,10 +71,19 @@ class TestDataModelParser:
 
         assert os.path.basename(biothings_path) == "biothings.model.jsonld"
 
-    def test_get_model_type(self):
-        return
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    def test_get_model_type(self, helpers, data_model):
+        # Instantiate DMP, Data model parser.
+        path_to_data_model = helpers.get_data_path(data_model)
+        DMP = DataModelParser(path_to_data_model=path_to_data_model)
+
+        # Check the data model type
+        assert (data_model == 'example.model.csv') == (DMP.model_type == 'CSV')
+        assert (data_model == 'example.model.jsonld') == (DMP.model_type == 'JSONLD')
 
     def test_parse_model(self):
+        '''Test that the correct parser is called and that a dictionary is returned in the expected structure.
+        '''
         return
 
 class TestDataModelCsvParser:

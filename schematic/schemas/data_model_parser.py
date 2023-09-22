@@ -47,7 +47,7 @@ class DataModelParser():
 
         return self.base_schema_path
 
-    def get_model_type(self, path_to_data_model: str) -> str:
+    def get_model_type(self) -> str:
         '''Parses the path to the data model to extract the extension and determine the data model type.
         Args:
             path_to_data_model, str: path to data model
@@ -55,7 +55,7 @@ class DataModelParser():
             str: uppercase, data model file extension.
         Note: Consider moving this to Utils.
         '''
-        return pathlib.Path(path_to_data_model).suffix.replace('.', '').upper()
+        return pathlib.Path(self.path_to_data_model).suffix.replace('.', '').upper()
 
     def parse_base_model(self):
         '''Parse base data model that new model could be built upon.
