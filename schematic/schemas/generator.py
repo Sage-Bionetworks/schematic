@@ -340,6 +340,19 @@ class SchemaGenerator(object):
 
         return node_required
 
+    def get_node_display_name(self, node_label: str, mm_graph: nx.MultiDiGraph) -> list:
+        """Get display name associated with a given node label, return id if no display name.
+        Args:
+            node_label, str: Node to retrieve display name for
+        Returns:
+            node_display_name: display name of the node, or its id if it does not have a display name.
+        """
+        if "displayName" in mm_graph.nodes[node_label]:
+                    node_display_name = mm_graph.nodes[node_label]["displayName"]
+        else:
+            node_display_name = mm_graph.nodes[node_label]["id"].split(':')[1]
+        return node_display_name
+
     def get_nodes_display_names(
         self, node_list: List[str], mm_graph: nx.MultiDiGraph
     ) -> List[str]:
@@ -349,12 +362,13 @@ class SchemaGenerator(object):
             node_list: List of nodes whose display names we need to retrieve.
 
         Returns:
-            List of display names.
+            List of display names, return id if no display name
         """
-        node_list_display_names = [
-            mm_graph.nodes[node]["displayName"] for node in node_list
-        ]
-
+        node_list_display_names = [mm_graph.nodes[node]['displayName']
+                                    if 'displayName' in mm_graph.nodes[node]
+                                        else mm_graph.nodes[node]['id'].split(':')[1]
+                                            for node in node_list
+                                  ]
         return node_list_display_names
 
     def get_range_schema(
@@ -430,8 +444,12 @@ class SchemaGenerator(object):
             Boolean value indicating if the node is required or not.
                 True: yes, it is required.
                 False: no, it is not required.
+            Return False, if no required key
         """
-        return mm_graph.nodes[node_name]["required"]
+        if "required" in mm_graph.nodes[node_name]:
+            return mm_graph.nodes[node_name]["required"]
+        else:
+            return False
 
     def get_json_schema_requirements(self, source_node: str, schema_name: str) -> Dict:
         """Consolidated method that aims to gather dependencies and value constraints across terms / nodes in a schema.org schema and store them in a jsonschema /JSON Schema schema.
@@ -505,7 +523,7 @@ class SchemaGenerator(object):
                 )
 
                 # get process node display name
-                node_display_name = mm_graph.nodes[process_node]["displayName"]
+                node_display_name = self.get_node_display_name(node_label=process_node, mm_graph=mm_graph)
 
                 # updating map between node and node's valid values
                 for n in node_range_d:
