@@ -18,13 +18,13 @@ from schematic.schemas.data_model_parser import DataModelParser
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def generate_graph_data_model(helpers, path_to_data_model):
+def generate_graph_data_model(helpers, data_model_name):
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
     """
     
     # Instantiate Parser
-    data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+    data_model_parser = helpers.get_data_model_parser(data_model_name=data_model_name)
 
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
@@ -42,7 +42,7 @@ def generate_graph_data_model(helpers, path_to_data_model):
 def DME(helpers, data_model_name='example.model.csv'):
     path_to_data_model = helpers.get_data_path("example.model.jsonld")
 
-    graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+    graph_data_model = generate_graph_data_model(helpers, data_model_name=path_to_data_model)
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
 

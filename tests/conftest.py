@@ -77,6 +77,15 @@ class Helpers:
         DME = DataModelGraphExplorer(graph_data_model)
 
         return DME
+
+    @staticmethod
+    def get_data_model_parser(data_model_name:str=None, *paths):
+        # Get path to data model
+        fullpath = Helpers.get_data_path(path=data_model_name, *paths)
+        # Instantiate DataModelParser
+        data_model_parser = DataModelParser(path_to_data_model=fullpath)
+        return data_model_parser
+    
     
 
     @staticmethod
