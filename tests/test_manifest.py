@@ -87,12 +87,33 @@ class TestManifestGenerator:
         generator = ManifestGenerator(
             title="mock_title",
             path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            root = "Patient"
         )
 
         assert type(generator.title) is str
         # assert generator.sheet_service == mock_creds["sheet_service"]
-        assert generator.root is None
+        assert generator.root is "Patient"
         assert type(generator.sg) is SchemaGenerator
+
+    @pytest.mark.parametrize("data_type, exc, exc_message",
+                              [("MissingComponent", LookupError, "could not be found in the data model schema"),
+                               (None, ValueError, "No DataType has been provided.")],
+                               ids = ["DataType not found in Schema", "No DataType provided"])
+    def test_missing_root_error(self, helpers, data_type, exc, exc_message):
+        """
+        Test for errors when either no DataType is provided or when a DataType is provided but not found in the schema
+        """
+
+        # A LookupError should be raised and include message when the component cannot be found
+        with pytest.raises(exc) as e:
+            generator = ManifestGenerator(
+            path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            root=data_type,
+            use_annotations=False,
+            )        
+
+        # Check message contents
+        assert exc_message in str(e)
 
     @pytest.mark.google_credentials_needed
     def test_get_manifest_first_time(self, manifest):
@@ -145,7 +166,7 @@ class TestManifestGenerator:
         # An annotation merged with an attribute from the data model
         if use_annotations:
             assert output["File Format"].tolist() == ["txt", "csv", "fastq"]
-      
+
     @pytest.mark.parametrize("output_format", [None, "dataframe", "excel", "google_sheet"])
     @pytest.mark.parametrize("sheet_url", [None, True, False])
     @pytest.mark.parametrize("dataset_id", [None, "syn27600056"])
@@ -411,6 +432,4 @@ class TestManifestGenerator:
 
         # remove file
         os.remove(dummy_output_path)
-
-
 
