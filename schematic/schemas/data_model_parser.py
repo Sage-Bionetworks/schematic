@@ -30,7 +30,7 @@ class DataModelParser():
         """
 
         self.path_to_data_model = path_to_data_model
-        self.model_type = self.get_model_type(path_to_data_model)
+        self.model_type = self.get_model_type()
         self.base_schema_path = None
 
     def _get_base_schema_path(self, base_schema: str = None) -> str:
