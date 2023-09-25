@@ -226,6 +226,25 @@ class TestDataModelJsonSchema:
         assert node_name in non_blank_schema
         assert non_blank_schema[node_name] == {"not": {"type": "null"}, "minLength": 1}
     
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("node_range", [[], ['healthy'], ['healthy', 'cancer']], ids=['empty_range', "single_range", "multi_range"])
+    @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
+    @pytest.mark.parametrize("blank", [True, False], ids=["True_blank", "False_blank"])
+    def test_get_range_schema(self, helpers, data_model, node_range, node_name, blank):
+        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        range_schema = dmjs.get_range_schema(node_range=node_range, node_name=node_name, blank=blank)
+
+        # check node_name is recoreded as the key to the array schema
+        assert node_name in range_schema
+
+        # Check that blank value is added at the end of node_range, if true
+        if blank:
+            assert range_schema[node_name]['enum'][-1]== ''
+            assert len(range_schema[node_name]['enum'])==len(node_range)+1
+        else:
+            assert range_schema[node_name]['enum']== node_range
+            assert len(range_schema[node_name]['enum'])==len(node_range)
+
     def test_get_json_validation_schema(self):
         return
 
