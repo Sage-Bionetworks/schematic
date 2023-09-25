@@ -217,8 +217,15 @@ class TestDataModelJsonSchema:
             assert True == (array_schema[node_name]['items']['enum']== node_range)
             assert True == (len(array_schema[node_name]['items']['enum'])==len(node_range))
 
-    def test_get_non_blank_schema(self):
-        return
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
+    def test_get_non_blank_schema(self, helpers, data_model, node_name):
+        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        non_blank_schema = dmjs.get_non_blank_schema(node_name=node_name)
+        # check node_name is recoreded as the key to the array schema
+        assert node_name in non_blank_schema
+        assert non_blank_schema[node_name] == {"not": {"type": "null"}, "minLength": 1}
+    
     def test_get_json_validation_schema(self):
         return
 
