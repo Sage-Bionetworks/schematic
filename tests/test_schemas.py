@@ -274,7 +274,20 @@ class TestDataModelNodes:
         return
 
 class TestDataModelEdges:
-    def test_generate_edge(self,helpers):
+    """
+    Cases to test
+        Where node == attribute_display_name
+        Weights
+            domain includes weights
+            list weights
+            single element weights
+        Edges
+            subClassOf/domainIncludes relationship edge
+            any other relationship edge
+            rangeIncludes relationship edge
+        
+    """
+    def test_generate_edge(self, helpers):
         return
 
 
