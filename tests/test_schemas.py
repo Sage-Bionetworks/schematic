@@ -13,7 +13,7 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.schemas.data_model_jsonld import DataModelJsonLD
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_parser import DataModelParser, DataModelCSVParser, DataModelJSONLDParser
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -46,6 +46,11 @@ def DME(helpers, data_model_name='example.model.csv'):
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
 
+@pytest.fixture(name='dmcsvp')
+def fixture_dm_csv_parser():
+    yield DataModelCSVParser()
+
+
 class TestDataModelParser:
     def test_get_base_schema_path(self, helpers):
         return
@@ -57,12 +62,53 @@ class TestDataModelParser:
         return
 
 class TestDataModelCsvParser:
-    def test_check_schema_definition(self):
-        return
-    def test_gather_csv_attributes_relationships(self):
-        return
-    def test_parse_csv_model(self ):
-        return
+    @pytest.mark.parametrize("data_model", ['example.model.csv'], ids=["csv"])
+    def test_check_schema_definition(self, helpers, data_model, dmcsvp:DataModelCSVParser):
+        """If the csv schema contains the required headers, then this function should not return anything. Check that this is so.
+        """
+        path_to_data_model = helpers.get_data_path(path=data_model)
+        model_df = load_df(path_to_data_model, data_model=True)
+        assert None == (dmcsvp.check_schema_definition(model_df = model_df))
+
+    @pytest.mark.parametrize("data_model", ['example.model.csv'], ids=["csv"])
+    def test_gather_csv_attributes_relationships(self, helpers, data_model, dmcsvp:DataModelCSVParser):
+        """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
+        """
+        path_to_data_model = helpers.get_data_path(path=data_model)
+        model_df = load_df(path_to_data_model, data_model=True)
+
+        # Get output of the function:
+        attr_rel_dict = dmcsvp.gather_csv_attributes_relationships(model_df=model_df)
+
+        # Test the attr_rel_dict is formatted as expected:
+        # Get a key in the model
+        attribute_key = list(attr_rel_dict.keys())[0]
+
+        # Check that the structure of the model dictionary conforms to expectations.
+        assert True == (type(attr_rel_dict) == dict)
+        assert True == (attribute_key in attr_rel_dict.keys())
+        assert True == ('Relationships' in attr_rel_dict[attribute_key])
+        assert True == ('Attribute' in attr_rel_dict[attribute_key]['Relationships'])
+
+    @pytest.mark.parametrize("data_model", ['example.model.csv'], ids=["csv"])
+    def test_parse_csv_model(self, helpers, data_model, dmcsvp:DataModelCSVParser):
+        """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
+        """
+        path_to_data_model = helpers.get_data_path(path=data_model)
+        model_df = load_df(path_to_data_model, data_model=True)
+
+        # Get output of the function:
+        model_dict = dmcsvp.parse_csv_model(path_to_data_model=path_to_data_model)
+
+        # Test the model_dict is formatted as expected:
+        # Get a key in the model
+        attribute_key = list(model_dict.keys())[0]
+
+        # Check that the structure of the model dictionary conforms to expectations.
+        assert True == (type(model_dict) == dict)
+        assert True == (attribute_key in model_dict.keys())
+        assert True == ('Relationships' in model_dict[attribute_key])
+        assert True == ('Attribute' in model_dict[attribute_key]['Relationships'])
 
 class TestDataModelJsonLdParser:
     def test_gather_jsonld_attributes_relationships(self):
