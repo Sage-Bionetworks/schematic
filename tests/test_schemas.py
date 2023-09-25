@@ -211,11 +211,11 @@ class TestDataModelJsonSchema:
 
         # Check that blank value is added at the end of node_range, if true
         if blank:
-            assert True == (array_schema[node_name]['items']['enum'][-1]== '')
-            assert True == (len(array_schema[node_name]['items']['enum'])==len(node_range)+1)
+            assert array_schema[node_name]['items']['enum'][-1]== ''
+            assert len(array_schema[node_name]['items']['enum'])==len(node_range)+1
         else:
-            assert True == (array_schema[node_name]['items']['enum']== node_range)
-            assert True == (len(array_schema[node_name]['items']['enum'])==len(node_range))
+            assert array_schema[node_name]['items']['enum']== node_range
+            assert len(array_schema[node_name]['items']['enum'])==len(node_range)
 
     @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
     @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
