@@ -4,8 +4,9 @@ import logging
 import pandas as pd
 import pytest
 
-#from schematic.schemas import df_parser
 from schematic.utils.df_utils import load_df
+from schematic.utils.io_utils import load_json
+
 from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_edges import DataModelEdges
@@ -13,7 +14,7 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.schemas.data_model_jsonld import DataModelJsonLD
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_parser import DataModelParser, DataModelCSVParser, DataModelJSONLDParser
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -37,6 +38,10 @@ def generate_graph_data_model(helpers, data_model_name):
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
     return graph_data_model
+
+@pytest.fixture(name='dmjsonldp')
+def fixture_dm_jsonld_parser():
+    yield DataModelJSONLDParser()
 
 @pytest.fixture
 def DME(helpers, data_model_name='example.model.csv'):
@@ -65,9 +70,28 @@ class TestDataModelCsvParser:
         return
 
 class TestDataModelJsonLdParser:
-    def test_gather_jsonld_attributes_relationships(self):
-        return
-    def test_parse_jsonld_model(self):
+    @pytest.mark.parametrize("data_model", ['example.model.jsonld'], ids=["jsonld"])
+    def test_gather_jsonld_attributes_relationships(self, helpers, data_model, dmjsonldp):
+        """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
+        """
+        path_to_data_model = helpers.get_data_path(path=data_model)
+        model_jsonld = load_json(path_to_data_model)
+
+        # Get output of the function:
+        attr_rel_dict = dmjsonldp.gather_jsonld_attributes_relationships(model_jsonld=model_jsonld['@graph'])
+
+        # Test the attr_rel_dict is formatted as expected:
+        # Get a key in the model
+        attribute_key = list(attr_rel_dict.keys())[0]
+
+        # Check that the structure of the model dictionary conforms to expectations.
+        assert True == (type(attr_rel_dict) == dict)
+        assert True == (attribute_key in attr_rel_dict.keys())
+        assert True == ('Relationships' in attr_rel_dict[attribute_key])
+        assert True == ('Attribute' in attr_rel_dict[attribute_key]['Relationships'])
+
+    @pytest.mark.parametrize("data_model", ['example.model.jsonld'], ids=["jsonld"])
+    def test_parse_jsonld_model(self, data_model):
         return
 
 class TestDataModelRelationships:
