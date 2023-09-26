@@ -91,8 +91,24 @@ class TestDataModelJsonLdParser:
         assert True == ('Attribute' in attr_rel_dict[attribute_key]['Relationships'])
 
     @pytest.mark.parametrize("data_model", ['example.model.jsonld'], ids=["jsonld"])
-    def test_parse_jsonld_model(self, data_model):
-        return
+    def test_parse_jsonld_model(self, helpers, data_model, dmjsonldp):
+        """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
+        """
+        path_to_data_model = helpers.get_data_path(path=data_model)
+        model_jsonld = load_json(path_to_data_model)
+
+        # Get output of the function:
+        model_dict = dmjsonldp.parse_jsonld_model(path_to_data_model=path_to_data_model)
+
+        # Test the model_dict is formatted as expected:
+        # Get a key in the model
+        attribute_key = list(model_dict.keys())[0]
+
+        # Check that the structure of the model dictionary conforms to expectations.
+        assert True == (type(model_dict) == dict)
+        assert True == (attribute_key in model_dict.keys())
+        assert True == ('Relationships' in model_dict[attribute_key])
+        assert True == ('Attribute' in model_dict[attribute_key]['Relationships'])
 
 class TestDataModelRelationships:
     def test_define_data_model_relationships(self):
