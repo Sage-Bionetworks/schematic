@@ -245,8 +245,30 @@ class TestDataModelJsonSchema:
             assert range_schema[node_name]['enum']== node_range
             assert len(range_schema[node_name]['enum'])==len(node_range)
 
-    def test_get_json_validation_schema(self):
-        return
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("source_node", ['', 'Patient'], ids=['empty_node_name', "patient_source"])
+    @pytest.mark.parametrize("schema_name", ['', 'Test_Schema_Name'], ids=['empty_schema_name', "schema_name"])
+    def test_get_json_validation_schema(self, helpers, data_model, source_node, schema_name):
+        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+
+        try:
+            # Get validation schema
+            json_validation_schema = dmjs.get_json_validation_schema(source_node=source_node, schema_name=schema_name)
+
+            # Check Keys in Schema
+            expected_jvs_keys = ['$schema', '$id', 'title', 'type', 'properties', 'required', 'allOf']
+            actual_jvs_keys = list( json_validation_schema.keys())
+            assert expected_jvs_keys == actual_jvs_keys
+
+            # Check title
+            assert schema_name == json_validation_schema['title']
+
+            # Check contents of validation schema
+            assert 'Diagnosis' in json_validation_schema['properties']
+            assert json_validation_schema['properties']['Diagnosis'] == {'enum': ['Cancer', 'Healthy']}
+        except:
+            # Should only fail if no source node is provided.
+            assert source_node == ''
 
 class TestDataModelJsonLd:
     def test_base_jsonld_template(self):
