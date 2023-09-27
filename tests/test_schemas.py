@@ -81,8 +81,34 @@ class TestDataModelRelationships:
         return
 
 class TestDataModelGraph:
-    def test_generate_data_model_graph(self):
-        return
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    def test_generate_data_model_graph(self, helpers, data_model):
+        '''Check that data model graph is constructed properly, requires calling various classes.
+        TODO: In another test, check conditional dependencies.
+        '''
+        graph = generate_graph_data_model(helpers=helpers, data_model_name=data_model)
+        
+        #Check that some edges are present as expected:
+        assert True == (('FamilyHistory', 'Breast') in graph.edges('FamilyHistory'))
+        assert True == (('BulkRNA-seqAssay', 'Biospecimen') in graph.edges('BulkRNA-seqAssay'))
+        assert ['Ab', 'Cd', 'Ef', 'Gh'] == [k for k,v in graph['CheckList'].items() for vk, vv in v.items() if vk == 'rangeValue']
+
+        # Check that all relationships recorded between 'CheckList' and 'Ab' are present
+        assert True == ('rangeValue' and 'parentOf' in graph['CheckList']['Ab'])
+        assert False == ('requiresDependency' in graph['CheckList']['Ab'])
+        
+        # Check nodes:
+        assert True == ('Patient' in graph.nodes)
+        assert True == ('GRCh38' in graph.nodes)
+
+
+        # Check weights
+        assert True == (graph['Sex']['Female']['rangeValue']['weight'] == 0)
+        assert True == (graph['MockComponent']['CheckRegexFormat']['requiresDependency']['weight'] == 4)
+
+        # Check Edge directions
+        assert 4 == (len(graph.out_edges('TissueStatus')))
+        assert 2 == (len(graph.in_edges('TissueStatus')))
 
 class TestDataModelGraphExplorer:
     def test_find_properties(self):
