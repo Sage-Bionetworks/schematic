@@ -46,6 +46,11 @@ def DME(helpers, data_model_name='example.model.csv'):
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
 
+@pytest.fixture(name="dmr")
+def fixture_dmr():
+    """Yields a data model relationships object for testing"""
+    yield DataModelRelationships()
+
 class TestDataModelParser:
     def test_get_base_schema_path(self, helpers):
         return
@@ -71,14 +76,67 @@ class TestDataModelJsonLdParser:
         return
 
 class TestDataModelRelationships:
-    def test_define_data_model_relationships(self):
-        return
-    def test_define_required_csv_headers(self):
-        return
-    def test_define_edge_relationships(self):
-        return
-    def test_define_value_relationships(self):
-        return
+    """Tests for DataModelRelationships class"""
+    def test_define_data_model_relationships(self, dmr: DataModelRelationships):
+        """Tests relationships_dictionary created has correct keys"""
+        required_keys = [
+            'jsonld_key',
+            'csv_header',
+            'type',
+            'edge_rel',
+            'required_header'
+        ]
+        required_edge_keys = ['edge_key', 'edge_dir']
+        required_node_keys = ['node_label', 'node_attr_dict']
+
+        relationships = dmr.relationships_dictionary
+
+        for relationship in relationships.values():
+            for key in required_keys:
+                assert key in relationship.keys()
+            if relationship['edge_rel']:
+                for key in required_edge_keys:
+                    assert key in relationship.keys()
+            else:
+                for key in required_node_keys:
+                    assert key in relationship.keys()
+
+    def test_define_required_csv_headers(self, dmr: DataModelRelationships):
+        """Tests method returns correct values"""
+        assert dmr.define_required_csv_headers() == [
+            'Attribute',
+            'Description',
+            'Valid Values',
+            'DependsOn',
+            'DependsOn Component',
+            'Required', 'Parent',
+            'Validation Rules',
+            'Properties',
+            'Source'
+        ]
+
+    def test_define_edge_relationships(self, dmr: DataModelRelationships):
+        """Tests method returns correct values"""
+        assert dmr.define_edge_relationships() == {
+            'rangeIncludes': 'Valid Values',
+            'requiresDependency': 'DependsOn',
+            'requiresComponent': 'DependsOn Component',
+            'subClassOf': 'Parent',
+            'domainIncludes': 'Properties'
+        }
+
+    def test_define_value_relationships(self, dmr: DataModelRelationships):
+        """Tests method returns correct values"""
+        assert dmr.define_value_relationships() == {
+            'displayName': 'Attribute',
+            'label': None,
+            'comment': 'Description',
+            'required': 'Required',
+            'validationRules': 'Validation Rules',
+            'isPartOf': None,
+            'id': 'Source'
+        }
+
 
 class TestDataModelGraph:
     @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
