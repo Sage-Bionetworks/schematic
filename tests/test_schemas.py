@@ -3,6 +3,13 @@ import logging
 
 import pandas as pd
 import pytest
+import networkx as nx
+
+from schematic.schemas.data_model_edges import DataModelEdges
+from schematic.schemas.data_model_nodes import DataModelNodes 
+from schematic.schemas.data_model_relationships import (
+    DataModelRelationships
+    )
 
 #from schematic.schemas import df_parser
 from schematic.utils.df_utils import load_df
@@ -288,6 +295,35 @@ class TestDataModelEdges:
         
     """
     def test_skip_edge(self, helpers):
+        G = nx.MultiDiGraph()
+        node = "Diagnosis"
+
+        # Instantiate Parser
+        data_model_parser = DataModelParser(helpers.get_data_path("validator_dag_test.model.csv"))
+
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        dmr = DataModelRelationships()
+        dmn = DataModelNodes(parsed_data_model)
+        dme = DataModelEdges()
+
+
+        edge_relationships = dmr.define_edge_relationships()
+        all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
+
+        assert node in all_nodes
+
+        node_dict = {}
+
+        node_dict = dmn.generate_node_dict(node, parsed_data_model)
+        node_dict[node] = node_dict
+        G = dmn.generate_node(G, node_dict)
+
+        new_G = dme.generate_edge(G, node, node_dict, {node:parsed_data_model[node]}, edge_relationships)
+
+        assert G == new_G
+
         return
     
     def test_generate_edge(self, helpers):
