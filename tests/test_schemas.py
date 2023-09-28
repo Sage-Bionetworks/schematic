@@ -320,9 +320,11 @@ class TestDataModelEdges:
         node_dict[node] = node_dict
         G = dmn.generate_node(G, node_dict)
 
-        new_G = dme.generate_edge(G, node, node_dict, {node:parsed_data_model[node]}, edge_relationships)
+        before_edges = G.edges
 
-        assert G == new_G
+        G = dme.generate_edge(G, node, node_dict, {node:parsed_data_model[node]}, edge_relationships)
+
+        assert before_edges == G.edges
 
         return
     
