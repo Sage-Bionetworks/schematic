@@ -4,6 +4,7 @@ import logging
 import pandas as pd
 import pytest
 import networkx as nx
+from copy import deepcopy
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes 
@@ -320,7 +321,7 @@ class TestDataModelEdges:
         node_dict[node] = node_dict
         G = dmn.generate_node(G, node_dict)
 
-        before_edges = G.edges
+        before_edges = deepcopy(G.edges)
 
         G = dme.generate_edge(G, node, node_dict, {node:parsed_data_model[node]}, edge_relationships)
 
