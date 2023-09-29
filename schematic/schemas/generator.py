@@ -364,11 +364,9 @@ class SchemaGenerator(object):
         Returns:
             List of display names, return id if no display name
         """
-        node_list_display_names = [mm_graph.nodes[node]['displayName']
-                                    if 'displayName' in mm_graph.nodes[node]
-                                        else mm_graph.nodes[node]['id'].split(':')[1]
-                                            for node in node_list
-                                  ]
+
+        node_list_display_names = [self.get_node_display_name(node, mm_graph) for node in node_list]
+
         return node_list_display_names
 
     def get_range_schema(
