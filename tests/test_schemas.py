@@ -329,7 +329,49 @@ class TestDataModelEdges:
 
         return
     
-    def test_generate_edge(self, helpers):
+    @pytest.mark.parametrize("node_to_add, edge_relationship", 
+                             [("DataType", "parentOf"), 
+                                ("Female", "parentOf"),
+                                ("Sex","requiresDependency")],
+                              ids=["subClassOf",
+                                   "Valid Value",
+                                   "all others"
+                                   ])
+    def test_generate_edge(self, helpers, node_to_add, edge_relationship):
+        G = nx.MultiDiGraph()
+
+        # Instantiate Parser
+        data_model_parser = DataModelParser(helpers.get_data_path("validator_dag_test.model.csv"))
+
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        dmr = DataModelRelationships()
+        dmn = DataModelNodes(parsed_data_model)
+        dme = DataModelEdges()
+
+
+        edge_relationships = dmr.define_edge_relationships()
+        all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
+
+        assert node_to_add in all_nodes
+
+        all_node_dict = {}
+        for node in all_nodes:
+            node_dict = dmn.generate_node_dict(node, parsed_data_model)
+            all_node_dict[node] = node_dict
+            G = dmn.generate_node(G, node_dict)
+
+        before_edges = deepcopy(G.edges)
+
+        G = dme.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
+
+        assert G.edges != before_edges
+
+        relationship_df = pd.DataFrame(G.edges, columns= ['u', 'v', 'edge'])
+
+        assert (relationship_df['edge'] == edge_relationship).any()
+        
         return
         
     def test_generate_weights(self, helpers):
