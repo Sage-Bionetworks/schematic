@@ -373,8 +373,43 @@ class TestDataModelEdges:
         assert (relationship_df['edge'] == edge_relationship).any()
         
         return
+    
+    @pytest.mark.parametrize("node_to_add, expected_weight", 
+                             [("Patient ID", 1)],
+                              ids=["list"])
+    def test_generate_weights(self, helpers, node_to_add, expected_weight):
+        G = nx.MultiDiGraph()
+
+        # Instantiate Parser
+        data_model_parser = DataModelParser(helpers.get_data_path("validator_dag_test.model.csv"))
+
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        dmr = DataModelRelationships()
+        dmn = DataModelNodes(parsed_data_model)
+        dme = DataModelEdges()
+
+
+        edge_relationships = dmr.define_edge_relationships()
+        all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
+
+        assert node_to_add in all_nodes
+
+        all_node_dict = {}
+        for node in all_nodes:
+            node_dict = dmn.generate_node_dict(node, parsed_data_model)
+            all_node_dict[node] = node_dict
+            G = dmn.generate_node(G, node_dict)
+
+        before_edges = deepcopy(G.edges)
+
+        G = dme.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
+
+        assert G.edges != before_edges
+
+        print(G.edges.data())
         
-    def test_generate_weights(self, helpers):
         return
 
 
