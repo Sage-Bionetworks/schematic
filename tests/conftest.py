@@ -10,6 +10,7 @@ from dotenv import load_dotenv, find_dotenv
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
 
@@ -85,8 +86,6 @@ class Helpers:
         # Instantiate DataModelParser
         data_model_parser = DataModelParser(path_to_data_model=fullpath)
         return data_model_parser
-    
-    
 
     @staticmethod
     def get_python_version(self):

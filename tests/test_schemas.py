@@ -38,6 +38,15 @@ def generate_graph_data_model(helpers, data_model_name):
 
     return graph_data_model
 
+def generate_data_model_nodes(helpers, data_model_name):
+    # Instantiate Parser
+    data_model_parser = helpers.get_data_model_parser(data_model_name=data_model_name)
+    # Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+    # Instantiate DataModelNodes
+    data_model_nodes = DataModelNodes(attribute_relationships_dict=parsed_data_model)
+    return data_model_nodes
+
 @pytest.fixture
 def DME(helpers, data_model_name='example.model.csv'):
     path_to_data_model = helpers.get_data_path("example.model.jsonld")
@@ -172,8 +181,33 @@ class TestDataModelGraphExplorer:
         return
 
 class TestDataModelNodes:
-    def test_gather_nodes(self):
-        return
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    def test_gather_nodes(self, helpers, data_model):
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+
+        # Parse Model
+        attr_rel_dictionary = data_model_parser.parse_model()
+
+        # Instantiate DataModelNodes
+        data_model_nodes = generate_data_model_nodes(data_model_name=data_model)
+
+        attr_info = ('Patient', attr_rel_dictionary['Patient'])
+        nodes = data_model_nodes.gather_nodes(attr_info=attr_info)
+
+        # Make sure there are no repeat nodes
+        assert len(nodes) == len(set(nodes))
+
+        # Make sure the nodes returned conform to expectations (values and order)
+        expected_nodes = ['Patient', 'Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component', 'DataType']
+        assert nodes == expected_nodes
+
+        # Ensure order is tested.
+        reordered_nodes = nodes.copy()
+        reordered_nodes.remove('Patient')
+        reordered_nodes.append('Patient')
+        assert reordered_nodes != expected_nodes
+
     def test_gather_all_nodes(self):
         return
     def test_get_rel_node_dict_info(self):
