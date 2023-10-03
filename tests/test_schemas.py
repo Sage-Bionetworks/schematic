@@ -18,6 +18,11 @@ from schematic.schemas.data_model_parser import DataModelParser
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+DATA_MODEL_DICT = {
+  'example.model.csv': "CSV",
+  'example.model.jsonld': "JSONLD"
+}
+
 def generate_graph_data_model(helpers, data_model_name):
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
@@ -181,7 +186,7 @@ class TestDataModelGraphExplorer:
         return
 
 class TestDataModelNodes:
-    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_gather_nodes(self, helpers, data_model):
         # Instantiate Parser
         data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
@@ -190,7 +195,7 @@ class TestDataModelNodes:
         attr_rel_dictionary = data_model_parser.parse_model()
 
         # Instantiate DataModelNodes
-        data_model_nodes = generate_data_model_nodes(data_model_name=data_model)
+        data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
 
         attr_info = ('Patient', attr_rel_dictionary['Patient'])
         nodes = data_model_nodes.gather_nodes(attr_info=attr_info)
@@ -199,7 +204,12 @@ class TestDataModelNodes:
         assert len(nodes) == len(set(nodes))
 
         # Make sure the nodes returned conform to expectations (values and order)
-        expected_nodes = ['Patient', 'Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component', 'DataType']
+        ## The parsing records display names for relationships for CSV and labels for JSONLD, so the expectations are different between the two.
+        if DATA_MODEL_DICT[data_model]=='CSV':
+            expected_nodes = ['Patient', 'Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component', 'DataType']
+        elif DATA_MODEL_DICT[data_model] == 'JSONLD':
+            expected_nodes = ['Patient', 'PatientID', 'Sex', 'YearofBirth', 'Diagnosis', 'Component', 'DataType']
+
         assert nodes == expected_nodes
 
         # Ensure order is tested.
@@ -208,8 +218,30 @@ class TestDataModelNodes:
         reordered_nodes.append('Patient')
         assert reordered_nodes != expected_nodes
 
-    def test_gather_all_nodes(self):
-        return
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_gather_all_nodes(self, helpers, data_model):
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+
+        # Parse Model
+        attr_rel_dictionary = data_model_parser.parse_model()
+
+        # Instantiate DataModelNodes
+        data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
+
+        all_nodes = data_model_nodes.gather_all_nodes(attr_rel_dict=attr_rel_dictionary)
+
+        # Make sure there are no repeat nodes
+        assert len(all_nodes) == len(set(all_nodes))
+
+        # Check that nodes from first entry, are recoreded in order in all_nodes
+        first_attribute = list(attr_rel_dictionary.keys())[0]
+        attr_info = (first_attribute, attr_rel_dictionary[first_attribute])
+        expected_starter_nodes = data_model_nodes.gather_nodes(attr_info=attr_info)
+        actual_starter_nodes = all_nodes[0:len(expected_starter_nodes)]
+
+        assert actual_starter_nodes == expected_starter_nodes
+
     def test_get_rel_node_dict_info(self):
         return
     def test_get_data_model_properties(self):
