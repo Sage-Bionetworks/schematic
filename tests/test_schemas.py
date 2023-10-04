@@ -3,6 +3,7 @@ import logging
 
 import pandas as pd
 import pytest
+import random
 
 #from schematic.schemas import df_parser
 from schematic.utils.df_utils import load_df
@@ -59,6 +60,13 @@ def DME(helpers, data_model_name='example.model.csv'):
     graph_data_model = generate_graph_data_model(helpers, data_model_name=path_to_data_model)
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
+
+@pytest.fixture(name='relationships')
+def get_relationships(helpers):
+    DMR = DataModelRelationships()
+    relationships_dict = DMR.relationships_dictionary
+    relationships = list(relationships_dict.keys())
+    yield relationships
 
 class TestDataModelParser:
     def test_get_base_schema_path(self, helpers):
@@ -235,6 +243,7 @@ class TestDataModelNodes:
         assert len(all_nodes) == len(set(all_nodes))
 
         # Check that nodes from first entry, are recoreded in order in all_nodes
+        # Only check first entry, bc subsequent ones might be in the same order as would be gathered with gather_nodes if it contained a node that was already recorded.
         first_attribute = list(attr_rel_dictionary.keys())[0]
         attr_info = (first_attribute, attr_rel_dictionary[first_attribute])
         expected_starter_nodes = data_model_nodes.gather_nodes(attr_info=attr_info)
@@ -242,10 +251,54 @@ class TestDataModelNodes:
 
         assert actual_starter_nodes == expected_starter_nodes
 
-    def test_get_rel_node_dict_info(self):
-        return
-    def test_get_data_model_properties(self):
-        return
+    def test_get_rel_node_dict_info(self, helpers, relationships):
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser(data_model_name='example.model.csv')
+
+        # Parse Model
+        #attr_rel_dictionary = data_model_parser.parse_model()
+
+        # Instantiate DataModelNodes
+        data_model_nodes = generate_data_model_nodes(helpers, data_model_name='example.model.csv')
+
+        for relationship in relationships:
+            rel_dict_info = data_model_nodes.get_rel_node_dict_info(relationship)
+            if rel_dict_info:
+                assert type(rel_dict_info[0]) == str
+                assert type(rel_dict_info[1]) == dict
+                assert 'default' in rel_dict_info[1].keys()
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_get_data_model_properties(self, helpers, data_model):
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+
+        # Parse Model
+        attr_rel_dictionary = data_model_parser.parse_model()
+
+        # Instantiate DataModelNodes
+        data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
+
+        # Get properties in the data model
+        data_model_properties = data_model_nodes.get_data_model_properties(attr_rel_dictionary)
+        
+        # In the current example model, there are no properties, would need to update this section if properties are added.
+        assert data_model_properties == []
+
+        # Update the attr_rel_dictionary to add a property, then see if its found.
+        # Get a random relationship key from the attr_rel_dictionary:
+        all_keys = list(attr_rel_dictionary.keys())
+        random_index = len(all_keys)-1
+        rel_key = all_keys[random.randint(0, random_index)]
+
+        # Modify the contents of that relationship
+        attr_rel_dictionary[rel_key]['Relationships']['Properties'] = ['TestProperty']
+        
+        # Get properties in the modified data model
+        data_model_properties = data_model_nodes.get_data_model_properties(attr_rel_dictionary)
+
+        assert data_model_properties == ['TestProperty']
+
     def test_get_entry_type(self):
         return
     def test_run_rel_functions(self):
