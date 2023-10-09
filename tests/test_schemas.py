@@ -7,6 +7,8 @@ import random
 
 #from schematic.schemas import df_parser
 from schematic.utils.df_utils import load_df
+from schematic.utils.schema_utils import get_label_from_display_name, get_attribute_display_name_from_label, convert_bool_to_str, parse_validation_rules
+
 from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_edges import DataModelEdges
@@ -23,6 +25,22 @@ DATA_MODEL_DICT = {
   'example.model.csv': "CSV",
   'example.model.jsonld': "JSONLD"
 }
+def test_fake_func():
+    return
+
+REL_FUNC_DICT = {
+    'get_attribute_display_name_from_label':get_attribute_display_name_from_label,
+    'parse_validation_rules': parse_validation_rules,
+    'get_label_from_display_name': get_label_from_display_name,
+    'convert_bool_to_str': convert_bool_to_str,
+    'test_fake_func': test_fake_func, 
+}
+TEST_DN_DICT = {'Bio Things': {'class': 'BioThings',
+                               'property': 'bioThings'},
+                'bio things': {'class': 'Biothings',
+                               'property': 'biothings'},
+                          }
+
 
 def generate_graph_data_model(helpers, data_model_name):
     """
@@ -52,6 +70,8 @@ def generate_data_model_nodes(helpers, data_model_name):
     # Instantiate DataModelNodes
     data_model_nodes = DataModelNodes(attribute_relationships_dict=parsed_data_model)
     return data_model_nodes
+
+
 
 @pytest.fixture
 def DME(helpers, data_model_name='example.model.csv'):
@@ -255,9 +275,6 @@ class TestDataModelNodes:
         # Instantiate Parser
         data_model_parser = helpers.get_data_model_parser(data_model_name='example.model.csv')
 
-        # Parse Model
-        #attr_rel_dictionary = data_model_parser.parse_model()
-
         # Instantiate DataModelNodes
         data_model_nodes = generate_data_model_nodes(helpers, data_model_name='example.model.csv')
 
@@ -299,9 +316,124 @@ class TestDataModelNodes:
 
         assert data_model_properties == ['TestProperty']
 
-    def test_get_entry_type(self):
-        return
-    def test_run_rel_functions(self):
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_get_entry_type(self, helpers, data_model):
+        
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+
+        # Parse Model
+        attr_rel_dictionary = data_model_parser.parse_model()
+
+        # Update the attr_rel_dictionary to add a property, then see if it is assigned the correct entry type.
+        # Get a random relationship key from the attr_rel_dictionary:
+        all_keys = list(attr_rel_dictionary.keys())
+        random_index = len(all_keys)-1
+        rel_key = all_keys[random.randint(0, random_index)]
+
+        # Modify the contents of that relationship
+        attr_rel_dictionary[rel_key]['Relationships']['Properties'] = ['TestProperty']
+
+        # Instantiate DataModelNodes
+        # Note: Get entry type uses self, so I will have to instantiate DataModelNodes outside of the generate_data_model_nodes function
+        data_model_nodes = DataModelNodes(attribute_relationships_dict=attr_rel_dictionary)
+
+        # In the example data model all attributes should be classes.
+        for attr in attr_rel_dictionary.keys():
+            entry_type = data_model_nodes.get_entry_type(attr)
+            assert entry_type == 'class'
+
+        # Check that the added property is properly loaded as a property
+        assert data_model_nodes.get_entry_type('TestProperty') == 'property'
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    @pytest.mark.parametrize("rel_func", list(REL_FUNC_DICT.values()), ids=list(REL_FUNC_DICT.keys()))
+    @pytest.mark.parametrize("test_dn", list(TEST_DN_DICT.keys()), ids=list(TEST_DN_DICT.keys()))
+    @pytest.mark.parametrize("test_bool", ['True', 'False', True, False, 'kldjk'], ids=['True_str', 'False_str', 'True_bool', 'False_bool', 'Random_str'])
+    def test_run_rel_functions(self, helpers, data_model, rel_func, test_dn, test_bool):
+        # Call each relationship function to ensure that it is returning the desired result.
+        # Note all the called functions will also be tested in other unit tests.
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+
+        # Parse Model
+        attr_rel_dictionary = data_model_parser.parse_model()
+
+        # Instantiate DataModelNodes
+        data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
+
+        # Run functions the same way they are called in run_rel_functions:
+        if rel_func == get_attribute_display_name_from_label:
+            expected_display_names = list(attr_rel_dictionary.keys())
+            returned_display_names = [data_model_nodes.run_rel_functions(
+                                            rel_func=get_attribute_display_name_from_label,
+                                            node_display_name=ndn,
+                                            attr_relationships=attr_rel_dictionary) 
+                                            for ndn in expected_display_names]
+
+            assert expected_display_names == returned_display_names
+
+        elif rel_func == parse_validation_rules:
+            # Find attributes with validation rules
+            # Gather Validation Rules
+            vrs = []
+            for k, v in attr_rel_dictionary.items():
+                if 'Validation Rules' in v['Relationships'].keys():
+                    vrs.append(v['Relationships']['Validation Rules'])
+            parsed_vrs= []
+            for attr in attr_rel_dictionary.keys():
+                attr_relationships = attr_rel_dictionary[attr]['Relationships']
+                if 'Validation Rules' in attr_relationships:
+                    parsed_vrs.append(data_model_nodes.run_rel_functions(
+                                        rel_func=parse_validation_rules,
+                                        attr_relationships=attr_relationships,
+                                        csv_header='Validation Rules'))            
+
+            assert len(vrs) == len(parsed_vrs)
+            if DATA_MODEL_DICT[data_model]=='CSV':
+                assert vrs != parsed_vrs
+            elif DATA_MODEL_DICT[data_model]=='JSONLD':
+                # JSONLDs already contain parsed validaiton rules so the raw vrs will match the parsed_vrs
+                assert vrs == parsed_vrs
+
+            # For all validation rules where there are multiple rules, make sure they have been split as expected.
+            for i, pvr in enumerate(parsed_vrs):
+                delim_count = vrs[i][0].count('::')
+                if delim_count:
+                    assert len(pvr) == delim_count+1
+
+        elif rel_func == get_label_from_display_name:
+            # For a limited set check label is returned as expected.
+            for entry_type, expected_value in TEST_DN_DICT[test_dn].items():
+                actual_value = data_model_nodes.run_rel_functions(
+                    rel_func=get_label_from_display_name,
+                    node_display_name=test_dn,
+                    entry_type=entry_type,
+                    )
+                assert actual_value == expected_value
+        elif rel_func == convert_bool_to_str:
+            # return nothing if random string provided.
+            csv_header='Required'
+            attr_relationships = {csv_header:test_bool}
+            actual_conversion = data_model_nodes.run_rel_functions(
+                    rel_func=convert_bool_to_str,
+                    csv_header=csv_header,
+                    attr_relationships=attr_relationships,
+                    )
+            if 'true' in str(test_bool).lower():
+                assert actual_conversion==True
+            elif 'false' in str(test_bool).lower():
+                assert actual_conversion==False
+            else:
+                assert actual_conversion==None
+        else:
+            # If the function passed is not currently supported, should hit an error.
+            try:
+                data_model_nodes.run_rel_functions(rel_func=test_fake_func)
+                convert_worked = False
+            except:
+                convert_worked = True
+            assert convert_worked==True
         return
     def test_generate_node_dict(self):
         return
