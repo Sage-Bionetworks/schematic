@@ -40,6 +40,8 @@ TEST_DN_DICT = {'Bio Things': {'class': 'BioThings',
                 'bio things': {'class': 'Biothings',
                                'property': 'biothings'},
                           }
+NODE_DISPLAY_NAME_DICT = {'Patient':False,
+                          'Sex': True}
 
 
 def generate_graph_data_model(helpers, data_model_name):
@@ -435,10 +437,53 @@ class TestDataModelNodes:
                 convert_worked = True
             assert convert_worked==True
         return
-    def test_generate_node_dict(self):
-        return
-    def test_generate_node(self):
-        return
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    @pytest.mark.parametrize("node_display_name", list(NODE_DISPLAY_NAME_DICT.keys()), ids=[str(v) for v in NODE_DISPLAY_NAME_DICT.values()])
+    def test_generate_node_dict(self, helpers, data_model, node_display_name):
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+
+        # Parse Model
+        attr_rel_dictionary = data_model_parser.parse_model()
+
+        # Instantiate DataModelNodes
+        data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
+
+        node_dict = data_model_nodes.generate_node_dict(
+                    node_display_name=node_display_name,
+                    attr_rel_dict=attr_rel_dictionary,
+                    )
+
+        # Check that the output is as expected for the required key.
+        if NODE_DISPLAY_NAME_DICT[node_display_name]:
+            assert node_dict['required'] == True
+        else:
+            #Looking up this way, in case we add empty defaults back to JSONLD it wont fail, but will only be absent in JSONLD not CSV.
+            if not node_dict['required'] == False:
+                assert DATA_MODEL_DICT[data_model] == 'JSONLD'
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_generate_node(self, helpers, data_model):
+        # Test adding a dummy node
+        node_dict = {'label': 'test_label'}
+
+        path_to_data_model = helpers.get_data_path(data_model)
+
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=path_to_data_model)
+
+        # Instantiate DataModelNodes
+        data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
+
+        # Assert the test node is not already in the graph
+        assert False == (node_dict['label'] in graph_data_model.nodes)
+
+        # Add test node
+        data_model_nodes.generate_node(graph_data_model, node_dict)
+
+        # Check that the test node has been added
+        assert True == (node_dict['label'] in graph_data_model.nodes)
 
 class TestDataModelEdges:
     def test_generate_edge(self,helpers):
