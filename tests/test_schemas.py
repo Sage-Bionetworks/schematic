@@ -279,12 +279,80 @@ class TestDataModelEdges:
 
 
 class TestDataModelJsonSchema:
-    def test_get_array_schema(self):
-        return
-    def test_get_non_blank_schema(self):
-        return
-    def test_get_json_validation_schema(self):
-        return
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("node_range", [[], ['healthy'], ['healthy', 'cancer']], ids=['empty_range', "single_range", "multi_range"])
+    @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
+    @pytest.mark.parametrize("blank", [True, False], ids=["True_blank", "False_blank"])
+    def test_get_array_schema(self, helpers, data_model, node_range, node_name, blank):
+        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        array_schema = dmjs.get_array_schema(node_range=node_range, node_name=node_name, blank=blank)
+
+        # check node_name is recoreded as the key to the array schema
+        assert node_name in array_schema
+
+        # Check maxItems is the lenghth of node_range
+        assert len(node_range) == array_schema[node_name]['maxItems']
+
+        # Check that blank value is added at the end of node_range, if true
+        if blank:
+            assert array_schema[node_name]['items']['enum'][-1]== ''
+            assert len(array_schema[node_name]['items']['enum'])==len(node_range)+1
+        else:
+            assert array_schema[node_name]['items']['enum']== node_range
+            assert len(array_schema[node_name]['items']['enum'])==len(node_range)
+
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
+    def test_get_non_blank_schema(self, helpers, data_model, node_name):
+        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        non_blank_schema = dmjs.get_non_blank_schema(node_name=node_name)
+        # check node_name is recoreded as the key to the array schema
+        assert node_name in non_blank_schema
+        assert non_blank_schema[node_name] == {"not": {"type": "null"}, "minLength": 1}
+    
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("node_range", [[], ['healthy'], ['healthy', 'cancer']], ids=['empty_range', "single_range", "multi_range"])
+    @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
+    @pytest.mark.parametrize("blank", [True, False], ids=["True_blank", "False_blank"])
+    def test_get_range_schema(self, helpers, data_model, node_range, node_name, blank):
+        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        range_schema = dmjs.get_range_schema(node_range=node_range, node_name=node_name, blank=blank)
+
+        # check node_name is recoreded as the key to the array schema
+        assert node_name in range_schema
+
+        # Check that blank value is added at the end of node_range, if true
+        if blank:
+            assert range_schema[node_name]['enum'][-1]== ''
+            assert len(range_schema[node_name]['enum'])==len(node_range)+1
+        else:
+            assert range_schema[node_name]['enum']== node_range
+            assert len(range_schema[node_name]['enum'])==len(node_range)
+
+    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("source_node", ['', 'Patient'], ids=['empty_node_name', "patient_source"])
+    @pytest.mark.parametrize("schema_name", ['', 'Test_Schema_Name'], ids=['empty_schema_name', "schema_name"])
+    def test_get_json_validation_schema(self, helpers, data_model, source_node, schema_name):
+        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+
+        try:
+            # Get validation schema
+            json_validation_schema = dmjs.get_json_validation_schema(source_node=source_node, schema_name=schema_name)
+
+            # Check Keys in Schema
+            expected_jvs_keys = ['$schema', '$id', 'title', 'type', 'properties', 'required', 'allOf']
+            actual_jvs_keys = list( json_validation_schema.keys())
+            assert expected_jvs_keys == actual_jvs_keys
+
+            # Check title
+            assert schema_name == json_validation_schema['title']
+
+            # Check contents of validation schema
+            assert 'Diagnosis' in json_validation_schema['properties']
+            assert json_validation_schema['properties']['Diagnosis'] == {'enum': ['Cancer', 'Healthy']}
+        except:
+            # Should only fail if no source node is provided.
+            assert source_node == ''
 
 class TestDataModelJsonLd:
     def test_base_jsonld_template(self):

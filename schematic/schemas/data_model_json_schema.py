@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class DataModelJSONSchema:
 	def __init__(self, jsonld_path: str, graph:nx.MultiDiGraph,
 				 ):
+		# TODO: Change jsonld_path to data_model_path (can work with CSV too)
 		self.jsonld_path = jsonld_path
 		self.graph = graph
 		self.DME = DataModelGraphExplorer(self.graph)
