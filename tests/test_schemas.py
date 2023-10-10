@@ -296,35 +296,43 @@ class TestDataModelEdges:
         
     """
     def test_skip_edge(self, helpers):
+        # Instantiate graph object and set node
         G = nx.MultiDiGraph()
         node = "Diagnosis"
 
         # Instantiate Parser
         data_model_parser = DataModelParser(helpers.get_data_path("validator_dag_test.model.csv"))
 
-        #Parse Model
+        # Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
+        # Instantiate data model objects
         dmr = DataModelRelationships()
         dmn = DataModelNodes(parsed_data_model)
         dme = DataModelEdges()
 
-
+        # Get edge relationships and all nodes from the parsed model
         edge_relationships = dmr.define_edge_relationships()
         all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
+        # Sanity check to ensure that the node we intend to test exists in the data model
         assert node in all_nodes
 
+        # Add a single node to the graph
         node_dict = {}
-
         node_dict = dmn.generate_node_dict(node, parsed_data_model)
         node_dict[node] = node_dict
         G = dmn.generate_node(G, node_dict)
 
+        # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
 
+        # Generate an edge in the graph with one node and a subset of the parsed data model
+        # We're attempting to add an edge for a node that is the only one in the graph, 
+        # so `generate_edge` should skip adding edges and return the same graph
         G = dme.generate_edge(G, node, node_dict, {node:parsed_data_model[node]}, edge_relationships)
 
+        # Assert that no edges were added and that the current graph edges are the same as before the call to `generate_edge`
         assert before_edges == G.edges
 
         return
@@ -338,6 +346,7 @@ class TestDataModelEdges:
                                    "all others"
                                    ])
     def test_generate_edge(self, helpers, node_to_add, edge_relationship):
+        # Instantiate graph object
         G = nx.MultiDiGraph()
 
         # Instantiate Parser
@@ -346,30 +355,36 @@ class TestDataModelEdges:
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
+        # Instantiate data model objects
         dmr = DataModelRelationships()
         dmn = DataModelNodes(parsed_data_model)
         dme = DataModelEdges()
 
-
+        # Get edge relationships and all nodes from the parsed model
         edge_relationships = dmr.define_edge_relationships()
         all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
+        # Sanity check to ensure that the node we intend to test exists in the data model
         assert node_to_add in all_nodes
 
+        # Add all nodes to the graph 
         all_node_dict = {}
         for node in all_nodes:
             node_dict = dmn.generate_node_dict(node, parsed_data_model)
             all_node_dict[node] = node_dict
             G = dmn.generate_node(G, node_dict)
 
+        # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
 
+        # Generate edges for whichever node we are testing
         G = dme.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
 
+        # Assert that the current edges are different from the edges of the graph before
         assert G.edges != before_edges
 
+        # Assert that somewhere in the current edges for the node we added, that the correct relationship exists
         relationship_df = pd.DataFrame(G.edges, columns= ['u', 'v', 'edge'])
-
         assert (relationship_df['edge'] == edge_relationship).any()
         
         return
@@ -378,6 +393,7 @@ class TestDataModelEdges:
                              [("Patient ID", 1)],
                               ids=["list"])
     def test_generate_weights(self, helpers, node_to_add, expected_weight):
+        # Instantiate graph object
         G = nx.MultiDiGraph()
 
         # Instantiate Parser
@@ -386,26 +402,33 @@ class TestDataModelEdges:
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
+        # Instantiate data model objects
         dmr = DataModelRelationships()
         dmn = DataModelNodes(parsed_data_model)
         dme = DataModelEdges()
 
-
+        # Get edge relationships and all nodes from the parsed model
         edge_relationships = dmr.define_edge_relationships()
         all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
-        assert node_to_add in all_nodes
 
+        # Sanity check to ensure that the node we intend to test exists in the data model
+        assert node_to_add in all_nodes
+        
+        # Add all nodes to the graph 
         all_node_dict = {}
         for node in all_nodes:
             node_dict = dmn.generate_node_dict(node, parsed_data_model)
             all_node_dict[node] = node_dict
             G = dmn.generate_node(G, node_dict)
 
+        # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
 
+        # Generate edges for whichever node we are testing
         G = dme.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
 
+        # Assert that the current edges are different from the edges of the graph before
         assert G.edges != before_edges
 
         print(G.edges.data())
