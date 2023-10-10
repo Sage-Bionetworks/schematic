@@ -390,14 +390,16 @@ class TestDataModelEdges:
         return
     
     @pytest.mark.parametrize("node_to_add, other_node, expected_weight", 
-                             [("Patient ID", "Biospecimen", 1)],
-                              ids=["list"])
+                             [("Patient ID", "Biospecimen", 1),
+                              ('dataset_id', 'cohorts', -1)],
+                              ids=["list", "domainIncludes"])
     def test_generate_weights(self, helpers, node_to_add, other_node, expected_weight):
         # Instantiate graph object
         G = nx.MultiDiGraph()
 
         # Instantiate Parser
-        data_model_parser = DataModelParser(helpers.get_data_path("validator_dag_test.model.csv"))
+        data_model_path = "validator_dag_test.model.csv"
+        data_model_parser = DataModelParser(helpers.get_data_path(data_model_path))
 
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
@@ -436,9 +438,16 @@ class TestDataModelEdges:
         # Cast the edges and weights to a DataFrame for easier indexing
         edges_and_weights = pd.DataFrame(G.edges.data(), columns= ['node1', 'node2', 'weights']).set_index('node1')
 
-        # Assert that the weight added is what is expected
-        assert edges_and_weights.loc[other_node, 'weights']['weight'] == expected_weight
+        if expected_weight < 0:
+            schema = helpers.get_data_frame(path=helpers.get_data_path(data_model_path), data_model=True)
+            expected_weight = schema.index[schema['Attribute']==other_node][0]
+            logger.debug(f"Expected weight for nodes {node_to_add} and {other_node} is {expected_weight}.")
 
+        # Assert that the weight added is what is expected
+        if node_to_add in ['Patient ID']:
+            assert edges_and_weights.loc[other_node, 'weights']['weight'] == expected_weight
+        elif node_to_add in ['cohorts']:
+            assert edges_and_weights.loc[node_to_add, 'weights']['weight'] == expected_weight
         return
 
 
