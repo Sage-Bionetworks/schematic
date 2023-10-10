@@ -800,7 +800,7 @@ class SynapseStorage(BaseStorage):
                 
         return manifests
 
-    def upload_project_manifests_to_synapse(self, projectId: str) -> List[str]:
+    def upload_project_manifests_to_synapse(self, sg: SchemaGenerator, projectId: str) -> List[str]:
         """Upload all metadata manifest files across all datasets in a specified project as tables in Synapse.
 
         Returns: String of all the manifest_table_ids of all the manifests that have been loaded.
@@ -822,7 +822,7 @@ class SynapseStorage(BaseStorage):
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
                 manifest_df = load_df(manifest_path)
-                manifest_table_id = uploadDB(manifest, datasetId, datasetName)
+                manifest_table_id = uploadDB(sg=sg, manifest=manifest, datasetId=datasetId, table_name=datasetName)
                 manifest_loaded.append(datasetName)
         return manifest_loaded
 
@@ -952,7 +952,7 @@ class SynapseStorage(BaseStorage):
 
     @missing_entity_handler
     def uploadDB(self, 
-        sg: SchemaGenerator, 
+        sg: SchemaGenerator,
         manifest: pd.DataFrame, 
         datasetId: str, 
         table_name: str, 
@@ -964,7 +964,7 @@ class SynapseStorage(BaseStorage):
         Method to upload a database to an asset store. In synapse, this will upload a metadata table
         
         Args:
-            se: schemaExplorer object
+            sg: schemaGenerator object
             manifest: pd.Df manifest to upload
             datasetId: synID of the dataset for the manifest
             table_name: name of the table to be uploaded
@@ -981,7 +981,7 @@ class SynapseStorage(BaseStorage):
         """
         
 
-        col_schema, table_manifest = self.formatDB(sg, manifest, useSchemaLabel)
+        col_schema, table_manifest = self.formatDB(sg=sg, manifest=manifest, useSchemaLabel=useSchemaLabel)
 
         manifest_table_id = self.buildDB(datasetId, table_name, col_schema, table_manifest, table_manipulation, sg, restrict,)
 
@@ -992,7 +992,7 @@ class SynapseStorage(BaseStorage):
         Method to format a manifest appropriatly for upload as table
         
         Args:
-            se: schemaExplorer object
+            sg: schemaGenerator object
             manifest: pd.Df manifest to upload
             useSchemaLabel: bool whether to use schemaLabel (True) or display label (False)
 
@@ -1499,13 +1499,13 @@ class SynapseStorage(BaseStorage):
         """      
         # Upload manifest as a table, get the ID and updated manifest.
         manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
-                                                    schemaGenerator,
-                                                    manifest,
-                                                    datasetId,
-                                                    table_name,
-                                                    restrict,
-                                                    useSchemaLabel,
-                                                    table_manipulation)
+                                                    sg=schemaGenerator,
+                                                    manifest=manifest,
+                                                    datasetId=datasetId,
+                                                    table_name=table_name,
+                                                    restrict=restrict,
+                                                    useSchemaLabel=useSchemaLabel,
+                                                    table_manipulation=table_manipulation)
 
         manifest = self.add_annotations_to_entities_files(se, schemaGenerator, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
         # Load manifest to synapse as a CSV File
@@ -1518,13 +1518,13 @@ class SynapseStorage(BaseStorage):
         
         # Update manifest Synapse table with new entity id column.
         manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
-                                                    schemaGenerator,
-                                                    manifest, 
-                                                    datasetId, 
-                                                    table_name,  
-                                                    restrict,
+                                                    sg=schemaGenerator,
+                                                    manifest=manifest,
+                                                    datasetId=datasetId,
+                                                    table_name=table_name,
+                                                    restrict=restrict,
                                                     useSchemaLabel=useSchemaLabel,
-                                                    table_manipulation='update',)
+                                                    table_manipulation='update')
 
         # Set annotations for the table manifest
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
@@ -1605,13 +1605,13 @@ class SynapseStorage(BaseStorage):
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
         manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
-                                                    se,
-                                                    manifest,
-                                                    datasetId,
-                                                    table_name,
-                                                    restrict,
+                                                    sg=schemaGenerator,
+                                                    manifest=manifest,
+                                                    datasetId=datasetId,
+                                                    table_name=table_name,
+                                                    restrict=restrict,
                                                     useSchemaLabel=useSchemaLabel,
-                                                    table_manipulation=table_manipulation,)
+                                                    table_manipulation=table_manipulation)
 
         manifest = self.add_annotations_to_entities_files(se, schemaGenerator, manifest, manifest_record_type, datasetId, hideBlanks, manifest_synapse_table_id)
         
@@ -1625,13 +1625,13 @@ class SynapseStorage(BaseStorage):
         
         # Update manifest Synapse table with new entity id column.
         manifest_synapse_table_id, manifest, table_manifest = self.uploadDB(
-                                                                se,
-                                                                manifest,
-                                                                datasetId,
-                                                                table_name,
-                                                                restrict,
+                                                                sg=schemaGenerator,
+                                                                manifest=manifest,
+                                                                datasetId=datasetId,
+                                                                table_name=table_name,
+                                                                restrict=restrict,
                                                                 useSchemaLabel=useSchemaLabel,
-                                                                table_manipulation='update',)
+                                                                table_manipulation='update')
 
         # Set annotations for the table manifest
         manifest_annotations = self.format_manifest_annotations(manifest, manifest_synapse_table_id)
