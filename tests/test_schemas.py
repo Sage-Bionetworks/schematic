@@ -389,10 +389,10 @@ class TestDataModelEdges:
         
         return
     
-    @pytest.mark.parametrize("node_to_add, expected_weight", 
-                             [("Patient ID", 1)],
+    @pytest.mark.parametrize("node_to_add, other_node, expected_weight", 
+                             [("Patient ID", "Patient", 0)],
                               ids=["list"])
-    def test_generate_weights(self, helpers, node_to_add, expected_weight):
+    def test_generate_weights(self, helpers, node_to_add, other_node, expected_weight):
         # Instantiate graph object
         G = nx.MultiDiGraph()
 
@@ -433,6 +433,12 @@ class TestDataModelEdges:
 
         print(G.edges.data())
         
+        # Cast the edges and weights to a DataFrame for easier indexing
+        edges_and_weights = pd.DataFrame(G.edges.data(), columns= ['node1', 'node2', 'weights']).set_index('node1')
+
+        # Assert that the weight added is what is expected
+        assert edges_and_weights.loc[other_node, 'weights']['weight'] == expected_weight
+
         return
 
 
