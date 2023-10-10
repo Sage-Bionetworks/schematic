@@ -804,7 +804,7 @@ class SynapseStorage(BaseStorage):
                 
         return manifests
 
-    def upload_project_manifests_to_synapse(self, sg: SchemaGenerator, projectId: str) -> List[str]:
+    def upload_project_manifests_to_synapse(self, DME: DataModelGraphExplorer, projectId: str) -> List[str]:
         """Upload all metadata manifest files across all datasets in a specified project as tables in Synapse.
 
         Returns: String of all the manifest_table_ids of all the manifests that have been loaded.
@@ -826,7 +826,7 @@ class SynapseStorage(BaseStorage):
                 manifest_name = manifest_info["properties"]["name"]
                 manifest_path = manifest_info["path"]
                 manifest_df = load_df(manifest_path)
-                manifest_table_id = uploadDB(sg=sg, manifest=manifest, datasetId=datasetId, table_name=datasetName)
+                manifest_table_id = uploadDB(DME=DME, manifest=manifest, datasetId=datasetId, table_name=datasetName)
                 manifest_loaded.append(datasetName)
         return manifest_loaded
 
