@@ -390,7 +390,7 @@ class TestDataModelEdges:
         return
     
     @pytest.mark.parametrize("node_to_add, other_node, expected_weight", 
-                             [("Patient ID", "Patient", 0)],
+                             [("Patient ID", "Biospecimen", 1)],
                               ids=["list"])
     def test_generate_weights(self, helpers, node_to_add, other_node, expected_weight):
         # Instantiate graph object
