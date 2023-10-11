@@ -489,7 +489,6 @@ class TestDataModelJsonLd:
             assert 'bts' in object_template['@id']
 
     @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
-    #@pytest.mark.parametrize("node", ['Patient', 'CheckURL'], ids=['Patient', 'CheckURL'])    
     def test_clean_template(self, helpers, data_model):
         # TODO: This will need to change with contexts bc they are hard coded here.
         # Get Graph
@@ -518,9 +517,22 @@ class TestDataModelJsonLd:
         
         # Check that non-required JSONLD keys are removed.
         assert 'sms:requiresDependency' not in template
-        
-    def test_strip_context(self):
-        return
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    @pytest.mark.parametrize("context_value", ['@id', 'sms:required'], ids=['remove_at', 'remove_sms'])
+    def test_strip_context(self, helpers, data_model, context_value):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        stripped_contex = data_model_jsonld.strip_context(context_value=context_value)
+        if '@id' == context_value:
+            assert stripped_contex == ('', 'id')
+        elif 'sms:required' == context_value:
+            assert stripped_contex == ('sms', 'required')
+
     def test_reorder_template_entries(self):
         return
     def test_property_template(self):
