@@ -385,7 +385,7 @@ class TestDataModelEdges:
         G = DMEdges.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
 
         # Assert that the current edges are different from the edges of the graph before
-        assert G.edges != before_edges
+        assert G.edges > before_edges
 
         # Assert that somewhere in the current edges for the node we added, that the correct relationship exists
         relationship_df = pd.DataFrame(G.edges, columns= ['node1', 'node2', 'edge'])
@@ -432,7 +432,7 @@ class TestDataModelEdges:
         G = DMEdges.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
 
         # Assert that the current edges are different from the edges of the graph before
-        assert G.edges != before_edges
+        assert G.edges > before_edges
         
         # Cast the edges and weights to a DataFrame for easier indexing
         edges_and_weights = pd.DataFrame(G.edges.data(), columns= ['node1', 'node2', 'weights']).set_index('node1')
