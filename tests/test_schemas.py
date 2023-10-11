@@ -12,7 +12,7 @@ from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.schemas.data_model_jsonld import DataModelJsonLD
+from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.schemas.data_model_parser import DataModelParser, DataModelCSVParser, DataModelJSONLDParser
 
@@ -626,8 +626,16 @@ class TestDataModelJsonLd:
         assert list(jsonld_dm.keys()) == ['@context', '@graph', '@id']
         assert len(jsonld_dm['@graph']) > 1
 
-    def test_convert_graph_to_jsonld(self):
-        return
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_convert_graph_to_jsonld(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Generate JSONLD
+        jsonld_dm = convert_graph_to_jsonld(Graph=graph_data_model)
+        assert list(jsonld_dm.keys()) == ['@context', '@graph', '@id']
+        assert len(jsonld_dm['@graph']) > 1
+
 class TestSchemas:
     def test_convert_csv_to_graph(self, helpers):
         return
