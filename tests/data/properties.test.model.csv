@@ -1,0 +1,6 @@
+Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules
+cohorts,,,"Component, dataset_id, cohort_tag_id, id","name, dataset_id, cohort_tag_id, id",FALSE,,,,
+cohort_tag_id,,,,,FALSE,,,,matchAtLeastOne tags.id set error
+name,,,,,FALSE,,,,
+dataset_id,,,,,FALSE,,,,
+id,,,,,FALSE,,,,
