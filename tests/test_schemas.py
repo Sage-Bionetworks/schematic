@@ -431,8 +431,6 @@ class TestDataModelEdges:
 
         # Assert that the current edges are different from the edges of the graph before
         assert G.edges != before_edges
-
-        print(G.edges.data())
         
         # Cast the edges and weights to a DataFrame for easier indexing
         edges_and_weights = pd.DataFrame(G.edges.data(), columns= ['node1', 'node2', 'weights']).set_index('node1')
