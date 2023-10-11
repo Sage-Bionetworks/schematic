@@ -389,16 +389,15 @@ class TestDataModelEdges:
         
         return
     
-    @pytest.mark.parametrize("node_to_add, other_node, expected_weight", 
-                             [("Patient ID", "Biospecimen", 1),
-                              ('dataset_id', 'cohorts', -1)],
+    @pytest.mark.parametrize("node_to_add, other_node, expected_weight, data_model_path", 
+                             [("Patient ID", "Biospecimen", 1, "validator_dag_test.model.csv"),
+                              ("dataset_id", "cohorts", -1, "properties.test.model.csv")],
                               ids=["list", "domainIncludes"])
-    def test_generate_weights(self, helpers, node_to_add, other_node, expected_weight):
+    def test_generate_weights(self, helpers, node_to_add, other_node, expected_weight, data_model_path):
         # Instantiate graph object
         G = nx.MultiDiGraph()
 
         # Instantiate Parser
-        data_model_path = "validator_dag_test.model.csv"
         data_model_parser = DataModelParser(helpers.get_data_path(data_model_path))
 
         #Parse Model
