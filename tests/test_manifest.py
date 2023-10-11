@@ -122,11 +122,12 @@ class TestManifestGenerator:
             graph=graph_data_model,
             title="mock_title",
             path_to_json_ld=path_to_data_model,
+            root = "Patient",
         )
 
         assert type(generator.title) is str
         # assert generator.sheet_service == mock_creds["sheet_service"]
-        assert generator.root is None
+        assert generator.root is "Patient"
         assert type(generator.DME) is DataModelGraphExplorer
 
     @pytest.mark.parametrize("data_type, exc, exc_message",
@@ -137,11 +138,17 @@ class TestManifestGenerator:
         """
         Test for errors when either no DataType is provided or when a DataType is provided but not found in the schema
         """
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+
+        # Get graph data model
+        graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
+
 
         # A LookupError should be raised and include message when the component cannot be found
         with pytest.raises(exc) as e:
             generator = ManifestGenerator(
             path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            graph=graph_data_model,
             root=data_type,
             use_annotations=False,
             )        

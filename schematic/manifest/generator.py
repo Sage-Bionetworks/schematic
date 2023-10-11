@@ -94,7 +94,7 @@ class ManifestGenerator(object):
         self.additional_metadata = additional_metadata
    
         # Check if the class is in the schema
-        root_in_schema = self.sg.se.is_class_in_schema(self.root)
+        root_in_schema = self.DME.is_class_in_schema(self.root)
         
         # If the class could not be found, give a notification
         if not root_in_schema:
@@ -103,7 +103,7 @@ class ManifestGenerator(object):
             raise LookupError(exception_message) 
 
         # Determine whether current data type is file-based
-        self.is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
+        self.is_file_based = "Filename" in self.DME.get_node_dependencies(self.root)
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet"""
