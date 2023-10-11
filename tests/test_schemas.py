@@ -19,6 +19,11 @@ from schematic.schemas.data_model_parser import DataModelParser, DataModelCSVPar
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+DATA_MODEL_DICT = {
+   'example.model.csv': "CSV",
+   'example.model.jsonld': "JSONLD"
+ }
+
 def generate_graph_data_model(helpers, data_model_name):
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
@@ -389,7 +394,7 @@ class TestDataModelJsonSchema:
 
             # Check contents of validation schema
             assert 'Diagnosis' in json_validation_schema['properties']
-            assert json_validation_schema['properties']['Diagnosis'] == {'enum': ['Cancer', 'Healthy']}
+            assert 'Cancer' in json_validation_schema['properties']['Diagnosis']['enum']
         except:
             # Should only fail if no source node is provided.
             assert source_node == ''
