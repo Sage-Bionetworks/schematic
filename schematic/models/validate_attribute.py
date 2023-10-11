@@ -564,13 +564,13 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def get_target_manifests(target_component, project_scope: List):
+    def get_target_manifests(target_component, project_scope: List, access_token: str = None):
         t_manifest_search = perf_counter()
         target_manifest_IDs=[]
         target_dataset_IDs=[]
         
         #login
-        synStore = SynapseStorage(project_scope=project_scope)        
+        synStore = SynapseStorage(access_token=access_token, project_scope=project_scope)        
 
         #Get list of all projects user has access to
         projects = synStore.getStorageProjects(project_scope=project_scope)
@@ -893,7 +893,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, sg: SchemaGenerator,
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, sg: SchemaGenerator, access_token: str,
     ) -> List[List[str]]:
         """
         Purpose:
@@ -921,7 +921,7 @@ class ValidateAttribute(object):
 
         
         #Get IDs of manifests with target component
-        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
+        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component, project_scope, access_token)
 
         t_cross_manifest = perf_counter()
         #Read each manifest
