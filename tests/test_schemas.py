@@ -1,5 +1,6 @@
 import os
 import logging
+import networkx as nx
 import numpy as np
 import pandas as pd
 import pytest
