@@ -487,9 +487,38 @@ class TestDataModelJsonLd:
             assert 'sms' in object_template['sms:required']
         if '@id' in object_template:
             assert 'bts' in object_template['@id']
-        return
-    def test_clean_template(self):
-        return
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    #@pytest.mark.parametrize("node", ['Patient', 'CheckURL'], ids=['Patient', 'CheckURL'])    
+    def test_clean_template(self, helpers, data_model):
+        # TODO: This will need to change with contexts bc they are hard coded here.
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get empty template
+        template = data_model_jsonld.class_template()
+        assert 'sms:requiresDependency' in template
+
+        # Fill out some mock entries in the template:
+        template['@id'] == 'bts:CheckURL'
+        template['rdfs:label'] == 'CheckURL'
+        data_model_relationships=data_model_jsonld.dmr.relationships_dictionary
+
+        # Clean template
+        data_model_jsonld.clean_template(template=template, data_model_relationships=data_model_relationships)
+        
+        # Look for expected changes after cleaning
+        
+        # Check that expected JSONLD default is added
+        assert template['sms:required'] == 'sms:false'
+        assert template['sms:validationRules'] == []
+        
+        # Check that non-required JSONLD keys are removed.
+        assert 'sms:requiresDependency' not in template
+        
     def test_strip_context(self):
         return
     def test_reorder_template_entries(self):
