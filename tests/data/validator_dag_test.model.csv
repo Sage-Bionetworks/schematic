@@ -42,8 +42,3 @@ Check NA,,,,,TRUE,DataProperty,,,int::IsNA
 MockRDB,,,"Component, MockRDB_id, SourceManifest",,FALSE,DataType,,,
 MockRDB_id,,,,,TRUE,DataProperty,,,int
 SourceManifest,,,,,TRUE,DataProperty,,,
-cohorts,,,"Component, dataset_id, cohort_tag_id, id","name, dataset_id, cohort_tag_id, id",FALSE,,,,
-cohort_tag_id,,,,,FALSE,,,,matchAtLeastOne tags.id set error
-name,,,,,FALSE,,,,
-dataset_id,,,,,FALSE,,,,
-id,,,,,FALSE,,,,
