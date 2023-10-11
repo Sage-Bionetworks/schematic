@@ -218,6 +218,8 @@ paths:
                   description: Upload a json or a csv file. 
                   type: string
                   format: binary
+      security:
+        - access_token: []
       parameters:
         - in: query
           name: schema_url
