@@ -388,7 +388,7 @@ class TestDataModelEdges:
         assert G.edges != before_edges
 
         # Assert that somewhere in the current edges for the node we added, that the correct relationship exists
-        relationship_df = pd.DataFrame(G.edges, columns= ['u', 'v', 'edge'])
+        relationship_df = pd.DataFrame(G.edges, columns= ['node1', 'node2', 'edge'])
         assert (relationship_df['edge'] == edge_relationship).any()
         
         return
