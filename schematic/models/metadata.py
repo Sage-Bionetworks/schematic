@@ -337,7 +337,7 @@ class MetadataModel(object):
 
             # automatic JSON schema generation and validation with that JSON schema
             val_errors, val_warnings = self.validateModelManifest(
-                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules, project_scope=project_scope,
+                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules, project_scope=project_scope, access_token=access_token
             )
 
             # if there are no errors in validation process
