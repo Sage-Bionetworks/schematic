@@ -54,8 +54,8 @@ def DME(helpers, data_model_name='example.model.csv'):
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
 
-@pytest.fixture(name="dmr")
-def fixture_dmr():
+@pytest.fixture(name="DMR")
+def fixture_DMR():
     """Yields a data model relationships object for testing"""
     yield DataModelRelationships()
 
@@ -85,7 +85,7 @@ class TestDataModelJsonLdParser:
 
 class TestDataModelRelationships:
     """Tests for DataModelRelationships class"""
-    def test_define_data_model_relationships(self, dmr: DataModelRelationships):
+    def test_define_data_model_relationships(self, DMR: DataModelRelationships):
         """Tests relationships_dictionary created has correct keys"""
         required_keys = [
             'jsonld_key',
@@ -97,7 +97,7 @@ class TestDataModelRelationships:
         required_edge_keys = ['edge_key', 'edge_dir']
         required_node_keys = ['node_label', 'node_attr_dict']
 
-        relationships = dmr.relationships_dictionary
+        relationships = DMR.relationships_dictionary
 
         for relationship in relationships.values():
             for key in required_keys:
@@ -109,9 +109,9 @@ class TestDataModelRelationships:
                 for key in required_node_keys:
                     assert key in relationship.keys()
 
-    def test_define_required_csv_headers(self, dmr: DataModelRelationships):
+    def test_define_required_csv_headers(self, DMR: DataModelRelationships):
         """Tests method returns correct values"""
-        assert dmr.define_required_csv_headers() == [
+        assert DMR.define_required_csv_headers() == [
             'Attribute',
             'Description',
             'Valid Values',
@@ -123,9 +123,9 @@ class TestDataModelRelationships:
             'Source'
         ]
 
-    def test_define_edge_relationships(self, dmr: DataModelRelationships):
+    def test_define_edge_relationships(self, DMR: DataModelRelationships):
         """Tests method returns correct values"""
-        assert dmr.define_edge_relationships() == {
+        assert DMR.define_edge_relationships() == {
             'rangeIncludes': 'Valid Values',
             'requiresDependency': 'DependsOn',
             'requiresComponent': 'DependsOn Component',
@@ -133,9 +133,9 @@ class TestDataModelRelationships:
             'domainIncludes': 'Properties'
         }
 
-    def test_define_value_relationships(self, dmr: DataModelRelationships):
+    def test_define_value_relationships(self, DMR: DataModelRelationships):
         """Tests method returns correct values"""
-        assert dmr.define_value_relationships() == {
+        assert DMR.define_value_relationships() == {
             'displayName': 'Attribute',
             'label': None,
             'comment': 'Description',
@@ -295,7 +295,7 @@ class TestDataModelEdges:
             rangeIncludes relationship edge
         
     """
-    def test_skip_edge(self, helpers):
+    def test_skip_edge(self, helpers, DMR):
         # Instantiate graph object and set node
         G = nx.MultiDiGraph()
         node = "Diagnosis"
@@ -307,12 +307,11 @@ class TestDataModelEdges:
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate data model objects
-        dmr = DataModelRelationships()
         dmn = DataModelNodes(parsed_data_model)
         dme = DataModelEdges()
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = dmr.define_edge_relationships()
+        edge_relationships = DMR.define_edge_relationships()
         all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
@@ -345,7 +344,7 @@ class TestDataModelEdges:
                                    "Valid Value",
                                    "all others"
                                    ])
-    def test_generate_edge(self, helpers, node_to_add, edge_relationship):
+    def test_generate_edge(self, helpers, node_to_add, edge_relationship, DMR):
         # Instantiate graph object
         G = nx.MultiDiGraph()
 
@@ -356,12 +355,11 @@ class TestDataModelEdges:
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate data model objects
-        dmr = DataModelRelationships()
         dmn = DataModelNodes(parsed_data_model)
         dme = DataModelEdges()
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = dmr.define_edge_relationships()
+        edge_relationships = DMR.define_edge_relationships()
         all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
@@ -393,7 +391,7 @@ class TestDataModelEdges:
                              [("Patient ID", "Biospecimen", 1, "validator_dag_test.model.csv"),
                               ("dataset_id", "cohorts", -1, "properties.test.model.csv")],
                               ids=["list", "domainIncludes"])
-    def test_generate_weights(self, helpers, node_to_add, other_node, expected_weight, data_model_path):
+    def test_generate_weights(self, helpers, DMR, node_to_add, other_node, expected_weight, data_model_path):
         # Instantiate graph object
         G = nx.MultiDiGraph()
 
@@ -404,12 +402,11 @@ class TestDataModelEdges:
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate data model objects
-        dmr = DataModelRelationships()
         dmn = DataModelNodes(parsed_data_model)
         dme = DataModelEdges()
 
         # Get edge relationships and all nodes from the parsed model
-        edge_relationships = dmr.define_edge_relationships()
+        edge_relationships = DMR.define_edge_relationships()
         all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
 
