@@ -220,6 +220,7 @@ paths:
                   format: binary
       security:
         - access_token: []
+        - {}
       parameters:
         - in: query
           name: schema_url
