@@ -339,7 +339,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None, asset_view=None,):
+def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None, asset_view=None, project_scope = None):
     # Access token now stored in request header
     access_token = get_access_token()
     
@@ -370,7 +370,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=temp_path, rootNode=data_type, restrict_rules=restrict_rules, access_token=access_token
+        manifestPath=temp_path, rootNode=data_type, restrict_rules=restrict_rules, project_scope=project_scope, access_token=access_token
     )
     
     res_dict = {"errors": errors, "warnings": warnings}
