@@ -339,7 +339,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None):
+def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None, asset_view=None,):
     # Access token now stored in request header
     access_token = get_access_token()
     
@@ -348,7 +348,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
         restrict_rules=False
         
     # call config_handler()
-    config_handler()
+    config_handler(asset_view = asset_view)
 
     #If restrict_rules parameter is set to None, then default it to False 
     if not restrict_rules:
