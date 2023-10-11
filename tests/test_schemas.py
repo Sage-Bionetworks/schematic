@@ -612,8 +612,20 @@ class TestDataModelJsonLd:
                             }
         assert class_template == expected_class_template
 
-    def test_generate_jsonld_object(self):
-        return
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_generate_jsonld_object(self, helpers, data_model):
+        # Check that JSONLD object is being made, and has some populated entries.
+
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        jsonld_dm = data_model_jsonld.generate_jsonld_object()
+
+        assert list(jsonld_dm.keys()) == ['@context', '@graph', '@id']
+        assert len(jsonld_dm['@graph']) > 1
+
     def test_convert_graph_to_jsonld(self):
         return
 class TestSchemas:
