@@ -585,8 +585,33 @@ class TestDataModelJsonLd:
                                         }
         assert property_template == expected_property_template
 
-    def test_class_template(self):
-        return
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_class_template(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get Class Template
+        class_template = data_model_jsonld.class_template()
+
+        expected_class_template = {
+                                "@id": "",
+                                "@type": "rdfs:Class",
+                                "rdfs:comment": "",
+                                "rdfs:label": "",
+                                "rdfs:subClassOf": [],
+                                "schema:isPartOf": {},
+                                "schema:rangeIncludes": [],
+                                "sms:displayName": "",
+                                "sms:required": "sms:false",
+                                "sms:requiresDependency": [],
+                                "sms:requiresComponent": [],
+                                "sms:validationRules": [],
+                            }
+        assert class_template == expected_class_template
+
     def test_generate_jsonld_object(self):
         return
     def test_convert_graph_to_jsonld(self):
