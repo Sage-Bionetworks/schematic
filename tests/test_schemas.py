@@ -1,5 +1,6 @@
 import os
 import logging
+import networkx as nx
 
 import pandas as pd
 import pytest
@@ -400,8 +401,37 @@ class TestDataModelJsonSchema:
             assert source_node == ''
 
 class TestDataModelJsonLd:
-    def test_base_jsonld_template(self):
-        return
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_init(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD:
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Test that __init__ is being set up properly        
+        assert type(data_model_jsonld.graph) == nx.MultiDiGraph
+        assert type(data_model_jsonld.rel_dict) == dict
+        assert 'required' in data_model_jsonld.rel_dict
+        assert type(data_model_jsonld.DME) == DataModelGraphExplorer
+        assert data_model_jsonld.output_path == ''
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_base_jsonld_template(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get base jsonld template
+        base_template = data_model_jsonld.base_jsonld_template()
+
+        # Test base template is constructed as expected
+        assert '@context' in base_template
+        assert '@graph' in base_template
+        assert '@id' in base_template
+
     def test_create_object(self):
         return
     def test_add_contexts_to_entries(self):
