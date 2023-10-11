@@ -773,21 +773,44 @@ class TestManifestOperation:
 
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.submission
-    def test_submit_manifest_file_only_replace(self, client, request_headers, data_model_jsonld, test_manifest_submit):
+    @pytest.mark.parametrize("data_type, manifest_path_fixture",[("Biospecimen","test_manifest_submit"), ("MockComponent", "test_manifest_csv")])
+    def test_submit_manifest_file_only_replace(self, helpers, client, request_headers, data_model_jsonld, data_type, manifest_path_fixture, request):
         """Testing submit manifest in a csv format as a file
         """
         params = {
             "schema_url": data_model_jsonld,
-            "data_type": "Biospecimen",
+            "data_type": data_type,
             "restrict_rules": False, 
             "manifest_record_type": "file_only",
-            "asset_view": "syn51514344",
-            "dataset_id": "syn51514345",
             "table_manipulation": 'replace',
             "use_schema_label": True
         }
-        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")}, headers=request_headers)
+
+        if data_type == "Biospecimen":
+            specific_params = {
+            "asset_view": "syn51514344",
+            "dataset_id": "syn51514345",
+            }
+
+        elif data_type == "MockComponent":
+            python_version = helpers.get_python_version()
+
+            if python_version == "3.10":
+                dataset_id = "syn52656106"
+            elif python_version =="3.9":
+                dataset_id = "syn52656104"
+
+            specific_params = {
+            "asset_view": "syn23643253",
+            "dataset_id": dataset_id
+            }
+
+        params.update(specific_params)
+
+        manifest_path = request.getfixturevalue(manifest_path_fixture)
+        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(manifest_path, 'rb'), "test.csv")}, headers=request_headers)
         assert response_csv.status_code == 200 
+
     @pytest.mark.synapse_credentials_needed    
     @pytest.mark.submission
     def test_submit_manifest_json_str_replace(self, client, request_headers, data_model_jsonld):
