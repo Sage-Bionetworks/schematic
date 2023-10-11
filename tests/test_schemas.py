@@ -560,8 +560,31 @@ class TestDataModelJsonLd:
         else:
             assert template['schema:rangeIncludes'] == []
 
-    def test_property_template(self):
-        return
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_property_template(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get Property Template
+        property_template = data_model_jsonld.property_template()
+
+        expected_property_template =  {
+                                        "@id": "",
+                                        "@type": "rdf:Property",
+                                        "rdfs:comment": "",
+                                        "rdfs:label": "",
+                                        "schema:domainIncludes": [],
+                                        "schema:rangeIncludes": [],
+                                        "schema:isPartOf": {},
+                                        "sms:displayName": "",
+                                        "sms:required": "sms:false",
+                                        "sms:validationRules": [],
+                                        }
+        assert property_template == expected_property_template
+
     def test_class_template(self):
         return
     def test_generate_jsonld_object(self):
