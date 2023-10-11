@@ -437,10 +437,13 @@ class TestDataModelEdges:
         # Cast the edges and weights to a DataFrame for easier indexing
         edges_and_weights = pd.DataFrame(G.edges.data(), columns= ['node1', 'node2', 'weights']).set_index('node1')
 
+        # Get the index of the property in the schema
+        # Weights for properties are determined by their order in the schema. 
+        # This would allow the tests to continue to function correctly in the case were other attributes were added to the schema
         if expected_weight < 0:
             schema = helpers.get_data_frame(path=helpers.get_data_path(data_model_path), data_model=True)
             expected_weight = schema.index[schema['Attribute']==other_node][0]
-            logger.debug(f"Expected weight for nodes {node_to_add} and {other_node} is {expected_weight}.")
+            logger.debug(f"Expected weight for the edge of nodes {node_to_add} and {other_node} is {expected_weight}.")
 
         # Assert that the weight added is what is expected
         if node_to_add in ['Patient ID']:
