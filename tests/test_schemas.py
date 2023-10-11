@@ -309,7 +309,7 @@ class TestDataModelEdges:
         node = "Diagnosis"
 
         # Instantiate Parser
-        data_model_parser = DataModelParser(helpers.get_data_path("validator_dag_test.model.csv"))
+        data_model_parser = helpers.get_data_model_parser("validator_dag_test.model.csv")
 
         # Parse Model
         parsed_data_model = data_model_parser.parse_model()
@@ -356,7 +356,7 @@ class TestDataModelEdges:
         G = nx.MultiDiGraph()
 
         # Instantiate Parser
-        data_model_parser = DataModelParser(helpers.get_data_path("validator_dag_test.model.csv"))
+        data_model_parser = helpers.get_data_model_parser("validator_dag_test.model.csv")
 
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
@@ -402,7 +402,7 @@ class TestDataModelEdges:
         G = nx.MultiDiGraph()
 
         # Instantiate Parser
-        data_model_parser = DataModelParser(helpers.get_data_path(data_model_path))
+        data_model_parser = helpers.get_data_model_parser(data_model_path)
 
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
