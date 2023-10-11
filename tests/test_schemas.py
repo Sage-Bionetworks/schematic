@@ -314,7 +314,7 @@ class TestDataModelEdges:
         # Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
-        # Instantiate data model objects
+        # Instantiate data model Nodes object
         dmn = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
@@ -361,7 +361,7 @@ class TestDataModelEdges:
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
-        # Instantiate data model objects
+        # Instantiate data model Nodes object
         dmn = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
@@ -407,13 +407,12 @@ class TestDataModelEdges:
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
-        # Instantiate data model objects
+        # Instantiate data model Nodes object
         dmn = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
         edge_relationships = DMR.define_edge_relationships()
         all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
-
 
         # Sanity check to ensure that the node we intend to test exists in the data model
         assert node_to_add in all_nodes
@@ -450,6 +449,7 @@ class TestDataModelEdges:
             assert edges_and_weights.loc[other_node, 'weights']['weight'] == expected_weight
         elif node_to_add in ['cohorts']:
             assert edges_and_weights.loc[node_to_add, 'weights']['weight'] == expected_weight
+       
         return
 
 
