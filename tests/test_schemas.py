@@ -533,8 +533,33 @@ class TestDataModelJsonLd:
         elif 'sms:required' == context_value:
             assert stripped_contex == ('sms', 'required')
 
-    def test_reorder_template_entries(self):
-        return
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    @pytest.mark.parametrize("valid_values", [[], ['Other', 'Female', 'Male'], ['A', 'Bad', 'Entry']], ids=['Empty List', 'Disordered List', 'Incorrect List'])
+    def test_reorder_template_entries(self, helpers, data_model, valid_values):
+        # Note the way test_reorder_template_entries works, is that as long as an entry has recordings in the template
+        # even if they are incorrect, they will be corrected within this function.
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get empty template
+        template = data_model_jsonld.class_template()
+
+        # Fill out template with some 'Sex' information
+        template['@id'] = 'Sex'
+        template['rdfs:label'] = 'Sex'
+        template['sms:required'] = 'sms:false'
+        template['schema:rangeIncludes'] = valid_values
+
+        # Now reorder:
+        data_model_jsonld.reorder_template_entries(template=template)
+        if valid_values:
+            assert template['schema:rangeIncludes'] == [{'@id': 'bts:Female'}, {'@id': 'bts:Male'}, {'@id': 'bts:Other'}]
+        else:
+            assert template['schema:rangeIncludes'] == []
+
     def test_property_template(self):
         return
     def test_class_template(self):
