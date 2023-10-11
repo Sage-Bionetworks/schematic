@@ -27,6 +27,7 @@ from schematic.utils.validate_utils import (comma_separated_list_regex,
                                             rule_in_rule_list,
                                             )
 
+from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 logger = logging.getLogger(__name__)
 
@@ -570,7 +571,12 @@ class ValidateAttribute(object):
         target_dataset_IDs=[]
         
         #login
-        synStore = SynapseStorage(access_token=access_token, project_scope=project_scope)        
+        try:
+            synStore = SynapseStorage(access_token=access_token, project_scope=project_scope)        
+        except SynapseNoCredentialsError as e:
+            raise ValueError(
+                "No Synapse credentials were provided. Credentials must be provided to utilize cross-manfiest validation functionality."
+                ) from e
 
         #Get list of all projects user has access to
         projects = synStore.getStorageProjects(project_scope=project_scope)
