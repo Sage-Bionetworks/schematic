@@ -17,6 +17,12 @@ from schematic.schemas.data_model_parser import DataModelParser
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+ogger = logging.getLogger(__name__)
+
+DATA_MODEL_DICT = {
+   'example.model.csv': "CSV",
+   'example.model.jsonld': "JSONLD"
+ }
 
 def generate_graph_data_model(helpers, data_model_name):
     """
@@ -63,7 +69,7 @@ class TestDataModelParser:
 
         assert os.path.basename(biothings_path) == "biothings.model.jsonld"
 
-    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_get_model_type(self, helpers, data_model):
         # Instantiate Data model parser.
         data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
@@ -72,12 +78,13 @@ class TestDataModelParser:
         assert (data_model == 'example.model.csv') == (data_model_parser.model_type == 'CSV')
         assert (data_model == 'example.model.jsonld') == (data_model_parser.model_type == 'JSONLD')
 
-    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_parse_model(self, helpers, data_model):
         '''Test that the correct parser is called and that a dictionary is returned in the expected structure.
         '''
         # Instantiate Data model parser.
         data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        
         # Parse Model
         model_dict = data_model_parser.parse_model()
 
@@ -85,10 +92,10 @@ class TestDataModelParser:
         attribute_key = list(model_dict.keys())[0]
 
         # Check that the structure of the model dictionary conforms to expectations.
-        assert True == (type(model_dict) == dict)
-        assert True == (attribute_key in model_dict.keys())
-        assert True == ('Relationships' in model_dict[attribute_key])
-        assert True == ('Attribute' in model_dict[attribute_key]['Relationships'])
+        assert type(model_dict) == dict
+        assert attribute_key in model_dict.keys()
+        assert 'Relationships' in model_dict[attribute_key]
+        assert 'Attribute' in model_dict[attribute_key]['Relationships']
 
 class TestDataModelCsvParser:
     def test_check_schema_definition(self):
