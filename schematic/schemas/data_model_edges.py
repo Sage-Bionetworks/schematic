@@ -21,7 +21,7 @@ class DataModelEdges():
                 {Attribute Display Name: {
                         Relationships: {
                                     CSV Header: Value}}}
-            edge_relationships: dict, key: csv_header if the key represents a value relationship.
+            edge_relationships: dict, rel_key: csv_header if the key represents a value relationship.
 
         Returns:
             G, nx.MultiDiGraph: networkx graph representation of the data model, that has had new edges attached.
@@ -31,7 +31,7 @@ class DataModelEdges():
             # Get the relationships associated with the current attribute
             relationships = relationship['Relationships']
             # Add edge relationships one at a time
-            for key, csv_header in edge_relationships.items():
+            for rel_key, csv_header in edge_relationships.items():
                 # If the attribute has a relationship that matches the current edge being added
                 if csv_header in relationships.keys():
                     # If the current node is part of that relationship and is not the current node
@@ -39,7 +39,7 @@ class DataModelEdges():
                     if node in relationships[csv_header] and node != attribute_display_name: 
                         # Generate weights based on relationship type. 
                         # Weights will allow us to preserve the order of entries order in the data model in later steps.
-                        if key == 'domainIncludes':
+                        if rel_key == 'domainIncludes':
                             # For 'domainIncludes'/properties relationship, users do not explicitly provide a list order (like for valid values, or dependsOn)
                             # so we pull the order/weight from the order of the attributes.
                             weight = list(attr_rel_dict.keys()).index(attribute_display_name)
@@ -50,15 +50,15 @@ class DataModelEdges():
                             # For single (non list) entries, add weight of 0
                             weight = 0
                         # Get the edge_key for the edge relationship we are adding at this step
-                        edge_key = self.data_model_relationships[key]['edge_key']
+                        edge_key = self.data_model_relationships[rel_key]['edge_key']
                         # Add edges, in a manner that preserves directionality
                         # TODO: rewrite to use edge_dir
-                        if key in ['subClassOf', 'domainIncludes']:
+                        if rel_key in ['subClassOf', 'domainIncludes']:
                             G.add_edge(all_node_dict[node]['label'], all_node_dict[attribute_display_name]['label'], key=edge_key, weight=weight)
                         else:
                             G.add_edge(all_node_dict[attribute_display_name]['label'], all_node_dict[node]['label'], key=edge_key, weight=weight)
                         # Add add rangeIncludes/valid value relationships in reverse as well, making the attribute the parent of the valid value.
-                        if key == 'rangeIncludes':
+                        if rel_key == 'rangeIncludes':
                             G.add_edge(all_node_dict[attribute_display_name]['label'], all_node_dict[node]['label'],  key='parentOf', weight=weight)
 
         return G
