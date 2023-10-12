@@ -57,7 +57,7 @@ class DataModelParser():
         '''
         return pathlib.Path(path_to_data_model).suffix.replace('.', '').upper()
 
-    def parse_base_model(self):
+    def parse_base_model(self)-> Dict:
         '''Parse base data model that new model could be built upon.
         Returns:
             base_model, dict:
@@ -75,13 +75,15 @@ class DataModelParser():
         base_model = jsonld_parser.parse_jsonld_model(base_model_path)
         return base_model
 
-    def parse_model(self):
+    def parse_model(self)->Dict[str, dict[str, Any]]:
         '''Given a data model type, instantiate and call the appropriate data model parser.
         Returns:
             model_dict, dict:
                 {Attribute Display Name: {
                         Relationships: {
                                     CSV Header: Value}}}
+        Raises:
+            Value Error if an incorrect model type is passed.
         Note: in future will add base model parsing in this step too and extend new model off base model.
         '''
         #base_model = self.parse_base_model()
@@ -95,7 +97,6 @@ class DataModelParser():
             model_dict = jsonld_parser.parse_jsonld_model(self.path_to_data_model)
         else:
             raise ValueError(f"Schematic only accepts models of type CSV or JSONLD, you provided a model type {self.model_type}, please resubmit in the proper format.")
-
         return model_dict
     
 class DataModelCSVParser():
@@ -110,26 +111,28 @@ class DataModelCSVParser():
         self.edge_relationships_dictionary = self.dmr.define_edge_relationships()
         # Load required csv headers
         self.required_headers = self.dmr.define_required_csv_headers()
+        # Get the type for each value that needs to be submitted.
+        # using csv_headers as keys to match required_headers/relationship_types
+        self.rel_val_types = {v['csv_header']:v['type']for k, v in self.rel_dict.items() if 'type' in v.keys()}
 
     def check_schema_definition(self, model_df: pd.DataFrame) -> bool:
         """Checks if a schema definition data frame contains the right required headers.
         Args:
-            schema_definition: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0
-        Raises: Exception
+            model_df: a pandas dataframe containing schema definition; see example here: https://docs.google.com/spreadsheets/d/1J2brhqO4kpeHIkNytzlqrdIiRanXDr6KD2hqjOTC9hs/edit#gid=0
+        Raises: Exception if model_df does not have the required headers.
         """
-        try:
-            if set(self.required_headers).issubset(set(list(model_df.columns))):
-                return
-            elif "Requires" in list(model_df.columns) or "Requires Component" in list(
-                model_df.columns
-            ):
-                raise ValueError(
-                    "The input CSV schema file contains the 'Requires' and/or the 'Requires "
-                    "Component' column headers. These columns were renamed to 'DependsOn' and "
-                    "'DependsOn Component', respectively. Switch to the new column names."
-                )
+        if set(self.required_headers).issubset(set(list(model_df.columns))):
             logger.debug("Schema definition csv ready for processing!")
-        except:
+            return
+        elif "Requires" in list(model_df.columns) or "Requires Component" in list(
+            model_df.columns
+        ):
+            raise ValueError(
+                "The input CSV schema file contains the 'Requires' and/or the 'Requires "
+                "Component' column headers. These columns were renamed to 'DependsOn' and "
+                "'DependsOn Component', respectively. Switch to the new column names."
+            )
+        elif not set(self.required_headers).issubset(set(list(model_df.columns))):
             raise ValueError(
                 f"Schema extension headers: {set(list(model_df.columns))} "
                 f"do not match required schema headers: {self.required_headers}"
@@ -150,10 +153,6 @@ class DataModelCSVParser():
         # Check csv schema follows expectations.
         self.check_schema_definition(model_df)
 
-        # Get the type for each value that needs to be submitted.
-        # using csv_headers as keys to match required_headers/relationship_types
-        self.rel_val_types = {v['csv_header']:v['type']for k, v in self.rel_dict.items() if 'type' in v.keys()}
-        
         # get attributes from Attribute column
         attributes = model_df[list(self.required_headers)].to_dict("records")
         
