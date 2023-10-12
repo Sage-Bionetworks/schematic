@@ -297,7 +297,7 @@ class DataModelJSONLDParser():
                 attr_key = entry[label_jsonld_key]
 
             # If the entry has not already been added to the dictionary, add it.
-            if entry_name not in attr_rel_dictionary.keys():
+            if attr_key not in attr_rel_dictionary.keys():
                 attr_rel_dictionary.update(attr_dict_template(attr_key))
 
             # Add relationships for each entry
