@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, Text, List
 
 from schematic.utils.df_utils import load_df
 from schematic.utils.io_utils import load_json
+from schematic.utils.schema_utils import attr_dict_template
 
 from schematic.schemas.data_model_relationships import (
     DataModelRelationships
@@ -139,8 +140,32 @@ class DataModelCSVParser():
             )
         return
 
+    def parse_entry(self, attr:dict, relationship:str)->Any:
+        '''Parse attr entry baed on type
+        Args:
+            attr, dict: single row of a csv model in dict form, where only the required headers are keys. Values are the entries under each header.
+            relationship, str: one of the header relationships to parse the entry of.
+        Returns:
+            parsed_rel_entry, any: parsed entry for downstream processing based on the entry type.
+        '''
 
-    def gather_csv_attributes_relationships(self, model_df: pd.DataFrame) -> Dict:
+        rel_val_type = self.rel_val_types[relationship]
+        # Parse entry based on type:
+        # If the entry should be preserved as a bool dont convert to str.
+        if rel_val_type == bool and type(attr[relationship]) == bool:
+            parsed_rel_entry = attr[relationship]
+        # Move strings to list if they are comma separated. Schema order is preserved.
+        elif rel_val_type == list:
+            parsed_rel_entry = attr[relationship].strip().split(',')
+            parsed_rel_entry = [r.strip() for r in parsed_rel_entry]
+        # Convert value string if dictated by rel_val_type, strip whitespace.
+        elif rel_val_type == str:
+            parsed_rel_entry = str(attr[relationship]).strip()
+        else:
+            raise ValueError("The value type recorded for this relationship, is not currently supported for CSV parsing. Please check with your DCC.")
+        return parsed_rel_entry
+
+    def gather_csv_attributes_relationships(self, model_df: pd.DataFrame) -> Dict[str, dict[str, Any]]:
         '''Parse csv into a attributes:relationshps dictionary to be used in downstream efforts.
         Args:
             model_df: pd.DataFrame, data model that has been loaded into pandas DataFrame.
@@ -161,26 +186,14 @@ class DataModelCSVParser():
         attr_rel_dictionary = {}
 
         for attr in attributes:
+            attribute_name=attr['Attribute']
             # Add attribute to dictionary        
-            attr_rel_dictionary.update({attr['Attribute']: {'Relationships': {},
-                                                            },
-                                        }
-                                       )
+            attr_rel_dictionary.update(attr_dict_template(attribute_name))
             # Fill in relationship info for each attribute.
             for relationship in relationship_types:
-                rel_val_type = self.rel_val_types[relationship]
                 if not pd.isnull(attr[relationship]):
-                    # Fill in relationships based on type:
-                    if rel_val_type == bool and type(attr[relationship]) == bool:
-                        parsed_rel_entry = attr[relationship]
-                    # Move strings to list if they are comma separated. Schema order is preserved.
-                    elif rel_val_type == list:
-                        parsed_rel_entry = attr[relationship].strip().split(',')
-                        parsed_rel_entry = [r.strip() for r in parsed_rel_entry]
-                    # Extract string from list if necessary.
-                    elif rel_val_type == str:
-                        parsed_rel_entry = str(attr[relationship]).strip()
-                    attr_rel_dictionary[attr['Attribute']]['Relationships'].update({relationship:parsed_rel_entry})
+                    parsed_rel_entry = self.parse_entry(attr=attr, relationship=relationship)
+                    attr_rel_dictionary[attribute_name]['Relationships'].update({relationship:parsed_rel_entry})
         return attr_rel_dictionary
 
 

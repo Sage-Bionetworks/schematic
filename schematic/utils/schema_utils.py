@@ -2,7 +2,10 @@ import inflection
 import json
 import networkx as nx
 import string
-from typing import List
+from typing import List, Dict
+
+def attr_dict_template(key_name:str)->Dict[str,dict[str,dict]]:
+    return {key_name: {'Relationships': {}}}
 
 def get_property_label_from_display_name(display_name:str, strict_camel_case:bool = False) -> str:
         """Convert a given display name string into a proper property label string
