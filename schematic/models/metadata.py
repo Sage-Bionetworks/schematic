@@ -1,17 +1,10 @@
-import json
 import logging
-import string
-
-import numpy as np
-import pandas as pd
-import re
 import networkx as nx
-from jsonschema import Draft7Validator, exceptions, validate, ValidationError, FormatError
+from jsonschema import ValidationError
 from os.path import exists
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
-
 
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -25,9 +18,7 @@ from schematic.store.synapse import SynapseStorage
 
 from schematic.utils.df_utils import load_df
 
-#from schematic.models.validate_attribute import ValidateAttribute #looks unused.
 from schematic.models.validate_manifest import validate_all
-
 
 logger = logging.getLogger(__name__)
 
@@ -309,7 +300,7 @@ class MetadataModel(object):
         access_token: str = None,
         project_scope: List = None,
         table_manipulation: str = 'replace'
-    ) -> string:
+    ) -> str:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
         Args:
