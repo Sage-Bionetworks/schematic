@@ -14,7 +14,7 @@ class DataModelJsonLD(object):
 
     def __init__(self, Graph: nx.MultiDiGraph, output_path:str = ''):
         # Setup
-        self.graph = Graph
+        self.graph = Graph # Graph would be fully made at this point.
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
         self.DME = DataModelGraphExplorer(self.graph)

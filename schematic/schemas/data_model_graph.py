@@ -62,7 +62,7 @@ class DataModelGraphMeta(object):
 class DataModelGraph():
     '''
     Generate graph network (networkx) from the attributes and relationships returned
-    fromt the data model parser.
+    from the data model parser.
 
     Create a singleton.
     '''
@@ -91,7 +91,7 @@ class DataModelGraph():
 
 
     def generate_data_model_graph(self) -> nx.MultiDiGraph:
-        '''Generate NetworkX Graph from the Relationships/attributes dictionary
+        '''Generate NetworkX Graph from the Relationships/attributes dictionary, the graph is built by first adding all nodes to the graph, then connecting nodes by the relationships defined in the attributes_relationship dictionary.
         Returns:
             G: nx.MultiDiGraph, networkx graph representation of the data model
         '''
@@ -114,7 +114,7 @@ class DataModelGraph():
             # Add each node to the all_node_dict to be used for generating edges
             all_node_dict[node] = node_dict
 
-            # Generate node and attach information
+            # Generate node and attach information (attributes) to each node
             G = self.dmn.generate_node(G, node_dict)
 
         ## Connect nodes via edges
@@ -130,7 +130,7 @@ class DataModelGraphExplorer():
         Args:
             G: nx.MultiDiGraph, networkx graph representation of the data model
         '''
-        self.graph = G
+        self.graph = G #At this point the graph is expected to be fully formed.
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
 

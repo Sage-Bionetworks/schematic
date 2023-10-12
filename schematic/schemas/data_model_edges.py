@@ -12,7 +12,7 @@ class DataModelEdges():
     def generate_edge(self, G: nx.MultiDiGraph, node: str, all_node_dict: dict, attr_rel_dict: dict, edge_relationships: dict) -> nx.MultiDiGraph:
         """Generate an edge between a target node and relevant other nodes the data model. In short, does this current node belong to a recorded relationship in the attribute, relationshps dictionary. Go through each attribute and relationship to find where the node may be.
         Args:
-            G, nx.MultiDiGraph: networkx graph representation of the data model, that is in the process of being fully built.
+            G, nx.MultiDiGraph: networkx graph representation of the data model, that is in the process of being fully built. At this point, all the nodes would have been added, and edges are being added per target node.
             node, str: target node to look for connecting edges
             all_node_dict, dict: a dictionary containing information about all nodes in the model
                 key: node display name
