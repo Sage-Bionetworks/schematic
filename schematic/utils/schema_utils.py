@@ -110,3 +110,17 @@ def export_schema(schema: dict, file_path: str) -> None:
     """
     with open(file_path, "w") as f:
         json.dump(schema, f, sort_keys=True, indent=4, ensure_ascii=False)
+
+def strip_context(context_value: str) -> tuple[str]:
+        """Strip contexts from str entry.
+        Args:
+            context_value, str: string from which to strip context from
+        Returns:
+            context, str: the original context
+            v, str: value separated from context
+        """
+        if ':' in context_value:
+            context, v = context_value.split(':')
+        elif '@' in context_value:
+            context, v = context_value.split('@')
+        return context, v
