@@ -181,9 +181,9 @@ class DataModelJsonLD(object):
                     rel_func = self.rel_dict[key]['node_attr_dict']['default']
 
                 # Add appropritae contexts that have been removed in previous steps (for JSONLD) or did not exist to begin with (csv)
-                if key == 'id' and rel_func == get_label_from_display_name:
+                if key == 'id' and rel_func == get_label_from_display_name and 'bts' not in str(template[jsonld_key]).lower():
                     template[jsonld_key] = 'bts:' + template[jsonld_key]
-                elif key == 'required' and rel_func == convert_bool_to_str:
+                elif key == 'required' and rel_func == convert_bool_to_str and 'sms' not in str(template[jsonld_key]).lower():
                     template[jsonld_key] = 'sms:' + str(template[jsonld_key]).lower()
         return template
 
