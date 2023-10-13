@@ -207,35 +207,3 @@ class DataModelRelationships():
                 raise ValueError(f"Did not provide a 'edge_rel' for relationship {rel}")
 
         return rel_headers_dict
-    '''
-    def define_edge_relationships(self):
-        """Helper function to retrieve CSV headers for edge relationships.
-            Returns:
-                edge_relationships: dict, key: csv_header if the key represents an edge relationship.
-        """
-        edge_relationships = {}
-        for k, v in self.relationships_dictionary.items():
-            try:
-                if v['edge_rel']:
-                    edge_relationships.update({k:v['csv_header']})
-            except KeyError:
-                print(f"Did not provide a 'edge_rel' for relationship {k}")
-
-        return edge_relationships
-
-    def define_value_relationships(self):
-        """Helper function to retrieve CSV headers for non-edge (value) relationships.
-            Returns:
-                edge_relationships: dict, key: csv_header if the key represents a value relationship.
-        """
-        value_relationships = {}
-        for k, v in self.relationships_dictionary.items():
-            try:
-                if not v['edge_rel']:
-                    value_relationships.update({k:v['csv_header']})
-            except KeyError:
-                print(f"Did not provide a 'edge_rel' for key {k}")
-
-        return value_relationships
-    '''
-
