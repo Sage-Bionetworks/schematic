@@ -768,7 +768,7 @@ paths:
       tags:
         - Schema Operation
 
-  /schmas/find_class_specific_properties:
+  /schemas/find_class_specific_properties:
     get:
       summary: Find properties specifically associated with a given class
       description: Find properties specifically associated with a given class
