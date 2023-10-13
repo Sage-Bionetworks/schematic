@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field, asdict
 from dataclasses_json import config, dataclass_json
+import json
 from functools import wraps
 from typing import Any, Dict, Optional, Text, List
 import networkx as nx
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.utils.schema_utils import get_label_from_display_name, convert_bool_to_str
+from schematic.utils.schema_utils import get_label_from_display_name, convert_bool_to_str, strip_context
 
 @dataclass_json
 @dataclass
@@ -65,13 +66,13 @@ class DataModelJsonLD(object):
 
         # Gather the templates
         base_template = BaseTemplate()
-        self.base_jsonld_template = base_template.to_json()
+        self.base_jsonld_template = json.loads(base_template.to_json())
 
         property_template = PropertyTemplate()
-        self.property_template = property_template.to_json()
+        self.property_template = json.loads(property_template.to_json())
 
         class_template = ClassTemplate()
-        self.class_template = class_template.to_json()
+        self.class_template = json.loads(class_template.to_json())
 
     def fill_entry_template(self, template:dict, node:str)->dict:
         """ Fill in a blank JSONLD entry template with information for each node. All relationships are filled from the graph, based on the type of information (node or edge)
@@ -86,7 +87,7 @@ class DataModelJsonLD(object):
         # For each field in template fill out with information from the graph
         for rel, rel_vals in data_model_relationships.items():
             
-            key_context, key_rel = self.strip_context(context_value=rel_vals['jsonld_key'])
+            key_context, key_rel = strip_context(context_value=rel_vals['jsonld_key'])
 
             # Fill edge information (done per edge type)
             if rel_vals['edge_rel']:
@@ -138,10 +139,12 @@ class DataModelJsonLD(object):
                 
                 # Get recorded info for current node, and the attribute type
                 node_info = nx.get_node_attributes(self.graph, node_label)[node]
-                
-                # Add this information to the template
-                template[rel_vals['jsonld_key']] =  node_info
-        
+                try:
+                    # Add this information to the template
+                    template[rel_vals['jsonld_key']] =  node_info
+                except:
+                    breakpoint()
+            
         # Clean up template
         template = self.clean_template(template=template,
                                        data_model_relationships=data_model_relationships,
@@ -199,20 +202,6 @@ class DataModelJsonLD(object):
                 else:
                     del template[rels['jsonld_key']]
         return template
-
-    def strip_context(self, context_value: str) -> tuple[str]:
-        """Strip contexts from str entry.
-        Args:
-            context_value, str: string from which to strip context from
-        Returns:
-            context, str: the original context
-            v, str: value separated from context
-        """
-        if ':' in context_value:
-            context, v = context_value.split(':')
-        elif '@' in context_value:
-            context, v = context_value.split('@')
-        return context, v
 
     def reorder_template_entries(self, template:dict) -> dict:
         '''In JSONLD some classes or property keys have list values. We want to make sure these lists are ordered according to the order supplied by the user.
