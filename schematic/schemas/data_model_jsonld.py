@@ -1,3 +1,5 @@
+from dataclasses import dataclass, field, asdict
+from dataclasses_json import config, dataclass_json
 from functools import wraps
 from typing import Any, Dict, Optional, Text, List
 import networkx as nx
@@ -6,6 +8,47 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import get_label_from_display_name, convert_bool_to_str
 
+@dataclass_json
+@dataclass
+class BaseTemplate:
+    magic_context: str = field(default_factory=lambda: {"bts": "http://schema.biothings.io/",
+                                                        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+                                                        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+                                                        "schema": "http://schema.org/",
+                                                        "xsd": "http://www.w3.org/2001/XMLSchema#",
+                                                        },
+                                metadata=config(field_name="@context"))
+    magic_graph: str = field(default_factory=list, metadata=config(field_name="@graph"))
+    magic_id: str = field(default="http://schema.biothings.io/#0.1", metadata=config(field_name="@id"))
+
+@dataclass_json
+@dataclass
+class PropertyTemplate:
+    magic_id: str = field(default="", metadata=config(field_name="@id"))
+    magic_type: str = field(default="rdf:Property", metadata=config(field_name="@type"))
+    magic_comment: str = field(default="", metadata=config(field_name="rdfs:comment"))
+    magic_label: str = field(default="", metadata=config(field_name="rdfs:label"))
+    magic_domain_includes: list = field(default_factory=list, metadata=config(field_name="schema:domainIncludes"))
+    magic_range_includes: list = field(default_factory=list, metadata=config(field_name="schema:rangeIncludes"))
+    magic_isPartOf: dict = field(default_factory=dict, metadata=config(field_name="schema:isPartOf"))
+    magic_displayName:str = field(default="", metadata=config(field_name="sms:displayName"))
+    magic_required: str = field(default="sms:false", metadata=config(field_name="sms:required"))
+    magic_validationRules: list = field(default_factory=list, metadata=config(field_name="sms:validationRules"))
+
+@dataclass_json
+@dataclass
+class ClassTemplate:
+    magic_id: str = field(default="", metadata=config(field_name="@id"))
+    magic_type: str = field(default="rdfs:Class", metadata=config(field_name="@type"))
+    magic_comment: str = field(default="", metadata=config(field_name="rdfs:comment"))
+    magic_label: str = field(default="", metadata=config(field_name="rdfs:label"))
+    magic_subClassOf: list = field(default_factory=list, metadata=config(field_name="rdfs:subClassOf"))
+    magic_range_includes: list = field(default_factory=list, metadata=config(field_name="schema:rangeIncludes"))
+    magic_isPartOf: dict = field(default_factory=dict, metadata=config(field_name="schema:isPartOf"))
+    magic_displayName:str = field(default="", metadata=config(field_name="sms:displayName"))
+    magic_requiresDependency: list = field(default_factory=list, metadata=config(field_name="sms:requiresDependency"))
+    magic_requiresComponent: list = field(default_factory=list, metadata=config(field_name="sms:requiresComponent"))
+    magic_validationRules: list = field(default_factory=list, metadata=config(field_name="sms:validationRules"))
 
 class DataModelJsonLD(object):
     '''
@@ -20,28 +63,18 @@ class DataModelJsonLD(object):
         self.DME = DataModelGraphExplorer(self.graph)
         self.output_path = output_path
 
-    
-    def base_jsonld_template(self) -> dict:
-        """Base starter JSONLD template, to be filled out with model. For entire file.
-        Returns:
-            base_template, dict: base JSONLD template
-        TODO: when done adding contexts fill out this section here.
-        """
-        base_template = {
-                        "@context": {
-                            "bts": "http://schema.biothings.io/",
-                            "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-                            "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-                            "schema": "http://schema.org/",
-                            "xsd": "http://www.w3.org/2001/XMLSchema#",
-                            },
-                         "@graph": [],
-                         "@id": "http://schema.biothings.io/#0.1",
-                        }
-        return base_template
+        # Gather the templates
+        base_template = BaseTemplate()
+        self.base_jsonld_template = base_template.to_json()
 
-    def create_object(self, template:dict, node:str)->dict:
-        """ Fill in a blank JSONLD template with information for each node. All relationships are filled from the graph, based on the type of information (node or edge)
+        property_template = PropertyTemplate()
+        self.property_template = property_template.to_json()
+
+        class_template = ClassTemplate()
+        self.class_template = class_template.to_json()
+
+    def fill_entry_template(self, template:dict, node:str)->dict:
+        """ Fill in a blank JSONLD entry template with information for each node. All relationships are filled from the graph, based on the type of information (node or edge)
         Args:
             template, dict: empty class or property template to be filled with information for the given node.
             node, str: target node to fill the template out for.
@@ -215,47 +248,6 @@ class DataModelJsonLD(object):
                 template[jsonld_key] = ordered_edges
         return template
 
-    def property_template(self):
-        '''Generate a template for schema property
-        Returns:
-            property_template, dict: template for property schema
-        '''      
-        property_template = {
-                            "@id": "",
-                            "@type": "rdf:Property",
-                            "rdfs:comment": "",
-                            "rdfs:label": "",
-                            "schema:domainIncludes": [],
-                            "schema:rangeIncludes": [],
-                            "schema:isPartOf": {},
-                            "sms:displayName": "",
-                            "sms:required": "sms:false",
-                            "sms:validationRules": [],
-                            }
-        return property_template
-
-    def class_template(self):
-        """Generate a template for schema class
-        Returns:
-            class_template, dict: template for class schema
-        """
-        class_template = {
-                        "@id": "",
-                        "@type": "rdfs:Class",
-                        "rdfs:comment": "",
-                        "rdfs:label": "",
-                        "rdfs:subClassOf": [],
-                        "schema:isPartOf": {},
-                        "schema:rangeIncludes": [],
-                        "sms:displayName": "",
-                        "sms:required": "sms:false",
-                        "sms:requiresDependency": [],
-                        "sms:requiresComponent": [],
-                        "sms:validationRules": [],
-                    }
-        return class_template
-
-
     def generate_jsonld_object(self):
         '''Create the JSONLD object.
         Returns:
@@ -265,16 +257,17 @@ class DataModelJsonLD(object):
         properties = self.DME.find_properties()
 
         # Get JSONLD Template
-        json_ld_object = self.base_jsonld_template()
+        json_ld_template = self.base_jsonld_template
         
-        # Iterativly add graph nodes to json_ld_object as properties or classes
+        # Iterativly add graph nodes to json_ld_template as properties or classes
         for node in self.graph.nodes:
             if node in properties:
-                obj = self.create_object(template = self.property_template(), node = node)
+                obj = self.fill_entry_template(template = self.property_template, node = node)
             else:
-                obj = self.create_object(template = self.class_template(), node = node)
-            json_ld_object['@graph'].append(obj)
-        return json_ld_object
+                obj = self.fill_entry_template(template = self.class_template, node = node)
+
+            json_ld_template['@graph'].append(obj)
+        return json_ld_template
 
 def convert_graph_to_jsonld(Graph):
     # Make the JSONLD object
