@@ -16,8 +16,8 @@ class DataModelNodes():
     def __init__(self, attribute_relationships_dict):
         self.namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
         self.data_model_relationships = DataModelRelationships()
-        self.value_relationships = self.data_model_relationships.define_value_relationships()
-        self.edge_relationships_dictionary = self.data_model_relationships.define_edge_relationships()
+        self.value_relationships = self.data_model_relationships.retreive_rel_headers_dict(edge=False)
+        self.edge_relationships_dictionary = self.data_model_relationships.retreive_rel_headers_dict(edge=True)
         self.properties = self.get_data_model_properties(attr_rel_dict=attribute_relationships_dict)
         # retrieve a list of relationship types that will produce nodes.
         self.node_relationships =list(self.edge_relationships_dictionary.values())

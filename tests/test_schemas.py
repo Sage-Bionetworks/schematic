@@ -160,27 +160,27 @@ class TestDataModelRelationships:
             'Source'
         ]
 
-    def test_define_edge_relationships(self, dmr: DataModelRelationships):
+    @pytest.mark.parametrize("edge", [True, False], ids=["True", "False"])
+    def test_retreive_rel_headers_dict(self, dmr: DataModelRelationships, edge:bool):
         """Tests method returns correct values"""
-        assert dmr.define_edge_relationships() == {
-            'rangeIncludes': 'Valid Values',
-            'requiresDependency': 'DependsOn',
-            'requiresComponent': 'DependsOn Component',
-            'subClassOf': 'Parent',
-            'domainIncludes': 'Properties'
-        }
-
-    def test_define_value_relationships(self, dmr: DataModelRelationships):
-        """Tests method returns correct values"""
-        assert dmr.define_value_relationships() == {
-            'displayName': 'Attribute',
-            'label': None,
-            'comment': 'Description',
-            'required': 'Required',
-            'validationRules': 'Validation Rules',
-            'isPartOf': None,
-            'id': 'Source'
-        }
+        if edge:
+            assert dmr.retreive_rel_headers_dict(edge=edge) == {
+                'rangeIncludes': 'Valid Values',
+                'requiresDependency': 'DependsOn',
+                'requiresComponent': 'DependsOn Component',
+                'subClassOf': 'Parent',
+                'domainIncludes': 'Properties'
+            }
+        else:
+            assert dmr.retreive_rel_headers_dict(edge=edge) == {
+                'displayName': 'Attribute',
+                'label': None,
+                'comment': 'Description',
+                'required': 'Required',
+                'validationRules': 'Validation Rules',
+                'isPartOf': None,
+                'id': 'Source'
+            }
 
 
 class TestDataModelGraph:

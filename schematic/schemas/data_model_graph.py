@@ -96,7 +96,7 @@ class DataModelGraph():
             G: nx.MultiDiGraph, networkx graph representation of the data model
         '''
         # Get all relationships with edges
-        edge_relationships = self.dmr.define_edge_relationships()
+        edge_relationships = self.dmr.retreive_rel_headers_dict(edge=True)
 
         # Find all nodes
         all_nodes = self.dmn.gather_all_nodes_in_model(attr_rel_dict=self.attribute_relationships_dict)

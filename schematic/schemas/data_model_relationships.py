@@ -189,6 +189,25 @@ class DataModelRelationships():
 
         return required_headers
 
+    def retreive_rel_headers_dict(self, edge: bool) -> Dict[str, str]:
+        """Helper function to retrieve CSV headers for edge and non-edge relationships defined by edge_type.
+            Args:
+                edge, bool: True if looking for edge relationships
+            Returns:
+                rel_headers_dict: dict, key: csv_header if the key represents an edge relationship.
+        """
+        rel_headers_dict = {}
+        for rel, rel_dict in self.relationships_dictionary.items():
+            if 'edge_rel' in rel_dict:
+                if rel_dict['edge_rel'] and edge:
+                    rel_headers_dict.update({rel:rel_dict['csv_header']})
+                elif rel_dict['edge_rel'] == False  and edge == False:
+                    rel_headers_dict.update({rel:rel_dict['csv_header']})
+            else:
+                raise ValueError(f"Did not provide a 'edge_rel' for relationship {rel}")
+
+        return rel_headers_dict
+    '''
     def define_edge_relationships(self):
         """Helper function to retrieve CSV headers for edge relationships.
             Returns:
@@ -200,7 +219,7 @@ class DataModelRelationships():
                 if v['edge_rel']:
                     edge_relationships.update({k:v['csv_header']})
             except KeyError:
-                print(f"Did not provide a 'edge_rel' key, value pair for the nested dictionary {k} : {key}")
+                print(f"Did not provide a 'edge_rel' for relationship {k}")
 
         return edge_relationships
 
@@ -218,5 +237,5 @@ class DataModelRelationships():
                 print(f"Did not provide a 'edge_rel' for key {k}")
 
         return value_relationships
-
+    '''
 
