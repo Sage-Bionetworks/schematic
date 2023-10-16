@@ -238,11 +238,16 @@ class DataModelJsonLD(object):
             template: JSONLD template where unfilled entries have been removed, or filled with default depending on specifications in the relationships dictionary.
         '''
         for rels in data_model_relationships.values():
-            if rels['jsonld_key'] in template.keys() and not template[rels['jsonld_key']]:
+            # Get the current relationships, jsonld key
+            relationship_jsonld_key = rels['jsonld_key']
+            # Check if the relationship_relationship_key is part of the template, and if it is, look to see if it has an entry
+            if relationship_jsonld_key in template.keys() and not template[rels['jsonld_key']]:
+                # If there is no value recorded, fill out the template with the default relationship value (if recorded.)
                 if 'jsonld_default' in rels.keys():
-                    template[rels['jsonld_key']] = rels['jsonld_default']
+                    template[relationship_jsonld_key] = rels['jsonld_default']
                 else:
-                    del template[rels['jsonld_key']]
+                    # If there is no default specified in the relationships dictionary, delete the empty value from the template.
+                    del template[relationship_jsonld_key]
         return template
 
     def reorder_template_entries(self, template:dict) -> dict:
