@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass, field, asdict
 from dataclasses_json import config, dataclass_json
 import json
@@ -74,8 +75,89 @@ class DataModelJsonLD(object):
         class_template = ClassTemplate()
         self.class_template = json.loads(class_template.to_json())
 
+    def get_edges_associated_with_node(self, node:str)->List[tuple[str,str,dict[str,int]]]:
+        """Retrieve all edges traveling in and out of a node.
+        Args:
+            node, str: Label of node in the graph to look for assiciated edges
+        Returns:
+            node_edges, list: List of Tuples of edges associated with the given node, tuple contains the two nodes, plus the weight dict associated with the edge connection.
+        """
+        node_edges = list(self.graph.in_edges(node, data=True))
+        node_edges.extend(list(self.graph.out_edges(node,data=True)))
+        return node_edges
+
+    def add_edge_rels_to_template(self, template: dict, rel_vals:dict, node:str):
+        """
+        Args:
+            template, dict: single class or property JSONLD template that is in the process of being filled. 
+            rel_vals, dict: sub relationship dict for a given relationship (contains informtion like, 'edge_rel', 'jsonld_key' etc..)
+            node, str: node whose edge information is presently being added to the JSONLD
+        Returns:
+        """
+        # Get all edges associated with the current node
+        node_edges = self.get_edges_associated_with_node(node=node)
+
+        # Get node pairs and weights for each edge
+        for node_1, node_2, weight in node_edges:
+            
+            # Retrieve the relationship(s) and related info between the two nodes
+            node_edge_relationships = self.graph[node_1][node_2]
+
+            # Get the relationship edge key
+            edge_key = rel_vals['edge_key']
+
+            # Check if edge_key is even one of the relationships for this node pair.
+            if edge_key in node_edge_relationships:
+                # for each relationship between the given nodes
+                for relationship, weight_dict in node_edge_relationships.items():
+                    # If the relationship defined and edge_key
+                    if relationship == edge_key:
+                        # TODO: rewrite to use edge_dir
+                        if edge_key in ['domainIncludes', 'parentOf']:
+                            if node_2 == node:
+                                # Make sure the key is in the template (differs between properties and classes)
+                                if rel_vals['jsonld_key'] in template.keys():
+                                    node_1_id = {'@id': 'bts:'+node_1}
+                                    # TODO Move this to a helper function to clear up.
+                                    if (isinstance(template[rel_vals['jsonld_key']], list) and
+                                        node_1_id not in template[rel_vals['jsonld_key']]):
+                                        template[rel_vals['jsonld_key']].append(node_1_id)
+                                    else:
+                                        template[rel_vals['jsonld_key']] == node_1
+                        else:
+                            if node_1 == node:
+                                # Make sure the key is in the template (differs between properties and classes)
+                                if rel_vals['jsonld_key'] in template.keys():
+                                    node_2_id = {'@id': 'bts:'+node_2}
+                                    # TODO Move this to a helper function to clear up.
+                                    if (isinstance(template[rel_vals['jsonld_key']], list) and
+                                        node_2_id not in template[rel_vals['jsonld_key']]):
+                                        template[rel_vals['jsonld_key']].append(node_2_id)
+                                    else:
+                                        template[rel_vals['jsonld_key']] == node_2
+        return template
+
+    def add_node_info_to_template(self, template, rel_vals, node):
+        """ For a given node and relationship, add relevant value to template
+        Args:
+            template, dict: single class or property JSONLD template that is in the process of being filled. 
+            rel_vals, dict: sub relationship dict for a given relationship (contains informtion like, 'edge_rel', 'jsonld_key' etc..)
+            node, str: node whose information is presently being added to the JSONLD
+        Returns:
+            template, dict: single class or property JSONLD template that is in the process of being filled, and now has had additional node information added.
+        """
+        # Get label for relationship used in the graph
+        node_label = rel_vals['node_label']
+                
+        # Get recorded info for current node, and the attribute type
+        node_info = nx.get_node_attributes(self.graph, node_label)[node]
+        
+        # Add this information to the template
+        template[rel_vals['jsonld_key']] =  node_info
+        return template
+
     def fill_entry_template(self, template:dict, node:str)->dict:
-        """ Fill in a blank JSONLD entry template with information for each node. All relationships are filled from the graph, based on the type of information (node or edge)
+        """ Fill in a blank JSONLD template with information for each node. All relationships are filled from the graph, based on the type of information (node or edge)
         Args:
             template, dict: empty class or property template to be filled with information for the given node.
             node, str: target node to fill the template out for.
@@ -89,62 +171,16 @@ class DataModelJsonLD(object):
             
             key_context, key_rel = strip_context(context_value=rel_vals['jsonld_key'])
 
+            # Fill in the JSONLD template for this node, with data from the graph by looking up the nodes edge relationships, and the value information attached to the node.
+            
             # Fill edge information (done per edge type)
             if rel_vals['edge_rel']:
-                # Get all edges associated with the current node
-                node_edges = list(self.graph.in_edges(node, data=True))
-                node_edges.extend(list(self.graph.out_edges(node,data=True)))
-
-                # Get node pairs and weights for each edge
-                for node_1, node_2, weight in node_edges:
-                    
-                    # Retrieve the relationship(s) and related info between the two nodes
-                    node_edge_relationships = self.graph[node_1][node_2]
-
-                    # Get the relationship edge key
-                    edge_key = rel_vals['edge_key']
-
-                    # Check if edge_key is even one of the relationships for this node pair.
-                    if edge_key in node_edge_relationships:
-                        # for each relationship between the given nodes
-                        for relationship, weight_dict in node_edge_relationships.items():
-                            # If the relationship defined and edge_key
-                            if relationship == edge_key:
-                                # TODO: rewrite to use edge_dir
-                                if edge_key in ['domainIncludes', 'parentOf']:
-                                    if node_2 == node:
-                                        # Make sure the key is in the template (differs between properties and classes)
-                                        if rel_vals['jsonld_key'] in template.keys():
-                                            node_1_id = {'@id': 'bts:'+node_1}
-                                            # TODO Move this to a helper function to clear up.
-                                            if (isinstance(template[rel_vals['jsonld_key']], list) and
-                                                node_1_id not in template[rel_vals['jsonld_key']]):
-                                                template[rel_vals['jsonld_key']].append(node_1_id)
-                                            else:
-                                                template[rel_vals['jsonld_key']] == node_1
-                                else:
-                                    if node_1 == node:
-                                        # Make sure the key is in the template (differs between properties and classes)
-                                        if rel_vals['jsonld_key'] in template.keys():
-                                            node_2_id = {'@id': 'bts:'+node_2}
-                                            # TODO Move this to a helper function to clear up.
-                                            if (isinstance(template[rel_vals['jsonld_key']], list) and
-                                                node_2_id not in template[rel_vals['jsonld_key']]):
-                                                template[rel_vals['jsonld_key']].append(node_2_id)
-                                            else:
-                                                template[rel_vals['jsonld_key']] == node_2
+                template = self.add_edge_rels_to_template(template=template, rel_vals=rel_vals, node=node)
             # Fill in node value information
-            else:               
-                node_label = rel_vals['node_label']
+            else:
+                template = self.add_node_info_to_template(template=template, rel_vals=rel_vals, node=node)             
                 
-                # Get recorded info for current node, and the attribute type
-                node_info = nx.get_node_attributes(self.graph, node_label)[node]
-                try:
-                    # Add this information to the template
-                    template[rel_vals['jsonld_key']] =  node_info
-                except:
-                    breakpoint()
-            
+        
         # Clean up template
         template = self.clean_template(template=template,
                                        data_model_relationships=data_model_relationships,
@@ -166,25 +202,31 @@ class DataModelJsonLD(object):
         Note: This will likely need to be modified when Contexts are truly added to the model
         """
         for jsonld_key, entry in template.items():
-            try:
-                # Retrieve the relationships key using the jsonld_key
-                key= [k for k, v in self.rel_dict.items() if jsonld_key == v['jsonld_key']][0]
-            except:
-                continue
-            # If the current relationship can be defined with a 'node_attr_dict'
-            if 'node_attr_dict' in self.rel_dict[key].keys():
-                try:
-                    # if possible pull standard function to get node information
-                    rel_func = self.rel_dict[key]['node_attr_dict']['standard']
-                except:
-                    # if not pull default function to get node information
-                    rel_func = self.rel_dict[key]['node_attr_dict']['default']
 
-                # Add appropritae contexts that have been removed in previous steps (for JSONLD) or did not exist to begin with (csv)
-                if key == 'id' and rel_func == get_label_from_display_name and 'bts' not in str(template[jsonld_key]).lower():
-                    template[jsonld_key] = 'bts:' + template[jsonld_key]
-                elif key == 'required' and rel_func == convert_bool_to_str and 'sms' not in str(template[jsonld_key]).lower():
-                    template[jsonld_key] = 'sms:' + str(template[jsonld_key]).lower()
+            # Retrieve the relationships key using the jsonld_key
+            rel_key = []
+        
+            for rel, rel_vals in self.rel_dict.items():
+                if 'jsonld_key' in rel_vals and jsonld_key == rel_vals['jsonld_key']:
+                    rel_key.append(rel)
+
+            if rel_key:
+                rel_key=rel_key[0]
+                # If the current relationship can be defined with a 'node_attr_dict'
+                if 'node_attr_dict' in self.rel_dict[rel_key].keys():
+                    try:
+                        # if possible pull standard function to get node information
+                        rel_func = self.rel_dict[rel_key]['node_attr_dict']['standard']
+                    except:
+                        # if not pull default function to get node information
+                        rel_func = self.rel_dict[rel_key]['node_attr_dict']['default']
+
+                    # Add appropritae contexts that have been removed in previous steps (for JSONLD) or did not exist to begin with (csv)
+                    if rel_key == 'id' and rel_func == get_label_from_display_name and 'bts' not in str(template[jsonld_key]).lower():
+                        template[jsonld_key] = 'bts:' + template[jsonld_key]
+                    elif rel_key == 'required' and rel_func == convert_bool_to_str and 'sms' not in str(template[jsonld_key]).lower():
+                        template[jsonld_key] = 'sms:' + str(template[jsonld_key]).lower()
+
         return template
 
     def clean_template(self, template: dict, data_model_relationships: dict) -> dict:
@@ -251,10 +293,13 @@ class DataModelJsonLD(object):
         # Iterativly add graph nodes to json_ld_template as properties or classes
         for node in self.graph.nodes:
             if node in properties:
-                obj = self.fill_entry_template(template = self.property_template, node = node)
+                # Get property template
+                property_template = copy.deepcopy(self.property_template)
+                obj = self.fill_entry_template(template = property_template, node = node)
             else:
-                obj = self.fill_entry_template(template = self.class_template, node = node)
-
+                # Get class template
+                class_template = copy.deepcopy(self.class_template)
+                obj = self.fill_entry_template(template = class_template, node = node)
             json_ld_template['@graph'].append(obj)
         return json_ld_template
 

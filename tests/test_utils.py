@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import os
@@ -17,7 +18,7 @@ from synapseclient.core.exceptions import SynapseHTTPError
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_jsonld import DataModelJsonLD
+from schematic.schemas.data_model_jsonld import DataModelJsonLD, BaseTemplate, PropertyTemplate, ClassTemplate
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 
 from schematic.schemas.data_model_relationships import DataModelRelationships
@@ -427,25 +428,10 @@ class TestValidateUtils:
         Get a class template, fill it out with mock data, and validate against a JSON Schema
 
         """
+        class_template = ClassTemplate()
+        self.class_template = json.loads(class_template.to_json())
 
-        # Get data model path
-        data_model_path = helpers.get_data_path("example.model.jsonld")
-
-        # Instantiate DataModelParser
-        data_model_parser = DataModelParser(path_to_data_model = data_model_path)
-        
-        #Parse Model
-        parsed_data_model = data_model_parser.parse_model()
-
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
-
-        # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
-
-        dm_jsonld = DataModelJsonLD(graph_data_model)
-
-        mock_class = dm_jsonld.class_template()
+        mock_class = copy.deepcopy(self.class_template)
         mock_class["@id"] = "bts:MockClass"
         mock_class["@type"] = "rdfs:Class"
         mock_class["@rdfs:comment"] = "This is a mock class"
@@ -458,25 +444,14 @@ class TestValidateUtils:
         
 
     def test_validate_property_schema(self, helpers):
+        """
+        Get a property template, fill it out with mock data, and validate against a JSON Schema
 
-        # Get data model path
-        data_model_path = helpers.get_data_path("example.model.jsonld")
+        """
+        property_template = PropertyTemplate()
+        self.property_template = json.loads(property_template.to_json())
 
-        # Instantiate DataModelParser
-        data_model_parser = DataModelParser(path_to_data_model = data_model_path)
-        
-        #Parse Model
-        parsed_data_model = data_model_parser.parse_model()
-
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
-
-        # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
-
-        dm_jsonld = DataModelJsonLD(graph_data_model)
-
-        mock_class = dm_jsonld.property_template()
+        mock_class = copy.deepcopy(self.property_template)
         mock_class["@id"] = "bts:MockProperty"
         mock_class["@type"] = "rdf:Property"
         mock_class["@rdfs:comment"] = "This is a mock Patient class"
