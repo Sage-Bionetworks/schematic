@@ -597,7 +597,7 @@ class TestManifestOperation:
 
     @pytest.mark.parametrize("restrict_rules", [False, True, None])
     @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
-    def test_validate_manifest(self, data_model_jsonld, client, json_str, restrict_rules, test_manifest_csv):
+    def test_validate_manifest(self, data_model_jsonld, client, json_str, restrict_rules, test_manifest_csv, request_headers):
 
         params = {
             "schema_url": data_model_jsonld,
@@ -614,13 +614,13 @@ class TestManifestOperation:
         else: 
             params["data_type"] = "MockComponent"
 
-            headers = {
+            request_headers.update({
             'Content-Type': "multipart/form-data",
             'Accept': "application/json"
-            }
+            })
 
             # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
+            response_csv = client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=request_headers)
             response_dt = json.loads(response_csv.data)
             assert response_csv.status_code == 200
             
