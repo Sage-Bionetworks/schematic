@@ -1,6 +1,7 @@
 import os
 import logging
-
+import networkx as nx
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -12,7 +13,7 @@ from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.schemas.data_model_jsonld import DataModelJsonLD
+from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.schemas.data_model_parser import DataModelParser, DataModelCSVParser, DataModelJSONLDParser
 
@@ -400,26 +401,242 @@ class TestDataModelJsonSchema:
             assert source_node == ''
 
 class TestDataModelJsonLd:
-    def test_base_jsonld_template(self):
-        return
-    def test_create_object(self):
-        return
-    def test_add_contexts_to_entries(self):
-        return
-    def test_clean_template(self):
-        return
-    def test_strip_context(self):
-        return
-    def test_reorder_template_entries(self):
-        return
-    def test_property_template(self):
-        return
-    def test_class_template(self):
-        return
-    def test_generate_jsonld_object(self):
-        return
-    def test_convert_graph_to_jsonld(self):
-        return
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_init(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Test that __init__ is being set up properly 
+        assert type(data_model_jsonld.graph) == nx.MultiDiGraph
+        assert type(data_model_jsonld.rel_dict) == dict
+        assert 'required' in data_model_jsonld.rel_dict
+        assert type(data_model_jsonld.DME) == DataModelGraphExplorer
+        assert data_model_jsonld.output_path == ''
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_base_jsonld_template(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get base jsonld template
+        base_template = data_model_jsonld.base_jsonld_template()
+
+        # Test base template is constructed as expected
+        assert '@context' in base_template
+        assert '@graph' in base_template
+        assert '@id' in base_template
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    @pytest.mark.parametrize("template_type", ['property', 'class'], ids=['property', 'class'])
+    @pytest.mark.parametrize("node", ['', 'Patient'], ids=['no node', 'Patient'])
+    def test_create_object(self, helpers, data_model, template_type, node):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get empty template
+        if template_type == 'property':
+            template = data_model_jsonld.property_template()
+        elif template_type == 'class':
+            template = data_model_jsonld.class_template()
+
+        try:
+            # Fill out template for given node.
+            object_template = data_model_jsonld.create_object(template=template, node=node)
+            # Ensure template keys are present (not all original keys will be present due to cleaning empty values):
+        except:
+            # Should only fail if no node is given
+            assert node == ''
+
+        if 'object_template' in locals():
+            # Check that object template keys match the expected keys
+            actual_keys = list(object_template.keys())
+            if template_type == 'property':
+                expected_keys = ['@id', '@type', 'rdfs:comment', 'rdfs:label', 'schema:isPartOf', 'sms:displayName', 'sms:required', 'sms:validationRules']
+            elif template_type == 'class':
+                expected_keys = ['@id', '@type', 'rdfs:comment', 'rdfs:label', 'rdfs:subClassOf', 'schema:isPartOf', 'sms:displayName', 'sms:required', 'sms:requiresDependency', 'sms:validationRules']
+            assert (set(actual_keys) - set(expected_keys)) == (set(expected_keys) - set(actual_keys))
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    @pytest.mark.parametrize("template_type", ['property', 'class'], ids=['property', 'class'])
+    def test_add_contexts_to_entries(self, helpers, data_model, template_type):
+        # Will likely need to change when contexts added to model.
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get empty template
+        if template_type == 'property':
+            template = data_model_jsonld.property_template()
+        elif template_type == 'class':
+            template = data_model_jsonld.class_template()
+
+        # Fill out template for given node.
+        object_template = data_model_jsonld.create_object(template=template, node='Patient')
+
+        if 'sms:required' in object_template:
+            assert 'sms' in object_template['sms:required']
+        if '@id' in object_template:
+            assert 'bts' in object_template['@id']
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_clean_template(self, helpers, data_model):
+        # TODO: This will need to change with contexts bc they are hard coded here.
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get empty template
+        template = data_model_jsonld.class_template()
+        assert 'sms:requiresDependency' in template
+
+        # Fill out some mock entries in the template:
+        template['@id'] == 'bts:CheckURL'
+        template['rdfs:label'] == 'CheckURL'
+        data_model_relationships=data_model_jsonld.dmr.relationships_dictionary
+
+        # Clean template
+        data_model_jsonld.clean_template(template=template, data_model_relationships=data_model_relationships)
+        
+        # Look for expected changes after cleaning
+        
+        # Check that expected JSONLD default is added
+        assert template['sms:required'] == 'sms:false'
+        assert template['sms:validationRules'] == []
+        
+        # Check that non-required JSONLD keys are removed.
+        assert 'sms:requiresDependency' not in template
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    @pytest.mark.parametrize("context_value", ['@id', 'sms:required'], ids=['remove_at', 'remove_sms'])
+    def test_strip_context(self, helpers, data_model, context_value):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        stripped_contex = data_model_jsonld.strip_context(context_value=context_value)
+        if '@id' == context_value:
+            assert stripped_contex == ('', 'id')
+        elif 'sms:required' == context_value:
+            assert stripped_contex == ('sms', 'required')
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    @pytest.mark.parametrize("valid_values", [[], ['Other', 'Female', 'Male'], ['A', 'Bad', 'Entry']], ids=['Empty List', 'Disordered List', 'Incorrect List'])
+    def test_reorder_template_entries(self, helpers, data_model, valid_values):
+        # Note the way test_reorder_template_entries works, is that as long as an entry has recordings in the template
+        # even if they are incorrect, they will be corrected within this function.
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get empty template
+        template = data_model_jsonld.class_template()
+
+        # Fill out template with some 'Sex' information
+        template['@id'] = 'Sex'
+        template['rdfs:label'] = 'Sex'
+        template['sms:required'] = 'sms:false'
+        template['schema:rangeIncludes'] = valid_values
+
+        # Now reorder:
+        data_model_jsonld.reorder_template_entries(template=template)
+        if valid_values:
+            assert template['schema:rangeIncludes'] == [{'@id': 'bts:Female'}, {'@id': 'bts:Male'}, {'@id': 'bts:Other'}]
+        else:
+            assert template['schema:rangeIncludes'] == []
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_property_template(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get Property Template
+        property_template = data_model_jsonld.property_template()
+
+        expected_property_template =  {
+                                        "@id": "",
+                                        "@type": "rdf:Property",
+                                        "rdfs:comment": "",
+                                        "rdfs:label": "",
+                                        "schema:domainIncludes": [],
+                                        "schema:rangeIncludes": [],
+                                        "schema:isPartOf": {},
+                                        "sms:displayName": "",
+                                        "sms:required": "sms:false",
+                                        "sms:validationRules": [],
+                                        }
+        assert property_template == expected_property_template
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_class_template(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+
+        # Get Class Template
+        class_template = data_model_jsonld.class_template()
+
+        expected_class_template = {
+                                "@id": "",
+                                "@type": "rdfs:Class",
+                                "rdfs:comment": "",
+                                "rdfs:label": "",
+                                "rdfs:subClassOf": [],
+                                "schema:isPartOf": {},
+                                "schema:rangeIncludes": [],
+                                "sms:displayName": "",
+                                "sms:required": "sms:false",
+                                "sms:requiresDependency": [],
+                                "sms:requiresComponent": [],
+                                "sms:validationRules": [],
+                            }
+        assert class_template == expected_class_template
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_generate_jsonld_object(self, helpers, data_model):
+        # Check that JSONLD object is being made, and has some populated entries.
+
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Instantiate DataModelJsonLD
+        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        jsonld_dm = data_model_jsonld.generate_jsonld_object()
+
+        assert list(jsonld_dm.keys()) == ['@context', '@graph', '@id']
+        assert len(jsonld_dm['@graph']) > 1
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_convert_graph_to_jsonld(self, helpers, data_model):
+        # Get Graph
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
+
+        # Generate JSONLD
+        jsonld_dm = convert_graph_to_jsonld(Graph=graph_data_model)
+        assert list(jsonld_dm.keys()) == ['@context', '@graph', '@id']
+        assert len(jsonld_dm['@graph']) > 1
+
 class TestSchemas:
     def test_convert_csv_to_graph(self, helpers):
         return
