@@ -1,17 +1,8 @@
 import graphviz
-import os
-import string
-import json
 import logging
-
-from typing import Any, Dict, Optional, Text, List
-
-import inflection
+from typing import Any, Dict, Optional, Text
 import networkx as nx
-
-from rdflib import Graph, Namespace, plugin, query
-from networkx.algorithms.cycles import find_cycle
-from networkx.readwrite import json_graph
+from rdflib import Namespace
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes 
@@ -19,27 +10,9 @@ from schematic.schemas.data_model_relationships import (
     DataModelRelationships
     )
 
-from schematic.utils.curie_utils import (
-    expand_curies_in_schema,
-    uri2label,
-    extract_name_from_uri_or_curie,
-)
-from schematic.utils.general import find_duplicates
-
-from schematic.utils.io_utils import load_default, load_json, load_schemaorg
 from schematic.utils.schema_utils import get_property_label_from_display_name, get_class_label_from_display_name
-from schematic.utils.general import dict2list, unlist
+from schematic.utils.general import unlist
 from schematic.utils.viz_utils import visualize
-from schematic.utils.validate_utils import (
-    validate_class_schema,
-    validate_property_schema,
-    validate_schema,
-)
-from schematic.schemas.curie import uri2curie, curie2uri
-
-
-namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
-
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +150,7 @@ class DataModelGraphExplorer():
 
     def get_adjacent_nodes_by_relationship(self,
                                            node_label: str,
-                                           relationship: str) -> List[str]:
+                                           relationship: str) -> list[str]:
         """Get a list of nodes that is / are adjacent to a given node, based on a relationship type.
 
         Args:
@@ -197,7 +170,7 @@ class DataModelGraphExplorer():
 
     def get_component_requirements(self,
                                    source_component: str,
-                                   ) -> List[str]:
+                                   ) -> list[str]:
         """Get all components that are associated with a given source component and are required by it.
 
         Args:
@@ -244,7 +217,7 @@ class DataModelGraphExplorer():
                                     relationship: str,
                                     connected: bool = True,
                                     ordered: bool = False,
-                                ) -> List[str]:
+                                ) -> list[str]:
         """Get all nodes that are descendants of a given source node, based on a specific type of edge / relationship type.
 
         Args:
@@ -320,7 +293,7 @@ class DataModelGraphExplorer():
     def get_edges_by_relationship(self,
                                   class_label: str,
                                   relationship: str,
-                                  ) -> List[str]:
+                                  ) -> list[str]:
         """Get a list of out-edges of a node where the edges match a specifc type of relationship.
 
         i.e., the edges connecting a node to its neighbors are of relationship type -- "parentOf" (set of edges to children / sub-class nodes).
@@ -411,7 +384,7 @@ class DataModelGraphExplorer():
                               source_node: str,
                               display_names: bool = True,
                               schema_ordered: bool = True, 
-    ) -> List[str]:
+    ) -> list[str]:
         """Get the immediate dependencies that are related to a given source node.
 
         Args:
@@ -455,8 +428,8 @@ class DataModelGraphExplorer():
         return all_descendants
 
     def get_nodes_display_names(
-        self, node_list: List[str],
-    ) -> List[str]:
+        self, node_list: list[str],
+    ) -> list[str]:
         """Get display names associated with the given list of nodes.
 
         Args:
@@ -495,7 +468,7 @@ class DataModelGraphExplorer():
     
         return node_label
 
-    def get_node_range(self, node_label: Optional[str] = None, node_display_name: Optional[str] = None, display_names: bool=False) -> List[str]:
+    def get_node_range(self, node_label: Optional[str] = None, node_display_name: Optional[str] = None, display_names: bool=False) -> list[str]:
         """Get the range, i.e., all the valid values that are associated with a node label.
 
         Args:
@@ -594,7 +567,7 @@ class DataModelGraphExplorer():
         return relationship_subgraph
 
 
-    def find_adjacent_child_classes(self, node_label: Optional[str]=None, node_display_name: Optional[str]=None)->List[str]:
+    def find_adjacent_child_classes(self, node_label: Optional[str]=None, node_display_name: Optional[str]=None)->list[str]:
         '''Find child classes of a given node.
         Args:
             node_display_name: Display name of the node to look up.
@@ -632,7 +605,7 @@ class DataModelGraphExplorer():
                 properties.append(n1)
         return properties
 
-    def find_parent_classes(self, node_label:str) -> List[list]:
+    def find_parent_classes(self, node_label:str) -> list[list]:
         """Find all parents of the provided node
         Args:
             node_label: label of the node to find parents of
