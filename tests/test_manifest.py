@@ -8,6 +8,7 @@ from unittest.mock import patch
 from unittest.mock import MagicMock
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
+from schematic.configuration.configuration import Configuration
 from schematic.utils.google_api_utils import execute_google_api_requests
 
 
@@ -86,12 +87,33 @@ class TestManifestGenerator:
         generator = ManifestGenerator(
             title="mock_title",
             path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            root = "Patient"
         )
 
         assert type(generator.title) is str
         # assert generator.sheet_service == mock_creds["sheet_service"]
-        assert generator.root is None
+        assert generator.root is "Patient"
         assert type(generator.sg) is SchemaGenerator
+
+    @pytest.mark.parametrize("data_type, exc, exc_message",
+                              [("MissingComponent", LookupError, "could not be found in the data model schema"),
+                               (None, ValueError, "No DataType has been provided.")],
+                               ids = ["DataType not found in Schema", "No DataType provided"])
+    def test_missing_root_error(self, helpers, data_type, exc, exc_message):
+        """
+        Test for errors when either no DataType is provided or when a DataType is provided but not found in the schema
+        """
+
+        # A LookupError should be raised and include message when the component cannot be found
+        with pytest.raises(exc) as e:
+            generator = ManifestGenerator(
+            path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            root=data_type,
+            use_annotations=False,
+            )        
+
+        # Check message contents
+        assert exc_message in str(e)
 
     @pytest.mark.google_credentials_needed
     def test_get_manifest_first_time(self, manifest):
@@ -144,7 +166,7 @@ class TestManifestGenerator:
         # An annotation merged with an attribute from the data model
         if use_annotations:
             assert output["File Format"].tolist() == ["txt", "csv", "fastq"]
-      
+
     @pytest.mark.parametrize("output_format", [None, "dataframe", "excel", "google_sheet"])
     @pytest.mark.parametrize("sheet_url", [None, True, False])
     @pytest.mark.parametrize("dataset_id", [None, "syn27600056"])
@@ -192,46 +214,51 @@ class TestManifestGenerator:
         if type(manifest) is str and os.path.exists(manifest): 
             os.remove(manifest)
 
+    @pytest.mark.parametrize("dataset_id", [("syn27600056"), ("syn52397659")], ids=["Annotations present", "Annotations not present"])
+    def test_get_manifest_no_annos(self, helpers, dataset_id):
+        """
+        Test to cover manifest generation under the case where use_annotations is True 
+        but there are no annotations in the dataset
+        """
+
+        # Use a non-file based DataType
+        data_type = "Patient"
+
+        # Instantiate object with use_annotations set to True
+        generator = ManifestGenerator(
+        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        root=data_type,
+        use_annotations=True,
+        )
+
+        # Get manifest as a dataframe
+        manifest = generator.get_manifest(dataset_id = dataset_id, sheet_url = False, output_format = "dataframe")
+
+        # Case where annotations are present in the dataset
+        # manifest should have pulled in the annotations
+        if dataset_id == "syn27600056":
+            assert manifest["Patient ID"].size > 1
+
+        # Case where annotations are not present in the dataset
+        # manifest should be empty (One column will have the component filled so not truly empty)
+        elif dataset_id == "syn52397659":
+            assert manifest["Patient ID"].size == 1
+
+
     # test all the functions used under get_manifest
-    @pytest.mark.parametrize("template_id", [["provided", "not provided"]])
-    def test_create_empty_manifest_spreadsheet(self, config, simple_manifest_generator, template_id):
+    def test_create_empty_manifest_spreadsheet(self, simple_manifest_generator):
         '''
-        Create an empty manifest spreadsheet regardless if master_template_id is provided
-        Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file. If there's no template id provided in config, this function will create a new manifest
+        Create an empty manifest spreadsheet.
+        Note: _create_empty_manifest_spreadsheet calls _gdrive_copy_file.
         '''
         generator = simple_manifest_generator
-
-        mock_spreadsheet = MagicMock()
-
         title="Example"
 
-        if template_id == "provided":
-            # mock _gdrive_copy_file function 
-            with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file') as MockClass:
-                instance = MockClass.return_value
-                instance.method.return_value = 'mock google sheet id'
+        # mock _gdrive_copy_file function
+        with patch('schematic.manifest.generator.ManifestGenerator._gdrive_copy_file', return_value="mock google sheet id"):
+            spreadsheet_id = generator._create_empty_manifest_spreadsheet(title=title)
+            assert spreadsheet_id == "mock google sheet id"
 
-                spreadsheet_id = generator._create_empty_manifest_spreadsheet(title=title)
-                assert spreadsheet_id == "mock google sheet id"
-
-        else:
-            # overwrite test config so that we could test the case when manifest_template_id is not provided
-            config["style"]["google_manifest"]["master_template_id"] = ""
-
-            mock_spreadsheet = Mock()
-            mock_execute = Mock()
-
-
-            # Chain the mocks together
-            mock_spreadsheet.create.return_value = mock_spreadsheet
-            mock_spreadsheet.execute.return_value = mock_execute
-            mock_execute.get.return_value = "mock id"
-            mock_create = Mock(return_value=mock_spreadsheet)
-
-            with patch.object(generator.sheet_service, "spreadsheets", mock_create):
-
-                spreadsheet_id = generator._create_empty_manifest_spreadsheet(title)
-                assert spreadsheet_id == "mock id"
 
     @pytest.mark.parametrize("schema_path_provided", [True, False])
     def test_get_json_schema(self, simple_manifest_generator, helpers, schema_path_provided):
@@ -270,7 +297,36 @@ class TestManifestGenerator:
                     required_metadata = generator._gather_all_fields("mock fields", "mock json schema")
 
                     assert required_metadata == "mock required metadata fields"
+    
+    # test: test and make sure root node as a metadata component get added in additional_metadata dictionary
+    # test cases: 1) component as Patient; 2) component as BulkRNA-seqAssay
+    # assume there is no existing additional metadata
+    @pytest.mark.parametrize("data_type,required_metadata_fields,expected", [("Patient", {"Component": []}, {'Component': ['Patient']}), ("BulkRNA-seqAssay", {"Filename": [], "Component":[]}, {'Component': ['BulkRNA-seqAssay']})])
+    def test_add_root_to_component_without_additional_metadata(self, helpers, data_type, required_metadata_fields, expected):
+        manifest_generator = ManifestGenerator(
+        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        root=data_type,
+        )
+        manifest_generator._add_root_to_component(required_metadata_fields)
+        assert manifest_generator.additional_metadata == expected
+    
+    # test and make sure root node as a metadata component get added in additional_metadata dictionary
+    # also make sure that length entry of column Component is the same as length of entry of column Filename
+    # test cases: different length of Filename column in additional metadata
+    # assume there is additional metadata
+    @pytest.mark.parametrize("additional_metadata", [{'author': ['test', '', ], 'Filename': ['test.txt', 'test2.txt'], 'Component': []}, {'Year of Birth': ['1988'], 'Filename': ['test.txt'], 'Component': []}])
+    def test_add_root_to_component_with_additional_metadata(self, helpers, additional_metadata):
+        manifest_generator = ManifestGenerator(
+        path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+        root="BulkRNA-seqAssay"
+        )
 
+        # add mock additional metadata
+        manifest_generator.additional_metadata = additional_metadata
+
+        mock_required_metadata_fields = {"Filename": [], "Component":[]}
+        manifest_generator._add_root_to_component(mock_required_metadata_fields)
+        assert len(manifest_generator.additional_metadata["Component"]) == len(additional_metadata["Filename"])
     # TO DO: add tests for: test_create_empty_gs
 
                             
@@ -376,6 +432,4 @@ class TestManifestGenerator:
 
         # remove file
         os.remove(dummy_output_path)
-
-
 

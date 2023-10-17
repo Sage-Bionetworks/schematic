@@ -13,8 +13,6 @@ from schematic.utils.validate_utils import (
     validate_schema,
 )
 
-from schematic import CONFIG
-
 
 class SchemaValidator:
     """Validate Schema against SchemaOrg standard

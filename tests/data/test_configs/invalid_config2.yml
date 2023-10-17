@@ -1,0 +1,3 @@
+# This is a invalid config, but has fields in asset store that are not supported
+asset_store:
+  invalid_field: "xxx"

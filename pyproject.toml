@@ -70,8 +70,9 @@ Flask-Cors = "^3.0.10"
 pdoc = "^12.2.0"
 dateparser = "^1.1.4"
 pandarallel = "^1.6.4"
-schematic-db = {version = "^0.0.6", extras = ["synapse"]}
+schematic-db = {version = "^0.0.29", extras = ["synapse"]}
 pyopenssl = "^23.0.0"
+typing-extensions = "<4.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
@@ -79,9 +80,12 @@ pytest-cov = "^4.0.0"
 pytest-mock = "^3.5.1"
 flake8 = "^6.0.0"
 python-dotenv = "^0.21.0"
-black = "^22.6.0"
-mypy = "^0.982"
+black = "^23.7.0"
+mypy = "^1.4.1"
 pylint = "^2.16.1"
+
+[tool.poetry.group.aws]
+optional = true
 
 [tool.poetry.group.aws.dependencies]
 uWSGI = "^2.0.21"
@@ -122,6 +126,12 @@ markers = [
     Google credentials (skipped on GitHub CI) \
     """,
     """\
+    submission: tests that involve submitting manifests
+    """,
+    """\
+    not_windows: tests that don't work on on windows machine
+    """,
+    """\
     schematic_api: marks tests covering \
     API functionality (skipped on regular GitHub CI test suite)   
     """,
@@ -138,5 +148,13 @@ markers = [
     """\
     rule_benchmark: marks tests covering \
     validation rule benchmarking
-    """    
+    """,
+    """\
+    synapse_credentials_needed: marks api tests that \
+    require synapse credentials to run
+    """,
+    """\
+    empty_token: marks api tests that \
+    send empty credentials in the request
+    """
 ]

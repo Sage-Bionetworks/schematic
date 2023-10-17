@@ -7,7 +7,8 @@ name: Create and publish a Docker image
 on:
   push:
     tags:
-      - '*beta*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-[A-Za-z0-9]+'
 
 env:
   REGISTRY: ghcr.io
@@ -24,6 +25,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
           
+      - name: Set env variable for version tag
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:
@@ -40,6 +44,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{raw}}
+
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
@@ -47,3 +52,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            TAG=${{ env.RELEASE_VERSION }}
+            

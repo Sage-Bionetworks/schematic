@@ -15,7 +15,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      POETRY_VERSION:  1.2.0
+      POETRY_VERSION:  1.3.0
     strategy:
       fail-fast: false
       matrix:
@@ -76,7 +76,7 @@ jobs:
         if: ${{ inputs.perform_benchmarking }}
         run: >
           source .venv/bin/activate;
-          pytest -m "schematic_api"
+          pytest -m "schematic_api and not submission"
 
       - name: Run API tests + Exclude Benchmarks
         env:
@@ -85,5 +85,4 @@ jobs:
         if: ${{ false == inputs.perform_benchmarking }}
         run: >
           source .venv/bin/activate;
-          pytest -m "schematic_api and not rule_benchmark"
-          
+          pytest -m "schematic_api and not submission and not rule_benchmark"

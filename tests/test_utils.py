@@ -1,34 +1,36 @@
-import logging
 import json
+import logging
 import os
-
-import pandas as pd
-import numpy as np
-import pytest
-
+import shutil
 import tempfile
+import time
+from datetime import datetime
+from unittest import mock
 
+import numpy as np
+import pandas as pd
+import pytest
+import synapseclient
+import synapseclient.core.cache as cache
 from pandas.testing import assert_frame_equal
 from synapseclient.core.exceptions import SynapseHTTPError
 
-from schematic.schemas.explorer import SchemaExplorer
-from schematic.schemas import df_parser
-from schematic.utils import general
-from schematic.utils import cli_utils
-from schematic.utils import io_utils
-from schematic.utils import df_utils
-from schematic.utils import validate_utils
-from schematic.exceptions import (
-    MissingConfigValueError,
-    MissingConfigAndArgumentValueError,
-)
 from schematic import LOADER
+from schematic.exceptions import (MissingConfigAndArgumentValueError,
+                                  MissingConfigValueError)
+from schematic.schemas import df_parser
+from schematic.schemas.explorer import SchemaExplorer
 from schematic.store.synapse import SynapseStorage
-from schematic.utils.general import entity_type_mapping
+from schematic.utils import (cli_utils, df_utils, general, io_utils,
+                             validate_utils)
+from schematic.utils.general import (calculate_datetime,
+                                     check_synapse_cache_size,
+                                     clear_synapse_cache, entity_type_mapping)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
 
 @pytest.fixture
 def synapse_store():
@@ -39,8 +41,69 @@ def synapse_store():
         synapse_store = SynapseStorage()
     yield synapse_store
 
-
 class TestGeneral:
+    def test_clear_synapse_cache(self, tmp_path):
+        # define location of mock synapse cache
+        mock_synapse_cache_dir = tmp_path / ".synapseCache/"
+        mock_synapse_cache_dir.mkdir()
+        mock_sub_folder = mock_synapse_cache_dir / "123"
+        mock_sub_folder.mkdir()
+        mock_table_query_folder = mock_sub_folder/ "456"
+        mock_table_query_folder.mkdir()
+
+        # create mock table query csv and a mock cache map
+        mock_synapse_table_query_csv = mock_table_query_folder/ "mock_synapse_table_query.csv"
+        mock_synapse_table_query_csv.write_text("mock table query content")
+        mock_cache_map = mock_table_query_folder/ ".cacheMap"
+        mock_cache_map.write_text(f"{mock_synapse_table_query_csv}: '2022-06-13T19:24:27.000Z'")
+
+        assert os.path.exists(mock_synapse_table_query_csv)
+
+        # since synapse python client would compare last modified date and before date
+        # we have to create a little time gap here
+        time.sleep(1)
+
+        # clear cache
+        my_cache = cache.Cache(cache_root_dir=mock_synapse_cache_dir)
+        clear_synapse_cache(my_cache, minutes=0.0001)
+        # make sure that cache files are now gone
+        assert os.path.exists(mock_synapse_table_query_csv) == False
+        assert os.path.exists(mock_cache_map) == False
+    
+    def test_calculate_datetime_before_minutes(self):
+        input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
+        minutes_before = calculate_datetime(input_date=input_date, minutes=10, before_or_after="before")
+        expected_result_date_before = datetime.strptime("07/20/23 17:26:34", '%m/%d/%y %H:%M:%S')
+        assert minutes_before == expected_result_date_before
+
+    def test_calculate_datetime_after_minutes(self):
+        input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
+        minutes_after = calculate_datetime(input_date=input_date, minutes=10, before_or_after="after")
+        expected_result_date_after = datetime.strptime("07/20/23 17:46:34", '%m/%d/%y %H:%M:%S')
+        assert minutes_after == expected_result_date_after
+
+    def test_calculate_datetime_raise_error(self):
+        with pytest.raises(ValueError):
+            input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
+            minutes = calculate_datetime(input_date=input_date, minutes=10, before_or_after="error")
+    
+    # this test might fail for windows machine
+    @pytest.mark.not_windows
+    def test_check_synapse_cache_size(self,tmp_path):
+        mock_synapse_cache_dir = tmp_path / ".synapseCache"
+        mock_synapse_cache_dir.mkdir()
+
+        mock_synapse_table_query_csv = mock_synapse_cache_dir/ "mock_synapse_table_query.csv"
+        mock_synapse_table_query_csv.write_text("example file for calculating cache")
+
+        file_size = check_synapse_cache_size(mock_synapse_cache_dir)
+
+        # For some reasons, when running in github action, the size of file changes.
+        if IN_GITHUB_ACTIONS:
+            assert file_size == 8000
+        else:
+            assert file_size == 4000
+
     def test_find_duplicates(self):
 
         mock_list = ["foo", "bar", "foo"]
@@ -84,6 +147,7 @@ class TestGeneral:
             path_dir = general.create_temp_folder(tmpdir)
             assert os.path.exists(path_dir)
 
+
 class TestCliUtils:
     def test_query_dict(self):
 
@@ -96,41 +160,6 @@ class TestCliUtils:
 
         assert test_result_valid == "foobar"
         assert test_result_invalid is None
-
-    def test_get_from_config(self):
-
-        mock_dict = {"k1": {"k2": {"k3": "foobar"}}}
-        mock_keys_valid = ["k1", "k2", "k3"]
-        mock_keys_invalid = ["k1", "k2", "k4"]
-
-        test_result_valid = cli_utils.get_from_config(mock_dict, mock_keys_valid)
-
-        assert test_result_valid == "foobar"
-
-        with pytest.raises(MissingConfigValueError):
-            cli_utils.get_from_config(mock_dict, mock_keys_invalid)
-
-    def test_fill_in_from_config(self, mocker):
-
-        jsonld = "/path/to/one"
-        jsonld_none = None
-
-        mock_config = {"model": {"path": "/path/to/two"}}
-        mock_keys = ["model", "path"]
-        mock_keys_invalid = ["model", "file"]
-
-        mocker.patch("schematic.CONFIG.DATA", mock_config)
-
-        result1 = cli_utils.fill_in_from_config("jsonld", jsonld, mock_keys)
-        result2 = cli_utils.fill_in_from_config("jsonld", jsonld, mock_keys)
-        result3 = cli_utils.fill_in_from_config("jsonld_none", jsonld_none, mock_keys)
-
-        assert result1 == "/path/to/one"
-        assert result2 == "/path/to/one"
-        assert result3 == "/path/to/two"
-
-        with pytest.raises(MissingConfigAndArgumentValueError):
-            cli_utils.fill_in_from_config("jsonld_none", jsonld_none, mock_keys_invalid)
 
 
 class FakeResponse:
@@ -285,6 +314,17 @@ class TestDfUtils:
 
         actual_df = df_utils.update_df(input_df, updates_df, "entityId")
         pd.testing.assert_frame_equal(expected_df, actual_df)
+
+    def test_populate_column(self):
+        input_df = pd.DataFrame(
+            {
+                "column1": ["col1Val","col1Val"],
+                "column2": [None, None]
+            }
+        )
+
+        output_df = df_utils.populate_df_col_with_another_col(input_df,'column1','column2')
+        assert (output_df["column2"].values == ["col1Val","col1Val"]).all()
 
 
 class TestValidateUtils:

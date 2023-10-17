@@ -12,7 +12,6 @@ from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import load_schema_into_networkx
 from schematic.utils.validate_utils import validate_schema, rule_in_rule_list
 
-from schematic import CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -341,6 +340,19 @@ class SchemaGenerator(object):
 
         return node_required
 
+    def get_node_display_name(self, node_label: str, mm_graph: nx.MultiDiGraph) -> list:
+        """Get display name associated with a given node label, return id if no display name.
+        Args:
+            node_label, str: Node to retrieve display name for
+        Returns:
+            node_display_name: display name of the node, or its id if it does not have a display name.
+        """
+        if "displayName" in mm_graph.nodes[node_label]:
+                    node_display_name = mm_graph.nodes[node_label]["displayName"]
+        else:
+            node_display_name = mm_graph.nodes[node_label]["id"].split(':')[1]
+        return node_display_name
+
     def get_nodes_display_names(
         self, node_list: List[str], mm_graph: nx.MultiDiGraph
     ) -> List[str]:
@@ -350,11 +362,10 @@ class SchemaGenerator(object):
             node_list: List of nodes whose display names we need to retrieve.
 
         Returns:
-            List of display names.
+            List of display names, return id if no display name
         """
-        node_list_display_names = [
-            mm_graph.nodes[node]["displayName"] for node in node_list
-        ]
+
+        node_list_display_names = [self.get_node_display_name(node, mm_graph) for node in node_list]
 
         return node_list_display_names
 
@@ -431,8 +442,12 @@ class SchemaGenerator(object):
             Boolean value indicating if the node is required or not.
                 True: yes, it is required.
                 False: no, it is not required.
+            Return False, if no required key
         """
-        return mm_graph.nodes[node_name]["required"]
+        if "required" in mm_graph.nodes[node_name]:
+            return mm_graph.nodes[node_name]["required"]
+        else:
+            return False
 
     def get_json_schema_requirements(self, source_node: str, schema_name: str) -> Dict:
         """Consolidated method that aims to gather dependencies and value constraints across terms / nodes in a schema.org schema and store them in a jsonschema /JSON Schema schema.
@@ -506,7 +521,7 @@ class SchemaGenerator(object):
                 )
 
                 # get process node display name
-                node_display_name = mm_graph.nodes[process_node]["displayName"]
+                node_display_name = self.get_node_display_name(node_label=process_node, mm_graph=mm_graph)
 
                 # updating map between node and node's valid values
                 for n in node_range_d:
@@ -689,31 +704,19 @@ class SchemaGenerator(object):
         if not json_schema["allOf"]:
             del json_schema["allOf"]
 
-        # Check if config value is provided; otherwise, set to None
-        json_schema_log_file = query_dict(
-            CONFIG.DATA, ("model", "input", "log_location")
-        )
-
         # If no config value and SchemaGenerator was initialized with
         # a JSON-LD path, construct
-        if json_schema_log_file is None and self.jsonld_path is not None:
+        if self.jsonld_path is not None:
             prefix = self.jsonld_path_root
             prefix_root, prefix_ext = os.path.splitext(prefix)
             if prefix_ext == ".model":
                 prefix = prefix_root
             json_schema_log_file = f"{prefix}.{source_node}.schema.json"
 
-        if json_schema_log_file is None:
-            logger.info(
-                "The JSON schema file can be inspected by setting the following "
-                "nested key in the configuration: (model > input > log_location)."
-            )
-        else:
-            json_schema_dirname = os.path.dirname(json_schema_log_file)
-            if json_schema_dirname != '':
-                os.makedirs(json_schema_dirname, exist_ok=True)
-            with open(json_schema_log_file, "w") as js_f:
-                json.dump(json_schema, js_f, indent=2)
+        logger.info(
+            "The JSON schema file can be inspected by setting the following "
+            "nested key in the configuration: (model > input > log_location)."
+        )
 
         logger.info(f"JSON schema file log stored as {json_schema_log_file}")
 

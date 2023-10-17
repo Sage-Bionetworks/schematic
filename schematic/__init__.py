@@ -4,7 +4,7 @@ import logging
 import click
 import click_log
 
-from schematic.configuration import CONFIG
+from schematic.configuration.configuration import CONFIG
 from schematic.loader import LOADER
 from schematic.utils.google_api_utils import download_creds_file
 from schematic.utils.cli_utils import query_dict
@@ -35,11 +35,11 @@ def init(config):
     """Initialize authentication for schematic."""
     try:
         logger.debug(f"Loading config file contents in '{config}'")
-        obj = CONFIG.load_config(config)
-    except ValueError as e:
+        CONFIG.load_config(config)
+    except ValueError as exc:
         logger.error("'--config' not provided or environment variable not set.")
-        logger.exception(e)
+        logger.exception(exc)
         sys.exit(1)
 
-    # download crdentials file based on selected mode of authentication
+    # download credentials file based on selected mode of authentication
     download_creds_file()

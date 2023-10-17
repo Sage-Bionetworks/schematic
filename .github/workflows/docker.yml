@@ -5,7 +5,7 @@ name: Build and publish container to Docker Hub
 
 on:
   push:
-    tags: ['v[0-9]*', '[0-9]+.[0-9]+*']  # Match tags that resemble a version
+    tags: ['^v\d+\.\d+\.\d+$']  # Match tags that resemble a version, but exclude minior releases. For example, v0.1.1-beta would not get included
   workflow_dispatch:
 
 jobs:

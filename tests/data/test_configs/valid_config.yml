@@ -1,0 +1,21 @@
+# This is a valid config, but all values are different from defaults
+
+asset_store:
+  synapse:
+    config: "file_name"
+    manifest_basename: "file_name"
+    master_fileview_id: "syn1"
+
+manifest:
+  manifest_folder: "folder_name"
+  title: "title"
+  data_type:
+    - "data_type"
+
+model:
+  location: "model.jsonld"
+
+google_sheets:
+  service_acct_creds_synapse_id: "syn1"
+  service_acct_creds: "creds.json"
+  strict_validation: false

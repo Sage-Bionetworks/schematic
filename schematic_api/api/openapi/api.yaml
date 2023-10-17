@@ -9,12 +9,23 @@ info:
 servers:
   - url: /v1
 
+components:
+  securitySchemes:
+    access_token:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: schematic_api.api.security_controller_.info_from_bearerAuth
+
 # TO DO: refactor query parameters and remove access_token
 paths:
   /manifest/generate:
     get:
       summary: Endpoint to facilitate manifest generation
       description: Endpoint to create dynamically create metadata manifest files
+      security:
+        - access_token: []
+        - {}
       parameters:
         - in: query
           name: schema_url
@@ -24,12 +35,6 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
-        - in: query
-          name: access_token
-          schema:
-            type: string
-          description: Token is needed if getting an existing manifest on AWS
-          required: false
         - in: query
           name: title
           schema:
@@ -86,6 +91,13 @@ paths:
             enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]
           description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
           required: false
+        - in: query
+          name: strict_validation
+          schema:
+            type: boolean
+            default: True
+          description: If using Google Sheets, can set the strictness of Google Sheets regex match validation. True (default) will block users from entering incorrect values, False will throw a warning to users.
+          required: false
       operationId: schematic_api.api.routes.get_manifest_route
       responses:
         "200":
@@ -104,15 +116,9 @@ paths:
     get:
       summary: Endpoint to download an existing manifest by using a manifest id
       description: Endpoint to download an existing manifest by using a manifest id
+      security:
+        - access_token: []
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: manifest_id
           schema:
@@ -153,15 +159,9 @@ paths:
     get:
       summary: Endpoint to download an existing manifest by using a dataset id
       description: Endpoint to download an existing manifest by using a dataset id
+      security:
+        - access_token: []
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: asset_view
           schema:
@@ -218,6 +218,9 @@ paths:
                   description: Upload a json or a csv file. 
                   type: string
                   format: binary
+      security:
+        - access_token: []
+        - {}
       parameters:
         - in: query
           name: schema_url
@@ -292,6 +295,8 @@ paths:
                   description: Upload a json or a csv file. 
                   type: string
                   format: binary
+      security:
+        - access_token: []
       parameters:
         - in: query
           name: schema_url
@@ -330,12 +335,12 @@ paths:
           description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
           required: true
         - in: query
-          name: access_token
+          name: hide_blanks
           schema:
-            type: string
-            nullable: false
-          description: Token
-          required: true
+            type: boolean
+          description: If true, annotations with blank values will be hidden from a dataset's annotation list in Synaspe. If false, annotations with blank values will be displayed. Default to false
+          required: false
+          example: false
         - in: query
           name: asset_view
           schema:
@@ -485,15 +490,9 @@ paths:
       summary:  Get datatype of attributes in manifest
       description: Get datatype of attributes in manifest
       operationId: schematic_api.api.routes.get_manifest_datatype
+      security:
+        - access_token: []
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: asset_view
           schema:
@@ -522,15 +521,9 @@ paths:
       summary: Get all storage projects the current user has access to
       description: Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
       operationId: schematic_api.api.routes.get_storage_projects
+      security:
+        - access_token: []
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: asset_view
           schema:
@@ -551,15 +544,9 @@ paths:
       summary: Gets all datasets in folder under a given storage project that the current user has access to.
       description: Gets all datasets in folder under a given storage project that the current user has access to.
       operationId: schematic_api.api.routes.get_storage_projects_datasets
+      security:
+        - access_token: []
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: asset_view
           schema:
@@ -588,15 +575,9 @@ paths:
       summary: Get all files in a given dataset folder
       description: Get all files in a given dataset folder
       operationId: schematic_api.api.routes.get_files_storage_dataset
+      security:
+        - access_token: []
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: asset_view
           schema:
@@ -641,15 +622,9 @@ paths:
       summary: Retrieve asset view table as a dataframe.
       description: Retrieve asset view table as a dataframe.
       operationId: schematic_api.api.routes.get_asset_view_table
+      security:
+        - access_token: []
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: asset_view
           schema:
@@ -678,15 +653,9 @@ paths:
       summary: Gets all metadata manifest files across all datasets in a specified project.
       description: Gets all metadata manifest files across all datasets in a specified project.
       operationId: schematic_api.api.routes.get_project_manifests
+      security:
+        - access_token: []
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: project_id
           schema:
@@ -726,15 +695,9 @@ paths:
       summary: Check type of an entity
       description: Check type of an entity and return entity type
       operationId: schematic_api.api.routes.check_entity_type
+      security:
+        - access_token: []      
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: entity_id
           schema:
@@ -756,15 +719,9 @@ paths:
       summary: Check if a file or a folder is in a given asset view. Return "true" or "false"
       description: Check if a file or a folder is in a given asset view. Return "true" or "false"
       operationId: schematic_api.api.routes.check_if_files_in_assetview
+      security:
+        - access_token: []      
       parameters:
-        - in: query
-          name: access_token
-          schema:
-            type: string
-            nullable: false
-          description: Token
-          example: Token
-          required: true
         - in: query
           name: asset_view
           schema:
@@ -1248,4 +1205,22 @@ paths:
                           Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
       tags:
         - Visualization Operations
+
+  /version:
+    get:
+      summary: Get the version of schematic currently being used
+      description: >-
+        Get the version of schematic that is currently deployed and being used
+      operationId: schematic_api.api.routes.get_schematic_version
+      responses:
+        "200":
+          description: Returns a JSON String containing the version of schematic.
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Schematic version was not able to be identified.
+      tags:
+        - Version
         

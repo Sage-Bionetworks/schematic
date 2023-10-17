@@ -1,15 +1,22 @@
 
-import pytest
-from schematic_api.api import create_app
 import configparser
 import json
+import logging
 import os
 import re
+import time
 from math import ceil
-import logging
 from time import perf_counter
-import pandas as pd # third party library import
-from schematic.schemas.generator import SchemaGenerator #Local application/library specific imports.
+
+import numpy as np
+import pandas as pd  # third party library import
+import pytest
+
+from schematic.configuration.configuration import Configuration
+from schematic.schemas.generator import \
+    SchemaGenerator  # Local application/library specific imports.
+from schematic_api.api import create_app
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,8 +28,8 @@ def app():
     yield app
 
 @pytest.fixture(scope="class")
-def client(app, config_path):
-    app.config['SCHEMATIC_CONFIG'] = config_path
+def client(app):
+    app.config['SCHEMATIC_CONFIG'] = None
 
     with app.test_client() as client:
         yield client
@@ -31,6 +38,11 @@ def client(app, config_path):
 def test_manifest_csv(helpers):
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
     yield test_manifest_path
+
+@pytest.fixture(scope="class")
+def test_manifest_submit(helpers):
+    test_manifest_path = helpers.get_data_path("mock_manifests/example_biospecimen_test.csv")
+    yield test_manifest_path   
 
 @pytest.fixture(scope="class")
 def test_invalid_manifest(helpers):
@@ -70,8 +82,8 @@ def get_MockComponent_attribute():
         yield MockComponent_attribute   
 
 @pytest.fixture(scope="class")
-def syn_token(config):
-    synapse_config_path = config.SYNAPSE_CONFIG_PATH
+def syn_token(config:Configuration):
+    synapse_config_path = config.synapse_configuration_path
     config_parser = configparser.ConfigParser()
     config_parser.read(synapse_config_path)
     # try using synapse access token
@@ -81,17 +93,24 @@ def syn_token(config):
         token = config_parser["authentication"]["authtoken"]
     yield token
 
+@pytest.fixture
+def request_headers(syn_token):
+    headers = {
+        "Authorization": "Bearer " + syn_token
+    }
+    yield headers
+
 @pytest.mark.schematic_api
 class TestSynapseStorage:
+    @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("return_type", ["json", "csv"])
-    def test_get_storage_assets_tables(self, client, syn_token, return_type):
+    def test_get_storage_assets_tables(self, client, return_type, request_headers):
         params = {
-            "access_token": syn_token,
             "asset_view": "syn23643253",
             "return_type": return_type
         }
 
-        response = client.get('http://localhost:3001/v1/storage/assets/tables', query_string=params)
+        response = client.get('http://localhost:3001/v1/storage/assets/tables', query_string=params, headers=request_headers)
 
         assert response.status_code == 200
 
@@ -108,11 +127,12 @@ class TestSynapseStorage:
             os.remove(response_dt)
         else: 
             pass
+    
+    @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("full_path", [True, False])
     @pytest.mark.parametrize("file_names", [None, "Sample_A.txt"])
-    def test_get_dataset_files(self,full_path, file_names, syn_token, client):
+    def test_get_dataset_files(self,full_path, file_names, request_headers, client):
         params = {
-            "access_token": syn_token,
             "asset_view": "syn23643253",
             "dataset_id": "syn23643250",
             "full_path": full_path,
@@ -121,7 +141,7 @@ class TestSynapseStorage:
         if file_names:
             params["file_names"] = file_names
         
-        response = client.get('http://localhost:3001/v1/storage/dataset/files', query_string=params)
+        response = client.get('http://localhost:3001/v1/storage/dataset/files', query_string=params, headers=request_headers)
 
         assert response.status_code == 200
         response_dt = json.loads(response.data)
@@ -138,49 +158,49 @@ class TestSynapseStorage:
             else: 
                 assert ["syn25705259","Boolean Test"] and ["syn23667202","DataTypeX_table"] in response_dt
         
-    def test_get_storage_project_dataset(self, syn_token, client):
+    @pytest.mark.synapse_credentials_needed
+    def test_get_storage_project_dataset(self, request_headers, client):
         params = {
-        "access_token": syn_token,
         "asset_view": "syn23643253",
         "project_id": "syn26251192"
         }
 
-        response = client.get("http://localhost:3001/v1/storage/project/datasets", query_string = params)
+        response = client.get("http://localhost:3001/v1/storage/project/datasets", query_string = params, headers = request_headers)
         assert response.status_code == 200
         response_dt = json.loads(response.data)
         assert ["syn26251193","Issue522"] in response_dt
 
-    def test_get_storage_project_manifests(self, syn_token, client):
+    @pytest.mark.synapse_credentials_needed
+    def test_get_storage_project_manifests(self, request_headers, client):
 
         params = {
-        "access_token": syn_token,
         "asset_view": "syn23643253",
         "project_id": "syn30988314"
         }
 
-        response = client.get("http://localhost:3001/v1/storage/project/manifests", query_string=params)
+        response = client.get("http://localhost:3001/v1/storage/project/manifests", query_string=params, headers=request_headers)
 
         assert response.status_code == 200
 
-    def test_get_storage_projects(self, syn_token, client):
+    @pytest.mark.synapse_credentials_needed
+    def test_get_storage_projects(self, request_headers, client):
 
         params = {
-        "access_token": syn_token,
         "asset_view": "syn23643253"
         }
 
-        response = client.get("http://localhost:3001/v1/storage/projects", query_string = params)
+        response = client.get("http://localhost:3001/v1/storage/projects", query_string = params, headers = request_headers)
 
         assert response.status_code == 200
 
+    @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("entity_id", ["syn34640850", "syn23643253", "syn24992754"])
-    def test_get_entity_type(self, syn_token, client, entity_id):
+    def test_get_entity_type(self, request_headers, client, entity_id):
         params = {
-            "access_token": syn_token,
             "asset_view": "syn23643253",
             "entity_id": entity_id
         }
-        response = client.get("http://localhost:3001/v1/storage/entity/type", query_string = params)
+        response = client.get("http://localhost:3001/v1/storage/entity/type", query_string = params, headers = request_headers)
 
         assert response.status_code == 200
         response_dt = json.loads(response.data)
@@ -191,14 +211,14 @@ class TestSynapseStorage:
         elif entity_id == "syn24992754":
             assert response_dt == "project"
 
+    @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("entity_id", ["syn30988314", "syn27221721"])
-    def test_if_in_assetview(self, syn_token, client, entity_id):
+    def test_if_in_assetview(self, request_headers, client, entity_id):
         params = {
-            "access_token": syn_token,
             "asset_view": "syn23643253",
             "entity_id": entity_id
         }
-        response = client.get("http://localhost:3001/v1/storage/if_in_asset_view", query_string = params)        
+        response = client.get("http://localhost:3001/v1/storage/if_in_asset_view", query_string = params, headers = request_headers)        
         assert response.status_code == 200
         response_dt = json.loads(response.data)
 
@@ -387,17 +407,18 @@ class TestManifestOperation:
             assert isinstance(df, pd.DataFrame)
 
 
+    @pytest.mark.empty_token
     #@pytest.mark.parametrize("output_format", [None, "excel", "google_sheet", "dataframe (only if getting existing manifests)"])
     @pytest.mark.parametrize("output_format", ["excel"])
     @pytest.mark.parametrize("data_type", ["Biospecimen", "Patient", "all manifests", ["Biospecimen", "Patient"]])
-    def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog):
+    def test_generate_existing_manifest(self, client, data_model_jsonld, data_type, output_format, caplog, request_headers):
         # set dataset
         if data_type == "Patient":
-            dataset_id = ["syn42171373"] #Mock Patient Manifest folder on synapse
+            dataset_id = ["syn51730545"] #Mock Patient Manifest folder on synapse
         elif data_type == "Biospecimen":
-            dataset_id = ["syn42171508"] #Mock biospecimen manifest folder
+            dataset_id = ["syn51730547"] #Mock biospecimen manifest folder
         elif data_type == ["Biospecimen", "Patient"]:
-            dataset_id = ["syn42171508", "syn42171373"]
+            dataset_id = ["syn51730547", "syn51730545"]
         else: 
             dataset_id = None #if "all manifests", dataset id is None
 
@@ -407,15 +428,18 @@ class TestManifestOperation:
             "title": "Example",
             "data_type": data_type,
             "use_annotations": False, 
-            "access_token": None
             }
+        
+        # Previous form of the test had `access_token` set to `None`
+        request_headers["Authorization"] = None
+
         if dataset_id: 
             params['dataset_id'] = dataset_id
         
         if output_format: 
             params['output_format'] = output_format
 
-        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params, headers=request_headers)
 
         assert response.status_code == 200
 
@@ -443,9 +467,10 @@ class TestManifestOperation:
             self.ifGoogleSheetExists(response_dt)
 
 
+    @pytest.mark.empty_token
     @pytest.mark.parametrize("output_format", ["excel", "google_sheet", "dataframe (only if getting existing manifests)", None])
     @pytest.mark.parametrize("data_type", ["all manifests", ["Biospecimen", "Patient"], "Patient"])
-    def test_generate_new_manifest(self, caplog, client, data_model_jsonld, data_type, output_format):
+    def test_generate_new_manifest(self, caplog, client, data_model_jsonld, data_type, output_format, request_headers):
         params = {
             "schema_url": data_model_jsonld,
             "asset_view": "syn23643253",
@@ -453,14 +478,16 @@ class TestManifestOperation:
             "data_type": data_type,
             "use_annotations": False,
             "dataset_id": None,
-            "access_token": None
         }
+
+        # Previous form of the test had `access_token` set to `None`
+        request_headers["Authorization"] = None
 
         if output_format: 
             params["output_format"] = output_format
     
 
-        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params, headers=request_headers)
         assert response.status_code == 200
 
 
@@ -491,7 +518,63 @@ class TestManifestOperation:
                 assert len(response_dt) == 2
             else: 
                 assert len(response_dt) == 1
+    
+    # test case: generate a manifest when use_annotations is set to True/False for a file-based component
+    # based on the parameter, the columns in the manifests would be different
+    # the dataset folder does not contain an existing manifest 
+    @pytest.mark.parametrize("use_annotations,expected",[(True, ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'impact', 'Year of Birth', 'date', 'confidence', 'IsImportantBool', 'IsImportantText', 'author', 'eTag', 'entityId']), 
+    (False, ['Filename', 'Sample ID', 'File Format', 'Component', 'Genome Build', 'Genome FASTA', 'entityId'])])
+    def test_generate_manifest_file_based_annotations(self, client, use_annotations, expected, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "BulkRNA-seqAssay",
+            "dataset_id": "syn25614635",
+            "asset_view": "syn51707141",
+            "output_format": "google_sheet", 
+            "use_annotations": use_annotations
+        }
 
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        assert response.status_code == 200
+
+        response_google_sheet = json.loads(response.data)
+        
+        # open the google sheet 
+        google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
+        
+        # make sure that columns used in annotations get added
+        # and also make sure that entityId column appears in the end
+
+        assert google_sheet_df.columns.to_list()[-1] == "entityId"
+        assert sorted(google_sheet_df.columns.to_list()) == sorted(expected)
+
+        # make sure Filename, entityId, and component get filled with correct value
+        assert google_sheet_df["Filename"].to_list() == ["TestDataset-Annotations-v3/Sample_A.txt", "TestDataset-Annotations-v3/Sample_B.txt", "TestDataset-Annotations-v3/Sample_C.txt"]
+        assert google_sheet_df["entityId"].to_list() == ["syn25614636", "syn25614637", "syn25614638"]
+        assert google_sheet_df["Component"].to_list() == ["BulkRNA-seqAssay", "BulkRNA-seqAssay", "BulkRNA-seqAssay"]
+
+    # test case: generate a manifest with annotations when use_annotations is set to True for a component that is not file-based
+    # the dataset folder does not contain an existing manifest 
+    def test_generate_manifest_not_file_based_with_annotations(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "Patient",
+            "dataset_id": "syn25614635",
+            "asset_view": "syn51707141",
+            "output_format": "google_sheet", 
+            "use_annotations": False        
+        }
+        response = client.get('http://localhost:3001/v1/manifest/generate', query_string=params)
+        assert response.status_code == 200
+
+        response_google_sheet = json.loads(response.data)
+
+        # open the google sheet 
+        google_sheet_df = pd.read_csv(response_google_sheet[0] + '/export?gid=0&format=csv')
+
+        # make sure that the result is basically the same as generating a new manifest
+        assert sorted(google_sheet_df.columns) == sorted(['Patient ID', 'Sex', 'Year of Birth', 'Diagnosis', 'Component', 'Cancer Type', 'Family History'])
+        
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
         test_manifest_data = open(test_manifest_csv, "rb")
@@ -514,7 +597,7 @@ class TestManifestOperation:
 
     @pytest.mark.parametrize("restrict_rules", [False, True, None])
     @pytest.mark.parametrize("json_str", [None, '[{"Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung"}]'])
-    def test_validate_manifest(self, data_model_jsonld, client, json_str, restrict_rules, test_manifest_csv):
+    def test_validate_manifest(self, data_model_jsonld, client, json_str, restrict_rules, test_manifest_csv, request_headers):
 
         params = {
             "schema_url": data_model_jsonld,
@@ -531,13 +614,13 @@ class TestManifestOperation:
         else: 
             params["data_type"] = "MockComponent"
 
-            headers = {
+            request_headers.update({
             'Content-Type': "multipart/form-data",
             'Accept': "application/json"
-            }
+            })
 
             # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
+            response_csv = client.post('http://localhost:3001/v1/model/validate', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=request_headers)
             response_dt = json.loads(response_csv.data)
             assert response_csv.status_code == 200
             
@@ -553,14 +636,14 @@ class TestManifestOperation:
         assert "errors" in response_dt.keys()
         assert "warnings" in response_dt.keys()
 
-    def test_get_datatype_manifest(self, client, syn_token):
+    @pytest.mark.synapse_credentials_needed
+    def test_get_datatype_manifest(self, client, request_headers):
         params = {
-            "access_token": syn_token,
             "asset_view": "syn23643253",
             "manifest_id": "syn27600110"
         }
 
-        response = client.get('http://localhost:3001/v1/get/datatype/manifest', query_string=params)  
+        response = client.get('http://localhost:3001/v1/get/datatype/manifest', query_string=params, headers=request_headers)  
 
         assert response.status_code == 200
         response_dt = json.loads(response.data)
@@ -574,20 +657,20 @@ class TestManifestOperation:
                 "Year of Birth": "Int64",
                 "entityId": "string"}
 
+    @pytest.mark.synapse_credentials_needed
     # small manifest: syn51078535; big manifest: syn51156998
     @pytest.mark.parametrize("manifest_id, expected_component, expected_file_name", [("syn51078535", "BulkRNA-seqAssay", "synapse_storage_manifest.csv"), ("syn51156998", "Biospecimen", "synapse_storage_manifest_biospecimen.csv")])
     @pytest.mark.parametrize("new_manifest_name",[None,"Example.csv"]) 
     @pytest.mark.parametrize("as_json",[None,True,False]) 
-    def test_manifest_download(self, config, client, syn_token, manifest_id, new_manifest_name, as_json, expected_component, expected_file_name):
+    def test_manifest_download(self, config: Configuration, client, request_headers, manifest_id, new_manifest_name, as_json, expected_component, expected_file_name):
         params = {
-            "access_token": syn_token,
             "manifest_id": manifest_id,
             "new_manifest_name": new_manifest_name, 
             "as_json": as_json
 
         }
 
-        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params, headers = request_headers)
         assert response.status_code == 200
 
         # if as_json is set to True or as_json is not defined, then a json gets returned
@@ -598,7 +681,7 @@ class TestManifestOperation:
             assert response_dta[0]["Component"] == expected_component
 
             current_work_dir = os.getcwd()
-            folder_test_manifests = config["synapse"]["manifest_folder"]
+            folder_test_manifests = config.manifest_folder
             folder_dir = os.path.join(current_work_dir, folder_test_manifests)
 
             # if a manfiest gets renamed, get new manifest file path
@@ -626,37 +709,41 @@ class TestManifestOperation:
             os.remove(manifest_file_path)
         except: 
             pass
+
+    @pytest.mark.synapse_credentials_needed
     # test downloading a manifest with access restriction and see if the correct error message got raised
-    def test_download_access_restricted_manifest(self, client, syn_token):
+    def test_download_access_restricted_manifest(self, client, request_headers):
         params = {
-            "access_token": syn_token,
             "manifest_id": "syn29862078"
         }  
 
-        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params)
+        response = client.get('http://localhost:3001/v1/manifest/download', query_string = params, headers = request_headers)
         assert response.status_code == 500
         with pytest.raises(TypeError) as exc_info:
             raise TypeError('the type error got raised')
         assert exc_info.value.args[0] == "the type error got raised"
-
+    
+    @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("as_json", [None, True, False])
     @pytest.mark.parametrize("new_manifest_name", [None, "Test"])
-    def test_dataset_manifest_download(self, client, as_json, syn_token, new_manifest_name):
+    def test_dataset_manifest_download(self, client, as_json, request_headers, new_manifest_name):
         params = {
-            "access_token": syn_token,
             "asset_view": "syn28559058",
             "dataset_id": "syn28268700",
             "as_json": as_json,
             "new_manifest_name": new_manifest_name
         }
 
-        response = client.get('http://localhost:3001/v1/dataset/manifest/download', query_string = params)
+        response = client.get('http://localhost:3001/v1/dataset/manifest/download', query_string = params, headers = request_headers)
         assert response.status_code == 200
         response_dt = response.data
 
         if as_json: 
             response_json = json.loads(response_dt)
-            assert response_json == [{'Component': 'BulkRNA-seqAssay', 'File Format': 'CSV/TSV', 'Filename': 'Sample_A', 'Genome Build': 'GRCm38', 'Genome FASTA': None, 'Sample ID': 2022, 'entityId': 'syn28278954'}]
+            assert response_json[0]["Component"] == "BulkRNA-seqAssay"
+            assert response_json[0]["File Format"] == "CSV/TSV"
+            assert response_json[0]["Sample ID"] == 2022
+            assert response_json[0]["entityId"] == "syn28278954"
         else:
             # return a file path
             response_path = response_dt.decode('utf-8')
@@ -664,96 +751,99 @@ class TestManifestOperation:
             assert isinstance(response_path, str)
             assert response_path.endswith(".csv")
 
-    @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
-    @pytest.mark.parametrize("use_schema_label", ['true','false'])
-    @pytest.mark.parametrize("manifest_record_type", ['table_and_file', 'file_only'])
-    def test_submit_manifest(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, use_schema_label, manifest_record_type):
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    def test_submit_manifest_table_and_file_replace(self, client, request_headers, data_model_jsonld, test_manifest_submit):
+        """Testing submit manifest in a csv format as a table and a file. Only replace the table
+        """
         params = {
-            "access_token": syn_token,
             "schema_url": data_model_jsonld,
-            "data_type": "Patient",
+            "data_type": "Biospecimen",
             "restrict_rules": False, 
-            "manifest_record_type": manifest_record_type,
-            "asset_view": "syn44259375",
-            "dataset_id": "syn44259313",
-            "table_manipulation": 'replace',
-            "use_schema_label": use_schema_label
-        }
-
-        if json_str:
-            params["json_str"] = json_str
-            response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
-            assert response.status_code == 200
-        else: 
-            headers = {
-            'Content-Type': "multipart/form-data",
-            'Accept': "application/json"
-            }
-            params["data_type"] = "MockComponent"
-
-            # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
-            assert response_csv.status_code == 200
-
-    @pytest.mark.parametrize("json_str", [None, '[{ "Patient ID": 123, "Sex": "Female", "Year of Birth": "", "Diagnosis": "Healthy", "Component": "Patient", "Cancer Type": "Breast", "Family History": "Breast, Lung", }]'])
-    @pytest.mark.parametrize("manifest_record_type", ['file_and_entities', 'table_file_and_entities'])
-    def test_submit_manifest_w_entities(self, client, syn_token, data_model_jsonld, json_str, test_manifest_csv, manifest_record_type):
-        params = {
-            "access_token": syn_token,
-            "schema_url": data_model_jsonld,
-            "data_type": "Patient",
-            "restrict_rules": False, 
-            "manifest_record_type": manifest_record_type,
-            "asset_view": "syn44259375",
-            "dataset_id": "syn44259313",
+            "hide_blanks": False, 
+            "manifest_record_type": "table_and_file",
+            "asset_view": "syn51514344",
+            "dataset_id": "syn51514345",
             "table_manipulation": 'replace',
             "use_schema_label": True
         }
 
-        if json_str:
-            params["json_str"] = json_str
-            response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
-            assert response.status_code == 200
-        else: 
-            headers = {
-            'Content-Type': "multipart/form-data",
-            'Accept': "application/json"
-            }
-            params["data_type"] = "MockComponent"
+        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")}, headers=request_headers)
+        assert response_csv.status_code == 200
 
-            # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_csv, 'rb'), "test.csv")}, headers=headers)
-            assert response_csv.status_code == 200  
-
-    
-    @pytest.mark.parametrize("json_str", [None, '[{ "Component": "MockRDB", "MockRDB_id": 5 }]'])
-    def test_submit_manifest_upsert(self, client, syn_token, data_model_jsonld, json_str, test_upsert_manifest_csv, ):
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    def test_submit_manifest_file_only_replace(self, client, request_headers, data_model_jsonld, test_manifest_submit):
+        """Testing submit manifest in a csv format as a file
+        """
         params = {
-            "access_token": syn_token,
+            "schema_url": data_model_jsonld,
+            "data_type": "Biospecimen",
+            "restrict_rules": False, 
+            "manifest_record_type": "file_only",
+            "asset_view": "syn51514344",
+            "dataset_id": "syn51514345",
+            "table_manipulation": 'replace',
+            "use_schema_label": True
+        }
+        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")}, headers=request_headers)
+        assert response_csv.status_code == 200 
+    @pytest.mark.synapse_credentials_needed    
+    @pytest.mark.submission
+    def test_submit_manifest_json_str_replace(self, client, request_headers, data_model_jsonld):
+        """Submit json str as a file
+        """
+        json_str = '[{"Sample ID": 123, "Patient ID": 1,"Tissue Status": "Healthy","Component": "Biospecimen"}]'
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "Biospecimen",
+            "json_str": json_str,
+            "restrict_rules": False, 
+            "manifest_record_type": "file_only",
+            "asset_view": "syn51514344",
+            "dataset_id": "syn51514345",
+            "table_manipulation": 'replace',
+            "use_schema_label": True
+        }
+        params["json_str"] = json_str
+        response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''}, headers = request_headers)
+        assert response.status_code == 200
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    def test_submit_manifest_w_file_and_entities(self, client, request_headers, data_model_jsonld, test_manifest_submit):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "Biospecimen",
+            "restrict_rules": False, 
+            "manifest_record_type": "file_and_entities",
+            "asset_view": "syn51514501",
+            "dataset_id": "syn51514523",
+            "table_manipulation": 'replace',
+            "use_schema_label": True
+        }
+
+        # test uploading a csv file
+        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")}, headers=request_headers)
+        assert response_csv.status_code == 200
+
+    @pytest.mark.synapse_credentials_needed
+    @pytest.mark.submission
+    def test_submit_manifest_table_and_file_upsert(self, client, request_headers, data_model_jsonld, test_upsert_manifest_csv, ):
+        params = {
             "schema_url": data_model_jsonld,
             "data_type": "MockRDB",
             "restrict_rules": False, 
-            "manifest_record_type": "table",
-            "asset_view": "syn44259375",
-            "dataset_id": "syn44259313",
+            "manifest_record_type": "table_and_file",
+            "asset_view": "syn51514557",
+            "dataset_id": "syn51514551",
             "table_manipulation": 'upsert',
-            "use_schema_label": False
+            "use_schema_label": False # have to set use_schema_label to false to ensure upsert feature works
         }
 
-        if json_str:
-            params["json_str"] = json_str
-            response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''})
-            assert response.status_code == 200
-        else: 
-            headers = {
-            'Content-Type': "multipart/form-data",
-            'Accept': "application/json"
-            }
-            params["data_type"] = "MockRDB"
-
-            # test uploading a csv file
-            response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_upsert_manifest_csv, 'rb'), "test.csv")}, headers=headers)            
-            assert response_csv.status_code == 200     
+        # test uploading a csv file
+        response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_upsert_manifest_csv, 'rb'), "test.csv")}, headers=request_headers)            
+        assert response_csv.status_code == 200     
 
 @pytest.mark.schematic_api
 class TestSchemaVisualization:

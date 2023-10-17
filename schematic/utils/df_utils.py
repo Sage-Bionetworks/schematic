@@ -60,6 +60,9 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
             pandarallel.initialize(verbose = 1)
             ints = org_df.parallel_applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
+        # Identify cells converted to intergers
+        ints_tf_df = ints.applymap(pd.api.types.is_integer)
+
         # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
             float_df[col]=pd.to_numeric(float_df[col], errors='coerce')
@@ -68,9 +71,9 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         
         # Trim nans and empty rows and columns
         processed_df = trim_commas_df(float_df)
-        
+
         # Store values that were converted to type int in the final dataframe
-        processed_df=processed_df.mask(ints != False, other = ints)  
+        processed_df=processed_df.mask(ints_tf_df, other = ints)
         
         # log manifest load and processing time
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
@@ -181,4 +184,31 @@ def trim_commas_df(df: pd.DataFrame):
 
     #Fill in nan cells with empty strings
     df.fillna("", inplace=True)
+    return df
+
+
+def col_in_dataframe(col: str, df: pd.DataFrame) -> bool:
+    """Check if a column is in a dataframe, without worring about case
+
+    Args:
+        col: name of column whose presence in the dataframe is being checked
+        df: pandas dataframe with data from manifest file.
+
+    Returns:
+        bool: whether or not the column name is a column in the dataframe, case agnostic
+    """
+    return col.lower() in [manifest_col.lower() for manifest_col in df.columns.to_list()]
+
+def populate_df_col_with_another_col(df: pd.DataFrame, source_col: str, target_col: str) -> pd.DataFrame:
+    """Copy the values from one column in a dataframe to another column in the same dataframe
+    Args:
+        df: pandas dataframe with data from manifest file.
+        source_col: column whose contents to copy over
+        target_col: column to be updated with other contents
+
+    Returns:
+        dataframe with contents updated
+    """
+    # Copy the contents over
+    df[target_col]=df[source_col]
     return df
