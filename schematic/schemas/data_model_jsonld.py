@@ -264,19 +264,19 @@ class DataModelJsonLD(object):
 
         for jsonld_key, entry in template.items():
             # Make sure dealing with an edge relationship:
-            is_edge = ['True' for k, v in self.rel_dict.items() if v['jsonld_key']==jsonld_key if v['edge_rel'] == True]
+            is_edge = ['True' for rel_key, rel_vals in self.rel_dict.items() if rel_vals['jsonld_key']==jsonld_key if rel_vals['edge_rel'] == True]
             
             #if the entry is of type list and theres more than one value in the list attempt to reorder
             if is_edge and isinstance(entry, list) and len(entry)>1:
                 # Get edge key from data_model_relationships using the jsonld_key:
-                key, edge_key = [(k, v['edge_key']) for k, v in self.rel_dict.items() if jsonld_key == v['jsonld_key']][0]
-                
+                key, edge_key = [(rel_key, rel_vals['edge_key']) for rel_key, rel_vals in self.rel_dict.items() if jsonld_key == rel_vals['jsonld_key']][0]
+
                 # Order edges
                 sorted_edges = self.DME.get_ordered_entry(key=key, source_node_label=template_label)
                 edge_weights_dict={edge:i for i, edge in enumerate(sorted_edges)}
                 ordered_edges = [0]*len(edge_weights_dict.keys())
-                for k,v in edge_weights_dict.items():
-                    ordered_edges[v] = {'@id': 'bts:' + k}
+                for edge,normalized_weight in edge_weights_dict.items():
+                    ordered_edges[normalized_weight] = {'@id': 'bts:' + edge}
                 
                 # Throw an error if ordered_edges does not get fully filled as expected.
                 if 0 in ordered_edges:
