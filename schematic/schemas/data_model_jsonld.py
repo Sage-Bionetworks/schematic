@@ -2,13 +2,17 @@ import copy
 from dataclasses import dataclass, field, asdict
 from dataclasses_json import config, dataclass_json
 import json
-from functools import wraps
+import logging
+
 from typing import Any, Dict, Optional, Text, List
 import networkx as nx
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import get_label_from_display_name, convert_bool_to_str, strip_context
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
 
 @dataclass_json
 @dataclass
