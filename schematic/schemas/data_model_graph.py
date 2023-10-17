@@ -107,7 +107,7 @@ class DataModelGraphExplorer():
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
 
-    def find_properties(self) -> set:
+    def find_properties(self) -> set[str]:
         """Identify all properties, as defined by the first node in a pair, connected with 'domainIncludes' edge type
         Returns:
             properties, set: All properties defined in the data model, each property name is defined by its label.
@@ -119,7 +119,7 @@ class DataModelGraphExplorer():
         properties = set(properties)
         return properties
 
-    def find_classes(self) -> set:
+    def find_classes(self) -> set[str]:
         """Identify all classes, as defined but all nodes, minus all properties (which are explicitly defined)
         Returns:
             classes, set:  All classes defined in the data model, each class name is defined by its label.
@@ -138,7 +138,7 @@ class DataModelGraphExplorer():
             valid_values, list: List of valid values associated with the provided node.
         """
         if not node_label:
-            node_label = self.get_node_label(display_name)
+            node_label = self.get_node_label(node_display_name)
 
         valid_values=[]
         for node_1, node_2, rel in self.graph.edges:
@@ -162,7 +162,7 @@ class DataModelGraphExplorer():
         #checked
         """
         nodes = set()
-        for (u, v, key, c) in self.graph.out_edges(node_label, data=True, keys=True):
+        for (_, _, key, _) in self.graph.out_edges(node_label, data=True, keys=True):
             if key == relationship:
                 nodes.add(v)
 
@@ -241,9 +241,9 @@ class DataModelGraphExplorer():
 
         # prune the descendants subgraph so as to include only those edges that match the relationship type
         rel_edges = []
-        for (u, v, key, c) in descendants_subgraph.edges(data=True, keys=True):
+        for (node_1, node_2, key, _) in descendants_subgraph.edges(data=True, keys=True):
             if key == relationship:
-                rel_edges.append((u, v))
+                rel_edges.append((node_1, node_2))
 
         relationship_subgraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
@@ -285,13 +285,13 @@ class DataModelGraphExplorer():
         Returns:
         '''
         digraph = nx.DiGraph()
-        for (u, v, key, c) in self.graph.edges(data=True, keys=True):
+        for (node_1, node_2, key, _) in self.graph.edges(data=True, keys=True):
             if key == edge_type:
-                digraph.add_edge(u, v)
+                digraph.add_edge(node_1, node_2)
         return digraph
 
     def get_edges_by_relationship(self,
-                                  class_label: str,
+                                  node: str,
                                   relationship: str,
                                   ) -> list[str]:
         """Get a list of out-edges of a node where the edges match a specifc type of relationship.
@@ -307,13 +307,13 @@ class DataModelGraphExplorer():
         """
         edges = []
 
-        for (u, v, key, c) in self.graph.out_edges(node, data=True, keys=True):
+        for (node_1, node_2, key, _) in self.graph.out_edges(node, data=True, keys=True):
             if key == relationship:
-                edges.append((u, v))
+                edges.append((node_1, node_2))
 
         return edges
 
-    def get_ordered_entry(self, key: str, source_node_label:str) -> list:
+    def get_ordered_entry(self, key: str, source_node_label:str) -> list[str]:
         """Order the values associated with a particular node and edge_key to match original ordering in schema.
         Args:
             key: a key representing and edge relationship in DataModelRelationships.relationships_dictionary
@@ -349,7 +349,7 @@ class DataModelGraphExplorer():
         return sorted_nodes
 
     # Get values associated with a node
-    def get_nodes_ancestors(self, subgraph, node_label:str) -> list:
+    def get_nodes_ancestors(self, subgraph:nx.DiGraph, node_label:str) -> list[str]:
         """Get a list of nodes reachable from source component in graph 
         Args:
             subgraph: networkx graph object
@@ -416,14 +416,14 @@ class DataModelGraphExplorer():
 
         return required_dependencies
 
-    def get_nodes_descendants(self, node_label:str) -> list:
+    def get_nodes_descendants(self, node_label:str) -> list[str]:
         """Return a list of nodes reachable from source in graph
         Args:
             node_label, str: any given node
         Return:
             all_descendants, list: nodes reachable from source in graph
         """
-        all_descendants = list(nx.descendants(self.graph, component))
+        all_descendants = list(nx.descendants(self.graph, node_label))
 
         return all_descendants
 
@@ -510,9 +510,8 @@ class DataModelGraphExplorer():
         Note: The possible options that a node can be associated with -- "required" / "optional".
 
         Args:
-            node_display_name: Display name of the node for which you want look up.
             node_label: Label of the node for which you need to look up.
-
+            node_display_name: Display name of the node for which you want look up.
         Returns:
             True: If the given node is a "required" node.
             False: If the given node is not a "required" (i.e., an "optional") node.
@@ -528,8 +527,8 @@ class DataModelGraphExplorer():
         """Get validation rules associated with a node,
 
         Args:
+            node_label: Label of the node for which you need to look up.
             node_display_name: Display name of the node which you want to get the label for.
-
         Returns:
             A set of validation rules associated with node, as a list.
         """
@@ -557,9 +556,9 @@ class DataModelGraphExplorer():
 
         # prune the metadata model graph so as to include only those edges that match the relationship type
         rel_edges = []
-        for (u, v, key, c) in self.graph.out_edges(data=True, keys=True):
+        for (node_1, node_2, key, _) in self.graph.out_edges(data=True, keys=True):
             if key == relationship:
-                rel_edges.append((u, v))
+                rel_edges.append((node_1, node_2))
 
         relationship_subgraph = nx.DiGraph()
         relationship_subgraph.add_edges_from(rel_edges)
@@ -575,7 +574,10 @@ class DataModelGraphExplorer():
         Returns:
             List of nodes that are adjacent to the given node, by SubclassOf relationship.
         '''
-        return self.get_adjacent_nodes_by_relationship(node_label = schema_class, relationship = self.rel_dict['subClassOf']['edge_key'])
+        if not node_label:
+            node_label = self.get_node_label(node_display_name)
+
+        return self.get_adjacent_nodes_by_relationship(node_label = node_label, relationship = self.rel_dict['subClassOf']['edge_key'])
 
     def find_child_classes(self, schema_class: str) -> list:
         """Find schema classes that inherit from the given class
@@ -586,7 +588,7 @@ class DataModelGraphExplorer():
         """
         return unlist(list(self.graph.successors(schema_class)))
 
-    def find_class_specific_properties(self, schema_class):
+    def find_class_specific_properties(self, schema_class:str) -> list[str]:
         """Find properties specifically associated with a given class
         Args:
             schema_class, str: node/class label, to identify properties for.
@@ -605,7 +607,7 @@ class DataModelGraphExplorer():
                 properties.append(n1)
         return properties
 
-    def find_parent_classes(self, node_label:str) -> list[list]:
+    def find_parent_classes(self, node_label:str) -> list[list[str]]:
         """Find all parents of the provided node
         Args:
             node_label: label of the node to find parents of
@@ -638,7 +640,7 @@ class DataModelGraphExplorer():
     def is_class_in_schema(self, node_label: str) -> bool:
         """Determine if provided node_label is in the schema graph/data model.
         Args:
-            class_label: label of node to search for in the
+            node_label: label of node to search for in the
         Returns:
             True, if node is in the graph schema
             False, if node is not in graph schema
@@ -648,7 +650,7 @@ class DataModelGraphExplorer():
         else:
             return False
 
-    def sub_schema_graph(self, source, direction, size=None) -> graphviz.Digraph:
+    def sub_schema_graph(self, source:str, direction:str, size=None) -> Optional[graphviz.Digraph]:
         """Create a sub-schema graph
         Args:
             source, str: source node label to start graph
