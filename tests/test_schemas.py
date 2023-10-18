@@ -96,10 +96,10 @@ class TestDataModelJsonLdParser:
         attribute_key = list(attr_rel_dict.keys())[0]
 
         # Check that the structure of the model dictionary conforms to expectations.
-        assert True == (type(attr_rel_dict) == dict)
-        assert True == (attribute_key in attr_rel_dict.keys())
-        assert True == ('Relationships' in attr_rel_dict[attribute_key])
-        assert True == ('Attribute' in attr_rel_dict[attribute_key]['Relationships'])
+        assert type(attr_rel_dict) == dict
+        assert attribute_key in attr_rel_dict.keys()
+        assert 'Relationships' in attr_rel_dict[attribute_key]
+        assert 'Attribute' in attr_rel_dict[attribute_key]['Relationships']
 
     @pytest.mark.parametrize("data_model", ['example.model.jsonld'], ids=["jsonld"])
     def test_parse_jsonld_model(self, helpers, data_model, dmjsonldp):
@@ -116,10 +116,10 @@ class TestDataModelJsonLdParser:
         attribute_key = list(model_dict.keys())[0]
 
         # Check that the structure of the model dictionary conforms to expectations.
-        assert True == (type(model_dict) == dict)
-        assert True == (attribute_key in model_dict.keys())
-        assert True == ('Relationships' in model_dict[attribute_key])
-        assert True == ('Attribute' in model_dict[attribute_key]['Relationships'])
+        assert type(model_dict) == dict
+        assert attribute_key in model_dict.keys()
+        assert 'Relationships' in model_dict[attribute_key]
+        assert 'Attribute' in model_dict[attribute_key]['Relationships']
 
 class TestDataModelRelationships:
     """Tests for DataModelRelationships class"""
@@ -161,27 +161,27 @@ class TestDataModelRelationships:
             'Source'
         ]
 
-    def test_define_edge_relationships(self, dmr: DataModelRelationships):
+    @pytest.mark.parametrize("edge", [True, False], ids=["True", "False"])
+    def test_retreive_rel_headers_dict(self, dmr: DataModelRelationships, edge:bool):
         """Tests method returns correct values"""
-        assert dmr.define_edge_relationships() == {
-            'rangeIncludes': 'Valid Values',
-            'requiresDependency': 'DependsOn',
-            'requiresComponent': 'DependsOn Component',
-            'subClassOf': 'Parent',
-            'domainIncludes': 'Properties'
-        }
-
-    def test_define_value_relationships(self, dmr: DataModelRelationships):
-        """Tests method returns correct values"""
-        assert dmr.define_value_relationships() == {
-            'displayName': 'Attribute',
-            'label': None,
-            'comment': 'Description',
-            'required': 'Required',
-            'validationRules': 'Validation Rules',
-            'isPartOf': None,
-            'id': 'Source'
-        }
+        if edge:
+            assert dmr.retreive_rel_headers_dict(edge=edge) == {
+                'rangeIncludes': 'Valid Values',
+                'requiresDependency': 'DependsOn',
+                'requiresComponent': 'DependsOn Component',
+                'subClassOf': 'Parent',
+                'domainIncludes': 'Properties'
+            }
+        else:
+            assert dmr.retreive_rel_headers_dict(edge=edge) == {
+                'displayName': 'Attribute',
+                'label': None,
+                'comment': 'Description',
+                'required': 'Required',
+                'validationRules': 'Validation Rules',
+                'isPartOf': None,
+                'id': 'Source'
+            }
 
 
 class TestDataModelGraph:
@@ -193,22 +193,22 @@ class TestDataModelGraph:
         graph = generate_graph_data_model(helpers=helpers, data_model_name=data_model)
         
         #Check that some edges are present as expected:
-        assert True == (('FamilyHistory', 'Breast') in graph.edges('FamilyHistory'))
-        assert True == (('BulkRNA-seqAssay', 'Biospecimen') in graph.edges('BulkRNA-seqAssay'))
+        assert ('FamilyHistory', 'Breast') in graph.edges('FamilyHistory')
+        assert ('BulkRNA-seqAssay', 'Biospecimen') in graph.edges('BulkRNA-seqAssay')
         assert ['Ab', 'Cd', 'Ef', 'Gh'] == [k for k,v in graph['CheckList'].items() for vk, vv in v.items() if vk == 'rangeValue']
 
         # Check that all relationships recorded between 'CheckList' and 'Ab' are present
-        assert True == ('rangeValue' and 'parentOf' in graph['CheckList']['Ab'])
-        assert False == ('requiresDependency' in graph['CheckList']['Ab'])
+        assert 'rangeValue' and 'parentOf' in graph['CheckList']['Ab']
+        assert 'requiresDependency' not in graph['CheckList']['Ab']
         
         # Check nodes:
-        assert True == ('Patient' in graph.nodes)
-        assert True == ('GRCh38' in graph.nodes)
+        assert 'Patient' in graph.nodes
+        assert 'GRCh38' in graph.nodes
 
 
         # Check weights
-        assert True == (graph['Sex']['Female']['rangeValue']['weight'] == 0)
-        assert True == (graph['MockComponent']['CheckRegexFormat']['requiresDependency']['weight'] == 4)
+        assert graph['Sex']['Female']['rangeValue']['weight'] == 0
+        assert graph['MockComponent']['CheckRegexFormat']['requiresDependency']['weight'] == 4
 
         # Check Edge directions
         assert 4 == (len(graph.out_edges('TissueStatus')))

@@ -37,7 +37,7 @@ class ManifestGenerator(object):
     def __init__(
         self,
         path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
-        graph: nx.MultiDiGraph,
+        graph: nx.MultiDiGraph, # At this point, the graph is fully formed.
         alphabetize_valid_values: str = 'ascending',
         title: str = None,  # manifest sheet title
         root: str = None,
