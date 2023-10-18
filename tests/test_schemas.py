@@ -60,7 +60,7 @@ def fixture_DMR():
     yield DataModelRelationships()
 
 @pytest.fixture
-def DMEdges():
+def data_model_edges():
     """
     Yields a Data Model Edges object for testing
     TODO: Update naming for DataModelGraphExplorer and fixture to avoid overlapping namespace
@@ -303,7 +303,7 @@ class TestDataModelEdges:
             rangeIncludes relationship edge
         
     """
-    def test_skip_edge(self, helpers, DMR, DMEdges):
+    def test_skip_edge(self, helpers, DMR, data_model_edges):
         # Instantiate graph object and set node
         G = nx.MultiDiGraph()
         node = "Diagnosis"
@@ -336,7 +336,7 @@ class TestDataModelEdges:
         # Generate an edge in the graph with one node and a subset of the parsed data model
         # We're attempting to add an edge for a node that is the only one in the graph, 
         # so `generate_edge` should skip adding edges and return the same graph
-        G = DMEdges.generate_edge(G, node, node_dict, {node:parsed_data_model[node]}, edge_relationships)
+        G = data_model_edges.generate_edge(G, node, node_dict, {node:parsed_data_model[node]}, edge_relationships)
 
         # Assert that no edges were added and that the current graph edges are the same as before the call to `generate_edge`
         assert before_edges == G.edges
@@ -351,7 +351,7 @@ class TestDataModelEdges:
                                    "Valid Value",
                                    "all others"
                                    ])
-    def test_generate_edge(self, helpers, DMR, DMEdges, node_to_add, edge_relationship):
+    def test_generate_edge(self, helpers, DMR, data_model_edges, node_to_add, edge_relationship):
         # Instantiate graph object
         G = nx.MultiDiGraph()
 
@@ -382,7 +382,7 @@ class TestDataModelEdges:
         before_edges = deepcopy(G.edges)
 
         # Generate edges for whichever node we are testing
-        G = DMEdges.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
+        G = data_model_edges.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
 
         # Assert that the current edges are different from the edges of the graph before
         assert G.edges > before_edges
@@ -397,7 +397,7 @@ class TestDataModelEdges:
                              [("Patient ID", "Biospecimen", 1, "validator_dag_test.model.csv"),
                               ("dataset_id", "cohorts", -1, "properties.test.model.csv")],
                               ids=["list", "domainIncludes"])
-    def test_generate_weights(self, helpers, DMR, DMEdges, node_to_add, other_node, expected_weight, data_model_path):
+    def test_generate_weights(self, helpers, DMR, data_model_edges, node_to_add, other_node, expected_weight, data_model_path):
         # Instantiate graph object
         G = nx.MultiDiGraph()
 
@@ -428,7 +428,7 @@ class TestDataModelEdges:
         before_edges = deepcopy(G.edges)
 
         # Generate edges for whichever node we are testing
-        G = DMEdges.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
+        G = data_model_edges.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
 
         # Assert that the current edges are different from the edges of the graph before
         assert G.edges > before_edges
