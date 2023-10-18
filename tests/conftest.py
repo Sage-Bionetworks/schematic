@@ -87,8 +87,7 @@ class Helpers:
         # Instantiate DataModelParser
         data_model_parser = DataModelParser(path_to_data_model=fullpath)
         return data_model_parser
-
-    @staticmethod
+   @staticmethod
     def get_data_model_json_schema(data_model_name:str=None, *paths):
         # Get path to data model
         fullpath = Helpers.get_data_path(path=data_model_name, *paths)
@@ -110,9 +109,7 @@ class Helpers:
 
         # Instantiate DataModelJsonSchema
         dmjs = DataModelJSONSchema(fullpath, graph=graph_data_model)
-        return dmjs
-    
-    
+        return dmjs    
 
     @staticmethod
     def get_python_version(self):

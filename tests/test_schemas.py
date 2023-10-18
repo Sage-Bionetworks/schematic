@@ -21,6 +21,7 @@ from schematic.schemas.data_model_parser import DataModelParser, DataModelCSVPar
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+ogger = logging.getLogger(__name__)
 
 DATA_MODEL_DICT = {
    'example.model.csv': "CSV",
@@ -53,9 +54,10 @@ def fixture_dm_jsonld_parser():
 
 @pytest.fixture
 def DME(helpers, data_model_name='example.model.csv'):
-    path_to_data_model = helpers.get_data_path("example.model.jsonld")
-
-    graph_data_model = generate_graph_data_model(helpers, data_model_name=path_to_data_model)
+    '''
+    In future could pull using helpers.
+    '''
+    graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model_name)
     DME = DataModelGraphExplorer(graph_data_model)
     yield DME
 
@@ -66,13 +68,46 @@ def fixture_dmr():
 
 class TestDataModelParser:
     def test_get_base_schema_path(self, helpers):
-        return
+        '''Test that base schema path is returned properly.
+        Note:
+            data model parser class does not currently accept an new path to a base schema,
+            so just test that default BioThings data model path is returned.
+        '''
+        # Instantiate Data model parser.
+        data_model_parser = helpers.get_data_model_parser(data_model_name='example.model.csv')
 
-    def test_get_model_type(self):
-        return
+        # Get path to default biothings model.
+        biothings_path = data_model_parser._get_base_schema_path(base_schema=None)
 
-    def test_parse_model(self):
-        return
+        assert os.path.basename(biothings_path) == "biothings.model.jsonld"
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_get_model_type(self, helpers, data_model):
+        # Instantiate Data model parser.
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+
+        # Check the data model type
+        assert (data_model == 'example.model.csv') == (data_model_parser.model_type == 'CSV')
+        assert (data_model == 'example.model.jsonld') == (data_model_parser.model_type == 'JSONLD')
+
+    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
+    def test_parse_model(self, helpers, data_model):
+        '''Test that the correct parser is called and that a dictionary is returned in the expected structure.
+        '''
+        # Instantiate Data model parser.
+        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        
+        # Parse Model
+        model_dict = data_model_parser.parse_model()
+
+        # Get a key in the model
+        attribute_key = list(model_dict.keys())[0]
+
+        # Check that the structure of the model dictionary conforms to expectations.
+        assert type(model_dict) == dict
+        assert attribute_key in model_dict.keys()
+        assert 'Relationships' in model_dict[attribute_key]
+        assert 'Attribute' in model_dict[attribute_key]['Relationships']
 
 class TestDataModelCsvParser:
     def test_check_schema_definition(self):
