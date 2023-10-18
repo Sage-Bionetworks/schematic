@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 class DataModelJSONSchema:
 	def __init__(self, jsonld_path: str, graph:nx.MultiDiGraph,
 				 ):
+		# TODO: Change jsonld_path to data_model_path (can work with CSV too)
 		self.jsonld_path = jsonld_path
-		self.graph = graph
+		self.graph = graph # Graph would be fully made at this point.
 		self.DME = DataModelGraphExplorer(self.graph)
 		self.dmr = DataModelRelationships()
 		self.rel_dict = self.dmr.relationships_dictionary
@@ -46,7 +47,7 @@ class DataModelJSONSchema:
 
 	def get_non_blank_schema(
 		self, node_name: str
-	) -> Dict:  # can't define heterogenous Dict generic types
+	) -> Dict[str, dict[str, Any]]:  # can't define heterogenous Dict generic types
 		"""Get a schema rule that does not allow null or empty values.
 
 		Args:
@@ -80,10 +81,8 @@ class DataModelJSONSchema:
 
 		return schema_node_range
 
-	def get_json_validation_schema(self, source_node: str, schema_name: str) -> Dict:
+	def get_json_validation_schema(self, source_node: str, schema_name: str) -> Dict[str, dict[str, Any]]:
 		'''
-		A refactor of get_json_schema_requirements() from the
-		schema generator.
 		Consolidated method that aims to gather dependencies and value constraints across terms / nodes in a schema.org schema and store them in a jsonschema /JSON Schema schema.
 
 		It does so for any given node in the schema.org schema (recursively) using the given node as starting point in the following manner:
@@ -345,12 +344,13 @@ class DataModelJSONSchema:
 			if prefix_ext == ".model":
 				prefix = prefix_root
 			json_schema_log_file = f"{prefix}.{source_node}.schema.json"
-
+		'''
+		# Commenting out loggins since the JSON Schema file is not currently saved.
 		logger.info(
 			"The JSON schema file can be inspected by setting the following "
-			"nested key in the configuration: (model > input > log_location)."
+			"nested key in the configuration: (model > location)."
 		)
 
 		logger.info(f"JSON schema file log stored as {json_schema_log_file}")
-
+		'''
 		return json_schema

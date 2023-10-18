@@ -59,7 +59,7 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 ```
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
-2. Install `poetry` (version 1.2 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
+2. Install `poetry` (version 1.3.0 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
 
 3. Start the virtual environment by doing: 
 ```
