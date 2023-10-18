@@ -37,7 +37,7 @@ class ManifestGenerator(object):
     def __init__(
         self,
         path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
-        graph: nx.MultiDiGraph,
+        graph: nx.MultiDiGraph, # At this point, the graph is fully formed.
         alphabetize_valid_values: str = 'ascending',
         title: str = None,  # manifest sheet title
         root: str = None,
@@ -63,7 +63,11 @@ class ManifestGenerator(object):
         self.graph = graph
 
         # schema root
-        self.root = root
+        if root:
+            self.root = root
+        # Raise an error if no DataType has been provided
+        else:
+            raise ValueError("No DataType has been provided.")
 
         # alphabetize valid values
         self.alphabetize = alphabetize_valid_values
@@ -88,12 +92,18 @@ class ManifestGenerator(object):
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
+   
+        # Check if the class is in the schema
+        root_in_schema = self.DME.is_class_in_schema(self.root)
+        
+        # If the class could not be found, give a notification
+        if not root_in_schema:
+            exception_message = f"The DataType entered ({self.root}) could not be found in the data model schema. " + \
+                                "Please confirm that the datatype is in the data model and that the spelling matches the class label in the .jsonld file."
+            raise LookupError(exception_message) 
 
         # Determine whether current data type is file-based
-        is_file_based = False
-        if self.root:
-            is_file_based = "Filename" in self.DME.get_node_dependencies(self.root)
-        self.is_file_based = is_file_based
+        self.is_file_based = "Filename" in self.DME.get_node_dependencies(self.root)
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet"""

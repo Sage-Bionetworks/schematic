@@ -10,6 +10,9 @@ from dotenv import load_dotenv, find_dotenv
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_nodes import DataModelNodes
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+
 from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
 
@@ -85,8 +88,30 @@ class Helpers:
         # Instantiate DataModelParser
         data_model_parser = DataModelParser(path_to_data_model=fullpath)
         return data_model_parser
-    
-    
+      
+   @staticmethod
+    def get_data_model_json_schema(data_model_name:str=None, *paths):
+        # Get path to data model
+        fullpath = Helpers.get_data_path(path=data_model_name, *paths)
+        
+        # Instantiate DataModelParser
+        data_model_parser = DataModelParser(path_to_data_model = fullpath)
+        
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        #Instantiate DataModelGraphExplorer
+        DME = DataModelGraphExplorer(graph_data_model)
+
+        # Instantiate DataModelJsonSchema
+        dmjs = DataModelJSONSchema(fullpath, graph=graph_data_model)
+        return dmjs    
 
     @staticmethod
     def get_python_version(self):
