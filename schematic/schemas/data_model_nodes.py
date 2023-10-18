@@ -72,7 +72,7 @@ class DataModelNodes():
         Returns:
             rel_key, str: relationship node label
             rel_node_dict, dict: node_attr_dict, from relationships dictionary for a given relationship
-
+        TODO: Move to data_model_relationships.
         """
         for k,v in self.data_model_relationships.relationships_dictionary.items():
             if k == relationship:
