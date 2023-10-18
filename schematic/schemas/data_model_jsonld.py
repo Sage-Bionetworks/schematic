@@ -52,6 +52,7 @@ class ClassTemplate:
     magic_range_includes: list = field(default_factory=list, metadata=config(field_name="schema:rangeIncludes"))
     magic_isPartOf: dict = field(default_factory=dict, metadata=config(field_name="schema:isPartOf"))
     magic_displayName:str = field(default="", metadata=config(field_name="sms:displayName"))
+    magic_required: str = field(default="sms:false", metadata=config(field_name="sms:required"))
     magic_requiresDependency: list = field(default_factory=list, metadata=config(field_name="sms:requiresDependency"))
     magic_requiresComponent: list = field(default_factory=list, metadata=config(field_name="sms:requiresComponent"))
     magic_validationRules: list = field(default_factory=list, metadata=config(field_name="sms:validationRules"))
