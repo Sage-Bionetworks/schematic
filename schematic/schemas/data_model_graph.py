@@ -162,9 +162,9 @@ class DataModelGraphExplorer():
         #checked
         """
         nodes = set()
-        for (_, _, key, _) in self.graph.out_edges(node_label, data=True, keys=True):
+        for (node_1, node_2, key, _) in self.graph.out_edges(node_label, data=True, keys=True):
             if key == relationship:
-                nodes.add(v)
+                nodes.add(node_2)
 
         return list(nodes)
 
