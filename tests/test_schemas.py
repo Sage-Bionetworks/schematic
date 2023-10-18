@@ -432,6 +432,7 @@ class TestDataModelEdges:
         # Cast the edges and weights to a DataFrame for easier indexing
         edges_and_weights = pd.DataFrame(G.edges.data(), columns= ['node1', 'node2', 'weights']).set_index('node1')
 
+        # Weights are set to a negative nubmer to indicate that the weight cannot be known reliably beforehand and must be determined by reading the schema
         # Get the index of the property in the schema
         # Weights for properties are determined by their order in the schema. 
         # This would allow the tests to continue to function correctly in the case were other attributes were added to the schema
