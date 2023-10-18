@@ -340,8 +340,6 @@ class TestDataModelEdges:
 
         # Assert that no edges were added and that the current graph edges are the same as before the call to `generate_edge`
         assert before_edges == G.edges
-
-        return
     
     @pytest.mark.parametrize("node_to_add, edge_relationship", 
                              [("DataType", "parentOf"), 
@@ -390,8 +388,6 @@ class TestDataModelEdges:
         # Assert that somewhere in the current edges for the node we added, that the correct relationship exists
         relationship_df = pd.DataFrame(G.edges, columns= ['node1', 'node2', 'edge'])
         assert (relationship_df['edge'] == edge_relationship).any()
-        
-        return
     
     @pytest.mark.parametrize("node_to_add, other_node, expected_weight, data_model_path", 
                              [("Patient ID", "Biospecimen", 1, "validator_dag_test.model.csv"),
@@ -449,8 +445,6 @@ class TestDataModelEdges:
             assert edges_and_weights.loc[other_node, 'weights']['weight'] == expected_weight
         elif node_to_add in ['cohorts']:
             assert edges_and_weights.loc[node_to_add, 'weights']['weight'] == expected_weight
-       
-        return
 
 
 
