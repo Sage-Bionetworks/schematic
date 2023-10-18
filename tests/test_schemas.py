@@ -315,20 +315,20 @@ class TestDataModelEdges:
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate data model Nodes object
-        dmn = DataModelNodes(parsed_data_model)
+        DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
         edge_relationships = DMR.define_edge_relationships()
-        all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
+        all_nodes = DMN.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
         assert node in all_nodes
 
         # Add a single node to the graph
         node_dict = {}
-        node_dict = dmn.generate_node_dict(node, parsed_data_model)
+        node_dict = DMN.generate_node_dict(node, parsed_data_model)
         node_dict[node] = node_dict
-        G = dmn.generate_node(G, node_dict)
+        G = DMN.generate_node(G, node_dict)
 
         # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
@@ -360,11 +360,11 @@ class TestDataModelEdges:
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate data model Nodes object
-        dmn = DataModelNodes(parsed_data_model)
+        DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
         edge_relationships = DMR.define_edge_relationships()
-        all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
+        all_nodes = DMN.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
         assert node_to_add in all_nodes
@@ -372,9 +372,9 @@ class TestDataModelEdges:
         # Add all nodes to the graph 
         all_node_dict = {}
         for node in all_nodes:
-            node_dict = dmn.generate_node_dict(node, parsed_data_model)
+            node_dict = DMN.generate_node_dict(node, parsed_data_model)
             all_node_dict[node] = node_dict
-            G = dmn.generate_node(G, node_dict)
+            G = DMN.generate_node(G, node_dict)
 
         # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
@@ -404,11 +404,11 @@ class TestDataModelEdges:
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate data model Nodes object
-        dmn = DataModelNodes(parsed_data_model)
+        DMN = DataModelNodes(parsed_data_model)
 
         # Get edge relationships and all nodes from the parsed model
         edge_relationships = DMR.define_edge_relationships()
-        all_nodes = dmn.gather_all_nodes(attr_rel_dict=parsed_data_model)
+        all_nodes = DMN.gather_all_nodes(attr_rel_dict=parsed_data_model)
 
         # Sanity check to ensure that the node we intend to test exists in the data model
         assert node_to_add in all_nodes
@@ -416,9 +416,9 @@ class TestDataModelEdges:
         # Add all nodes to the graph 
         all_node_dict = {}
         for node in all_nodes:
-            node_dict = dmn.generate_node_dict(node, parsed_data_model)
+            node_dict = DMN.generate_node_dict(node, parsed_data_model)
             all_node_dict[node] = node_dict
-            G = dmn.generate_node(G, node_dict)
+            G = DMN.generate_node(G, node_dict)
 
         # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
