@@ -995,9 +995,3 @@ class TestDataModelJsonLd:
         assert list(jsonld_dm.keys()) == ['@context', '@graph', '@id']
         assert len(jsonld_dm['@graph']) > 1
 
-class TestSchemas:
-    def test_convert_csv_to_graph(self, helpers):
-        return
-    def test_convert_jsonld_to_graph(self, helpers):
-        return
-
