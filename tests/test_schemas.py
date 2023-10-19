@@ -47,14 +47,21 @@ TEST_DN_DICT = {'Bio Things': {'class': 'BioThings',
 NODE_DISPLAY_NAME_DICT = {'Patient':False,
                           'Sex': True}
 
+def get_data_model_parser(helpers, data_model_name:str=None):
+    # Get path to data model
+    fullpath = helpers.get_data_path(path=data_model_name)
 
-def generate_graph_data_model(helpers, data_model_name):
+    # Instantiate DataModelParser
+    data_model_parser = DataModelParser(path_to_data_model=fullpath)
+    return data_model_parser
+
+def generate_graph_data_model(helpers, data_model_name:str) -> nx.MultiDiGraph:
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
     """
-    
+
     # Instantiate Parser
-    data_model_parser = helpers.get_data_model_parser(data_model_name=data_model_name)
+    data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model_name)
 
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
@@ -68,9 +75,9 @@ def generate_graph_data_model(helpers, data_model_name):
 
     return graph_data_model
 
-def generate_data_model_nodes(helpers, data_model_name):
+def generate_data_model_nodes(helpers, data_model_name:str) -> DataModelNodes:
     # Instantiate Parser
-    data_model_parser = helpers.get_data_model_parser(data_model_name=data_model_name)
+    data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model_name)
     # Parse Model
     parsed_data_model = data_model_parser.parse_model()
     # Instantiate DataModelNodes
@@ -78,22 +85,16 @@ def generate_data_model_nodes(helpers, data_model_name):
     return data_model_nodes
 
 
-@pytest.fixture(name='dmjsonldp')
-def fixture_dm_jsonld_parser():
-    yield DataModelJSONLDParser()
+def get_data_model_json_schema(helpers, data_model_name:str=None):
+    # Get path to data model
+    fullpath = helpers.get_data_path(path=data_model_name)
 
-@pytest.fixture
-def DME(helpers, data_model_name='example.model.csv'):
-    '''
-    In future could pull using helpers.
-    '''
+    # Get Data Model Graph
     graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model_name)
-    DME = DataModelGraphExplorer(graph_data_model)
-    yield DME
 
-@pytest.fixture(name='dmcsvp')
-def fixture_dm_csv_parser():
-    yield DataModelCSVParser()
+    # Instantiate DataModelJsonSchema
+    dmjs = DataModelJSONSchema(fullpath, graph=graph_data_model)
+    return dmjs
 
 @pytest.fixture(name='relationships')
 def get_relationships(helpers):
@@ -102,10 +103,18 @@ def get_relationships(helpers):
     relationships = list(relationships_dict.keys())
     yield relationships
 
-@pytest.fixture(name="dmr")
+@pytest.fixture(name="DMR")
 def fixture_dmr():
     """Yields a data model relationships object for testing"""
     yield DataModelRelationships()
+
+@pytest.fixture(name='csv_parser')
+def fixture_dm_csv_parser():
+    yield DataModelCSVParser()
+
+@pytest.fixture(name='jsonld_parser')
+def fixture_dm_jsonld_parser():
+    yield DataModelJSONLDParser()
 
 class TestDataModelParser:
     def test_get_base_schema_path(self, helpers):
@@ -115,7 +124,7 @@ class TestDataModelParser:
             so just test that default BioThings data model path is returned.
         '''
         # Instantiate Data model parser.
-        data_model_parser = helpers.get_data_model_parser(data_model_name='example.model.csv')
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name='example.model.csv')
 
         # Get path to default biothings model.
         biothings_path = data_model_parser._get_base_schema_path(base_schema=None)
@@ -123,92 +132,51 @@ class TestDataModelParser:
         assert os.path.basename(biothings_path) == "biothings.model.jsonld"
 
     @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
-    def test_get_model_type(self, helpers, data_model):
+    def test_get_model_type(self, helpers, data_model:str):
         # Instantiate Data model parser.
-        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
 
         # Check the data model type
         assert (data_model == 'example.model.csv') == (data_model_parser.model_type == 'CSV')
         assert (data_model == 'example.model.jsonld') == (data_model_parser.model_type == 'JSONLD')
 
     @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
-    def test_parse_model(self, helpers, data_model):
+    def test_parse_model(self, helpers, data_model:str):
         '''Test that the correct parser is called and that a dictionary is returned in the expected structure.
         '''
         # Instantiate Data model parser.
-        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
         
         # Parse Model
-        model_dict = data_model_parser.parse_model()
+        attr_rel_dictionary = data_model_parser.parse_model()
 
         # Get a key in the model
-        attribute_key = list(model_dict.keys())[0]
+        attribute_key = list(attr_rel_dictionary.keys())[0]
 
         # Check that the structure of the model dictionary conforms to expectations.
-        assert type(model_dict) == dict
-        assert attribute_key in model_dict.keys()
-        assert 'Relationships' in model_dict[attribute_key]
-        assert 'Attribute' in model_dict[attribute_key]['Relationships']
+        assert type(attr_rel_dictionary) == dict
+        assert attribute_key in attr_rel_dictionary.keys()
+        assert 'Relationships' in attr_rel_dictionary[attribute_key]
+        assert 'Attribute' in attr_rel_dictionary[attribute_key]['Relationships']
 
+
+@pytest.mark.parametrize("data_model", ['example.model.csv'], ids=["csv"])
 class TestDataModelCsvParser:
-    @pytest.mark.parametrize("data_model", ['example.model.csv'], ids=["csv"])
-    def test_check_schema_definition(self, helpers, data_model, dmcsvp:DataModelCSVParser):
+    def test_check_schema_definition(self, helpers, data_model:str, csv_parser:DataModelCSVParser):
         """If the csv schema contains the required headers, then this function should not return anything. Check that this is so.
         """
-        path_to_data_model = helpers.get_data_path(path=data_model)
-        model_df = load_df(path_to_data_model, data_model=True)
-        assert None == (dmcsvp.check_schema_definition(model_df = model_df))
+        #path_to_data_model = helpers.get_data_path(path=data_model)
+        model_df = helpers.get_data_frame(path=data_model, data_model=True)
+        assert None == (csv_parser.check_schema_definition(model_df = model_df))
 
-    @pytest.mark.parametrize("data_model", ['example.model.csv'], ids=["csv"])
-    def test_gather_csv_attributes_relationships(self, helpers, data_model, dmcsvp:DataModelCSVParser):
+    def test_gather_csv_attributes_relationships(self, helpers, data_model:str, csv_parser:DataModelCSVParser):
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
         """
         path_to_data_model = helpers.get_data_path(path=data_model)
         model_df = load_df(path_to_data_model, data_model=True)
 
         # Get output of the function:
-        attr_rel_dict = dmcsvp.gather_csv_attributes_relationships(model_df=model_df)
-
-        # Test the attr_rel_dict is formatted as expected:
-        # Get a key in the model
-        attribute_key = list(attr_rel_dict.keys())[0]
-
-        # Check that the structure of the model dictionary conforms to expectations.
-        assert True == (type(attr_rel_dict) == dict)
-        assert True == (attribute_key in attr_rel_dict.keys())
-        assert True == ('Relationships' in attr_rel_dict[attribute_key])
-        assert True == ('Attribute' in attr_rel_dict[attribute_key]['Relationships'])
-
-    @pytest.mark.parametrize("data_model", ['example.model.csv'], ids=["csv"])
-    def test_parse_csv_model(self, helpers, data_model, dmcsvp:DataModelCSVParser):
-        """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
-        """
-        path_to_data_model = helpers.get_data_path(path=data_model)
-        model_df = load_df(path_to_data_model, data_model=True)
-
-        # Get output of the function:
-        model_dict = dmcsvp.parse_csv_model(path_to_data_model=path_to_data_model)
-
-        # Test the model_dict is formatted as expected:
-        # Get a key in the model
-        attribute_key = list(model_dict.keys())[0]
-
-        # Check that the structure of the model dictionary conforms to expectations.
-        assert True == (type(model_dict) == dict)
-        assert True == (attribute_key in model_dict.keys())
-        assert True == ('Relationships' in model_dict[attribute_key])
-        assert True == ('Attribute' in model_dict[attribute_key]['Relationships'])
-
-class TestDataModelJsonLdParser:
-    @pytest.mark.parametrize("data_model", ['example.model.jsonld'], ids=["jsonld"])
-    def test_gather_jsonld_attributes_relationships(self, helpers, data_model, dmjsonldp):
-        """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
-        """
-        path_to_data_model = helpers.get_data_path(path=data_model)
-        model_jsonld = load_json(path_to_data_model)
-
-        # Get output of the function:
-        attr_rel_dict = dmjsonldp.gather_jsonld_attributes_relationships(model_jsonld=model_jsonld['@graph'])
+        attr_rel_dict = csv_parser.gather_csv_attributes_relationships(model_df=model_df)
 
         # Test the attr_rel_dict is formatted as expected:
         # Get a key in the model
@@ -220,29 +188,70 @@ class TestDataModelJsonLdParser:
         assert 'Relationships' in attr_rel_dict[attribute_key]
         assert 'Attribute' in attr_rel_dict[attribute_key]['Relationships']
 
-    @pytest.mark.parametrize("data_model", ['example.model.jsonld'], ids=["jsonld"])
-    def test_parse_jsonld_model(self, helpers, data_model, dmjsonldp):
+    def test_parse_csv_model(self, helpers, data_model:str, csv_parser:DataModelCSVParser):
+        """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
+        """
+        path_to_data_model = helpers.get_data_path(path=data_model)
+        model_df = load_df(path_to_data_model, data_model=True)
+
+        # Get output of the function:
+        attr_rel_dictionary = csv_parser.parse_csv_model(path_to_data_model=path_to_data_model)
+
+        # Test the attr_rel_dictionary is formatted as expected:
+        # Get a key in the model
+        attribute_key = list(attr_rel_dictionary.keys())[0]
+
+        # Check that the structure of the model dictionary conforms to expectations.
+        assert type(attr_rel_dictionary) == dict
+        assert attribute_key in attr_rel_dictionary.keys()
+        assert 'Relationships' in attr_rel_dictionary[attribute_key]
+        assert 'Attribute' in attr_rel_dictionary[attribute_key]['Relationships']
+
+
+@pytest.mark.parametrize("data_model", ['example.model.jsonld'], ids=["jsonld"])
+class TestDataModelJsonLdParser:
+    def test_gather_jsonld_attributes_relationships(self, helpers, data_model:str, jsonld_parser:DataModelJSONLDParser):
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
         """
         path_to_data_model = helpers.get_data_path(path=data_model)
         model_jsonld = load_json(path_to_data_model)
 
         # Get output of the function:
-        model_dict = dmjsonldp.parse_jsonld_model(path_to_data_model=path_to_data_model)
+        attr_rel_dict = jsonld_parser.gather_jsonld_attributes_relationships(model_jsonld=model_jsonld['@graph'])
 
-        # Test the model_dict is formatted as expected:
+        # Test the attr_rel_dict is formatted as expected:
         # Get a key in the model
-        attribute_key = list(model_dict.keys())[0]
+        attribute_key = list(attr_rel_dict.keys())[0]
 
         # Check that the structure of the model dictionary conforms to expectations.
-        assert type(model_dict) == dict
-        assert attribute_key in model_dict.keys()
-        assert 'Relationships' in model_dict[attribute_key]
-        assert 'Attribute' in model_dict[attribute_key]['Relationships']
+        assert type(attr_rel_dict) == dict
+        assert attribute_key in attr_rel_dict.keys()
+        assert 'Relationships' in attr_rel_dict[attribute_key]
+        assert 'Attribute' in attr_rel_dict[attribute_key]['Relationships']
+
+    def test_parse_jsonld_model(self, helpers, data_model:str, jsonld_parser:DataModelJSONLDParser):
+        """The output of the function is a attributes relationship dictionary, check that it is formatted properly.
+        """
+        path_to_data_model = helpers.get_data_path(path=data_model)
+        model_jsonld = load_json(path_to_data_model)
+
+        # Get output of the function:
+        attr_rel_dictionary = jsonld_parser.parse_jsonld_model(path_to_data_model=path_to_data_model)
+
+        # Test the attr_rel_dictionary is formatted as expected:
+        # Get a key in the model
+        attribute_key = list(attr_rel_dictionary.keys())[0]
+
+        # Check that the structure of the model dictionary conforms to expectations.
+        assert type(attr_rel_dictionary) == dict
+        assert attribute_key in attr_rel_dictionary.keys()
+        assert 'Relationships' in attr_rel_dictionary[attribute_key]
+        assert 'Attribute' in attr_rel_dictionary[attribute_key]['Relationships']
+
 
 class TestDataModelRelationships:
     """Tests for DataModelRelationships class"""
-    def test_define_data_model_relationships(self, dmr: DataModelRelationships):
+    def test_define_data_model_relationships(self, DMR: DataModelRelationships):
         """Tests relationships_dictionary created has correct keys"""
         required_keys = [
             'jsonld_key',
@@ -254,7 +263,7 @@ class TestDataModelRelationships:
         required_edge_keys = ['edge_key', 'edge_dir']
         required_node_keys = ['node_label', 'node_attr_dict']
 
-        relationships = dmr.relationships_dictionary
+        relationships = DMR.relationships_dictionary
 
         for relationship in relationships.values():
             for key in required_keys:
@@ -266,9 +275,9 @@ class TestDataModelRelationships:
                 for key in required_node_keys:
                     assert key in relationship.keys()
 
-    def test_define_required_csv_headers(self, dmr: DataModelRelationships):
+    def test_define_required_csv_headers(self, DMR: DataModelRelationships):
         """Tests method returns correct values"""
-        assert dmr.define_required_csv_headers() == [
+        assert DMR.define_required_csv_headers() == [
             'Attribute',
             'Description',
             'Valid Values',
@@ -281,10 +290,10 @@ class TestDataModelRelationships:
         ]
 
     @pytest.mark.parametrize("edge", [True, False], ids=["True", "False"])
-    def test_retreive_rel_headers_dict(self, dmr: DataModelRelationships, edge:bool):
+    def test_retreive_rel_headers_dict(self, DMR: DataModelRelationships, edge:bool):
         """Tests method returns correct values"""
         if edge:
-            assert dmr.retreive_rel_headers_dict(edge=edge) == {
+            assert DMR.retreive_rel_headers_dict(edge=edge) == {
                 'rangeIncludes': 'Valid Values',
                 'requiresDependency': 'DependsOn',
                 'requiresComponent': 'DependsOn Component',
@@ -292,7 +301,7 @@ class TestDataModelRelationships:
                 'domainIncludes': 'Properties'
             }
         else:
-            assert dmr.retreive_rel_headers_dict(edge=edge) == {
+            assert DMR.retreive_rel_headers_dict(edge=edge) == {
                 'displayName': 'Attribute',
                 'label': None,
                 'comment': 'Description',
@@ -404,15 +413,15 @@ class TestDataModelGraphExplorer:
         return
 
     @pytest.mark.parametrize("class_name, expected_in_schema", [("Patient",True), ("ptaient",False), ("Biospecimen",True), ("InvalidComponent",False)])
-    def test_is_class_in_schema(self, DME, class_name, expected_in_schema):
+    def test_is_class_in_schema(self, helpers, class_name, expected_in_schema):
         """
         Test to cover checking if a given class is in a schema.
         `is_class_in_schema` should return `True` if the class is in the schema
         and `False` if it is not.
         """
-
+        DMGE = helpers.get_data_model_graph_explorer(path='example.model.csv')
         # Check if class is in schema
-        class_in_schema = DME.is_class_in_schema(class_name)
+        class_in_schema = DMGE.is_class_in_schema(class_name)
 
         # Assert value is as expected
         assert class_in_schema == expected_in_schema
@@ -420,11 +429,11 @@ class TestDataModelGraphExplorer:
     def test_sub_schema_graph(self):
         return
 
+@pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
 class TestDataModelNodes:
-    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_gather_nodes(self, helpers, data_model):
         # Instantiate Parser
-        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
 
         # Parse Model
         attr_rel_dictionary = data_model_parser.parse_model()
@@ -453,10 +462,10 @@ class TestDataModelNodes:
         reordered_nodes.append('Patient')
         assert reordered_nodes != expected_nodes
 
-    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_gather_all_nodes(self, helpers, data_model):
+        ## TODO
         # Instantiate Parser
-        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
 
         # Parse Model
         attr_rel_dictionary = data_model_parser.parse_model()
@@ -464,7 +473,7 @@ class TestDataModelNodes:
         # Instantiate DataModelNodes
         data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
 
-        all_nodes = data_model_nodes.gather_all_nodes(attr_rel_dict=attr_rel_dictionary)
+        all_nodes = data_model_nodes.gather_all_nodes_in_model(attr_rel_dict=attr_rel_dictionary)
 
         # Make sure there are no repeat nodes
         assert len(all_nodes) == len(set(all_nodes))
@@ -478,12 +487,12 @@ class TestDataModelNodes:
 
         assert actual_starter_nodes == expected_starter_nodes
 
-    def test_get_rel_node_dict_info(self, helpers, relationships):
+    def test_get_rel_node_dict_info(self, helpers, data_model, relationships):
         # Instantiate Parser
-        data_model_parser = helpers.get_data_model_parser(data_model_name='example.model.csv')
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
 
         # Instantiate DataModelNodes
-        data_model_nodes = generate_data_model_nodes(helpers, data_model_name='example.model.csv')
+        data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
 
         for relationship in relationships:
             rel_dict_info = data_model_nodes.get_rel_node_dict_info(relationship)
@@ -492,10 +501,9 @@ class TestDataModelNodes:
                 assert type(rel_dict_info[1]) == dict
                 assert 'default' in rel_dict_info[1].keys()
 
-    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_get_data_model_properties(self, helpers, data_model):
         # Instantiate Parser
-        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
 
         # Parse Model
         attr_rel_dictionary = data_model_parser.parse_model()
@@ -523,11 +531,10 @@ class TestDataModelNodes:
 
         assert data_model_properties == ['TestProperty']
 
-    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_get_entry_type(self, helpers, data_model):
         
         # Instantiate Parser
-        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
 
         # Parse Model
         attr_rel_dictionary = data_model_parser.parse_model()
@@ -553,7 +560,6 @@ class TestDataModelNodes:
         # Check that the added property is properly loaded as a property
         assert data_model_nodes.get_entry_type('TestProperty') == 'property'
 
-    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     @pytest.mark.parametrize("rel_func", list(REL_FUNC_DICT.values()), ids=list(REL_FUNC_DICT.keys()))
     @pytest.mark.parametrize("test_dn", list(TEST_DN_DICT.keys()), ids=list(TEST_DN_DICT.keys()))
     @pytest.mark.parametrize("test_bool", ['True', 'False', True, False, 'kldjk'], ids=['True_str', 'False_str', 'True_bool', 'False_bool', 'Random_str'])
@@ -561,7 +567,7 @@ class TestDataModelNodes:
         # Call each relationship function to ensure that it is returning the desired result.
         # Note all the called functions will also be tested in other unit tests.
         # Instantiate Parser
-        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
 
         # Parse Model
         attr_rel_dictionary = data_model_parser.parse_model()
@@ -643,11 +649,10 @@ class TestDataModelNodes:
             assert convert_worked==True
         return
 
-    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     @pytest.mark.parametrize("node_display_name", list(NODE_DISPLAY_NAME_DICT.keys()), ids=[str(v) for v in NODE_DISPLAY_NAME_DICT.values()])
     def test_generate_node_dict(self, helpers, data_model, node_display_name):
         # Instantiate Parser
-        data_model_parser = helpers.get_data_model_parser(data_model_name=data_model)
+        data_model_parser = get_data_model_parser(helpers=helpers, data_model_name=data_model)
 
         # Parse Model
         attr_rel_dictionary = data_model_parser.parse_model()
@@ -668,40 +673,36 @@ class TestDataModelNodes:
             if not node_dict['required'] == False:
                 assert DATA_MODEL_DICT[data_model] == 'JSONLD'
 
-    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_generate_node(self, helpers, data_model):
         # Test adding a dummy node
         node_dict = {'label': 'test_label'}
 
-        path_to_data_model = helpers.get_data_path(data_model)
-
         # Get Graph
-        graph_data_model = generate_graph_data_model(helpers, data_model_name=path_to_data_model)
+        graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
 
         # Instantiate DataModelNodes
         data_model_nodes = generate_data_model_nodes(helpers, data_model_name=data_model)
 
         # Assert the test node is not already in the graph
-        assert False == (node_dict['label'] in graph_data_model.nodes)
+        assert node_dict['label'] not in graph_data_model.nodes
 
         # Add test node
         data_model_nodes.generate_node(graph_data_model, node_dict)
 
         # Check that the test node has been added
-        assert True == (node_dict['label'] in graph_data_model.nodes)
+        assert node_dict['label'] in graph_data_model.nodes
 
 class TestDataModelEdges:
     def test_generate_edge(self,helpers):
         return
 
-
+@pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
 class TestDataModelJsonSchema:
-    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
     @pytest.mark.parametrize("node_range", [[], ['healthy'], ['healthy', 'cancer']], ids=['empty_range', "single_range", "multi_range"])
     @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
     @pytest.mark.parametrize("blank", [True, False], ids=["True_blank", "False_blank"])
     def test_get_array_schema(self, helpers, data_model, node_range, node_name, blank):
-        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        dmjs = get_data_model_json_schema(helpers=helpers, data_model_name=data_model)
         array_schema = dmjs.get_array_schema(node_range=node_range, node_name=node_name, blank=blank)
 
         # check node_name is recoreded as the key to the array schema
@@ -718,21 +719,19 @@ class TestDataModelJsonSchema:
             assert array_schema[node_name]['items']['enum']== node_range
             assert len(array_schema[node_name]['items']['enum'])==len(node_range)
 
-    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
     @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
     def test_get_non_blank_schema(self, helpers, data_model, node_name):
-        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        dmjs = get_data_model_json_schema(helpers=helpers, data_model_name=data_model)
         non_blank_schema = dmjs.get_non_blank_schema(node_name=node_name)
         # check node_name is recoreded as the key to the array schema
         assert node_name in non_blank_schema
         assert non_blank_schema[node_name] == {"not": {"type": "null"}, "minLength": 1}
     
-    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
     @pytest.mark.parametrize("node_range", [[], ['healthy'], ['healthy', 'cancer']], ids=['empty_range', "single_range", "multi_range"])
     @pytest.mark.parametrize("node_name", ['', 'Diagnosis'], ids=['empty_node_name', "Diagnosis_node_name"])
     @pytest.mark.parametrize("blank", [True, False], ids=["True_blank", "False_blank"])
     def test_get_range_schema(self, helpers, data_model, node_range, node_name, blank):
-        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        dmjs = get_data_model_json_schema(helpers=helpers, data_model_name=data_model)
         range_schema = dmjs.get_range_schema(node_range=node_range, node_name=node_name, blank=blank)
 
         # check node_name is recoreded as the key to the array schema
@@ -746,11 +745,10 @@ class TestDataModelJsonSchema:
             assert range_schema[node_name]['enum']== node_range
             assert len(range_schema[node_name]['enum'])==len(node_range)
 
-    @pytest.mark.parametrize("data_model", ['example.model.csv', 'example.model.jsonld'], ids=["csv", "jsonld"])
     @pytest.mark.parametrize("source_node", ['', 'Patient'], ids=['empty_node_name', "patient_source"])
     @pytest.mark.parametrize("schema_name", ['', 'Test_Schema_Name'], ids=['empty_schema_name', "schema_name"])
     def test_get_json_validation_schema(self, helpers, data_model, source_node, schema_name):
-        dmjs = helpers.get_data_model_json_schema(data_model_name=data_model)
+        dmjs = get_data_model_json_schema(helpers=helpers, data_model_name=data_model)
 
         try:
             # Get validation schema
@@ -771,6 +769,7 @@ class TestDataModelJsonSchema:
             # Should only fail if no source node is provided.
             assert source_node == ''
 
+
 class TestDataModelJsonLd:
     @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_init(self, helpers, data_model):
@@ -788,8 +787,7 @@ class TestDataModelJsonLd:
         assert type(data_model_jsonld.DME) == DataModelGraphExplorer
         assert data_model_jsonld.output_path == ''
 
-    @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
-    def test_base_jsonld_template(self, helpers, data_model):
+    def test_base_jsonld_template(self, helpers):
         # Gather the templates
         base_template = BaseTemplate()
         base_jsonld_template = json.loads(base_template.to_json())
@@ -798,6 +796,46 @@ class TestDataModelJsonLd:
         assert '@context' in base_jsonld_template
         assert '@graph' in base_jsonld_template
         assert '@id' in base_jsonld_template
+
+    def test_property_template(self, helpers):
+        # Get Property Template
+        empty_template = PropertyTemplate()
+        property_template = json.loads(empty_template.to_json())
+
+        expected_property_template =  {
+                                        "@id": "",
+                                        "@type": "rdf:Property",
+                                        "rdfs:comment": "",
+                                        "rdfs:label": "",
+                                        "schema:domainIncludes": [],
+                                        "schema:rangeIncludes": [],
+                                        "schema:isPartOf": {},
+                                        "sms:displayName": "",
+                                        "sms:required": "sms:false",
+                                        "sms:validationRules": [],
+                                        }
+        assert property_template == expected_property_template
+
+    def test_class_template(self, helpers):
+        # Get Class Template
+        empty_template = ClassTemplate()
+        class_template = json.loads(empty_template.to_json())
+
+        expected_class_template = {
+                                "@id": "",
+                                "@type": "rdfs:Class",
+                                "rdfs:comment": "",
+                                "rdfs:label": "",
+                                "rdfs:subClassOf": [],
+                                "schema:isPartOf": {},
+                                "schema:rangeIncludes": [],
+                                "sms:displayName": "",
+                                "sms:required": "sms:false",
+                                "sms:requiresDependency": [],
+                                "sms:requiresComponent": [],
+                                "sms:validationRules": [],
+                            }
+        assert class_template == expected_class_template
 
     @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     @pytest.mark.parametrize("template_type", ['property', 'class'], ids=['property', 'class'])
@@ -867,7 +905,7 @@ class TestDataModelJsonLd:
             assert 'bts' in object_template['@id']
 
     @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
-    def test_clean_template(self, helpers, data_model):
+    def test_clean_template(self, helpers, data_model:str, DMR:DataModelRelationships):
         # TODO: This will need to change with contexts bc they are hard coded here.
         # Get Graph
         graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model)
@@ -887,7 +925,7 @@ class TestDataModelJsonLd:
         # Fill out some mock entries in the template:
         template_copy['@id'] == 'bts:CheckURL'
         template_copy['rdfs:label'] == 'CheckURL'
-        data_model_relationships=data_model_jsonld.dmr.relationships_dictionary
+        data_model_relationships=DMR.relationships_dictionary
 
         # Clean template
         data_model_jsonld.clean_template(template=template_copy, data_model_relationships=data_model_relationships)
@@ -930,46 +968,6 @@ class TestDataModelJsonLd:
             assert template_copy['schema:rangeIncludes'] == [{'@id': 'bts:Female'}, {'@id': 'bts:Male'}, {'@id': 'bts:Other'}]
         else:
             assert template_copy['schema:rangeIncludes'] == []
-
-    def test_property_template(self, helpers):
-        # Get Property Template
-        empty_template = PropertyTemplate()
-        property_template = json.loads(empty_template.to_json())
-
-        expected_property_template =  {
-                                        "@id": "",
-                                        "@type": "rdf:Property",
-                                        "rdfs:comment": "",
-                                        "rdfs:label": "",
-                                        "schema:domainIncludes": [],
-                                        "schema:rangeIncludes": [],
-                                        "schema:isPartOf": {},
-                                        "sms:displayName": "",
-                                        "sms:required": "sms:false",
-                                        "sms:validationRules": [],
-                                        }
-        assert property_template == expected_property_template
-
-    def test_class_template(self, helpers):
-        # Get Class Template
-        empty_template = ClassTemplate()
-        class_template = json.loads(empty_template.to_json())
-        
-        expected_class_template = {
-                                "@id": "",
-                                "@type": "rdfs:Class",
-                                "rdfs:comment": "",
-                                "rdfs:label": "",
-                                "rdfs:subClassOf": [],
-                                "schema:isPartOf": {},
-                                "schema:rangeIncludes": [],
-                                "sms:displayName": "",
-                                "sms:required": "sms:false",
-                                "sms:requiresDependency": [],
-                                "sms:requiresComponent": [],
-                                "sms:validationRules": [],
-                            }
-        assert class_template == expected_class_template
 
     @pytest.mark.parametrize("data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values()))
     def test_generate_jsonld_object(self, helpers, data_model):
