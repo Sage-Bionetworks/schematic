@@ -1973,6 +1973,23 @@
             }
         },
         {
+            "@id": "bts:Component",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Component",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "schema:Thing"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Component",
+            "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:Patient",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -3007,23 +3024,6 @@
             },
             "sms:displayName": "SourceManifest",
             "sms:required": "sms:true",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:Component",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "Component",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Patient"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Component",
-            "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
