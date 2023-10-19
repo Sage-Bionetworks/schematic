@@ -18,7 +18,6 @@ from schematic.utils.df_utils import load_df
 
 load_dotenv()
 
-
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -55,9 +54,8 @@ class Helpers:
         fullpath = os.path.join(DATA_DIR, path, *paths)
         return load_df(fullpath, **kwargs)
 
-    
     @staticmethod
-    def get_data_model_explorer(path=None, *paths):
+    def get_data_model_graph_explorer(path=None, *paths):
         #commenting this now bc we dont want to have multiple instances
         if path is None:
             return
@@ -77,41 +75,9 @@ class Helpers:
         graph_data_model = data_model_grapher.generate_data_model_graph()
 
         #Instantiate DataModelGraphExplorer
-        DME = DataModelGraphExplorer(graph_data_model)
+        DMGE = DataModelGraphExplorer(graph_data_model)
 
-        return DME
-
-    @staticmethod
-    def get_data_model_parser(data_model_name:str=None, *paths):
-        # Get path to data model
-        fullpath = Helpers.get_data_path(path=data_model_name, *paths)
-        # Instantiate DataModelParser
-        data_model_parser = DataModelParser(path_to_data_model=fullpath)
-        return data_model_parser
-      
-   @staticmethod
-    def get_data_model_json_schema(data_model_name:str=None, *paths):
-        # Get path to data model
-        fullpath = Helpers.get_data_path(path=data_model_name, *paths)
-        
-        # Instantiate DataModelParser
-        data_model_parser = DataModelParser(path_to_data_model = fullpath)
-        
-        #Parse Model
-        parsed_data_model = data_model_parser.parse_model()
-
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
-
-        # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
-
-        #Instantiate DataModelGraphExplorer
-        DME = DataModelGraphExplorer(graph_data_model)
-
-        # Instantiate DataModelJsonSchema
-        dmjs = DataModelJSONSchema(fullpath, graph=graph_data_model)
-        return dmjs    
+        return DMGE
 
     @staticmethod
     def get_python_version(self):
