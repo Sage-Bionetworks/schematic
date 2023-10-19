@@ -1,4 +1,4 @@
-import copy
+from copy import deepcopy
 import json
 import logging
 import networkx as nx
@@ -7,6 +7,12 @@ import os
 import pandas as pd
 import pytest
 import random
+
+from schematic.schemas.data_model_edges import DataModelEdges
+from schematic.schemas.data_model_nodes import DataModelNodes 
+from schematic.schemas.data_model_relationships import (
+    DataModelRelationships
+    )
 
 from schematic.utils.df_utils import load_df
 from schematic.utils.schema_utils import get_label_from_display_name, get_attribute_display_name_from_label, convert_bool_to_str, parse_validation_rules
@@ -47,16 +53,26 @@ TEST_DN_DICT = {'Bio Things': {'class': 'BioThings',
 NODE_DISPLAY_NAME_DICT = {'Patient':False,
                           'Sex': True}
 
+def get_data_model_parser(helpers, data_model_name: str = None):
+    # Get path to data model
+    fullpath = helpers.get_data_path(path=data_model_name)
 
-def generate_graph_data_model(helpers, data_model_name):
+    # Instantiate DataModelParser
+    data_model_parser = DataModelParser(path_to_data_model=fullpath)
+    return data_model_parser
+
+
+def generate_graph_data_model(helpers, data_model_name: str) -> nx.MultiDiGraph:
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
     """
-    
-    # Instantiate Parser
-    data_model_parser = helpers.get_data_model_parser(data_model_name=data_model_name)
 
-    #Parse Model
+    # Instantiate Parser
+    data_model_parser = get_data_model_parser(
+        helpers=helpers, data_model_name=data_model_name
+    )
+
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Convert parsed model to graph
@@ -68,9 +84,12 @@ def generate_graph_data_model(helpers, data_model_name):
 
     return graph_data_model
 
-def generate_data_model_nodes(helpers, data_model_name):
+
+def generate_data_model_nodes(helpers, data_model_name: str) -> DataModelNodes:
     # Instantiate Parser
-    data_model_parser = helpers.get_data_model_parser(data_model_name=data_model_name)
+    data_model_parser = get_data_model_parser(
+        helpers=helpers, data_model_name=data_model_name
+    )
     # Parse Model
     parsed_data_model = data_model_parser.parse_model()
     # Instantiate DataModelNodes
@@ -78,34 +97,46 @@ def generate_data_model_nodes(helpers, data_model_name):
     return data_model_nodes
 
 
-@pytest.fixture(name='dmjsonldp')
-def fixture_dm_jsonld_parser():
-    yield DataModelJSONLDParser()
+def get_data_model_json_schema(helpers, data_model_name: str = None):
+    # Get path to data model
+    fullpath = helpers.get_data_path(path=data_model_name)
 
-@pytest.fixture
-def DME(helpers, data_model_name='example.model.csv'):
-    '''
-    In future could pull using helpers.
-    '''
-    graph_data_model = generate_graph_data_model(helpers, data_model_name=data_model_name)
-    DME = DataModelGraphExplorer(graph_data_model)
-    yield DME
+    # Get Data Model Graph
+    graph_data_model = generate_graph_data_model(
+        helpers, data_model_name=data_model_name
+    )
 
-@pytest.fixture(name='dmcsvp')
-def fixture_dm_csv_parser():
-    yield DataModelCSVParser()
 
-@pytest.fixture(name='relationships')
+@pytest.fixture(name="relationships")
 def get_relationships(helpers):
     DMR = DataModelRelationships()
     relationships_dict = DMR.relationships_dictionary
     relationships = list(relationships_dict.keys())
     yield relationships
 
-@pytest.fixture(name="dmr")
+
+@pytest.fixture(name="DMR")
 def fixture_dmr():
     """Yields a data model relationships object for testing"""
     yield DataModelRelationships()
+
+
+@pytest.fixture(name="csv_parser")
+def fixture_dm_csv_parser():
+    yield DataModelCSVParser()
+
+
+@pytest.fixture(name="jsonld_parser")
+def fixture_dm_jsonld_parser():
+    yield DataModelJSONLDParser()
+
+@pytest.fixture
+def data_model_edges():
+    """
+    Yields a Data Model Edges object for testing
+    TODO: Update naming for DataModelGraphExplorer and fixture to avoid overlapping namespace
+    """
+    yield DataModelEdges()
 
 class TestDataModelParser:
     def test_get_base_schema_path(self, helpers):
@@ -242,7 +273,7 @@ class TestDataModelJsonLdParser:
 
 class TestDataModelRelationships:
     """Tests for DataModelRelationships class"""
-    def test_define_data_model_relationships(self, dmr: DataModelRelationships):
+    def test_define_data_model_relationships(self, DMR: DataModelRelationships):
         """Tests relationships_dictionary created has correct keys"""
         required_keys = [
             'jsonld_key',
@@ -254,7 +285,7 @@ class TestDataModelRelationships:
         required_edge_keys = ['edge_key', 'edge_dir']
         required_node_keys = ['node_label', 'node_attr_dict']
 
-        relationships = dmr.relationships_dictionary
+        relationships = DMR.relationships_dictionary
 
         for relationship in relationships.values():
             for key in required_keys:
@@ -266,9 +297,9 @@ class TestDataModelRelationships:
                 for key in required_node_keys:
                     assert key in relationship.keys()
 
-    def test_define_required_csv_headers(self, dmr: DataModelRelationships):
+    def test_define_required_csv_headers(self, DMR: DataModelRelationships):
         """Tests method returns correct values"""
-        assert dmr.define_required_csv_headers() == [
+        assert DMR.define_required_csv_headers() == [
             'Attribute',
             'Description',
             'Valid Values',
@@ -279,6 +310,7 @@ class TestDataModelRelationships:
             'Properties',
             'Source'
         ]
+
 
     @pytest.mark.parametrize("edge", [True, False], ids=["True", "False"])
     def test_retreive_rel_headers_dict(self, dmr: DataModelRelationships, edge:bool):
@@ -691,8 +723,164 @@ class TestDataModelNodes:
         assert True == (node_dict['label'] in graph_data_model.nodes)
 
 class TestDataModelEdges:
-    def test_generate_edge(self,helpers):
-        return
+    """
+    Cases to test
+        Where node == attribute_display_name
+        Weights
+            domain includes weights
+            list weights
+            single element weights
+        Edges
+            subClassOf/domainIncludes relationship edge
+            any other relationship edge
+            rangeIncludes relationship edge
+        
+    """
+    def test_skip_edge(self, helpers, DMR, data_model_edges):
+        # Instantiate graph object and set node
+        G = nx.MultiDiGraph()
+        node = "Diagnosis"
+
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser("validator_dag_test.model.csv")
+
+        # Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate data model Nodes object
+        DMN = DataModelNodes(parsed_data_model)
+
+        # Get edge relationships and all nodes from the parsed model
+        edge_relationships = DMR.define_edge_relationships()
+        all_nodes = DMN.gather_all_nodes(attr_rel_dict=parsed_data_model)
+
+        # Sanity check to ensure that the node we intend to test exists in the data model
+        assert node in all_nodes
+
+        # Add a single node to the graph
+        node_dict = {}
+        node_dict = DMN.generate_node_dict(node, parsed_data_model)
+        node_dict[node] = node_dict
+        G = DMN.generate_node(G, node_dict)
+
+        # Check the edges in the graph, there should be none
+        before_edges = deepcopy(G.edges)
+
+        # Generate an edge in the graph with one node and a subset of the parsed data model
+        # We're attempting to add an edge for a node that is the only one in the graph, 
+        # so `generate_edge` should skip adding edges and return the same graph
+        G = data_model_edges.generate_edge(G, node, node_dict, {node:parsed_data_model[node]}, edge_relationships)
+
+        # Assert that no edges were added and that the current graph edges are the same as before the call to `generate_edge`
+        assert before_edges == G.edges
+    
+    @pytest.mark.parametrize("node_to_add, edge_relationship", 
+                             [("DataType", "parentOf"), 
+                                ("Female", "parentOf"),
+                                ("Sex","requiresDependency")],
+                              ids=["subClassOf",
+                                   "Valid Value",
+                                   "all others"
+                                   ])
+    def test_generate_edge(self, helpers, DMR, data_model_edges, node_to_add, edge_relationship):
+        # Instantiate graph object
+        G = nx.MultiDiGraph()
+
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser("validator_dag_test.model.csv")
+
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate data model Nodes object
+        DMN = DataModelNodes(parsed_data_model)
+
+        # Get edge relationships and all nodes from the parsed model
+        edge_relationships = DMR.define_edge_relationships()
+        all_nodes = DMN.gather_all_nodes(attr_rel_dict=parsed_data_model)
+
+        # Sanity check to ensure that the node we intend to test exists in the data model
+        assert node_to_add in all_nodes
+
+        # Add all nodes to the graph 
+        all_node_dict = {}
+        for node in all_nodes:
+            node_dict = DMN.generate_node_dict(node, parsed_data_model)
+            all_node_dict[node] = node_dict
+            G = DMN.generate_node(G, node_dict)
+
+        # Check the edges in the graph, there should be none
+        before_edges = deepcopy(G.edges)
+
+        # Generate edges for whichever node we are testing
+        G = data_model_edges.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
+
+        # Assert that the current edges are different from the edges of the graph before
+        assert G.edges > before_edges
+
+        # Assert that somewhere in the current edges for the node we added, that the correct relationship exists
+        relationship_df = pd.DataFrame(G.edges, columns= ['node1', 'node2', 'edge'])
+        assert (relationship_df['edge'] == edge_relationship).any()
+    
+    @pytest.mark.parametrize("node_to_add, other_node, expected_weight, data_model_path", 
+                             [("Patient ID", "Biospecimen", 1, "validator_dag_test.model.csv"),
+                              ("dataset_id", "cohorts", -1, "properties.test.model.csv")],
+                              ids=["list", "domainIncludes"])
+    def test_generate_weights(self, helpers, DMR, data_model_edges, node_to_add, other_node, expected_weight, data_model_path):
+        # Instantiate graph object
+        G = nx.MultiDiGraph()
+
+        # Instantiate Parser
+        data_model_parser = helpers.get_data_model_parser(data_model_path)
+
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate data model Nodes object
+        DMN = DataModelNodes(parsed_data_model)
+
+        # Get edge relationships and all nodes from the parsed model
+        edge_relationships = DMR.define_edge_relationships()
+        all_nodes = DMN.gather_all_nodes(attr_rel_dict=parsed_data_model)
+
+        # Sanity check to ensure that the node we intend to test exists in the data model
+        assert node_to_add in all_nodes
+        
+        # Add all nodes to the graph 
+        all_node_dict = {}
+        for node in all_nodes:
+            node_dict = DMN.generate_node_dict(node, parsed_data_model)
+            all_node_dict[node] = node_dict
+            G = DMN.generate_node(G, node_dict)
+
+        # Check the edges in the graph, there should be none
+        before_edges = deepcopy(G.edges)
+
+        # Generate edges for whichever node we are testing
+        G = data_model_edges.generate_edge(G, node_to_add, all_node_dict, parsed_data_model, edge_relationships)
+
+        # Assert that the current edges are different from the edges of the graph before
+        assert G.edges > before_edges
+        
+        # Cast the edges and weights to a DataFrame for easier indexing
+        edges_and_weights = pd.DataFrame(G.edges.data(), columns= ['node1', 'node2', 'weights']).set_index('node1')
+
+        # Weights are set to a negative nubmer to indicate that the weight cannot be known reliably beforehand and must be determined by reading the schema
+        # Get the index of the property in the schema
+        # Weights for properties are determined by their order in the schema. 
+        # This would allow the tests to continue to function correctly in the case were other attributes were added to the schema
+        if expected_weight < 0:
+            schema = helpers.get_data_frame(path=helpers.get_data_path(data_model_path), data_model=True)
+            expected_weight = schema.index[schema['Attribute']==other_node][0]
+            logger.debug(f"Expected weight for the edge of nodes {node_to_add} and {other_node} is {expected_weight}.")
+
+        # Assert that the weight added is what is expected
+        if node_to_add in ['Patient ID']:
+            assert edges_and_weights.loc[other_node, 'weights']['weight'] == expected_weight
+        elif node_to_add in ['cohorts']:
+            assert edges_and_weights.loc[node_to_add, 'weights']['weight'] == expected_weight
+
+
 
 
 class TestDataModelJsonSchema:
@@ -994,10 +1182,3 @@ class TestDataModelJsonLd:
         jsonld_dm = convert_graph_to_jsonld(Graph=graph_data_model)
         assert list(jsonld_dm.keys()) == ['@context', '@graph', '@id']
         assert len(jsonld_dm['@graph']) > 1
-
-class TestSchemas:
-    def test_convert_csv_to_graph(self, helpers):
-        return
-    def test_convert_jsonld_to_graph(self, helpers):
-        return
-

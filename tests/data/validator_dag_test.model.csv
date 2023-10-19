@@ -3,7 +3,7 @@ Patient,,,"Patient ID, Sex, Year of Birth, Diagnosis, Component",,FALSE,DataType
 Patient ID,,,Patient,,TRUE,DataProperty,,,
 Sex,,"Female, Male, Other",,,TRUE,DataProperty,,,
 Year of Birth,,,,,FALSE,DataProperty,,,
-Diagnosis,,"Healthy, Cancer",,,TRUE,DataProperty,,,
+Diagnosis,,"Healthy, Cancer, Diagnosis",,,TRUE,DataProperty,,,
 Cancer,,,"Cancer Type, Family History",,FALSE,ValidValue,,,
 Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,
 Family History,,"Breast, Colorectal, Lung, Prostate, Skin",Cancer Type,,TRUE,DataProperty,,,list strict

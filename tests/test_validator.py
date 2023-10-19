@@ -90,6 +90,9 @@ class TestDataModelValidator:
         assert expected_error == validator_errors
 
     def test_dag(self, helpers):
+        # TODO: The schema validator currently doesn't catch the Diagnosis-Diagnosis self loop. 
+        # It is an expected error but it will need to be decided if the validator should prevent or allow such self loops
+
         # Get graph data model
         graph_data_model = graph_data_model_func(helpers, data_model_name='validator_dag_test.model.csv')
 
@@ -101,6 +104,8 @@ class TestDataModelValidator:
 
         # nodes could be in different order so need to account for that
         expected_errors = ['Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: Patient and PatientID, please remove this loop from your model and submit again.',
-                          'Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: PatientID and Patient, please remove this loop from your model and submit again.']
+                          'Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: PatientID and Patient, please remove this loop from your model and submit again.',
+                          'Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: Diagnosis and Diagnosis, please remove this loop from your model and submit again.']
+        
         assert validator_errors[0] in expected_errors
         
