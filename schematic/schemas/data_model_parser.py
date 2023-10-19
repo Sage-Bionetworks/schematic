@@ -320,9 +320,10 @@ class DataModelJSONLDParser:
             # Go through each defined relationship type (rel_key) and its attributes (rel_vals)
             for rel_key, rel_vals in self.rel_dict.items():
                 # Determine if current entry in the for loop, can be described by the current relationship that is being cycled through.
+                # used to also check "csv_header" in rel_vals.keys() which allows all JSONLD values through even if it does not have a CSV counterpart, will allow other values thorough in the else statement now
                 if (
                     rel_vals["jsonld_key"] in entry.keys()
-                    and "csv_header" in rel_vals.keys()
+                    and rel_vals["csv_header"]
                 ):
                     # Retrieve entry value associated with the given relationship
                     rel_entry = entry[rel_vals["jsonld_key"]]
@@ -334,6 +335,21 @@ class DataModelJSONLDParser:
                         # Add relationships for each attribute and relationship to the dictionary
                         attr_rel_dictionary[attr_key]["Relationships"].update(
                             {self.rel_dict[rel_key]["csv_header"]: parsed_rel_entry}
+                        )
+                elif (
+                    rel_vals["jsonld_key"] in entry.keys()
+                    and not rel_vals["csv_header"]
+                ):
+                    # Retrieve entry value associated with the given relationship
+                    rel_entry = entry[rel_vals["jsonld_key"]]
+                    # If there is an entry parset it by type and add to the attr:relationships dictionary.
+                    if rel_entry:
+                        parsed_rel_entry = self.parse_entry(
+                            rel_entry=rel_entry, id_jsonld_key=id_jsonld_key
+                        )
+                        # Add relationships for each attribute and relationship to the dictionary
+                        attr_rel_dictionary[attr_key]["Relationships"].update(
+                            {rel_key: parsed_rel_entry}
                         )
         return attr_rel_dictionary
 
