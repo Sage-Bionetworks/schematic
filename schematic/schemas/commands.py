@@ -16,10 +16,11 @@ from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import export_schema
 from schematic.help import schema_commands
 
-logger = logging.getLogger('schematic')
+logger = logging.getLogger("schematic")
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
+
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -40,7 +41,6 @@ def schema():  # use as `schematic model ...`
 @click.argument(
     "schema", type=click.Path(exists=True), metavar="<DATA_MODEL_CSV>", nargs=1
 )
-
 @click.option(
     "--output_jsonld",
     "-o",
@@ -54,14 +54,14 @@ def convert(schema, output_jsonld):
 
     Note: Currently, not configured to build off of base model, so removing --base_schema argument for now
     """
-    
+
     # get the start time
     st = time.time()
 
     # Instantiate Parser
     data_model_parser = DataModelParser(schema)
 
-    #Parse Model
+    # Parse Model
     logger.info("Parsing data model.")
     parsed_data_model = data_model_parser.parse_model()
 
@@ -77,7 +77,7 @@ def convert(schema, output_jsonld):
     logger.info("Validating the data model internally.")
     data_model_validator = DataModelValidator(graph=graph_data_model)
     data_model_errors, data_model_warnings = data_model_validator.run_checks()
-    
+
     # If there are errors log them.
     if data_model_errors:
         for err in data_model_errors:
@@ -96,7 +96,6 @@ def convert(schema, output_jsonld):
                 for w in war:
                     logger.warning(w)
 
-        
     logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
 
@@ -114,9 +113,13 @@ def convert(schema, output_jsonld):
     # saving updated schema.org schema
     try:
         export_schema(jsonld_data_model, output_jsonld)
-        click.echo(f"The Data Model was created and saved to '{output_jsonld}' location.")
+        click.echo(
+            f"The Data Model was created and saved to '{output_jsonld}' location."
+        )
     except:
-        click.echo(f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again")
+        click.echo(
+            f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again"
+        )
 
     # get the end time
     et = time.time()
