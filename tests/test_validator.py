@@ -90,6 +90,9 @@ class TestDataModelValidator:
         assert expected_error == validator_errors
 
     def test_dag(self, helpers):
+        # TODO: The schema validator currently doesn't catch the Diagnosis-Diagnosis self loop. 
+        # It is an expected error but it will need to be decided if the validator should prevent or allow such self loops
+
         # Get graph data model
         graph_data_model = graph_data_model_func(helpers, data_model_name='validator_dag_test.model.csv')
 
