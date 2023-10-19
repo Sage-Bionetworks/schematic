@@ -16,17 +16,12 @@ class DataModelNodes():
     def __init__(self, attribute_relationships_dict):
         self.namespaces = dict(rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
         self.data_model_relationships = DataModelRelationships()
-        self.value_relationships = self.data_model_relationships.define_value_relationships()
-        self.edge_relationships_dictionary = self.data_model_relationships.define_edge_relationships()
+        self.value_relationships = self.data_model_relationships.retreive_rel_headers_dict(edge=False)
+        self.edge_relationships_dictionary = self.data_model_relationships.retreive_rel_headers_dict(edge=True)
         self.properties = self.get_data_model_properties(attr_rel_dict=attribute_relationships_dict)
+        # retrieve a list of relationship types that will produce nodes.
+        self.node_relationships =list(self.edge_relationships_dictionary.values())
 
-    '''    
-    def node_present(self, G, node_name):
-        if node_name in G.nodes():
-            return True
-        else:
-            return False
-    '''
     def gather_nodes(self, attr_info: tuple) -> list:
         """Take in a tuple containing attriute name and relationship dictionary, and find all nodes defined in attribute information.
         Args:
@@ -36,8 +31,6 @@ class DataModelNodes():
         Note:
             Extracting nodes in this fashion ensures order is preserved.
         """
-        # retrieve a list of relationship types that will produce nodes.
-        self.node_relationships =list(self.edge_relationships_dictionary.values())
 
         # Extract attribute and relationship dictionary
         attribute, relationship = attr_info
@@ -52,7 +45,7 @@ class DataModelNodes():
                                 for node in relationships[rel]])
         return nodes
 
-    def gather_all_nodes(self, attr_rel_dict: dict):
+    def gather_all_nodes_in_model(self, attr_rel_dict: dict)->list:
         """Gather all nodes in the data model, in order.
         Args:
             attr_rel_dict, dict: generated in data_model_parser
@@ -72,14 +65,14 @@ class DataModelNodes():
         all_nodes = list(dict.fromkeys(all_nodes).keys())
         return all_nodes
 
-    def get_rel_node_dict_info(self, relationship: str) -> tuple:
+    def get_rel_node_dict_info(self, relationship: str) -> Optional[tuple[str, dict]]:
         """For each display name get defaults for nodes.
         Args:
             relationship, str: relationship key to match.
         Returns:
             rel_key, str: relationship node label
             rel_node_dict, dict: node_attr_dict, from relationships dictionary for a given relationship
-
+        TODO: Move to data_model_relationships.
         """
         for k,v in self.data_model_relationships.relationships_dictionary.items():
             if k == relationship:
@@ -156,8 +149,8 @@ class DataModelNodes():
         
         else:
             # Raise Error if the rel_func provided is not captured.
-            raise KeyError(f"The function provided ({rel_func}) to define the relationship {key} is not captured in the function run_rel_functions, please update.")
-            return
+            raise ValueError(f"The function provided ({rel_func}) to define the relationship {key} is not captured in the function run_rel_functions, please update.")
+
     def generate_node_dict(self, node_display_name: str, attr_rel_dict: dict) -> dict:
         """Gather information to be attached to each node.
         Args:
