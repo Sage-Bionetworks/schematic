@@ -101,12 +101,15 @@ def convert(schema, output_jsonld):
 
     # output JSON-LD file alongside CSV file by default, get path.
     if output_jsonld is None:
-        csv_no_ext = re.sub("[.]csv$", "", schema)
-        output_jsonld = csv_no_ext + ".jsonld"
+        if not '.jsonld' in schema:
+            csv_no_ext = re.sub("[.]csv$", "", schema)
+            output_jsonld = csv_no_ext + ".jsonld"
+        else:
+            output_jsonld = schema
 
         logger.info(
             "By default, the JSON-LD output will be stored alongside the first "
-            f"input CSV file. In this case, it will appear here: '{output_jsonld}'. "
+            f"input CSV or JSON-LD file. In this case, it will appear here: '{output_jsonld}'. "
             "You can use the `--output_jsonld` argument to specify another file path."
         )
 
