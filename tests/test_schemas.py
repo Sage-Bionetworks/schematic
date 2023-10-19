@@ -1183,7 +1183,7 @@ class TestDataModelJsonLd:
         assert type(data_model_jsonld.graph) == nx.MultiDiGraph
         assert type(data_model_jsonld.rel_dict) == dict
         assert "required" in data_model_jsonld.rel_dict
-        assert type(data_model_jsonld.DME) == DataModelGraphExplorer
+        assert type(data_model_jsonld.dmge) == DataModelGraphExplorer
         assert data_model_jsonld.output_path == ""
 
     def test_base_jsonld_template(self, helpers):

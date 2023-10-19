@@ -36,7 +36,7 @@ class AttributesExplorer():
         self.graph_data_model = data_model_grapher.generate_data_model_graph()
 
         # Instantiate Data Model Graph Explorer
-        self.DME = DataModelGraphExplorer(self.graph_data_model)
+        self.dmge = DataModelGraphExplorer(self.graph_data_model)
 
         # Instantiate Data Model Json Schema
         self.data_model_js = DataModelJSONSchema(jsonld_path=self.path_to_jsonld, graph=self.graph_data_model)
@@ -80,7 +80,7 @@ class AttributesExplorer():
                 
         '''
         # get all components
-        component_dg = self.DME.get_digraph_by_edge_type('requiresComponent')
+        component_dg = self.dmge.get_digraph_by_edge_type('requiresComponent')
         components = component_dg.nodes()
         
         # For each data type to be loaded gather all attribtes the user would

@@ -128,7 +128,7 @@ class TestManifestGenerator:
         assert type(generator.title) is str
         # assert generator.sheet_service == mock_creds["sheet_service"]
         assert generator.root is "Patient"
-        assert type(generator.DME) is DataModelGraphExplorer
+        assert type(generator.dmge) is DataModelGraphExplorer
 
     @pytest.mark.parametrize("data_type, exc, exc_message",
                               [("MissingComponent", LookupError, "could not be found in the data model schema"),

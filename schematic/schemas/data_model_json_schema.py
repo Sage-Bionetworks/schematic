@@ -20,7 +20,7 @@ class DataModelJSONSchema:
         # TODO: Change jsonld_path to data_model_path (can work with CSV too)
         self.jsonld_path = jsonld_path
         self.graph = graph  # Graph would be fully made at this point.
-        self.DME = DataModelGraphExplorer(self.graph)
+        self.dmge = DataModelGraphExplorer(self.graph)
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
 
@@ -127,7 +127,7 @@ class DataModelJSONSchema:
         )  # maintain a map between range nodes and their domain nodes {range_value : domain_value}
         # the domain node is very likely the parentof ("parentOf" relationship) of the range node
 
-        root_dependencies = self.DME.get_adjacent_nodes_by_relationship(
+        root_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
             node_label=source_node,
             relationship=self.rel_dict["requiresDependency"]["edge_key"],
         )
@@ -146,15 +146,15 @@ class DataModelJSONSchema:
                 # node is being processed
                 node_is_processed = True
 
-                node_range = self.DME.get_adjacent_nodes_by_relationship(
+                node_range = self.dmge.get_adjacent_nodes_by_relationship(
                     node_label=process_node,
                     relationship=self.rel_dict["rangeIncludes"]["edge_key"],
                 )
 
                 # get node range display name
-                node_range_d = self.DME.get_nodes_display_names(node_list=node_range)
+                node_range_d = self.dmge.get_nodes_display_names(node_list=node_range)
 
-                node_dependencies = self.DME.get_adjacent_nodes_by_relationship(
+                node_dependencies = self.dmge.get_adjacent_nodes_by_relationship(
                     node_label=process_node,
                     relationship=self.rel_dict["requiresDependency"]["edge_key"],
                 )
@@ -172,10 +172,10 @@ class DataModelJSONSchema:
 
                 # can this node be map to the empty set (if required no; if not required yes)
                 # TODO: change "required" to different term, required may be a bit misleading (i.e. is the node required in the schema)
-                node_required = self.DME.get_node_required(node_label=process_node)
+                node_required = self.dmge.get_node_required(node_label=process_node)
 
                 # get any additional validation rules associated with this node (e.g. can this node be mapped to a list of other nodes)
-                node_validation_rules = self.DME.get_node_validation_rules(
+                node_validation_rules = self.dmge.get_node_validation_rules(
                     node_display_name=node_display_name
                 )
 
@@ -328,7 +328,7 @@ class DataModelJSONSchema:
                         node_is_processed = False
 
                 # add process node as a conditional to its dependencies
-                node_dependencies_d = self.DME.get_nodes_display_names(
+                node_dependencies_d = self.dmge.get_nodes_display_names(
                     node_list=node_dependencies
                 )
 

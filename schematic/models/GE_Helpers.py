@@ -40,7 +40,7 @@ class GreatExpectationsHelpers(object):
             2) Parse results dict to generate appropriate errors
     """
     def __init__(self,
-        DME,
+        dmge,
         unimplemented_expectations,
         manifest,
         manifestPath
@@ -49,8 +49,8 @@ class GreatExpectationsHelpers(object):
             Purpose:
                 Instantiate a great expectations helpers object
             Args:
-                DME: 
-                    DataModelExplorer Object
+                dmge: 
+                    DataModelGraphExplorer Object
                 unimplemented_expectations:
                     dictionary of validation rules that currently do not have expectations developed
                 manifest:
@@ -59,7 +59,7 @@ class GreatExpectationsHelpers(object):
                     path to manifest being validated            
         """
         self.unimplemented_expectations = unimplemented_expectations
-        self.DME = DME
+        self.dmge = dmge
         self.manifest = manifest
         self.manifestPath = manifestPath
 
@@ -159,7 +159,7 @@ class GreatExpectationsHelpers(object):
             
             # remove trailing/leading whitespaces from manifest
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            validation_rules = self.DME.get_node_validation_rules(node_display_name=col)
+            validation_rules = self.dmge.get_node_validation_rules(node_display_name=col)
 
             #check if attribute has any rules associated with it
             if validation_rules:
@@ -385,7 +385,7 @@ class GreatExpectationsHelpers(object):
         validation_types: Dict,
         errors: List,
         warnings: List,
-        DME: DataModelGraphExplorer,
+        dmge: DataModelGraphExplorer,
         ):
         """
             Purpose:
@@ -450,7 +450,7 @@ class GreatExpectationsHelpers(object):
                                 row_num = str(row+2),
                                 attribute_name = errColumn,
                                 invalid_entry = str(value),
-                                DME = DME,
+                                dmge = dmge,
                             )
                         if vr_errors:
                             errors.append(vr_errors)  
@@ -466,7 +466,7 @@ class GreatExpectationsHelpers(object):
                                 module_to_call = 'match',
                                 attribute_name = errColumn,
                                 invalid_entry = value,
-                                DME = DME,
+                                dmge = dmge,
                             )
                         if vr_errors:
                             errors.append(vr_errors)  
@@ -478,7 +478,7 @@ class GreatExpectationsHelpers(object):
                                                             attribute_name = errColumn,
                                                             row_num = np_array_to_str_list(np.array(indices)+2),
                                                             error_val = iterable_to_str_list(values),  
-                                                            DME = self.DME
+                                                            dmge = self.dmge
                                                         )       
                     if vr_errors:
                         errors.append(vr_errors)  

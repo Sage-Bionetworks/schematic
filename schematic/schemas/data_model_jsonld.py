@@ -108,7 +108,7 @@ class DataModelJsonLD(object):
         self.graph = Graph  # Graph would be fully made at this point.
         self.dmr = DataModelRelationships()
         self.rel_dict = self.dmr.relationships_dictionary
-        self.DME = DataModelGraphExplorer(self.graph)
+        self.dmge = DataModelGraphExplorer(self.graph)
         self.output_path = output_path
 
         # Gather the templates
@@ -361,7 +361,7 @@ class DataModelJsonLD(object):
                 ][0]
 
                 # Order edges
-                sorted_edges = self.DME.get_ordered_entry(
+                sorted_edges = self.dmge.get_ordered_entry(
                     key=key, source_node_label=template_label
                 )
                 edge_weights_dict = {edge: i for i, edge in enumerate(sorted_edges)}
@@ -383,7 +383,7 @@ class DataModelJsonLD(object):
             jsonld_object, dict: JSONLD object containing all nodes and related information
         """
         # Get properties.
-        properties = self.DME.find_properties()
+        properties = self.dmge.find_properties()
 
         # Get JSONLD Template
         json_ld_template = self.base_jsonld_template

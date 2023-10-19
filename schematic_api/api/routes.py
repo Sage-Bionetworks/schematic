@@ -335,8 +335,8 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     # Gather all returned result urls
     all_results = []
     if data_type[0] == 'all manifests':
-        DME = DataModelGraphExplorer(graph_data_model)
-        component_digraph = DME.get_digraph_by_edge_type('requiresComponent')
+        dmge = DataModelGraphExplorer(graph_data_model)
+        component_digraph = dmge.get_digraph_by_edge_type('requiresComponent')
         components = component_digraph.nodes()
         for component in components:
             if title:
@@ -767,10 +767,10 @@ def get_subgraph_by_edge_type(schema_url, relationship):
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
-    DME = DataModelGraphExplorer(graph_data_model)
+    dmge = DataModelGraphExplorer(graph_data_model)
     
     # relationship subgraph
-    relationship_subgraph = DME.get_subgraph_by_edge_type(relationship)
+    relationship_subgraph = dmge.get_subgraph_by_edge_type(relationship)
     # return relationship 
     Arr = []
     for t in relationship_subgraph.edges:
@@ -791,10 +791,10 @@ def find_class_specific_properties(schema_url, schema_class):
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
-    DME = DataModelGraphExplorer(graph_data_model)
+    dmge = DataModelGraphExplorer(graph_data_model)
 
     # return properties
-    properties = DME.find_class_specific_properties(schema_class)
+    properties = dmge.find_class_specific_properties(schema_class)
 
     return properties
 
@@ -832,9 +832,9 @@ def get_node_dependencies(
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
-    DME = DataModelGraphExplorer(graph_data_model)
+    dmge = DataModelGraphExplorer(graph_data_model)
     
-    dependencies = DME.get_node_dependencies(
+    dependencies = dmge.get_node_dependencies(
         source_node, return_display_names, return_schema_ordered
     )
     return dependencies
@@ -885,9 +885,9 @@ def get_node_range(
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
-    DME = DataModelGraphExplorer(graph_data_model)
+    dmge = DataModelGraphExplorer(graph_data_model)
 
-    node_range = DME.get_node_range(node_label, return_display_names)
+    node_range = dmge.get_node_range(node_label, return_display_names)
     return node_range
 
 def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
@@ -911,9 +911,9 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
-    DME = DataModelGraphExplorer(graph_data_model)
+    dmge = DataModelGraphExplorer(graph_data_model)
 
-    is_required = DME.get_node_required(node_display_name)
+    is_required = dmge.get_node_required(node_display_name)
 
     return is_required
 
@@ -938,9 +938,9 @@ def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
     #Instantiate DataModelGraphExplorer
-    DME = DataModelGraphExplorer(graph_data_model)
+    dmge = DataModelGraphExplorer(graph_data_model)
 
-    node_validation_rules = DME.get_node_validation_rules(node_display_name)
+    node_validation_rules = dmge.get_node_validation_rules(node_display_name)
 
     return node_validation_rules
 
@@ -968,9 +968,9 @@ def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
     #Instantiate DataModelGraphExplorer
-    DME = DataModelGraphExplorer(graph_data_model)
+    dmge = DataModelGraphExplorer(graph_data_model)
 
-    node_display_names = DME.get_nodes_display_names(node_list)
+    node_display_names = dmge.get_nodes_display_names(node_list)
     return node_display_names
 
 def get_schematic_version() -> str:

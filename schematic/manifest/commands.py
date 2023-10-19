@@ -213,8 +213,8 @@ def get_manifest(
 
     if data_type[0] == 'all manifests':      
         # Feed graph into the data model graph explorer
-        DME = DataModelGraphExplorer(graph_data_model)
-        component_digraph = DME.get_digraph_by_edge_type('requiresComponent')
+        dmge = DataModelGraphExplorer(graph_data_model)
+        component_digraph = dmge.get_digraph_by_edge_type('requiresComponent')
         components = component_digraph.nodes()
         for component in components:
             t = f'{title}.{component}.manifest'

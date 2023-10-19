@@ -172,7 +172,7 @@ class TestSynapseStorage:
         graph_data_model = data_model_grapher.generate_data_model_graph()
 
         # Instantiate DataModelGraphExplorer
-        DME = DataModelGraphExplorer(graph_data_model)
+        dmge = DataModelGraphExplorer(graph_data_model)
 
         try:        
             for attempt in Retrying(
@@ -182,7 +182,7 @@ class TestSynapseStorage:
                 ):
                 with attempt:         
                     manifest_id = synapse_store.associateMetadataWithFiles(
-                        DME = DME,
+                        dmge = dmge,
                         metadataManifestPath = helpers.get_data_path(manifest_path),
                         datasetId = datasetId,
                         manifest_record_type = manifest_record_type,
@@ -431,11 +431,11 @@ class TestTableOperations:
         graph_data_model = data_model_grapher.generate_data_model_graph()
 
         # Instantiate DataModelGraphExplorer
-        DME = DataModelGraphExplorer(graph_data_model)
+        dmge = DataModelGraphExplorer(graph_data_model)
 
         # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
-            DME = DME,
+            dmge = dmge,
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
@@ -483,11 +483,11 @@ class TestTableOperations:
         graph_data_model = data_model_grapher.generate_data_model_graph()
 
         # Instantiate DataModelGraphExplorer
-        DME = DataModelGraphExplorer(graph_data_model)
+        dmge = DataModelGraphExplorer(graph_data_model)
 
             # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
-            DME = DME,
+            dmge = dmge,
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
@@ -509,7 +509,7 @@ class TestTableOperations:
         
         # Associate replacement manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
-            DME = DME,
+            dmge = dmge,
             metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
@@ -562,11 +562,11 @@ class TestTableOperations:
         graph_data_model = data_model_grapher.generate_data_model_graph()
 
         # Instantiate DataModelGraphExplorer
-        DME = DataModelGraphExplorer(graph_data_model)
+        dmge = DataModelGraphExplorer(graph_data_model)
 
             # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
-            DME = DME,
+            dmge = dmge,
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
@@ -592,7 +592,7 @@ class TestTableOperations:
         
         # Associate new manifest with files
         manifestId = synapse_store.associateMetadataWithFiles(
-            DME = DME,
+            dmge = dmge,
             metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
             datasetId = datasetId, 
             manifest_record_type = 'table_and_file',

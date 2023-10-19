@@ -61,7 +61,7 @@ class MetadataModel(object):
         # Generate graph
         self.graph_data_model = data_model_grapher.generate_data_model_graph()
 
-        self.DME = DataModelGraphExplorer(self.graph_data_model)
+        self.dmge = DataModelGraphExplorer(self.graph_data_model)
 
         # check if the type of MModel file is "local"
         # currently, the application only supports reading from local JSON-LD files
@@ -100,7 +100,7 @@ class MetadataModel(object):
         Raises:
             ValueError: rootNode not found in metadata model.
         """
-        ordered_nodes = self.DME.get_descendants_by_edge_type(
+        ordered_nodes = self.dmge.get_descendants_by_edge_type(
             rootNode, relationshipType, connected=True, ordered=True
         )
 
@@ -168,11 +168,11 @@ class MetadataModel(object):
         """
 
         # get required components for the input/source component
-        req_components = self.DME.get_component_requirements(source_component)
+        req_components = self.dmge.get_component_requirements(source_component)
 
         # retreive components as graph
         if as_graph:
-            req_components_graph = self.DME.get_component_requirements_graph(
+            req_components_graph = self.dmge.get_component_requirements_graph(
                 source_component
             )
 
@@ -259,7 +259,7 @@ class MetadataModel(object):
                                                   warnings=warnings,
                                                   manifest=manifest,
                                                   manifestPath=manifestPath,
-                                                  DME=self.DME,
+                                                  dmge=self.dmge,
                                                   jsonSchema=jsonSchema,
                                                   restrict_rules=restrict_rules,
                                                   project_scope=project_scope)
@@ -327,7 +327,7 @@ class MetadataModel(object):
 
             try:
                 # check if the component ("class" in schema) passed as argument is valid (present in schema) or not
-                self.DME.is_class_in_schema(validate_component)
+                self.dmge.is_class_in_schema(validate_component)
             except:
                 # a KeyError exception is raised when validate_component fails in the try-block above
                 # here, we are suppressing the KeyError exception and replacing it with a more
@@ -347,7 +347,7 @@ class MetadataModel(object):
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if exists(censored_manifest_path):
                     censored_manifest_id = syn_store.associateMetadataWithFiles(
-                        DME = self.DME,
+                        dmge = self.dmge,
                         metadataManifestPath = censored_manifest_path,
                         datasetId = dataset_id, 
                         manifest_record_type = manifest_record_type,
@@ -358,7 +358,7 @@ class MetadataModel(object):
                     restrict_maniest = True
                 
                 manifest_id = syn_store.associateMetadataWithFiles(
-                    DME = self.DME,
+                    dmge = self.dmge,
                     metadataManifestPath = manifest_path, 
                     datasetId = dataset_id, 
                     manifest_record_type = manifest_record_type,
@@ -380,7 +380,7 @@ class MetadataModel(object):
         # no need to perform validation, just submit/associate the metadata manifest file
         if exists(censored_manifest_path):
             censored_manifest_id = syn_store.associateMetadataWithFiles(
-                DME = self.DME,
+                dmge = self.dmge,
                 metadataManifestPath=censored_manifest_path,
                 datasetId=dataset_id,
                 manifest_record_type=manifest_record_type,
@@ -391,7 +391,7 @@ class MetadataModel(object):
             restrict_maniest = True
         
         manifest_id = syn_store.associateMetadataWithFiles(
-            DME = self.DME,
+            dmge = self.dmge,
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             manifest_record_type=manifest_record_type,

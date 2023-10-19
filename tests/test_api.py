@@ -87,9 +87,9 @@ def get_MockComponent_attribute():
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
-    DME = DataModelGraphExplorer(graph_data_model)
+    dmge = DataModelGraphExplorer(graph_data_model)
     #sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld")
-    attributes=DME.get_node_dependencies('MockComponent')
+    attributes=dmge.get_node_dependencies('MockComponent')
     attributes.remove('Component')
 
     for MockComponent_attribute in attributes:

@@ -88,13 +88,13 @@ class ManifestGenerator(object):
             )
 
         # Instantiate Data Model Explorer object
-        self.DME = DataModelGraphExplorer(self.graph)
+        self.dmge = DataModelGraphExplorer(self.graph)
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
    
         # Check if the class is in the schema
-        root_in_schema = self.DME.is_class_in_schema(self.root)
+        root_in_schema = self.dmge.is_class_in_schema(self.root)
         
         # If the class could not be found, give a notification
         if not root_in_schema:
@@ -103,7 +103,7 @@ class ManifestGenerator(object):
             raise LookupError(exception_message) 
 
         # Determine whether current data type is file-based
-        self.is_file_based = "Filename" in self.DME.get_node_dependencies(self.root)
+        self.is_file_based = "Filename" in self.dmge.get_node_dependencies(self.root)
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet"""
@@ -819,9 +819,9 @@ class ManifestGenerator(object):
             notes_body["requests"] (dict): with information on note
                 to add to the column header. This notes body will be added to a request.
         """
-        if self.DME:
+        if self.dmge:
             # get node definition
-            note = self.DME.get_node_comment(node_display_name = req)
+            note = self.dmge.get_node_comment(node_display_name = req)
 
             notes_body = {
                 "requests": [
@@ -1020,7 +1020,7 @@ class ManifestGenerator(object):
         dependency_formatting_body = {"requests": []}
         for j, val_dep in enumerate(val_dependencies):
             is_required = False
-            if self.DME.get_node_required(node_display_name=val_dep):
+            if self.dmge.get_node_required(node_display_name=val_dep):
                 is_required = True
             else:
                 is_required = False
@@ -1063,13 +1063,13 @@ class ManifestGenerator(object):
         for req_val in req_vals:
             # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
             req_val = req_val["userEnteredValue"]
-            req_val_node_label = self.DME.get_node_label(req_val)
+            req_val_node_label = self.dmge.get_node_label(req_val)
             if not req_val_node_label:
                 # if this node is not in the graph
                 # continue - there are no dependencies for it
                 continue
             # check if this required/valid value has additional dependency attributes
-            val_dependencies = self.DME.get_node_dependencies(
+            val_dependencies = self.dmge.get_node_dependencies(
                 req_val_node_label, schema_ordered=False
             )
 
@@ -1122,7 +1122,7 @@ class ManifestGenerator(object):
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
             # Gather validation rules and valid values for attribute.
-            validation_rules = self.DME.get_node_validation_rules(node_display_name=req)
+            validation_rules = self.dmge.get_node_validation_rules(node_display_name=req)
             
             # Add regex match validaiton rule to Google Sheets.
             if validation_rules and sheet_url:
@@ -1537,7 +1537,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
-        manifest_record = store.updateDatasetManifestFiles(self.DME, datasetId = dataset_id, store = False)
+        manifest_record = store.updateDatasetManifestFiles(self.dmge, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
         empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=True)
@@ -1774,9 +1774,9 @@ class ManifestGenerator(object):
 
         # order manifest fields based on data-model schema
         if order == "schema":
-            if self.DME and self.root:
+            if self.dmge and self.root:
                 # get display names of dependencies
-                dependencies_display_names = self.DME.get_node_dependencies(self.root)
+                dependencies_display_names = self.dmge.get_node_dependencies(self.root)
 
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(
