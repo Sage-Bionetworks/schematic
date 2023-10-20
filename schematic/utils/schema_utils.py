@@ -61,7 +61,13 @@ def get_attribute_display_name_from_label(node_name: str, attr_relationships: di
         display_name = node_name
     return display_name
 
-def get_label_from_display_name(display_name:str, entry_type:str, strict_camel_case:bool = False) -> str:
+def check_if_display_name_is_valid_label(display_name:str, blacklisted_chars:list[str])-> bool:
+    valid_label=True
+    if any(map(display_name.__contains__, blacklisted_chars)):
+        valid_label=False
+    return valid_label
+
+def get_label_from_display_name(display_name:str, entry_type:str, strict_camel_case:bool = False, use_display_name_as_label:bool = False) -> str:
     """Get node label from provided display name, based on whether the node is a class or property
     Args:
         display_name, str: node display name
@@ -73,14 +79,25 @@ def get_label_from_display_name(display_name:str, entry_type:str, strict_camel_c
         ValueError if entry_type.lower(), is not either 'class' or 'property'
 
     """
-    if entry_type.lower()=='class':
-        label = get_class_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
-    
-    elif entry_type.lower()=='property':
-        label=get_property_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+    if use_display_name_as_label:
+        blacklisted_chars = ["(", ")", ".", "-", " "]
+        # Check that display name can be used as a label.
+        valid_display_name = check_if_display_name_is_valid_label(display_name=display_name, blacklisted_chars=blacklisted_chars)
+        if valid_display_name:
+            label=display_name
+        else:
+            raise ValueError(f"Cannot use display name {display_name} as the schema label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}")
     else:
-        raise ValueError(f"The entry type submitted: {entry_type}, is not one of the permitted types: 'class' or 'property'")
+        if entry_type.lower()=='class':
+            label = get_class_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+        
+        elif entry_type.lower()=='property':
+            label=get_property_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+        else:
+            raise ValueError(f"The entry type submitted: {entry_type}, is not one of the permitted types: 'class' or 'property'")
     return label
+
+
 
 def convert_bool_to_str(provided_bool: bool) -> str:
     """Convert bool to string.

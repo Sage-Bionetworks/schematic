@@ -169,6 +169,9 @@ schema_commands = {
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
+            "display_name_as_label": (
+                "Flag to indicate that the display name should be used as the label. This requires that the display name be properly formatted without spaces or blacklisted characters."
+            ),
         }
     }
 }

@@ -42,12 +42,18 @@ def schema():  # use as `schematic model ...`
     "schema", type=click.Path(exists=True), metavar="<DATA_MODEL_CSV>", nargs=1
 )
 @click.option(
+    "--display_name_as_label",
+    "-dnl",
+    is_flag=True,
+    help=query_dict(schema_commands, ("schema", "convert", "display_name_as_label")),
+)
+@click.option(
     "--output_jsonld",
     "-o",
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
-def convert(schema, output_jsonld):
+def convert(schema, display_name_as_label, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.

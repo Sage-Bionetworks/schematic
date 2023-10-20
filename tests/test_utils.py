@@ -40,7 +40,8 @@ from schematic.utils.general import (calculate_datetime,
 from schematic.utils.schema_utils import (export_schema,
                                           get_property_label_from_display_name,
                                           get_class_label_from_display_name,
-                                          strip_context)
+                                          strip_context,
+                                          get_label_from_display_name)
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -410,6 +411,51 @@ class TestSchemaUtils:
             assert stripped_contex == ('', 'id')
         elif 'sms:required' == context_value:
             assert stripped_contex == ('sms', 'required')
+
+    TEST_DN_DICT = {
+    "Bio Things": {"class": "BioThings", "property": "bioThings"},
+    "bio things": {"class": "Biothings", "property": "biothings"},
+    "BioThings": {"class": "BioThings", "property": "bioThings"},
+    "Bio-things": {"class": "Biothings", "property": "biothings"},
+    "bio_things": {"class": "Biothings", "property": "biothings"},
+    }
+    @pytest.mark.parametrize(
+        ("test_dn", "entry_types"),
+        (list(TEST_DN_DICT.keys()), list(TEST_DN_DICT.values())),
+        ids=(list(TEST_DN_DICT.keys()), list(TEST_DN_DICT.keys()))
+    )
+
+    @pytest.mark.parametrize(
+        "use_label", [True, False], ids=["True", "False"]
+    )
+    def test_get_label_from_display_name(self, test_dn, use_label):
+        display_name = test_dn.keys()[0]
+        for entry_type, expected_result in test_dn.values():
+            label = ""
+
+            try:
+                label = get_label_from_display_name(entry_type=entry_type, display_name=test_dn, use_display_name_as_label=use_label)
+            except:
+                # Under these conditions should only fail if the display name cannot be used as a label.
+                try:
+                    assert test_dn in ["Bio Things", "bio things", "Bio-things", "bio_things"]
+                    continue
+                except:
+                    breakpoint()
+            if label:
+                if use_label:
+                    try:
+                        assert label == test_dn
+                    except:
+                        breakpoint()
+                else:
+                    try:
+                        assert label == expected_result
+                    except:
+                        breakpoint()
+            else:
+                return
+        return
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):

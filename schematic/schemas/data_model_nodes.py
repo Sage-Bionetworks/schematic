@@ -129,6 +129,7 @@ class DataModelNodes:
         attr_relationships={},
         csv_header="",
         entry_type="",
+        display_name_as_label=False,
     ):
         """This function exists to centralzie handling of functions for filling out node information, makes sure all the proper parameters are passed to each function.
         Args:
@@ -156,7 +157,7 @@ class DataModelNodes:
 
         elif rel_func == get_label_from_display_name:
             return get_label_from_display_name(
-                display_name=node_display_name, entry_type=entry_type
+                display_name=node_display_name, entry_type=entry_type, use_display_name_as_label=display_name_as_label,
             )
 
         elif rel_func == convert_bool_to_str:
@@ -175,7 +176,7 @@ class DataModelNodes:
                 f"The function provided ({rel_func}) to define the relationship {key} is not captured in the function run_rel_functions, please update."
             )
 
-    def generate_node_dict(self, node_display_name: str, attr_rel_dict: dict) -> dict:
+    def generate_node_dict(self, node_display_name: str, attr_rel_dict: dict, display_name_as_label:bool) -> dict:
         """Gather information to be attached to each node.
         Args:
             node_display_name, str: display name for current node
@@ -183,6 +184,7 @@ class DataModelNodes:
                 {Attribute Display Name: {
                         Relationships: {
                                     CSV Header: Value}}}
+            display_name_as_label, bool: if true, use the display name provided as the label
 
         Returns:
             node_dict, dict: dictionary of relationship information about the current node
@@ -227,6 +229,7 @@ class DataModelNodes:
                                 attr_relationships=attr_relationships,
                                 csv_header=csv_header,
                                 entry_type=entry_type,
+                                display_name_as_label=display_name_as_label,
                             )
                         }
                     )
