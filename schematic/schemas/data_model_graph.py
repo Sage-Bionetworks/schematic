@@ -42,7 +42,7 @@ class DataModelGraph:
 
     __metaclass__ = DataModelGraphMeta
 
-    def __init__(self, attribute_relationships_dict: dict) -> None:
+    def __init__(self, attribute_relationships_dict: dict, display_name_as_label:bool) -> None:
         """Load parsed data model.
         Args:
             attributes_relationship_dict, dict: generated in data_model_parser
@@ -56,6 +56,7 @@ class DataModelGraph:
         self.dmn = DataModelNodes(self.attribute_relationships_dict)
         self.dme = DataModelEdges()
         self.dmr = DataModelRelationships()
+        self.display_name_as_label=display_name_as_label
 
         if not self.attribute_relationships_dict:
             raise ValueError(
@@ -85,7 +86,7 @@ class DataModelGraph:
         for node in all_nodes:
             # Gather information for each node
             node_dict = self.dmn.generate_node_dict(
-                node, self.attribute_relationships_dict
+                node_display_name=node, attr_rel_dict=self.attribute_relationships_dict, display_name_as_label=self.display_name_as_label,
             )
 
             # Add each node to the all_node_dict to be used for generating edges

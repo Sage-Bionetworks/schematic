@@ -251,6 +251,7 @@ class DataModelNodes:
                                 attr_relationships=attr_relationships,
                                 csv_header=csv_header,
                                 entry_type=entry_type,
+                                display_name_as_label=display_name_as_label,
                             )
                         }
                     )

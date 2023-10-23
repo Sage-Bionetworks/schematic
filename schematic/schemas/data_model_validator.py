@@ -77,14 +77,17 @@ class DataModelValidator:
         error = []
         if not nx.is_directed_acyclic_graph(self.graph):
             # Attempt to find any cycles:
-            cycles = nx.simple_cycles(self.graph)
-            if cycles:
-                for cycle in cycles:
-                    error.append(
-                        f"Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: {cycle[0]} and {cycle[1]}, please remove this loop from your model and submit again."
-                    )
-            else:
-                error.append(
+            #cycles = nx.simple_cycles(self.graph)
+            #if cycles:
+            #    for cycle in cycles:
+            #        error.append(
+            #            f"Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: {cycle[0]} and {cycle[1]}, please remove this loop from your model and submit again."
+            #        )
+            #else:
+            #    error.append(
+            #        f"Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we could not locate the sorce of the error, please inspect your model."
+            #    )
+            error.append(
                     f"Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we could not locate the sorce of the error, please inspect your model."
                 )
         return error

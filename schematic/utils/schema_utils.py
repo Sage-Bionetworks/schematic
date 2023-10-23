@@ -1,8 +1,12 @@
 import inflection
 import json
+import logging
 import networkx as nx
 import string
 from typing import List, Dict
+
+logger = logging.getLogger(__name__)
+
 
 def attr_dict_template(key_name:str)->Dict[str,dict[str,dict]]:
     return {key_name: {'Relationships': {}}}
@@ -86,7 +90,12 @@ def get_label_from_display_name(display_name:str, entry_type:str, strict_camel_c
         if valid_display_name:
             label=display_name
         else:
-            raise ValueError(f"Cannot use display name {display_name} as the schema label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}")
+            if entry_type.lower()=='class':
+             label = get_class_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+        
+            elif entry_type.lower()=='property':
+                label=get_property_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+            logger.warning(f"Cannot use display name {display_name} as the schema label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {label}")
     else:
         if entry_type.lower()=='class':
             label = get_class_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)

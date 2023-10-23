@@ -54,6 +54,9 @@ manifest_commands = {
                 "Specify to alphabetize valid attribute values either ascending (a) or descending (d)."
                 "Optional"
             ),
+            "display_name_as_label": (
+                "Flag to indicate that the display name should be used as the label. This requires that the display name be properly formatted without spaces or blacklisted characters."
+            ),
         },
         "migrate": {
             "short_help": (

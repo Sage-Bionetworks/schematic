@@ -73,7 +73,7 @@ def convert(schema, display_name_as_label, output_jsonld):
 
     # Convert parsed model to graph
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     logger.info("Generating data model graph.")
