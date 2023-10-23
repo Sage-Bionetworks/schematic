@@ -63,7 +63,7 @@ class Helpers:
         return se
 
     @staticmethod
-    def get_python_version(self):
+    def get_python_version():
         version=sys.version
         base_version=".".join(version.split('.')[0:2])
 
@@ -72,7 +72,7 @@ class Helpers:
     @staticmethod
     def get_python_project(self):
 
-        version = self.get_python_version(Helpers)
+        version = self.get_python_version()
 
         python_projects = {
             "3.7":  "syn47217926",

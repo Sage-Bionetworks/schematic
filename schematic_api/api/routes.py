@@ -339,7 +339,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None):
+def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None, asset_view=None, project_scope = None):
     # Access token now stored in request header
     access_token = get_access_token()
     
@@ -348,7 +348,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
         restrict_rules=False
         
     # call config_handler()
-    config_handler()
+    config_handler(asset_view = asset_view)
 
     #If restrict_rules parameter is set to None, then default it to False 
     if not restrict_rules:
@@ -370,7 +370,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=temp_path, rootNode=data_type, restrict_rules=restrict_rules, access_token=access_token
+        manifestPath=temp_path, rootNode=data_type, restrict_rules=restrict_rules, project_scope=project_scope, access_token=access_token
     )
     
     res_dict = {"errors": errors, "warnings": warnings}
@@ -379,7 +379,15 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None, hide_blanks=False):
+def submit_manifest_route(schema_url, 
+                          asset_view=None, 
+                          manifest_record_type=None, 
+                          json_str=None, 
+                          table_manipulation=None, 
+                          data_type=None, 
+                          hide_blanks=False, 
+                          project_scope=None,
+                          ):
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -427,7 +435,9 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
         restrict_rules = restrict_rules, 
         hide_blanks=hide_blanks,
         table_manipulation = table_manipulation, 
-        use_schema_label=use_schema_label)
+        use_schema_label=use_schema_label,
+        project_scope=project_scope,
+        )
 
     return manifest_id
 
