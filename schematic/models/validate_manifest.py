@@ -62,7 +62,7 @@ class ValidateManifest(object):
         return ["NA", error_col, error_message, error_val]
 
     def validate_manifest_rules(
-        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator, restrict_rules: bool, project_scope: List, access_token: str = None,
+        self, manifest: pd.core.frame.DataFrame, sg: SchemaGenerator, restrict_rules: bool, project_scope: List, access_token: Optional[str] = None,
     ) -> (pd.core.frame.DataFrame, List[List[str]]):
         """
         Purpose:
