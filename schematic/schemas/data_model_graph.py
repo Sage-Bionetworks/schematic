@@ -365,23 +365,8 @@ class DataModelGraphExplorer:
 
         edge_key = self.rel_dict[key]["edge_key"]
         
-        # Get edge keys for domain includes and subclassOf
-        domainIncludes_edge_key = self.rel_dict['domainIncludes']['edge_key']
-        subclassOf_edge_key = self.rel_dict['subClassOf']['edge_key']
-        
-        # Order lists when they are part of subclassOf or domainIncludes
-        if edge_key in [domainIncludes_edge_key, subclassOf_edge_key]:
-            original_edge_weights_dict = {
-                attached_node: self.graph[source_node][attached_node][edge_key][
-                    "weight"
-                ]
-                for source_node, attached_node in self.graph.out_edges(
-                    source_node_label
-                )
-                if edge_key in self.graph[source_node][attached_node]
-            }
         # Handle out edges
-        elif self.rel_dict[key]["jsonld_direction"] == "out":
+        if self.rel_dict[key]["jsonld_direction"] == "out":
             # use outedges
 
             original_edge_weights_dict = {
