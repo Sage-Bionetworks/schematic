@@ -15,7 +15,7 @@ class DataModelEdges:
         attr_rel_dict: dict,
         edge_relationships: dict,
         edge_list:list,
-    ) -> list(tuple(str, str, dict{str:str, str:int})):
+    ) -> list[tuple[str, str, dict[str:str, str:int]]]:
         """Generate an edge between a target node and relevant other nodes the data model. In short, does this current node belong to a recorded relationship in the attribute, relationshps dictionary. Go through each attribute and relationship to find where the node may be.
         Args:
             G, nx.MultiDiGraph: networkx graph representation of the data model, that is in the process of being fully built. At this point, all the nodes would have been added, and edges are being added per target node.
