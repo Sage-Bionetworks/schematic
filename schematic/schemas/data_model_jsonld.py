@@ -181,7 +181,6 @@ class DataModelJsonLD(object):
             # Get the relationship edge key
             edge_key = rel_vals["edge_key"]
 
-
             # Check if edge_key is even one of the relationships for this node pair.
             if edge_key in node_edge_relationships:
                 # for each relationship between the given nodes
@@ -189,10 +188,9 @@ class DataModelJsonLD(object):
                     # If the relationship defined and edge_key
                     if relationship == edge_key:
                         # TODO: rewrite to use edge_dir
-                        
                         domainIncludes_edge_key = self.rel_dict['domainIncludes']['edge_key']
                         subclassOf_edge_key = self.rel_dict['subClassOf']['edge_key']
-                        if edge_key in [domainIncludes_edge_key, subclassOf_edge_key]: 
+                        if edge_key in [subclassOf_edge_key]:
                             if node_2 == node:
                                 # Make sure the key is in the template (differs between properties and classes)
                                 if rel_vals["jsonld_key"] in template.keys():
@@ -210,7 +208,8 @@ class DataModelJsonLD(object):
                                         )
                                     else:
                                         template[rel_vals["jsonld_key"]] == node_1
-                            elif node_1 == node:
+                        elif edge_key in [domainIncludes_edge_key]:
+                            if node_1 == node:
                                 # Make sure the key is in the template (differs between properties and classes)
                                 if rel_vals["jsonld_key"] in template.keys():
                                     node_2_id = {"@id": "bts:" + node_2}
@@ -414,9 +413,7 @@ class DataModelJsonLD(object):
                 sorted_edges = self.dmge.get_ordered_entry(
                     key=key, source_node_label=template_label
                 )
-                try:
-                    len(entry) == len(sorted_edges)
-                except:
+                if not len(entry) == len(sorted_edges):
                     breakpoint()
                     #raise ValueError("There is an error with sorting values in the JSONLD, please issue a bug report.")
 
