@@ -155,8 +155,8 @@ class TestSynapseStorage:
 
         try:        
             for attempt in Retrying(
-                stop = stop_after_attempt(15),
-                wait = wait_random_exponential(multiplier=1,min=10,max=120),
+                stop = stop_after_attempt(5),
+                wait = wait_random_exponential(multiplier=1,min=10,max=20),
                 retry_error_callback = raise_final_error
                 ):
                 with attempt:         
