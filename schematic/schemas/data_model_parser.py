@@ -348,31 +348,32 @@ class DataModelJSONLDParser:
                             rel_entry=rel_entry, id_jsonld_key=id_jsonld_key
                         )
                         rel_csv_header = self.rel_dict[rel_key]["csv_header"]
-                        if rel_key == 'domainIncludes':
-                            # In the JSONLD the domain includes field contains the ids of attributes that the current attribute is the property of.
+                        if rel_key == 'domainIncludes' or rel_key == 'parentOf':
+                            # In the JSONLD the domain includes field contains the ids of attributes that the current attribute is the property/parent of.
                             # Because of this we need to handle these values differently.
-                            # We will get the values in the field (parsed_val), then add the current attribute as to the property key in the attr_rel_dictionary[property_attr_key].
+                            # We will get the values in the field (parsed_val), then add the current attribute as to the property key in the attr_rel_dictionary[p_attr_key].
                             for parsed_val in parsed_rel_entry:
                                 attr_in_dict = False
-                                property_attr_key=''
+                                #Get propert/parent key (displayName)
+                                p_attr_key=''
                                 # Check if the parsed value is already a part of the attr_rel_dictionary
                                 for attr_dn, rels in attr_rel_dictionary.items():
                                     if parsed_val == rels["Relationships"].get('label'):
-                                        property_attr_key = attr_dn
+                                        p_attr_key = attr_dn
                                         attr_in_dict = True
                                 # If it is part of the dictionary update add current attribute as a property of the parsed value
                                 if attr_in_dict == True:
-                                    if not rel_csv_header in attr_rel_dictionary[property_attr_key]["Relationships"]:
-                                        attr_rel_dictionary[property_attr_key]["Relationships"].update({rel_csv_header:[entry[label_jsonld_key]]})
+                                    if not rel_csv_header in attr_rel_dictionary[p_attr_key]["Relationships"]:
+                                        attr_rel_dictionary[p_attr_key]["Relationships"].update({rel_csv_header:[entry[label_jsonld_key]]})
                                     else:
-                                        attr_rel_dictionary[property_attr_key]["Relationships"][rel_csv_header].append(entry[label_jsonld_key])
+                                        attr_rel_dictionary[p_attr_key]["Relationships"][rel_csv_header].append(entry[label_jsonld_key])
                                 # If the parsed_val is not already recorded in the dictionary, add it
                                 elif attr_in_dict == False:
                                     # Get the display name for the parsed value
-                                    property_attr_key = self.get_display_name_from_label(parsed_val, model_jsonld)
+                                    p_attr_key = self.get_display_name_from_label(parsed_val, model_jsonld)
                                     
-                                    attr_rel_dictionary.update(attr_dict_template(property_attr_key))
-                                    attr_rel_dictionary[property_attr_key]["Relationships"].update({rel_csv_header:[entry[label_jsonld_key]]})
+                                    attr_rel_dictionary.update(attr_dict_template(p_attr_key))
+                                    attr_rel_dictionary[p_attr_key]["Relationships"].update({rel_csv_header:[entry[label_jsonld_key]]})
                         else:
                             attr_rel_dictionary[attr_key]["Relationships"].update(
                                 {rel_csv_header: parsed_rel_entry}
