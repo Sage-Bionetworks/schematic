@@ -414,8 +414,7 @@ class DataModelJsonLD(object):
                     key=key, source_node_label=template_label
                 )
                 if not len(entry) == len(sorted_edges):
-                    breakpoint()
-                    #raise ValueError("There is an error with sorting values in the JSONLD, please issue a bug report.")
+                    logger.error("There is an error with sorting values in the JSONLD, please issue a bug report.")
 
                 edge_weights_dict = {edge: i for i, edge in enumerate(sorted_edges)}
                 ordered_edges = [0] * len(edge_weights_dict.keys())
