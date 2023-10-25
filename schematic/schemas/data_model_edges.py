@@ -10,12 +10,12 @@ class DataModelEdges:
 
     def generate_edge(
         self,
-        G: nx.MultiDiGraph,
         node: str,
         all_node_dict: dict,
         attr_rel_dict: dict,
         edge_relationships: dict,
-    ) -> nx.MultiDiGraph:
+        edge_list:list,
+    ) -> list[tuple[str, str, dict[str:str, str:int]]]:
         """Generate an edge between a target node and relevant other nodes the data model. In short, does this current node belong to a recorded relationship in the attribute, relationshps dictionary. Go through each attribute and relationship to find where the node may be.
         Args:
             G, nx.MultiDiGraph: networkx graph representation of the data model, that is in the process of being fully built. At this point, all the nodes would have been added, and edges are being added per target node.
@@ -28,9 +28,11 @@ class DataModelEdges:
                         Relationships: {
                                     CSV Header: Value}}}
             edge_relationships: dict, rel_key: csv_header if the key represents a value relationship.
-
+            edge_list: list(tuple), list of tuples describing the edges and the edge attributes, organized as (node_1, node_2, {key:edge_relationship_key, weight:int})
+                At this point, the edge list will be in the process of being built. Adding edges from list so they will be added properly to the graph without being overwritten in the loop, and passing the Graph around more.
         Returns:
-            G, nx.MultiDiGraph: networkx graph representation of the data model, that has had new edges attached.
+            edge_list: list(tuple), list of tuples describing the edges and the edge attributes, organized as (node_1, node_2, {key:edge_relationship_key, weight:int})
+                At this point, the edge list will have additional edges added related to the current node.
         """
         # For each attribute in the model.
         for attribute_display_name, relationship in attr_rel_dict.items():
@@ -65,26 +67,25 @@ class DataModelEdges:
                         # Add edges, in a manner that preserves directionality
                         # TODO: rewrite to use edge_dir
                         if rel_key in ["subClassOf", "domainIncludes"]:
-                            G.add_edge(
+                            edge_list.append((
                                 all_node_dict[node]["label"],
                                 all_node_dict[attribute_display_name]["label"],
-                                key=edge_key,
-                                weight=weight,
-                            )
+                                {'key':edge_key,
+                                'weight':weight,})
+                                )
                         else:
-                            G.add_edge(
+                            edge_list.append((
                                 all_node_dict[attribute_display_name]["label"],
                                 all_node_dict[node]["label"],
-                                key=edge_key,
-                                weight=weight,
-                            )
+                                {'key':edge_key,
+                                'weight':weight},)
+                                )
                         # Add add rangeIncludes/valid value relationships in reverse as well, making the attribute the parent of the valid value.
                         if rel_key == "rangeIncludes":
-                            G.add_edge(
+                            edge_list.append((
                                 all_node_dict[attribute_display_name]["label"],
                                 all_node_dict[node]["label"],
-                                key="parentOf",
-                                weight=weight,
-                            )
-
-        return G
+                                {'key':"parentOf",
+                                'weight':weight},)
+                                )
+        return edge_list

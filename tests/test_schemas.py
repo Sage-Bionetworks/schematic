@@ -900,12 +900,16 @@ class TestDataModelEdges:
         # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
 
+        edge_list = []
         # Generate an edge in the graph with one node and a subset of the parsed data model
         # We're attempting to add an edge for a node that is the only one in the graph,
         # so `generate_edge` should skip adding edges and return the same graph
-        G = data_model_edges.generate_edge(
-            G, node, node_dict, {node: parsed_data_model[node]}, edge_relationships
+        edge_list_2 = data_model_edges.generate_edge(
+            node, node_dict, {node: parsed_data_model[node]}, edge_relationships, edge_list,
         )
+
+        for node_1, node_2, edge_dict in edge_list_2:
+            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
 
         # Assert that no edges were added and that the current graph edges are the same as before the call to `generate_edge`
         assert before_edges == G.edges
@@ -953,10 +957,15 @@ class TestDataModelEdges:
         # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
 
+        edge_list = []
+
         # Generate edges for whichever node we are testing
-        G = data_model_edges.generate_edge(
-            G, node_to_add, all_node_dict, parsed_data_model, edge_relationships
+        edge_list_2 = data_model_edges.generate_edge(
+            node_to_add, all_node_dict, parsed_data_model, edge_relationships, edge_list,
         )
+
+        for node_1, node_2, edge_dict in edge_list_2:
+            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
 
         # Assert that the current edges are different from the edges of the graph before
         assert G.edges > before_edges
@@ -1014,10 +1023,15 @@ class TestDataModelEdges:
         # Check the edges in the graph, there should be none
         before_edges = deepcopy(G.edges)
 
+        edge_list = []
+
         # Generate edges for whichever node we are testing
-        G = data_model_edges.generate_edge(
-            G, node_to_add, all_node_dict, parsed_data_model, edge_relationships
+        edge_list_2 = data_model_edges.generate_edge(
+            node_to_add, all_node_dict, parsed_data_model, edge_relationships, edge_list,
         )
+
+        for node_1, node_2, edge_dict in edge_list_2:
+            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
 
         # Assert that the current edges are different from the edges of the graph before
         assert G.edges > before_edges

@@ -1,3 +1,4 @@
+from copy import deepcopy
 import graphviz
 import logging
 from typing import Any, Dict, Optional, Text
@@ -94,16 +95,22 @@ class DataModelGraph:
             # Generate node and attach information (attributes) to each node
             G = self.dmn.generate_node(G, node_dict)
 
+        edge_list = []
         ## Connect nodes via edges
         for node in all_nodes:
             # Generate edges
-            G = self.dme.generate_edge(
-                G,
+            edge_list_2 = self.dme.generate_edge(
                 node,
                 all_node_dict,
                 self.attribute_relationships_dict,
                 edge_relationships,
+                edge_list,
             )
+            edge_list = edge_list_2.copy()
+
+        # Add edges to the Graph
+        for node_1, node_2, edge_dict in edge_list:
+            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
         return G
 
 
@@ -357,6 +364,8 @@ class DataModelGraphExplorer:
             )
 
         edge_key = self.rel_dict[key]["edge_key"]
+        
+        # Handle out edges
         if self.rel_dict[key]["jsonld_direction"] == "out":
             # use outedges
 
@@ -369,6 +378,7 @@ class DataModelGraphExplorer:
                 )
                 if edge_key in self.graph[source_node][attached_node]
             }
+        # Handle in edges
         else:
             # use inedges
             original_edge_weights_dict = {
