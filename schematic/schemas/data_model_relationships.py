@@ -153,7 +153,7 @@ class DataModelRelationships:
                 "jsonld_key": "schema:domainIncludes",
                 "csv_header": "Properties",
                 "edge_key": "domainValue",
-                "jsonld_direction": "in",
+                "jsonld_direction": "out",
                 "edge_dir": "in",
                 "type": list,
                 "edge_rel": True,

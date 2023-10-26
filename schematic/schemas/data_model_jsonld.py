@@ -134,6 +134,28 @@ class DataModelJsonLD(object):
         node_edges.extend(list(self.graph.out_edges(node, data=True)))
         return node_edges
 
+    def get_edges_associated_with_property_nodes(
+        self, node:str
+    ) -> List[tuple[str, str, dict[str, int]]]:
+        """Get edges associated with property nodes to make sure we add that relationship.
+        Args:
+            node, str: Label of node property in the graph to look for assiciated edges
+        Returns:
+            node_edges, list: List of Tuples of edges associated with the given node, tuple contains the two nodes, plus the weight dict associated with the edge connection.
+        """
+        # Get edge keys for domainIncludes and subclassOf
+        domainIncludes_edge_key = self.rel_dict['domainIncludes']['edge_key']        
+        node_edges = []
+        # Get dict of edges for the current property node
+        node_edges_dict = self.graph[node]
+        for node_2, edge_dict in node_edges_dict.items():
+            # Look through relationships in the edge dictionary
+            for edge_key in edge_dict:
+                # If the edge is a property or subclass then add the edges to the list
+                if edge_key in [domainIncludes_edge_key]:
+                    node_edges.append((node, node_2, edge_dict[edge_key]))
+        return node_edges
+
     def add_edge_rels_to_template(self, template: dict, rel_vals: dict, node: str):
         """
         Args:
@@ -144,6 +166,12 @@ class DataModelJsonLD(object):
         """
         # Get all edges associated with the current node
         node_edges = self.get_edges_associated_with_node(node=node)
+
+
+        # For properties look for reverse relationships too
+        if node in self.dmge.find_properties():
+            property_node_edges = self.get_edges_associated_with_property_nodes(node=node)
+            node_edges.extend(property_node_edges)
 
         # Get node pairs and weights for each edge
         for node_1, node_2, weight in node_edges:
@@ -160,7 +188,9 @@ class DataModelJsonLD(object):
                     # If the relationship defined and edge_key
                     if relationship == edge_key:
                         # TODO: rewrite to use edge_dir
-                        if edge_key in ["domainIncludes", "parentOf"]:
+                        domainIncludes_edge_key = self.rel_dict['domainIncludes']['edge_key']
+                        subclassOf_edge_key = self.rel_dict['subClassOf']['edge_key']
+                        if edge_key in [subclassOf_edge_key]:
                             if node_2 == node:
                                 # Make sure the key is in the template (differs between properties and classes)
                                 if rel_vals["jsonld_key"] in template.keys():
@@ -178,6 +208,24 @@ class DataModelJsonLD(object):
                                         )
                                     else:
                                         template[rel_vals["jsonld_key"]] == node_1
+                        elif edge_key in [domainIncludes_edge_key]:
+                            if node_1 == node:
+                                # Make sure the key is in the template (differs between properties and classes)
+                                if rel_vals["jsonld_key"] in template.keys():
+                                    node_2_id = {"@id": "bts:" + node_2}
+                                    # TODO Move this to a helper function to clear up.
+                                    if (
+                                        isinstance(
+                                            template[rel_vals["jsonld_key"]], list
+                                        )
+                                        and node_2_id
+                                        not in template[rel_vals["jsonld_key"]]
+                                    ):
+                                        template[rel_vals["jsonld_key"]].append(
+                                            node_2_id
+                                        )
+                                    else:
+                                        template[rel_vals["jsonld_key"]] == node_2
                         else:
                             if node_1 == node:
                                 # Make sure the key is in the template (differs between properties and classes)
@@ -238,6 +286,7 @@ class DataModelJsonLD(object):
                 template = self.add_edge_rels_to_template(
                     template=template, rel_vals=rel_vals, node=node
                 )
+
             # Fill in node value information
             else:
                 template = self.add_node_info_to_template(
@@ -249,11 +298,11 @@ class DataModelJsonLD(object):
             template=template,
             data_model_relationships=data_model_relationships,
         )
+
         # Reorder lists based on weights:
         template = self.reorder_template_entries(
             template=template,
         )
-
         # Add contexts to certain values
         template = self.add_contexts_to_entries(
             template=template,
@@ -364,6 +413,9 @@ class DataModelJsonLD(object):
                 sorted_edges = self.dmge.get_ordered_entry(
                     key=key, source_node_label=template_label
                 )
+                if not len(entry) == len(sorted_edges):
+                    logger.error("There is an error with sorting values in the JSONLD, please issue a bug report.")
+
                 edge_weights_dict = {edge: i for i, edge in enumerate(sorted_edges)}
                 ordered_edges = [0] * len(edge_weights_dict.keys())
                 for edge, normalized_weight in edge_weights_dict.items():

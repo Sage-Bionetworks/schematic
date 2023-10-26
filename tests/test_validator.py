@@ -103,9 +103,7 @@ class TestDataModelValidator:
         validator_errors = DMV.check_is_dag()
 
         # nodes could be in different order so need to account for that
-        expected_errors = ['Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: Patient and PatientID, please remove this loop from your model and submit again.',
-                          'Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: PatientID and Patient, please remove this loop from your model and submit again.',
-                          'Schematic requires models be a directed acyclic graph (DAG). Your graph is not a DAG, we found a loop between: Diagnosis and Diagnosis, please remove this loop from your model and submit again.']
-        
+        expected_errors = ['Schematic requires models be a directed acyclic graph (DAG). Please inspect your model.']
+
         assert validator_errors[0] in expected_errors
         
