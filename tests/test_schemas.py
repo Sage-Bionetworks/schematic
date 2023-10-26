@@ -61,7 +61,7 @@ TEST_DN_DICT = {
     "Bio Things": {"class": "BioThings", "property": "bioThings"},
     "bio things": {"class": "Biothings", "property": "biothings"},
 }
-NODE_DISPLAY_NAME_DICT = {"Patient": False, "Sex": True}
+NODE_DISPLAY_NAME_DICT = {"Patient": False, "Sex": True, "SourceManifest": False}
 
 
 def get_data_model_parser(helpers, data_model_name: str = None):
@@ -73,7 +73,7 @@ def get_data_model_parser(helpers, data_model_name: str = None):
     return data_model_parser
 
 
-def generate_graph_data_model(helpers, data_model_name: str) -> nx.MultiDiGraph:
+def generate_graph_data_model(helpers, data_model_name: str, display_name_as_label:bool=False) -> nx.MultiDiGraph:
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
     """
@@ -88,7 +88,7 @@ def generate_graph_data_model(helpers, data_model_name: str) -> nx.MultiDiGraph:
 
     # Convert parsed model to graph
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -800,9 +800,11 @@ class TestDataModelNodes:
     @pytest.mark.parametrize(
         "node_display_name",
         list(NODE_DISPLAY_NAME_DICT.keys()),
-        ids=[str(v) for v in NODE_DISPLAY_NAME_DICT.values()],
+        ids=["Node_required-" + str(v) for v in NODE_DISPLAY_NAME_DICT.values()],
     )
-    def test_generate_node_dict(self, helpers, data_model, node_display_name):
+    @pytest.mark.parametrize(
+        "display_name_as_label", [True, False], ids=["Display_name_as_label-True", "Display_name_as_label-False"])
+    def test_generate_node_dict(self, helpers, data_model, node_display_name, display_name_as_label):
         # Instantiate Parser
         data_model_parser = get_data_model_parser(
             helpers=helpers, data_model_name=data_model
@@ -810,6 +812,12 @@ class TestDataModelNodes:
 
         # Parse Model
         attr_rel_dictionary = data_model_parser.parse_model()
+
+        for attr, rels in attr_rel_dictionary.items()
+            if attr=='SourceManifest':
+                attr_rel_dictionary[attr]
+
+        # Change SourceManifest to sockComponent so we can check the display_name_as_label is working as expected
 
         # Instantiate DataModelNodes
         data_model_nodes = generate_data_model_nodes(
@@ -819,6 +827,7 @@ class TestDataModelNodes:
         node_dict = data_model_nodes.generate_node_dict(
             node_display_name=node_display_name,
             attr_rel_dict=attr_rel_dictionary,
+            display_name_as_label=display_name_as_label,
         )
 
         # Check that the output is as expected for the required key.
@@ -828,6 +837,14 @@ class TestDataModelNodes:
             # Looking up this way, in case we add empty defaults back to JSONLD it wont fail, but will only be absent in JSONLD not CSV.
             if not node_dict["required"] == False:
                 assert DATA_MODEL_DICT[data_model] == "JSONLD"
+
+        # Check that the display name matches the label
+        if display_name_as_label:
+            breakpoint()
+            assert node_display_name == node_dict['label']
+        else:
+            breakpoint()
+            assert node_display_name == node_dict['displayName']
 
     def test_generate_node(self, helpers, data_model):
         # Test adding a dummy node
