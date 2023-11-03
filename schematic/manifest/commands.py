@@ -14,10 +14,11 @@ from schematic.utils.google_api_utils import export_manifest_csv
 from schematic.store.synapse import SynapseStorage
 from schematic.configuration.configuration import CONFIG
 
-logger = logging.getLogger('schematic')
+logger = logging.getLogger("schematic")
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
+
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -96,7 +97,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
 @click.option(
     "-av",
     "--alphabetize_valid_values",
-    default = 'ascending',
+    default="ascending",
     help=query_dict(manifest_commands, ("manifest", "get", "alphabetize_valid_values")),
 )
 @click.pass_obj
@@ -119,13 +120,13 @@ def get_manifest(
     # Optional parameters that need to be passed to ManifestGenerator()
     # If CLI parameters are None they are gotten from the CONFIG object and logged
     if data_type is None:
-        data_type =  CONFIG.manifest_data_type
+        data_type = CONFIG.manifest_data_type
         log_value_from_config("data_type", data_type)
     if jsonld is None:
-        jsonld =  CONFIG.model_location
+        jsonld = CONFIG.model_location
         log_value_from_config("jsonld", jsonld)
     if title is None:
-        title =  CONFIG.manifest_title
+        title = CONFIG.manifest_title
         log_value_from_config("title", title)
 
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
@@ -140,7 +141,7 @@ def get_manifest(
 
         # call get_manifest() on manifest_generator
         # if output_xlsx gets specified, output_format = "excel"
-        if output_xlsx: 
+        if output_xlsx:
             output_format = "excel"
             # if file name is in the path, and that file does not exist
             if not os.path.exists(output_xlsx):
@@ -153,27 +154,31 @@ def get_manifest(
                         )
                 else:
                     raise ValueError(
-                            f"{output_xlsx} does not exists. Please try a valid file path"
-                        )
+                        f"{output_xlsx} does not exists. Please try a valid file path"
+                    )
             else:
                 # Check if base path itself exists.
                 if not os.path.exists(os.path.dirname(output_xlsx)):
                     raise ValueError(
-                    f"{output_xlsx} does not exists. Please try a valid file path"
+                        f"{output_xlsx} does not exists. Please try a valid file path"
                     )
                 output_path = output_xlsx
-        else: 
+        else:
             output_format = None
             output_path = None
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=sheet_url, json_schema=json_schema, output_format = output_format, output_path = output_path
+            dataset_id=dataset_id,
+            sheet_url=sheet_url,
+            json_schema=json_schema,
+            output_format=output_format,
+            output_path=output_path,
         )
 
         if sheet_url:
             logger.info("Find the manifest template using this Google Sheet URL:")
             click.echo(result)
-        if output_csv is None and output_xlsx is None: 
+        if output_csv is None and output_xlsx is None:
             prefix, _ = os.path.splitext(jsonld)
             prefix_root, prefix_ext = os.path.splitext(prefix)
             if prefix_ext == ".model":
@@ -187,36 +192,40 @@ def get_manifest(
             return result
         export_manifest_csv(file_path=output_csv, manifest=result)
         logger.info(
-                f"Find the manifest template using this CSV file path: {output_csv}"
-            )
+            f"Find the manifest template using this CSV file path: {output_csv}"
+        )
         return result
 
     if type(data_type) is str:
         data_type = [data_type]
 
-    if data_type[0] == 'all manifests':
+    if data_type[0] == "all manifests":
         sg = SchemaGenerator(path_to_json_ld=jsonld)
-        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+        component_digraph = sg.se.get_digraph_by_edge_type("requiresComponent")
         components = component_digraph.nodes()
         for component in components:
-            t = f'{title}.{component}.manifest'
-            result = create_single_manifest(data_type = component)
+            t = f"{title}.{component}.manifest"
+            result = create_single_manifest(data_type=component)
     else:
         for dt in data_type:
             if len(data_type) > 1 and not output_xlsx:
-                t = f'{title}.{dt}.manifest'
-            elif output_xlsx: 
+                t = f"{title}.{dt}.manifest"
+            elif output_xlsx:
                 if ".xlsx" or ".xls" in output_xlsx:
                     title_with_extension = os.path.basename(output_xlsx)
-                    t = title_with_extension.split('.')[0]
+                    t = title_with_extension.split(".")[0]
             else:
                 t = title
-            result = create_single_manifest(data_type = dt, output_csv=output_csv, output_xlsx=output_xlsx)
+            result = create_single_manifest(
+                data_type=dt, output_csv=output_csv, output_xlsx=output_xlsx
+            )
 
     return result
 
+
 @manifest.command(
-    "migrate", short_help=query_dict(manifest_commands, ("manifest", "migrate", "short_help"))
+    "migrate",
+    short_help=query_dict(manifest_commands, ("manifest", "migrate", "short_help")),
 )
 @click_log.simple_verbosity_option(logger)
 # define the optional arguments
@@ -263,18 +272,22 @@ def migrate_manifests(
     Running CLI with manifest migration options.
     """
     if jsonld is None:
-        jsonld =  CONFIG.model_location
+        jsonld = CONFIG.model_location
         log_value_from_config("jsonld", jsonld)
 
     full_scope = project_scope + [archive_project]
-    synStore = SynapseStorage(project_scope = full_scope)  
+    synStore = SynapseStorage(project_scope=full_scope)
 
     for project in project_scope:
         if not return_entities:
             logging.info("Re-uploading manifests as tables")
-            synStore.upload_annotated_project_manifests_to_synapse(project, jsonld, dry_run)
+            synStore.upload_annotated_project_manifests_to_synapse(
+                project, jsonld, dry_run
+            )
         if archive_project:
             logging.info("Migrating entitites")
-            synStore.move_entities_to_new_project(project, archive_project, return_entities, dry_run)
-        
-    return 
+            synStore.move_entities_to_new_project(
+                project, archive_project, return_entities, dry_run
+            )
+
+    return

@@ -9,17 +9,16 @@ from schematic.utils.validate_rules_utils import validate_schema_rules
 def load_schema_into_networkx(schema):
     G = nx.MultiDiGraph()
     for record in schema["@graph"]:
-
         # TODO: clean up obsolete code
         # if record["@type"] == "rdfs:Class":
 
         # creation of nodes
         # adding nodes to the graph
         node = {}
-        for (k, value) in record.items():
-            # Some keys in the current schema.org schema have a dictionary entry for their value that includes keys @language and @value, 
+        for k, value in record.items():
+            # Some keys in the current schema.org schema have a dictionary entry for their value that includes keys @language and @value,
             # for parity with other schemas, we just want the value
-            if isinstance(value,dict) and "@language" in value.keys():
+            if isinstance(value, dict) and "@language" in value.keys():
                 record[k] = record[k]["@value"]
             if ":" in k:
                 key = k.split(":")[1]
@@ -121,9 +120,10 @@ def load_schema_into_networkx(schema):
             node["validationRules"] = record["sms:validationRules"]
             if node["validationRules"]:
                 validate_vr = validate_schema_rules(
-                                record["sms:validationRules"],
-                                record["rdfs:label"],
-                                input_filetype = 'json_schema')
+                    record["sms:validationRules"],
+                    record["rdfs:label"],
+                    input_filetype="json_schema",
+                )
         else:
             node["validationRules"] = []
 
@@ -139,7 +139,7 @@ def load_schema_into_networkx(schema):
 def node_attrs_cleanup(class_add_mod: dict) -> dict:
     # clean map that will be inputted into the node/graph
     node = {}
-    for (k, value) in class_add_mod.items():
+    for k, value in class_add_mod.items():
         if ":" in k:
             key = k.split(":")[1]
             node[key] = value
@@ -186,7 +186,6 @@ def relationship_edges(
                 parents = class_add_mod[rel]
                 if type(parents) == list:
                     for _parent in parents:
-
                         if node_type == "in":
                             n1 = extract_name_from_uri_or_curie(_parent["@id"])
                             n2 = class_add_mod["rdfs:label"]
@@ -218,7 +217,7 @@ def class_to_node(class_to_convert: dict) -> nx.Graph:
     G = nx.Graph()
 
     node = {}  # node to be added the above graph and returned
-    for (k, v) in class_to_convert.items():
+    for k, v in class_to_convert.items():
         if ":" in k:  # if ":" is present in key
             key = k.split(":")[1]
             node[key] = v

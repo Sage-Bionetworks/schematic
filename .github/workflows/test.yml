@@ -96,7 +96,7 @@ jobs:
         run: |
           # ran only on certain files for now
           # add here when checked
-          poetry run black schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py --check
+          poetry run black schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils*.py schematic/visualization/*.py schematic/manifest/*.py schematic/models/*.py schematic/store/*.py --check
 
       #----------------------------------------------
       #             type checking/enforcement
