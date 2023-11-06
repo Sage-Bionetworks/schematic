@@ -8,24 +8,26 @@ from schematic.models.metadata import MetadataModel
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-@pytest.fixture
-def metadata_model(helpers):
+def metadata_model(helpers, display_name_as_label):
 
     metadata_model = MetadataModel(
-        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+        inputMModelLocation=helpers.get_data_path("example.model.jsonld"), display_name_as_label=display_name_as_label,
         inputMModelLocationType="local",
     )
 
-    yield metadata_model
+    return metadata_model
 
 
 class TestMetadataModel:
     @pytest.mark.parametrize("as_graph", [True, False], ids=["as_graph", "as_list"])
-    def test_get_component_requirements(self, metadata_model, as_graph):
+    @pytest.mark.parametrize("display_name_as_label", [True, False], ids=["display_name_as_label-True", "display_name_as_label-False"])
+    def test_get_component_requirements(self, helpers, as_graph, display_name_as_label):
+        # Instantiate MetadataModel
+        meta_data_model = metadata_model(helpers, display_name_as_label)
 
         source_component = "BulkRNA-seqAssay"
 
-        output = metadata_model.get_component_requirements(
+        output = meta_data_model.get_component_requirements(
             source_component, as_graph=as_graph
         )
 
@@ -40,13 +42,18 @@ class TestMetadataModel:
             assert "BulkRNA-seqAssay" in output
 
     @pytest.mark.parametrize("return_excel", [None, True, False])
+    @pytest.mark.parametrize("display_name_as_label", [True, False], ids=["display_name_as_label-True", "display_name_as_label-False"])
     @pytest.mark.google_credentials_needed
-    def test_populate_manifest(self, metadata_model, helpers, return_excel):
+    def test_populate_manifest(self, helpers, return_excel, display_name_as_label):
+
+        # Instantiate MetadataModel
+        meta_data_model = metadata_model(helpers, display_name_as_label)
+
         #Get path of manifest 
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
     
         #Call populateModelManifest class
-        populated_manifest_route= metadata_model.populateModelManifest(title="mock_title", manifestPath=manifestPath, rootNode="MockComponent", return_excel=return_excel)
+        populated_manifest_route= meta_data_model.populateModelManifest(title="mock_title", manifestPath=manifestPath, rootNode="MockComponent", return_excel=return_excel)
 
         if not return_excel:
             # return a url
