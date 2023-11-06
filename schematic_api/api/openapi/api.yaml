@@ -1169,6 +1169,14 @@ paths:
           description: Figure type to generate.
           example: 'component'
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: boolean
+            nullable: true
+            default: false
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: Returns a dataframe as a JSON String.
@@ -1209,6 +1217,14 @@ paths:
           description: Text formatting type.
           example: 'plain'
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: boolean
+            nullable: true
+            default: false
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: Returns a dataframe as a JSON String.
@@ -1234,6 +1250,14 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: boolean
+            nullable: true
+            default: false
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: Returns a CSV as a JSON String.
@@ -1274,6 +1298,14 @@ paths:
             default: false
           description: Whether to include the indexes of the datafram in the returned JSON string (true) or not (false).
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: boolean
+            nullable: true
+            default: false
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: Returns a CSV as a JSON String.

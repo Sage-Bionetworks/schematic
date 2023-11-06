@@ -568,36 +568,36 @@ def get_component_requirements(schema_url, source_component, as_graph, display_n
     return req_components
 
 @cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
-def get_viz_attributes_explorer(schema_url):
+def get_viz_attributes_explorer(schema_url, display_name_as_label):
     # call config_handler()
     config_handler()
 
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
-    attributes_csv = AttributesExplorer(data_model).parse_attributes(save_file=False)
+    attributes_csv = AttributesExplorer(data_model, display_name_as_label).parse_attributes(save_file=False)
 
     return attributes_csv
 
-def get_viz_component_attributes_explorer(schema_url, component, include_index):
+def get_viz_component_attributes_explorer(schema_url, component, include_index, display_name_as_label):
     # call config_handler()
     config_handler()
 
      # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
-    attributes_csv = AttributesExplorer(data_model).parse_component_attributes(component, save_file=False, include_index=include_index)
+    attributes_csv = AttributesExplorer(data_model, display_name_as_label).parse_component_attributes(component, save_file=False, include_index=include_index)
 
     return attributes_csv
 
 @cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
-def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
+def get_viz_tangled_tree_text(schema_url, figure_type, text_format, display_name_as_label):
    
      # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
     # Initialize TangledTree
-    tangled_tree = TangledTree(data_model, figure_type)
+    tangled_tree = TangledTree(data_model, figure_type, display_name_as_label)
 
     # Get text for tangled tree.
     text_df = tangled_tree.get_text_for_tangled_tree(text_format, save_file=False)
@@ -605,7 +605,7 @@ def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
     return text_df
 
 @cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
-def get_viz_tangled_tree_layers(schema_url, figure_type):
+def get_viz_tangled_tree_layers(schema_url, figure_type, display_name_as_label):
 
     # call config_handler()
     config_handler()
@@ -614,7 +614,7 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
     data_model = get_temp_model_path(schema_url)
 
     # Initialize Tangled Tree
-    tangled_tree = TangledTree(data_model, figure_type)
+    tangled_tree = TangledTree(data_model, figure_type, display_name_as_label)
     
     # Get tangled trees layers JSON.
     layers = tangled_tree.get_tangled_tree_layers(save_file=False)

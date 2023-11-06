@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class AttributesExplorer():
     def __init__(self,
                  path_to_jsonld: str,
+                 display_name_as_label:bool,
                  )-> None:
         
         self.path_to_jsonld = path_to_jsonld
@@ -24,13 +25,13 @@ class AttributesExplorer():
         self.jsonld = load_json(self.path_to_jsonld)
 
         # Instantiate Data Model Parser
-        data_model_parser = DataModelParser(path_to_data_model = self.path_to_jsonld)
+        data_model_parser = DataModelParser(path_to_data_model = self.path_to_jsonld, display_name_as_label=display_name_as_label)
         
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
+        data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
         # Generate graph
         self.graph_data_model = data_model_grapher.generate_data_model_graph()

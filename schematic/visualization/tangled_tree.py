@@ -35,6 +35,7 @@ class TangledTree(object):
     def __init__(self,
                  path_to_json_ld: str,
                  figure_type: str,
+                 display_name_as_label: bool,
                  ) -> None:
         # Load jsonld
         self.path_to_json_ld = path_to_json_ld
@@ -44,13 +45,13 @@ class TangledTree(object):
         self.schema_name = path.basename(self.path_to_json_ld).split(".model.jsonld")[0]
 
         # Instantiate Data Model Parser
-        data_model_parser = DataModelParser(path_to_data_model = self.path_to_json_ld)
+        data_model_parser = DataModelParser(path_to_data_model = self.path_to_json_ld, display_name_as_label=display_name_as_label)
         
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
+        data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
         # Generate graph
         self.graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -67,7 +68,7 @@ class TangledTree(object):
         self.schema_abbr = self.schema_name.split('_')[0]
 
         # Initialize AttributesExplorer
-        self.ae = AttributesExplorer(self.path_to_json_ld)
+        self.ae = AttributesExplorer(self.path_to_json_ld, display_name_as_label)
 
         # Create output paths.
         self.text_csv_output_path = self.ae.create_output_path('text_csv')
