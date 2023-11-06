@@ -467,7 +467,7 @@ def submit_manifest_route(schema_url, display_name_as_label:bool, asset_view=Non
 
     return manifest_id
 
-def populate_manifest_route(schema_url, title=None, data_type=None, return_excel=None, display_name_as_label=display_name_as_label):
+def populate_manifest_route(schema_url, display_name_as_label:bool, title=None, data_type=None, return_excel=None):
     # call config_handler()
     config_handler()
 

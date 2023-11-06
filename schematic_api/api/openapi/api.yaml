@@ -101,10 +101,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
       operationId: schematic_api.api.routes.get_manifest_route
       responses:
@@ -246,7 +246,7 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
           description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
@@ -322,10 +322,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
         - in: query
           name: data_type
@@ -377,7 +377,7 @@ paths:
             type: string
             nullable: false
           description: A JSON object
-          example: '[{
+          example: [{
           "Patient ID": 123,
           "Sex": "Female",
           "Year of Birth": "",
@@ -385,7 +385,7 @@ paths:
           "Component": "Patient",
           "Cancer Type": "Breast",
           "Family History": "Breast, Lung",
-          }]'
+          }]
         - in: query
           name: table_manipulation
           description: Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.replace' will remove the rows and columns from the existing table and store the new rows and columns, preserving the name and synID.'upsert' will add the new rows to the table and preserve the exisitng rows and columns in the existing table. If nothing is selected, the default is "replace"
@@ -442,10 +442,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
       operationId: schematic_api.api.routes.get_component_requirements
       responses:
@@ -480,6 +480,14 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: boolean
+            nullable: true
+            default: false
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
+          required: false
         - in: query
           name: data_type
           schema:
@@ -770,10 +778,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
       responses:
         "200":
@@ -833,10 +841,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
       responses:
         "200":
@@ -870,10 +878,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
       responses:
         "200":
@@ -918,10 +926,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
       responses:
         "200":
@@ -958,10 +966,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
       responses:
         "200":
@@ -997,10 +1005,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
       responses:
         "200":
@@ -1035,10 +1043,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
         - in: query
           name: return_display_names
@@ -1118,10 +1126,10 @@ paths:
         - in: query
           name: display_name_as_label
           schema:
-            type: string
+            type: boolean
             nullable: true
             default: false
-          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          description: If true then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if false, default, then a SchemaLabel will be generated.
           required: false
         - in: query
           name: return_display_names
