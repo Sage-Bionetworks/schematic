@@ -245,22 +245,45 @@ class DataModelJSONLDParser:
         # Load relationships dictionary.
         self.rel_dict = self.dmr.define_data_model_relationships()
 
-    def parse_list_of_dict_entry(self, rel_entry, id_jsonld_key, display_name_as_label, model_jsonld):
+    def parse_list_of_dict_entry(self, rel_entry: list, id_jsonld_key: str, display_name_as_label:bool, model_jsonld: list[dict])-> list[str]:
+        """Parse a list of dictionaries entry, so it can be added to the attr_rel_dictionary
+        Args:
+            rel_entry: Given a single entry and relationship in a JSONLD data model, the recorded value
+            id_jsonld_key, str: the jsonld key for id
+            display_name_as_label: bool, flag indicating to use the display name as the label
+            model_jsonld: list of dictionaries, each dictionary is an entry in the jsonld data model
+        Returns:
+            parsed_rel_entry: an entry that has been parsed based on its input type and characteristics.
+        """
         parsed_rel_entry = [r[id_jsonld_key].split(":")[1] for r in rel_entry]
         #Convert labels to display names if specified
         if display_name_as_label:
             parsed_rel_entry=self.convert_entry_to_dn_label(parsed_rel_entry, model_jsonld)
         return parsed_rel_entry
 
-    def parse_string_entry(self, rel_entry, display_name_as_label, model_jsonld):
+    def parse_string_entry(self, rel_entry:str, display_name_as_label:bool, model_jsonld: list[dict]) -> Union[bool,str]:
+        """
+        Parse a string entry, so it can be added to the attr_rel_dictionary
+        Args:
+            rel_entry: Given a single entry and relationship in a JSONLD data model, the recorded value
+            display_name_as_label: bool, flag indicating to use the display name as the label
+            model_jsonld: list of dictionaries, each dictionary is an entry in the jsonld data model
+        Returns:
+            parsed_rel_entry: an entry that has been parsed based on its input type and characteristics.
+        """
         # Remove contexts and treat strings as appropriate.
         if ":" in rel_entry and "http:" not in rel_entry:
             parsed_rel_entry = rel_entry.split(":")[1]
+
             # Convert true/false strings to boolean
             if parsed_rel_entry.lower() == "true":
                 parsed_rel_entry = True
             elif parsed_rel_entry.lower == "false":
                 parsed_rel_entry = False
+            else:
+                #Convert labels to display names if specified
+                if display_name_as_label:
+                    parsed_rel_entry=self.convert_entry_to_dn_label(parsed_rel_entry, model_jsonld)
         else:
             parsed_rel_entry = rel_entry
             #Convert labels to display names if specified
@@ -268,7 +291,15 @@ class DataModelJSONLDParser:
                 parsed_rel_entry=self.convert_entry_to_dn_label(parsed_rel_entry, model_jsonld)
         return parsed_rel_entry
 
-    def parse_basic_entry(self, rel_entry, display_name_as_label, model_jsonld):
+    def parse_basic_entry(self, rel_entry:str, display_name_as_label:bool, model_jsonld: list[dict]) -> str:
+        """For basic entry, just return or convert to display name if indicated.
+        Args:
+            rel_entry: Given a single entry and relationship in a JSONLD data model, the recorded value
+            display_name_as_label: bool, flag indicating to use the display name as the label
+            model_jsonld: list of dictionaries, each dictionary is an entry in the jsonld data model
+        Returns:
+            parsed_rel_entry: an entry that has been parsed based on its input type and characteristics.
+        """
         parsed_rel_entry = rel_entry
         #Convert labels to display names if specified
         if display_name_as_label:
@@ -276,65 +307,36 @@ class DataModelJSONLDParser:
         return parsed_rel_entry
 
     def parse_entry(self, rel_entry: any, id_jsonld_key: str, display_name_as_label:bool, model_jsonld:list[dict]) -> Any:
-        """Parse an input entry based on certain attributes
+        """Parse an input entry based on certain attributes so it can be added used in further downstream processing
         Args:
             rel_entry: Given a single entry and relationship in a JSONLD data model, the recorded value
             id_jsonld_key, str: the jsonld key for id
+            display_name_as_label: bool, flag indicating to use the display name as the label
+            model_jsonld: list of dictionaries, each dictionary is an entry in the jsonld data model
         Returns:
-            parsed_rel_entry: an entry that has been parsed base on its input type and characteristics.
+            parsed_rel_entry: an entry that has been parsed based on its input type and characteristics.
         """
         # Retrieve ID from single value dictionary
         if type(rel_entry) == dict and len(rel_entry.keys()) == 1:
             parsed_rel_entry = rel_entry["@id"]
         # Parse list of dictionaries to make a list of entries with context stripped (will update this section when contexts added.)
         elif type(rel_entry) == list and type(rel_entry[0]) == dict:
-            #parsed_rel_entry = [r[id_jsonld_key].split(":")[1] for r in rel_entry]
-            #Convert labels to display names if specified
-            #if display_name_as_label:
-                #parsed_rel_entry=self.convert_entry_to_dn_label(parsed_rel_entry)
             parsed_rel_entry = self.parse_list_of_dict_entry(rel_entry, id_jsonld_key, display_name_as_label, model_jsonld)
         # Strip context from string and convert true/false to bool
         elif type(rel_entry) == str:
             parsed_rel_entry = self.parse_string_entry(rel_entry, display_name_as_label, model_jsonld)
-            
-            # Remove contexts and treat strings as appropriate.
-            #if ":" in rel_entry and "http:" not in rel_entry:
-            #    parsed_rel_entry = rel_entry.split(":")[1]
-            #    # Convert true/false strings to boolean
-            #    if parsed_rel_entry.lower() == "true":
-            #        parsed_rel_entry = True
-            #    elif parsed_rel_entry.lower == "false":
-            #        parsed_rel_entry = False
-            #else:
-            #    parsed_rel_entry = rel_entry
-            #    #Convert labels to display names if specified
-            #    if display_name_as_label:
-            #        parsed_rel_entry=self.convert_entry_to_dn_label(parsed_rel_entry)
         # For anything else get that
         else:
             parsed_rel_entry = self.parse_basic_entry(rel_entry, display_name_as_label, model_jsonld)
-            #parsed_rel_entry = rel_entry
-            #Convert labels to display names if specified
-            #if display_name_as_label:
-            #    parsed_rel_entry=self.convert_entry_to_dn_label(parsed_rel_entry)
         return parsed_rel_entry
 
-    def get_display_name_from_label(self, label, model_jsonld):
-        jsonld_keys_to_extract = ["label", "displayName"]
-        label_jsonld_key, dn_jsonld_key = [
-            self.rel_dict[key]["jsonld_key"] for key in jsonld_keys_to_extract
-        ]
-        for entry in model_jsonld:
-            # Get the attr key for the dictionary
-            if dn_jsonld_key in entry:
-                # The attr_key is the entry display name if one was recorded
-                attr_key = entry[dn_jsonld_key]
-            else:
-                # If not we wil use the get the label.
-                attr_key = entry[label_jsonld_key]
-        return attr_key
-
-    def display_name_to_label_dict(self, model_jsonld):
+    def label_to_dn_dict(self, model_jsonld: list[dict]):
+        """ Generate a dictionary of labels to display name, so can easily look up display names using the label.
+        Args:
+            model_jsonld: list of dictionaries, each dictionary is an entry in the jsonld data model
+        Returns:
+            dn_label_dict: dict of model labels to display names
+        """
         jsonld_keys_to_extract = ["label", "displayName"]
         label_jsonld_key, dn_jsonld_key = [
             self.rel_dict[key]["jsonld_key"] for key in jsonld_keys_to_extract
@@ -344,9 +346,16 @@ class DataModelJSONLDParser:
             dn_label_dict[entry[label_jsonld_key]]=entry[dn_jsonld_key]
         return dn_label_dict
 
-    def convert_entry_to_dn_label(self, parsed_rel_entry:Union[str,list], model_jsonld:list[dict]):
+    def convert_entry_to_dn_label(self, parsed_rel_entry:Union[str,list], model_jsonld:list[dict]) -> Union[str,list]:
+        """Convert a parsed entry to display name, taking into account the entry type
+        Args:
+            parsed_rel_entry: an entry that has been parsed base on its input type and characteristics.
+            model_jsonld: list of dictionaries, each dictionary is an entry in the jsonld data model
+        Returns:
+            parsed_rel_entry: an entry that has been parsed based on its input type and characteristics, and converted to display names.
+        """
         # Get a dictionary of display_names mapped to labels
-        dn_label_dict = self.display_name_to_label_dict(model_jsonld=model_jsonld)
+        dn_label_dict = self.label_to_dn_dict(model_jsonld=model_jsonld)
 
         # Handle if using the display name as the label
         if type(parsed_rel_entry) == list:
@@ -361,6 +370,7 @@ class DataModelJSONLDParser:
         """
         Args:
             model_jsonld: list of dictionaries, each dictionary is an entry in the jsonld data model
+            display_name_as_label: bool, flag indicating to use the display name as the label
         Returns:
             attr_rel_dictionary: dict,
                 {Node Display Name:
@@ -385,7 +395,6 @@ class DataModelJSONLDParser:
             self.rel_dict[key]["jsonld_key"] for key in jsonld_keys_to_extract
         ]
 
-        
         # Build the attr_rel_dictionary
         attr_rel_dictionary = {}
         # Move through each entry in the jsonld model
@@ -444,13 +453,10 @@ class DataModelJSONLDParser:
                                 # If the parsed_val is not already recorded in the dictionary, add it
                                 elif attr_in_dict == False:
                                     # Get the display name for the parsed value
-                                    p_attr_key = self.get_display_name_from_label(parsed_val, model_jsonld)
-                                    
+                                    p_attr_key = self.convert_entry_to_dn_label(parsed_val, model_jsonld)
+
                                     attr_rel_dictionary.update(attr_dict_template(p_attr_key))
                                     attr_rel_dictionary[p_attr_key]["Relationships"].update({rel_csv_header:[entry[label_jsonld_key]]})
-                        #if using display name as label, make sure all values that are recorded as value are using the display_label instead of the label
-                        #elif rel_key == "rangeIncludes" and display_name_as_label and type(parsed_rel_entry) == list:
-                            #parsed_rel_entry = [dn_label_dict[entry] for entry in parsed_rel_entry]
                         else:
                             attr_rel_dictionary[attr_key]["Relationships"].update(
                                 {rel_csv_header: parsed_rel_entry}
@@ -460,15 +466,12 @@ class DataModelJSONLDParser:
                     rel_vals["jsonld_key"] in entry.keys()
                     and not rel_vals["csv_header"]
                 ):
-                    # Retrieve entry value associated with the given relationship
-                    #rel_entry = entry[rel_vals["jsonld_key"]]
-                    ## START
                     # If using the display name as the label, ensure that the display name is set for the label
-                    #if display_name_as_label and rel_vals["jsonld_key"] == label_jsonld_key:
-                    #    rel_entry = entry[dn_jsonld_key]
-                    #else:
-                    #    rel_entry = entry[rel_vals["jsonld_key"]]
-                    ## END
+                    if display_name_as_label and rel_vals["jsonld_key"] == label_jsonld_key:
+                        rel_entry = entry[dn_jsonld_key]
+                    else:
+                        rel_entry = entry[rel_vals["jsonld_key"]]
+
                     # If there is an entry parse it by type and add to the attr:relationships dictionary.
                     if rel_entry:
                         parsed_rel_entry = self.parse_entry(
@@ -488,6 +491,7 @@ class DataModelJSONLDParser:
         """Convert raw JSONLD data model to attributes relationship dictionary.
         Args:
             path_to_data_model: str, path to JSONLD data model
+            display_name_as_label: bool, flag indicating to use the display name as the label
         Returns:
             model_dict: dict,
                 {Node Display Name:
