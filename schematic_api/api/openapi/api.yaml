@@ -98,6 +98,14 @@ paths:
             default: True
           description: If using Google Sheets, can set the strictness of Google Sheets regex match validation. True (default) will block users from entering incorrect values, False will throw a warning to users.
           required: false
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
       operationId: schematic_api.api.routes.get_manifest_route
       responses:
         "200":
@@ -236,6 +244,14 @@ paths:
           example: Patient
           required: true
         - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
+        - in: query
           name: restrict_rules
           schema:
             type: boolean
@@ -303,6 +319,14 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
         - in: query
           name: data_type
           schema:
@@ -415,6 +439,14 @@ paths:
             default: false
           description: if False return component requirements as a list; if True return component requirements as a dependency graph (i.e. a DAG)
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
       operationId: schematic_api.api.routes.get_component_requirements
       responses:
         "200":
@@ -735,6 +767,14 @@ paths:
           description: ID of file or folder. For example, for Synapse this would be the Synapse ID. 
           example: syn30988314
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: return "true" or "false"
@@ -790,6 +830,14 @@ paths:
           description: schema class
           example: MolecularEntity
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: A list of properties of a given class. 
@@ -818,7 +866,15 @@ paths:
             nullable: false
           description: Relationship (i.e. parentOf, requiresDependency, rangeValue, domainValue)
           example: requiresDependency
-          required: true        
+          required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: A list of tuples.
@@ -859,6 +915,14 @@ paths:
           description: Display label of a node
           example: FamilyHistory
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: return a boolean 
@@ -891,6 +955,14 @@ paths:
           description: List of node labels.
           example: ['FamilyHistory', 'Biospecimen']
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: return List[str]
@@ -922,6 +994,14 @@ paths:
           description: Display label of node
           example: CheckRegexList
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
       responses:
         "200":
           description: return a list
@@ -952,6 +1032,14 @@ paths:
           description: The node whose dependencies are needed
           example: Patient
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
         - in: query
           name: return_display_names
           schema:
@@ -1027,6 +1115,14 @@ paths:
           description: Node / term for which you need to retrieve the range.
           example: FamilyHistory
           required: true
+        - in: query
+          name: display_name_as_label
+          schema:
+            type: string
+            nullable: true
+            default: false
+          description: If 'true' then the display name used in the model will be used as the SchemaLabel (if it is fomatted properly), if 'false', default, then a SchemaLabel will be generated.
+          required: false
         - in: query
           name: return_display_names
           schema:
