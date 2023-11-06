@@ -197,13 +197,13 @@ def save_file(file_key="csv_file"):
 
     return temp_path
 
-def initalize_metadata_model(schema_url):
+def initalize_metadata_model(schema_url, display_name_as_label):
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
     
     metadata_model = MetadataModel(
-        inputMModelLocation=data_model, inputMModelLocationType="local"
+        inputMModelLocation=data_model, inputMModelLocationType="local", display_name_as_label=display_name_as_label,
     )
     return metadata_model
 
@@ -375,7 +375,7 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str=None):
+def validate_manifest_route(schema_url, data_type, display_name_as_label, restrict_rules=None, json_str=None):
     # if restrict rules is set to None, default it to False
     if not restrict_rules:
         restrict_rules=False
@@ -399,7 +399,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
     data_model = get_temp_model_path(schema_url)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=data_model, inputMModelLocationType="local"
+        inputMModelLocation=data_model, inputMModelLocationType="local", display_name_as_label=display_name_as_label
     )
 
     errors, warnings = metadata_model.validateModelManifest(
@@ -412,7 +412,7 @@ def validate_manifest_route(schema_url, data_type, restrict_rules=None, json_str
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None, hide_blanks=False):
+def submit_manifest_route(schema_url, display_name_as_label:bool, asset_view=None, manifest_record_type=None, json_str=None, table_manipulation=None, data_type=None, hide_blanks=False):
     # call config_handler()
     config_handler(asset_view = asset_view)
 
@@ -427,7 +427,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     restrict_rules = parse_bool(connexion.request.args["restrict_rules"])
 
-    metadata_model = initalize_metadata_model(schema_url)
+    metadata_model = initalize_metadata_model(schema_url, display_name_as_label)
 
     # Access token now stored in request header
     access_token = get_access_token()
@@ -467,7 +467,7 @@ def submit_manifest_route(schema_url, asset_view=None, manifest_record_type=None
 
     return manifest_id
 
-def populate_manifest_route(schema_url, title=None, data_type=None, return_excel=None):
+def populate_manifest_route(schema_url, title=None, data_type=None, return_excel=None, display_name_as_label=display_name_as_label):
     # call config_handler()
     config_handler()
 
@@ -478,7 +478,7 @@ def populate_manifest_route(schema_url, title=None, data_type=None, return_excel
     data_model = get_temp_model_path(schema_url)
    
     #Initalize MetadataModel
-    metadata_model = MetadataModel(inputMModelLocation=data_model, inputMModelLocationType='local')
+    metadata_model = MetadataModel(inputMModelLocation=data_model, inputMModelLocationType='local', display_name_as_label=display_name_as_label)
 
     #Call populateModelManifest class
     populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type, return_excel=return_excel)
@@ -560,8 +560,8 @@ def check_entity_type(entity_id):
 
     return entity_type 
 
-def get_component_requirements(schema_url, source_component, as_graph):
-    metadata_model = initalize_metadata_model(schema_url)
+def get_component_requirements(schema_url, source_component, as_graph, display_name_as_label):
+    metadata_model = initalize_metadata_model(schema_url, display_name_as_label)
 
     req_components = metadata_model.get_component_requirements(source_component=source_component, as_graph = as_graph)
 
@@ -735,13 +735,13 @@ def get_manifest_datatype(manifest_id, asset_view):
 
     return manifest_dtypes_dict
 
-def get_schema_pickle(schema_url):
+def get_schema_pickle(schema_url, display_name_as_label):
     data_model_parser = DataModelParser(path_to_data_model = schema_url)
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -755,14 +755,14 @@ def get_schema_pickle(schema_url):
     return export_path
 
 
-def get_subgraph_by_edge_type(schema_url, relationship):
+def get_subgraph_by_edge_type(schema_url, relationship, display_name_as_label):
     data_model_parser = DataModelParser(path_to_data_model = schema_url)
     
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -780,13 +780,13 @@ def get_subgraph_by_edge_type(schema_url, relationship):
     return Arr
 
 
-def find_class_specific_properties(schema_url, schema_class):
+def find_class_specific_properties(schema_url, schema_class, display_name_as_label):
     data_model_parser = DataModelParser(path_to_data_model = schema_url)
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -802,8 +802,9 @@ def find_class_specific_properties(schema_url, schema_class):
 def get_node_dependencies(
     schema_url: str,
     source_node: str,
+    display_name_as_label: bool,
     return_display_names: bool = True,
-    return_schema_ordered: bool = True
+    return_schema_ordered: bool = True, 
 ) -> list[str]:
     """Get the immediate dependencies that are related to a given source node.
 
@@ -827,7 +828,7 @@ def get_node_dependencies(
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -862,6 +863,7 @@ def get_property_label_from_display_name_route(
 def get_node_range(
     schema_url: str,
     node_label: str,
+    display_name_as_label:bool,
     return_display_names: bool = True
 ) -> list[str]:
     """Get the range, i.e., all the valid values that are associated with a node label.
@@ -880,7 +882,7 @@ def get_node_range(
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -890,7 +892,7 @@ def get_node_range(
     node_range = dmge.get_node_range(node_label, return_display_names)
     return node_range
 
-def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
+def get_if_node_required(schema_url: str, node_display_name: str, display_name_as_label:bool) -> bool:
     """Check if the node is required
 
     Args:
@@ -906,7 +908,7 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -917,7 +919,7 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
 
     return is_required
 
-def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
+def get_node_validation_rules(schema_url: str, node_display_name: str, display_name_as_label:bool) -> list:
     """
     Args:
         schema_url (str): Data Model URL
@@ -932,7 +934,7 @@ def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -944,7 +946,7 @@ def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
 
     return node_validation_rules
 
-def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
+def get_nodes_display_names(schema_url: str, node_list: list[str], display_name_as_label:bool) -> list:
     """From a list of node labels retrieve their display names, return as list.
     
     Args:
@@ -962,7 +964,7 @@ def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
