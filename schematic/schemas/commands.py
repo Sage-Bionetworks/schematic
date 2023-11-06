@@ -65,7 +65,7 @@ def convert(schema, display_name_as_label, output_jsonld):
     st = time.time()
 
     # Instantiate Parser
-    data_model_parser = DataModelParser(schema)
+    data_model_parser = DataModelParser(schema, display_name_as_label)
 
     # Parse Model
     logger.info("Parsing data model.")
