@@ -303,6 +303,7 @@ class DataModelJsonLD(object):
         template = self.reorder_template_entries(
             template=template,
         )
+
         # Add contexts to certain values
         template = self.add_contexts_to_entries(
             template=template,
