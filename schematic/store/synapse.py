@@ -1358,11 +1358,16 @@ class SynapseStorage(BaseStorage):
             else:
                 manifest["Id"] = ''
 
+        # Retrieve the ID column name (id, Id and ID) are treated the same.
+        id_col_name = [col for col in manifest.columns if col.lower() == 'id'][0]
+
+        # Check if values have been added to the Id coulumn, if not add a UUID so value in the row is not blank.
         for idx,row in manifest.iterrows():
-            if not row["Id"]:
+            if not row[id_col_name]:
                 gen_uuid = str(uuid.uuid4())
-                row["Id"] = gen_uuid
-                manifest.loc[idx, 'Id'] = gen_uuid
+                row[id_col_name] = gen_uuid
+                manifest.loc[idx, id_col_name] = gen_uuid
+
 
         # add entityId as a column if not already there or
         # fill any blanks with an empty string.
