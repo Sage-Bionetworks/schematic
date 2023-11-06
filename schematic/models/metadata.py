@@ -34,7 +34,7 @@ class MetadataModel(object):
         - generate validation schema view of the metadata model
     """
 
-    def __init__(self, inputMModelLocation: str, inputMModelLocationType: str,) -> None:
+    def __init__(self, inputMModelLocation: str, inputMModelLocationType: str, display_name_as_label: bool) -> None:
 
         """Instantiates a MetadataModel object.
 
@@ -56,7 +56,7 @@ class MetadataModel(object):
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
+        data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
 
         # Generate graph
         self.graph_data_model = data_model_grapher.generate_data_model_graph()
