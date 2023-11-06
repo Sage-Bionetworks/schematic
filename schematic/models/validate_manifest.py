@@ -19,7 +19,7 @@ from urllib.request import Request
 from urllib import error
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
-#from schematic.schemas.generator import SchemaGenerator
+
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
