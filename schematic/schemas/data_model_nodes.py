@@ -176,7 +176,7 @@ class DataModelNodes:
                 f"The function provided ({rel_func}) to define the relationship {key} is not captured in the function run_rel_functions, please update."
             )
 
-    def generate_node_dict(self, node_display_name: str, attr_rel_dict: dict, display_name_as_label:bool) -> dict:
+    def generate_node_dict(self, node_display_name: str, attr_rel_dict: dict, display_name_as_label:bool=False) -> dict:
         """Gather information to be attached to each node.
         Args:
             node_display_name, str: display name for current node
