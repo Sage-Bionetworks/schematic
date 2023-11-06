@@ -43,13 +43,14 @@ class DataModelGraph:
 
     __metaclass__ = DataModelGraphMeta
 
-    def __init__(self, attribute_relationships_dict: dict, display_name_as_label:bool) -> None:
+    def __init__(self, attribute_relationships_dict: dict, display_name_as_label:bool=False) -> None:
         """Load parsed data model.
         Args:
             attributes_relationship_dict, dict: generated in data_model_parser
                 {Attribute Display Name: {
                         Relationships: {
                                     CSV Header: Value}}}
+            display_name_as_label, bool: Default, false. If true, set the display name as the label. If display name is not formatted properly, standard schema label will be used instead.
         Raises:
             ValueError, attribute_relationship_dict not loaded.
         """
@@ -77,6 +78,7 @@ class DataModelGraph:
         all_nodes = self.dmn.gather_all_nodes_in_model(
             attr_rel_dict=self.attribute_relationships_dict
         )
+
 
         # Instantiate NetworkX MultiDigraph
         G = nx.MultiDiGraph()
