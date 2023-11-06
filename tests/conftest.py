@@ -55,7 +55,7 @@ class Helpers:
         return load_df(fullpath, **kwargs)
 
     @staticmethod
-    def get_data_model_graph_explorer(path=None, *paths):
+    def get_data_model_graph_explorer(path=None, display_name_as_label:bool=False, *paths):
         #commenting this now bc we dont want to have multiple instances
         if path is None:
             return
@@ -63,13 +63,13 @@ class Helpers:
         fullpath = Helpers.get_data_path(path, *paths)
 
         # Instantiate DataModelParser
-        data_model_parser = DataModelParser(path_to_data_model = fullpath)
+        data_model_parser = DataModelParser(path_to_data_model = fullpath, display_name_as_label=display_name_as_label)
         
         #Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
+        data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label=display_name_as_label)
 
         # Generate graph
         graph_data_model = data_model_grapher.generate_data_model_graph()
