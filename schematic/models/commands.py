@@ -103,9 +103,15 @@ def model(ctx, config):  # use as `schematic model ...`
     default='replace',
     type=click.Choice(['replace', 'upsert'], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "table_manipulation")))
+@click.option(
+    "--display_name_as_label",
+    "-dnl",
+    is_flag=True,
+    help=query_dict(model_commands, ("model", "submit", "display_name_as_label")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope, table_manipulation,
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope, table_manipulation, display_name_as_label
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -115,7 +121,7 @@ def submit_manifest(
     log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
+        inputMModelLocation=jsonld, inputMModelLocationType="local", display_name_as_label=display_name_as_label
     )
 
 
@@ -176,8 +182,14 @@ def submit_manifest(
     callback=parse_synIDs,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
+@click.option(
+    "--display_name_as_label",
+    "-dnl",
+    is_flag=True,
+    help=query_dict(model_commands, ("model", "validate", "display_name_as_label")),
+)
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope):
+def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope, display_name_as_label):
     """
     Running CLI for manifest validation.
     """
@@ -200,7 +212,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
+        inputMModelLocation=jsonld, inputMModelLocationType="local", display_name_as_label=display_name_as_label,
     )
 
     errors, warnings = metadata_model.validateModelManifest(
