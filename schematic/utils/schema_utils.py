@@ -92,19 +92,17 @@ def get_label_from_display_name(display_name:str, entry_type:str, strict_camel_c
         else:
             if entry_type.lower()=='class':
              label = [
-                get_class_label_from_display_name(
-                    str(col)
-                    ).translate({ord(x): '' for x in blacklist_chars})
-                for col in manifest_columns
-            ][0]
+                    get_class_label_from_display_name(
+                        str(display_name)
+                        ).translate({ord(x): '' for x in blacklisted_chars})
+                    ][0]
 
             elif entry_type.lower()=='property':
                 label=[
-                get_property_label_from_display_name(
-                    str(col)
-                    ).translate({ord(x): '' for x in blacklist_chars})
-                for col in manifest_columns
-            ][0]
+                    get_property_label_from_display_name(
+                        str(display_name)
+                        ).translate({ord(x): '' for x in blacklisted_chars})
+                    ][0]
 
             logger.warning(f"Cannot use display name {display_name} as the schema label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {label}")
     else:
