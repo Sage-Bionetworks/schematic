@@ -49,6 +49,14 @@ logger = logging.getLogger(__name__)
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
 
+TEST_DN_DICT = {
+    "Bio Things": {"class": "BioThings", "property": "bioThings"},
+    "bio things": {"class": "Biothings", "property": "biothings"},
+    "BioThings": {"class": "BioThings", "property": "bioThings"},
+    "Bio-things": {"class": "Bio-things", "property": "bio-things"},
+    "bio_things": {"class": "BioThings", "property": "bioThings"},
+    }
+
 @pytest.fixture
 def synapse_store():
     access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
@@ -412,47 +420,39 @@ class TestSchemaUtils:
         elif 'sms:required' == context_value:
             assert stripped_contex == ('sms', 'required')
 
-    TEST_DN_DICT = {
-    "Bio Things": {"class": "BioThings", "property": "bioThings"},
-    "bio things": {"class": "Biothings", "property": "biothings"},
-    "BioThings": {"class": "BioThings", "property": "bioThings"},
-    "Bio-things": {"class": "Biothings", "property": "biothings"},
-    "bio_things": {"class": "Biothings", "property": "biothings"},
-    }
+    
     @pytest.mark.parametrize(
-        ("test_dn", "entry_types"),
-        (list(TEST_DN_DICT.keys()), list(TEST_DN_DICT.values())),
-        ids=(list(TEST_DN_DICT.keys()), list(TEST_DN_DICT.keys()))
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
     )
 
+    #@pytest.mark.parametrize(
+    #    "expected_result",
+    #    list(TEST_DN_DICT.values()),
+    #    ids=list(TEST_DN_DICT.keys()),
+    #)
     @pytest.mark.parametrize(
         "use_label", [True, False], ids=["True", "False"]
     )
     def test_get_label_from_display_name(self, test_dn, use_label):
-        display_name = test_dn.keys()[0]
-        for entry_type, expected_result in test_dn.values():
+        display_name = test_dn
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
             label = ""
 
             try:
-                label = get_label_from_display_name(entry_type=entry_type, display_name=test_dn, use_display_name_as_label=use_label)
+                label = get_label_from_display_name(entry_type=entry_type, display_name=display_name, use_display_name_as_label=use_label)
             except:
                 # Under these conditions should only fail if the display name cannot be used as a label.
-                try:
-                    assert test_dn in ["Bio Things", "bio things", "Bio-things", "bio_things"]
-                    continue
-                except:
-                    breakpoint()
+                assert test_dn in ["Bio Things", "bio things", "Bio-things", "bio_things"]
             if label:
                 if use_label:
-                    try:
-                        assert label == test_dn
-                    except:
-                        breakpoint()
-                else:
-                    try:
+                    if test_dn in ["Bio Things", "bio things"]:
                         assert label == expected_result
-                    except:
-                        breakpoint()
+                    else:
+                        assert label == test_dn
+                else:
+                    assert label == expected_result
             else:
                 return
         return

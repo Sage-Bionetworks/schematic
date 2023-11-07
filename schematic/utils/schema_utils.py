@@ -84,7 +84,7 @@ def get_label_from_display_name(display_name:str, entry_type:str, strict_camel_c
 
     """
     if use_display_name_as_label:
-        blacklisted_chars = ["(", ")", ".", "-", " "]
+        blacklisted_chars = ["(", ")", ".", " "]
         # Check that display name can be used as a label.
         valid_display_name = check_if_display_name_is_valid_label(display_name=display_name, blacklisted_chars=blacklisted_chars)
         if valid_display_name:
