@@ -84,17 +84,28 @@ def get_label_from_display_name(display_name:str, entry_type:str, strict_camel_c
 
     """
     if use_display_name_as_label:
-        blacklisted_chars = ["(", ")", ".", " "]
+        blacklisted_chars = ["(", ")", ".", " ", "-"]
         # Check that display name can be used as a label.
         valid_display_name = check_if_display_name_is_valid_label(display_name=display_name, blacklisted_chars=blacklisted_chars)
         if valid_display_name:
             label=display_name
         else:
             if entry_type.lower()=='class':
-             label = get_class_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
-        
+             label = [
+                get_class_label_from_display_name(
+                    str(col)
+                    ).translate({ord(x): '' for x in blacklist_chars})
+                for col in manifest_columns
+            ][0]
+
             elif entry_type.lower()=='property':
-                label=get_property_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+                label=[
+                get_property_label_from_display_name(
+                    str(col)
+                    ).translate({ord(x): '' for x in blacklist_chars})
+                for col in manifest_columns
+            ][0]
+
             logger.warning(f"Cannot use display name {display_name} as the schema label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {label}")
     else:
         if entry_type.lower()=='class':
