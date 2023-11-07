@@ -397,15 +397,15 @@ class TestDataModelGraph:
 
         # Check that some edges are present as expected:
         assert ("FamilyHistory", "Breast") in graph.edges("FamilyHistory")
-        assert ("BulkRNA-seqAssay", "Biospecimen") in graph.edges("BulkRNA-seqAssay")
 
         if display_name_as_label:
             expected_valid_values = ['ab', 'cd', 'ef', 'gh']
             mock_id_label = 'MockRDB_id'
-
+            assert ("BulkRNAseqAssay", "Biospecimen") in graph.edges("BulkRNAseqAssay")
         else:
             expected_valid_values = ["Ab", "Cd", "Ef", "Gh"]
             mock_id_label = 'MockRDBId'
+            assert ("BulkRNA-seqAssay", "Biospecimen") in graph.edges("BulkRNA-seqAssay")
 
         assert expected_valid_values == [
             k

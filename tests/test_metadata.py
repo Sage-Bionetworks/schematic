@@ -25,7 +25,10 @@ class TestMetadataModel:
         # Instantiate MetadataModel
         meta_data_model = metadata_model(helpers, display_name_as_label)
 
-        source_component = "BulkRNA-seqAssay"
+        if display_name_as_label:
+            source_component="BulkRNAseqAssay"
+        else:
+            source_component = "BulkRNA-seqAssay"
 
         output = meta_data_model.get_component_requirements(
             source_component, as_graph=as_graph
@@ -35,11 +38,17 @@ class TestMetadataModel:
 
         if as_graph:
             assert ("Biospecimen", "Patient") in output
-            assert ("BulkRNA-seqAssay", "Biospecimen") in output
+            if display_name_as_label:
+                assert ("BulkRNAseqAssay", "Biospecimen") in output
+            else:
+                assert ("BulkRNA-seqAssay", "Biospecimen") in output
         else:
             assert "Biospecimen" in output
             assert "Patient" in output
-            assert "BulkRNA-seqAssay" in output
+            if display_name_as_label:
+                assert "BulkRNAseqAssay" in output
+            else:
+                assert "BulkRNA-seqAssay" in output
 
     @pytest.mark.parametrize("return_excel", [None, True, False])
     @pytest.mark.parametrize("display_name_as_label", [True, False], ids=["display_name_as_label-True", "display_name_as_label-False"])

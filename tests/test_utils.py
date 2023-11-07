@@ -427,11 +427,6 @@ class TestSchemaUtils:
         ids=list(TEST_DN_DICT.keys()),
     )
 
-    #@pytest.mark.parametrize(
-    #    "expected_result",
-    #    list(TEST_DN_DICT.values()),
-    #    ids=list(TEST_DN_DICT.keys()),
-    #)
     @pytest.mark.parametrize(
         "use_label", [True, False], ids=["True", "False"]
     )
@@ -447,7 +442,7 @@ class TestSchemaUtils:
                 assert test_dn in ["Bio Things", "bio things", "Bio-things", "bio_things"]
             if label:
                 if use_label:
-                    if test_dn in ["Bio Things", "bio things"]:
+                    if test_dn in ["Bio Things", "bio things", "Bio-things"]:
                         assert label == expected_result
                     else:
                         assert label == test_dn
