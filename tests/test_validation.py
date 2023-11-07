@@ -51,7 +51,8 @@ class TestManifestValidation:
 
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
-            rootNode=rootNode
+            rootNode=rootNode,
+            project_scope = ["syn23643250"],
             )
             
         assert errors == []
@@ -64,7 +65,8 @@ class TestManifestValidation:
 
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
-            rootNode=rootNode
+            rootNode=rootNode,
+            project_scope = ["syn23643250"],
             )
 
         #Check errors
@@ -249,6 +251,7 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode,
             restrict_rules=True,
+            project_scope = ["syn23643250"],
             )  
 
         #Check errors
