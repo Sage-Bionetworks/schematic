@@ -19,7 +19,7 @@ def attributes_explorer(helpers):
     path_to_jsonld = helpers.get_data_path("example.model.jsonld")
     
     # Initialize TangledTree
-    attributes_explorer = AttributesExplorer(path_to_jsonld)
+    attributes_explorer = AttributesExplorer(path_to_jsonld, display_name_as_label=False)
     yield attributes_explorer
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def tangled_tree(helpers):
     path_to_jsonld = helpers.get_data_path("example.model.jsonld")
     
     # Initialize TangledTree
-    tangled_tree = TangledTree(path_to_jsonld, figure_type)
+    tangled_tree = TangledTree(path_to_jsonld, figure_type, display_name_as_label=False)
     yield tangled_tree
 
 class TestVisualization:
