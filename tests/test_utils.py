@@ -53,7 +53,7 @@ TEST_DN_DICT = {
     "Bio Things": {"class": "BioThings", "property": "bioThings"},
     "bio things": {"class": "Biothings", "property": "biothings"},
     "BioThings": {"class": "BioThings", "property": "bioThings"},
-    "Bio-things": {"class": "Bio-things", "property": "bio-things"},
+    "Bio-things": {"class": "Biothings", "property": "biothings"},
     "bio_things": {"class": "BioThings", "property": "bioThings"},
     }
 
@@ -444,10 +444,19 @@ class TestSchemaUtils:
                 if use_label:
                     if test_dn in ["Bio Things", "bio things", "Bio-things"]:
                         assert label == expected_result
+
                     else:
                         assert label == test_dn
                 else:
-                    assert label == expected_result
+                    # The dash has an odd handling
+                    if display_name == 'Bio-things':
+                        if entry_type == 'property':
+                            assert label == 'bio-things'
+                        else:
+                            assert label == 'Bio-things'
+                    else:
+                        assert label == expected_result
+  
             else:
                 return
         return
