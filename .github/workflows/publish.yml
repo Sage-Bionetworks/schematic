@@ -99,7 +99,7 @@ jobs:
       #----------------------------------------------  
       - name: Publish package to Pypi
         id: publish-to-pypi
-        if: steps.check-tag.outputs.match == 'true'
+        # if: steps.check-tag.outputs.match == 'true'
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
           PYPI_USERNAME: __token__
