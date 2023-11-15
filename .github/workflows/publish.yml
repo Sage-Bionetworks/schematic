@@ -1,5 +1,7 @@
 name: Publish to PyPI
-on: [pull_request]
+on:
+  push:
+    branches: [develop-refactor-schemas]
 # on:
 #   push:
 #     tags:
