@@ -50,6 +50,8 @@ from schematic.utils.general import (entity_type_mapping,
                                      get_dir_size,
                                      convert_gb_to_bytes,
                                      create_temp_folder,
+                                     check_synapse_cache_size,
+                                     clear_synapse_cache,
                                      profile,
                                      calculate_datetime)
 from schematic.utils.schema_utils import get_class_label_from_display_name
