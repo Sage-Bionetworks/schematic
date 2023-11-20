@@ -12,8 +12,6 @@ from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
-from tenacity import (RetryError, Retrying, stop_after_attempt,
-                      wait_random_exponential)
 
 from schematic.configuration.configuration import Configuration
 from schematic.models.metadata import MetadataModel
@@ -153,24 +151,15 @@ class TestSynapseStorage:
         # Upload dataset annotations
         sg = SchemaGenerator(config.model_location)
 
-        try:        
-            for attempt in Retrying(
-                stop = stop_after_attempt(5),
-                wait = wait_random_exponential(multiplier=1,min=10,max=20),
-                retry_error_callback = raise_final_error
-                ):
-                with attempt:         
-                    manifest_id = synapse_store.associateMetadataWithFiles(
-                        schemaGenerator = sg,
-                        metadataManifestPath = helpers.get_data_path(manifest_path),
-                        datasetId = datasetId,
-                        manifest_record_type = manifest_record_type,
-                        useSchemaLabel = True,
-                        hideBlanks = True,
-                        restrict_manifest = False,
-                    )
-        except RetryError:
-            pass
+        manifest_id = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = manifest_record_type,
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+        )
 
         # Retrive annotations
         entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
