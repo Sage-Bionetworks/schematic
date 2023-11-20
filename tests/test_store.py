@@ -110,6 +110,8 @@ class TestSynapseStorage:
 
     @pytest.mark.parametrize('only_new_files',[True, False])
     def test_get_file_entityIds(self, helpers, synapse_store, only_new_files):
+        #TODO: Automatically reset manifest at path specified below after each test 
+        # so that subsequent runs do not affect each other
         manifest_path = "mock_manifests/test_BulkRNAseq.csv"
         dataset_files = synapse_store.getFilesInStorageDataset('syn39241199')
 
@@ -117,6 +119,8 @@ class TestSynapseStorage:
             # Prepare manifest is getting Ids for new files only
             manifest = helpers.get_data_frame(manifest_path)
             entityIds = pd.DataFrame({'entityId': ['syn39242580', 'syn51900502']})
+
+            # If this line errors out then the changes on the manifest file need to be discarded
             manifest = manifest.join(entityIds)
             
             # get entityIds for new files
