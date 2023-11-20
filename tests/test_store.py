@@ -17,21 +17,12 @@ from schematic.configuration.configuration import Configuration
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import (DatasetFileView, ManifestDownload,
-                                     SynapseStorage)
+from schematic.store.synapse import (DatasetFileView, 
+                                    ManifestDownload,)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
-@pytest.fixture
-def synapse_store():
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-    if access_token:
-        synapse_store = SynapseStorage(access_token=access_token)
-    else:
-        synapse_store = SynapseStorage()
-    yield synapse_store
 
 @pytest.fixture
 def test_download_manifest_id():
