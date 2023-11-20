@@ -129,6 +129,10 @@ model_commands = {
                 "Upsert functionality requires primary keys to be specified in the data model and manfiest as <component>_id."
                 "Currently it is required to use -dl/--use_display_label with table upserts."
             ),
+            "retain_dl_formatting":(
+                "Boolean flag, default, false. When true annotations and table columns will be uploaded with the display name formatting with blacklisted characters removed. "
+                "To use for tables, use in conjunction with the use_schema_label flag."
+            ),
         },
         "validate": {
             "short_help": ("Validation of manifest files."),

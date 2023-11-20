@@ -103,9 +103,15 @@ def model(ctx, config):  # use as `schematic model ...`
     default='replace',
     type=click.Choice(['replace', 'upsert'], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "table_manipulation")))
+@click.option(
+    "--retain_dl_formatting",
+    "-rdlf",
+    is_flag=True,
+    help=query_dict(model_commands, ("model", "submit", "retain_dl_formatting")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope, table_manipulation,
+    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope, table_manipulation, retain_dl_formatting
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -130,6 +136,7 @@ def submit_manifest(
         hide_blanks=hide_blanks,
         project_scope=project_scope,
         table_manipulation=table_manipulation,
+        retain_dl_formatting=retain_dl_formatting
     )
     
     if manifest_id:
