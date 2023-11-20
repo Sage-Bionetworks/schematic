@@ -1894,7 +1894,6 @@ class SynapseStorage(BaseStorage):
     def raise_final_error(retry_state):
         return retry_state.outcome.result()
 
-
     def checkIfinAssetView(self, syn_id) -> str:
         # get data in administrative fileview for this pipeline
         assetViewTable = self.getStorageFileviewTable()
