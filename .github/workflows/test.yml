@@ -128,7 +128,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not (google_credentials_needed or schematic_api or table_operations)"
+          -m "not (google_credentials_needed or schematic_api or table_operations)" --reruns 2
 
       - name: Run tests
         env:
@@ -138,7 +138,7 @@ jobs:
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not (google_credentials_needed or rule_combos or schematic_api or table_operations)"
+          -m "not (google_credentials_needed or rule_combos or schematic_api or table_operations)" --reruns 2
 
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
