@@ -387,6 +387,7 @@ def submit_manifest_route(schema_url,
                           data_type=None, 
                           hide_blanks=False, 
                           project_scope=None,
+                          retain_dl_formatting:bool=False
                           ):
     # call config_handler()
     config_handler(asset_view = asset_view)
@@ -397,6 +398,8 @@ def submit_manifest_route(schema_url,
         temp_path = jsc.convert_json_str_to_csv(json_str = json_str, file_name = "example_json.csv")
     else: 
         temp_path = jsc.convert_json_file_to_csv("file_name")
+
+    # Get/parse parameters from the API
 
     dataset_id = connexion.request.args["dataset_id"]
 
@@ -413,6 +416,14 @@ def submit_manifest_route(schema_url,
         use_schema_label = True
     else:
         use_schema_label = parse_bool(use_schema_label)
+
+
+    retain_dl_formatting = connexion.request.args["retain_dl_formatting"]
+    if retain_dl_formatting == 'None':
+        retain_dl_formatting = False
+    else:
+        retain_dl_formatting = parse_bool(retain_dl_formatting)
+
 
     if not table_manipulation: 
         table_manipulation = "replace"
@@ -437,6 +448,7 @@ def submit_manifest_route(schema_url,
         table_manipulation = table_manipulation, 
         use_schema_label=use_schema_label,
         project_scope=project_scope,
+        retain_dl_formatting=retain_dl_formatting
         )
 
     return manifest_id

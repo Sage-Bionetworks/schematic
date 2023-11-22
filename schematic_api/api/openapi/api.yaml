@@ -398,6 +398,13 @@ paths:
             default: true
           required: false
         - in: query
+          name: retain_dl_formatting
+          description: "Retain display label formatting (rather than Class Label camelcase formatting) when generating schema labels, for uploading annotations and making table column names, while stripping any blacklisted characters. Used in conjunction with use_schema_label for table column formatting."
+          schema:
+            type: boolean
+            default: false
+          required: false
+        - in: query
           name: project_scope
           schema:
             type: array
