@@ -95,31 +95,10 @@ def config():
 
 @pytest.fixture(scope="session")
 def synapse_store(request):
-    # Add timer to measure setup time
-    t_s = perf_counter()
-
-    # Add a counter for how many times the fixture is used
-    if not hasattr(request.session, "_fixture_count"):
-        request.session._fixture_count = {}
-
-    fixture_name = request.fixturename
-    request.session._fixture_count[fixture_name] = (
-        request.session._fixture_count.get(fixture_name, 0) + 1
-    )
-
-    
     access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
     if access_token:
         synapse_store = SynapseStorage(access_token=access_token)
     else:
         synapse_store = SynapseStorage()
 
-    # Measure elapsed time
-    t_e = perf_counter() - t_s
-
-    # Print marking end of fixture setup and elapsed setup time
-    print(f"\nstore setup\nElapsed Time: {t_e=}\n")
     yield synapse_store
-    
-    # Print marking fixture teardown
-    print("\nstore teardown\n")
