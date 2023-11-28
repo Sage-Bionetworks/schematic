@@ -299,7 +299,7 @@ class MetadataModel(object):
         manifest_record_type: str,
         restrict_rules: bool,
         access_token: str,
-        validate_component: str = Optional[None],
+        validate_component: Optional[str] = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
         project_scope: List = None,
