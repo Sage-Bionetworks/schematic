@@ -186,8 +186,14 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, project_scope: List = None, access_token: str = None,
-    ) -> List[str]:
+        self,
+        manifestPath: str,
+        rootNode: str,
+        restrict_rules: bool = False,
+        jsonSchema: Optional[str] = None,
+        project_scope: Optional[List] = None,
+        access_token: Optional[str] = None,
+    ) -> tuple[list, list]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
         Args:
@@ -292,13 +298,13 @@ class MetadataModel(object):
         dataset_id: str,
         manifest_record_type: str,
         restrict_rules: bool,
-        validate_component: str = None,
+        access_token: str,
+        validate_component: str = Optional[None],
         use_schema_label: bool = True,
         hide_blanks: bool = False,
-        access_token: str = None,
         project_scope: List = None,
         table_manipulation: str = 'replace'
-    ) -> string:
+    ) -> str:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
         Args:
