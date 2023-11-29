@@ -1522,10 +1522,6 @@ class ManifestGenerator(object):
             if "dataframe" in output_format:
                 output_format = "dataframe"
 
-        print('dataset id', dataset_id)
-        print('output format', output_format)
-        print('strict', strict)
-        
         result = manifest_generator.get_manifest(
             dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token, strict=strict,
         )
