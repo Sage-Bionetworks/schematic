@@ -265,76 +265,8 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
                     f"Please check your submission and try again."
                 )
-
-    # Since this function is called in `get_manifest_route`, 
-    # it can use the access_token passed in from there and retain `access_token` as a parameter
-    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None, strict=strict_validation):
-        # create object of type ManifestGenerator
-        manifest_generator = ManifestGenerator(
-            path_to_json_ld=jsonld,
-            title=title,
-            root=data_type,
-            use_annotations=use_annotations,
-            alphabetize_valid_values = 'ascending',
-        )
-
-        # if returning a dataframe
-        if output_format:
-            if "dataframe" in output_format:
-                output_format = "dataframe"
-
-        result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token, strict=strict,
-        )
-
-        # return an excel file if output_format is set to "excel"
-        if output_format == "excel":
-            dir_name = os.path.dirname(result)
-            file_name = os.path.basename(result)
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
-               
-        return result
-
-    # Gather all returned result urls
-    all_results = []
-    if data_type[0] == 'all manifests':
-        sg = SchemaGenerator(path_to_json_ld=jsonld)
-        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
-        components = component_digraph.nodes()
-        for component in components:
-            if title:
-                t = f'{title}.{component}.manifest'
-            else: 
-                t = f'Example.{component}.manifest'
-            if output_format != "excel":
-                result = create_single_manifest(data_type=component, output_format=output_format, title=t, access_token=access_token)
-                all_results.append(result)
-            else: 
-                app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
-    else:
-        for i, dt in enumerate(data_type):
-            if not title: 
-                t = f'Example.{dt}.manifest'
-            else: 
-                if len(data_type) > 1:
-                    t = f'{title}.{dt}.manifest'
-                else: 
-                    t = title
-            if dataset_ids:
-                # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token)
-            else:
-                result = create_single_manifest(data_type=dt, output_format=output_format, title=t, access_token=access_token)
-
-            # if output is pandas dataframe or google sheet url
-            if isinstance(result, str) or isinstance(result, pd.DataFrame):
-                all_results.append(result)
-            else: 
-                if len(data_type) > 1:
-                    app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
-                return result
-
+        
+    all_results = ManifestGenerator.create_manifests(jsonld=jsonld, output_format=output_format, data_types=data_type, title=title, access_token=access_token, dataset_ids=dataset_ids, strict=strict_validation, use_annotations=use_annotations)
     return all_results
 
 #####profile validate manifest route function 
