@@ -1608,13 +1608,6 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL, pandas dataframe, or an Excel spreadsheet 
         """
-
-        print('what is the dataset id??', dataset_id)
-        print('sheet url??', sheet_url)
-        print('json schema??', json_schema)
-        print('output format??', output_format)
-        print('strict??', strict)
-
         # Handle case when no dataset ID is provided
         if not dataset_id:
             manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema, strict=strict, sheet_url=sheet_url)
