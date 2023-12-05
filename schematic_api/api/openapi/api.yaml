@@ -391,18 +391,20 @@ paths:
             enum: ["replace", "upsert"]
           required: false
         - in: query
-          name: use_schema_label
-          description: "Store attributes using the schema label (true, default) or store attributes using the display label (false). Attribute display names in the schema must not only include characters that are not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
+          name: table_column_names
+          description: Specify how table column names should be formatted. display_name would use the raw attribute display name as the column name. display_label, would strip all blacklisted characters (including spaces) from the display name, while retaining the rest of the display name formatting (best used when display name is already in camelcase), class_label (default) converts the display name to upper camelcase and strips blacklisted characters.
           schema:
-            type: boolean
-            default: true
+            type: string
+            enum: ["display_name", "display_label", "class_label"]
+            default: "class_label"
           required: false
         - in: query
-          name: retain_dl_formatting
-          description: "Retain display label formatting (rather than Class Label camelcase formatting) when generating schema labels, for uploading annotations and making table column names, while stripping any blacklisted characters. Used in conjunction with use_schema_label for table column formatting."
+          name: annotation_keys
+          description: Specify how table column names should be formatted. display_label, would strip all blacklisted characters (including spaces) from the display name, while retaining the rest of the display name formatting (best used when display name is already in camelcase), class_label (default) converts the display name to upper camelcase and strips blacklisted characters.
           schema:
-            type: boolean
-            default: false
+            type: string
+            enum: ["display_label", "class_label"]
+            default: "class_label"
           required: false
         - in: query
           name: project_scope
