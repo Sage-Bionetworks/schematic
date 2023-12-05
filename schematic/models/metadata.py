@@ -6,7 +6,13 @@ import numpy as np
 import pandas as pd
 import re
 import networkx as nx
-from jsonschema import Draft7Validator, exceptions, validate, ValidationError, FormatError
+from jsonschema import (
+    Draft7Validator,
+    exceptions,
+    validate,
+    ValidationError,
+    FormatError,
+)
 from os.path import exists
 
 # allows specifying explicit variable types
@@ -19,7 +25,7 @@ from schematic.schemas.explorer import SchemaExplorer
 from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.generator import SchemaGenerator
 
-#TODO: This module should only be aware of the store interface
+# TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
@@ -43,8 +49,11 @@ class MetadataModel(object):
         - generate validation schema view of the metadata model
     """
 
-    def __init__(self, inputMModelLocation: str, inputMModelLocationType: str,) -> None:
-
+    def __init__(
+        self,
+        inputMModelLocation: str,
+        inputMModelLocationType: str,
+    ) -> None:
         """Instantiates a MetadataModel object.
 
         Args:
@@ -186,7 +195,13 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, project_scope: List = None, access_token: str = None,
+        self,
+        manifestPath: str,
+        rootNode: str,
+        restrict_rules: bool = False,
+        jsonSchema: str = None,
+        project_scope: List = None,
+        access_token: str = None,
     ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
@@ -203,7 +218,7 @@ class MetadataModel(object):
             ValueError: rootNode not found in metadata model.
         """
         # get validation schema for a given node in the data model, if the user has not provided input validation schema
-        
+
         if not jsonSchema:
             jsonSchema = self.sg.get_json_schema_requirements(
                 rootNode, rootNode + "_validation"
@@ -212,12 +227,14 @@ class MetadataModel(object):
         errors = []
         warnings = []
 
-        load_args={
-            "dtype":"string",
-            }
+        load_args = {
+            "dtype": "string",
+        }
         # get annotations from manifest (array of json annotations corresponding to manifest rows)
         manifest = load_df(
-            manifestPath, preserve_raw_input=False, **load_args,
+            manifestPath,
+            preserve_raw_input=False,
+            **load_args,
         )  # read manifest csv file as is from manifest path
 
         # handler for mismatched components/data types
@@ -251,19 +268,23 @@ class MetadataModel(object):
 
             return errors, warnings
 
-        errors, warnings, manifest = validate_all(self, 
-                                                  errors=errors, 
-                                                  warnings=warnings, 
-                                                  manifest=manifest, 
-                                                  manifestPath=manifestPath, 
-                                                  sg=self.sg, 
-                                                  jsonSchema=jsonSchema, 
-                                                  restrict_rules=restrict_rules, 
-                                                  project_scope=project_scope, 
-                                                  access_token=access_token)
+        errors, warnings, manifest = validate_all(
+            self,
+            errors=errors,
+            warnings=warnings,
+            manifest=manifest,
+            manifestPath=manifestPath,
+            sg=self.sg,
+            jsonSchema=jsonSchema,
+            restrict_rules=restrict_rules,
+            project_scope=project_scope,
+            access_token=access_token,
+        )
         return errors, warnings
 
-    def populateModelManifest(self, title, manifestPath: str, rootNode: str, return_excel = False) -> str:
+    def populateModelManifest(
+        self, title, manifestPath: str, rootNode: str, return_excel=False
+    ) -> str:
         """Populate an existing annotations manifest based on a dataframe.
             TODO: Remove this method; always use getModelManifest instead
 
@@ -283,7 +304,9 @@ class MetadataModel(object):
 
         emptyManifestURL = mg.get_manifest()
 
-        return mg.populate_manifest_spreadsheet(manifestPath, emptyManifestURL, return_excel = return_excel, title=title)
+        return mg.populate_manifest_spreadsheet(
+            manifestPath, emptyManifestURL, return_excel=return_excel, title=title
+        )
 
     def submit_metadata_manifest(
         self,
@@ -297,8 +320,9 @@ class MetadataModel(object):
         hide_blanks: bool = False,
         access_token: str = None,
         project_scope: List = None,
-        table_manipulation: str = 'replace',
-        retain_dl_formatting: bool = False,
+        table_manipulation: str = "replace",
+        table_column_names: str = "class_label",
+        annotation_keys: str = "class_label",
     ) -> string:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -313,17 +337,18 @@ class MetadataModel(object):
             ValidationError: If validation against data model was not successful.
         """
 
-        #TODO: avoid explicitly exposing Synapse store functionality
+        # TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-        syn_store = SynapseStorage(access_token = access_token, project_scope = project_scope)
-        manifest_id=None
-        censored_manifest_id=None
-        restrict_maniest=False
-        censored_manifest_path=manifest_path.replace('.csv','_censored.csv')
+        syn_store = SynapseStorage(
+            access_token=access_token, project_scope=project_scope
+        )
+        manifest_id = None
+        censored_manifest_id = None
+        restrict_maniest = False
+        censored_manifest_path = manifest_path.replace(".csv", "_censored.csv")
         # check if user wants to perform validation or not
         if validate_component is not None:
-
             try:
                 # check if the component ("class" in schema) passed as argument is valid (present in schema) or not
                 self.sg.se.is_class_in_schema(validate_component)
@@ -338,40 +363,44 @@ class MetadataModel(object):
 
             # automatic JSON schema generation and validation with that JSON schema
             val_errors, val_warnings = self.validateModelManifest(
-                manifestPath=manifest_path, rootNode=validate_component, restrict_rules=restrict_rules, project_scope=project_scope, access_token=access_token
+                manifestPath=manifest_path,
+                rootNode=validate_component,
+                restrict_rules=restrict_rules,
+                project_scope=project_scope,
+                access_token=access_token,
             )
 
             # if there are no errors in validation process
-            if val_errors == []:                
+            if val_errors == []:
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if exists(censored_manifest_path):
                     censored_manifest_id = syn_store.associateMetadataWithFiles(
-                        schemaGenerator = self.sg,
-                        metadataManifestPath = censored_manifest_path,
-                        datasetId = dataset_id, 
-                        manifest_record_type = manifest_record_type,
-                        useSchemaLabel = use_schema_label,
-                        hideBlanks = hide_blanks,
+                        schemaGenerator=self.sg,
+                        metadataManifestPath=censored_manifest_path,
+                        datasetId=dataset_id,
+                        manifest_record_type=manifest_record_type,
+                        hideBlanks=hide_blanks,
                         table_manipulation=table_manipulation,
-                        retain_dl_formatting=retain_dl_formatting,
+                        table_column_names=table_column_names,
+                        annotation_keys=annotation_keys,
                     )
                     restrict_maniest = True
-                
+
                 manifest_id = syn_store.associateMetadataWithFiles(
-                    schemaGenerator = self.sg,
-                    metadataManifestPath = manifest_path, 
-                    datasetId = dataset_id, 
-                    manifest_record_type = manifest_record_type,
-                    useSchemaLabel = use_schema_label, 
-                    hideBlanks = hide_blanks,
+                    schemaGenerator=self.sg,
+                    metadataManifestPath=manifest_path,
+                    datasetId=dataset_id,
+                    manifest_record_type=manifest_record_type,
+                    hideBlanks=hide_blanks,
                     restrict_manifest=restrict_maniest,
                     table_manipulation=table_manipulation,
-                    retain_dl_formatting=retain_dl_formatting,
+                    table_column_names=table_column_names,
+                    annotation_keys=annotation_keys,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
                 return manifest_id
-                
+
             else:
                 raise ValidationError(
                     "Manifest could not be validated under provided data model. "
@@ -381,27 +410,27 @@ class MetadataModel(object):
         # no need to perform validation, just submit/associate the metadata manifest file
         if exists(censored_manifest_path):
             censored_manifest_id = syn_store.associateMetadataWithFiles(
-                schemaGenerator = self.sg,
+                schemaGenerator=self.sg,
                 metadataManifestPath=censored_manifest_path,
                 datasetId=dataset_id,
                 manifest_record_type=manifest_record_type,
-                useSchemaLabel=use_schema_label,
                 hideBlanks=hide_blanks,
                 table_manipulation=table_manipulation,
-                retain_dl_formatting=retain_dl_formatting,
+                table_column_names=table_column_names,
+                annotation_keys=annotation_keys,
             )
             restrict_maniest = True
-        
+
         manifest_id = syn_store.associateMetadataWithFiles(
-            schemaGenerator = self.sg,
+            schemaGenerator=self.sg,
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
-            useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
             restrict_manifest=restrict_maniest,
             table_manipulation=table_manipulation,
-            retain_dl_formatting=retain_dl_formatting,
+            table_column_names=table_column_names,
+            annotation_keys=annotation_keys,
         )
 
         logger.debug(
