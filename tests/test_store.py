@@ -165,9 +165,10 @@ class TestSynapseStorage:
                         metadataManifestPath = helpers.get_data_path(manifest_path),
                         datasetId = datasetId,
                         manifest_record_type = manifest_record_type,
-                        useSchemaLabel = True,
                         hideBlanks = True,
                         restrict_manifest = False,
+                        table_column_names='class_label',
+                        annotation_keys='class_label'
                     )
         except RetryError:
             pass
@@ -378,8 +379,9 @@ class TestDatasetFileView:
 
 @pytest.mark.table_operations
 class TestTableOperations:
-
-    def test_createTable(self, helpers, synapse_store, config: Configuration, projectId, datasetId):
+    @pytest.mark.parametrize("table_column_names", ['display_name', 'display_label', 'class_label'], ids=['tcn_display_name', 'tcn_display_label', 'tcn_class_label'])
+    @pytest.mark.parametrize("annotation_keys", ['display_label', 'class_label'], ids=['aks_display_label', 'aks_class_label'])
+    def test_createTable(self, helpers, synapse_store, config: Configuration, projectId, datasetId, table_column_names,annotation_keys):
         table_manipulation = None
 
         # Check if FollowUp table exists if so delete
@@ -404,10 +406,11 @@ class TestTableOperations:
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
-            useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
             table_manipulation=table_manipulation,
+            table_column_names=table_column_names,
+            annotation_keys=annotation_keys,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
         
@@ -416,7 +419,9 @@ class TestTableOperations:
         # assert table exists
         assert table_name in existing_tables.keys()
 
-    def test_replaceTable(self, helpers, synapse_store, config: Configuration, projectId, datasetId):
+    @pytest.mark.parametrize("table_column_names", ['display_label', 'class_label'], ids=['tcn_display_label', 'tcn_class_label'])
+    @pytest.mark.parametrize("annotation_keys", ['display_label', 'class_label'], ids=['aks_display_label', 'aks_class_label'])
+    def test_replaceTable(self, helpers, synapse_store, config: Configuration, projectId, datasetId, table_column_names, annotation_keys):
         table_manipulation = 'replace'
 
         table_name='followup_synapse_storage_manifest_table'
@@ -443,10 +448,11 @@ class TestTableOperations:
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
-            useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
             table_manipulation=table_manipulation,
+            table_column_names=table_column_names,
+            annotation_keys=annotation_keys,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
 
@@ -465,10 +471,10 @@ class TestTableOperations:
             metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
-            useSchemaLabel = True,
             hideBlanks = True,
             restrict_manifest = False,
-            table_manipulation=table_manipulation,
+            table_column_names=table_column_names,
+            annotation_keys=annotation_keys,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
         
@@ -483,7 +489,8 @@ class TestTableOperations:
         # delete table        
         synapse_store.syn.delete(tableId)
 
-    def test_upsertTable(self, helpers, synapse_store, config:Configuration, projectId, datasetId):
+    @pytest.mark.parametrize("annotation_keys", ['display_label', 'class_label'], ids=['aks_display_label', 'aks_class_label'])
+    def test_upsertTable(self, helpers, synapse_store, config:Configuration, projectId, datasetId, annotation_keys):
         table_manipulation = "upsert"
 
         table_name="MockRDB_synapse_storage_manifest_table".lower()
@@ -510,10 +517,11 @@ class TestTableOperations:
             metadataManifestPath = helpers.get_data_path(manifest_path),
             datasetId = datasetId,
             manifest_record_type = 'table_and_file',
-            useSchemaLabel = False,
             hideBlanks = True,
             restrict_manifest = False,
             table_manipulation=table_manipulation,
+            table_column_names='display_name',
+            annotation_keys=annotation_keys,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
 
@@ -536,10 +544,11 @@ class TestTableOperations:
             metadataManifestPath = helpers.get_data_path(replacement_manifest_path),
             datasetId = datasetId, 
             manifest_record_type = 'table_and_file',
-            useSchemaLabel = False,
             hideBlanks = True,
             restrict_manifest = False,
             table_manipulation=table_manipulation,
+            table_column_names='display_name',
+            annotation_keys=annotation_keys,
         )
         existing_tables = synapse_store.get_table_info(projectId = projectId)
         
