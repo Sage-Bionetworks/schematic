@@ -129,7 +129,7 @@ model_commands = {
                 "Attribute display names in the schema must not only include characters that are "
                 "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
             ),
-            "table_column_names":(
+            "table_column_names": (
                 "class_label, display_label, display_name, default, class_label. When true annotations and table columns will be uploaded with the display name formatting with blacklisted characters removed. "
                 "To use for tables, use in conjunction with the use_schema_label flag."
             ),
