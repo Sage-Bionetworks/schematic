@@ -1127,6 +1127,7 @@ class SynapseStorage(BaseStorage):
 
         table_manifest = deepcopy(manifest)
 
+
         if table_column_names == "display_name":
             cols = table_manifest.columns
 
@@ -1143,6 +1144,8 @@ class SynapseStorage(BaseStorage):
                 )
                 for col in manifest_columns
             ]
+        else:
+            ValueError(f"The provided table_column_name: {table_column_names} is not valid, please resubmit with an allowed value only.")
 
         cols = list(map(lambda x: x.replace("EntityId", "entityId"), cols))
 
