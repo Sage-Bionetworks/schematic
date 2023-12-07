@@ -765,7 +765,7 @@ class TestManifestOperation:
             "asset_view": "syn51514344",
             "dataset_id": "syn51514345",
             "table_manipulation": 'replace',
-            "use_schema_label": True
+            "table_column_names": 'class_label',
         }
 
         response_csv = client.post('http://localhost:3001/v1/model/submit', query_string=params, data={"file_name": (open(test_manifest_submit, 'rb'), "test.csv")}, headers=request_headers)
@@ -783,7 +783,7 @@ class TestManifestOperation:
             "restrict_rules": False, 
             "manifest_record_type": "file_only",
             "table_manipulation": 'replace',
-            "use_schema_label": True
+            "table_column_names": 'class_label',
         }
 
         if data_type == "Biospecimen":
@@ -826,7 +826,7 @@ class TestManifestOperation:
             "asset_view": "syn51514344",
             "dataset_id": "syn51514345",
             "table_manipulation": 'replace',
-            "use_schema_label": True
+            "table_column_names": 'class_label',
         }
         params["json_str"] = json_str
         response = client.post('http://localhost:3001/v1/model/submit', query_string = params, data={"file_name":''}, headers = request_headers)
@@ -843,7 +843,8 @@ class TestManifestOperation:
             "asset_view": "syn51514501",
             "dataset_id": "syn51514523",
             "table_manipulation": 'replace',
-            "use_schema_label": True
+            "table_column_names": 'class_label',
+            "annotation_keys": 'class_label',
         }
 
         # test uploading a csv file
@@ -861,7 +862,7 @@ class TestManifestOperation:
             "asset_view": "syn51514557",
             "dataset_id": "syn51514551",
             "table_manipulation": 'upsert',
-            "use_schema_label": False # have to set use_schema_label to false to ensure upsert feature works
+            "table_column_names": 'display_name' # have to set table_column_names to display_name to ensure upsert feature works
         }
 
         # test uploading a csv file
