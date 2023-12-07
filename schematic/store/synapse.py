@@ -194,9 +194,9 @@ class SynapseStorage(BaseStorage):
 
     def __init__(
         self,
-        token: str = None,  # optional parameter retrieved from browser cookie
-        access_token: str = None,
-        project_scope: List = None,
+        token: Optional[str] = None,  # optional parameter retrieved from browser cookie
+        access_token: Optional[str] = None,
+        project_scope: Optional[list] = None,
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -339,7 +339,7 @@ class SynapseStorage(BaseStorage):
 
         return all_results
 
-    def getStorageProjects(self, project_scope: List = None) -> List[str]:
+    def getStorageProjects(self, project_scope: List = None) -> list[tuple[str, str]]:
         """Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
 
         Returns:
@@ -387,7 +387,7 @@ class SynapseStorage(BaseStorage):
 
         return sorted_projects_list
 
-    def getStorageDatasetsInProject(self, projectId: str) -> List[str]:
+    def getStorageDatasetsInProject(self, projectId: str) -> list[tuple[str, str]]:
         """Gets all datasets in folder under a given storage project that the current user has access to.
 
         Args:
@@ -766,7 +766,9 @@ class SynapseStorage(BaseStorage):
 
         return files
 
-    def getProjectManifests(self, projectId: str) -> List[str]:
+    def getProjectManifests(
+        self, projectId: str
+    ) -> list[tuple[tuple[str, str], tuple[str, str], tuple[str, str]]]:
         """Gets all metadata manifest files across all datasets in a specified project.
 
         Returns: A list of datasets per project; metadata manifest Synapse ID for each dataset; and the corresponding schema component of the manifest

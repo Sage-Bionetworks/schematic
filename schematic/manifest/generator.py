@@ -1309,7 +1309,7 @@ class ManifestGenerator(object):
         sh = gc.open_by_url(manifest_url)
         wb = sh[0]
 
-        wb.set_dataframe(manifest_df, (1, 1))
+        wb.set_dataframe(manifest_df, (1, 1), fit=True)
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
