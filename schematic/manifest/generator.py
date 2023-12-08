@@ -1536,7 +1536,7 @@ class ManifestGenerator(object):
         return result
     
     @staticmethod
-    def create_manifests(jsonld:str, data_types:list, access_token:str=None, dataset_ids:list=None, output_format:str=None, title:str=None, strict:bool=None, use_annotations:bool=False) -> Union[str, pd.DataFrame, BinaryIO]:
+    def create_manifests(jsonld:str, data_types:list, access_token:Optional[str]=None, dataset_ids:Optional[list]=None, output_format:Optional[str]=None, title:Optional[str]=None, strict:Optional[bool]=None, use_annotations:Optional[bool]=False) -> Union[List[str], List[pd.DataFrame], List[BinaryIO]]:
         """Create multiple manifests
 
         Args:
