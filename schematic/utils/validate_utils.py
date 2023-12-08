@@ -76,7 +76,10 @@ def np_array_to_str_list(np_array):
     return np.char.mod('%d', np_array).tolist()
 
 def iterable_to_str_list(iterable):
-    "Parse an iterable into a list of strings"
+    """
+    Parse an object into a list of strings
+    Accepts str, Number, and iterable inputs
+    """
 
     # If object is a string, just return wrapped as a list
     if isinstance(iterable, str):
