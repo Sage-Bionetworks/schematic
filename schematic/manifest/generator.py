@@ -9,7 +9,7 @@ import pandas as pd
 from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Optional, Tuple, Union, BinaryIO
+from typing import Dict, List, Optional, Tuple, Union, BinaryIO, Literal
 from flask import send_from_directory
 
 from schematic.schemas.generator import SchemaGenerator
@@ -1492,7 +1492,7 @@ class ManifestGenerator(object):
             return dataframe
     
     @staticmethod
-    def create_single_manifest(jsonld: str, data_type: str, access_token:str=None, dataset_id:str=None, strict:bool=True, title:str=None, output_format:str=None, use_annotations:bool=False) -> Union[str, pd.DataFrame, BinaryIO]:
+    def create_single_manifest(jsonld: str, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal[None, "google sheet", "excel", "dataframe"]=None, use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame, BinaryIO]:
         """Create a single manifest
 
         Args:
