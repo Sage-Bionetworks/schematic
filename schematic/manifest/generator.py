@@ -1541,16 +1541,16 @@ class ManifestGenerator(object):
 
         Args:
             jsonld (str): jsonld schema 
-            data_type (str): data type of a manifest
+            data_type (list): a list of data types 
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
-            dataset_id (str, optional): dataset id when generating an existing manifest. Defaults to None.
+            dataset_id (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
             output_format (str, optional):format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
             title (str, optional): title of a given manifest. Defaults to None.
             strict (bool, optional): strictness with which to apply validation rules to google sheets. Defaults to None.
             use_annotations (bool, optional): whether to use annotations. Defaults to False.
 
         Returns:
-            Union[str, pd.DataFrame, BinaryIO]: Googlesheet URL or pandas dataframe or Excel.
+            Union[List[str], List[pd.DataFrame], BinaryIO]: a list of Googlesheet URLs, a list of pandas dataframes or an Excel file.
         """
         all_results = []
         if data_types[0] == 'all manifests':
