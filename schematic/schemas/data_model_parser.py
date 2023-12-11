@@ -327,7 +327,6 @@ class DataModelJSONLDParser:
                 # If not we wil use the get the label.
                 attr_key = entry[label_jsonld_key]
 
-
             # If the entry has not already been added to the dictionary, add it.
             if attr_key not in attr_rel_dictionary.keys():
                 attr_rel_dictionary.update(attr_dict_template(attr_key))
@@ -349,7 +348,7 @@ class DataModelJSONLDParser:
                             rel_entry=rel_entry, id_jsonld_key=id_jsonld_key
                         )
                         rel_csv_header = self.rel_dict[rel_key]["csv_header"]
-                        if rel_key == 'domainIncludes' or rel_key == 'subClassOf':
+                        if rel_key == 'domainIncludes' or rel_key == 'parentOf':
                             # In the JSONLD the domain includes field contains the ids of attributes that the current attribute is the property/parent of.
                             # Because of this we need to handle these values differently.
                             # We will get the values in the field (parsed_val), then add the current attribute as to the property key in the attr_rel_dictionary[p_attr_key].
