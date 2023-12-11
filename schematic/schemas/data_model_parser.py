@@ -163,10 +163,10 @@ class DataModelCSVParser:
         # If the entry should be preserved as a bool dont convert to str.
         if rel_val_type == bool and type(attr[relationship]) == bool:
             parsed_rel_entry = attr[relationship]
-        # Move strings to list if they are comma separated. Schema order is preserved.
+        # Move strings to list if they are comma separated. Schema order is preserved, remove any empty strings added by trailing commas
         elif rel_val_type == list:
             parsed_rel_entry = attr[relationship].strip().split(",")
-            parsed_rel_entry = [r.strip() for r in parsed_rel_entry]
+            parsed_rel_entry = [r.strip() for r in parsed_rel_entry if r]
         # Convert value string if dictated by rel_val_type, strip whitespace.
         elif rel_val_type == str:
             parsed_rel_entry = str(attr[relationship]).strip()
