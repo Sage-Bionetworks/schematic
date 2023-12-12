@@ -749,7 +749,6 @@ class TangledTree(object):
         '''
         # Gather the data model's, topological generations, nodes and edges
         topological_gen, nodes, edges, subg = self.get_topological_generations()
-        all_layers = []
 
         if self.figure_type == 'component':
             # Gather all source nodes
@@ -765,7 +764,7 @@ class TangledTree(object):
             layers_json = self.get_node_layers_json(topological_gen, source_nodes, child_parents, parent_children, all_parent_children=all_parent_children)
 
             # If indicated save outputs locally else gather all layers.
-            all_layers = self.save_outputs(save_file, layers_json, all_layers=all_layers)         
+            all_layers = self.save_outputs(save_file, layers_json)         
 
         if self.figure_type == 'dependency':
             # Get component digraph and nodes.
@@ -777,6 +776,7 @@ class TangledTree(object):
             attributes_df = pd.read_table(StringIO(attributes_csv_str), sep=",")
 
             
+            all_layers =[]
             for cn in component_nodes:
                 # Gather attribute and dependency information per node
                 conditional_attributes, ca_alias, all_attributes = self.gather_component_dependency_info(cn, attributes_df)
