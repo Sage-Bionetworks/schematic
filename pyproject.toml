@@ -74,7 +74,7 @@ schematic-db = {version = "0.0.dev33", extras = ["synapse"]}
 pyopenssl = "^23.0.0"
 typing-extensions = "<4.6.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.0.0"
 pytest-cov = "^4.0.0"
 pytest-mock = "^3.5.1"
