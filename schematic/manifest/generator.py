@@ -1492,7 +1492,7 @@ class ManifestGenerator(object):
             return dataframe
     
     @staticmethod
-    def create_single_manifest(jsonld: str, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal[None, "google sheet", "excel", "dataframe"]=None, use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame, BinaryIO]:
+    def create_single_manifest(jsonld: str, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame, BinaryIO]:
         """Create a single manifest
 
         Args:
@@ -1536,7 +1536,7 @@ class ManifestGenerator(object):
         return result
     
     @staticmethod
-    def create_manifests(jsonld:str, data_types:list, access_token:Optional[str]=None, dataset_ids:Optional[list]=None, output_format:Optional[str]=None, title:Optional[str]=None, strict:Optional[bool]=None, use_annotations:Optional[bool]=False) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
+    def create_manifests(jsonld:str, data_types:list, access_token:Optional[str]=None, dataset_ids:Optional[list]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", title:Optional[str]=None, strict:Optional[bool]=True, use_annotations:Optional[bool]=False) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
         """Create multiple manifests
 
         Args:
