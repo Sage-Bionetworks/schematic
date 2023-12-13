@@ -315,7 +315,7 @@ class MetadataModel(object):
         dataset_id: str,
         manifest_record_type: str,
         restrict_rules: bool,
-        access_token: str,
+        access_token: Optional[str] = None,
         validate_component: Optional[str] = None,
         hide_blanks: bool = False,
         project_scope: List = None,
