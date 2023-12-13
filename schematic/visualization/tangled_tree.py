@@ -688,7 +688,7 @@ class TangledTree(object):
 
         return layers_json
 
-    def save_outputs(self, save_file, layers_json, cn='', all_layers=[]):
+    def save_outputs(self, save_file, layers_json, cn='', all_layers=None):
         '''
         Inputs:
             save_file (bool): Indicates whether to save a file locally or not.:
@@ -702,6 +702,8 @@ class TangledTree(object):
                 If save_file == False: Each string represents contains the layers for a single tangled tree.
                 If save_file ==True: is an empty list.
         '''
+        if all_layers is None:
+            all_layers = []
         if save_file == True:
             if cn:
                 output_file_name = f"{self.schema_abbr}_{self.figure_type}_{cn}_tangled_tree.json"
