@@ -317,7 +317,6 @@ class MetadataModel(object):
         restrict_rules: bool,
         access_token: str,
         validate_component: Optional[str] = None,
-        use_schema_label: bool = True,
         hide_blanks: bool = False,
         project_scope: List = None,
         table_manipulation: str = "replace",
