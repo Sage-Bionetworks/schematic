@@ -7,10 +7,12 @@ import shutil
 import pytest
 import pandas as pd
 from dotenv import load_dotenv, find_dotenv
+from time import perf_counter
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
+from schematic.store.synapse import SynapseStorage
 
 load_dotenv()
 
@@ -90,3 +92,13 @@ def helpers():
 @pytest.fixture(scope="session")
 def config():
     yield CONFIG
+
+@pytest.fixture(scope="session")
+def synapse_store(request):
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synapse_store = SynapseStorage(access_token=access_token)
+    else:
+        synapse_store = SynapseStorage()
+
+    yield synapse_store

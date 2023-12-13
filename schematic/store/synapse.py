@@ -1896,13 +1896,6 @@ class SynapseStorage(BaseStorage):
     def raise_final_error(retry_state):
         return retry_state.outcome.result()
 
-    @retry(stop = stop_after_attempt(5), 
-            wait = wait_chain(*[wait_fixed(10) for i in range (2)] + 
-                    [wait_fixed(15) for i in range(2)] + 
-                    [wait_fixed(20)]),
-            retry=retry_if_exception_type(LookupError),
-            retry_error_callback = raise_final_error)
-
     def checkIfinAssetView(self, syn_id) -> str:
         # get data in administrative fileview for this pipeline
         assetViewTable = self.getStorageFileviewTable()
@@ -1912,6 +1905,12 @@ class SynapseStorage(BaseStorage):
         else: 
             return False
 
+    @retry(stop = stop_after_attempt(5), 
+            wait = wait_chain(*[wait_fixed(10) for i in range (2)] + 
+                    [wait_fixed(15) for i in range(2)] + 
+                    [wait_fixed(20)]),
+            retry=retry_if_exception_type(LookupError),
+            retry_error_callback = raise_final_error)
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
 

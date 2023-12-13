@@ -20,7 +20,6 @@ from schematic.exceptions import (MissingConfigAndArgumentValueError,
                                   MissingConfigValueError)
 from schematic.schemas import df_parser
 from schematic.schemas.explorer import SchemaExplorer
-from schematic.store.synapse import SynapseStorage
 from schematic.utils import (cli_utils, df_utils, general, io_utils,
                              validate_utils)
 from schematic.utils.general import (calculate_datetime,
@@ -31,15 +30,6 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
-
-@pytest.fixture
-def synapse_store():
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-    if access_token:
-        synapse_store = SynapseStorage(access_token=access_token)
-    else:
-        synapse_store = SynapseStorage()
-    yield synapse_store
 
 class TestGeneral:
     def test_clear_synapse_cache(self, tmp_path):

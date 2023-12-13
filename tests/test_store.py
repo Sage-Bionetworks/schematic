@@ -12,28 +12,17 @@ from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
-from tenacity import (RetryError, Retrying, stop_after_attempt,
-                      wait_random_exponential)
 
 from schematic.configuration.configuration import Configuration
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.generator import SchemaGenerator
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import (DatasetFileView, ManifestDownload,
-                                     SynapseStorage)
+from schematic.store.synapse import (DatasetFileView, 
+                                    ManifestDownload,)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
-@pytest.fixture
-def synapse_store():
-    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
-    if access_token:
-        synapse_store = SynapseStorage(access_token=access_token)
-    else:
-        synapse_store = SynapseStorage()
-    yield synapse_store
 
 @pytest.fixture
 def test_download_manifest_id():
@@ -121,6 +110,8 @@ class TestSynapseStorage:
 
     @pytest.mark.parametrize('only_new_files',[True, False])
     def test_get_file_entityIds(self, helpers, synapse_store, only_new_files):
+        #TODO: Automatically reset manifest at path specified below after each test 
+        # so that subsequent runs do not affect each other
         manifest_path = "mock_manifests/test_BulkRNAseq.csv"
         dataset_files = synapse_store.getFilesInStorageDataset('syn39241199')
 
@@ -128,6 +119,8 @@ class TestSynapseStorage:
             # Prepare manifest is getting Ids for new files only
             manifest = helpers.get_data_frame(manifest_path)
             entityIds = pd.DataFrame({'entityId': ['syn39242580', 'syn51900502']})
+
+            # If this line errors out then the changes on the manifest file need to be discarded
             manifest = manifest.join(entityIds)
             
             # get entityIds for new files
@@ -153,24 +146,15 @@ class TestSynapseStorage:
         # Upload dataset annotations
         sg = SchemaGenerator(config.model_location)
 
-        try:        
-            for attempt in Retrying(
-                stop = stop_after_attempt(15),
-                wait = wait_random_exponential(multiplier=1,min=10,max=120),
-                retry_error_callback = raise_final_error
-                ):
-                with attempt:         
-                    manifest_id = synapse_store.associateMetadataWithFiles(
-                        schemaGenerator = sg,
-                        metadataManifestPath = helpers.get_data_path(manifest_path),
-                        datasetId = datasetId,
-                        manifest_record_type = manifest_record_type,
-                        useSchemaLabel = True,
-                        hideBlanks = True,
-                        restrict_manifest = False,
-                    )
-        except RetryError:
-            pass
+        manifest_id = synapse_store.associateMetadataWithFiles(
+            schemaGenerator = sg,
+            metadataManifestPath = helpers.get_data_path(manifest_path),
+            datasetId = datasetId,
+            manifest_record_type = manifest_record_type,
+            useSchemaLabel = True,
+            hideBlanks = True,
+            restrict_manifest = False,
+        )
 
         # Retrive annotations
         entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
