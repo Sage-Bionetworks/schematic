@@ -348,7 +348,7 @@ class DataModelJSONLDParser:
                             rel_entry=rel_entry, id_jsonld_key=id_jsonld_key
                         )
                         rel_csv_header = self.rel_dict[rel_key]["csv_header"]
-                        if rel_key == 'domainIncludes' or rel_key == 'parentOf':
+                        if rel_key == 'domainIncludes' or rel_key == 'subClassOf':
                             # In the JSONLD the domain includes field contains the ids of attributes that the current attribute is the property/parent of.
                             # Because of this we need to handle these values differently.
                             # We will get the values in the field (parsed_val), then add the current attribute as to the property key in the attr_rel_dictionary[p_attr_key].
