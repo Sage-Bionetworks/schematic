@@ -881,6 +881,7 @@ class TestSchemaVisualization:
 
     @pytest.mark.parametrize("figure_type", ["component", "dependency"])
     def test_visualize_tangled_tree_layers(self, client, figure_type, data_model_jsonld):
+        # TODO: Determine a 2nd data model to use for this test, test both models sequentially, add checks for content of response
         params = {
             "schema_url": data_model_jsonld,
             "figure_type": figure_type

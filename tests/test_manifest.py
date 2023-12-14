@@ -133,7 +133,7 @@ class TestManifestGenerator:
         is_file_based = data_type in ["BulkRNA-seqAssay"]
 
         assert "Component" in output
-        assert is_file_based == ("eTag" in output)
+        assert is_file_based == ("entityId" in output)
         assert is_file_based == ("Filename" in output)
         assert (is_file_based and use_annotations) == ("confidence" in output)
 
@@ -159,7 +159,7 @@ class TestManifestGenerator:
         assert output.shape[0] == 3  # Number of rows
         if use_annotations:
             assert output.shape[0] == 3  # Number of rows
-            assert "eTag" in output
+            assert "entityId" in output
             assert "confidence" in output
             assert output["Year of Birth"].tolist() == ["1980", "", ""]
 

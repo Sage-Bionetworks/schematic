@@ -6,6 +6,7 @@ from schematic.utils.io_utils import load_json
 from schematic import LOADER
 from typing import List
 import numpy as np
+from numbers import Number
 
 def validate_schema(schema):
     """Validate schema against schema.org standard"""
@@ -75,11 +76,22 @@ def np_array_to_str_list(np_array):
     return np.char.mod('%d', np_array).tolist()
 
 def iterable_to_str_list(iterable):
-    "Parse an iterable into a list of strings"
-    strlist = []
+    """
+    Parse an object into a list of strings
+    Accepts str, Number, and iterable inputs
+    """
 
-    for element in iterable:
-        strlist.append(str(element))
+    # If object is a string, just return wrapped as a list
+    if isinstance(iterable, str):
+        return [iterable]
+    # If object is numberical, convert to string and wrap as a list
+    elif isinstance(iterable, Number):
+        return [str(iterable)]
+    # If the object is iterable and not a string, convert every element to string and wratp as a list
+    else:
+        strlist = []
+        for element in iterable:
+            strlist.append(str(element))
 
     return strlist
     
