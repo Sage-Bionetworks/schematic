@@ -43,6 +43,10 @@ def get_rule_combinations():
             continue
     
 class TestManifestValidation:
+    # check if suite has been created. If so, delete it
+    if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
+        os.remove("great_expectations/expectations/Manifest_test_suite.json")
+
     def test_valid_manifest(self,helpers,metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
         rootNode = 'MockComponent'
@@ -377,12 +381,11 @@ class TestManifestValidation:
             invalid_entry = ['71738', '98085', '210065'],
             sg = sg,
             )[1] in warnings 
-        
+    
 
     @pytest.mark.rule_combos(reason = 'This introduces a great number of tests covering every possible rule combination that are only necessary on occasion.')
     @pytest.mark.parametrize("base_rule, second_rule", get_rule_combinations())
-    def test_rule_combinations(self, helpers, sg, base_rule, second_rule, metadataModel):
-        #print(base_rule,second_rule)
+    def test_rule_combinations(self, helpers, sg, base_rule, second_rule, metadataModel,):
         rule_regex = re.compile(base_rule+'.*')
 
         manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
@@ -429,7 +432,8 @@ class TestManifestValidation:
             sg = sg,
             jsonSchema = sg.get_json_schema_requirements(rootNode, rootNode + "_validation")
         )
-        
+
+
         #perform validation with no exceptions raised
         _, errors, warnings = validateManifest.validate_manifest_rules(
             manifest = manifest, 
