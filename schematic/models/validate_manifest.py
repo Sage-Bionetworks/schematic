@@ -63,7 +63,7 @@ class ValidateManifest(object):
         return ["NA", error_col, error_message, error_val]
 
     def validate_manifest_rules(
-        self, manifest: pd.core.frame.DataFrame, dmge: DataModelGraphExplorer, restrict_rules: bool, project_scope: List,
+        self, manifest: pd.core.frame.DataFrame, dmge: DataModelGraphExplorer, restrict_rules: bool, project_scope: List, access_token: Optional[str] = None,
     ) -> (pd.core.frame.DataFrame, List[List[str]]):
         """
         Purpose:
@@ -212,7 +212,7 @@ class ValidateManifest(object):
                         manifest[col] = manifest_col
                     elif validation_type.lower().startswith("match"):
                         vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], project_scope, dmge,
+                            self, rule, manifest[col], project_scope, dmge, access_token
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
@@ -260,9 +260,9 @@ class ValidateManifest(object):
         return errors, warnings
 
 
-def validate_all(self, errors, warnings, manifest, manifestPath, dmge, jsonSchema, restrict_rules, project_scope: List):
+def validate_all(self, errors, warnings, manifest, manifestPath, dmge, jsonSchema, restrict_rules, project_scope: List, access_token: str):
     vm = ValidateManifest(errors, manifest, manifestPath, dmge, jsonSchema)
-    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, dmge, restrict_rules, project_scope)
+    manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(manifest, dmge, restrict_rules, project_scope, access_token)
     if vmr_errors:
         errors.extend(vmr_errors)
     if vmr_warnings:

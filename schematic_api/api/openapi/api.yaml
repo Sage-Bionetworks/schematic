@@ -82,7 +82,7 @@ paths:
           schema:
             type: string
             nullable: true
-          description: ID of view listing all project data assets. E.g. for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. E.g. for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           required: false
         - in: query
           name: output_format
@@ -175,7 +175,7 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn28559058
           required: true
         - in: query
@@ -226,6 +226,9 @@ paths:
                   description: Upload a json or a csv file. 
                   type: string
                   format: binary
+      security:
+        - access_token: []
+        - {}
       parameters:
         - in: query
           name: schema_url
@@ -274,6 +277,24 @@ paths:
           "Cancer Type": "Breast",
           "Family History": "Breast, Lung",
           }]'
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project (i.e. master_fileview_id in config_example.yml). Required for validating manifests involving cross-manifest validation.
+          example: syn23643253
+          required: false
+        - in: query
+          name: project_scope
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: false
+          description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse. Relevant for validating manifests involving cross-manifest validation, but optional.
+          example: ['syn23643250', 'syn47218127', 'syn47218347']
+          required: false
 
       operationId: schematic_api.api.routes.validate_manifest_route
       responses:
@@ -367,8 +388,8 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
-          example: syn28559058
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
           required: true
         - in: query
           name: json_str
@@ -399,6 +420,16 @@ paths:
           schema:
             type: boolean
             default: true
+          required: false
+        - in: query
+          name: project_scope
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: false
+          description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse.
+          example: ['syn23643250', 'syn47218127', 'syn47218347']
           required: false
       operationId: schematic_api.api.routes.submit_manifest_route
       responses:
@@ -535,7 +566,7 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn23643253
           required: true
         - in: query
@@ -566,7 +597,7 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn23643253
           required: true
       responses:
@@ -589,7 +620,7 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn23643253
           required: true
         - in: query
@@ -620,7 +651,7 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn23643253
           required: true
         - in: query
@@ -667,7 +698,7 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn23643253
           required: true
         - in: query
@@ -706,7 +737,7 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn23643253
           required: true
       responses:
@@ -764,7 +795,7 @@ paths:
           schema:
             type: string
             nullable: false
-          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview in config.yml)
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn23643253
           required: true
         - in: query

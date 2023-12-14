@@ -28,6 +28,7 @@ from schematic.utils.validate_utils import (comma_separated_list_regex,
                                             rule_in_rule_list,
                                             )
 
+from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 logger = logging.getLogger(__name__)
 
@@ -571,13 +572,18 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def get_target_manifests(target_component, project_scope: List):
+    def get_target_manifests(target_component, project_scope: List, access_token: str = None):
         t_manifest_search = perf_counter()
         target_manifest_IDs=[]
         target_dataset_IDs=[]
         
         #login
-        synStore = SynapseStorage(project_scope=project_scope)        
+        try:
+            synStore = SynapseStorage(access_token=access_token, project_scope=project_scope)        
+        except SynapseNoCredentialsError as e:
+            raise ValueError(
+                "No Synapse credentials were provided. Credentials must be provided to utilize cross-manfiest validation functionality."
+                ) from e
 
         #Get list of all projects user has access to
         projects = synStore.getStorageProjects(project_scope=project_scope)
@@ -906,7 +912,7 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def cross_validation(
-        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, dmge: DataModelGraphExplorer,
+        self, val_rule: str, manifest_col: pd.core.series.Series, project_scope: List, dmge: DataModelGraphExplorer, access_token: str,
     ) -> List[List[str]]:
         """
         Purpose:
@@ -935,7 +941,7 @@ class ValidateAttribute(object):
 
         
         #Get IDs of manifests with target component
-        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component,project_scope)
+        synStore, target_manifest_IDs, target_dataset_IDs = ValidateAttribute.get_target_manifests(target_component, project_scope, access_token)
 
         t_cross_manifest = perf_counter()
         #Read each manifest

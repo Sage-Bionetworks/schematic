@@ -165,10 +165,10 @@ class DataModelCSVParser:
         # If the entry should be preserved as a bool dont convert to str.
         if rel_val_type == bool and type(attr[relationship]) == bool:
             parsed_rel_entry = attr[relationship]
-        # Move strings to list if they are comma separated. Schema order is preserved.
+        # Move strings to list if they are comma separated. Schema order is preserved, remove any empty strings added by trailing commas
         elif rel_val_type == list:
             parsed_rel_entry = attr[relationship].strip().split(",")
-            parsed_rel_entry = [r.strip() for r in parsed_rel_entry]
+            parsed_rel_entry = [r.strip() for r in parsed_rel_entry if r]
         # Convert value string if dictated by rel_val_type, strip whitespace.
         elif rel_val_type == str:
             parsed_rel_entry = str(attr[relationship]).strip()
@@ -429,9 +429,7 @@ class DataModelJSONLDParser:
                             rel_entry=rel_entry, id_jsonld_key=id_jsonld_key, display_name_as_label=display_name_as_label, model_jsonld=model_jsonld,
                         )
                         rel_csv_header = self.rel_dict[rel_key]["csv_header"]
-
                         if rel_key == 'domainIncludes' or rel_key == 'parentOf':
-                            
                             # In the JSONLD the domain includes field contains the ids of attributes that the current attribute is the property/parent of.
                             # Because of this we need to handle these values differently.
                             # We will get the values in the field (parsed_val), then add the current attribute as to the property key in the attr_rel_dictionary[p_attr_key].

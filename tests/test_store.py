@@ -72,7 +72,7 @@ def dataset_fileview_table_tidy(dataset_fileview, dataset_fileview_table):
 @pytest.fixture
 def version(synapse_store, helpers):
     
-    yield helpers.get_python_version(helpers)
+    yield helpers.get_python_version()
 
 @pytest.fixture
 def projectId(synapse_store, helpers):
@@ -82,7 +82,7 @@ def projectId(synapse_store, helpers):
 @pytest.fixture
 def datasetId(synapse_store, projectId, helpers):
     dataset = Folder(
-        name = 'Table Test  Dataset ' + helpers.get_python_version(helpers),
+        name = 'Table Test  Dataset ' + helpers.get_python_version(),
         parent = projectId,
         )
 

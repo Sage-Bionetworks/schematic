@@ -46,10 +46,14 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 
 from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
 from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+# entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
+# Please do not remove these import statements
 from schematic.utils.general import (entity_type_mapping,
                                      get_dir_size,
                                      convert_gb_to_bytes,
                                      create_temp_folder,
+                                     check_synapse_cache_size,
+                                     clear_synapse_cache,
                                      profile,
                                      calculate_datetime)
 from schematic.utils.schema_utils import get_class_label_from_display_name
