@@ -417,6 +417,7 @@ class TestDataModelGraph:
         )
 
         # Check Edge directions
+        breakpoint()
         assert 4 == (len(graph.out_edges("TissueStatus")))
         assert 2 == (len(graph.in_edges("TissueStatus")))
 

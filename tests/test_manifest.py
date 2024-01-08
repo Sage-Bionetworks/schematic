@@ -66,7 +66,7 @@ def manifest_generator(helpers, request):
 
 
     manifest_generator = ManifestGenerator(
-        path_to_json_ld=path_to_data_model,
+        path_to_data_model=path_to_data_model,
         graph=graph_data_model,
         root=data_type,
         use_annotations=use_annotations,
@@ -121,7 +121,7 @@ class TestManifestGenerator:
         generator = ManifestGenerator(
             graph=graph_data_model,
             title="mock_title",
-            path_to_json_ld=path_to_data_model,
+            path_to_data_model=path_to_data_model,
             root = "Patient",
         )
 
@@ -147,7 +147,7 @@ class TestManifestGenerator:
         # A LookupError should be raised and include message when the component cannot be found
         with pytest.raises(exc) as e:
             generator = ManifestGenerator(
-            path_to_json_ld=helpers.get_data_path("example.model.jsonld"),
+            path_to_data_model=helpers.get_data_path("example.model.jsonld"),
             graph=graph_data_model,
             root=data_type,
             use_annotations=False,
@@ -173,7 +173,7 @@ class TestManifestGenerator:
         is_file_based = data_type in ["BulkRNA-seqAssay"]
 
         assert "Component" in output
-        assert is_file_based == ("eTag" in output)
+        assert is_file_based == ("entityId" in output)
         assert is_file_based == ("Filename" in output)
         assert (is_file_based and use_annotations) == ("confidence" in output)
 
@@ -199,7 +199,7 @@ class TestManifestGenerator:
         assert output.shape[0] == 3  # Number of rows
         if use_annotations:
             assert output.shape[0] == 3  # Number of rows
-            assert "eTag" in output
+            assert "entityId" in output
             assert "confidence" in output
             assert output["Year of Birth"].tolist() == ["1980", "", ""]
 
@@ -228,7 +228,7 @@ class TestManifestGenerator:
 
 
         generator = ManifestGenerator(
-        path_to_json_ld=path_to_data_model,
+        path_to_data_model=path_to_data_model,
         graph=graph_data_model,
         root=data_type,
         use_annotations=False,
@@ -280,7 +280,7 @@ class TestManifestGenerator:
 
         # Instantiate object with use_annotations set to True
         generator = ManifestGenerator(
-        path_to_json_ld=path_to_data_model,
+        path_to_data_model=path_to_data_model,
         graph=graph_data_model,
         root=data_type,
         use_annotations=True,
@@ -365,7 +365,7 @@ class TestManifestGenerator:
         graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
 
         manifest_generator = ManifestGenerator(
-        path_to_json_ld=path_to_data_model,
+        path_to_data_model=path_to_data_model,
         graph=graph_data_model,
         root=data_type,
         )
@@ -385,7 +385,7 @@ class TestManifestGenerator:
         graph_data_model = generate_graph_data_model(helpers, path_to_data_model=path_to_data_model)
 
         manifest_generator = ManifestGenerator(
-        path_to_json_ld=path_to_data_model,
+        path_to_data_model=path_to_data_model,
         graph=graph_data_model,
         root="BulkRNA-seqAssay"
         )
@@ -437,7 +437,7 @@ class TestManifestGenerator:
 
 
         # Instantiate the Manifest Generator.
-        generator = ManifestGenerator(path_to_json_ld=path_to_data_model,
+        generator = ManifestGenerator(path_to_data_model=path_to_data_model,
                                       graph=graph_data_model,
                                       root=data_type,
                                       use_annotations=False,
