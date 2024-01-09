@@ -439,7 +439,6 @@ class DataModelJSONLDParser:
                         attr_rel_dictionary[attr_key]["Relationships"].update(
                             {rel_key: parsed_rel_entry}
                         )
-        breakpoint()
         return attr_rel_dictionary
 
     def parse_jsonld_model(
