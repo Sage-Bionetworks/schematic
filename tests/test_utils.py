@@ -238,6 +238,25 @@ class TestIOUtils:
 
 
 class TestDfUtils:
+    @pytest.mark.parametrize("preserve_raw_input", [True, False], ids=["Do not infer datatypes", "Infer datatypes"])
+    def test_load_df(self, helpers, preserve_raw_input):
+        file_path = helpers.get_data_path("mock_manifests", "Invalid_Test_Manifest.csv")
+
+        df = df_utils.load_df(file_path, preserve_raw_input=preserve_raw_input, data_model=False)
+
+        assert df["Component"].dtype == "object"
+        assert df.shape[0] == 3
+
+        if preserve_raw_input:
+            assert type(df["Check NA"].iloc[0]) == str
+            assert type(df["Check NA"].iloc[1]) == str
+            assert type(df["Check NA"].iloc[2]) == str
+        else:
+            assert type(df["Check NA"].iloc[0]) == np.int64
+            assert type(df["Check NA"].iloc[1]) == float
+            assert type(df["Check NA"].iloc[2]) == str 
+
+
     def test_update_df_col_present(self, helpers):
 
         synapse_manifest = helpers.get_data_frame(
