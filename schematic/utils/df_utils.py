@@ -30,15 +30,15 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     
     #Read CSV to df as type specified in kwargs
     org_df = pd.read_csv(file_path, keep_default_na = True, encoding='utf8', **load_args)
-    
+
+    #only trim if not data model csv
+    if not data_model:
+        org_df=trim_commas_df(org_df)
+
     # If type inference not allowed: trim and return
-    if preserve_raw_input:
-        #only trim if not data model csv
-        if not data_model:
-            org_df=trim_commas_df(org_df)
-        
-            # log manifest load and processing time
-            logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
+    if preserve_raw_input:        
+        # log manifest load and processing time
+        logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
 
     # If type inferences is allowed: infer types, trim, and return
@@ -67,13 +67,10 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         for col in org_df.columns:
             float_df[col]=pd.to_numeric(float_df[col], errors='coerce')
             # replace values that couldn't be converted to float with the original str values
-            float_df[col].fillna(org_df[col][float_df[col].isna()],inplace=True)
-        
-        # Trim nans and empty rows and columns
-        processed_df = trim_commas_df(float_df)
+            float_df[col].fillna(org_df[col][float_df[col].isna()], inplace=True)
 
         # Store values that were converted to type int in the final dataframe
-        processed_df=processed_df.mask(ints_tf_df, other = ints)
+        processed_df=float_df.mask(ints_tf_df, other = ints)
         
         # log manifest load and processing time
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
