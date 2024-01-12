@@ -248,14 +248,13 @@ class TestDfUtils:
         assert df.shape[0] == 3
 
         if preserve_raw_input:
-            assert type(df["Check NA"].iloc[0]) == str
-            assert type(df["Check NA"].iloc[1]) == str
-            assert type(df["Check NA"].iloc[2]) == str
+            assert isinstance(df["Check NA"].iloc[0], str)
+            assert isinstance(df["Check NA"].iloc[1], str)
+            assert isinstance(df["Check NA"].iloc[2], str)
         else:
-            assert type(df["Check NA"].iloc[0]) == np.int64
-            assert type(df["Check NA"].iloc[1]) == float
-            assert type(df["Check NA"].iloc[2]) == str 
-
+            assert isinstance(df["Check NA"].iloc[0], np.int64)
+            assert isinstance(df["Check NA"].iloc[1], float)
+            assert isinstance(df["Check NA"].iloc[2], str)
 
     def test_update_df_col_present(self, helpers):
 
