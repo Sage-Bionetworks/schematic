@@ -1813,7 +1813,6 @@ jupyter-server = ">=1.1.2"
 [[package]]
 name = "jupyter-server"
 version = "2.11.1"
->>>>>>> bddcc390ed3190d2b9a34fa0771fa4cacf023230
 description = "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications."
 category = "main"
 optional = false
