@@ -494,15 +494,15 @@ class SynapseStorage(BaseStorage):
             # Try to use uncensored manifest first
             not_censored = ~censored
             if any(not_censored):
-                manifest_syn_id = manifest[not_censored]["id"][0]
+                manifest_syn_id=manifest[not_censored]["id"].iloc[0]
             # if only censored manifests are available, just use the first censored manifest
-            else:
-                manifest_syn_id = manifest["id"][0]
+            else: 
+                manifest_syn_id = manifest["id"].iloc[0]
 
         # otherwise, use the first (implied only) version that exists
         else:
-            manifest_syn_id = manifest["id"][0]
-
+            manifest_syn_id = manifest["id"].iloc[0]
+        
         return manifest_syn_id
 
     def getDatasetManifest(
