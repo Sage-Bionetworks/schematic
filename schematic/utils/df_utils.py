@@ -79,8 +79,9 @@ def load_df(
         processed_df=float_df.mask(ints_tf_df, other = ints)
 
         # Infer dtypes for columns when possible to restore type masking
-        processed_df = processed_df.infer_objects()
-        
+        # This mostly just labels string columns as such, changing the column type of columns with mixed numberical values converts ints to floats
+        processed_df = processed_df.convert_dtypes(infer_objects=False, convert_string=True, convert_integer=True, convert_boolean=False, convert_floating=True)
+
         # log manifest load and processing time
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return processed_df
