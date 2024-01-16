@@ -256,11 +256,7 @@ class DataModelJSONLDParser:
             parsed_rel_entry = rel_entry["@id"]
         # Parse list of dictionaries to make a list of entries with context stripped (will update this section when contexts added.)
         elif type(rel_entry) == list and type(rel_entry[0]) == dict:
-            #parsed_rel_entry = [r[id_jsonld_key].split(":")[1] for r in rel_entry]
-            #parsed_rel_entry = [dn_label_dict.get(r[id_jsonld_key].split(":")[1]) for r in rel_entry]
             parsed_rel_entry = self.convert_entry_to_dn_label([r[id_jsonld_key].split(":")[1] for r in rel_entry], model_jsonld)
-            #if len([r[id_jsonld_key].split(":")[1] for r in rel_entry]) != len(parsed_rel_entry):
-                #breakpoint()
         # Strip context from string and convert true/false to bool
         elif type(rel_entry) == str:
             # Remove contexts and treat strings as appropriate.
@@ -273,21 +269,11 @@ class DataModelJSONLDParser:
                     parsed_rel_entry = False
             else:
                 parsed_rel_entry=self.convert_entry_to_dn_label(rel_entry, model_jsonld)
-                '''
-                if dn_label_dict.get(rel_entry):
-                    parsed_rel_entry = dn_label_dict[rel_entry]
-                else:
-                    parsed_rel_entry = rel_entry
-                '''
+
         # For anything else get that
         else:
             parsed_rel_entry=self.convert_entry_to_dn_label(rel_entry, model_jsonld)
-            '''
-            if dn_label_dict.get(rel_entry):
-               parsed_rel_entry = dn_label_dict[rel_entry]
-            else:
-                parsed_rel_entry = rel_entry
-            '''
+
         return parsed_rel_entry
 
     def label_to_dn_dict(self, model_jsonld: list[dict]):
@@ -388,7 +374,6 @@ class DataModelJSONLDParser:
                             rel_entry=rel_entry, id_jsonld_key=id_jsonld_key, dn_label_dict=dn_label_dict, model_jsonld=model_jsonld,
                         )
                         rel_csv_header = self.rel_dict[rel_key]["csv_header"]
-                        #if rel_key == 'domainIncludes' or rel_key == 'subClassOf':
                         if rel_key == 'domainIncludes':
                             # In the JSONLD the domain includes field contains the ids of attributes that the current attribute is the property/parent of.
                             # Because of this we need to handle these values differently.
@@ -399,17 +384,14 @@ class DataModelJSONLDParser:
                                 p_attr_key=''
                                 # Check if the parsed value is already a part of the attr_rel_dictionary
                                 for attr_dn, rels in attr_rel_dictionary.items():
-                                    #if parsed_val == rels["Relationships"].get('label'):
                                     if parsed_val == attr_dn:
                                         p_attr_key = attr_dn
                                         attr_in_dict = True
                                 # If it is part of the dictionary update add current attribute as a property of the parsed value
                                 if attr_in_dict == True:
                                     if not rel_csv_header in attr_rel_dictionary[p_attr_key]["Relationships"]:
-                                        #attr_rel_dictionary[p_attr_key]["Relationships"].update({rel_csv_header:[entry[label_jsonld_key]]})
                                         attr_rel_dictionary[p_attr_key]["Relationships"].update({rel_csv_header:[entry[dn_jsonld_key]]})
                                     else:
-                                        #attr_rel_dictionary[p_attr_key]["Relationships"][rel_csv_header].append(entry[label_jsonld_key])
                                         attr_rel_dictionary[p_attr_key]["Relationships"].update({rel_csv_header:[entry[dn_jsonld_key]]})
                                 # If the parsed_val is not already recorded in the dictionary, add it
                                 elif attr_in_dict == False:
@@ -420,8 +402,6 @@ class DataModelJSONLDParser:
                                     attr_rel_dictionary[p_attr_key]["Relationships"].update({rel_csv_header:[entry[label_jsonld_key]]})
                         
                         else:
-                            #if attr_key == 'assay_autorad_metadata_template':
-                                #breakpoint()
                             attr_rel_dictionary[attr_key]["Relationships"].update(
                                 {rel_csv_header: parsed_rel_entry}
                             )
