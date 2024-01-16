@@ -19,7 +19,7 @@ def extended_schema_path(helpers, tmp_path):
     example_model_df = load_df(data_model_csv_path)
 
     # additional "Assay" attribute to be added to example schema
-    assay_attr_row = {
+    assay_attr_dict = {
         "Attribute": "Assay",
         "Description": (
             "A planned process with the objective to produce information "
@@ -36,7 +36,9 @@ def extended_schema_path(helpers, tmp_path):
         "Validation Rules": "",
     }
 
-    example_model_df = example_model_df.append(assay_attr_row, ignore_index=True)
+    assay_attr_df = pd.DataFrame.from_dict(assay_attr_dict, orient="index").T
+
+    example_model_df = pd.concat([example_model_df, assay_attr_df], ignore_index=True)
 
     # create empty temporary file to write extended schema to
     schemas_folder = tmp_path / "schemas"
