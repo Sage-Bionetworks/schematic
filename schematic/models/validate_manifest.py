@@ -175,7 +175,7 @@ class ValidateManifest(object):
         for col in manifest.columns:
             
             # remove trailing/leading whitespaces from manifest
-            manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+            manifest.map(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = sg.get_node_validation_rules(col)
 
             # Check that attribute rules conform to limits:
@@ -235,7 +235,7 @@ class ValidateManifest(object):
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(include=[int, np.int64, float, np.float64]).columns:
             manifest[col]=manifest[col].astype('string')
-        manifest = manifest.applymap(lambda x: str(x) if isinstance(x, (int, np.int64, float, np.float64)) else x, na_action='ignore')
+        manifest = manifest.map(lambda x: str(x) if isinstance(x, (int, np.int64, float, np.float64)) else x, na_action='ignore')
 
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
