@@ -10,7 +10,7 @@ from pandarallel import pandarallel
 logger = logging.getLogger(__name__)
 
 
-def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
+def load_df(file_path: str, preserve_raw_input: bool = True, data_model: bool = False, **load_args):
     """
     Universal function to load CSVs and return DataFrames
     Parses string entries to convert as appropriate to type int, float, and pandas timestamp
