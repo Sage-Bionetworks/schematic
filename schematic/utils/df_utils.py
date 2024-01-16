@@ -46,7 +46,7 @@ def load_df(file_path: str, preserve_raw_input: bool = True, data_model: bool = 
         # create a separate copy of the manifest 
         # before beginning conversions to store float values
         float_df=deepcopy(org_df)
-        
+
         # Cast the columns in the dataframe to string and
         # replace Null values with empty strings
         null_cells = org_df.isnull() 
@@ -54,23 +54,27 @@ def load_df(file_path: str, preserve_raw_input: bool = True, data_model: bool = 
 
         # Find integers stored as strings and replace with entries of type np.int64
         if org_df.size < large_manifest_cutoff_size:  # If small manifest, iterate as normal for improved performance
-            ints = org_df.applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+            ints = org_df.map(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         else:   # parallelize iterations for large manfiests
             pandarallel.initialize(verbose = 1)
-            ints = org_df.parallel_applymap(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
+            ints = org_df.parallel_map(lambda x: np.int64(x) if str.isdigit(x) else False, na_action='ignore').fillna(False)
 
         # Identify cells converted to intergers
-        ints_tf_df = ints.applymap(pd.api.types.is_integer)
+        ints_tf_df = ints.map(pd.api.types.is_integer)
 
         # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
         for col in org_df.columns:
-            float_df[col]=pd.to_numeric(float_df[col], errors='coerce')
+            float_df[col]=pd.to_numeric(float_df[col], errors='coerce').astype('object')
+
             # replace values that couldn't be converted to float with the original str values
             float_df[col].fillna(org_df[col][float_df[col].isna()], inplace=True)
 
         # Store values that were converted to type int in the final dataframe
         processed_df=float_df.mask(ints_tf_df, other = ints)
+
+        # Infer dtypes for columns when possible to restore type masking
+        processed_df = processed_df.infer_objects()
         
         # log manifest load and processing time
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
