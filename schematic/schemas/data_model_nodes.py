@@ -3,6 +3,7 @@ import networkx as nx
 from rdflib import Namespace
 from typing import Any, Dict, Optional, Text, List, Callable
 
+from schematic.schemas.data_model_parser import DataModelJSONLDParser
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 from schematic.utils.schema_utils import (
@@ -32,7 +33,13 @@ class DataModelNodes:
         )
         # retrieve a list of relationship types that will produce nodes.
         self.node_relationships = list(self.edge_relationships_dictionary.values())
-
+    '''
+    def labels_to_display_names(self, attr_rel_dict):
+        labels_to_display_names={}
+        for attr, rels in attr_rel_dict.items():
+            labels_to_display_names.update({rels['Relationships']['label']:attr})
+        return labels_to_display_names
+    '''
     def gather_nodes(self, attr_info: tuple) -> list:
         """Take in a tuple containing attriute name and relationship dictionary, and find all nodes defined in attribute information.
         Args:
@@ -52,7 +59,7 @@ class DataModelNodes:
             nodes.append(attribute)
         for rel in self.node_relationships:
             if rel in relationships.keys():
-                nodes.extend([node.strip() for node in relationships[rel]])
+                nodes.extend([node for node in relationships[rel] if node is not None])
         return nodes
 
     def gather_all_nodes_in_model(self, attr_rel_dict: dict) -> list:
@@ -194,7 +201,15 @@ class DataModelNodes:
         """
         # Strip whitespace from node display name
         node_display_name = node_display_name.strip()
-
+        '''
+        label_to_dns_dict = self.labels_to_display_names(attr_rel_dict=attr_rel_dict)
+        true_dn = ''
+        true_dn = label_to_dns_dict.get(node_display_name)
+        if true_dn:
+            node_display_name=true_dn
+        #if true_dn == 'individualID':
+            #breakpoint()
+        '''
         # Determine if property or class
         entry_type = self.get_entry_type(node_display_name=node_display_name)
 
@@ -231,6 +246,8 @@ class DataModelNodes:
                         }
                     )
                 else:
+                    #if node_display_name == "IndividualID":
+                        #breakpoint()
                     # For standard entries, get information from attr_relationship dictionary
                     node_dict.update({rel_key: attr_relationships[csv_header]})
             # else, add default values
@@ -254,7 +271,8 @@ class DataModelNodes:
                 else:
                     # Set value to defaults.
                     node_dict.update({rel_key: rel_node_dict["default"]})
-
+        #if true_dn == 'individualID':
+            #breakpoint()
         return node_dict
 
     def generate_node(self, G: nx.MultiDiGraph, node_dict: dict) -> nx.MultiDiGraph:
