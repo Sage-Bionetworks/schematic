@@ -1550,19 +1550,15 @@ class ManifestGenerator(object):
             # the number of dataset_ids (if applicable)
             len_data_types = len(data_types)
             len_dataset_ids = len(dataset_ids)
-            
-            try:
-                len_data_types == len_dataset_ids
-            except:
+
+            if len_data_types != len_dataset_ids:
                 raise ValueError(
                         f"There is a mismatch in the number of data_types and dataset_id's that "
                         f"submitted. Please check your submission and try again."
                     )
             
             # Raise an error if used in conjunction with datatype = 'all_manifests'
-            try:
-                data_types[0] != 'all manifests'
-            except:
+            if data_types[0] == 'all manifests':
                 raise ValueError(
                         f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
                         f"Please check your submission and try again."
@@ -1581,7 +1577,7 @@ class ManifestGenerator(object):
                 if output_format != "excel":
                     result = ManifestGenerator.create_single_manifest(jsonld=jsonld, data_type=component, output_format=output_format, title=t, access_token=access_token, strict=strict, use_annotations=use_annotations)
                     all_results.append(result)
-                else: 
+                else:
                     logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
         else:
             for i, dt in enumerate(data_types):
