@@ -1599,9 +1599,9 @@ class ManifestGenerator(object):
                         t = title
                 if dataset_ids:
                     # if a dataset_id is provided add this to the function call.
-                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=dt, graph_data_model=graph_data_model, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token)
+                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=dt, graph_data_model=graph_data_model, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token, use_annotations=use_annotations)
                 else:
-                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=dt, graph_data_model=graph_data_model, output_format=output_format, title=t, access_token=access_token)
+                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=dt, graph_data_model=graph_data_model, output_format=output_format, title=t, access_token=access_token, use_annotations=use_annotations)
 
                 # if output is pandas dataframe or google sheet url
                 if isinstance(result, str) or isinstance(result, pd.DataFrame):
