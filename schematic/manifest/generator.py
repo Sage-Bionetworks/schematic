@@ -1587,7 +1587,7 @@ class ManifestGenerator(object):
                     result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=component, graph_data_model=graph_data_model, output_format=output_format, title=t, access_token=access_token)
                     all_results.append(result)
                 else: 
-                    app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
+                    logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
         else:
             for i, dt in enumerate(data_types):
                 if not title: 
@@ -1608,7 +1608,7 @@ class ManifestGenerator(object):
                     all_results.append(result)
                 else: 
                     if len(data_types) > 1:
-                        app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
+                        logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
                     return result
 
         return all_results
