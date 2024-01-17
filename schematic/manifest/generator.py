@@ -1492,7 +1492,7 @@ class ManifestGenerator(object):
             return dataframe
     
     @staticmethod
-    def create_single_manifest(jsonld: str, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame, BinaryIO]:
+    def create_single_manifest(jsonld: str, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame]:
         """Create a single manifest
 
         Args:
