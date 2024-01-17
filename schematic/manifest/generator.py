@@ -10,7 +10,6 @@ from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, Optional, Tuple, Union, BinaryIO, Literal
-from flask import send_from_directory
 
 from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import (
