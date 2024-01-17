@@ -1552,6 +1552,29 @@ class ManifestGenerator(object):
         Returns:
             Union[List[str], List[pd.DataFrame], BinaryIO]: a list of Googlesheet URLs, a list of pandas dataframes or an Excel file.
         """
+        if dataset_ids:
+            # Check that the number of submitted data_types matches
+            # the number of dataset_ids (if applicable)
+            len_data_types = len(data_types)
+            len_dataset_ids = len(dataset_ids)
+            
+            try:
+                len_data_types == len_dataset_ids
+            except:
+                raise ValueError(
+                        f"There is a mismatch in the number of data_types and dataset_id's that "
+                        f"submitted. Please check your submission and try again."
+                    )
+            
+            # Raise an error if used in conjunction with datatype = 'all_manifests'
+            try:
+                data_types[0] != 'all manifests'
+            except:
+                raise ValueError(
+                        f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
+                        f"Please check your submission and try again."
+                    )
+
         all_results = []
         if data_types[0] == 'all manifests':
             sg = SchemaGenerator(path_to_json_ld=jsonld)
