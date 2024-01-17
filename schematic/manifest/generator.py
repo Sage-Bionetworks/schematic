@@ -1526,13 +1526,6 @@ class ManifestGenerator(object):
             dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token, strict=strict,
         )
 
-        # return an excel file if output_format is set to "excel"
-        if output_format == "excel":
-            dir_name = os.path.dirname(result)
-            file_name = os.path.basename(result)
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
-               
         return result
     
     @staticmethod
