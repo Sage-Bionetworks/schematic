@@ -62,7 +62,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "data_type")),
 )
 @click.option(
-    "-p", "--path_to_data_model", help=query_dict(manifest_commands, ("manifest", "get", "path_to_data_model"))
+    "-p", "--jsonld", help=query_dict(manifest_commands, ("manifest", "get", "jsonld"))
 )
 @click.option(
     "-d",
@@ -107,7 +107,7 @@ def get_manifest(
     ctx,
     title,
     data_type,
-    path_to_data_model,
+    jsonld,
     dataset_id,
     sheet_url,
     output_csv,
@@ -124,14 +124,14 @@ def get_manifest(
     if data_type is None:
         data_type =  CONFIG.manifest_data_type
         log_value_from_config("data_type", data_type)
-    if path_to_data_model is None:
-        path_to_data_model =  CONFIG.model_location
-        log_value_from_config("path_to_data_model", path_to_data_model)
+    if jsonld is None:
+        jsonld =  CONFIG.model_location
+        log_value_from_config("jsonld", jsonld)
     if title is None:
         title =  CONFIG.manifest_title
         log_value_from_config("title", title)
 
-    data_model_parser = DataModelParser(path_to_data_model = path_to_data_model)
+    data_model_parser = DataModelParser(path_to_data_model = jsonld)
 
     #Parse Model
     logger.info("Parsing data model.")
@@ -147,7 +147,7 @@ def get_manifest(
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
-            path_to_data_model=path_to_data_model,
+            path_to_json_ld=jsonld,
             graph = graph_data_model,
             title=t,
             root=data_type,
@@ -191,7 +191,7 @@ def get_manifest(
             logger.info("Find the manifest template using this Google Sheet URL:")
             click.echo(result)
         if output_csv is None and output_xlsx is None: 
-            prefix, _ = os.path.splitext(path_to_data_model)
+            prefix, _ = os.path.splitext(jsonld)
             prefix_root, prefix_ext = os.path.splitext(prefix)
             if prefix_ext == ".model":
                 prefix = prefix_root

@@ -146,9 +146,10 @@ class GreatExpectationsHelpers(object):
         }
         
         #create blank expectation suite
-        self.expectation_suite_name = "Manifest_test_suite"       
-        self.suite = self.context.add_expectation_suite(
-            expectation_suite_name=self.expectation_suite_name,
+        expectation_suite_name = "Manifest_test_suite"       
+        self.suite = self.context.create_expectation_suite(
+            expectation_suite_name=expectation_suite_name,
+            overwrite_existing=True
         )    
 
         #build expectation configurations for each expectation
@@ -307,9 +308,9 @@ class GreatExpectationsHelpers(object):
                     )
         
             
-        self.context.update_expectation_suite(expectation_suite=self.suite,)
+        self.context.save_expectation_suite(expectation_suite=self.suite, expectation_suite_name=expectation_suite_name)
 
-        suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=self.expectation_suite_name)
+        suite_identifier = ExpectationSuiteIdentifier(expectation_suite_name=expectation_suite_name)
         self.context.build_data_docs(resource_identifiers=[suite_identifier])
         ##Webpage DataDocs opened here:
         #self.context.open_data_docs(resource_identifier=suite_identifier) 
@@ -370,7 +371,7 @@ class GreatExpectationsHelpers(object):
                         "data_connector_name": "default_runtime_data_connector_name",
                         "data_asset_name": "Manifest",
                     },
-                    "expectation_suite_name": self.expectation_suite_name,
+                    "expectation_suite_name": "Manifest_test_suite",
                 }
             ],
         }

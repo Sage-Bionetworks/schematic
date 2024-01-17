@@ -3,7 +3,6 @@ import networkx as nx
 from rdflib import Namespace
 from typing import Any, Dict, Optional, Text, List, Callable
 
-from schematic.schemas.data_model_parser import DataModelJSONLDParser
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 from schematic.utils.schema_utils import (
@@ -53,7 +52,7 @@ class DataModelNodes:
             nodes.append(attribute)
         for rel in self.node_relationships:
             if rel in relationships.keys():
-                nodes.extend([node for node in relationships[rel] if node is not None])
+                nodes.extend([node.strip() for node in relationships[rel]])
         return nodes
 
     def gather_all_nodes_in_model(self, attr_rel_dict: dict) -> list:

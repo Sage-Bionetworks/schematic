@@ -31,7 +31,7 @@ from schematic.exceptions import (
 from schematic import LOADER
 from schematic.exceptions import (MissingConfigAndArgumentValueError,
                                   MissingConfigValueError)
-
+from schematic.store.synapse import SynapseStorage
 from schematic.utils import (cli_utils, df_utils, general, io_utils,
                              validate_utils)
 from schematic.utils.general import (calculate_datetime,
@@ -47,6 +47,15 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
+
+@pytest.fixture
+def synapse_store():
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synapse_store = SynapseStorage(access_token=access_token)
+    else:
+        synapse_store = SynapseStorage()
+    yield synapse_store
 
 class TestGeneral:
     def test_clear_synapse_cache(self, tmp_path):
@@ -489,11 +498,11 @@ class TestCsvUtils:
 
         # saving updated schema.org schema
         actual_jsonld_path = tmp_path / "example.from_csv.model.jsonld"
+        #base_se.export_schema(actual_jsonld_path)
         export_schema(jsonld_data_model, actual_jsonld_path)
 
         # Compare both JSON-LD files
         expected_jsonld_path = helpers.get_data_path("example.model.jsonld")
         expected_jsonld = open(expected_jsonld_path).read()
         actual_jsonld = open(actual_jsonld_path).read()
-
         assert expected_jsonld == actual_jsonld
