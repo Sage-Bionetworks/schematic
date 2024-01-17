@@ -10,13 +10,10 @@ import pandas as pd
 from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Optional, Tuple, Union, BinaryIO, Literal
-from flask import send_from_directory
+from typing import Dict, List, Optional, Tuple, Union
 
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-
 from schematic.utils.google_api_utils import (
     execute_google_api_requests,
     build_service_account_creds,
@@ -39,7 +36,7 @@ logger = logging.getLogger(__name__)
 class ManifestGenerator(object):
     def __init__(
         self,
-        path_to_data_model: str,  # JSON-LD file to be used for generating the manifest
+        path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
         graph: nx.MultiDiGraph, # At this point, the graph is fully formed.
         alphabetize_valid_values: str = 'ascending',
         title: str = None,  # manifest sheet title
@@ -60,7 +57,7 @@ class ManifestGenerator(object):
         self.creds = services_creds["creds"]
 
         # Path to jsonld
-        self.model_path = path_to_data_model
+        self.jsonld_path = path_to_json_ld
 
         # Graph
         self.graph = graph
@@ -378,7 +375,7 @@ class ManifestGenerator(object):
         """
         if not json_schema_filepath:
             # TODO Catch error if no JSONLD or JSON path provided.
-            data_model_js = DataModelJSONSchema(jsonld_path=self.model_path, graph=self.graph)
+            data_model_js = DataModelJSONSchema(jsonld_path=self.jsonld_path, graph=self.graph)
             json_schema = data_model_js.get_json_validation_schema(source_node=self.root, schema_name=self.title)
         else:
             with open(json_schema_filepath) as jsonfile:
@@ -1318,7 +1315,7 @@ class ManifestGenerator(object):
         sh = gc.open_by_url(manifest_url)
         wb = sh[0]
 
-        wb.set_dataframe(manifest_df, (1, 1), fit=True)
+        wb.set_dataframe(manifest_df, (1, 1))
 
         # update validation rules (i.e. no validation rules) for out of schema columns, if any
         # TODO: similarly clear formatting for out of schema columns, if any
@@ -1498,121 +1495,6 @@ class ManifestGenerator(object):
         # Default return a DataFrame
         else:
             return dataframe
-    
-    @staticmethod
-    def create_single_manifest(path_to_data_model: str, graph_data_model: nx.MultiDiGraph, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame, BinaryIO]:
-        """Create a single manifest
-
-        Args:
-            jsonld (str): jsonld schema 
-            data_type (str): data type of a manifest
-            access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
-            dataset_id (str, optional): dataset id when generating an existing manifest. Defaults to None.
-            strict (bool, optional): strictness with which to apply validation rules to google sheets. Defaults to True.
-            title (str, optional): title of a given manifest. Defaults to None.
-            output_format (str, optional): format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
-            use_annotations (bool, optional): whether to use annotations. Defaults to False.
-
-        Returns:
-            Union[str, pd.DataFrame, BinaryIO]: Googlesheet URL or pandas dataframe or Excel.
-        """
-        # create object of type ManifestGenerator
-        manifest_generator = ManifestGenerator(
-            path_to_data_model=path_to_data_model,
-            graph=graph_data_model,
-            title=title,
-            root=data_type,
-            use_annotations=use_annotations,
-            alphabetize_valid_values = 'ascending',
-        )
-
-        # if returning a dataframe
-        if output_format:
-            if "dataframe" in output_format:
-                output_format = "dataframe"
-
-        result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token, strict=strict,
-        )
-
-        # return an excel file if output_format is set to "excel"
-        if output_format == "excel":
-            dir_name = os.path.dirname(result)
-            file_name = os.path.basename(result)
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
-               
-        return result
-    
-    @staticmethod
-    def create_manifests(path_to_data_model:str, data_types:list, access_token:Optional[str]=None, dataset_ids:Optional[list]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", title:Optional[str]=None, strict:Optional[bool]=True, use_annotations:Optional[bool]=False) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
-        """Create multiple manifests
-
-        Args:
-            path_to_data_model (str): str path to data model
-            data_type (list): a list of data types 
-            access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
-            dataset_id (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
-            output_format (str, optional):format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
-            title (str, optional): title of a given manifest. Defaults to None.
-            strict (bool, optional): strictness with which to apply validation rules to google sheets. Defaults to None.
-            use_annotations (bool, optional): whether to use annotations. Defaults to False.
-
-        Returns:
-            Union[List[str], List[pd.DataFrame], BinaryIO]: a list of Googlesheet URLs, a list of pandas dataframes or an Excel file.
-        """
-        data_model_parser = DataModelParser(path_to_data_model = path_to_data_model)
-
-        #Parse Model
-        parsed_data_model = data_model_parser.parse_model()
-
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
-
-        # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
-
-        # Gather all returned result urls
-        all_results = []
-        if data_types[0] == 'all manifests':
-            dmge = DataModelGraphExplorer(graph_data_model)
-            component_digraph = dmge.get_digraph_by_edge_type('requiresComponent')
-            components = component_digraph.nodes()
-            for component in components:
-                if title:
-                    t = f'{title}.{component}.manifest'
-                else: 
-                    t = f'Example.{component}.manifest'
-                if output_format != "excel":
-                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=component, graph_data_model=graph_data_model, output_format=output_format, title=t, access_token=access_token)
-                    all_results.append(result)
-                else: 
-                    logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
-        else:
-            for i, dt in enumerate(data_types):
-                if not title: 
-                    t = f'Example.{dt}.manifest'
-                else: 
-                    if len(data_types) > 1:
-                        t = f'{title}.{dt}.manifest'
-                    else: 
-                        t = title
-                if dataset_ids:
-                    # if a dataset_id is provided add this to the function call.
-                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=dt, graph_data_model=graph_data_model, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token, use_annotations=use_annotations)
-                else:
-                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=dt, graph_data_model=graph_data_model, output_format=output_format, title=t, access_token=access_token, use_annotations=use_annotations)
-
-                # if output is pandas dataframe or google sheet url
-                if isinstance(result, str) or isinstance(result, pd.DataFrame):
-                    all_results.append(result)
-                else: 
-                    if len(data_types) > 1:
-                        logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
-                    return result
-
-        return all_results
-        
 
     def get_manifest(
         self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, access_token: str = None, strict: Optional[bool]=None,
@@ -1630,6 +1512,7 @@ class ManifestGenerator(object):
         Returns:
             Googlesheet URL, pandas dataframe, or an Excel spreadsheet 
         """
+
         # Handle case when no dataset ID is provided
         if not dataset_id:
             manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema, strict=strict, sheet_url=sheet_url)

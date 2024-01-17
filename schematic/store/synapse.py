@@ -170,9 +170,9 @@ class SynapseStorage(BaseStorage):
 
     def __init__(
         self,
-        token: Optional[str] = None,  # optional parameter retrieved from browser cookie
-        access_token: Optional[str] = None,
-        project_scope: Optional[list] = None,
+        token: str = None,  # optional parameter retrieved from browser cookie
+        access_token: str = None,
+        project_scope: List = None,
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -309,7 +309,7 @@ class SynapseStorage(BaseStorage):
 
         return all_results
 
-    def getStorageProjects(self, project_scope: List = None) -> list[tuple[str, str]]:
+    def getStorageProjects(self, project_scope: List = None) -> List[str]:
         """Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
 
         Returns:
@@ -357,7 +357,7 @@ class SynapseStorage(BaseStorage):
 
         return sorted_projects_list
 
-    def getStorageDatasetsInProject(self, projectId: str) -> list[tuple[str, str]]:
+    def getStorageDatasetsInProject(self, projectId: str) -> List[str]:
         """Gets all datasets in folder under a given storage project that the current user has access to.
 
         Args:
@@ -707,9 +707,7 @@ class SynapseStorage(BaseStorage):
 
         return files
 
-    def getProjectManifests(
-        self, projectId: str
-    ) -> list[tuple[tuple[str, str], tuple[str, str], tuple[str, str]]]:
+    def getProjectManifests(self, projectId: str) -> List[str]:
         """Gets all metadata manifest files across all datasets in a specified project.
 
         Returns: A list of datasets per project; metadata manifest Synapse ID for each dataset; and the corresponding schema component of the manifest
@@ -1900,6 +1898,13 @@ class SynapseStorage(BaseStorage):
     def raise_final_error(retry_state):
         return retry_state.outcome.result()
 
+    @retry(stop = stop_after_attempt(5), 
+            wait = wait_chain(*[wait_fixed(10) for i in range (2)] + 
+                    [wait_fixed(15) for i in range(2)] + 
+                    [wait_fixed(20)]),
+            retry=retry_if_exception_type(LookupError),
+            retry_error_callback = raise_final_error)
+
     def checkIfinAssetView(self, syn_id) -> str:
         # get data in administrative fileview for this pipeline
         assetViewTable = self.getStorageFileviewTable()
@@ -1909,12 +1914,6 @@ class SynapseStorage(BaseStorage):
         else: 
             return False
 
-    @retry(stop = stop_after_attempt(5), 
-            wait = wait_chain(*[wait_fixed(10) for i in range (2)] + 
-                    [wait_fixed(15) for i in range(2)] + 
-                    [wait_fixed(20)]),
-            retry=retry_if_exception_type(LookupError),
-            retry_error_callback = raise_final_error)
     def getDatasetProject(self, datasetId: str) -> str:
         """Get parent project for a given dataset ID.
 

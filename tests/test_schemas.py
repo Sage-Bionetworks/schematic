@@ -543,11 +543,22 @@ class TestDataModelNodes:
 
         # Make sure the nodes returned conform to expectations (values and order)
         ## The parsing records display names for relationships for CSV and labels for JSONLD, so the expectations are different between the two.
-        expected_nodes = [
+        if DATA_MODEL_DICT[data_model] == "CSV":
+            expected_nodes = [
                 "Patient",
                 "Patient ID",
                 "Sex",
                 "Year of Birth",
+                "Diagnosis",
+                "Component",
+                "DataType",
+            ]
+        elif DATA_MODEL_DICT[data_model] == "JSONLD":
+            expected_nodes = [
+                "Patient",
+                "PatientID",
+                "Sex",
+                "YearofBirth",
                 "Diagnosis",
                 "Component",
                 "DataType",

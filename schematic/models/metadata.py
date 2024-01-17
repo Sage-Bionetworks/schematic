@@ -1,7 +1,7 @@
-import os
 import logging
 import networkx as nx
 from jsonschema import ValidationError
+from os.path import exists
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -185,14 +185,8 @@ class MetadataModel(object):
 
     # TODO: abstract validation in its own module
     def validateModelManifest(
-        self,
-        manifestPath: str,
-        rootNode: str,
-        restrict_rules: bool = False,
-        jsonSchema: Optional[str] = None,
-        project_scope: Optional[List] = None,
-        access_token: Optional[str] = None,
-    ) -> tuple[list, list]:
+        self, manifestPath: str, rootNode: str, restrict_rules: bool = False, jsonSchema: str = None, project_scope: List = None, access_token: str = None,
+    ) -> List[str]:
         """Check if provided annotations manifest dataframe satisfies all model requirements.
 
         Args:
@@ -259,11 +253,7 @@ class MetadataModel(object):
                 )
 
             return errors, warnings
-        
-        # check if suite has been created. If so, delete it
-        if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
-            os.remove("great_expectations/expectations/Manifest_test_suite.json")
-            
+
         errors, warnings, manifest = validate_all(self, 
                                                   errors=errors,
                                                   warnings=warnings,
@@ -291,7 +281,7 @@ class MetadataModel(object):
             ValueError: rootNode not found in metadata model.
         """
         mg = ManifestGenerator(
-            path_to_data_model=self.inputMModelLocation, graph = self.graph_data_model, title=title, root=rootNode
+            path_to_json_ld=self.inputMModelLocation, graph = self.graph_data_model, title=title, root=rootNode
         )
 
         emptyManifestURL = mg.get_manifest()
@@ -305,10 +295,10 @@ class MetadataModel(object):
         dataset_id: str,
         manifest_record_type: str,
         restrict_rules: bool,
-        access_token: Optional[str] = None,
-        validate_component: Optional[str] = None,
+        validate_component: str = None,
         use_schema_label: bool = True,
         hide_blanks: bool = False,
+        access_token: str = None,
         project_scope: List = None,
         table_manipulation: str = 'replace'
     ) -> str:
@@ -356,7 +346,7 @@ class MetadataModel(object):
             # if there are no errors in validation process
             if val_errors == []:                
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
-                if os.path.exists(censored_manifest_path):
+                if exists(censored_manifest_path):
                     censored_manifest_id = syn_store.associateMetadataWithFiles(
                         dmge = self.dmge,
                         metadataManifestPath = censored_manifest_path,
@@ -389,7 +379,7 @@ class MetadataModel(object):
                 )
 
         # no need to perform validation, just submit/associate the metadata manifest file
-        if os.path.exists(censored_manifest_path):
+        if exists(censored_manifest_path):
             censored_manifest_id = syn_store.associateMetadataWithFiles(
                 dmge = self.dmge,
                 metadataManifestPath=censored_manifest_path,
