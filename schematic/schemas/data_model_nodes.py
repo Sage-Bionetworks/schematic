@@ -52,7 +52,7 @@ class DataModelNodes:
             nodes.append(attribute)
         for rel in self.node_relationships:
             if rel in relationships.keys():
-                nodes.extend([node for node in relationships[rel] if node is not None])
+                nodes.extend([node.strip() for node in relationships[rel]])
         return nodes
 
     def gather_all_nodes_in_model(self, attr_rel_dict: dict) -> list:
