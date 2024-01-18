@@ -892,7 +892,7 @@ class TestSchemaVisualization:
 
         assert response.status_code == 200
 
-    @pytest.mark.parametrize("component, response_text", [("Patient", "Component,Component,TBD,False,,,,Patient"), ("BulkRNA-seqAssay", "Component,Component,TBD,False,,,,BulkRNA-seqAssay")])
+    @pytest.mark.parametrize("component, response_text", [("Patient", "Component,Component,TBD,True,,,,Patient"), ("BulkRNA-seqAssay", "Component,Component,TBD,True,,,,BulkRNA-seqAssay")])
     def test_visualize_component(self, client, data_model_jsonld,component, response_text):
         params = {
             "schema_url": data_model_jsonld,
@@ -904,6 +904,7 @@ class TestSchemaVisualization:
 
         assert response.status_code == 200
         assert "Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component" in response.text
+        assert response_text in response.text
 
 @pytest.mark.schematic_api
 @pytest.mark.rule_benchmark
