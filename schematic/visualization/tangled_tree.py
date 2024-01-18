@@ -12,8 +12,11 @@ from typing import Any, Dict, Optional, Text, List
 
 from schematic.utils.viz_utils import visualize
 from schematic.visualization.attributes_explorer import AttributesExplorer
-from schematic.schemas.explorer import SchemaExplorer
-from schematic.schemas.generator import SchemaGenerator
+
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_relationships import DataModelRelationships
+
 from schematic import LOADER
 from schematic.utils.io_utils import load_json
 from copy import deepcopy
@@ -40,11 +43,20 @@ class TangledTree(object):
         # Parse schema name
         self.schema_name = path.basename(self.path_to_json_ld).split(".model.jsonld")[0]
 
-        # Instantiate a schema generator to retrieve db schema graph from metadata model graph
-        self.sg = SchemaGenerator(self.path_to_json_ld)      
+        # Instantiate Data Model Parser
+        data_model_parser = DataModelParser(path_to_data_model = self.path_to_json_ld)
+        
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
 
-        # Get metadata model schema graph
-        self.G = self.sg.se.get_nx_schema()
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        self.graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Instantiate Data Model Graph Explorer
+        self.dmge = DataModelGraphExplorer(self.graph_data_model)
 
         # Set Parameters
         self.figure_type = figure_type.lower()
@@ -80,14 +92,14 @@ class TangledTree(object):
                save_file==False: Returns plain or highlighted text as a csv string.
         '''
         # Get nodes in the digraph, many more nodes returned if figure type is dependency
-        cdg = self.sg.se.get_digraph_by_edge_type(self.dependency_type)
+        cdg = self.dmge.get_digraph_by_edge_type(self.dependency_type)
         nodes = cdg.nodes()
 
         if self.dependency_type == 'requiresComponent':
             component_nodes = nodes
         else:
             # get component nodes if making dependency figure
-            component_dg = self.sg.se.get_digraph_by_edge_type('requiresComponent')
+            component_dg = self.dmge.get_digraph_by_edge_type('requiresComponent')
             component_nodes = component_dg.nodes()
 
         # Initialize lists
@@ -98,7 +110,7 @@ class TangledTree(object):
         for node in component_nodes:
             # Get the highlighted components based on figure_type
             if self.figure_type == 'component':
-                highlight_descendants = self.sg.se.get_descendants_by_edge_type(node, 'requiresComponent')
+                highlight_descendants = self.dmge.get_descendants_by_edge_type(node, 'requiresComponent')
             elif self.figure_type == 'dependency':
                 highlight_descendants = [node]
 
@@ -139,12 +151,13 @@ class TangledTree(object):
             edges: (Networkx EdgeDataView) Edges of component or dependency graph. When iterated over it works like a list of tuples.
         '''
         # Get nodes in the digraph
-        digraph = self.sg.se.get_digraph_by_edge_type(self.dependency_type)
+        digraph = self.dmge.get_digraph_by_edge_type(self.dependency_type)
         nodes = digraph.nodes()
 
         # Get subgraph
-        mm_graph = self.sg.se.get_nx_schema()
-        subg = self.sg.get_subgraph_by_edge_type(mm_graph, self.dependency_type)
+        #mm_graph = self.sg.se.get_nx_schema()
+        #subg = self.sg.get_subgraph_by_edge_type(mm_graph, self.dependency_type)
+        subg = self.dmge.get_subgraph_by_edge_type(self.dependency_type)
 
         # Get edges and topological_gen based on figure type.
         if self.figure_type == 'component':
@@ -217,7 +230,7 @@ class TangledTree(object):
         '''
 
         # Gather all component dependency information
-        component_attributes = self.sg.get_descendants_by_edge_type(
+        component_attributes = self.dmge.get_descendants_by_edge_type(
                                         cn,
                                         self.dependency_type,
                                         connected=True
@@ -727,7 +740,7 @@ class TangledTree(object):
         """
         all_parent_children = {}
         for component in components: 
-            all_ancestors = self.sg.se.get_nodes_ancestors(subgraph, component)
+            all_ancestors = self.dmge.get_nodes_ancestors(subgraph=subgraph, node_label=component)
             all_parent_children[component] = all_ancestors
 
         return all_parent_children
@@ -768,7 +781,7 @@ class TangledTree(object):
 
         if self.figure_type == 'dependency':
             # Get component digraph and nodes.
-            component_dg = self.sg.se.get_digraph_by_edge_type('requiresComponent')
+            component_dg = self.dmge.get_digraph_by_edge_type('requiresComponent')
             component_nodes = component_dg.nodes()
 
             # Get table of attributes.

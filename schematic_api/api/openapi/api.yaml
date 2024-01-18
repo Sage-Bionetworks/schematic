@@ -799,7 +799,7 @@ paths:
       tags:
         - Schema Operation
 
-  /explorer/find_class_specific_properties:
+  /schemas/find_class_specific_properties:
     get:
       summary: Find properties specifically associated with a given class
       description: Find properties specifically associated with a given class
@@ -961,7 +961,7 @@ paths:
       tags:
         - Schema Operation
 
-  /explorer/get_node_dependencies:
+  /schemas/get_node_dependencies:
     get:
       summary: Get the immediate dependencies that are related to a given source node
       description: Get the immediate dependencies that are related to a given source node
@@ -1007,20 +1007,12 @@ paths:
       tags:
         - Schema Operation
         
-  /explorer/get_property_label_from_display_name:
+  /utils/get_property_label_from_display_name:
     get:
       summary: Converts a given display name string into a proper property label string
       description: Converts a given display name string into a proper property label string
-      operationId: schematic_api.api.routes.get_property_label_from_display_name
+      operationId: schematic_api.api.routes.get_property_label_from_display_name_route
       parameters:
-        - in: query
-          name: schema_url
-          schema:
-            type: string
-          description: Data Model URL
-          example: >-
-            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
-          required: true
         - in: query
           name: display_name
           schema:
@@ -1044,7 +1036,7 @@ paths:
       tags:
         - Schema Operation
       
-  /explorer/get_node_range:
+  /schemas/get_node_range:
     get:
       summary: Get all the valid values that are associated with a node label.
       description: Get all the valid values that are associated with a node label.

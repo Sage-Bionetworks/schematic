@@ -25,7 +25,8 @@ from great_expectations.exceptions.exceptions import GreatExpectationsError
 
 
 from schematic.models.validate_attribute import GenerateError
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_graph import DataModelGraphExplorer
+
 from schematic.utils.validate_utils import rule_in_rule_list, np_array_to_str_list, iterable_to_str_list
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ class GreatExpectationsHelpers(object):
             2) Parse results dict to generate appropriate errors
     """
     def __init__(self,
-        sg,
+        dmge,
         unimplemented_expectations,
         manifest,
         manifestPath
@@ -48,8 +49,8 @@ class GreatExpectationsHelpers(object):
             Purpose:
                 Instantiate a great expectations helpers object
             Args:
-                sg: 
-                    schemaGenerator object
+                dmge: 
+                    DataModelGraphExplorer Object
                 unimplemented_expectations:
                     dictionary of validation rules that currently do not have expectations developed
                 manifest:
@@ -58,7 +59,7 @@ class GreatExpectationsHelpers(object):
                     path to manifest being validated            
         """
         self.unimplemented_expectations = unimplemented_expectations
-        self.sg = sg
+        self.dmge = dmge
         self.manifest = manifest
         self.manifestPath = manifestPath
 
@@ -150,14 +151,14 @@ class GreatExpectationsHelpers(object):
             expectation_suite_name=self.expectation_suite_name,
         )    
 
-        #build expectation configurations for each expecation
+        #build expectation configurations for each expectation
         for col in self.manifest.columns:
             args={}
             meta={}
             
             # remove trailing/leading whitespaces from manifest
             self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
-            validation_rules = self.sg.get_node_validation_rules(col)
+            validation_rules = self.dmge.get_node_validation_rules(node_display_name=col)
 
             #check if attribute has any rules associated with it
             if validation_rules:
@@ -383,7 +384,7 @@ class GreatExpectationsHelpers(object):
         validation_types: Dict,
         errors: List,
         warnings: List,
-        sg: SchemaGenerator,
+        dmge: DataModelGraphExplorer,
         ):
         """
             Purpose:
@@ -448,7 +449,7 @@ class GreatExpectationsHelpers(object):
                                 row_num = str(row+2),
                                 attribute_name = errColumn,
                                 invalid_entry = str(value),
-                                sg = sg,
+                                dmge = dmge,
                             )
                         if vr_errors:
                             errors.append(vr_errors)  
@@ -464,7 +465,7 @@ class GreatExpectationsHelpers(object):
                                 module_to_call = 'match',
                                 attribute_name = errColumn,
                                 invalid_entry = value,
-                                sg = sg,
+                                dmge = dmge,
                             )
                         if vr_errors:
                             errors.append(vr_errors)  
@@ -476,7 +477,7 @@ class GreatExpectationsHelpers(object):
                                                             attribute_name = errColumn,
                                                             row_num = np_array_to_str_list(np.array(indices)+2),
                                                             error_val = iterable_to_str_list(values),  
-                                                            sg = self.sg
+                                                            dmge = self.dmge
                                                         )       
                     if vr_errors:
                         errors.append(vr_errors)  

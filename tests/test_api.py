@@ -13,8 +13,10 @@ import pandas as pd  # third party library import
 import pytest
 
 from schematic.configuration.configuration import Configuration
-from schematic.schemas.generator import \
-    SchemaGenerator  # Local application/library specific imports.
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_relationships import DataModelRelationships
+
 from schematic_api.api import create_app
 
 
@@ -61,12 +63,14 @@ def test_manifest_json(helpers):
 
 @pytest.fixture(scope="class")
 def data_model_jsonld():
-    data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
+    #data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
+    data_model_jsonld = "https://raw.githubusercontent.com/mialy-defelice/data_models/main/example.model.jsonld"
     yield data_model_jsonld
 
 @pytest.fixture(scope="class")
 def benchmark_data_model_jsonld():
-    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
+    #benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
+    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/mialy-defelice/data_models/main/example.single_rule.model.jsonld"
     yield benchmark_data_model_jsonld
 
 def get_MockComponent_attribute():
@@ -74,8 +78,21 @@ def get_MockComponent_attribute():
     Yield all of the mock conponent attributes one at a time
     TODO: pull in jsonld from fixture
     """
-    sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld")
-    attributes=sg.get_node_dependencies('MockComponent')
+    #schema_url = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
+    schema_url = "https://raw.githubusercontent.com/mialy-defelice/data_models/main/example.single_rule.model.jsonld"
+    data_model_parser = DataModelParser(path_to_data_model = schema_url)
+    #Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
+    dmge = DataModelGraphExplorer(graph_data_model)
+    #sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld")
+    attributes=dmge.get_node_dependencies('MockComponent')
     attributes.remove('Component')
 
     for MockComponent_attribute in attributes:
@@ -251,16 +268,15 @@ class TestMetadataModelOperation:
 
 
 @pytest.mark.schematic_api
-class TestSchemaExplorerOperation:
+class TestUtilsOperation:
     @pytest.mark.parametrize("strict_camel_case", [True, False]) 
-    def test_get_property_label_from_display_name(self, client, data_model_jsonld, strict_camel_case):
+    def test_get_property_label_from_display_name(self, client, strict_camel_case):
         params = {
-            "schema_url": data_model_jsonld,
             "display_name": "mocular entity",
             "strict_camel_case": strict_camel_case
         }
 
-        response = client.get("http://localhost:3001/v1/explorer/get_property_label_from_display_name", query_string = params)
+        response = client.get("http://localhost:3001/v1/utils/get_property_label_from_display_name", query_string = params)
         assert response.status_code == 200
 
         response_dt = json.loads(response.data)
@@ -270,6 +286,9 @@ class TestSchemaExplorerOperation:
         else:
             assert response_dt == "mocularentity"
 
+
+@pytest.mark.schematic_api
+class TestDataModelGraphExplorerOperation:
     def test_get_schema(self, client, data_model_jsonld):
         params = {
             "schema_url": data_model_jsonld
@@ -315,9 +334,6 @@ class TestSchemaExplorerOperation:
         assert response.status_code == 200
         assert "Family History" and "Biospecimen" in response_dta
 
-
-@pytest.mark.schematic_api
-class TestSchemaGeneratorOperation:
     @pytest.mark.parametrize("relationship", ["parentOf", "requiresDependency", "rangeValue", "domainValue"])
     def test_get_subgraph_by_edge(self, client, data_model_jsonld, relationship):
         params = {
@@ -338,7 +354,7 @@ class TestSchemaGeneratorOperation:
             "node_label": node_label
         }
 
-        response = client.get('http://localhost:3001/v1/explorer/get_node_range', query_string=params)
+        response = client.get('http://localhost:3001/v1/schemas/get_node_range', query_string=params)
         response_dt = json.loads(response.data)
         assert response.status_code == 200
 
@@ -365,7 +381,7 @@ class TestSchemaGeneratorOperation:
             "return_schema_ordered": return_schema_ordered
         }
 
-        response = client.get('http://localhost:3001/v1/explorer/get_node_dependencies', query_string=params)
+        response = client.get('http://localhost:3001/v1/schemas/get_node_dependencies', query_string=params)
         response_dt = json.loads(response.data)
         assert response.status_code == 200
 
@@ -547,6 +563,7 @@ class TestManifestOperation:
         # and also make sure that entityId column appears in the end
 
         assert google_sheet_df.columns.to_list()[-1] == "entityId"
+
         assert sorted(google_sheet_df.columns.to_list()) == sorted(expected)
 
         # make sure Filename, entityId, and component get filled with correct value
