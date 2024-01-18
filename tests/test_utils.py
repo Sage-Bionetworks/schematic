@@ -498,6 +498,7 @@ class TestCsvUtils:
 
         # saving updated schema.org schema
         actual_jsonld_path = tmp_path / "example.from_csv.model.jsonld"
+        #base_se.export_schema(actual_jsonld_path)
         export_schema(jsonld_data_model, actual_jsonld_path)
 
         # Compare both JSON-LD files
