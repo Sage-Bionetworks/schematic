@@ -155,8 +155,9 @@ class TestSynapseStorage:
         else: 
             if file_names: 
                 assert ["syn23643255","Sample_A.txt"] and ["syn24226530","Sample_A.txt"] and ["syn25057024","Sample_A.txt"] in response_dt
+                assert ['syn23643256', 'Sample_C.txt'] and ['syn24226531', 'Sample_B.txt'] not in response_dt
             else: 
-                assert ["syn25705259","Boolean Test"] and ["syn23667202","DataTypeX_table"] in response_dt
+                assert ['syn23643256', 'Sample_C.txt'] and ['syn24226530', 'Sample_A.txt'] and ['syn24226531', 'Sample_B.txt'] in response_dt
         
     @pytest.mark.synapse_credentials_needed
     def test_get_storage_project_dataset(self, request_headers, client):
@@ -891,7 +892,7 @@ class TestSchemaVisualization:
 
         assert response.status_code == 200
 
-    @pytest.mark.parametrize("component, response_text", [("Patient", "Component,Component,TBD,False,,,,Patient"), ("BulkRNA-seqAssay", "Component,Component,TBD,False,,,,BulkRNA-seqAssay")])
+    @pytest.mark.parametrize("component, response_text", [("Patient", "Component,Component,TBD,True,,,,Patient"), ("BulkRNA-seqAssay", "Component,Component,TBD,True,,,,BulkRNA-seqAssay")])
     def test_visualize_component(self, client, data_model_jsonld,component, response_text):
         params = {
             "schema_url": data_model_jsonld,
@@ -902,7 +903,6 @@ class TestSchemaVisualization:
         response = client.get("http://localhost:3001/v1/visualize/component", query_string = params)
 
         assert response.status_code == 200
-
         assert "Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component" in response.text
         assert response_text in response.text
 
