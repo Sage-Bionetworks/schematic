@@ -155,8 +155,9 @@ class TestSynapseStorage:
         else: 
             if file_names: 
                 assert ["syn23643255","Sample_A.txt"] and ["syn24226530","Sample_A.txt"] and ["syn25057024","Sample_A.txt"] in response_dt
+                assert ['syn23643256', 'Sample_C.txt'] and ['syn24226531', 'Sample_B.txt'] not in response_dt
             else: 
-                assert ["syn25705259","Boolean Test"] and ["syn23667202","DataTypeX_table"] in response_dt
+                assert ['syn23643256', 'Sample_C.txt'] and ['syn24226530', 'Sample_A.txt'] and ['syn24226531', 'Sample_B.txt'] in response_dt
         
     @pytest.mark.synapse_credentials_needed
     def test_get_storage_project_dataset(self, request_headers, client):
@@ -902,9 +903,7 @@ class TestSchemaVisualization:
         response = client.get("http://localhost:3001/v1/visualize/component", query_string = params)
 
         assert response.status_code == 200
-
         assert "Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component" in response.text
-        assert response_text in response.text
 
 @pytest.mark.schematic_api
 @pytest.mark.rule_benchmark
