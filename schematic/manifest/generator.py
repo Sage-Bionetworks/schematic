@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import json
 import logging
+import networkx as nx
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -12,7 +13,10 @@ from tempfile import NamedTemporaryFile
 from typing import Dict, List, Optional, Tuple, Union, BinaryIO, Literal
 from flask import send_from_directory
 
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+
 from schematic.utils.google_api_utils import (
     execute_google_api_requests,
     build_service_account_creds,
@@ -35,7 +39,8 @@ logger = logging.getLogger(__name__)
 class ManifestGenerator(object):
     def __init__(
         self,
-        path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
+        path_to_data_model: str,  # JSON-LD file to be used for generating the manifest
+        graph: nx.MultiDiGraph, # At this point, the graph is fully formed.
         alphabetize_valid_values: str = 'ascending',
         title: str = None,  # manifest sheet title
         root: str = None,
@@ -53,6 +58,12 @@ class ManifestGenerator(object):
 
         # google service credentials object
         self.creds = services_creds["creds"]
+
+        # Path to jsonld
+        self.model_path = path_to_data_model
+
+        # Graph
+        self.graph = graph
 
         # schema root
         if root:
@@ -79,14 +90,14 @@ class ManifestGenerator(object):
                 "when there is no manifest file for the dataset in question."
             )
 
-        # SchemaGenerator() object
-        self.sg = SchemaGenerator(path_to_json_ld)
+        # Instantiate Data Model Explorer object
+        self.dmge = DataModelGraphExplorer(self.graph)
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
    
         # Check if the class is in the schema
-        root_in_schema = self.sg.se.is_class_in_schema(self.root)
+        root_in_schema = self.dmge.is_class_in_schema(self.root)
         
         # If the class could not be found, give a notification
         if not root_in_schema:
@@ -95,8 +106,7 @@ class ManifestGenerator(object):
             raise LookupError(exception_message) 
 
         # Determine whether current data type is file-based
-        self.is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
-
+        self.is_file_based = "Filename" in self.dmge.get_node_dependencies(self.root)
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet"""
@@ -364,13 +374,12 @@ class ManifestGenerator(object):
             json_schema_filepath(str): path to json schema file
         Returns:
             Dictionary, containing portions of the json schema
+        TODO: Do we even allow people to provide a json_schema_filepath anyore?
         """
         if not json_schema_filepath:
-            # if no json schema is provided; there must be
-            # schema explorer defined for schema.org schema
-            # o.w. this will throw an error
-            # TODO: catch error
-            json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
+            # TODO Catch error if no JSONLD or JSON path provided.
+            data_model_js = DataModelJSONSchema(jsonld_path=self.model_path, graph=self.graph)
+            json_schema = data_model_js.get_json_validation_schema(source_node=self.root, schema_name=self.title)
         else:
             with open(json_schema_filepath) as jsonfile:
                 json_schema = json.load(jsonfile)
@@ -813,9 +822,9 @@ class ManifestGenerator(object):
             notes_body["requests"] (dict): with information on note
                 to add to the column header. This notes body will be added to a request.
         """
-        if self.sg.se:
+        if self.dmge:
             # get node definition
-            note = self.sg.get_node_definition(req)
+            note = self.dmge.get_node_comment(node_display_name = req)
 
             notes_body = {
                 "requests": [
@@ -1014,8 +1023,7 @@ class ManifestGenerator(object):
         dependency_formatting_body = {"requests": []}
         for j, val_dep in enumerate(val_dependencies):
             is_required = False
-
-            if self.sg.is_node_required(val_dep):
+            if self.dmge.get_node_required(node_display_name=val_dep):
                 is_required = True
             else:
                 is_required = False
@@ -1058,13 +1066,13 @@ class ManifestGenerator(object):
         for req_val in req_vals:
             # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
             req_val = req_val["userEnteredValue"]
-            req_val_node_label = self.sg.get_node_label(req_val)
+            req_val_node_label = self.dmge.get_node_label(req_val)
             if not req_val_node_label:
                 # if this node is not in the graph
                 # continue - there are no dependencies for it
                 continue
             # check if this required/valid value has additional dependency attributes
-            val_dependencies = self.sg.get_node_dependencies(
+            val_dependencies = self.dmge.get_node_dependencies(
                 req_val_node_label, schema_ordered=False
             )
 
@@ -1117,7 +1125,7 @@ class ManifestGenerator(object):
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
             # Gather validation rules and valid values for attribute.
-            validation_rules = self.sg.get_node_validation_rules(req)
+            validation_rules = self.dmge.get_node_validation_rules(node_display_name=req)
             
             # Add regex match validaiton rule to Google Sheets.
             if validation_rules and sheet_url:
@@ -1364,7 +1372,7 @@ class ManifestGenerator(object):
             pd.DataFrame: Annotations table with updated column headers.
         """
         # Get list of attribute nodes from data model
-        model_nodes = self.sg.se.get_nx_schema().nodes
+        model_nodes = self.graph.nodes
 
         # Subset annotations to those appearing as a label in the model
         labels = filter(lambda x: x in model_nodes, annotations.columns)
@@ -1492,7 +1500,7 @@ class ManifestGenerator(object):
             return dataframe
     
     @staticmethod
-    def create_single_manifest(jsonld: str, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame, BinaryIO]:
+    def create_single_manifest(path_to_data_model: str, graph_data_model: nx.MultiDiGraph, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame, BinaryIO]:
         """Create a single manifest
 
         Args:
@@ -1510,7 +1518,8 @@ class ManifestGenerator(object):
         """
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
-            path_to_json_ld=jsonld,
+            path_to_data_model=path_to_data_model,
+            graph=graph_data_model,
             title=title,
             root=data_type,
             use_annotations=use_annotations,
@@ -1536,11 +1545,11 @@ class ManifestGenerator(object):
         return result
     
     @staticmethod
-    def create_manifests(jsonld:str, data_types:list, access_token:Optional[str]=None, dataset_ids:Optional[list]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", title:Optional[str]=None, strict:Optional[bool]=True, use_annotations:Optional[bool]=False) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
+    def create_manifests(path_to_data_model:str, data_types:list, access_token:Optional[str]=None, dataset_ids:Optional[list]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", title:Optional[str]=None, strict:Optional[bool]=True, use_annotations:Optional[bool]=False) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
         """Create multiple manifests
 
         Args:
-            jsonld (str): jsonld schema 
+            path_to_data_model (str): str path to data model
             data_type (list): a list of data types 
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
             dataset_id (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
@@ -1552,10 +1561,22 @@ class ManifestGenerator(object):
         Returns:
             Union[List[str], List[pd.DataFrame], BinaryIO]: a list of Googlesheet URLs, a list of pandas dataframes or an Excel file.
         """
+        data_model_parser = DataModelParser(path_to_data_model = path_to_data_model)
+
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Gather all returned result urls
         all_results = []
         if data_types[0] == 'all manifests':
-            sg = SchemaGenerator(path_to_json_ld=jsonld)
-            component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+            dmge = DataModelGraphExplorer(graph_data_model)
+            component_digraph = dmge.get_digraph_by_edge_type('requiresComponent')
             components = component_digraph.nodes()
             for component in components:
                 if title:
@@ -1563,7 +1584,7 @@ class ManifestGenerator(object):
                 else: 
                     t = f'Example.{component}.manifest'
                 if output_format != "excel":
-                    result = ManifestGenerator.create_single_manifest(jsonld=jsonld, data_type=component, output_format=output_format, title=t, access_token=access_token, strict=strict, use_annotations=use_annotations)
+                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=component, graph_data_model=graph_data_model, output_format=output_format, title=t, access_token=access_token)
                     all_results.append(result)
                 else: 
                     logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
@@ -1578,9 +1599,9 @@ class ManifestGenerator(object):
                         t = title
                 if dataset_ids:
                     # if a dataset_id is provided add this to the function call.
-                    result = ManifestGenerator.create_single_manifest(jsonld=jsonld, data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token, strict=strict, use_annotations=use_annotations)
+                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=dt, graph_data_model=graph_data_model, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token, use_annotations=use_annotations)
                 else:
-                    result = ManifestGenerator.create_single_manifest(jsonld=jsonld, data_type=dt, output_format=output_format, title=t, access_token=access_token, strict=strict, use_annotations=use_annotations)
+                    result = ManifestGenerator.create_single_manifest(path_to_data_model=path_to_data_model, data_type=dt, graph_data_model=graph_data_model, output_format=output_format, title=t, access_token=access_token, use_annotations=use_annotations)
 
                 # if output is pandas dataframe or google sheet url
                 if isinstance(result, str) or isinstance(result, pd.DataFrame):
@@ -1589,6 +1610,7 @@ class ManifestGenerator(object):
                     if len(data_types) > 1:
                         logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
                     return result
+
         return all_results
         
 
@@ -1632,7 +1654,7 @@ class ManifestGenerator(object):
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
-        manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
+        manifest_record = store.updateDatasetManifestFiles(self.dmge, datasetId = dataset_id, store = False)
 
         # get URL of an empty manifest file created based on schema component
         empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=True)
@@ -1869,9 +1891,9 @@ class ManifestGenerator(object):
 
         # order manifest fields based on data-model schema
         if order == "schema":
-            if self.sg and self.root:
+            if self.dmge and self.root:
                 # get display names of dependencies
-                dependencies_display_names = self.sg.get_node_dependencies(self.root)
+                dependencies_display_names = self.dmge.get_node_dependencies(self.root)
 
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(

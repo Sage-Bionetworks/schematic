@@ -6,11 +6,14 @@ from typing import List
 import click
 import click_log
 
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.manifest.generator import ManifestGenerator
+
 from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_synIDs
-from schematic.help import manifest_commands
-from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.google_api_utils import export_manifest_csv
+from schematic.help import manifest_commands
+
 from schematic.store.synapse import SynapseStorage
 from schematic.configuration.configuration import CONFIG
 
@@ -59,7 +62,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "data_type")),
 )
 @click.option(
-    "-p", "--jsonld", help=query_dict(manifest_commands, ("manifest", "get", "jsonld"))
+    "-p", "--path_to_data_model", help=query_dict(manifest_commands, ("manifest", "get", "path_to_data_model"))
 )
 @click.option(
     "-d",
@@ -104,7 +107,7 @@ def get_manifest(
     ctx,
     title,
     data_type,
-    jsonld,
+    path_to_data_model,
     dataset_id,
     sheet_url,
     output_csv,
@@ -121,17 +124,31 @@ def get_manifest(
     if data_type is None:
         data_type =  CONFIG.manifest_data_type
         log_value_from_config("data_type", data_type)
-    if jsonld is None:
-        jsonld =  CONFIG.model_location
-        log_value_from_config("jsonld", jsonld)
+    if path_to_data_model is None:
+        path_to_data_model =  CONFIG.model_location
+        log_value_from_config("path_to_data_model", path_to_data_model)
     if title is None:
         title =  CONFIG.manifest_title
         log_value_from_config("title", title)
 
+    data_model_parser = DataModelParser(path_to_data_model = path_to_data_model)
+
+    #Parse Model
+    logger.info("Parsing data model.")
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    logger.info("Generating data model graph.")
+    graph_data_model = data_model_grapher.generate_data_model_graph()
+
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
-            path_to_json_ld=jsonld,
+            path_to_data_model=path_to_data_model,
+            graph = graph_data_model,
             title=t,
             root=data_type,
             use_annotations=use_annotations,
@@ -174,7 +191,7 @@ def get_manifest(
             logger.info("Find the manifest template using this Google Sheet URL:")
             click.echo(result)
         if output_csv is None and output_xlsx is None: 
-            prefix, _ = os.path.splitext(jsonld)
+            prefix, _ = os.path.splitext(path_to_data_model)
             prefix_root, prefix_ext = os.path.splitext(prefix)
             if prefix_ext == ".model":
                 prefix = prefix_root
@@ -194,9 +211,10 @@ def get_manifest(
     if type(data_type) is str:
         data_type = [data_type]
 
-    if data_type[0] == 'all manifests':
-        sg = SchemaGenerator(path_to_json_ld=jsonld)
-        component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+    if data_type[0] == 'all manifests':      
+        # Feed graph into the data model graph explorer
+        dmge = DataModelGraphExplorer(graph_data_model)
+        component_digraph = dmge.get_digraph_by_edge_type('requiresComponent')
         components = component_digraph.nodes()
         for component in components:
             t = f'{title}.{component}.manifest'
