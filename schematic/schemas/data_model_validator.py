@@ -5,7 +5,9 @@ import time
 from typing import Any, Dict, Optional, Text, List, Tuple
 
 from schematic.schemas.data_model_relationships import DataModelRelationships
+
 logger = logging.getLogger(__name__)
+
 
 class DataModelValidator:
     """
@@ -87,7 +89,9 @@ class DataModelValidator:
         """
         error = []
         if not nx.is_directed_acyclic_graph(self.graph):
-            cycles = multiprocessing.Process(target=self.run_cycles, name="Get Cycles", args=(self.graph,))
+            cycles = multiprocessing.Process(
+                target=self.run_cycles, name="Get Cycles", args=(self.graph,)
+            )
             cycles.start()
 
             # Give up to 5 seconds to find cycles, if not exit and issue standard error
@@ -102,7 +106,7 @@ class DataModelValidator:
 
             error.append(
                 f"Schematic requires models be a directed acyclic graph (DAG). Please inspect your model."
-                )
+            )
 
         return error
 

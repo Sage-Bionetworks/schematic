@@ -14,7 +14,7 @@ class DataModelEdges:
         all_node_dict: dict,
         attr_rel_dict: dict,
         edge_relationships: dict,
-        edge_list:list,
+        edge_list: list,
     ) -> list[tuple[str, str, dict[str:str, str:int]]]:
         """Generate an edge between a target node and relevant other nodes the data model. In short, does this current node belong to a recorded relationship in the attribute, relationshps dictionary. Go through each attribute and relationship to find where the node may be.
         Args:
@@ -67,25 +67,31 @@ class DataModelEdges:
                         # Add edges, in a manner that preserves directionality
                         # TODO: rewrite to use edge_dir
                         if rel_key in ["subClassOf", "domainIncludes"]:
-                            edge_list.append((
-                                all_node_dict[node]["label"],
-                                all_node_dict[attribute_display_name]["label"],
-                                {'key':edge_key,
-                                'weight':weight,})
+                            edge_list.append(
+                                (
+                                    all_node_dict[node]["label"],
+                                    all_node_dict[attribute_display_name]["label"],
+                                    {
+                                        "key": edge_key,
+                                        "weight": weight,
+                                    },
                                 )
+                            )
                         else:
-                            edge_list.append((
-                                all_node_dict[attribute_display_name]["label"],
-                                all_node_dict[node]["label"],
-                                {'key':edge_key,
-                                'weight':weight},)
+                            edge_list.append(
+                                (
+                                    all_node_dict[attribute_display_name]["label"],
+                                    all_node_dict[node]["label"],
+                                    {"key": edge_key, "weight": weight},
                                 )
+                            )
                         # Add add rangeIncludes/valid value relationships in reverse as well, making the attribute the parent of the valid value.
                         if rel_key == "rangeIncludes":
-                            edge_list.append((
-                                all_node_dict[attribute_display_name]["label"],
-                                all_node_dict[node]["label"],
-                                {'key':"parentOf",
-                                'weight':weight},)
+                            edge_list.append(
+                                (
+                                    all_node_dict[attribute_display_name]["label"],
+                                    all_node_dict[node]["label"],
+                                    {"key": "parentOf", "weight": weight},
                                 )
+                            )
         return edge_list
