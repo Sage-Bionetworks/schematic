@@ -519,7 +519,9 @@ class TestManifestGenerator:
             json_ld_path = helpers.get_data_path("example.model.jsonld")
             data_type = "Patient"
 
-            result = simple_manifest_generator.create_single_manifest(jsonld=json_ld_path, data_type=data_type, output_format="google_sheet", use_annotations=False)
+            graph_data_model = generate_graph_data_model(helpers, path_to_data_model=json_ld_path)
+
+            result = simple_manifest_generator.create_single_manifest(path_to_data_model=json_ld_path, graph_data_model=graph_data_model, data_type=data_type, output_format="google_sheet", use_annotations=False)
             assert result == return_output
     
     @pytest.mark.parametrize("test_data_types", [["Patient", "Biospecimen"], ["all manifests"]])
@@ -529,7 +531,7 @@ class TestManifestGenerator:
             data_types = test_data_types
             dataset_ids=["syn123456"]
 
-            simple_manifest_generator.create_manifests(jsonld=json_ld_path, data_types=data_types, dataset_ids=dataset_ids, output_format="google_sheet", use_annotations=False)
+            simple_manifest_generator.create_manifests(path_to_data_model=json_ld_path, data_types=data_types, dataset_ids=dataset_ids, output_format="google_sheet", use_annotations=False)
     
     @pytest.mark.parametrize("test_data_types, dataset_ids, expected_result", [
         (["Patient", "Biospecimen"], ["mock dataset id1", "mock dataset id2"], ["mock google sheet link", "mock google sheet link"]),
@@ -538,7 +540,7 @@ class TestManifestGenerator:
     def test_create_manifests(self, simple_manifest_generator, helpers, test_data_types, dataset_ids, expected_result):
         with patch("schematic.manifest.generator.ManifestGenerator.create_single_manifest", return_value="mock google sheet link"):
             json_ld_path = helpers.get_data_path("example.model.jsonld")
-            all_results = simple_manifest_generator.create_manifests(jsonld=json_ld_path, data_types=test_data_types, dataset_ids=dataset_ids, output_format="google_sheet", use_annotations=False)
+            all_results = simple_manifest_generator.create_manifests(path_to_data_model=json_ld_path, data_types=test_data_types, dataset_ids=dataset_ids, output_format="google_sheet", use_annotations=False)
             assert all_results == expected_result
     
 
