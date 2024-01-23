@@ -110,7 +110,7 @@ class DataModelGraph:
 
         # Add edges to the Graph
         for node_1, node_2, edge_dict in edge_list:
-            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
+            G.add_edge(node_1, node_2, key=edge_dict["key"], weight=edge_dict["weight"])
         return G
 
 
@@ -364,7 +364,7 @@ class DataModelGraphExplorer:
             )
 
         edge_key = self.rel_dict[key]["edge_key"]
-        
+
         # Handle out edges
         if self.rel_dict[key]["jsonld_direction"] == "out":
             # use outedges

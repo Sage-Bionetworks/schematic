@@ -11,15 +11,21 @@ import click_log
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_synIDs, parse_comma_str_to_list
+from schematic.utils.cli_utils import (
+    log_value_from_config,
+    query_dict,
+    parse_synIDs,
+    parse_comma_str_to_list,
+)
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic.configuration.configuration import CONFIG
 
-logger = logging.getLogger('schematic')
+logger = logging.getLogger("schematic")
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
+
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -39,7 +45,7 @@ def model(ctx, config):  # use as `schematic model ...`
     try:
         logger.debug(f"Loading config file contents in '{config}'")
         CONFIG.load_config(config)
-        ctx.obj =  CONFIG
+        ctx.obj = CONFIG
     except ValueError as e:
         logger.error("'--config' not provided or environment variable not set.")
         logger.exception(e)
@@ -76,19 +82,23 @@ def model(ctx, config):  # use as `schematic model ...`
     "--hide_blanks",
     "-hb",
     is_flag=True,
-    help=query_dict(model_commands,("model","submit","hide_blanks")),
+    help=query_dict(model_commands, ("model", "submit", "hide_blanks")),
 )
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='table_file_and_entities',
-    type=click.Choice(['table_and_file', 'file_only', 'file_and_entities', 'table_file_and_entities'], case_sensitive=True),
-    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
+    default="table_file_and_entities",
+    type=click.Choice(
+        ["table_and_file", "file_only", "file_and_entities", "table_file_and_entities"],
+        case_sensitive=True,
+    ),
+    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")),
+)
 @click.option(
     "-rr",
     "--restrict_rules",
     is_flag=True,
-    help=query_dict(model_commands,("model","validate","restrict_rules")),
+    help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.option(
     "-ps",
@@ -100,27 +110,36 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "--table_manipulation",
     "-tm",
-    default='replace',
-    type=click.Choice(['replace', 'upsert'], case_sensitive=True),
-    help=query_dict(model_commands, ("model", "submit", "table_manipulation")))
+    default="replace",
+    type=click.Choice(["replace", "upsert"], case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "table_manipulation")),
+)
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules, project_scope, table_manipulation,
+    ctx,
+    manifest_path,
+    dataset_id,
+    validate_component,
+    manifest_record_type,
+    use_schema_label,
+    hide_blanks,
+    restrict_rules,
+    project_scope,
+    table_manipulation,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
     """
-    
-    jsonld =  CONFIG.model_location
+
+    jsonld = CONFIG.model_location
     log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld, inputMModelLocationType="local"
     )
 
-
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld = jsonld,
+        path_to_json_ld=jsonld,
         manifest_path=manifest_path,
         dataset_id=dataset_id,
         validate_component=validate_component,
@@ -131,7 +150,7 @@ def submit_manifest(
         project_scope=project_scope,
         table_manipulation=table_manipulation,
     )
-    
+
     if manifest_id:
         logger.info(
             f"File at '{manifest_path}' was successfully associated "
@@ -167,7 +186,7 @@ def submit_manifest(
     "-rr",
     "--restrict_rules",
     is_flag=True,
-    help=query_dict(model_commands,("model","validate","restrict_rules")),
+    help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.option(
     "-ps",
@@ -177,14 +196,16 @@ def submit_manifest(
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules,project_scope):
+def validate_manifest(
+    ctx, manifest_path, data_type, json_schema, restrict_rules, project_scope
+):
     """
     Running CLI for manifest validation.
     """
     if data_type is None:
-        data_type =  CONFIG.manifest_data_type
+        data_type = CONFIG.manifest_data_type
         log_value_from_config("data_type", data_type)
- 
+
     try:
         len(data_type) == 1
     except:
@@ -196,7 +217,7 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
 
     t_validate = perf_counter()
 
-    jsonld =  CONFIG.model_location
+    jsonld = CONFIG.model_location
     log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
@@ -204,7 +225,11 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules, project_scope=project_scope,
+        manifestPath=manifest_path,
+        rootNode=data_type,
+        jsonSchema=json_schema,
+        restrict_rules=restrict_rules,
+        project_scope=project_scope,
     )
 
     if not errors:
@@ -216,6 +241,4 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
     else:
         click.echo(errors)
 
-    logger.debug(
-        f"Total elapsed time {perf_counter()-t_validate} seconds"
-    )
+    logger.debug(f"Total elapsed time {perf_counter()-t_validate} seconds")

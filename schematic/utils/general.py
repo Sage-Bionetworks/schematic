@@ -18,6 +18,7 @@ import synapseclient.core.cache as cache
 
 logger = logging.getLogger(__name__)
 
+
 def find_duplicates(_list):
     """Find duplicate items in a list"""
     return set([x for x in _list if _list.count(x) > 1])
@@ -45,10 +46,10 @@ def unlist(_list):
 
 
 def get_dir_size(path: str):
-    """Recursively descend the directory tree rooted at the top and call .st_size function to calculate size of files in bytes. 
+    """Recursively descend the directory tree rooted at the top and call .st_size function to calculate size of files in bytes.
     Args:
         path: path to a folder
-    return: total size of all the files in a given directory in bytes. 
+    return: total size of all the files in a given directory in bytes.
     """
     total = 0
     # Recursively scan directory to find entries
@@ -60,27 +61,30 @@ def get_dir_size(path: str):
                 total += get_dir_size(entry.path)
     return total
 
-def calculate_datetime(minutes: int, input_date: datetime, before_or_after: str = "before") -> datetime:
-    """calculate date time 
+
+def calculate_datetime(
+    minutes: int, input_date: datetime, before_or_after: str = "before"
+) -> datetime:
+    """calculate date time
 
     Args:
         input_date (datetime): date time object provided by users
         minutes (int): number of minutes
-        before_or_after (str): default to "before". if "before", calculate x minutes before current date time. if "after", calculate x minutes after current date time. 
+        before_or_after (str): default to "before". if "before", calculate x minutes before current date time. if "after", calculate x minutes after current date time.
 
     Returns:
         datetime:  return result of date time calculation
     """
-    if before_or_after=="before": 
+    if before_or_after == "before":
         date_time_result = input_date - timedelta(minutes=minutes)
-    elif before_or_after=="after":
+    elif before_or_after == "after":
         date_time_result = input_date + timedelta(minutes=minutes)
     else:
         raise ValueError("Invalid value. Use either 'before' or 'after'.")
     return date_time_result
 
 
-def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int]:
+def check_synapse_cache_size(directory="/root/.synapseCache") -> Union[float, int]:
     """use du --sh command to calculate size of .synapseCache.
 
     Args:
@@ -89,26 +93,27 @@ def check_synapse_cache_size(directory='/root/.synapseCache')-> Union[float, int
     Returns:
         float or integer: returns size of .synapsecache directory in bytes
     """
-    # Note: this command might fail on windows user. But since this command is primarily for running on AWS, it is fine. 
-    command = ['du', '-sh', directory]
-    output = subprocess.run(command, capture_output=True).stdout.decode('utf-8')
-    
+    # Note: this command might fail on windows user. But since this command is primarily for running on AWS, it is fine.
+    command = ["du", "-sh", directory]
+    output = subprocess.run(command, capture_output=True).stdout.decode("utf-8")
+
     # Parsing the output to extract the directory size
-    size = output.split('\t')[0]
+    size = output.split("\t")[0]
     if "K" in size:
-        size_in_kb = float(size.rstrip('K'))
+        size_in_kb = float(size.rstrip("K"))
         byte_size = size_in_kb * 1000
     elif "M" in size:
-        size_in_mb = float(size.rstrip('M'))
+        size_in_mb = float(size.rstrip("M"))
         byte_size = size_in_mb * 1000000
-    elif "G" in size: 
-        size_in_gb = float(size.rstrip('G'))
+    elif "G" in size:
+        size_in_gb = float(size.rstrip("G"))
         byte_size = convert_gb_to_bytes(size_in_gb)
     elif "B" in size:
-        byte_size = float(size.rstrip('B'))
+        byte_size = float(size.rstrip("B"))
     else:
-        logger.error('Cannot recongize the file size unit')
+        logger.error("Cannot recongize the file size unit")
     return byte_size
+
 
 def clear_synapse_cache(cache: cache.Cache, minutes: int) -> int:
     """clear synapse cache before a certain time
@@ -120,9 +125,12 @@ def clear_synapse_cache(cache: cache.Cache, minutes: int) -> int:
         int: number of files that get deleted
     """
     current_date = datetime.utcnow()
-    minutes_earlier = calculate_datetime(input_date=current_date, minutes=minutes, before_or_after="before")
-    num_of_deleted_files = cache.purge(before_date = minutes_earlier)
+    minutes_earlier = calculate_datetime(
+        input_date=current_date, minutes=minutes, before_or_after="before"
+    )
+    num_of_deleted_files = cache.purge(before_date=minutes_earlier)
     return num_of_deleted_files
+
 
 def convert_gb_to_bytes(gb: int):
     """convert gb to bytes
@@ -164,8 +172,9 @@ def entity_type_mapping(syn, entity_id):
         # if there's no matching type, return concreteType
         return entity.concreteType
 
+
 def create_temp_folder(path: str) -> str:
-    """This function creates a temporary directory in the specified directory 
+    """This function creates a temporary directory in the specified directory
     Args:
         path(str): a directory path where all the temporary files will live
     Returns: returns the absolute pathname of the new directory.
@@ -175,7 +184,9 @@ def create_temp_folder(path: str) -> str:
     return path
 
 
-def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_dirs=False):
+def profile(
+    output_file=None, sort_by="cumulative", lines_to_print=None, strip_dirs=False
+):
     """
     The function was initially taken from: https://towardsdatascience.com/how-to-profile-your-code-in-python-e70c834fad89
     A time profiler decorator.
@@ -205,20 +216,20 @@ def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_d
     def inner(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            _output_file = output_file or func.__name__ + '.prof'
+            _output_file = output_file or func.__name__ + ".prof"
             pr = Profile()
             pr.enable()
             retval = func(*args, **kwargs)
             pr.disable()
             pr.dump_stats(_output_file)
 
-            #if we are running the functions on AWS: 
+            # if we are running the functions on AWS:
             if "SECRETS_MANAGER_SECRETS" in os.environ:
                 ps = pstats.Stats(pr)
                 # limit this to 30 line for now otherwise it will be too long for AWS log
-                ps.sort_stats('cumulative').print_stats(30)
-            else: 
-                with open(_output_file, 'w') as f:
+                ps.sort_stats("cumulative").print_stats(30)
+            else:
+                with open(_output_file, "w") as f:
                     ps = pstats.Stats(pr, stream=f)
                     if strip_dirs:
                         ps.strip_dirs()
@@ -232,6 +243,7 @@ def profile(output_file=None, sort_by='cumulative', lines_to_print=None, strip_d
         return wrapper
 
     return inner
+
 
 def normalize_path(path: str, parent_folder: str) -> str:
     """
