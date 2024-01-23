@@ -64,7 +64,7 @@ class TestSchemaCli:
         config.load_config("config_example.yml")
 
         result = runner.invoke(
-            manifest, ["--config", config.config_path, "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld]
+            manifest, ["--config", config.config_path, "get",  "--data_type", "Patient", "--path_to_data_model", data_model_jsonld]
         )
 
 
@@ -79,7 +79,7 @@ class TestSchemaCli:
         config.load_config("config_example.yml")
 
         result = runner.invoke(
-            manifest, ["--config", config.config_path, "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_csv", output_path]
+            manifest, ["--config", config.config_path, "get",  "--data_type", "Patient", "--path_to_data_model", data_model_jsonld, "--output_csv", output_path]
         )
         assert result.exit_code == 0
         self.assert_expected_file(result, output_path)
@@ -91,7 +91,7 @@ class TestSchemaCli:
         config.load_config("config_example.yml")
 
         result = runner.invoke(
-            manifest, ["--config", config.config_path,  "get",  "--data_type", "Patient", "--jsonld", data_model_jsonld, "--output_xlsx", output_path]
+            manifest, ["--config", config.config_path,  "get",  "--data_type", "Patient", "--path_to_data_model", data_model_jsonld, "--output_xlsx", output_path]
         )
 
         assert result.exit_code == 0

@@ -24,6 +24,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
+
 # TODO: replace by pygsheets calls?
 def build_credentials() -> Dict[str, Any]:
     creds = generate_token()
@@ -42,14 +43,18 @@ def build_credentials() -> Dict[str, Any]:
 
 def build_service_account_creds() -> Dict[str, Any]:
     if "SERVICE_ACCOUNT_CREDS" in os.environ:
-        dict_creds=json.loads(os.environ["SERVICE_ACCOUNT_CREDS"])
-        credentials = service_account.Credentials.from_service_account_info(dict_creds, scopes=SCOPES)
+        dict_creds = json.loads(os.environ["SERVICE_ACCOUNT_CREDS"])
+        credentials = service_account.Credentials.from_service_account_info(
+            dict_creds, scopes=SCOPES
+        )
 
     # for AWS deployment
     elif "SECRETS_MANAGER_SECRETS" in os.environ:
-        all_secrets_dict =json.loads(os.environ["SECRETS_MANAGER_SECRETS"])
-        dict_creds=json.loads(all_secrets_dict["SERVICE_ACCOUNT_CREDS"])
-        credentials = service_account.Credentials.from_service_account_info(dict_creds, scopes=SCOPES)
+        all_secrets_dict = json.loads(os.environ["SECRETS_MANAGER_SECRETS"])
+        dict_creds = json.loads(all_secrets_dict["SERVICE_ACCOUNT_CREDS"])
+        credentials = service_account.Credentials.from_service_account_info(
+            dict_creds, scopes=SCOPES
+        )
     else:
         credentials = service_account.Credentials.from_service_account_file(
             CONFIG.service_account_credentials_path, scopes=SCOPES
@@ -73,8 +78,10 @@ def download_creds_file() -> None:
     # if file path of service_account does not exist
     # and if an environment variable related to service account is not found
     # regenerate service_account credentials
-    if not os.path.exists(CONFIG.service_account_credentials_path) and "SERVICE_ACCOUNT_CREDS" not in os.environ:
-
+    if (
+        not os.path.exists(CONFIG.service_account_credentials_path)
+        and "SERVICE_ACCOUNT_CREDS" not in os.environ
+    ):
         # synapse ID of the 'schematic_service_account_creds.json' file
         API_CREDS = CONFIG.service_account_credentials_synapse_id
 
@@ -121,9 +128,10 @@ def execute_google_api_requests(service, requests_body, **kwargs):
 
         return response
 
+
 def export_manifest_drive_service(manifest_url, file_path, mimeType):
-    '''
-    Export manifest by using google drive api. If export as an Excel spreadsheet, the exported spreasheet would also include a hidden sheet 
+    """
+    Export manifest by using google drive api. If export as an Excel spreadsheet, the exported spreasheet would also include a hidden sheet
     Args:
         manifest_url: google sheet manifest url
         file_path: file path of the exported manifest
@@ -131,30 +139,32 @@ def export_manifest_drive_service(manifest_url, file_path, mimeType):
 
     result: Google sheet gets exported in desired format
 
-    '''
+    """
 
-    # intialize drive service 
+    # intialize drive service
     services_creds = build_service_account_creds()
     drive_service = services_creds["drive_service"]
 
     # get spreadsheet id
-    spreadsheet_id = manifest_url.split('/')[-1]
+    spreadsheet_id = manifest_url.split("/")[-1]
 
-    # use google drive 
-    data = drive_service.files().export(fileId=spreadsheet_id, mimeType=mimeType).execute()
+    # use google drive
+    data = (
+        drive_service.files().export(fileId=spreadsheet_id, mimeType=mimeType).execute()
+    )
 
     # open file and write data
-    with open(os.path.abspath(file_path), 'wb') as f:
-        try: 
+    with open(os.path.abspath(file_path), "wb") as f:
+        try:
             f.write(data)
-        except FileNotFoundError as not_found: 
+        except FileNotFoundError as not_found:
             logger.error(f"{not_found.filename} could not be found")
 
     f.close
-   
+
 
 def export_manifest_csv(file_path, manifest):
-    '''
+    """
     Export manifest as a CSV by using google drive api
     Args:
         manifest: could be a dataframe or a manifest url
@@ -162,46 +172,54 @@ def export_manifest_csv(file_path, manifest):
         mimeType: exporting mimetype
 
     result: Google sheet gets exported as a CSV
-    '''
+    """
 
     if isinstance(manifest, pd.DataFrame):
         manifest.to_csv(file_path, index=False)
-    else: 
-        export_manifest_drive_service(manifest, file_path, mimeType = 'text/csv')
-
+    else:
+        export_manifest_drive_service(manifest, file_path, mimeType="text/csv")
 
 
 def export_manifest_excel(manifest, output_excel=None):
-    '''
+    """
     Export manifest as an Excel spreadsheet by using google sheet API. This approach could export hidden sheet
     Args:
-        manifest: could be a dataframe or a manifest url 
+        manifest: could be a dataframe or a manifest url
         output_excel: name of the exported manifest sheet
-    result: Google sheet gets exported as an excel spreadsheet. If there's a hidden sheet, the hidden sheet also gets exported. 
-    '''
-    # intialize drive service 
+    result: Google sheet gets exported as an excel spreadsheet. If there's a hidden sheet, the hidden sheet also gets exported.
+    """
+    # intialize drive service
     services_creds = build_service_account_creds()
     sheet_service = services_creds["sheet_service"]
 
     if isinstance(manifest, pd.DataFrame):
         manifest.to_excel(output_excel, index=False)
     else:
-        # get spreadsheet id from url 
-        spreadsheet_id = manifest.split('/')[-1]
+        # get spreadsheet id from url
+        spreadsheet_id = manifest.split("/")[-1]
 
         # use google sheet api
-        sheet_metadata = sheet_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
-        sheets = sheet_metadata.get('sheets')
+        sheet_metadata = (
+            sheet_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+        )
+        sheets = sheet_metadata.get("sheets")
 
         # export to Excel
         writer = pd.ExcelWriter(output_excel)
 
         # export each sheet in manifest
         for sheet in sheets:
-            dataset = sheet_service.spreadsheets().values().get(spreadsheetId=spreadsheet_id, range=sheet['properties']['title']).execute()
-            dataset_df = pd.DataFrame(dataset['values'])
+            dataset = (
+                sheet_service.spreadsheets()
+                .values()
+                .get(spreadsheetId=spreadsheet_id, range=sheet["properties"]["title"])
+                .execute()
+            )
+            dataset_df = pd.DataFrame(dataset["values"])
             dataset_df.columns = dataset_df.iloc[0]
             dataset_df.drop(dataset_df.index[0], inplace=True)
-            dataset_df.to_excel(writer, sheet_name=sheet['properties']['title'], index=False)
+            dataset_df.to_excel(
+                writer, sheet_name=sheet["properties"]["title"], index=False
+            )
         writer.save()
-        writer.close()   
+        writer.close()
