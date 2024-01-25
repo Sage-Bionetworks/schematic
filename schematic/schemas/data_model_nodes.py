@@ -3,6 +3,7 @@ import networkx as nx
 from rdflib import Namespace
 from typing import Any, Dict, Optional, Text, List, Callable
 
+from schematic.schemas.data_model_parser import DataModelJSONLDParser
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 from schematic.utils.schema_utils import (
@@ -52,7 +53,7 @@ class DataModelNodes:
             nodes.append(attribute)
         for rel in self.node_relationships:
             if rel in relationships.keys():
-                nodes.extend([node.strip() for node in relationships[rel]])
+                nodes.extend([node for node in relationships[rel] if node is not None])
         return nodes
 
     def gather_all_nodes_in_model(self, attr_rel_dict: dict) -> list:
@@ -129,7 +130,7 @@ class DataModelNodes:
         attr_relationships={},
         csv_header="",
         entry_type="",
-        display_name_as_label=False,
+        data_model_labels: str = "class_label",
     ):
         """This function exists to centralzie handling of functions for filling out node information, makes sure all the proper parameters are passed to each function.
         Args:
@@ -157,7 +158,9 @@ class DataModelNodes:
 
         elif rel_func == get_label_from_display_name:
             return get_label_from_display_name(
-                display_name=node_display_name, entry_type=entry_type, use_display_name_as_label=display_name_as_label,
+                display_name=node_display_name,
+                entry_type=entry_type,
+                data_model_labels=data_model_labels,
             )
 
         elif rel_func == convert_bool_to_str:
@@ -176,7 +179,12 @@ class DataModelNodes:
                 f"The function provided ({rel_func}) to define the relationship {key} is not captured in the function run_rel_functions, please update."
             )
 
-    def generate_node_dict(self, node_display_name: str, attr_rel_dict: dict, display_name_as_label:bool=False) -> dict:
+    def generate_node_dict(
+        self,
+        node_display_name: str,
+        attr_rel_dict: dict,
+        data_model_labels: str = "class_label",
+    ) -> dict:
         """Gather information to be attached to each node.
         Args:
             node_display_name, str: display name for current node
@@ -184,8 +192,9 @@ class DataModelNodes:
                 {Attribute Display Name: {
                         Relationships: {
                                     CSV Header: Value}}}
-            display_name_as_label, bool: if true, use the display name provided as the label
-
+            data_model_labels: str, display_label or class_label.
+                display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to schema_label.
+                class_label, default, use standard class or property label.
         Returns:
             node_dict, dict: dictionary of relationship information about the current node
                 {'displayName': '', 'label': '', 'comment': 'TBD', 'required': None, 'validationRules': [], 'isPartOf': '', 'uri': ''}
@@ -229,7 +238,7 @@ class DataModelNodes:
                                 attr_relationships=attr_relationships,
                                 csv_header=csv_header,
                                 entry_type=entry_type,
-                                display_name_as_label=display_name_as_label,
+                                data_model_labels=data_model_labels,
                             )
                         }
                     )
@@ -251,7 +260,7 @@ class DataModelNodes:
                                 attr_relationships=attr_relationships,
                                 csv_header=csv_header,
                                 entry_type=entry_type,
-                                display_name_as_label=display_name_as_label,
+                                data_model_labels=data_model_labels,
                             )
                         }
                     )

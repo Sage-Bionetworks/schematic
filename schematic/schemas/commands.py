@@ -107,7 +107,7 @@ def convert(schema, display_name_as_label, output_jsonld):
 
     # output JSON-LD file alongside CSV file by default, get path.
     if output_jsonld is None:
-        if not '.jsonld' in schema:
+        if not ".jsonld" in schema:
             csv_no_ext = re.sub("[.]csv$", "", schema)
             output_jsonld = csv_no_ext + ".jsonld"
         else:

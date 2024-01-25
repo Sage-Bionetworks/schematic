@@ -54,8 +54,11 @@ manifest_commands = {
                 "Specify to alphabetize valid attribute values either ascending (a) or descending (d)."
                 "Optional"
             ),
-            "display_name_as_label": (
-                "Flag to indicate that the display name should be used as the label. This requires that the display name be properly formatted without spaces or blacklisted characters."
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
             ),
         },
         "migrate": {

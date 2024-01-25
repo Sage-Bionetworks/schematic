@@ -197,13 +197,13 @@ def save_file(file_key="csv_file"):
 
     return temp_path
 
-def initalize_metadata_model(schema_url, display_name_as_label):
+def initalize_metadata_model(schema_url, data_model_labels):
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
     
     metadata_model = MetadataModel(
-        inputMModelLocation=data_model, inputMModelLocationType="local", display_name_as_label=display_name_as_label,
+        inputMModelLocation=data_model, inputMModelLocationType="local", data_model_labels=data_model_labels,
     )
     return metadata_model
 
@@ -258,6 +258,8 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
     # call config_handler()
     config_handler(asset_view = asset_view)
     
+    temp_path = get_temp_model_path(schema_url=schema_url)
+
     # Gather all data_types to make manifests for.
     all_args = connexion.request.args
     args_dict = dict(all_args.lists())
@@ -291,91 +293,14 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_ids=None,
                     f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
                     f"Please check your submission and try again."
                 )
-
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-
-    #Parse Model
-    parsed_data_model = data_model_parser.parse_model()
-
-    # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
-
-    # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
-
-    def create_single_manifest(data_type, title, dataset_id=None, output_format=None, access_token=None, strict=strict_validation):
-        # create object of type ManifestGenerator
-        manifest_generator = ManifestGenerator(
-            path_to_json_ld=schema_url,
-            graph=graph_data_model,
-            title=title,
-            root=data_type,
-            use_annotations=use_annotations,
-            alphabetize_valid_values = 'ascending',
-        )
-
-        # if returning a dataframe
-        if output_format:
-            if "dataframe" in output_format:
-                output_format = "dataframe"
-
-        result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token, strict=strict,
-        )
-
-        # return an excel file if output_format is set to "excel"
-        if output_format == "excel":
-            dir_name = os.path.dirname(result)
-            file_name = os.path.basename(result)
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
-               
-        return result
-
-    # Gather all returned result urls
-    all_results = []
-    if data_type[0] == 'all manifests':
-        dmge = DataModelGraphExplorer(graph_data_model)
-        component_digraph = dmge.get_digraph_by_edge_type('requiresComponent')
-        components = component_digraph.nodes()
-        for component in components:
-            if title:
-                t = f'{title}.{component}.manifest'
-            else: 
-                t = f'Example.{component}.manifest'
-            if output_format != "excel":
-                result = create_single_manifest(data_type=component, output_format=output_format, title=t, access_token=access_token)
-                all_results.append(result)
-            else: 
-                app.logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
-    else:
-        for i, dt in enumerate(data_type):
-            if not title: 
-                t = f'Example.{dt}.manifest'
-            else: 
-                if len(data_type) > 1:
-                    t = f'{title}.{dt}.manifest'
-                else: 
-                    t = title
-            if dataset_ids:
-                # if a dataset_id is provided add this to the function call.
-                result = create_single_manifest(data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token)
-            else:
-                result = create_single_manifest(data_type=dt, output_format=output_format, title=t, access_token=access_token)
-
-            # if output is pandas dataframe or google sheet url
-            if isinstance(result, str) or isinstance(result, pd.DataFrame):
-                all_results.append(result)
-            else: 
-                if len(data_type) > 1:
-                    app.logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
-                return result
-
+      
+    all_results = ManifestGenerator.create_manifests(path_to_data_model=schema_url, output_format=output_format, data_types=data_type, title=title, access_token=access_token, dataset_ids=dataset_ids, strict=strict_validation, use_annotations=use_annotations)
+    
     return all_results
 
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
-def validate_manifest_route(schema_url, data_type, display_name_as_label, restrict_rules=None, json_str=None, asset_view=None, project_scope = None):
+def validate_manifest_route(schema_url, data_type, data_model_labels, restrict_rules=None, json_str=None, asset_view=None, project_scope = None):
     # Access token now stored in request header
     access_token = get_access_token()
     
@@ -402,7 +327,7 @@ def validate_manifest_route(schema_url, data_type, display_name_as_label, restri
     data_model = get_temp_model_path(schema_url)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=data_model, inputMModelLocationType="local", display_name_as_label=display_name_as_label
+        inputMModelLocation=data_model, inputMModelLocationType="local", data_model_labels=data_model_labels
     )
 
     errors, warnings = metadata_model.validateModelManifest(
@@ -416,7 +341,7 @@ def validate_manifest_route(schema_url, data_type, display_name_as_label, restri
 #####profile validate manifest route function 
 #@profile(sort_by='cumulative', strip_dirs=True)
 def submit_manifest_route(schema_url,
-                          display_name_as_label:bool,
+                          data_model_labels:str,
                           asset_view=None,
                           manifest_record_type=None,
                           json_str=None,
@@ -438,7 +363,7 @@ def submit_manifest_route(schema_url,
 
     restrict_rules = parse_bool(connexion.request.args["restrict_rules"])
 
-    metadata_model = initalize_metadata_model(schema_url, display_name_as_label)
+    metadata_model = initalize_metadata_model(schema_url, data_model_labels)
 
     # Access token now stored in request header
     access_token = get_access_token()
@@ -480,7 +405,7 @@ def submit_manifest_route(schema_url,
 
     return manifest_id
 
-def populate_manifest_route(schema_url, display_name_as_label:bool, title=None, data_type=None, return_excel=None):
+def populate_manifest_route(schema_url, data_model_labels:str, title=None, data_type=None, return_excel=None):
     # call config_handler()
     config_handler()
 
@@ -491,7 +416,7 @@ def populate_manifest_route(schema_url, display_name_as_label:bool, title=None, 
     data_model = get_temp_model_path(schema_url)
    
     #Initalize MetadataModel
-    metadata_model = MetadataModel(inputMModelLocation=data_model, inputMModelLocationType='local', display_name_as_label=display_name_as_label)
+    metadata_model = MetadataModel(inputMModelLocation=data_model, inputMModelLocationType='local', data_model_labels=data_model_labels)
 
     #Call populateModelManifest class
     populated_manifest_link = metadata_model.populateModelManifest(title=title, manifestPath=temp_path, rootNode=data_type, return_excel=return_excel)
@@ -573,44 +498,44 @@ def check_entity_type(entity_id):
 
     return entity_type 
 
-def get_component_requirements(schema_url, source_component, as_graph, display_name_as_label):
-    metadata_model = initalize_metadata_model(schema_url, display_name_as_label)
+def get_component_requirements(schema_url, source_component, as_graph, data_model_labels):
+    metadata_model = initalize_metadata_model(schema_url, data_model_labels)
 
     req_components = metadata_model.get_component_requirements(source_component=source_component, as_graph = as_graph)
 
     return req_components
 
 @cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
-def get_viz_attributes_explorer(schema_url, display_name_as_label):
+def get_viz_attributes_explorer(schema_url, data_model_labels):
     # call config_handler()
     config_handler()
 
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
-    attributes_csv = AttributesExplorer(data_model, display_name_as_label).parse_attributes(save_file=False)
+    attributes_csv = AttributesExplorer(data_model, data_model_labels).parse_attributes(save_file=False)
 
     return attributes_csv
 
-def get_viz_component_attributes_explorer(schema_url, component, include_index, display_name_as_label):
+def get_viz_component_attributes_explorer(schema_url, component, include_index, data_model_labels):
     # call config_handler()
     config_handler()
 
      # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
-    attributes_csv = AttributesExplorer(data_model, display_name_as_label).parse_component_attributes(component, save_file=False, include_index=include_index)
+    attributes_csv = AttributesExplorer(data_model, data_model_labels).parse_component_attributes(component, save_file=False, include_index=include_index)
 
     return attributes_csv
 
 @cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
-def get_viz_tangled_tree_text(schema_url, figure_type, text_format, display_name_as_label):
+def get_viz_tangled_tree_text(schema_url, figure_type, text_format, data_model_labels):
    
      # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
     # Initialize TangledTree
-    tangled_tree = TangledTree(data_model, figure_type, display_name_as_label)
+    tangled_tree = TangledTree(data_model, figure_type, data_model_labels)
 
     # Get text for tangled tree.
     text_df = tangled_tree.get_text_for_tangled_tree(text_format, save_file=False)
@@ -618,7 +543,7 @@ def get_viz_tangled_tree_text(schema_url, figure_type, text_format, display_name
     return text_df
 
 @cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
-def get_viz_tangled_tree_layers(schema_url, figure_type, display_name_as_label):
+def get_viz_tangled_tree_layers(schema_url, figure_type, data_model_labels):
 
     # call config_handler()
     config_handler()
@@ -627,7 +552,7 @@ def get_viz_tangled_tree_layers(schema_url, figure_type, display_name_as_label):
     data_model = get_temp_model_path(schema_url)
 
     # Initialize Tangled Tree
-    tangled_tree = TangledTree(data_model, figure_type, display_name_as_label)
+    tangled_tree = TangledTree(data_model, figure_type, data_model_labels)
     
     # Get tangled trees layers JSON.
     layers = tangled_tree.get_tangled_tree_layers(save_file=False)
@@ -748,13 +673,13 @@ def get_manifest_datatype(manifest_id, asset_view):
 
     return manifest_dtypes_dict
 
-def get_schema_pickle(schema_url, display_name_as_label):
+def get_schema_pickle(schema_url, data_model_labels):
     data_model_parser = DataModelParser(path_to_data_model = schema_url)
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -768,14 +693,14 @@ def get_schema_pickle(schema_url, display_name_as_label):
     return export_path
 
 
-def get_subgraph_by_edge_type(schema_url, relationship, display_name_as_label):
+def get_subgraph_by_edge_type(schema_url, relationship, data_model_labels):
     data_model_parser = DataModelParser(path_to_data_model = schema_url)
     
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -793,13 +718,13 @@ def get_subgraph_by_edge_type(schema_url, relationship, display_name_as_label):
     return Arr
 
 
-def find_class_specific_properties(schema_url, schema_class, display_name_as_label):
+def find_class_specific_properties(schema_url, schema_class, data_model_labels):
     data_model_parser = DataModelParser(path_to_data_model = schema_url)
     #Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -815,7 +740,7 @@ def find_class_specific_properties(schema_url, schema_class, display_name_as_lab
 def get_node_dependencies(
     schema_url: str,
     source_node: str,
-    display_name_as_label: bool,
+    data_model_labels: str,
     return_display_names: bool = True,
     return_schema_ordered: bool = True, 
 ) -> list[str]:
@@ -841,7 +766,7 @@ def get_node_dependencies(
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -876,7 +801,7 @@ def get_property_label_from_display_name_route(
 def get_node_range(
     schema_url: str,
     node_label: str,
-    display_name_as_label:bool,
+    data_model_labels:str,
     return_display_names: bool = True
 ) -> list[str]:
     """Get the range, i.e., all the valid values that are associated with a node label.
@@ -895,7 +820,7 @@ def get_node_range(
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -905,7 +830,7 @@ def get_node_range(
     node_range = dmge.get_node_range(node_label, return_display_names)
     return node_range
 
-def get_if_node_required(schema_url: str, node_display_name: str, display_name_as_label:bool) -> bool:
+def get_if_node_required(schema_url: str, node_display_name: str, data_model_labels:str) -> bool:
     """Check if the node is required
 
     Args:
@@ -921,7 +846,7 @@ def get_if_node_required(schema_url: str, node_display_name: str, display_name_a
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -932,7 +857,7 @@ def get_if_node_required(schema_url: str, node_display_name: str, display_name_a
 
     return is_required
 
-def get_node_validation_rules(schema_url: str, node_display_name: str, display_name_as_label:bool) -> list:
+def get_node_validation_rules(schema_url: str, node_display_name: str, data_model_labels:str) -> list:
     """
     Args:
         schema_url (str): Data Model URL
@@ -947,7 +872,7 @@ def get_node_validation_rules(schema_url: str, node_display_name: str, display_n
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -959,7 +884,7 @@ def get_node_validation_rules(schema_url: str, node_display_name: str, display_n
 
     return node_validation_rules
 
-def get_nodes_display_names(schema_url: str, node_list: list[str], display_name_as_label:bool) -> list:
+def get_nodes_display_names(schema_url: str, node_list: list[str], data_model_labels:str) -> list:
     """From a list of node labels retrieve their display names, return as list.
     
     Args:
@@ -977,7 +902,7 @@ def get_nodes_display_names(schema_url: str, node_list: list[str], display_name_
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()

@@ -64,22 +64,30 @@ TEST_DN_DICT = {
 NODE_DISPLAY_NAME_DICT = {"Patient": False, "Sex": True, "MockRDB_id": True}
 
 
-def get_data_model_parser(helpers, data_model_name: str = None, display_name_as_label: bool=False):
+def get_data_model_parser(
+    helpers, data_model_name: str = None, display_name_as_label: bool = False
+):
     # Get path to data model
     fullpath = helpers.get_data_path(path=data_model_name)
 
     # Instantiate DataModelParser
-    data_model_parser = DataModelParser(path_to_data_model=fullpath, display_name_as_label=display_name_as_label)
+    data_model_parser = DataModelParser(
+        path_to_data_model=fullpath, display_name_as_label=display_name_as_label
+    )
     return data_model_parser
 
 
-def generate_graph_data_model(helpers, data_model_name: str, display_name_as_label:bool=False) -> nx.MultiDiGraph:
+def generate_graph_data_model(
+    helpers, data_model_name: str, display_name_as_label: bool = False
+) -> nx.MultiDiGraph:
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
     """
     # Instantiate Parser
     data_model_parser = get_data_model_parser(
-        helpers=helpers, data_model_name=data_model_name, display_name_as_label=display_name_as_label,
+        helpers=helpers,
+        data_model_name=data_model_name,
+        display_name_as_label=display_name_as_label,
     )
 
     # Parse Model
@@ -269,7 +277,10 @@ class TestDataModelCsvParser:
 @pytest.mark.parametrize("data_model", ["example.model.jsonld"], ids=["jsonld"])
 class TestDataModelJsonLdParser:
     def test_gather_jsonld_attributes_relationships(
-        self, helpers, data_model: str, jsonld_parser: DataModelJSONLDParser,
+        self,
+        helpers,
+        data_model: str,
+        jsonld_parser: DataModelJSONLDParser,
     ):
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
         path_to_data_model = helpers.get_data_path(path=data_model)
@@ -291,10 +302,11 @@ class TestDataModelJsonLdParser:
         assert "Relationships" in attr_rel_dict[attribute_key]
         assert "Attribute" in attr_rel_dict[attribute_key]["Relationships"]
 
-
-
     def test_parse_jsonld_model(
-        self, helpers, data_model: str, jsonld_parser: DataModelJSONLDParser,
+        self,
+        helpers,
+        data_model: str,
+        jsonld_parser: DataModelJSONLDParser,
     ):
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
         path_to_data_model = helpers.get_data_path(path=data_model)
@@ -388,24 +400,36 @@ class TestDataModelGraph:
         ["example.model.csv", "example.model.jsonld"],
         ids=["csv", "jsonld"],
     )
-    @pytest.mark.parametrize("display_name_as_label", [True, False], ids=["display_name_as_label-True", "display_name_as_label-False"])
-    def test_generate_data_model_graph(self, helpers, data_model, display_name_as_label):
+    @pytest.mark.parametrize(
+        "display_name_as_label",
+        [True, False],
+        ids=["display_name_as_label-True", "display_name_as_label-False"],
+    )
+    def test_generate_data_model_graph(
+        self, helpers, data_model, display_name_as_label
+    ):
         """Check that data model graph is constructed properly, requires calling various classes.
         TODO: In another test, check conditional dependencies.
         """
-        graph = generate_graph_data_model(helpers=helpers, data_model_name=data_model, display_name_as_label=display_name_as_label)
+        graph = generate_graph_data_model(
+            helpers=helpers,
+            data_model_name=data_model,
+            display_name_as_label=display_name_as_label,
+        )
 
         # Check that some edges are present as expected:
         assert ("FamilyHistory", "Breast") in graph.edges("FamilyHistory")
 
         if display_name_as_label:
-            expected_valid_values = ['ab', 'cd', 'ef', 'gh']
-            mock_id_label = 'MockRDB_id'
+            expected_valid_values = ["ab", "cd", "ef", "gh"]
+            mock_id_label = "MockRDB_id"
             assert ("BulkRNAseqAssay", "Biospecimen") in graph.edges("BulkRNAseqAssay")
         else:
             expected_valid_values = ["Ab", "Cd", "Ef", "Gh"]
-            mock_id_label = 'MockRDBId'
-            assert ("BulkRNA-seqAssay", "Biospecimen") in graph.edges("BulkRNA-seqAssay")
+            mock_id_label = "MockRDBId"
+            assert ("BulkRNA-seqAssay", "Biospecimen") in graph.edges(
+                "BulkRNA-seqAssay"
+            )
 
         assert expected_valid_values == [
             k
@@ -417,7 +441,9 @@ class TestDataModelGraph:
         assert mock_id_label in graph.nodes
 
         # Check that all relationships recorded between 'CheckList' and 'Ab' are present
-        assert "rangeValue" and "parentOf" in graph["CheckList"][expected_valid_values[0]]
+        assert (
+            "rangeValue" and "parentOf" in graph["CheckList"][expected_valid_values[0]]
+        )
         assert "requiresDependency" not in graph["CheckList"][expected_valid_values[0]]
 
         # Check nodes:
@@ -558,26 +584,15 @@ class TestDataModelNodes:
 
         # Make sure the nodes returned conform to expectations (values and order)
         ## The parsing records display names for relationships for CSV and labels for JSONLD, so the expectations are different between the two.
-        if DATA_MODEL_DICT[data_model] == "CSV":
-            expected_nodes = [
-                "Patient",
-                "Patient ID",
-                "Sex",
-                "Year of Birth",
-                "Diagnosis",
-                "Component",
-                "DataType",
-            ]
-        elif DATA_MODEL_DICT[data_model] == "JSONLD":
-            expected_nodes = [
-                "Patient",
-                "PatientID",
-                "Sex",
-                "YearofBirth",
-                "Diagnosis",
-                "Component",
-                "DataType",
-            ]
+        expected_nodes = [
+            "Patient",
+            "Patient ID",
+            "Sex",
+            "Year of Birth",
+            "Diagnosis",
+            "Component",
+            "DataType",
+        ]
 
         assert nodes == expected_nodes
 
@@ -818,8 +833,13 @@ class TestDataModelNodes:
         ids=["Node_required-" + str(v) for v in NODE_DISPLAY_NAME_DICT.values()],
     )
     @pytest.mark.parametrize(
-        "display_name_as_label", [True, False], ids=["Display_name_as_label-True", "Display_name_as_label-False"])
-    def test_generate_node_dict(self, helpers, data_model, node_display_name, display_name_as_label):
+        "display_name_as_label",
+        [True, False],
+        ids=["Display_name_as_label-True", "Display_name_as_label-False"],
+    )
+    def test_generate_node_dict(
+        self, helpers, data_model, node_display_name, display_name_as_label
+    ):
         # Instantiate Parser
         data_model_parser = get_data_model_parser(
             helpers=helpers, data_model_name=data_model
@@ -851,7 +871,7 @@ class TestDataModelNodes:
 
         # Check that the display name matches the label
         if display_name_as_label:
-            assert node_display_name == node_dict['label']
+            assert node_display_name == node_dict["label"]
 
     def test_generate_node(self, helpers, data_model):
         # Test adding a dummy node
@@ -929,11 +949,15 @@ class TestDataModelEdges:
         # We're attempting to add an edge for a node that is the only one in the graph,
         # so `generate_edge` should skip adding edges and return the same graph
         edge_list_2 = data_model_edges.generate_edge(
-            node, node_dict, {node: parsed_data_model[node]}, edge_relationships, edge_list,
+            node,
+            node_dict,
+            {node: parsed_data_model[node]},
+            edge_relationships,
+            edge_list,
         )
 
         for node_1, node_2, edge_dict in edge_list_2:
-            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
+            G.add_edge(node_1, node_2, key=edge_dict["key"], weight=edge_dict["weight"])
 
         # Assert that no edges were added and that the current graph edges are the same as before the call to `generate_edge`
         assert before_edges == G.edges
@@ -985,11 +1009,15 @@ class TestDataModelEdges:
 
         # Generate edges for whichever node we are testing
         edge_list_2 = data_model_edges.generate_edge(
-            node_to_add, all_node_dict, parsed_data_model, edge_relationships, edge_list,
+            node_to_add,
+            all_node_dict,
+            parsed_data_model,
+            edge_relationships,
+            edge_list,
         )
 
         for node_1, node_2, edge_dict in edge_list_2:
-            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
+            G.add_edge(node_1, node_2, key=edge_dict["key"], weight=edge_dict["weight"])
 
         # Assert that the current edges are different from the edges of the graph before
         assert G.edges > before_edges
@@ -1051,11 +1079,15 @@ class TestDataModelEdges:
 
         # Generate edges for whichever node we are testing
         edge_list_2 = data_model_edges.generate_edge(
-            node_to_add, all_node_dict, parsed_data_model, edge_relationships, edge_list,
+            node_to_add,
+            all_node_dict,
+            parsed_data_model,
+            edge_relationships,
+            edge_list,
         )
 
         for node_1, node_2, edge_dict in edge_list_2:
-            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
+            G.add_edge(node_1, node_2, key=edge_dict["key"], weight=edge_dict["weight"])
 
         # Assert that the current edges are different from the edges of the graph before
         assert G.edges > before_edges
@@ -1207,7 +1239,6 @@ class TestDataModelJsonLd:
     @pytest.mark.parametrize(
         "data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values())
     )
-
     def test_init(self, helpers, data_model):
         # Test that __init__ is being set up properly
         # Get Graph
@@ -1282,11 +1313,19 @@ class TestDataModelJsonLd:
         "template_type", ["property", "class"], ids=["property", "class"]
     )
     @pytest.mark.parametrize("node", ["", "Patient"], ids=["no node", "Patient"])
-    @pytest.mark.parametrize("display_name_as_label", [True, False], ids=["display_name_as_label-True", "display_name_as_label-False"])
-    def test_fill_entry_template(self, helpers, data_model, template_type, node, display_name_as_label):
+    @pytest.mark.parametrize(
+        "display_name_as_label",
+        [True, False],
+        ids=["display_name_as_label-True", "display_name_as_label-False"],
+    )
+    def test_fill_entry_template(
+        self, helpers, data_model, template_type, node, display_name_as_label
+    ):
         # Get Graph
         graph_data_model = generate_graph_data_model(
-            helpers, data_model_name=data_model, display_name_as_label=display_name_as_label,
+            helpers,
+            data_model_name=data_model,
+            display_name_as_label=display_name_as_label,
         )
 
         # Instantiate DataModelJsonLD
@@ -1345,7 +1384,9 @@ class TestDataModelJsonLd:
                 set(expected_keys) - set(actual_keys)
             )
             if display_name_as_label:
-                assert object_template["rdfs:label"] == object_template["sms:displayName"]
+                assert (
+                    object_template["rdfs:label"] == object_template["sms:displayName"]
+                )
 
     @pytest.mark.parametrize(
         "data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values())
@@ -1477,7 +1518,8 @@ class TestDataModelJsonLd:
 
         # Get Graph
         graph_data_model = generate_graph_data_model(
-            helpers, data_model_name=data_model,
+            helpers,
+            data_model_name=data_model,
         )
 
         # Instantiate DataModelJsonLD
