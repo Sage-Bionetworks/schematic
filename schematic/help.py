@@ -170,9 +170,6 @@ schema_commands = {
             "short_help": (
                 "Convert specification from CSV data model to JSON-LD data model."
             ),
-            "base_schema": (
-                "Path to base data model. BioThings data model is loaded by default."
-            ),
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
