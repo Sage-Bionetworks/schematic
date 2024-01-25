@@ -42,10 +42,10 @@ def schema():  # use as `schematic model ...`
     "schema", type=click.Path(exists=True), metavar="<DATA_MODEL_CSV>", nargs=1
 )
 @click.option(
-    "--display_name_as_label",
-    "-dnl",
+    "--data_model_labels",
+    "-dml",
     is_flag=True,
-    help=query_dict(schema_commands, ("schema", "convert", "display_name_as_label")),
+    help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
 )
 @click.option(
     "--output_jsonld",
@@ -53,7 +53,7 @@ def schema():  # use as `schematic model ...`
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
-def convert(schema, display_name_as_label, output_jsonld):
+def convert(schema, data_model_labels, output_jsonld):
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
@@ -65,7 +65,7 @@ def convert(schema, display_name_as_label, output_jsonld):
     st = time.time()
 
     # Instantiate Parser
-    data_model_parser = DataModelParser(schema, display_name_as_label)
+    data_model_parser = DataModelParser(schema, data_model_labels)
 
     # Parse Model
     logger.info("Parsing data model.")
@@ -73,7 +73,7 @@ def convert(schema, display_name_as_label, output_jsonld):
 
     # Convert parsed model to graph
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     logger.info("Generating data model graph.")

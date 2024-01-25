@@ -92,7 +92,7 @@ def get_label_from_display_name(
     display_name: str,
     entry_type: str,
     strict_camel_case: bool = False,
-    data_model_labels: str = 'class_label',
+    data_model_labels: str = "class_label",
 ) -> str:
     """Get node label from provided display name, based on whether the node is a class or property
     Args:
@@ -105,7 +105,7 @@ def get_label_from_display_name(
         ValueError if entry_type.lower(), is not either 'class' or 'property'
 
     """
-    if data_model_labels=='class_label':
+    if data_model_labels == "class_label":
         blacklisted_chars = ["(", ")", ".", " ", "-"]
         # Check that display name can be used as a label.
         valid_display_name = check_if_display_name_is_valid_label(

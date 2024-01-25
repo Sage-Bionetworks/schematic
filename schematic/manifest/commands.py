@@ -106,10 +106,10 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     help=query_dict(manifest_commands, ("manifest", "get", "alphabetize_valid_values")),
 )
 @click.option(
-    "--display_name_as_label",
-    "-dnl",
+    "--data_model_labels",
+    "-dml",
     is_flag=True,
-    help=query_dict(manifest_commands, ("manifest", "get", "display_name_as_label")),
+    help=query_dict(manifest_commands, ("manifest", "get", "data_model_labels")),
 )
 @click.pass_obj
 def get_manifest(
@@ -124,7 +124,7 @@ def get_manifest(
     json_schema,
     output_xlsx,
     alphabetize_valid_values,
-    display_name_as_label,
+    data_model_labels,
 ):
     """
     Running CLI with manifest generation options.
@@ -148,7 +148,7 @@ def get_manifest(
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model, display_name_as_label)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     logger.info("Generating data model graph.")

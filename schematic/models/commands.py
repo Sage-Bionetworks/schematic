@@ -117,7 +117,8 @@ def model(ctx, config):  # use as `schematic model ...`
 @click.option(
     "--data_model_labels",
     "-dml",
-    is_flag=True,
+    default="class_label",
+    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "data_model_labels")),
 )
 @click.pass_obj
@@ -132,7 +133,7 @@ def submit_manifest(
     restrict_rules,
     project_scope,
     table_manipulation,
-    display_name_as_label,
+    data_model_labels,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -144,7 +145,7 @@ def submit_manifest(
     metadata_model = MetadataModel(
         inputMModelLocation=jsonld,
         inputMModelLocationType="local",
-        display_name_as_label=display_name_as_label,
+        data_model_labels=data_model_labels,
     )
 
     manifest_id = metadata_model.submit_metadata_manifest(
@@ -205,8 +206,8 @@ def submit_manifest(
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.option(
-    "--display_name_as_label",
-    "-dnl",
+    "--data_model_labels",
+    "-dml",
     is_flag=True,
     help=query_dict(model_commands, ("model", "validate", "data_model_labels")),
 )
