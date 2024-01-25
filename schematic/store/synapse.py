@@ -1164,7 +1164,9 @@ class SynapseStorage(BaseStorage):
                 for col in manifest_columns
             ]
         else:
-            ValueError(f"The provided table_column_name: {table_column_names} is not valid, please resubmit with an allowed value only.")
+            ValueError(
+                f"The provided table_column_name: {table_column_names} is not valid, please resubmit with an allowed value only."
+            )
 
         cols = list(map(lambda x: x.replace("EntityId", "entityId"), cols))
 
@@ -1312,7 +1314,9 @@ class SynapseStorage(BaseStorage):
         return manifest_synapse_file_id
 
     @missing_entity_handler
-    def format_row_annotations(self, dmge, row, entityId:str, hideBlanks:bool, annotation_keys:str):
+    def format_row_annotations(
+        self, dmge, row, entityId: str, hideBlanks: bool, annotation_keys: str
+    ):
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
@@ -1571,8 +1575,14 @@ class SynapseStorage(BaseStorage):
             table_name = "synapse_storage_manifest_table"
         return table_name, component_name
 
-
-    def _add_annotations(self, dmge, row, entityId: str, hideBlanks: bool, annotation_keys: str,):
+    def _add_annotations(
+        self,
+        dmge,
+        row,
+        entityId: str,
+        hideBlanks: bool,
+        annotation_keys: str,
+    ):
         """Helper function to format and add annotations to entities in Synapse.
         Args:
             dmge: DataModelGraphExplorer object,
@@ -1586,7 +1596,9 @@ class SynapseStorage(BaseStorage):
             Annotations are added to entities in Synapse, no return.
         """
         # Format annotations for Synapse
-        annos = self.format_row_annotations(dmge, row, entityId, hideBlanks, annotation_keys)
+        annos = self.format_row_annotations(
+            dmge, row, entityId, hideBlanks, annotation_keys
+        )
 
         if annos:
             # Store annotations for an entity folder
@@ -1678,16 +1690,16 @@ class SynapseStorage(BaseStorage):
 
     def upload_manifest_as_table(
         self,
-        dmge:DataModelGraphExplorer,
-        manifest:pd.DataFrame,
-        metadataManifestPath:str,
-        datasetId:str,
-        table_name:str,
-        component_name:str,
-        restrict:bool,
-        manifest_record_type:str,
-        hideBlanks:bool,
-        table_manipulation:str,
+        dmge: DataModelGraphExplorer,
+        manifest: pd.DataFrame,
+        metadataManifestPath: str,
+        datasetId: str,
+        table_name: str,
+        component_name: str,
+        restrict: bool,
+        manifest_record_type: str,
+        hideBlanks: bool,
+        table_manipulation: str,
         table_column_names: str,
         annotation_keys: str,
     ):
@@ -1794,7 +1806,12 @@ class SynapseStorage(BaseStorage):
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
         manifest = self.add_annotations_to_entities_files(
-            dmge, manifest, manifest_record_type, datasetId, hideBlanks, annotation_keys=annotation_keys
+            dmge,
+            manifest,
+            manifest_record_type,
+            datasetId,
+            hideBlanks,
+            annotation_keys=annotation_keys,
         )
 
         # Load manifest to synapse as a CSV File
@@ -1861,7 +1878,6 @@ class SynapseStorage(BaseStorage):
             table_manipulation=table_manipulation,
             table_column_names=table_column_names,
         )
-
 
         manifest = self.add_annotations_to_entities_files(
             dmge,
@@ -2168,7 +2184,6 @@ class SynapseStorage(BaseStorage):
 
     def raise_final_error(retry_state):
         return retry_state.outcome.result()
-
 
     def checkIfinAssetView(self, syn_id) -> str:
         # get data in administrative fileview for this pipeline

@@ -328,7 +328,6 @@ class MetadataModel(object):
         table_column_names: str = "class_label",
         annotation_keys: str = "class_label",
     ) -> str:
-
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
         Args:

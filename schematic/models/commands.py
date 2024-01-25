@@ -124,7 +124,6 @@ def model(ctx, config):  # use as `schematic model ...`
     type=click.Choice(["class_label", "display_label"], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "annotation_keys")),
 )
-
 @click.pass_obj
 def submit_manifest(
     ctx,
