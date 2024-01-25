@@ -214,7 +214,6 @@ def initalize_metadata_model(schema_url):
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
-    
     metadata_model = MetadataModel(
         inputMModelLocation=data_model, inputMModelLocationType="local"
     )
@@ -232,6 +231,7 @@ def get_temp_jsonld(schema_url):
     # get path to temporary JSON-LD file
     return tmp_file.name
 
+
 def get_temp_csv(schema_url):
     # retrieve a CSV via URL and store it in a temporary location
     with urllib.request.urlopen(schema_url) as response:
@@ -241,15 +241,18 @@ def get_temp_csv(schema_url):
     # get path to temporary csv file
     return tmp_file.name
 
+
 def get_temp_model_path(schema_url):
     # Get model type:
-    model_extension = pathlib.Path(schema_url).suffix.replace('.', '').upper()
-    if model_extension == 'CSV':
+    model_extension = pathlib.Path(schema_url).suffix.replace(".", "").upper()
+    if model_extension == "CSV":
         temp_path = get_temp_csv(schema_url)
-    elif model_extension == 'JSONLD':
+    elif model_extension == "JSONLD":
         temp_path = get_temp_jsonld(schema_url)
     else:
-        raise ValueError("Did not provide a valid model type CSV or JSONLD, please check submission and try again.")
+        raise ValueError(
+            "Did not provide a valid model type CSV or JSONLD, please check submission and try again."
+        )
     return temp_path
 
 
@@ -266,7 +269,7 @@ def get_manifest_route(
     """Get the immediate dependencies that are related to a given source node.
     Args:
         schema_url: link to data model in json ld or csv format
-        title: title of a given manifest. 
+        title: title of a given manifest.
         dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
         output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
         use_annotations: Whether to use existing annotations during manifest generation
@@ -280,8 +283,8 @@ def get_manifest_route(
     access_token = get_access_token()
 
     # call config_handler()
-    config_handler(asset_view = asset_view)
-    
+    config_handler(asset_view=asset_view)
+
     temp_path = get_temp_model_path(schema_url=schema_url)
 
     # Gather all data_types to make manifests for.
@@ -314,12 +317,21 @@ def get_manifest_route(
             data_type[0] != "all manifests"
         except:
             raise ValueError(
-                    f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
-                    f"Please check your submission and try again."
-                )
-      
-    all_results = ManifestGenerator.create_manifests(path_to_data_model=schema_url, output_format=output_format, data_types=data_type, title=title, access_token=access_token, dataset_ids=dataset_ids, strict=strict_validation, use_annotations=use_annotations)
-    
+                f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
+                f"Please check your submission and try again."
+            )
+
+    all_results = ManifestGenerator.create_manifests(
+        path_to_data_model=schema_url,
+        output_format=output_format,
+        data_types=data_type,
+        title=title,
+        access_token=access_token,
+        dataset_ids=dataset_ids,
+        strict=strict_validation,
+        use_annotations=use_annotations,
+    )
+
     return all_results
 
 
@@ -419,7 +431,7 @@ def submit_manifest_route(
         validate_component = None
     else:
         validate_component = data_type
-    
+
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
@@ -437,13 +449,13 @@ def submit_manifest_route(
     access_token = get_access_token()
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld = data_model, 
-        manifest_path=temp_path, 
-        dataset_id=dataset_id, 
-        validate_component=validate_component, 
-        access_token=access_token, 
-        manifest_record_type = manifest_record_type, 
-        restrict_rules = restrict_rules, 
+        path_to_json_ld=data_model,
+        manifest_path=temp_path,
+        dataset_id=dataset_id,
+        validate_component=validate_component,
+        access_token=access_token,
+        manifest_record_type=manifest_record_type,
+        restrict_rules=restrict_rules,
         hide_blanks=hide_blanks,
         table_manipulation=table_manipulation,
         project_scope=project_scope,
@@ -461,12 +473,13 @@ def populate_manifest_route(schema_url, title=None, data_type=None, return_excel
     # Get path to temp file where manifest file contents will be saved
     temp_path = save_file()
 
-
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
-   
-    #Initalize MetadataModel
-    metadata_model = MetadataModel(inputMModelLocation=data_model, inputMModelLocationType='local')
+
+    # Initalize MetadataModel
+    metadata_model = MetadataModel(
+        inputMModelLocation=data_model, inputMModelLocationType="local"
+    )
 
     # Call populateModelManifest class
     populated_manifest_link = metadata_model.populateModelManifest(
@@ -588,17 +601,18 @@ def get_viz_component_attributes_explorer(schema_url, component, include_index):
     # call config_handler()
     config_handler()
 
-     # get path to temp data model file (csv or jsonld) as appropriate
+    # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
-    attributes_csv = AttributesExplorer(data_model).parse_component_attributes(component, save_file=False, include_index=include_index)
+    attributes_csv = AttributesExplorer(data_model).parse_component_attributes(
+        component, save_file=False, include_index=include_index
+    )
 
     return attributes_csv
 
 
 @cross_origin(["http://localhost", "https://sage-bionetworks.github.io"])
 def get_viz_tangled_tree_text(schema_url, figure_type, text_format):
-
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
@@ -621,7 +635,7 @@ def get_viz_tangled_tree_layers(schema_url, figure_type):
 
     # Initialize Tangled Tree
     tangled_tree = TangledTree(data_model, figure_type)
-    
+
     # Get tangled trees layers JSON.
     layers = tangled_tree.get_tangled_tree_layers(save_file=False)
 
@@ -748,8 +762,8 @@ def get_manifest_datatype(manifest_id, asset_view):
 
 
 def get_schema_pickle(schema_url):
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-    #Parse Model
+    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
@@ -762,15 +776,15 @@ def get_schema_pickle(schema_url):
     path = os.getcwd()
     export_path = os.path.join(path, "tests/data/schema.gpickle")
 
-    with open(export_path, 'wb') as file:
+    with open(export_path, "wb") as file:
         pickle.dump(graph_data_model, file)
     return export_path
 
 
 def get_subgraph_by_edge_type(schema_url, relationship):
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-    
-    #Parse Model
+    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
@@ -780,10 +794,10 @@ def get_subgraph_by_edge_type(schema_url, relationship):
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
     dmge = DataModelGraphExplorer(graph_data_model)
-    
+
     # relationship subgraph
     relationship_subgraph = dmge.get_subgraph_by_edge_type(relationship)
-    # return relationship 
+    # return relationship
     Arr = []
     for t in relationship_subgraph.edges:
         lst = list(t)
@@ -793,8 +807,8 @@ def get_subgraph_by_edge_type(schema_url, relationship):
 
 
 def find_class_specific_properties(schema_url, schema_class):
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-    #Parse Model
+    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
@@ -834,8 +848,8 @@ def get_node_dependencies(
     Returns:
         list[str]: List of nodes that are dependent on the source node.
     """
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-    #Parse Model
+    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
@@ -845,7 +859,7 @@ def get_node_dependencies(
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
     dmge = DataModelGraphExplorer(graph_data_model)
-    
+
     dependencies = dmge.get_node_dependencies(
         source_node, return_display_names, return_schema_ordered
     )
@@ -853,8 +867,7 @@ def get_node_dependencies(
 
 
 def get_property_label_from_display_name_route(
-    display_name: str,
-    strict_camel_case: bool = False
+    display_name: str, strict_camel_case: bool = False
 ) -> str:
     """Converts a given display name string into a proper property label string
 
@@ -867,7 +880,9 @@ def get_property_label_from_display_name_route(
     Returns:
         str: The property label of the display name
     """
-    label = get_property_label_from_display_name(display_name=display_name, strict_camel_case=strict_camel_case)
+    label = get_property_label_from_display_name(
+        display_name=display_name, strict_camel_case=strict_camel_case
+    )
     return label
 
 
@@ -885,8 +900,8 @@ def get_node_range(
     Returns:
         list[str]: A list of nodes
     """
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-    #Parse Model
+    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
@@ -912,8 +927,8 @@ def get_if_node_required(schema_url: str, node_display_name: str) -> bool:
         True: If the given node is a "required" node.
         False: If the given node is not a "required" (i.e., an "optional") node.
     """
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-    #Parse Model
+    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
@@ -938,9 +953,9 @@ def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
         List of valiation rules for a given node.
     """
     # Instantiate DataModelParser
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-    
-    #Parse Model
+    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
@@ -949,7 +964,7 @@ def get_node_validation_rules(schema_url: str, node_display_name: str) -> list:
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
-    #Instantiate DataModelGraphExplorer
+    # Instantiate DataModelGraphExplorer
     dmge = DataModelGraphExplorer(graph_data_model)
 
     node_validation_rules = dmge.get_node_validation_rules(node_display_name)
@@ -969,9 +984,9 @@ def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
 
     """
     # Instantiate DataModelParser
-    data_model_parser = DataModelParser(path_to_data_model = schema_url)
-    
-    #Parse Model
+    data_model_parser = DataModelParser(path_to_data_model=schema_url)
+
+    # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
@@ -980,7 +995,7 @@ def get_nodes_display_names(schema_url: str, node_list: list[str]) -> list:
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
 
-    #Instantiate DataModelGraphExplorer
+    # Instantiate DataModelGraphExplorer
     dmge = DataModelGraphExplorer(graph_data_model)
 
     node_display_names = dmge.get_nodes_display_names(node_list)
