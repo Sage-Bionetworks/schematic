@@ -48,7 +48,6 @@ class TangledTree(object):
         # Instantiate Data Model Parser
         data_model_parser = DataModelParser(
             path_to_data_model=self.path_to_json_ld,
-            data_model_labels=data_model_labels,
         )
 
         # Parse Model
