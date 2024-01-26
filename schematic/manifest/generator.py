@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import json
 import logging
+import networkx as nx
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -12,7 +13,10 @@ from tempfile import NamedTemporaryFile
 from typing import Dict, List, Optional, Tuple, Union, BinaryIO, Literal
 from flask import send_from_directory
 
-from schematic.schemas.generator import SchemaGenerator
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+
 from schematic.utils.google_api_utils import (
     execute_google_api_requests,
     build_service_account_creds,
@@ -20,7 +24,7 @@ from schematic.utils.google_api_utils import (
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.validate_utils import rule_in_rule_list
 
-#TODO: This module should only be aware of the store interface
+# TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
 from schematic.store.synapse import SynapseStorage
 
@@ -31,12 +35,12 @@ from schematic.utils.google_api_utils import export_manifest_drive_service
 logger = logging.getLogger(__name__)
 
 
-
 class ManifestGenerator(object):
     def __init__(
         self,
-        path_to_json_ld: str,  # JSON-LD file to be used for generating the manifest
-        alphabetize_valid_values: str = 'ascending',
+        path_to_data_model: str,  # JSON-LD file to be used for generating the manifest
+        graph: nx.MultiDiGraph,  # At this point, the graph is fully formed.
+        alphabetize_valid_values: str = "ascending",
         title: str = None,  # manifest sheet title
         root: str = None,
         additional_metadata: Dict = None,
@@ -53,6 +57,12 @@ class ManifestGenerator(object):
 
         # google service credentials object
         self.creds = services_creds["creds"]
+
+        # Path to jsonld
+        self.model_path = path_to_data_model
+
+        # Graph
+        self.graph = graph
 
         # schema root
         if root:
@@ -79,24 +89,25 @@ class ManifestGenerator(object):
                 "when there is no manifest file for the dataset in question."
             )
 
-        # SchemaGenerator() object
-        self.sg = SchemaGenerator(path_to_json_ld)
+        # Instantiate Data Model Explorer object
+        self.dmge = DataModelGraphExplorer(self.graph)
 
         # additional metadata to add to manifest
         self.additional_metadata = additional_metadata
-   
+
         # Check if the class is in the schema
-        root_in_schema = self.sg.se.is_class_in_schema(self.root)
-        
+        root_in_schema = self.dmge.is_class_in_schema(self.root)
+
         # If the class could not be found, give a notification
         if not root_in_schema:
-            exception_message = f"The DataType entered ({self.root}) could not be found in the data model schema. " + \
-                                "Please confirm that the datatype is in the data model and that the spelling matches the class label in the .jsonld file."
-            raise LookupError(exception_message) 
+            exception_message = (
+                f"The DataType entered ({self.root}) could not be found in the data model schema. "
+                + "Please confirm that the datatype is in the data model and that the spelling matches the class label in the .jsonld file."
+            )
+            raise LookupError(exception_message)
 
         # Determine whether current data type is file-based
-        self.is_file_based = "Filename" in self.sg.get_node_dependencies(self.root)
-
+        self.is_file_based = "Filename" in self.dmge.get_node_dependencies(self.root)
 
     def _attribute_to_letter(self, attribute, manifest_fields):
         """Map attribute to column letter in a google sheet"""
@@ -182,7 +193,7 @@ class ManifestGenerator(object):
             .execute()["id"]
         )
 
-    def _create_empty_manifest_spreadsheet(self, title:str) -> str:
+    def _create_empty_manifest_spreadsheet(self, title: str) -> str:
         """
         Creates an empty google spreadsheet returning the id.
         If the configuration has a template id it will be used
@@ -199,21 +210,18 @@ class ManifestGenerator(object):
             spreadsheet_id = self._gdrive_copy_file(template_id, title)
 
         else:
-            spreadsheet_body = {
-                'properties': {
-                    'title': title
-                }
-            }
+            spreadsheet_body = {"properties": {"title": title}}
 
-            spreadsheet_id = self.sheet_service.spreadsheets().create(
-                body=spreadsheet_body,
-                fields="spreadsheetId").execute().get("spreadsheetId"
+            spreadsheet_id = (
+                self.sheet_service.spreadsheets()
+                .create(body=spreadsheet_body, fields="spreadsheetId")
+                .execute()
+                .get("spreadsheetId")
             )
 
         return spreadsheet_id
 
     def _get_cell_borders(self, cell_range):
-
         # set border style request
         color = {
             "red": 226.0 / 255.0,
@@ -249,26 +257,30 @@ class ManifestGenerator(object):
 
         batch.add(
             self.drive_service.permissions().create(
-                fileId=fileId, body=worldPermission, fields="id",
+                fileId=fileId,
+                body=worldPermission,
+                fields="id",
             )
         )
         batch.execute()
 
-    def _store_valid_values_as_data_dictionary(self, column_id:int, valid_values:list, spreadsheet_id:str) -> list:
-        '''store valid values in google sheet (sheet 2). This step is required for "ONE OF RANGE" validation
+    def _store_valid_values_as_data_dictionary(
+        self, column_id: int, valid_values: list, spreadsheet_id: str
+    ) -> list:
+        """store valid values in google sheet (sheet 2). This step is required for "ONE OF RANGE" validation
         Args:
             column_id: id of column
             valid_values: a list of valid values for a given attribute (i.e. for diagnosis, this looks like: [{'userEnteredValue': 'Cancer'}, {'userEnteredValue': 'Healthy'}])
             spreadsheet_id: google spreadsheet id
-        
+
         return: range of valid values (i.e. for diagnosis, [{'userEnteredValue': '=Sheet2!D2:D3'}])
-        '''
+        """
         # get valid values w/o google sheet header
         values = [valid_value["userEnteredValue"] for valid_value in valid_values]
-        
-        if self.alphabetize and self.alphabetize.lower().startswith('a'):
+
+        if self.alphabetize and self.alphabetize.lower().startswith("a"):
             values.sort(reverse=False, key=str.lower)
-        elif self.alphabetize and self.alphabetize.lower().startswith('d'):
+        elif self.alphabetize and self.alphabetize.lower().startswith("d"):
             values.sort(reverse=True, key=str.lower)
 
         # store valid values explicitly in workbook at the provided range to use as validation values
@@ -300,18 +312,19 @@ class ManifestGenerator(object):
         spreadsheet_id,
         valid_values,
         column_id,
-        strict:Optional[bool],
+        strict: Optional[bool],
         validation_type="ONE_OF_LIST",
         custom_ui=True,
         input_message="Choose one from dropdown",
     ):
-
         # set validation strictness to config file default if None indicated.
         if strict == None:
             strict = CONFIG.google_sheets_strict_validation
-        #store valid values explicitly in workbook at the provided range to use as validation values
+        # store valid values explicitly in workbook at the provided range to use as validation values
         if validation_type == "ONE_OF_RANGE":
-            valid_values=self._store_valid_values_as_data_dictionary(column_id, valid_values, spreadsheet_id)
+            valid_values = self._store_valid_values_as_data_dictionary(
+                column_id, valid_values, spreadsheet_id
+            )
 
         # setup validation data request body
         validation_body = {
@@ -357,20 +370,22 @@ class ManifestGenerator(object):
         else:
             return []
 
-
     def _get_json_schema(self, json_schema_filepath: str) -> Dict:
         """Open json schema as a dictionary.
         Args:
             json_schema_filepath(str): path to json schema file
         Returns:
             Dictionary, containing portions of the json schema
+        TODO: Do we even allow people to provide a json_schema_filepath anyore?
         """
         if not json_schema_filepath:
-            # if no json schema is provided; there must be
-            # schema explorer defined for schema.org schema
-            # o.w. this will throw an error
-            # TODO: catch error
-            json_schema = self.sg.get_json_schema_requirements(self.root, self.title)
+            # TODO Catch error if no JSONLD or JSON path provided.
+            data_model_js = DataModelJSONSchema(
+                jsonld_path=self.model_path, graph=self.graph
+            )
+            json_schema = data_model_js.get_json_validation_schema(
+                source_node=self.root, schema_name=self.title
+            )
         else:
             with open(json_schema_filepath) as jsonfile:
                 json_schema = json.load(jsonfile)
@@ -468,7 +483,7 @@ class ManifestGenerator(object):
             # constructor (it's optional) if not, instantiate it
             if not self.additional_metadata:
                 self.additional_metadata = {}
-            if self.is_file_based and 'Filename' in self.additional_metadata:
+            if self.is_file_based and "Filename" in self.additional_metadata:
                 self.additional_metadata["Component"] = [self.root] * max(
                     1, len(self.additional_metadata["Filename"])
                 )
@@ -682,7 +697,7 @@ class ManifestGenerator(object):
         }
         return vr_format_body
 
-    def _request_regex_vr(self, gs_formula, i:int, text_color={"red": 1}):
+    def _request_regex_vr(self, gs_formula, i: int, text_color={"red": 1}):
         """
         Generate request to change font color to black upon corretly formatted
         user entry.
@@ -703,9 +718,7 @@ class ManifestGenerator(object):
                                     "values": gs_formula,
                                 },
                                 "format": {
-                                    "textFormat": {
-                                        "foregroundColor": text_color
-                                    }
+                                    "textFormat": {"foregroundColor": text_color}
                                 },
                             },
                         },
@@ -716,9 +729,14 @@ class ManifestGenerator(object):
         }
         return requests_vr
 
-    def _request_regex_match_vr_formatting(self, validation_rules: List[str], i: int,
-        spreadsheet_id: str, requests_body: dict, strict: Optional[bool],
-        ):
+    def _request_regex_match_vr_formatting(
+        self,
+        validation_rules: List[str],
+        i: int,
+        spreadsheet_id: str,
+        requests_body: dict,
+        strict: Optional[bool],
+    ):
         """
         Purpose:
             - Apply regular expression validaiton rules to google sheets.
@@ -776,7 +794,7 @@ class ManifestGenerator(object):
                     "red": 232.0 / 255.0,
                     "green": 80.0 / 255.0,
                     "blue": 70.0 / 255.0,
-                }
+                },
             )
 
             ## Create request to for conditionally formatting user input.
@@ -793,15 +811,10 @@ class ManifestGenerator(object):
                 validation_type="CUSTOM_FORMULA",
             )
 
-            requests_body["requests"].append(
-                requests_vr_format_body["requests"]
-            )
+            requests_body["requests"].append(requests_vr_format_body["requests"])
             requests_body["requests"].append(requests_vr["requests"])
-            requests_body["requests"].append(
-                requests_data_validation_vr["requests"]
-            )
+            requests_body["requests"].append(requests_data_validation_vr["requests"])
         return requests_body
-
 
     def _request_row_format(self, i, req):
         """Adding description to headers, this is not executed if
@@ -813,9 +826,9 @@ class ManifestGenerator(object):
             notes_body["requests"] (dict): with information on note
                 to add to the column header. This notes body will be added to a request.
         """
-        if self.sg.se:
+        if self.dmge:
             # get node definition
-            note = self.sg.get_node_definition(req)
+            note = self.dmge.get_node_comment(node_display_name=req)
 
             notes_body = {
                 "requests": [
@@ -857,7 +870,7 @@ class ManifestGenerator(object):
             notes_body["requests"] (dict): with information on note
                 to add to the column header, about using multiselect.
                 This notes body will be added to a request.
-        """            
+        """
         if rule_in_rule_list("list", validation_rules) and valid_values:
             note = "Please enter applicable comma-separated items selected from the set of allowable terms for this attribute. See our data standards for allowable terms"
             notes_body = {
@@ -877,7 +890,9 @@ class ManifestGenerator(object):
             }
             return notes_body["requests"]
         elif rule_in_rule_list("list", validation_rules) and not valid_values:
-            note = "Please enter values as a comma separated list. For example: XX, YY, ZZ"
+            note = (
+                "Please enter values as a comma separated list. For example: XX, YY, ZZ"
+            )
             notes_body = {
                 "requests": [
                     {
@@ -980,8 +995,12 @@ class ManifestGenerator(object):
         return validation_body["requests"]
 
     def _dependency_formatting(
-        self, i, req_val, ordered_metadata_fields, val_dependencies,
-        dependency_formatting_body
+        self,
+        i,
+        req_val,
+        ordered_metadata_fields,
+        val_dependencies,
+        dependency_formatting_body,
     ):
         """If there are additional attribute dependencies find the corresponding
         fields that need to be filled in and construct conditional formatting rules
@@ -1014,8 +1033,7 @@ class ManifestGenerator(object):
         dependency_formatting_body = {"requests": []}
         for j, val_dep in enumerate(val_dependencies):
             is_required = False
-
-            if self.sg.is_node_required(val_dep):
+            if self.dmge.get_node_required(node_display_name=val_dep):
                 is_required = True
             else:
                 is_required = False
@@ -1035,9 +1053,7 @@ class ManifestGenerator(object):
                     "index": 0,
                 }
             }
-            dependency_formatting_body["requests"].append(
-                            conditional_format_rule
-                        )
+            dependency_formatting_body["requests"].append(conditional_format_rule)
         return dependency_formatting_body["requests"]
 
     def _request_dependency_formatting(
@@ -1058,13 +1074,13 @@ class ManifestGenerator(object):
         for req_val in req_vals:
             # get this required/valid value's node label in schema, based on display name (i.e. shown to the user in a dropdown to fill in)
             req_val = req_val["userEnteredValue"]
-            req_val_node_label = self.sg.get_node_label(req_val)
+            req_val_node_label = self.dmge.get_node_label(req_val)
             if not req_val_node_label:
                 # if this node is not in the graph
                 # continue - there are no dependencies for it
                 continue
             # check if this required/valid value has additional dependency attributes
-            val_dependencies = self.sg.get_node_dependencies(
+            val_dependencies = self.dmge.get_node_dependencies(
                 req_val_node_label, schema_ordered=False
             )
 
@@ -1074,14 +1090,15 @@ class ManifestGenerator(object):
             # set conditiaon formatting for dependencies.
             if val_dependencies:
                 dependency_formatting_body["requests"] = self._dependency_formatting(
-                    i, req_val, ordered_metadata_fields, val_dependencies,
-                    dependency_formatting_body
+                    i,
+                    req_val,
+                    ordered_metadata_fields,
+                    val_dependencies,
+                    dependency_formatting_body,
                 )
 
             if dependency_formatting_body["requests"]:
-                requests_body["requests"].append(
-                    dependency_formatting_body["requests"]
-                )
+                requests_body["requests"].append(dependency_formatting_body["requests"])
         return requests_body
 
     def _create_requests_body(
@@ -1117,13 +1134,15 @@ class ManifestGenerator(object):
         requests_body["requests"] = []
         for i, req in enumerate(ordered_metadata_fields[0]):
             # Gather validation rules and valid values for attribute.
-            validation_rules = self.sg.get_node_validation_rules(req)
-            
+            validation_rules = self.dmge.get_node_validation_rules(
+                node_display_name=req
+            )
+
             # Add regex match validaiton rule to Google Sheets.
             if validation_rules and sheet_url:
-                requests_body =self._request_regex_match_vr_formatting(
-                        validation_rules, i, spreadsheet_id, requests_body, strict
-                        )
+                requests_body = self._request_regex_match_vr_formatting(
+                    validation_rules, i, spreadsheet_id, requests_body, strict
+                )
 
             if req in json_schema["properties"].keys():
                 valid_values = self._get_valid_values_from_jsonschema_property(
@@ -1138,7 +1157,9 @@ class ManifestGenerator(object):
                 requests_body["requests"].append(get_row_formatting)
 
             # set color of required columns to blue
-            required_columns_color = self._set_required_columns_color(i, req, json_schema)
+            required_columns_color = self._set_required_columns_color(
+                i, req, json_schema
+            )
             if required_columns_color:
                 requests_body["requests"].append(required_columns_color)
             # Add note on how to use multi-select, when appropriate
@@ -1157,28 +1178,37 @@ class ManifestGenerator(object):
             # for attributes that don't require "list", create dropdown options and set up data validation rules
             if not rule_in_rule_list("list", validation_rules):
                 create_dropdown = self._request_dropdown(
-                i, req_vals, spreadsheet_id, validation_rules, valid_values
-            )
+                    i, req_vals, spreadsheet_id, validation_rules, valid_values
+                )
                 if create_dropdown:
                     requests_body["requests"].append(create_dropdown)
 
             # for attributes that require "list", simply store valid values (if any) in second sheet
-            elif len(req_vals)>0 and rule_in_rule_list("list", validation_rules):
+            elif len(req_vals) > 0 and rule_in_rule_list("list", validation_rules):
                 self._store_valid_values_as_data_dictionary(i, req_vals, spreadsheet_id)
 
             # generate a conditional format rule for each required value (i.e. valid value)
             # for this field (i.e. if this field is set to a valid value that may require additional
             # fields to be filled in, these additional fields will be formatted in a custom style (e.g. red background)
 
-            requests_body = self._request_dependency_formatting(i, req_vals, ordered_metadata_fields, requests_body)
-           
+            requests_body = self._request_dependency_formatting(
+                i, req_vals, ordered_metadata_fields, requests_body
+            )
+
         # Set borders formatting
         borders_formatting = self._request_cell_borders()
         if borders_formatting:
             requests_body["requests"].append(borders_formatting)
         return requests_body
 
-    def _create_empty_gs(self, required_metadata_fields, json_schema, spreadsheet_id, sheet_url, strict: Optional[bool]):
+    def _create_empty_gs(
+        self,
+        required_metadata_fields,
+        json_schema,
+        spreadsheet_id,
+        sheet_url,
+        strict: Optional[bool],
+    ):
         """Generate requests to add columns and format the google sheet.
         Args:
             required_metadata_fields(dict):
@@ -1254,7 +1284,12 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
-    def get_empty_manifest(self, strict: Optional[bool], json_schema_filepath: str=None, sheet_url: Optional[bool]=None):
+    def get_empty_manifest(
+        self,
+        strict: Optional[bool],
+        json_schema_filepath: str = None,
+        sheet_url: Optional[bool] = None,
+    ):
         """Create an empty manifest using specifications from the
         json schema.
         Args:
@@ -1275,23 +1310,30 @@ class ManifestGenerator(object):
         )
 
         manifest_url = self._create_empty_gs(
-            required_metadata_fields, json_schema, spreadsheet_id, sheet_url=sheet_url, strict=strict,
+            required_metadata_fields,
+            json_schema,
+            spreadsheet_id,
+            sheet_url=sheet_url,
+            strict=strict,
         )
         return manifest_url
 
-    def _get_missing_columns(self, headers_1:list , headers_2:list) -> list:
+    def _get_missing_columns(self, headers_1: list, headers_2: list) -> list:
         """Compare two colunm sets and get cols that are in headers_1, but not headers_2
         Args:
             headers_1 (list): list of column headers
             headers_2 (list): list of column headers
-        Returns: 
+        Returns:
             list: column headers in headers_1 but not headers_2
 
         """
         return set(headers_1) - set(headers_2)
 
     def set_dataframe_by_url(
-        self, manifest_url: str, manifest_df: pd.DataFrame, out_of_schema_columns: set =None,
+        self,
+        manifest_url: str,
+        manifest_df: pd.DataFrame,
+        out_of_schema_columns: set = None,
     ) -> ps.Spreadsheet:
         """Update Google Sheets using given pandas DataFrame.
         Args:
@@ -1316,10 +1358,13 @@ class ManifestGenerator(object):
         # TODO: similarly clear formatting for out of schema columns, if any
         if out_of_schema_columns:
             num_out_of_schema_columns = len(out_of_schema_columns)
-            start_col = self._column_to_letter(len(manifest_df.columns) - num_out_of_schema_columns) # find start of out of schema columns
-            end_col = self._column_to_letter(len(manifest_df.columns) + 1) # find end of out of schema columns
-            wb.set_data_validation(start = start_col, end = end_col, condition_type = None)
-        
+            start_col = self._column_to_letter(
+                len(manifest_df.columns) - num_out_of_schema_columns
+            )  # find start of out of schema columns
+            end_col = self._column_to_letter(
+                len(manifest_df.columns) + 1
+            )  # find end of out of schema columns
+            wb.set_data_validation(start=start_col, end=end_col, condition_type=None)
 
         # set permissions so that anyone with the link can edit
         sh.share("", role="writer", type="anyone")
@@ -1364,7 +1409,7 @@ class ManifestGenerator(object):
             pd.DataFrame: Annotations table with updated column headers.
         """
         # Get list of attribute nodes from data model
-        model_nodes = self.sg.se.get_nx_schema().nodes
+        model_nodes = self.graph.nodes
 
         # Subset annotations to those appearing as a label in the model
         labels = filter(lambda x: x in model_nodes, annotations.columns)
@@ -1376,7 +1421,7 @@ class ManifestGenerator(object):
         return annotations.rename(columns=label_map)
 
     def get_manifest_with_annotations(
-        self, annotations: pd.DataFrame, strict: Optional[bool]=None
+        self, annotations: pd.DataFrame, strict: Optional[bool] = None
     ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
         """Generate manifest, optionally with annotations (if requested).
         Args:
@@ -1415,88 +1460,126 @@ class ManifestGenerator(object):
 
         return manifest_url, manifest_df
 
-    def export_sheet_to_excel(self, title: str = None, manifest_url : str = None, output_location: str = None) -> str:
+    def export_sheet_to_excel(
+        self, title: str = None, manifest_url: str = None, output_location: str = None
+    ) -> str:
         """
         export manifest as an Excel spreadsheet and return local file path
         Args:
             title: title of the exported excel spreadsheet
-            manifest_url: manifest google sheet url 
+            manifest_url: manifest google sheet url
             output_location: the location where the exported excel file would live
-        return: 
-            Export manifest to a desired location. 
+        return:
+            Export manifest to a desired location.
         """
         # construct file name
         file_name = title + ".xlsx"
-        #if file path exists and it contains a file name: 
-        if output_location: 
+        # if file path exists and it contains a file name:
+        if output_location:
             if os.path.exists(output_location):
-                if Path(output_location).suffix == '.xlsx' or Path(output_location).suffix == '.xls':
+                if (
+                    Path(output_location).suffix == ".xlsx"
+                    or Path(output_location).suffix == ".xls"
+                ):
                     output_excel_file_path = output_location
                 # if users define the location but it doesn't contain a file name, we should add the file name:
                 else:
                     output_excel_file_path = os.path.join(output_location, file_name)
-    
+
         # trigger a warning if file path is provided but does not exist
         elif output_location and not os.path.exists(output_location):
-            output_excel_file_path = os.path.abspath(os.path.join(os.getcwd(), file_name))
-            logger.warning(f'{output_location} does not exist. Using current working directory {output_excel_file_path}')
+            output_excel_file_path = os.path.abspath(
+                os.path.join(os.getcwd(), file_name)
+            )
+            logger.warning(
+                f"{output_location} does not exist. Using current working directory {output_excel_file_path}"
+            )
         # otherwise, use the default location
         else:
-            output_excel_file_path = os.path.abspath(os.path.join(os.getcwd(), file_name))
-        
+            output_excel_file_path = os.path.abspath(
+                os.path.join(os.getcwd(), file_name)
+            )
+
         # export the manifest to excel
-        export_manifest_drive_service(manifest_url, file_path=output_excel_file_path, mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        
+        export_manifest_drive_service(
+            manifest_url,
+            file_path=output_excel_file_path,
+            mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
         return output_excel_file_path
 
-    def _handle_output_format_logic(self, output_format: str = None, output_path: str = None, sheet_url: bool = None, empty_manifest_url: str = None, dataframe: pd.DataFrame = None, out_of_schema_columns: set =None):
+    def _handle_output_format_logic(
+        self,
+        output_format: str = None,
+        output_path: str = None,
+        sheet_url: bool = None,
+        empty_manifest_url: str = None,
+        dataframe: pd.DataFrame = None,
+        out_of_schema_columns: set = None,
+    ):
         """
         Handle the logic between sheet_url parameter and output_format parameter to determine the type of output to return
-        Args: 
+        Args:
             output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
-            empty_manifest_url: Google sheet URL that leads to an empty manifest 
+            empty_manifest_url: Google sheet URL that leads to an empty manifest
             dataframe: the pandas dataframe that contains the metadata that needs to be populated to an empty manifest
             output_path: Determines the output path of the exported manifest (only relevant if returning an excel spreadsheet)
             out_of_schema_columns (set): Columns that are in downloaded manifest, but not in current schema.
-        Return: 
-            a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL 
+        Return:
+            a pandas dataframe, file path of an excel spreadsheet, or a google sheet URL
         TODO:
             Depreciate sheet URL and add google_sheet as an output_format choice.
         """
 
-        # if the output type gets set to "dataframe", return a data frame 
+        # if the output type gets set to "dataframe", return a data frame
         if output_format == "dataframe":
             return dataframe
-        
+
         # if the output type gets set to "excel", return an excel spreadsheet
-        elif output_format == "excel":              
+        elif output_format == "excel":
             # export manifest url that only contains column headers to Excel
-            output_file_path = self.export_sheet_to_excel(title = self.title,
-                                                          manifest_url = empty_manifest_url,
-                                                          output_location = output_path,
-                                                          )
+            output_file_path = self.export_sheet_to_excel(
+                title=self.title,
+                manifest_url=empty_manifest_url,
+                output_location=output_path,
+            )
 
             # populate an excel spreadsheet with the existing dataframe
             self.populate_existing_excel_spreadsheet(output_file_path, dataframe)
 
             return output_file_path
-        
+
         # Return google sheet if sheet_url flag is raised.
         elif sheet_url:
-            manifest_sh = self.set_dataframe_by_url(manifest_url=empty_manifest_url, manifest_df=dataframe, out_of_schema_columns=out_of_schema_columns)
+            manifest_sh = self.set_dataframe_by_url(
+                manifest_url=empty_manifest_url,
+                manifest_df=dataframe,
+                out_of_schema_columns=out_of_schema_columns,
+            )
             return manifest_sh.url
-        
+
         # Default return a DataFrame
         else:
             return dataframe
-    
+
     @staticmethod
-    def create_single_manifest(jsonld: str, data_type: str, access_token:Optional[str]=None, dataset_id:Optional[str]=None, strict:Optional[bool]=True, title:Optional[str]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", use_annotations:Optional[bool]=False) -> Union[str, pd.DataFrame, BinaryIO]:
+    def create_single_manifest(
+        path_to_data_model: str,
+        graph_data_model: nx.MultiDiGraph,
+        data_type: str,
+        access_token: Optional[str] = None,
+        dataset_id: Optional[str] = None,
+        strict: Optional[bool] = True,
+        title: Optional[str] = None,
+        output_format: Literal["google_sheet", "excel", "dataframe"] = "google_sheet",
+        use_annotations: Optional[bool] = False,
+    ) -> Union[str, pd.DataFrame, BinaryIO]:
         """Create a single manifest
 
         Args:
-            jsonld (str): jsonld schema 
+            jsonld (str): jsonld schema
             data_type (str): data type of a manifest
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
             dataset_id (str, optional): dataset id when generating an existing manifest. Defaults to None.
@@ -1510,11 +1593,12 @@ class ManifestGenerator(object):
         """
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
-            path_to_json_ld=jsonld,
+            path_to_data_model=path_to_data_model,
+            graph=graph_data_model,
             title=title,
             root=data_type,
             use_annotations=use_annotations,
-            alphabetize_valid_values = 'ascending',
+            alphabetize_valid_values="ascending",
         )
 
         # if returning a dataframe
@@ -1523,25 +1607,46 @@ class ManifestGenerator(object):
                 output_format = "dataframe"
 
         result = manifest_generator.get_manifest(
-            dataset_id=dataset_id, sheet_url=True, output_format=output_format, access_token=access_token, strict=strict,
+            dataset_id=dataset_id,
+            sheet_url=True,
+            output_format=output_format,
+            access_token=access_token,
+            strict=strict,
         )
 
         # return an excel file if output_format is set to "excel"
         if output_format == "excel":
             dir_name = os.path.dirname(result)
             file_name = os.path.basename(result)
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
-               
+            mimetype = (
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            return send_from_directory(
+                directory=dir_name,
+                path=file_name,
+                as_attachment=True,
+                mimetype=mimetype,
+                max_age=0,
+            )
+
         return result
-    
+
     @staticmethod
-    def create_manifests(jsonld:str, data_types:list, access_token:Optional[str]=None, dataset_ids:Optional[list]=None, output_format:Literal["google_sheet", "excel", "dataframe"]="google_sheet", title:Optional[str]=None, strict:Optional[bool]=True, use_annotations:Optional[bool]=False) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
+    def create_manifests(
+        path_to_data_model: str,
+        data_types: list,
+        access_token: Optional[str] = None,
+        dataset_ids: Optional[list] = None,
+        output_format: Literal["google_sheet", "excel", "dataframe"] = "google_sheet",
+        title: Optional[str] = None,
+        strict: Optional[bool] = True,
+        use_annotations: Optional[bool] = False,
+    ) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
         """Create multiple manifests
 
         Args:
-            jsonld (str): jsonld schema 
-            data_type (list): a list of data types 
+            path_to_data_model (str): str path to data model
+            data_type (list): a list of data types
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
             dataset_id (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
             output_format (str, optional):format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
@@ -1552,48 +1657,95 @@ class ManifestGenerator(object):
         Returns:
             Union[List[str], List[pd.DataFrame], BinaryIO]: a list of Googlesheet URLs, a list of pandas dataframes or an Excel file.
         """
+        data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+
+        # Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Gather all returned result urls
         all_results = []
-        if data_types[0] == 'all manifests':
-            sg = SchemaGenerator(path_to_json_ld=jsonld)
-            component_digraph = sg.se.get_digraph_by_edge_type('requiresComponent')
+        if data_types[0] == "all manifests":
+            dmge = DataModelGraphExplorer(graph_data_model)
+            component_digraph = dmge.get_digraph_by_edge_type("requiresComponent")
             components = component_digraph.nodes()
             for component in components:
                 if title:
-                    t = f'{title}.{component}.manifest'
-                else: 
-                    t = f'Example.{component}.manifest'
+                    t = f"{title}.{component}.manifest"
+                else:
+                    t = f"Example.{component}.manifest"
                 if output_format != "excel":
-                    result = ManifestGenerator.create_single_manifest(jsonld=jsonld, data_type=component, output_format=output_format, title=t, access_token=access_token, strict=strict, use_annotations=use_annotations)
+                    result = ManifestGenerator.create_single_manifest(
+                        path_to_data_model=path_to_data_model,
+                        data_type=component,
+                        graph_data_model=graph_data_model,
+                        output_format=output_format,
+                        title=t,
+                        access_token=access_token,
+                    )
                     all_results.append(result)
-                else: 
-                    logger.error('Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. ')
+                else:
+                    logger.error(
+                        "Currently we do not support returning multiple files as Excel format at once. Please choose a different output format. "
+                    )
         else:
             for i, dt in enumerate(data_types):
-                if not title: 
-                    t = f'Example.{dt}.manifest'
-                else: 
+                if not title:
+                    t = f"Example.{dt}.manifest"
+                else:
                     if len(data_types) > 1:
-                        t = f'{title}.{dt}.manifest'
-                    else: 
+                        t = f"{title}.{dt}.manifest"
+                    else:
                         t = title
                 if dataset_ids:
                     # if a dataset_id is provided add this to the function call.
-                    result = ManifestGenerator.create_single_manifest(jsonld=jsonld, data_type=dt, dataset_id=dataset_ids[i], output_format=output_format, title=t, access_token=access_token, strict=strict, use_annotations=use_annotations)
+                    result = ManifestGenerator.create_single_manifest(
+                        path_to_data_model=path_to_data_model,
+                        data_type=dt,
+                        graph_data_model=graph_data_model,
+                        dataset_id=dataset_ids[i],
+                        output_format=output_format,
+                        title=t,
+                        access_token=access_token,
+                        use_annotations=use_annotations,
+                    )
                 else:
-                    result = ManifestGenerator.create_single_manifest(jsonld=jsonld, data_type=dt, output_format=output_format, title=t, access_token=access_token, strict=strict, use_annotations=use_annotations)
+                    result = ManifestGenerator.create_single_manifest(
+                        path_to_data_model=path_to_data_model,
+                        data_type=dt,
+                        graph_data_model=graph_data_model,
+                        output_format=output_format,
+                        title=t,
+                        access_token=access_token,
+                        use_annotations=use_annotations,
+                    )
 
                 # if output is pandas dataframe or google sheet url
                 if isinstance(result, str) or isinstance(result, pd.DataFrame):
                     all_results.append(result)
-                else: 
+                else:
                     if len(data_types) > 1:
-                        logger.warning(f'Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. ')
+                        logger.warning(
+                            f"Currently we do not support returning multiple files as Excel format at once. Only {t} would get returned. "
+                        )
                     return result
+
         return all_results
-        
 
     def get_manifest(
-        self, dataset_id: str = None, sheet_url: bool = None, json_schema: str = None, output_format: str = None, output_path: str = None, access_token: str = None, strict: Optional[bool]=None,
+        self,
+        dataset_id: str = None,
+        sheet_url: bool = None,
+        json_schema: str = None,
+        output_format: str = None,
+        output_path: str = None,
+        access_token: str = None,
+        strict: Optional[bool] = None,
     ) -> Union[str, pd.DataFrame]:
         """Gets manifest for a given dataset on Synapse.
            TODO: move this function to class MetadatModel (after MetadataModel is refactored)
@@ -1603,36 +1755,44 @@ class ManifestGenerator(object):
             sheet_url (Will be deprecated): a boolean ; determine if a pandas dataframe or a google sheet url gets return
             output_format: Determines if Google sheet URL, pandas dataframe, or Excel spreadsheet gets returned.
             output_path: Determines the output path of the exported manifest
-            access_token: Token in .synapseConfig. Since we could not pre-load access_token as an environment variable on AWS, we have to add this variable. 
+            access_token: Token in .synapseConfig. Since we could not pre-load access_token as an environment variable on AWS, we have to add this variable.
 
         Returns:
-            Googlesheet URL, pandas dataframe, or an Excel spreadsheet 
+            Googlesheet URL, pandas dataframe, or an Excel spreadsheet
         """
         # Handle case when no dataset ID is provided
         if not dataset_id:
-            manifest_url = self.get_empty_manifest(json_schema_filepath=json_schema, strict=strict, sheet_url=sheet_url)
+            manifest_url = self.get_empty_manifest(
+                json_schema_filepath=json_schema, strict=strict, sheet_url=sheet_url
+            )
 
             # if output_form parameter is set to "excel", return an excel spreadsheet
-            if output_format == "excel": 
-                output_file_path = self.export_sheet_to_excel(title = self.title, manifest_url = manifest_url, output_location = output_path)
+            if output_format == "excel":
+                output_file_path = self.export_sheet_to_excel(
+                    title=self.title,
+                    manifest_url=manifest_url,
+                    output_location=output_path,
+                )
                 return output_file_path
             # since we are not going to return an empty dataframe for an empty manifest, here we will just return a google sheet url for all other cases
-            else: 
+            else:
                 return manifest_url
 
         # Otherwise, create manifest using the given dataset
-        #TODO: avoid explicitly exposing Synapse store functionality
+        # TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
-        if access_token: 
+        if access_token:
             # for getting an existing manifest on AWS
             store = SynapseStorage(access_token=access_token)
-        else: 
+        else:
             store = SynapseStorage()
 
         # Get manifest file associated with given dataset (if applicable)
         # populate manifest with set of new files (if applicable)
-        manifest_record = store.updateDatasetManifestFiles(self.sg, datasetId = dataset_id, store = False)
+        manifest_record = store.updateDatasetManifestFiles(
+            self.dmge, datasetId=dataset_id, store=False
+        )
 
         # get URL of an empty manifest file created based on schema component
         empty_manifest_url = self.get_empty_manifest(strict=strict, sheet_url=True)
@@ -1642,20 +1802,23 @@ class ManifestGenerator(object):
             # TODO: Update or remove the warning in self.__init__() if
             # you change the behavior here based on self.use_annotations
             # Update df with existing manifest. Agnostic to output format
-            updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_record[1])
+            updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(
+                empty_manifest_url=empty_manifest_url, existing_df=manifest_record[1]
+            )
 
             # determine the format of manifest
-            result = self._handle_output_format_logic(output_format = output_format,
-                                                      output_path = output_path,
-                                                      sheet_url = sheet_url,
-                                                      empty_manifest_url=empty_manifest_url,
-                                                      dataframe = updated_df,
-                                                      out_of_schema_columns=out_of_schema_columns,
-                                                      )
+            result = self._handle_output_format_logic(
+                output_format=output_format,
+                output_path=output_path,
+                sheet_url=sheet_url,
+                empty_manifest_url=empty_manifest_url,
+                dataframe=updated_df,
+                out_of_schema_columns=out_of_schema_columns,
+            )
             return result
 
         # Generate empty template and optionally fill in with annotations
-        # if there is no existing manifest and use annotations is set to True, 
+        # if there is no existing manifest and use annotations is set to True,
         # pull annotations (in reality, annotations should be empty when there is no existing manifest)
         else:
             # Using getDatasetAnnotations() to retrieve file names and subset
@@ -1665,39 +1828,50 @@ class ManifestGenerator(object):
                 if self.is_file_based:
                     annotations = store.getDatasetAnnotations(dataset_id)
                     # Update `additional_metadata` and generate manifest
-                    manifest_url, manifest_df = self.get_manifest_with_annotations(annotations,strict=strict)
-                
-                # If the annotations are empty, 
-                # ie if there are no annotations to pull or annotations were unable to be pulled because the metadata is not file based, 
+                    manifest_url, manifest_df = self.get_manifest_with_annotations(
+                        annotations, strict=strict
+                    )
+
+                # If the annotations are empty,
+                # ie if there are no annotations to pull or annotations were unable to be pulled because the metadata is not file based,
                 # then create manifest from an empty manifest
                 if annotations.empty:
                     empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
                     manifest_df = empty_manifest_df
 
-                    logger.warning(f"Annotations were not able to be gathered for the given parameters. This manifest will be generated from an empty manifest.")
-                    
+                    logger.warning(
+                        f"Annotations were not able to be gathered for the given parameters. This manifest will be generated from an empty manifest."
+                    )
+
             else:
                 empty_manifest_df = self.get_dataframe_by_url(empty_manifest_url)
                 if self.is_file_based:
                     # for file-based manifest, make sure that entityId column and Filename column still gets filled even though use_annotations gets set to False
-                    manifest_df = store.add_entity_id_and_filename(dataset_id,empty_manifest_df)
+                    manifest_df = store.add_entity_id_and_filename(
+                        dataset_id, empty_manifest_df
+                    )
                 else:
                     manifest_df = empty_manifest_df
 
             # Update df with existing manifest. Agnostic to output format
-            updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(empty_manifest_url=empty_manifest_url, existing_df=manifest_df)
+            updated_df, out_of_schema_columns = self._update_dataframe_with_existing_df(
+                empty_manifest_url=empty_manifest_url, existing_df=manifest_df
+            )
 
-            # determine the format of manifest that gets return 
-            result = self._handle_output_format_logic(output_format = output_format,
-                                                      output_path = output_path,
-                                                      sheet_url = sheet_url,
-                                                      empty_manifest_url=empty_manifest_url,
-                                                      dataframe = updated_df,
-                                                      out_of_schema_columns = out_of_schema_columns,
-                                                      )
+            # determine the format of manifest that gets return
+            result = self._handle_output_format_logic(
+                output_format=output_format,
+                output_path=output_path,
+                sheet_url=sheet_url,
+                empty_manifest_url=empty_manifest_url,
+                dataframe=updated_df,
+                out_of_schema_columns=out_of_schema_columns,
+            )
             return result
 
-    def _get_end_columns(self, current_schema_headers, existing_manifest_headers, out_of_schema_columns):
+    def _get_end_columns(
+        self, current_schema_headers, existing_manifest_headers, out_of_schema_columns
+    ):
         """
         Gather columns to be added to the end of the manifest, and ensure entityId is at the end.
         Args:
@@ -1709,19 +1883,24 @@ class ManifestGenerator(object):
         """
         # Identify columns to add to the end of the manifest
         end_columns = list(out_of_schema_columns)
-        
+
         # Make sure want Ids are placed at end of manifest, in given order.
-        for id_name in ['Uuid', 'Id', 'entityId']:
+        for id_name in ["Uuid", "Id", "entityId"]:
             if id_name in end_columns:
                 end_columns.remove(id_name)
                 end_columns.append(id_name)
-        
+
         # Add entity_id to the end columns if it should be there but isn't
-        if 'entityId' in (current_schema_headers or existing_manifest_headers) and 'entityId' not in end_columns:
-            end_columns.append('entityId')
+        if (
+            "entityId" in (current_schema_headers or existing_manifest_headers)
+            and "entityId" not in end_columns
+        ):
+            end_columns.append("entityId")
         return end_columns
 
-    def _update_dataframe_with_existing_df(self, empty_manifest_url: str, existing_df: pd.DataFrame) -> pd.DataFrame:
+    def _update_dataframe_with_existing_df(
+        self, empty_manifest_url: str, existing_df: pd.DataFrame
+    ) -> pd.DataFrame:
         """
         Handle scenario when existing manifest does not match new manifest template due to changes in the data model:
             the sheet column header reflect the latest schema the existing manifest column-set may be outdated
@@ -1737,40 +1916,50 @@ class ManifestGenerator(object):
         """
 
         # Get headers for the current schema and existing manifest df.
-        current_schema_headers = list(self.get_dataframe_by_url(manifest_url=empty_manifest_url).columns)
+        current_schema_headers = list(
+            self.get_dataframe_by_url(manifest_url=empty_manifest_url).columns
+        )
         existing_manifest_headers = list(existing_df.columns)
 
         # Find columns that exist in the current schema, but are not in the manifest being downloaded.
-        new_columns = self._get_missing_columns(current_schema_headers, existing_manifest_headers)
+        new_columns = self._get_missing_columns(
+            current_schema_headers, existing_manifest_headers
+        )
 
         # Find columns that exist in the manifest being downloaded, but not in the current schema.
-        out_of_schema_columns = self._get_missing_columns(existing_manifest_headers, current_schema_headers)
+        out_of_schema_columns = self._get_missing_columns(
+            existing_manifest_headers, current_schema_headers
+        )
 
         # clean empty columns if any are present (there should be none)
         # TODO: Remove this line once we start preventing empty column names
-        if '' in new_columns:
-            new_columns = new_columns.remove('')
+        if "" in new_columns:
+            new_columns = new_columns.remove("")
 
         # Copy the df for updating.
         updated_df = existing_df.copy(deep=True)
-        
+
         # update existing manifest w/ missing columns, if any
         if new_columns:
             updated_df = updated_df.assign(
                 **dict(zip(new_columns, len(new_columns) * [""]))
             )
 
-        end_columns = self._get_end_columns(current_schema_headers=current_schema_headers,
-                                           existing_manifest_headers=existing_manifest_headers,
-                                           out_of_schema_columns=out_of_schema_columns)
-        
+        end_columns = self._get_end_columns(
+            current_schema_headers=current_schema_headers,
+            existing_manifest_headers=existing_manifest_headers,
+            out_of_schema_columns=out_of_schema_columns,
+        )
+
         # sort columns in the updated manifest:
         # match latest schema order
         # move obsolete columns at the end
         updated_df = updated_df[self.sort_manifest_fields(updated_df.columns)]
 
         # move obsolete columns at the end with entityId at the very end
-        updated_df = updated_df[[c for c in updated_df if c not in end_columns] + list(end_columns)]
+        updated_df = updated_df[
+            [c for c in updated_df if c not in end_columns] + list(end_columns)
+        ]
         return updated_df, out_of_schema_columns
 
     def _format_new_excel_column(self, worksheet, new_column_index: int, col: str):
@@ -1782,78 +1971,106 @@ class ManifestGenerator(object):
             modified worksheet
         """
         # Add column header
-        worksheet.cell(row=1, column=new_column_index+1).value = col
-        # Format new column header 
-        worksheet.cell(row=1, column=new_column_index+1).font = Font(size=8, bold=True, color="FF000000")
-        worksheet.cell(row=1, column=new_column_index+1).alignment = Alignment(horizontal="center", vertical="bottom")
-        worksheet.cell(row=1, column=new_column_index+1).fill = PatternFill(start_color='FFE0E0E0', end_color='FFE0E0E0', fill_type='solid')
+        worksheet.cell(row=1, column=new_column_index + 1).value = col
+        # Format new column header
+        worksheet.cell(row=1, column=new_column_index + 1).font = Font(
+            size=8, bold=True, color="FF000000"
+        )
+        worksheet.cell(row=1, column=new_column_index + 1).alignment = Alignment(
+            horizontal="center", vertical="bottom"
+        )
+        worksheet.cell(row=1, column=new_column_index + 1).fill = PatternFill(
+            start_color="FFE0E0E0", end_color="FFE0E0E0", fill_type="solid"
+        )
         return worksheet
 
-    def populate_existing_excel_spreadsheet(self, existing_excel_path: str = None, additional_df: pd.DataFrame = None):
-        '''Populate an existing excel spreadsheet by using an additional dataframe (to avoid sending metadata directly to Google APIs)
+    def populate_existing_excel_spreadsheet(
+        self, existing_excel_path: str = None, additional_df: pd.DataFrame = None
+    ):
+        """Populate an existing excel spreadsheet by using an additional dataframe (to avoid sending metadata directly to Google APIs)
         New columns will be placed at the end of the spreadsheet.
         Args:
             existing_excel_path: path of an existing excel spreadsheet
             additional_df: additional dataframe
-        Return: 
+        Return:
             added new dataframe to the existing excel path.
         Note:
-            - Done by rows and column as a way to preserve formatting. 
+            - Done by rows and column as a way to preserve formatting.
             Doing a complete replacement will remove all conditional formatting and dropdowns.
-        '''
+        """
         # load workbook
         workbook = load_workbook(existing_excel_path)
         worksheet = workbook.active
 
         # Add new data to existing excel
         if not additional_df.empty:
-            existing_excel_headers = [cell.value for cell in worksheet[1] if cell.value != None]
+            existing_excel_headers = [
+                cell.value for cell in worksheet[1] if cell.value != None
+            ]
 
             new_column_index = len(existing_excel_headers)
             df_columns = additional_df.columns
 
             # Iteratively fill workbook with contents of additional_df
-            for row_num, row_contents in enumerate(dataframe_to_rows(additional_df, index=False, header=False), 2):
+            for row_num, row_contents in enumerate(
+                dataframe_to_rows(additional_df, index=False, header=False), 2
+            ):
                 for index, col in enumerate(df_columns):
                     if col in existing_excel_headers:
                         # Get index of column header in existing excel to ensure no values are placed in incorrect spot.
                         existing_column_index = existing_excel_headers.index(col)
-                        worksheet.cell(row=row_num, column=existing_column_index+1).value = row_contents[index]
+                        worksheet.cell(
+                            row=row_num, column=existing_column_index + 1
+                        ).value = row_contents[index]
                     else:
                         # Add new col to excel worksheet and format.
-                        worksheet = self._format_new_excel_column(worksheet=worksheet, new_column_index=new_column_index, col=col)
+                        worksheet = self._format_new_excel_column(
+                            worksheet=worksheet,
+                            new_column_index=new_column_index,
+                            col=col,
+                        )
                         # Add data to column
-                        worksheet.cell(row=row_num, column=new_column_index+1).value = row_contents[index]
+                        worksheet.cell(
+                            row=row_num, column=new_column_index + 1
+                        ).value = row_contents[index]
                         # Add new column to headers so it can be accounted for.
                         existing_excel_headers.append(col)
                         # Update index for adding new columns.
-                        new_column_index+=1                   
+                        new_column_index += 1
         workbook.save(existing_excel_path)
 
-    def populate_manifest_spreadsheet(self, existing_manifest_path: str = None, empty_manifest_url: str = None, return_excel: bool = False, title: str = None):
+    def populate_manifest_spreadsheet(
+        self,
+        existing_manifest_path: str = None,
+        empty_manifest_url: str = None,
+        return_excel: bool = False,
+        title: str = None,
+    ):
         """Creates a google sheet manifest based on existing manifest.
         Args:
             existing_manifest_path: the location of the manifest containing metadata presently stored
             empty_manifest_url: the path to a manifest template to be prepopulated with existing's manifest metadata
             return_excel: if true, return an Excel spreadsheet instead of Google sheet
-            title: title of output manifest 
+            title: title of output manifest
         """
 
         # read existing manifest
         manifest = load_df(existing_manifest_path)
-        
-        if return_excel: 
-            '''if we are returning an Excel spreadsheet, do not populate dataframe to google'''
-            # get an empty manifest 
+
+        if return_excel:
+            """if we are returning an Excel spreadsheet, do not populate dataframe to google"""
+            # get an empty manifest
             manifest_url = empty_manifest_url
 
             # export the manifest to excel
-            output_excel_file_path = self.export_sheet_to_excel(manifest_url = manifest_url, title=title)
-            
-            # populate exported sheet 
+            output_excel_file_path = self.export_sheet_to_excel(
+                manifest_url=manifest_url, title=title
+            )
+
+            # populate exported sheet
             self.populate_existing_excel_spreadsheet(output_excel_file_path, manifest)
             return output_excel_file_path
-        else: 
+        else:
             manifest_sh = self.set_dataframe_by_url(empty_manifest_url, manifest)
             return manifest_sh.url
 
@@ -1869,9 +2086,9 @@ class ManifestGenerator(object):
 
         # order manifest fields based on data-model schema
         if order == "schema":
-            if self.sg and self.root:
+            if self.dmge and self.root:
                 # get display names of dependencies
-                dependencies_display_names = self.sg.get_node_dependencies(self.root)
+                dependencies_display_names = self.dmge.get_node_dependencies(self.root)
 
                 # reorder manifest fields so that root dependencies are first and follow schema order
                 manifest_fields = sorted(

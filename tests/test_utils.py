@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import os
@@ -15,16 +16,32 @@ import synapseclient.core.cache as cache
 from pandas.testing import assert_frame_equal
 from synapseclient.core.exceptions import SynapseHTTPError
 
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_jsonld import DataModelJsonLD, BaseTemplate, PropertyTemplate, ClassTemplate
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+
+from schematic.schemas.data_model_relationships import DataModelRelationships
+from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
+
+from schematic.exceptions import (
+    MissingConfigValueError,
+    MissingConfigAndArgumentValueError,
+)
 from schematic import LOADER
 from schematic.exceptions import (MissingConfigAndArgumentValueError,
                                   MissingConfigValueError)
-from schematic.schemas import df_parser
-from schematic.schemas.explorer import SchemaExplorer
+
 from schematic.utils import (cli_utils, df_utils, general, io_utils,
                              validate_utils)
 from schematic.utils.general import (calculate_datetime,
                                      check_synapse_cache_size,
                                      clear_synapse_cache, entity_type_mapping)
+from schematic.utils.schema_utils import (export_schema,
+                                          get_property_label_from_display_name,
+                                          get_class_label_from_display_name,
+                                          strip_context)
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -335,46 +352,134 @@ class TestDfUtils:
         output_df = df_utils.populate_df_col_with_another_col(input_df,'column1','column2')
         assert (output_df["column2"].values == ["col1Val","col1Val"]).all()
 
+class TestSchemaUtils:
+    def test_get_property_label_from_display_name(self, helpers):
+
+        # tests where strict_camel_case is the same
+        assert(get_property_label_from_display_name("howToAcquire") == "howToAcquire")
+        assert(get_property_label_from_display_name("howToAcquire", strict_camel_case = True) == "howToAcquire")
+        assert(get_property_label_from_display_name("how_to_acquire") == "howToAcquire")
+        assert(get_property_label_from_display_name("how_to_acquire", strict_camel_case = True) == "howToAcquire")
+        assert(get_property_label_from_display_name("howtoAcquire") == "howtoAcquire")
+        assert(get_property_label_from_display_name("howtoAcquire", strict_camel_case = True) == "howtoAcquire")
+        assert(get_property_label_from_display_name("How To Acquire") == "howToAcquire")
+        assert(get_property_label_from_display_name("How To Acquire", strict_camel_case = True) == "howToAcquire")
+        assert(get_property_label_from_display_name("Model Of Manifestation") == "modelOfManifestation")
+        assert(get_property_label_from_display_name("Model Of Manifestation", strict_camel_case = True) == "modelOfManifestation")
+        assert(get_property_label_from_display_name("ModelOfManifestation") == "modelOfManifestation")
+        assert(get_property_label_from_display_name("ModelOfManifestation", strict_camel_case = True) == "modelOfManifestation")
+        assert(get_property_label_from_display_name("model Of Manifestation") == "modelOfManifestation")
+        assert(get_property_label_from_display_name("model Of Manifestation", strict_camel_case = True) == "modelOfManifestation")
+
+        # tests where strict_camel_case changes the result
+        assert(get_property_label_from_display_name("how to Acquire") == "howtoAcquire")
+        assert(get_property_label_from_display_name("how to Acquire", strict_camel_case = True) == "howToAcquire")
+        assert(get_property_label_from_display_name("How to Acquire") == "howtoAcquire")
+        assert(get_property_label_from_display_name("How to Acquire", strict_camel_case = True) == "howToAcquire")
+        assert(get_property_label_from_display_name("how to acquire") == "howtoacquire")
+        assert(get_property_label_from_display_name("how to acquire", strict_camel_case = True) == "howToAcquire")
+        assert(get_property_label_from_display_name("model of manifestation") == "modelofmanifestation")
+        assert(get_property_label_from_display_name("model of manifestation", strict_camel_case = True) == "modelOfManifestation")
+        assert(get_property_label_from_display_name("model of manifestation") == "modelofmanifestation")
+        assert(get_property_label_from_display_name("model of manifestation", strict_camel_case = True) == "modelOfManifestation")
+
+    def test_get_class_label_from_display_name(self, helpers):
+
+        # tests where strict_camel_case is the same
+        assert(get_class_label_from_display_name("howToAcquire") == "HowToAcquire")
+        assert(get_class_label_from_display_name("howToAcquire", strict_camel_case = True) == "HowToAcquire")
+        assert(get_class_label_from_display_name("how_to_acquire") == "HowToAcquire")
+        assert(get_class_label_from_display_name("how_to_acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(get_class_label_from_display_name("howtoAcquire") == "HowtoAcquire")
+        assert(get_class_label_from_display_name("howtoAcquire", strict_camel_case = True) == "HowtoAcquire")
+        assert(get_class_label_from_display_name("How To Acquire") == "HowToAcquire")
+        assert(get_class_label_from_display_name("How To Acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(get_class_label_from_display_name("Model Of Manifestation") == "ModelOfManifestation")
+        assert(get_class_label_from_display_name("Model Of Manifestation", strict_camel_case = True) == "ModelOfManifestation")
+        assert(get_class_label_from_display_name("ModelOfManifestation") == "ModelOfManifestation")
+        assert(get_class_label_from_display_name("ModelOfManifestation", strict_camel_case = True) == "ModelOfManifestation")
+        assert(get_class_label_from_display_name("model Of Manifestation") == "ModelOfManifestation")
+        assert(get_class_label_from_display_name("model Of Manifestation", strict_camel_case = True) == "ModelOfManifestation")
+
+        # tests where strict_camel_case changes the result
+        assert(get_class_label_from_display_name("how to Acquire") == "HowtoAcquire")
+        assert(get_class_label_from_display_name("how to Acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(get_class_label_from_display_name("How to Acquire") == "HowtoAcquire")
+        assert(get_class_label_from_display_name("How to Acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(get_class_label_from_display_name("how to acquire") == "Howtoacquire")
+        assert(get_class_label_from_display_name("how to acquire", strict_camel_case = True) == "HowToAcquire")
+        assert(get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
+        assert(get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
+        assert(get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
+        assert(get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
+
+    @pytest.mark.parametrize("context_value", ['@id', 'sms:required'], ids=['remove_at', 'remove_sms'])
+    def test_strip_context(self, helpers, context_value):
+        stripped_contex = strip_context(context_value=context_value)
+        if '@id' == context_value:
+            assert stripped_contex == ('', 'id')
+        elif 'sms:required' == context_value:
+            assert stripped_contex == ('sms', 'required')
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
-
+        '''
+        Previously did:
         se_obj = helpers.get_schema_explorer("example.model.jsonld")
-
         actual = validate_utils.validate_schema(se_obj.schema)
+
+        schema is defined as: self.schema = load_json(schema)
+
+        TODO: Validate this is doing what its supposed to.
+        '''
+        # Get data model path
+        data_model_path = helpers.get_data_path("example.model.jsonld")
+        schema = io_utils.load_json(data_model_path)
+        #need to pass the jsonschema
+        actual = validate_utils.validate_schema(schema)
 
         assert actual is None
 
+
     def test_validate_class_schema(self, helpers):
+        """
+        Get a class template, fill it out with mock data, and validate against a JSON Schema
 
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+        """
+        class_template = ClassTemplate()
+        self.class_template = json.loads(class_template.to_json())
 
-        mock_class = se_obj.generate_class_template()
+        mock_class = copy.deepcopy(self.class_template)
         mock_class["@id"] = "bts:MockClass"
         mock_class["@type"] = "rdfs:Class"
         mock_class["@rdfs:comment"] = "This is a mock class"
         mock_class["@rdfs:label"] = "MockClass"
-        mock_class["rdfs:subClassOf"]["@id"] = "bts:Patient"
+        mock_class["rdfs:subClassOf"].append({"@id":"bts:Patient"})
 
-        actual = validate_utils.validate_class_schema(mock_class)
+        error = validate_utils.validate_class_schema(mock_class)
 
-        assert actual is None
+        assert error is None
+        
 
     def test_validate_property_schema(self, helpers):
+        """
+        Get a property template, fill it out with mock data, and validate against a JSON Schema
 
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
+        """
+        property_template = PropertyTemplate()
+        self.property_template = json.loads(property_template.to_json())
 
-        mock_class = se_obj.generate_property_template()
+        mock_class = copy.deepcopy(self.property_template)
         mock_class["@id"] = "bts:MockProperty"
         mock_class["@type"] = "rdf:Property"
         mock_class["@rdfs:comment"] = "This is a mock Patient class"
-        mock_class["@rdfs:label"] = "MockProperty"
-        mock_class["schema:domainIncludes"]["@id"] = "bts:Patient"
+        mock_class["@rdfs:label"] = "MockProperty"      
+        mock_class["schema:domainIncludes"].append({"@id":"bts:Patient"})
 
-        actual = validate_utils.validate_property_schema(mock_class)
+        error = validate_utils.validate_property_schema(mock_class)
 
-        assert actual is None
-
+        assert error is None
+        
 
 class TestCsvUtils:
     def test_csv_to_schemaorg(self, helpers, tmp_path):
@@ -382,17 +487,32 @@ class TestCsvUtils:
 
         This test also ensures that the CSV and JSON-LD
         files for the example data model stay in sync.
+        TODO: This probably should be moved out of here and to test_schemas
         """
         csv_path = helpers.get_data_path("example.model.csv")
 
-        base_se = df_parser._convert_csv_to_data_model(csv_path)
+        # Instantiate DataModelParser
+        data_model_parser = DataModelParser(path_to_data_model = csv_path)
+        
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        # Convert graph to JSONLD
+        jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
 
         # saving updated schema.org schema
         actual_jsonld_path = tmp_path / "example.from_csv.model.jsonld"
-        base_se.export_schema(actual_jsonld_path)
+        export_schema(jsonld_data_model, actual_jsonld_path)
 
         # Compare both JSON-LD files
         expected_jsonld_path = helpers.get_data_path("example.model.jsonld")
         expected_jsonld = open(expected_jsonld_path).read()
         actual_jsonld = open(actual_jsonld_path).read()
+
         assert expected_jsonld == actual_jsonld

@@ -9,13 +9,16 @@ import pandas as pd
 from dotenv import load_dotenv, find_dotenv
 from time import perf_counter
 
-from schematic.schemas.explorer import SchemaExplorer
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_nodes import DataModelNodes
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+
 from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
 from schematic.store.synapse import SynapseStorage
 
 load_dotenv()
-
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -54,15 +57,29 @@ class Helpers:
         return load_df(fullpath, **kwargs)
 
     @staticmethod
-    def get_schema_explorer(path=None, *paths):
+    def get_data_model_graph_explorer(path=None, *paths):
+        #commenting this now bc we dont want to have multiple instances
         if path is None:
-            return SchemaExplorer()
+            return
 
         fullpath = Helpers.get_data_path(path, *paths)
 
-        se = SchemaExplorer()
-        se.load_schema(fullpath)
-        return se
+        # Instantiate DataModelParser
+        data_model_parser = DataModelParser(path_to_data_model = fullpath)
+        
+        #Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(parsed_data_model)
+
+        # Generate graph
+        graph_data_model = data_model_grapher.generate_data_model_graph()
+
+        #Instantiate DataModelGraphExplorer
+        DMGE = DataModelGraphExplorer(graph_data_model)
+
+        return DMGE
 
     @staticmethod
     def get_python_version():
