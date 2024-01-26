@@ -10,7 +10,12 @@ from pandarallel import pandarallel
 logger = logging.getLogger(__name__)
 
 
-def load_df(file_path: str, preserve_raw_input: bool = True, data_model: bool = False, **load_args) -> pd.DataFrame:
+def load_df(
+    file_path: str,
+    preserve_raw_input: bool = True,
+    data_model: bool = False,
+    **load_args,
+) -> pd.DataFrame:
     """
     Universal function to load CSVs and return DataFrames
     Parses string entries to convert as appropriate to type int, float, and pandas timestamp
@@ -27,13 +32,13 @@ def load_df(file_path: str, preserve_raw_input: bool = True, data_model: bool = 
     large_manifest_cutoff_size = 1000
     # start performance timer
     t_load_df = perf_counter()
-    
-    #Read CSV to df as type specified in kwargs
-    org_df = pd.read_csv(file_path, keep_default_na = True, encoding='utf8', **load_args)
 
-    #only trim if not data model csv
+    # Read CSV to df as type specified in kwargs
+    org_df = pd.read_csv(file_path, keep_default_na=True, encoding="utf8", **load_args)
+
+    # only trim if not data model csv
     if not data_model:
-        org_df=trim_commas_df(org_df)
+        org_df = trim_commas_df(org_df)
 
     # If type inference not allowed: trim and return
     if preserve_raw_input:
@@ -76,8 +81,8 @@ def load_df(file_path: str, preserve_raw_input: bool = True, data_model: bool = 
             float_df[col].fillna(org_df[col][float_df[col].isna()], inplace=True)
 
         # Store values that were converted to type int in the final dataframe
-        processed_df=float_df.mask(ints_tf_df, other = ints)
-        
+        processed_df = float_df.mask(ints_tf_df, other=ints)
+
         # log manifest load and processing time
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return processed_df
