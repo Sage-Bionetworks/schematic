@@ -43,19 +43,20 @@ def load_df(
     if preserve_raw_input:
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
-    
-    is_null = org_df.isnull() 
-    org_df = org_df.astype(str).mask(is_null, '')
+
+    is_null = org_df.isnull()
+    org_df = org_df.astype(str).mask(is_null, "")
 
     ints, is_int = find_and_convert_ints(org_df)
 
     float_df = convert_floats(org_df)
 
     # Store values that were converted to type int in the final dataframe
-    processed_df=float_df.mask(is_int, other = ints)
+    processed_df = float_df.mask(is_int, other=ints)
 
     logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
     return processed_df
+
 
 def find_and_convert_ints(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -69,17 +70,22 @@ def find_and_convert_ints(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
     """
     large_manifest_cutoff_size = 1000
     # Find integers stored as strings and replace with entries of type np.int64
-    if df.size < large_manifest_cutoff_size:  # If small manifest, iterate as normal for improved performance
-        ints = df.map(lambda x: convert_ints(x), na_action='ignore').fillna(False)
+    if (
+        df.size < large_manifest_cutoff_size
+    ):  # If small manifest, iterate as normal for improved performance
+        ints = df.map(lambda x: convert_ints(x), na_action="ignore").fillna(False)
 
-    else:   # parallelize iterations for large manfiests
-        pandarallel.initialize(verbose = 1)
-        ints = df.parallel_map(lambda x: convert_ints(x), na_action='ignore').fillna(False)
+    else:  # parallelize iterations for large manfiests
+        pandarallel.initialize(verbose=1)
+        ints = df.parallel_map(lambda x: convert_ints(x), na_action="ignore").fillna(
+            False
+        )
 
     # Identify cells converted to intergers
     is_int = ints.map(pd.api.types.is_integer)
 
     return ints, is_int
+
 
 def convert_ints(x: str) -> Union[np.int64, bool]:
     """
@@ -91,6 +97,7 @@ def convert_ints(x: str) -> Union[np.int64, bool]:
     """
     return np.int64(x) if str.isdigit(x) else False
 
+
 def convert_floats(df: pd.DataFrame) -> pd.DataFrame:
     """
     Convert strings that represent floats to type float
@@ -99,18 +106,19 @@ def convert_floats(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         float_df: dataframe with values that were converted to type float. Columns are type object
     """
-    # create a separate copy of the manifest 
+    # create a separate copy of the manifest
     # before beginning conversions to store float values
-    float_df=deepcopy(df)
-    
+    float_df = deepcopy(df)
+
     # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
     for col in df.columns:
-        float_df[col]=pd.to_numeric(float_df[col], errors='coerce').astype('object')
+        float_df[col] = pd.to_numeric(float_df[col], errors="coerce").astype("object")
 
         # replace values that couldn't be converted to float with the original str values
         float_df[col].fillna(df[col][float_df[col].isna()], inplace=True)
 
     return float_df
+
 
 def _parse_dates(date_string):
     try:
