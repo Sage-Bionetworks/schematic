@@ -605,7 +605,7 @@ class TestSchemaUtils:
         ["display_label", "class_label"],
         ids=["display_label", "class_label"],
     )
-    def test_get_label_from_display_name(self, test_dn, use_label):
+    def test_get_label_from_display_name(self, test_dn, data_model_labels):
         display_name = test_dn
         for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
             label = ""
@@ -625,7 +625,7 @@ class TestSchemaUtils:
                     "bio_things",
                 ]
             if label:
-                if use_label:
+                if data_model_labels == "display_label":
                     if test_dn in ["Bio Things", "bio things", "Bio-things"]:
                         assert label == expected_result
 

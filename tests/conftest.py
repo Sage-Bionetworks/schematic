@@ -59,7 +59,7 @@ class Helpers:
 
     @staticmethod
     def get_data_model_graph_explorer(
-        path=None, display_name_as_label: bool = False, *paths
+        path=None, data_model_labels: str = "class_label", *paths
     ):
         # commenting this now bc we dont want to have multiple instances
         if path is None:
@@ -69,7 +69,7 @@ class Helpers:
 
         # Instantiate DataModelParser
         data_model_parser = DataModelParser(
-            path_to_data_model=fullpath, display_name_as_label=display_name_as_label
+            path_to_data_model=fullpath,
         )
 
         # Parse Model
@@ -77,7 +77,7 @@ class Helpers:
 
         # Instantiate DataModelGraph
         data_model_grapher = DataModelGraph(
-            parsed_data_model, display_name_as_label=display_name_as_label
+            parsed_data_model, data_model_labels=data_model_labels
         )
 
         # Generate graph

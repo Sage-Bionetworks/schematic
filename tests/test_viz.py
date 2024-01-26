@@ -20,7 +20,8 @@ def attributes_explorer(helpers):
 
     # Initialize TangledTree
     attributes_explorer = AttributesExplorer(
-        path_to_jsonld, display_name_as_label=False
+        path_to_jsonld,
+        data_model_labels="class_label",
     )
     yield attributes_explorer
 
@@ -33,7 +34,9 @@ def tangled_tree(helpers):
     path_to_jsonld = helpers.get_data_path("example.model.jsonld")
 
     # Initialize TangledTree
-    tangled_tree = TangledTree(path_to_jsonld, figure_type, display_name_as_label=False)
+    tangled_tree = TangledTree(
+        path_to_jsonld, figure_type, data_model_labels="class_label"
+    )
     yield tangled_tree
 
 

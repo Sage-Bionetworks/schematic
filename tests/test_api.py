@@ -544,6 +544,7 @@ class TestManifestOperation:
             "title": "Example",
             "data_type": data_type,
             "use_annotations": False,
+            "data_model_labels": "class_label",
         }
 
         # Previous form of the test had `access_token` set to `None`
@@ -1033,6 +1034,7 @@ class TestManifestOperation:
             "dataset_id": "syn51514345",
             "table_manipulation": "replace",
             "use_schema_label": True,
+            "data_model_labels": "class_label",
         }
 
         response_csv = client.post(
@@ -1070,6 +1072,7 @@ class TestManifestOperation:
             "manifest_record_type": "file_only",
             "table_manipulation": "replace",
             "use_schema_label": True,
+            "data_model_labels": "class_label",
         }
 
         if data_type == "Biospecimen":
@@ -1116,6 +1119,7 @@ class TestManifestOperation:
             "dataset_id": "syn51514345",
             "table_manipulation": "replace",
             "use_schema_label": True,
+            "data_model_labels": "class_label",
         }
         params["json_str"] = json_str
         response = client.post(
@@ -1140,6 +1144,7 @@ class TestManifestOperation:
             "dataset_id": "syn51514523",
             "table_manipulation": "replace",
             "use_schema_label": True,
+            "data_model_labels": "class_label",
         }
 
         # test uploading a csv file
@@ -1169,6 +1174,7 @@ class TestManifestOperation:
             "dataset_id": "syn51514551",
             "table_manipulation": "upsert",
             "use_schema_label": False,  # have to set use_schema_label to false to ensure upsert feature works
+            "data_model_labels": "class_label",
         }
 
         # test uploading a csv file
@@ -1220,6 +1226,7 @@ class TestSchemaVisualization:
             "schema_url": data_model_jsonld,
             "component": component,
             "include_index": False,
+            "data_model_labels": "class_label",
         }
 
         response = client.get(

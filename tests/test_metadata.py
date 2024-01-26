@@ -9,10 +9,10 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def metadata_model(helpers, display_name_as_label):
+def metadata_model(helpers, data_model_labels):
     metadata_model = MetadataModel(
         inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
-        display_name_as_label=display_name_as_label,
+        data_model_labels=data_model_labels,
         inputMModelLocationType="local",
     )
 
@@ -22,15 +22,15 @@ def metadata_model(helpers, display_name_as_label):
 class TestMetadataModel:
     @pytest.mark.parametrize("as_graph", [True, False], ids=["as_graph", "as_list"])
     @pytest.mark.parametrize(
-        "display_name_as_label",
-        [True, False],
-        ids=["display_name_as_label-True", "display_name_as_label-False"],
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["data_model_labels-display_label", "data_model_labels-class_label"],
     )
-    def test_get_component_requirements(self, helpers, as_graph, display_name_as_label):
+    def test_get_component_requirements(self, helpers, as_graph, data_model_labels):
         # Instantiate MetadataModel
-        meta_data_model = metadata_model(helpers, display_name_as_label)
+        meta_data_model = metadata_model(helpers, data_model_labels)
 
-        if display_name_as_label:
+        if data_model_labels == "display_label":
             source_component = "BulkRNAseqAssay"
         else:
             source_component = "BulkRNA-seqAssay"
@@ -43,28 +43,28 @@ class TestMetadataModel:
 
         if as_graph:
             assert ("Biospecimen", "Patient") in output
-            if display_name_as_label:
+            if data_model_labels == "display_label":
                 assert ("BulkRNAseqAssay", "Biospecimen") in output
             else:
                 assert ("BulkRNA-seqAssay", "Biospecimen") in output
         else:
             assert "Biospecimen" in output
             assert "Patient" in output
-            if display_name_as_label:
+            if data_model_labels == "display_label":
                 assert "BulkRNAseqAssay" in output
             else:
                 assert "BulkRNA-seqAssay" in output
 
     @pytest.mark.parametrize("return_excel", [None, True, False])
     @pytest.mark.parametrize(
-        "display_name_as_label",
-        [True, False],
-        ids=["display_name_as_label-True", "display_name_as_label-False"],
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["data_model_labels-display_label", "data_model_labels-class_label"],
     )
     @pytest.mark.google_credentials_needed
-    def test_populate_manifest(self, helpers, return_excel, display_name_as_label):
+    def test_populate_manifest(self, helpers, return_excel, data_model_labels):
         # Instantiate MetadataModel
-        meta_data_model = metadata_model(helpers, display_name_as_label)
+        meta_data_model = metadata_model(helpers, data_model_labels)
 
         # Get path of manifest
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")

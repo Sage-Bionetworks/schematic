@@ -33,7 +33,7 @@ def metadataModel(helpers):
     metadataModel = MetadataModel(
         inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
         inputMModelLocationType="local",
-        display_name_as_label=False,
+        data_model_labels="class_label",
     )
 
     yield metadataModel

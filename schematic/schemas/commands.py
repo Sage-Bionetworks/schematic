@@ -44,7 +44,8 @@ def schema():  # use as `schematic model ...`
 @click.option(
     "--data_model_labels",
     "-dml",
-    is_flag=True,
+    default="class_label",
+    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
     help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
 )
 @click.option(
@@ -65,7 +66,7 @@ def convert(schema, data_model_labels, output_jsonld):
     st = time.time()
 
     # Instantiate Parser
-    data_model_parser = DataModelParser(schema, data_model_labels)
+    data_model_parser = DataModelParser(schema)
 
     # Parse Model
     logger.info("Parsing data model.")

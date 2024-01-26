@@ -105,7 +105,7 @@ def get_label_from_display_name(
         ValueError if entry_type.lower(), is not either 'class' or 'property'
 
     """
-    if data_model_labels == "class_label":
+    if data_model_labels == "display_label":
         blacklisted_chars = ["(", ")", ".", " ", "-"]
         # Check that display name can be used as a label.
         valid_display_name = check_if_display_name_is_valid_label(
@@ -129,7 +129,7 @@ def get_label_from_display_name(
                 ][0]
 
             logger.warning(
-                f"Cannot use display name {display_name} as the schema label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {label}"
+                f"Cannot use display name {display_name} as the data model label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {label}"
             )
     else:
         if entry_type.lower() == "class":
