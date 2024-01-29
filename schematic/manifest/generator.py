@@ -1689,6 +1689,7 @@ class ManifestGenerator(object):
                         graph_data_model=graph_data_model,
                         output_format=output_format,
                         title=t,
+                        strict=strict,
                         access_token=access_token,
                     )
                     all_results.append(result)
@@ -1714,6 +1715,7 @@ class ManifestGenerator(object):
                         dataset_id=dataset_ids[i],
                         output_format=output_format,
                         title=t,
+                        strict=strict,
                         access_token=access_token,
                         use_annotations=use_annotations,
                     )
@@ -1724,6 +1726,7 @@ class ManifestGenerator(object):
                         graph_data_model=graph_data_model,
                         output_format=output_format,
                         title=t,
+                        strict=strict,
                         access_token=access_token,
                         use_annotations=use_annotations,
                     )
