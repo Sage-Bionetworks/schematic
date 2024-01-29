@@ -181,6 +181,15 @@ class Configuration:
             self._google_sheets_config.service_acct_creds, self._parent_directory
         )
 
+    @service_account_credentials_path.setter
+    def service_account_credentials_path(self, path: str) -> None:
+        """Sets the path of the Google service account credentials.
+
+        Args:
+            path (str): The path of the Google service account credentials.
+        """
+        self._google_sheets_config.service_acct_creds = path
+
     @property
     def google_sheets_master_template_id(self) -> str:
         """

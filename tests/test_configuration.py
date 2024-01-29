@@ -213,3 +213,13 @@ class TestConfiguration:
         assert config.synapse_master_fileview_id == "syn1"
         with pytest.raises(ValidationError):
             config.synapse_master_fileview_id = "syn"
+
+    def test_set_service_account_credentials_path(self) -> None:
+        """Testing for Configuration service_account_credentials_path setter"""
+        config = Configuration()
+        assert (
+            os.path.basename(config.service_account_credentials_path)
+            == "schematic_service_account_creds.json"
+        )
+        config.service_account_credentials_path = "test.json"
+        assert os.path.basename(config.service_account_credentials_path) == "test.json"
