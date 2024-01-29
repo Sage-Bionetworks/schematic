@@ -1574,7 +1574,7 @@ class ManifestGenerator(object):
         title: Optional[str] = None,
         output_format: Literal["google_sheet", "excel", "dataframe"] = "google_sheet",
         use_annotations: Optional[bool] = False,
-    ) -> Union[str, pd.DataFrame, BinaryIO]:
+    ) -> Union[str, pd.DataFrame]:
         """Create a single manifest
 
         Args:
@@ -1588,7 +1588,7 @@ class ManifestGenerator(object):
             use_annotations (bool, optional): whether to use annotations. Defaults to False.
 
         Returns:
-            Union[str, pd.DataFrame, BinaryIO]: Googlesheet URL or pandas dataframe or Excel.
+            Union[str, pd.DataFrame]: Googlesheet URL or pandas dataframe or an excel file path
         """
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -1625,7 +1625,7 @@ class ManifestGenerator(object):
         title: Optional[str] = None,
         strict: Optional[bool] = True,
         use_annotations: Optional[bool] = False,
-    ) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
+    ) -> Union[List[str], List[pd.DataFrame]]:
         """Create multiple manifests
 
         Args:
@@ -1639,7 +1639,7 @@ class ManifestGenerator(object):
             use_annotations (bool, optional): whether to use annotations. Defaults to False.
 
         Returns:
-            Union[List[str], List[pd.DataFrame], BinaryIO]: a list of Googlesheet URLs, a list of pandas dataframes or an Excel file.
+            Union[List[str], List[pd.DataFrame]]: a list of Googlesheet URLs, a list of pandas dataframes or excel file paths
         """
         if dataset_ids:
             # Check that the number of submitted data_types matches
