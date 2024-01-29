@@ -198,6 +198,14 @@ class TestConfiguration:
          is not valid
         """
         config = Configuration()
+        config.load_config("tests/data/test_configs/valid_config2.yml")
+
+    def test_load_config4(self) -> None:
+        """
+        Testing for Configuration.load_config where config file
+         has no asset store section
+        """
+        config = Configuration()
         with pytest.raises(ConfigNonAllowedFieldError):
             config.load_config("tests/data/test_configs/invalid_config1.yml")
         with pytest.raises(ConfigNonAllowedFieldError):
