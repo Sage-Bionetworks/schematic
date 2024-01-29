@@ -29,8 +29,6 @@ from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 
-# from schematic.schemas.data_model_relationships import DataModelRelationships
-
 from schematic.store.synapse import SynapseStorage, ManifestDownload
 from synapseclient.core.exceptions import (
     SynapseHTTPError,
@@ -408,6 +406,8 @@ def submit_manifest_route(
     data_type=None,
     hide_blanks=False,
     project_scope=None,
+    table_column_names=None,
+    annotation_keys=None,
 ):
     # call config_handler()
     config_handler(asset_view=asset_view)
@@ -421,20 +421,11 @@ def submit_manifest_route(
     else:
         temp_path = jsc.convert_json_file_to_csv("file_name")
 
+    # Get/parse parameters from the API
+
     dataset_id = connexion.request.args["dataset_id"]
 
     restrict_rules = parse_bool(connexion.request.args["restrict_rules"])
-
-    metadata_model = initalize_metadata_model(schema_url, data_model_labels)
-
-    # Access token now stored in request header
-    access_token = get_access_token()
-
-    use_schema_label = connexion.request.args["use_schema_label"]
-    if use_schema_label == "None":
-        use_schema_label = True
-    else:
-        use_schema_label = parse_bool(use_schema_label)
 
     if not table_manipulation:
         table_manipulation = "replace"
@@ -450,6 +441,19 @@ def submit_manifest_route(
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
+    # table_column_names = connexion.request.args["table_column_names"]
+    if not table_column_names:
+        table_column_names = "class_label"
+
+    # annotation_keys = connexion.request.args["retain_dl_formatting"]
+    if not annotation_keys:
+        annotation_keys = "class_label"
+
+    metadata_model = initalize_metadata_model(schema_url)
+
+    # Access token now stored in request header
+    access_token = get_access_token()
+
     manifest_id = metadata_model.submit_metadata_manifest(
         path_to_json_ld=data_model,
         manifest_path=temp_path,
@@ -460,8 +464,9 @@ def submit_manifest_route(
         restrict_rules=restrict_rules,
         hide_blanks=hide_blanks,
         table_manipulation=table_manipulation,
-        use_schema_label=use_schema_label,
         project_scope=project_scope,
+        table_column_names=table_column_names,
+        annotation_keys=annotation_keys,
     )
 
     return manifest_id
@@ -583,7 +588,6 @@ def get_component_requirements(
     schema_url, source_component, as_graph, data_model_labels
 ):
     metadata_model = initalize_metadata_model(schema_url, data_model_labels)
-
     req_components = metadata_model.get_component_requirements(
         source_component=source_component, as_graph=as_graph
     )

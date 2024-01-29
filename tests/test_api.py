@@ -86,7 +86,10 @@ def data_model_jsonld():
 @pytest.fixture(scope="class")
 def benchmark_data_model_jsonld():
     # benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
+<<<<<<< HEAD
     # Placeholder till the model is updated on develop
+=======
+>>>>>>> 01208bd31df6c6573780f51ca63ffcb17e75dd0c
     benchmark_data_model_jsonld = "https://raw.githubusercontent.com/mialy-defelice/data_models/main/example.single_rule.model.jsonld"
     yield benchmark_data_model_jsonld
 
@@ -1033,8 +1036,8 @@ class TestManifestOperation:
             "asset_view": "syn51514344",
             "dataset_id": "syn51514345",
             "table_manipulation": "replace",
-            "use_schema_label": True,
             "data_model_labels": "class_label",
+            "table_column_names": "class_label",
         }
 
         response_csv = client.post(
@@ -1071,8 +1074,8 @@ class TestManifestOperation:
             "restrict_rules": False,
             "manifest_record_type": "file_only",
             "table_manipulation": "replace",
-            "use_schema_label": True,
             "data_model_labels": "class_label",
+            "table_column_names": "class_label",
         }
 
         if data_type == "Biospecimen":
@@ -1118,8 +1121,8 @@ class TestManifestOperation:
             "asset_view": "syn51514344",
             "dataset_id": "syn51514345",
             "table_manipulation": "replace",
-            "use_schema_label": True,
             "data_model_labels": "class_label",
+            "table_column_names": "class_label",
         }
         params["json_str"] = json_str
         response = client.post(
@@ -1143,8 +1146,9 @@ class TestManifestOperation:
             "asset_view": "syn51514501",
             "dataset_id": "syn51514523",
             "table_manipulation": "replace",
-            "use_schema_label": True,
             "data_model_labels": "class_label",
+            "table_column_names": "class_label",
+            "annotation_keys": "class_label",
         }
 
         # test uploading a csv file
@@ -1173,8 +1177,8 @@ class TestManifestOperation:
             "asset_view": "syn51514557",
             "dataset_id": "syn51514551",
             "table_manipulation": "upsert",
-            "use_schema_label": False,  # have to set use_schema_label to false to ensure upsert feature works
             "data_model_labels": "class_label",
+            "table_column_names": "display_name",  # have to set table_column_names to display_name to ensure upsert feature works
         }
 
         # test uploading a csv file
