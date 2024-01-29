@@ -1,6 +1,7 @@
 import os
 import logging
 import networkx as nx
+from os.path import exists
 from jsonschema import ValidationError
 
 # allows specifying explicit variable types
@@ -10,7 +11,6 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-
 
 # TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
@@ -322,10 +322,11 @@ class MetadataModel(object):
         restrict_rules: bool,
         access_token: Optional[str] = None,
         validate_component: Optional[str] = None,
-        use_schema_label: bool = True,
         hide_blanks: bool = False,
         project_scope: List = None,
         table_manipulation: str = "replace",
+        table_column_names: str = "class_label",
+        annotation_keys: str = "class_label",
     ) -> str:
         """Wrap methods that are responsible for validation of manifests for a given component, and association of the
         same manifest file with a specified dataset.
@@ -382,9 +383,10 @@ class MetadataModel(object):
                         metadataManifestPath=censored_manifest_path,
                         datasetId=dataset_id,
                         manifest_record_type=manifest_record_type,
-                        useSchemaLabel=use_schema_label,
                         hideBlanks=hide_blanks,
                         table_manipulation=table_manipulation,
+                        table_column_names=table_column_names,
+                        annotation_keys=annotation_keys,
                     )
                     restrict_maniest = True
 
@@ -393,10 +395,11 @@ class MetadataModel(object):
                     metadataManifestPath=manifest_path,
                     datasetId=dataset_id,
                     manifest_record_type=manifest_record_type,
-                    useSchemaLabel=use_schema_label,
                     hideBlanks=hide_blanks,
                     restrict_manifest=restrict_maniest,
                     table_manipulation=table_manipulation,
+                    table_column_names=table_column_names,
+                    annotation_keys=annotation_keys,
                 )
 
                 logger.info(f"No validation errors occured during validation.")
@@ -415,9 +418,10 @@ class MetadataModel(object):
                 metadataManifestPath=censored_manifest_path,
                 datasetId=dataset_id,
                 manifest_record_type=manifest_record_type,
-                useSchemaLabel=use_schema_label,
                 hideBlanks=hide_blanks,
                 table_manipulation=table_manipulation,
+                table_column_names=table_column_names,
+                annotation_keys=annotation_keys,
             )
             restrict_maniest = True
 
@@ -426,10 +430,11 @@ class MetadataModel(object):
             metadataManifestPath=manifest_path,
             datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
-            useSchemaLabel=use_schema_label,
             hideBlanks=hide_blanks,
             restrict_manifest=restrict_maniest,
             table_manipulation=table_manipulation,
+            table_column_names=table_column_names,
+            annotation_keys=annotation_keys,
         )
 
         logger.debug(
