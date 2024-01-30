@@ -86,10 +86,7 @@ def data_model_jsonld():
 @pytest.fixture(scope="class")
 def benchmark_data_model_jsonld():
     # benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
-<<<<<<< HEAD
     # Placeholder till the model is updated on develop
-=======
->>>>>>> 01208bd31df6c6573780f51ca63ffcb17e75dd0c
     benchmark_data_model_jsonld = "https://raw.githubusercontent.com/mialy-defelice/data_models/main/example.single_rule.model.jsonld"
     yield benchmark_data_model_jsonld
 
