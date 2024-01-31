@@ -1656,8 +1656,8 @@ class ManifestGenerator(object):
             # Raise an error if used in conjunction with datatype = 'all_manifests'
             if data_types[0] == "all manifests":
                 raise ValueError(
-                    f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
-                    f"Please check your submission and try again."
+                    "When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
+                    "Please check your submission and try again."
                 )
 
         data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
