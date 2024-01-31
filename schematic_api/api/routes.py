@@ -7,6 +7,7 @@ import urllib.request
 import logging
 import pathlib
 import pickle
+import time
 
 import connexion
 from connexion.decorators.uri_parsing import Swagger2URIParser
@@ -39,7 +40,7 @@ from synapseclient.core.exceptions import (
 )
 from schematic.utils.general import entity_type_mapping
 from schematic.utils.schema_utils import get_property_label_from_display_name
-
+from schematic.utils.general import profile
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
@@ -728,7 +729,7 @@ def get_asset_view_table(asset_view, return_type):
         file_view_table_df.to_csv(export_path, index=False)
         return export_path
 
-
+@profile(sort_by='cumulative', strip_dirs=True)
 def get_project_manifests(project_id, asset_view):
     # Access token now stored in request header
     access_token = get_access_token()
@@ -1013,3 +1014,15 @@ def get_schematic_version() -> str:
             "Using this endpoint to check the version of schematic is only supported when the API is running in a docker container."
         )
     return version
+
+def test_time_out():
+    """return test time out
+    """
+    time.sleep(60)
+    return "okay"
+
+def test_time_out_two():
+    """return test time out
+    """
+    time.sleep(59.9)
+    return "okay"

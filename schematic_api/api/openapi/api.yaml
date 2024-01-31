@@ -1252,4 +1252,37 @@ paths:
           description: Schematic version was not able to be identified.
       tags:
         - Version
-        
+
+  /test_time_out:
+    get:
+      summary: Test time out 1 
+      description: Test time out 1
+      operationId: schematic_api.api.routes.test_time_out
+      responses:
+        "200":
+          description: Test
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Test
+      tags:
+        - Test     
+
+  /test_time_out_two:
+    get:
+      summary: Test time out 2
+      description: Test time out 2
+      operationId: schematic_api.api.routes.test_time_out_two
+      responses:
+        "200":
+          description: Test
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Test
+      tags:
+        - Test   
