@@ -1578,14 +1578,15 @@ class ManifestGenerator(object):
         """Create a single manifest
 
         Args:
-            jsonld (str): jsonld schema
+            path_to_data_model (str): data model schema
+            graph_data_model (nx.MultiDiGraph): graph data model 
             data_type (str): data type of a manifest
-            access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
-            dataset_id (str, optional): dataset id when generating an existing manifest. Defaults to None.
-            strict (bool, optional): strictness with which to apply validation rules to google sheets. Defaults to True.
-            title (str, optional): title of a given manifest. Defaults to None.
-            output_format (str, optional): format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
-            use_annotations (bool, optional): whether to use annotations. Defaults to False.
+            access_token (Optional[str], optional): synapse access token. Required when getting an existing manifest. Defaults to None.
+            dataset_id (Optional[str], optional):dataset id when generating an existing manifest. Defaults to None. Defaults to None.
+            strict (Optional[bool], optional): strictness with which to apply validation rules to google sheets. Defaults to True.
+            title (Optional[str], optional):title of a given manifest. Defaults to None.
+            output_format (Literal['google_sheet', 'excel', 'dataframe'], optional): format of manifest. Defaults to "google_sheet".
+            use_annotations (Optional[bool], optional):whether to use annotations. Defaults to False.
 
         Returns:
             Union[str, pd.DataFrame]: Googlesheet URL or pandas dataframe or an excel file path
@@ -1632,7 +1633,7 @@ class ManifestGenerator(object):
             path_to_data_model (str): str path to data model
             data_type (list): a list of data types
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
-            dataset_id (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
+            dataset_ids (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
             output_format (str, optional):format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
             title (str, optional): title of a given manifest. Defaults to None.
             strict (bool, optional): strictness with which to apply validation rules to google sheets. Defaults to None.
