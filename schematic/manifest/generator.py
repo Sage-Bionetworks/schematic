@@ -1631,7 +1631,7 @@ class ManifestGenerator(object):
 
         Args:
             path_to_data_model (str): str path to data model
-            data_type (list): a list of data types
+            data_types (list): a list of data types
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
             dataset_ids (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
             output_format (str, optional):format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
