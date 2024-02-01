@@ -114,6 +114,8 @@ def model(ctx, config):  # use as `schematic model ...`
     default="class_label",
     type=click.Choice(["display_label", "class_label"], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "data_model_labels")),
+)
+@click.option(
     "--table_column_names",
     "-tcn",
     default="class_label",
