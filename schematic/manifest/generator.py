@@ -1635,7 +1635,7 @@ class ManifestGenerator(object):
     def create_manifests(
         path_to_data_model: str,
         data_types: list,
-        data_model_labels: str = 'class_label',
+        data_model_labels: str = "class_label",
         access_token: Optional[str] = None,
         dataset_ids: Optional[list] = None,
         output_format: Literal["google_sheet", "excel", "dataframe"] = "google_sheet",
