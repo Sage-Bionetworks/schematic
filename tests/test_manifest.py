@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def generate_graph_data_model(helpers, path_to_data_model):
+def generate_graph_data_model(helpers, path_to_data_model, data_model_labels):
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
     """
@@ -31,7 +31,7 @@ def generate_graph_data_model(helpers, path_to_data_model):
 
     # Convert parsed model to graph
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -61,7 +61,7 @@ def manifest_generator(helpers, request):
 
     # Get graph data model
     graph_data_model = generate_graph_data_model(
-        helpers, path_to_data_model=path_to_data_model
+        helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
     )
 
     manifest_generator = ManifestGenerator(
@@ -118,7 +118,7 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model
+            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
         )
 
         generator = ManifestGenerator(
@@ -153,7 +153,7 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model
+            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
         )
 
         # A LookupError should be raised and include message when the component cannot be found
@@ -238,7 +238,7 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model
+            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
         )
 
         generator = ManifestGenerator(
@@ -296,7 +296,7 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model
+            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
         )
 
         # Instantiate object with use_annotations set to True
@@ -412,7 +412,7 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model
+            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
         )
 
         manifest_generator = ManifestGenerator(
@@ -449,7 +449,7 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model
+            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
         )
 
         manifest_generator = ManifestGenerator(
@@ -533,7 +533,7 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model
+            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
         )
 
         # Instantiate the Manifest Generator.
