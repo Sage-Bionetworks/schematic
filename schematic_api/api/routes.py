@@ -283,11 +283,12 @@ def get_manifest_route(schema_url: str, use_annotations: bool, dataset_id=None, 
     # return an excel file if output_format is set to "excel"
     if output_format == "excel":
         # should only contain one excel spreadsheet path
-        result = all_results[0]
-        dir_name = os.path.dirname(result)
-        file_name = os.path.basename(result)
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
+        if len(all_results) > 0:
+            result = all_results[0]
+            dir_name = os.path.dirname(result)
+            file_name = os.path.basename(result)
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            return send_from_directory(directory=dir_name, path=file_name, as_attachment=True, mimetype=mimetype, max_age=0)
     
     return all_results
 
