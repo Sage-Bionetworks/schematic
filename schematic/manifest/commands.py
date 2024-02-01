@@ -108,7 +108,8 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
 @click.option(
     "--data_model_labels",
     "-dml",
-    is_flag=True,
+    default="class_label",
+    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
     help=query_dict(manifest_commands, ("manifest", "get", "data_model_labels")),
 )
 @click.pass_obj
