@@ -835,18 +835,6 @@ paths:
           description: ID of file or folder. For example, for Synapse this would be the Synapse ID. 
           example: syn30988314
           required: true
-        - in: query
-          name: data_model_labels
-          schema:
-            type: string
-            nullable: true
-            enum: ["display_label", "class_label"]
-            default: 'class_label'
-          description: Choose how to set the label in the data model. 
-                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
-                  class_label, default, use standard class or property label.
-                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
-          required: false
       responses:
         "200":
           description: return "true" or "false"
@@ -868,6 +856,18 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: A pickle file gets downloaded and local file path of the pickle file gets returned.
