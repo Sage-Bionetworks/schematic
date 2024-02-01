@@ -49,8 +49,10 @@ class TestSchemaCli:
 
         output_path = helpers.get_data_path("example.model.jsonld")
 
+        label_type = 'class_label'
+
         result = runner.invoke(
-            schema, ["convert", data_model_csv_path, "--output_jsonld", output_path]
+            schema, ["convert", data_model_csv_path, "--output_jsonld", output_path, "--data_model_labels", label_type]
         )
 
         assert result.exit_code == 0
