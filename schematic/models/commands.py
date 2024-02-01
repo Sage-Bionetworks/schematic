@@ -73,12 +73,6 @@ def model(ctx, config):  # use as `schematic model ...`
     help=query_dict(model_commands, ("model", "submit", "validate_component")),
 )
 @click.option(
-    "--use_schema_label/--use_display_label",
-    "-sl/-dl",
-    default=True,
-    help=query_dict(model_commands, ("model", "submit", "use_schema_label")),
-)
-@click.option(
     "--hide_blanks",
     "-hb",
     is_flag=True,
@@ -114,6 +108,22 @@ def model(ctx, config):  # use as `schematic model ...`
     type=click.Choice(["replace", "upsert"], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "table_manipulation")),
 )
+@click.option(
+    "--table_column_names",
+    "-tcn",
+    default="class_label",
+    type=click.Choice(
+        ["class_label", "display_label", "display_name"], case_sensitive=True
+    ),
+    help=query_dict(model_commands, ("model", "submit", "table_column_names")),
+)
+@click.option(
+    "--annotation_keys",
+    "-ak",
+    default="class_label",
+    type=click.Choice(["class_label", "display_label"], case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "annotation_keys")),
+)
 @click.pass_obj
 def submit_manifest(
     ctx,
@@ -121,11 +131,12 @@ def submit_manifest(
     dataset_id,
     validate_component,
     manifest_record_type,
-    use_schema_label,
     hide_blanks,
     restrict_rules,
     project_scope,
     table_manipulation,
+    table_column_names,
+    annotation_keys,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -145,10 +156,11 @@ def submit_manifest(
         validate_component=validate_component,
         manifest_record_type=manifest_record_type,
         restrict_rules=restrict_rules,
-        use_schema_label=use_schema_label,
         hide_blanks=hide_blanks,
         project_scope=project_scope,
         table_manipulation=table_manipulation,
+        table_column_names=table_column_names,
+        annotation_keys=annotation_keys,
     )
 
     if manifest_id:
