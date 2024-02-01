@@ -1579,7 +1579,7 @@ class ManifestGenerator(object):
 
         Args:
             path_to_data_model (str): data model schema
-            graph_data_model (nx.MultiDiGraph): graph data model 
+            graph_data_model (nx.MultiDiGraph): graph data model
             data_type (str): data type of a manifest
             access_token (Optional[str], optional): synapse access token. Required when getting an existing manifest. Defaults to None.
             dataset_id (Optional[str], optional):dataset id when generating an existing manifest. Defaults to None. Defaults to None.
