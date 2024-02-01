@@ -267,6 +267,7 @@ def get_manifest_route(
     output_format=None,
     title=None,
     strict_validation: bool = True,
+    data_model_labels: str = 'class_label'
 ):
     """Get the immediate dependencies that are related to a given source node.
     Args:
@@ -327,6 +328,7 @@ def get_manifest_route(
         path_to_data_model=schema_url,
         output_format=output_format,
         data_types=data_type,
+        data_model_labels=data_model_labels,
         title=title,
         access_token=access_token,
         dataset_ids=dataset_ids,
@@ -441,15 +443,13 @@ def submit_manifest_route(
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
 
-    # table_column_names = connexion.request.args["table_column_names"]
     if not table_column_names:
         table_column_names = "class_label"
 
-    # annotation_keys = connexion.request.args["retain_dl_formatting"]
     if not annotation_keys:
         annotation_keys = "class_label"
 
-    metadata_model = initalize_metadata_model(schema_url)
+    metadata_model = initalize_metadata_model(schema_url, data_model_labels)
 
     # Access token now stored in request header
     access_token = get_access_token()
