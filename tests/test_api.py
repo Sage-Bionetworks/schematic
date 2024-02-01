@@ -352,7 +352,8 @@ class TestUtilsOperation:
 @pytest.mark.schematic_api
 class TestDataModelGraphExplorerOperation:
     def test_get_schema(self, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld}
+        params = {"schema_url": data_model_jsonld,
+                  "data_model_labels": 'class_label'}
         response = client.get(
             "http://localhost:3001/v1/schemas/get/schema", query_string=params
         )
@@ -366,7 +367,7 @@ class TestDataModelGraphExplorerOperation:
             os.remove(response_dt)
 
     def test_if_node_required(test, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld, "node_display_name": "FamilyHistory"}
+        params = {"schema_url": data_model_jsonld, "node_display_name": "FamilyHistory", "data_model_labels": "class_label"}
 
         response = client.get(
             "http://localhost:3001/v1/schemas/is_node_required", query_string=params
