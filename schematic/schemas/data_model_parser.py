@@ -245,6 +245,7 @@ class DataModelJSONLDParser:
 
     def parse_entry(
         self,
+        rel_type,
         rel_entry: any,
         id_jsonld_key: str,
         dn_label_dict: dict[str:str],
@@ -257,8 +258,14 @@ class DataModelJSONLDParser:
         Returns:
             parsed_rel_entry: an entry that has been parsed base on its input type and characteristics.
         """
+       
+        # Retrieve the entry from a single dictionary (applies to single SubclassOf etc)
+        if type(rel_entry) == dict and len(rel_entry.keys()) == 1 and rel_type==list:
+            parsed_rel_entry = [self.convert_entry_to_dn_label(
+                rel_entry["@id"].split(":")[1], model_jsonld
+            )]
         # Retrieve ID from single value dictionary
-        if type(rel_entry) == dict and len(rel_entry.keys()) == 1:
+        elif type(rel_entry) == dict and len(rel_entry.keys()) == 1:
             parsed_rel_entry = rel_entry["@id"]
         # Parse list of dictionaries to make a list of entries with context stripped (will update this section when contexts added.)
         elif type(rel_entry) == list and type(rel_entry[0]) == dict:
@@ -299,7 +306,11 @@ class DataModelJSONLDParser:
         ]
         dn_label_dict = {}
         for entry in model_jsonld:
-            dn_label_dict[entry[label_jsonld_key]] = entry[dn_jsonld_key]
+            entry_display_name = entry.get(dn_jsonld_key)
+            if entry_display_name:
+                dn_label_dict[entry[label_jsonld_key]] = entry_display_name
+            else:
+                dn_label_dict[entry[label_jsonld_key]] = entry.get(label_jsonld_key)
         return dn_label_dict
 
     def convert_entry_to_dn_label(
@@ -383,6 +394,7 @@ class DataModelJSONLDParser:
                     # If there is an entry parse it by type and add to the attr:relationships dictionary.
                     if rel_entry:
                         parsed_rel_entry = self.parse_entry(
+                            rel_type=rel_vals['type'],
                             rel_entry=rel_entry,
                             id_jsonld_key=id_jsonld_key,
                             dn_label_dict=dn_label_dict,
@@ -451,6 +463,7 @@ class DataModelJSONLDParser:
                     # If there is an entry parset it by type and add to the attr:relationships dictionary.
                     if rel_entry:
                         parsed_rel_entry = self.parse_entry(
+                            rel_type=rel_vals['type'],
                             rel_entry=rel_entry,
                             id_jsonld_key=id_jsonld_key,
                             dn_label_dict=dn_label_dict,

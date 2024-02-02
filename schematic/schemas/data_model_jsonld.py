@@ -392,7 +392,10 @@ class DataModelJsonLD(object):
         Note:
             User order only matters for nodes that are also attributes
         """
-        template_label = template["rdfs:label"]
+        try:
+            template_label = template["rdfs:label"]
+        except:
+            breakpoint()
 
         for jsonld_key, entry in template.items():
             # Make sure dealing with an edge relationship:
