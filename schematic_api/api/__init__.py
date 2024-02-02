@@ -3,6 +3,29 @@ import os
 import connexion
 
 from schematic import CONFIG
+from logging.config import dictConfig
+import logging 
+
+## enable formatted logs and output log file when running schematic APIs 
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
+
+logger = logging.getLogger('werkzeug') # grabs underlying WSGI logger
+handler = logging.FileHandler('test.log') # creates handler for the log file
+logger.addHandler(handler) # adds handler to the werkzeug WSGI logger
 
 def create_app():
     connexionapp = connexion.FlaskApp(__name__, specification_dir="openapi/")
