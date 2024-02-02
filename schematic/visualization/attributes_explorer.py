@@ -1,21 +1,22 @@
-import gc
+"""Attributes Explorer Class"""
 import json
 import logging
-import numpy as np
 import os
+
+import numpy as np
 import pandas as pd
-from typing import Any, Dict, Optional, Text, List
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-
 from schematic.utils.io_utils import load_json
 
 logger = logging.getLogger(__name__)
 
 
 class AttributesExplorer:
+    """AttributesExplorer class"""
+
     def __init__(
         self,
         path_to_jsonld: str,
@@ -46,7 +47,7 @@ class AttributesExplorer:
 
         self.output_path = self.create_output_path("merged_csv")
 
-    def create_output_path(self, terminal_folder):
+    def create_output_path(self, terminal_folder: str) -> str:
         """Create output path to store Observable visualization data if it does not already exist.
 
         Args: self.path_to_jsonld
@@ -62,20 +63,22 @@ class AttributesExplorer:
             os.makedirs(output_path)
         return output_path
 
-    def convert_string_cols_to_json(self, df: pd.DataFrame, cols_to_modify: list):
+    def convert_string_cols_to_json(
+        self, dataframe: pd.DataFrame, cols_to_modify: list[str]
+    ) -> pd.DataFrame:
         """Converts values in a column from strings to JSON list
         for upload to Synapse.
         """
-        for col in df.columns:
+        for col in dataframe.columns:
             if col in cols_to_modify:
-                df[col] = df[col].apply(
+                dataframe[col] = dataframe[col].apply(
                     lambda x: json.dumps([y.strip() for y in x])
                     if x != "NaN" and x and x == np.nan
                     else x
                 )
-        return df
+        return dataframe
 
-    def parse_attributes(self, save_file=True):
+    def parse_attributes(self, save_file: bool = True) -> pd.DataFrame:
         """
         Args: save_file (bool):
                 True: merged_df is saved locally to output_path.
@@ -92,13 +95,13 @@ class AttributesExplorer:
         component_dg = self.dmge.get_digraph_by_edge_type("requiresComponent")
         components = component_dg.nodes()
 
-        # For each data type to be loaded gather all attribtes the user would
+        # For each data type to be loaded gather all attributes the user would
         # have to provide.
         return self._parse_attributes(components, save_file)
 
     def parse_component_attributes(
-        self, component=None, save_file=True, include_index=True
-    ):
+        self, component=None, save_file: bool = True, include_index: bool = True
+    ) -> pd.DataFrame:
         """
         Args: save_file (bool):
                 True: merged_df is saved locally to output_path.
@@ -115,10 +118,11 @@ class AttributesExplorer:
 
         if not component:
             raise ValueError("You must provide a component to visualize.")
-        else:
-            return self._parse_attributes([component], save_file, include_index)
+        return self._parse_attributes([component], save_file, include_index)
 
-    def _parse_attributes(self, components, save_file=True, include_index=True):
+    def _parse_attributes(
+        self, components: list, save_file=True, include_index=True
+    ) -> pd.DataFrame:
         """
         Args: save_file (bool):
                 True: merged_df is saved locally to output_path.
@@ -138,22 +142,27 @@ class AttributesExplorer:
                 If unable hits an error while attempting to get conditional requirements.
                 This error is likely to be found if there is a mismatch in naming.
         """
+        # This function needs to be refactored, temporarily disabling some pylint errors
+        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-nested-blocks
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
 
-        # For each data type to be loaded gather all attribtes the user would
+        # For each data type to be loaded gather all attributes the user would
         # have to provide.
         df_store = []
         for component in components:
-            data_dict = {}
+            data_dict: dict = {}
 
             # get the json schema
             json_schema = self.data_model_js.get_json_validation_schema(
                 source_node=component, schema_name=self.path_to_jsonld
             )
 
-            # Gather all attribues, their valid values and requirements
+            # Gather all attributes, their valid values and requirements
             for key, value in json_schema["properties"].items():
                 data_dict[key] = {}
-                for k, v in value.items():
+                for k, _ in value.items():
                     if k == "enum":
                         data_dict[key]["Valid Values"] = value["enum"]
                 if key in json_schema["required"]:
@@ -163,20 +172,20 @@ class AttributesExplorer:
                 data_dict[key]["Component"] = component
             # Add additional details per key (from the JSON-ld)
             for dic in self.jsonld["@graph"]:
-                if "sms:displayName" in dic.keys():
+                if "sms:displayName" in dic:
                     key = dic["sms:displayName"]
-                    if key in data_dict.keys():
+                    if key in data_dict:
                         data_dict[key]["Attribute"] = dic["sms:displayName"]
                         data_dict[key]["Label"] = dic["rdfs:label"]
                         data_dict[key]["Description"] = dic["rdfs:comment"]
                         if "validationRules" in dic.keys():
                             data_dict[key]["Validation Rules"] = dic["validationRules"]
             # Find conditional dependencies
-            if "allOf" in json_schema.keys():
+            if "allOf" in json_schema:
                 for conditional_dependencies in json_schema["allOf"]:
                     key = list(conditional_dependencies["then"]["properties"])[0]
                     try:
-                        if key in data_dict.keys():
+                        if key in data_dict:
                             if "Cond_Req" not in data_dict[key].keys():
                                 data_dict[key]["Cond_Req"] = []
                                 data_dict[key]["Conditional Requirements"] = []
@@ -186,11 +195,12 @@ class AttributesExplorer:
                             value = conditional_dependencies["if"]["properties"][
                                 attribute
                             ]["enum"]
-                            # Capitalize attribute if it begins with a lowercase letter, for aesthetics.
+                            # Capitalize attribute if it begins with a lowercase
+                            # letter, for aesthetics.
                             if attribute[0].islower():
                                 attribute = attribute.capitalize()
 
-                            # Remove "Type" (i.e. turn "Biospecimen Type" to "Biospcimen")
+                            # Remove "Type" (i.e. turn "Biospecimen Type" to "Biospecimen")
                             if "Type" in attribute:
                                 attribute = attribute.split(" ")[0]
 
@@ -207,38 +217,37 @@ class AttributesExplorer:
                                 data_dict[key]["Conditional Requirements"].extend(
                                     [conditional_statement]
                                 )
-                    except:
+                    except Exception as exc:
                         raise ValueError(
-                            f"There is an error getting conditional requirements related "
-                            "to the attribute: {key}. The error is likely caused by naming inconsistencies (e.g. uppercase, camelcase, ...)"
-                        )
+                            (
+                                "There is an error getting conditional requirements related "
+                                f"to the attribute: {key}. The error is likely caused by naming "
+                                "inconsistencies (e.g. uppercase, camelcase, ...)"
+                            )
+                        ) from exc
 
-            for key, value in data_dict.items():
-                if "Conditional Requirements" in value.keys():
+            for outer_dict_key, inner_dict in data_dict.items():
+                if "Conditional Requirements" in inner_dict.keys():
                     ## reformat conditional requirement
+                    conditional_requirements = inner_dict["Conditional Requirements"]
 
                     # get all attributes
-                    attr_lst = [
-                        i.split(" is ")[-1]
-                        for i in data_dict[key]["Conditional Requirements"]
-                    ]
+                    attr_lst = [i.split(" is ")[-1] for i in conditional_requirements]
 
                     # join a list of attributes by using OR
                     attr_str = " OR ".join(attr_lst)
 
                     # reformat the conditional requirement
-                    component_name = data_dict[key]["Conditional Requirements"][
-                        0
-                    ].split(" is ")[0]
-                    conditional_statement_str = (
-                        f' If {component_name} is {attr_str} then "{key}" is required'
-                    )
+                    component_name = conditional_requirements[0].split(" is ")[0]
 
-                    data_dict[key][
-                        "Conditional Requirements"
-                    ] = conditional_statement_str
-            df = pd.DataFrame(data_dict)
-            df = df.T
+                    conditional_statement_str = (
+                        f" If {component_name} is {attr_str} then "
+                        f'"{outer_dict_key}" is required'
+                    )
+                    conditional_requirements = conditional_statement_str
+
+            data_dict_df = pd.DataFrame(data_dict)
+            data_dict_df = data_dict_df.T
             cols = [
                 "Attribute",
                 "Label",
@@ -250,11 +259,12 @@ class AttributesExplorer:
                 "Validation Rules",
                 "Component",
             ]
-            cols = [col for col in cols if col in df.columns]
-            df = df[cols]
-            df = self.convert_string_cols_to_json(df, ["Valid Values"])
-            # df.to_csv(os.path.join(csv_output_path, data_type + '.vis_data.csv'))
-            df_store.append(df)
+            cols = [col for col in cols if col in data_dict_df.columns]
+            data_dict_df = data_dict_df[cols]
+            data_dict_df = self.convert_string_cols_to_json(
+                data_dict_df, ["Valid Values"]
+            )
+            df_store.append(data_dict_df)
 
         merged_attributes_df = pd.concat(df_store, join="outer")
         cols = [
@@ -271,12 +281,11 @@ class AttributesExplorer:
         cols = [col for col in cols if col in merged_attributes_df.columns]
 
         merged_attributes_df = merged_attributes_df[cols]
-        if save_file == True:
+        if save_file:
             return merged_attributes_df.to_csv(
                 os.path.join(
                     self.output_path, self.schema_name + "attributes_data.vis_data.csv"
                 ),
                 index=include_index,
             )
-        elif save_file == False:
-            return merged_attributes_df.to_csv(index=include_index)
+        return merged_attributes_df.to_csv(index=include_index)
