@@ -1255,8 +1255,8 @@ paths:
 
   /test_time_out:
     get:
-      summary: Test time out 1 
-      description: Test time out 1
+      summary: sleep 59.9s
+      description: sleep 59.9s
       operationId: schematic_api.api.routes.test_time_out
       responses:
         "200":
@@ -1272,8 +1272,8 @@ paths:
 
   /test_time_out_two:
     get:
-      summary: Test time out 2
-      description: Test time out 2
+      summary: sleep 60s
+      description: sleep 60s
       operationId: schematic_api.api.routes.test_time_out_two
       responses:
         "200":
@@ -1286,3 +1286,37 @@ paths:
           description: Test
       tags:
         - Test   
+
+  /test_time_out_three:
+    get:
+      summary: sleep 120s
+      description: sleep 120s 
+      operationId: schematic_api.api.routes.test_time_out_three
+      responses:
+        "200":
+          description: Test
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Test
+      tags:
+        - Test 
+
+  /test_time_out_four:
+    get:
+      summary: sleep 180s
+      description: sleep 180s 
+      operationId: schematic_api.api.routes.test_time_out_four
+      responses:
+        "200":
+          description: Test
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Test
+      tags:
+        - Test 

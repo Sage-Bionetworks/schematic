@@ -1018,11 +1018,23 @@ def get_schematic_version() -> str:
 def test_time_out():
     """return test time out
     """
-    time.sleep(60)
+    time.sleep(59.9)
     return "okay"
 
 def test_time_out_two():
     """return test time out
     """
-    time.sleep(59.9)
+    time.sleep(60)
+    return "okay"
+
+def test_time_out_three():
+    """return test time out
+    """
+    time.sleep(120)
+    return "okay"
+
+def test_time_out_four():
+    """return test time out
+    """
+    time.sleep(180)
     return "okay"
