@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def extract_name_from_uri_or_curie(item):
+def extract_name_from_uri_or_curie(item: str) -> str:
     """Extract name from uri or curie"""
     if "http" not in item and len(item.split(":")) == 2:
         return item.split(":")[-1]
@@ -15,7 +15,7 @@ def extract_name_from_uri_or_curie(item):
     raise ValueError("Error extracting name from URI or Curie.")
 
 
-def expand_curie_to_uri(curie, context_info):
+def expand_curie_to_uri(curie: str, context_info: dict[str, str]) -> str:
     """Expand curie to uri based on the context given
 
     parmas

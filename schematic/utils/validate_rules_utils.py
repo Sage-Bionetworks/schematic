@@ -21,7 +21,7 @@ def validation_rule_info() -> (
             'complementary_rules': [<rules available for pairing>]}
         }
     """
-    rule_dict = {
+    return {
         "int": {
             "arguments": (1, 0),
             "type": "type_validation",
@@ -121,8 +121,6 @@ def validation_rule_info() -> (
         },
     }
 
-    return rule_dict
-
 
 def get_error(
     validation_rules: str,
@@ -172,16 +170,20 @@ def get_error(
         rule_type = validation_rules.split(" ")[0]
 
         if rule_type in validation_rule_info():
-            no_allowed, no_required = validation_rule_info()[rule_type]["arguments"]
+            arg_tuple = validation_rule_info()[rule_type]["arguments"]
+            assert isinstance(arg_tuple, tuple)
+            assert len(arg_tuple) == 2
+            number_allowed = str(arg_tuple[0])
+            number_required = str(arg_tuple[1])
         else:
-            no_allowed, no_required = ("", "")
+            number_allowed, number_required = ("", "")
 
         error_str = (
             f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules "
             f"({validation_rules}) is not "
             "formatted properly. The number of provided arguments does not match the "
-            f"number allowed({no_allowed}) or required({no_required})."
+            f"number allowed({number_allowed}) or required({number_required})."
         )
         logging.error(error_str)
         error_message = error_str
@@ -232,10 +234,14 @@ def validate_single_rule(validation_rule: str, attribute: str, input_filetype: s
         )
     # if the rule is indeed a rule and formatted correctly, check that arguments are appropriate
     else:
-        arguments_allowed, arguments_required = validation_types[rule_type]["arguments"]
+        arg_tuple = validation_rule_info()[rule_type]["arguments"]
+        assert isinstance(arg_tuple, tuple)
+        assert len(arg_tuple) == 2
+        arguments_allowed, arguments_required = arg_tuple
         # Remove any fixed args from our calc.
-        if "fixed_arg" in validation_types[rule_type].keys():
+        if "fixed_arg" in validation_types[rule_type]:
             fixed_args = validation_types[rule_type]["fixed_arg"]
+            assert isinstance(fixed_args, list)
             num_args = (
                 len([vr for vr in validation_rule_with_args if vr not in fixed_args])
                 - 1

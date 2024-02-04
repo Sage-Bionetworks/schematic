@@ -1,7 +1,7 @@
 """viz utils"""
 
 from typing import Optional
-import graphviz
+import graphviz  # type: ignore
 
 
 def visualize(edges, size: Optional[float] = None) -> graphviz.Digraph:

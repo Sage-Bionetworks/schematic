@@ -1,6 +1,7 @@
 """Validation utils"""
 
 import re
+from collections.abc import Mapping
 from typing import Pattern, Union, Iterable, Any, Optional
 from numbers import Number
 from jsonschema import validate
@@ -12,7 +13,7 @@ from schematic import LOADER
 # pylint: disable = anomalous-backslash-in-string
 
 
-def validate_schema(schema):
+def validate_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against schema.org standard"""
     data_path = "validation_schemas/model.schema.json"
     json_schema_path = LOADER.filename(data_path)
@@ -20,7 +21,7 @@ def validate_schema(schema):
     return validate(schema, json_schema)
 
 
-def validate_property_schema(schema):
+def validate_property_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against SchemaORG property definition standard"""
     data_path = "validation_schemas/property.schema.json"
     json_schema_path = LOADER.filename(data_path)
@@ -28,7 +29,7 @@ def validate_property_schema(schema):
     return validate(schema, json_schema)
 
 
-def validate_class_schema(schema):
+def validate_class_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against SchemaORG class definition standard"""
     data_path = "validation_schemas/class.schema.json"
     json_schema_path = LOADER.filename(data_path)

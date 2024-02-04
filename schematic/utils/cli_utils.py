@@ -36,7 +36,7 @@ def query_dict(dictionary: Mapping[Any, Any], keys: Sequence[Any]) -> Union[Any,
     return reduce(extract, keys, dictionary)
 
 
-def log_value_from_config(arg_name: str, config_value: Any):
+def log_value_from_config(arg_name: str, config_value: Any) -> None:
     """Logs when getting a value from the config
 
     Args:
