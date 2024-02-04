@@ -1,7 +1,7 @@
 """Validation utils"""
 
 import re
-from typing import Pattern, Union, Iterable
+from typing import Pattern, Union, Iterable, Any, Optional
 from numbers import Number
 from jsonschema import validate
 import numpy as np
@@ -50,7 +50,7 @@ def comma_separated_list_regex() -> Pattern[str]:
     return csv_list_regex
 
 
-def rule_in_rule_list(rule: str, rule_list: list[str]) -> re.Match:
+def rule_in_rule_list(rule: str, rule_list: list[str]) -> Optional[re.Match[str]]:
     """
     Function to standardize
     checking to see if a rule is contained in a list of rules.
@@ -62,9 +62,8 @@ def rule_in_rule_list(rule: str, rule_list: list[str]) -> re.Match:
 
     # Process string and list of strings for regex comparison
     rule_type = rule_type + "[^\|]*"
-    rule_list = "|".join(rule_list)
-
-    return re.search(rule_type, rule_list, flags=re.IGNORECASE)
+    rule_list_str = "|".join(rule_list)
+    return re.search(rule_type, rule_list_str, flags=re.IGNORECASE)
 
 
 def parse_str_series_to_list(col: pd.Series) -> pd.Series:
@@ -81,7 +80,7 @@ def parse_str_series_to_list(col: pd.Series) -> pd.Series:
     return col
 
 
-def np_array_to_str_list(np_array: np.array) -> list[str]:
+def np_array_to_str_list(np_array: Any) -> list[str]:
     """
     Parse a numpy array of ints to a list of strings
     """

@@ -3,10 +3,12 @@
 import logging
 from copy import deepcopy
 from time import perf_counter
+from typing import Union, Any
+from datetime import datetime
 import dateparser as dp
 import pandas as pd
 import numpy as np
-from pandarallel import pandarallel
+from pandarallel import pandarallel #type: ignore
 
 # pylint: disable=logging-fstring-interpolation
 
@@ -39,7 +41,13 @@ def load_df(
     t_load_df = perf_counter()
 
     # Read CSV to df as type specified in kwargs
-    org_df = pd.read_csv(file_path, keep_default_na=True, encoding="utf8", **load_args)
+    org_df = pd.read_csv(  #type: ignore
+        file_path,
+        keep_default_na=True,
+        encoding="utf8",
+        **load_args
+    )
+    assert isinstance(org_df, pd.DataFrame)
 
     # If type inference not allowed: trim and return
     if preserve_raw_input:
@@ -66,13 +74,13 @@ def load_df(
     if (
         org_df.size < large_manifest_cutoff_size
     ):  # If small manifest, iterate as normal for improved performance
-        ints = org_df.applymap(
+        ints: pd.DataFrame = org_df.applymap(
             lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
         ).fillna(False)
 
     else:  # parallelize iterations for large manfiests
         pandarallel.initialize(verbose=1)
-        ints = org_df.parallel_applymap(
+        ints: pd.DataFrame = org_df.parallel_applymap( #type: ignore
             lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
         ).fillna(False)
 
@@ -96,7 +104,15 @@ def load_df(
     return processed_df
 
 
-def _parse_dates(date_string):
+def parse_dates(date_string: str) -> Union[datetime, bool]:
+    """Gets a datetime from a string
+
+    Args:
+        date_string (str): The string to get the datetime from
+
+    Returns:
+        Union[datetime, bool]: The parsed datetime or False
+    """
     try:
         date = dp.parse(date_string=date_string, settings={"STRICT_PARSING": True})
         return date if date else False

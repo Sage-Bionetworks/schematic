@@ -54,7 +54,7 @@ def parse_synIDs(  # pylint: disable=invalid-name
     synIDs: str,  # pylint: disable=invalid-name
 ) -> Optional[list[str]]:
     """For backwards compatibility"""
-    parse_syn_ids(ctx, param, synIDs)
+    return parse_syn_ids(ctx, param, synIDs)
 
 
 def parse_syn_ids(
@@ -88,8 +88,7 @@ def parse_syn_ids(
             "\nPlease check your list of projects for errors."
         )
 
-    syn_ids = syn_ids.split(",")
-    return syn_ids
+    return syn_ids.split(",")
 
 
 def parse_comma_str_to_list(

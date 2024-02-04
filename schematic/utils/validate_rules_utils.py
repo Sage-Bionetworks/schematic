@@ -1,6 +1,6 @@
 """validate rules utils"""
 
-from typing import Any
+from typing import Union
 import logging
 from jsonschema import ValidationError
 
@@ -8,7 +8,7 @@ from jsonschema import ValidationError
 logger = logging.getLogger(__name__)
 
 
-def validation_rule_info() -> dict[str, dict[str, Any]]:
+def validation_rule_info() -> dict[str, dict[str, Union[tuple[int, int], str, list[str], None]]]:
     """
     Function to return dict that holds information about each rule
     Will be pulled into validate_single_rule, validate_manifest_rules, validate_schema_rules
@@ -123,7 +123,7 @@ def validation_rule_info() -> dict[str, dict[str, Any]]:
 
 
 def get_error(
-    validation_rules: list,
+    validation_rules: str,
     attribute_name: str,
     error_type: str,
     input_filetype: str,
