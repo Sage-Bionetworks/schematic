@@ -209,16 +209,17 @@ def entity_type_mapping(syn: Synapse, entity_id: str) -> str:
         ) from exc
 
     if isinstance(entity, EntityViewSchema):
-        return "asset view"
-    if isinstance(entity, Folder):
-        return "folder"
-    if isinstance(entity, File):
-        return "file"
-    if isinstance(entity, Project):
-        return "project"
-
-    # if there's no matching type, return concreteType
-    return entity.concreteType
+        entity_type = "asset view"
+    elif isinstance(entity, Folder):
+        entity_type = "folder"
+    elif isinstance(entity, File):
+        entity_type = "file"
+    elif isinstance(entity, Project):
+        entity_type = "project"
+    else:
+        # if there's no matching type, return concreteType
+        entity_type = entity.concreteType
+    return entity_type
 
 
 def create_temp_folder(path: str) -> str:
