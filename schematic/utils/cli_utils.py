@@ -48,15 +48,6 @@ def log_value_from_config(arg_name: str, config_value: Any) -> None:
     )
 
 
-def parse_synIDs(  # pylint: disable=invalid-name
-    ctx: Any,  # pylint: disable=unused-argument
-    param: str,  # pylint: disable=unused-argument
-    synIDs: str,  # pylint: disable=invalid-name
-) -> Optional[list[str]]:
-    """For backwards compatibility"""
-    return parse_syn_ids(ctx, param, synIDs)
-
-
 def parse_syn_ids(
     ctx: Any,  # pylint: disable=unused-argument
     param: str,  # pylint: disable=unused-argument
