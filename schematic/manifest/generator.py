@@ -1503,7 +1503,7 @@ class ManifestGenerator(object):
         export_manifest_drive_service(
             manifest_url,
             file_path=output_excel_file_path,
-            mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            mime_Type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
         return output_excel_file_path

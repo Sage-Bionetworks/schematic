@@ -1,28 +1,38 @@
+"""df utils"""
+
 import logging
 from copy import deepcopy
 from time import perf_counter
-import datetime as dt
 import dateparser as dp
 import pandas as pd
 import numpy as np
 from pandarallel import pandarallel
 
+# pylint: disable=logging-fstring-interpolation
+
 logger = logging.getLogger(__name__)
 
 
-def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
+def load_df(
+    file_path: str,
+    preserve_raw_input: bool = True,
+    data_model: bool = False,
+    **load_args: dict,
+) -> pd.DataFrame:
     """
     Universal function to load CSVs and return DataFrames
     Parses string entries to convert as appropriate to type int, float, and pandas timestamp
-    Pandarallel is used for type inference for large manfiests to improve performance
-    Args:
-        file_path: path of csv to open
-        preserve_raw_input: Bool. If false, convert cell datatypes to an inferred type
-        data_model: bool, indicates if importing a data model
-        load_args: dict of key value pairs to be passed to the pd.read_csv function
-        **kwargs: keyword arguments for pd.read_csv()
+    Pandarallel is used for type inference for large manifests to improve performance
 
-    Returns: a processed dataframe for manifests or unprocessed df for data models and where indicated
+    Args:
+        file_path (str): path of csv to open
+        preserve_raw_input (bool, optional): If false, convert cell datatypes to an inferred type
+        data_model (bool, optional): bool, indicates if importing a data model
+        **load_args(dict): dict of key value pairs to be passed to the pd.read_csv function
+
+    Returns:
+        pd.DataFrame: a processed dataframe for manifests or unprocessed df for data models and
+      where indicated
     """
     large_manifest_cutoff_size = 1000
     # start performance timer
@@ -42,48 +52,48 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
         return org_df
 
     # If type inferences is allowed: infer types, trim, and return
-    else:
-        # create a separate copy of the manifest
-        # before beginning conversions to store float values
-        float_df = deepcopy(org_df)
 
-        # Cast the columns in the dataframe to string and
-        # replace Null values with empty strings
-        null_cells = org_df.isnull()
-        org_df = org_df.astype(str).mask(null_cells, "")
+    # create a separate copy of the manifest
+    # before beginning conversions to store float values
+    float_df = deepcopy(org_df)
 
-        # Find integers stored as strings and replace with entries of type np.int64
-        if (
-            org_df.size < large_manifest_cutoff_size
-        ):  # If small manifest, iterate as normal for improved performance
-            ints = org_df.applymap(
-                lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
-            ).fillna(False)
+    # Cast the columns in the dataframe to string and
+    # replace Null values with empty strings
+    null_cells = org_df.isnull()
+    org_df = org_df.astype(str).mask(null_cells, "")
 
-        else:  # parallelize iterations for large manfiests
-            pandarallel.initialize(verbose=1)
-            ints = org_df.parallel_applymap(
-                lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
-            ).fillna(False)
+    # Find integers stored as strings and replace with entries of type np.int64
+    if (
+        org_df.size < large_manifest_cutoff_size
+    ):  # If small manifest, iterate as normal for improved performance
+        ints = org_df.applymap(
+            lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
+        ).fillna(False)
 
-        # Identify cells converted to intergers
-        ints_tf_df = ints.applymap(pd.api.types.is_integer)
+    else:  # parallelize iterations for large manfiests
+        pandarallel.initialize(verbose=1)
+        ints = org_df.parallel_applymap(
+            lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
+        ).fillna(False)
 
-        # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
-        for col in org_df.columns:
-            float_df[col] = pd.to_numeric(float_df[col], errors="coerce")
-            # replace values that couldn't be converted to float with the original str values
-            float_df[col].fillna(org_df[col][float_df[col].isna()], inplace=True)
+    # Identify cells converted to integers
+    ints_tf_df = ints.applymap(pd.api.types.is_integer)
 
-        # Trim nans and empty rows and columns
-        processed_df = trim_commas_df(float_df)
+    # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
+    for col in org_df.columns:
+        float_df[col] = pd.to_numeric(float_df[col], errors="coerce")
+        # replace values that couldn't be converted to float with the original str values
+        float_df[col].fillna(org_df[col][float_df[col].isna()], inplace=True)
 
-        # Store values that were converted to type int in the final dataframe
-        processed_df = processed_df.mask(ints_tf_df, other=ints)
+    # Trim nan's and empty rows and columns
+    processed_df = trim_commas_df(float_df)
 
-        # log manifest load and processing time
-        logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
-        return processed_df
+    # Store values that were converted to type int in the final dataframe
+    processed_df = processed_df.mask(ints_tf_df, other=ints)
+
+    # log manifest load and processing time
+    logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
+    return processed_df
 
 
 def _parse_dates(date_string):
@@ -94,11 +104,11 @@ def _parse_dates(date_string):
         return False
 
 
-def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
+def normalize_table(dataframe: pd.DataFrame, primary_key: str) -> pd.DataFrame:
     """
     Function to normalize a table (e.g. dedup)
     Args:
-        df: data frame to normalize
+        dataframe: data frame to normalize
         primary_key: primary key on which to perform dedup
 
     Returns: a dedupped dataframe
@@ -106,9 +116,9 @@ def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
 
     try:
         # if valid primary key has been provided normalize df
-        df = df.reset_index()
-        df_norm = df.drop_duplicates(subset=[primary_key])
-        df_norm = df.drop(columns=["index"])
+        dataframe = dataframe.reset_index()
+        df_norm = dataframe.drop_duplicates(subset=[primary_key])
+        df_norm = dataframe.drop(columns=["index"])
         return df_norm
     except KeyError:
         # if the primary key is not in the df; then return the same df w/o changes
@@ -116,7 +126,7 @@ def normalize_table(df: pd.DataFrame, primary_key: str) -> pd.DataFrame:
             "Specified primary key is not in table schema. Proceeding without table changes."
         )
 
-        return df
+        return dataframe
 
 
 def update_df(
@@ -171,47 +181,47 @@ def update_df(
     return input_df_idx
 
 
-def trim_commas_df(df: pd.DataFrame):
+def trim_commas_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
 
     Args:
-        df: pandas dataframe with data from manifest file.
+        dataframe: pandas dataframe with data from manifest file.
 
     Returns:
         df: cleaned-up pandas dataframe.
     """
     # remove all columns which have substring "Unnamed" in them
-    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
+    dataframe = dataframe.loc[:, ~dataframe.columns.str.contains("^Unnamed")]
 
     # remove all completely empty rows
-    df = df.dropna(how="all", axis=0)
+    dataframe = dataframe.dropna(how="all", axis=0)
 
     # Fill in nan cells with empty strings
-    df.fillna("", inplace=True)
-    return df
+    dataframe.fillna("", inplace=True)
+    return dataframe
 
 
-def col_in_dataframe(col: str, df: pd.DataFrame) -> bool:
-    """Check if a column is in a dataframe, without worring about case
+def col_in_dataframe(col: str, dataframe: pd.DataFrame) -> bool:
+    """Check if a column is in a dataframe, without worrying about case
 
     Args:
         col: name of column whose presence in the dataframe is being checked
-        df: pandas dataframe with data from manifest file.
+        dataframe: pandas dataframe with data from manifest file.
 
     Returns:
         bool: whether or not the column name is a column in the dataframe, case agnostic
     """
     return col.lower() in [
-        manifest_col.lower() for manifest_col in df.columns.to_list()
+        manifest_col.lower() for manifest_col in dataframe.columns.to_list()
     ]
 
 
 def populate_df_col_with_another_col(
-    df: pd.DataFrame, source_col: str, target_col: str
+    dataframe: pd.DataFrame, source_col: str, target_col: str
 ) -> pd.DataFrame:
     """Copy the values from one column in a dataframe to another column in the same dataframe
     Args:
-        df: pandas dataframe with data from manifest file.
+        dataframe: pandas dataframe with data from manifest file.
         source_col: column whose contents to copy over
         target_col: column to be updated with other contents
 
@@ -219,5 +229,5 @@ def populate_df_col_with_another_col(
         dataframe with contents updated
     """
     # Copy the contents over
-    df[target_col] = df[source_col]
-    return df
+    dataframe[target_col] = dataframe[source_col]
+    return dataframe

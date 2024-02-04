@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
+"""CLI utils"""
 
-import inspect
 import logging
 
-from typing import Any, Mapping, Sequence, Union, List
+from typing import Any, Mapping, Sequence, Union, Optional
 from functools import reduce
 import re
 
@@ -11,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 # We are using fstrings in logger methods
 # pylint: disable=logging-fstring-interpolation
+# pylint: disable = anomalous-backslash-in-string
 
 
 def query_dict(dictionary: Mapping[Any, Any], keys: Sequence[Any]) -> Union[Any, None]:
@@ -48,52 +48,66 @@ def log_value_from_config(arg_name: str, config_value: Any):
     )
 
 
-def parse_synIDs(
-    ctx,
-    param,
-    synIDs,
-) -> List[str]:
-    """Parse and validate a comma separated string of synIDs
+def parse_synIDs(  # pylint: disable=invalid-name
+    ctx: Any,  # pylint: disable=unused-argument
+    param: str,  # pylint: disable=unused-argument
+    synIDs: str,  # pylint: disable=invalid-name
+) -> Optional[list[str]]:
+    """For backwards compatibility"""
+    parse_syn_ids(ctx, param, synIDs)
+
+
+def parse_syn_ids(
+    ctx: Any,  # pylint: disable=unused-argument
+    param: str,  # pylint: disable=unused-argument
+    syn_ids: str,
+) -> Optional[list[str]]:
+    """Parse and validate a comma separated string of synapse ids
 
     Args:
-        ctx:
-            click option context
-        param:
-            click option argument name
-        synIDs:
-            comma separated string of synIDs
-
-    Returns:
-        List of synID strings
+        ctx (Any): click option context
+        param (str): click option argument name
+        syn_ids (str): comma separated string of synapse ids
 
     Raises:
-        ValueError: If the entire string does not match a regex for
+        ValueError:  If the entire string does not match a regex for
             a valid comma separated string of SynIDs
+
+    Returns:
+        Optional[list[str]]:  List of synapse ids
     """
-    if synIDs:
-        project_regex = re.compile("(syn\d+\,?)+")
-        valid = project_regex.fullmatch(synIDs)
+    if not syn_ids:
+        return None
 
-        if valid:
-            synIDs = synIDs.split(",")
+    project_regex = re.compile("(syn\d+\,?)+")
+    valid = project_regex.fullmatch(syn_ids)
 
-            return synIDs
+    if not valid:
+        raise ValueError(
+            f"The provided list of project synID(s): {syn_ids}, is not formatted correctly. "
+            "\nPlease check your list of projects for errors."
+        )
 
-        else:
-            raise ValueError(
-                f"The provided list of project synID(s): {synIDs}, is not formatted correctly. "
-                "\nPlease check your list of projects for errors."
-            )
-    else:
-        return
+    syn_ids = syn_ids.split(",")
+    return syn_ids
 
 
 def parse_comma_str_to_list(
-    ctx,
-    param,
-    comma_string,
-) -> List[str]:
-    if comma_string:
-        return comma_string.split(",")
-    else:
+    ctx: Any,  # pylint: disable=unused-argument
+    param: str,  # pylint: disable=unused-argument
+    comma_string: str,
+) -> Optional[list[str]]:
+    """Separates a comma separated sting into a list of strings
+
+    Args:
+        ctx (Any): click option context
+        param (str): click option argument name
+        comma_string (str): comma separated string
+
+    Returns:
+        Optional[list[str]]: _description_
+    """
+    if not comma_string:
         return None
+
+    return comma_string.split(",")

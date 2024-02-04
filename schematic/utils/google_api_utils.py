@@ -1,19 +1,18 @@
+"""Google API utils"""
+
 import os
-import pickle
 import logging
 import json
-import pygsheets as ps
+from typing import Any, Union, Optional
 
-from typing import Dict, Any
-
+import pandas as pd
 from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 from google.oauth2 import service_account
-from google.oauth2.credentials import Credentials
+
 from schematic.configuration.configuration import CONFIG
 from schematic.store.synapse import SynapseStorage
-import pandas as pd
+
+# pylint: disable=logging-fstring-interpolation
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +24,10 @@ SCOPES = [
 ]
 
 
-# TODO: replace by pygsheets calls?
-def build_credentials() -> Dict[str, Any]:
-    creds = generate_token()
+# This function doesn't appear to be used or tested anywhere in schematic.
+# TO DO: replace by pygsheets calls?
+def build_credentials() -> dict[str, Any]:  # pylint: disable=missing-function-docstring
+    creds = generate_token()  # pylint: disable=undefined-variable
 
     # get a Google Sheet API service
     sheet_service = build("sheets", "v4", credentials=creds)
@@ -41,7 +41,12 @@ def build_credentials() -> Dict[str, Any]:
     }
 
 
-def build_service_account_creds() -> Dict[str, Any]:
+def build_service_account_creds() -> dict[str, Any]:
+    """Build Google service account credentials
+
+    Returns:
+        dict[str, Any]: The credentials
+    """
     if "SERVICE_ACCOUNT_CREDS" in os.environ:
         dict_creds = json.loads(os.environ["SERVICE_ACCOUNT_CREDS"])
         credentials = service_account.Credentials.from_service_account_info(
@@ -73,6 +78,7 @@ def build_service_account_creds() -> Dict[str, Any]:
 
 
 def download_creds_file() -> None:
+    """Download google credentials file"""
     syn = SynapseStorage.login()
 
     # if file path of service_account does not exist
@@ -83,13 +89,13 @@ def download_creds_file() -> None:
         and "SERVICE_ACCOUNT_CREDS" not in os.environ
     ):
         # synapse ID of the 'schematic_service_account_creds.json' file
-        API_CREDS = CONFIG.service_account_credentials_synapse_id
+        api_creds = CONFIG.service_account_credentials_synapse_id
 
         # Download in parent directory of SERVICE_ACCT_CREDS to
         # ensure same file system for os.rename()
         creds_dir = os.path.dirname(CONFIG.service_account_credentials_path)
 
-        creds_file = syn.get(API_CREDS, downloadLocation=creds_dir)
+        creds_file = syn.get(api_creds, downloadLocation=creds_dir)
         os.rename(creds_file.path, CONFIG.service_account_credentials_path)
 
         logger.info(
@@ -104,16 +110,19 @@ def download_creds_file() -> None:
         )
 
 
-def execute_google_api_requests(service, requests_body, **kwargs):
+def execute_google_api_requests(service: Any, requests_body: Any, **kwargs) -> Any:
     """
     Execute google API requests batch; attempt to execute in parallel.
-    Args:
-        service: google api service; for now assume google sheets service that is instantiated and authorized
-        service_type: default batchUpdate; TODO: add logic for values update
-        kwargs: google API service parameters
-    Return: google API response
-    """
 
+    Args:
+        service (Any): google api service; for now assume google sheets service that is
+          instantiated and authorized
+        requests_body (Any): _description_
+        kwargs: google API service parameters
+
+    Returns:
+        Any: google API response or None
+    """
     if (
         "spreadsheet_id" in kwargs
         and "service_type" in kwargs
@@ -127,21 +136,23 @@ def execute_google_api_requests(service, requests_body, **kwargs):
         )
 
         return response
+    return None
 
 
-def export_manifest_drive_service(manifest_url, file_path, mimeType):
+def export_manifest_drive_service(
+    manifest_url: str, file_path: str, mime_type: str
+) -> None:
     """
-    Export manifest by using google drive api. If export as an Excel spreadsheet, the exported spreasheet would also include a hidden sheet
-    Args:
-        manifest_url: google sheet manifest url
-        file_path: file path of the exported manifest
-        mimeType: exporting mimetype
-
+    Export manifest by using google drive api. If export as an Excel spreadsheet,
+      the exported spreadsheet would also include a hidden sheet
     result: Google sheet gets exported in desired format
 
+    Args:
+        manifest_url (str): google sheet manifest url
+        file_path (str): file path of the exported manifest
+        mime_type (str):  exporting mimetype
     """
-
-    # intialize drive service
+    # initialize drive service
     services_creds = build_service_account_creds()
     drive_service = services_creds["drive_service"]
 
@@ -150,45 +161,51 @@ def export_manifest_drive_service(manifest_url, file_path, mimeType):
 
     # use google drive
     data = (
-        drive_service.files().export(fileId=spreadsheet_id, mimeType=mimeType).execute()
+        drive_service.files()
+        .export(fileId=spreadsheet_id, mimeType=mime_type)
+        .execute()  # pylint: disable=no-member
     )
 
     # open file and write data
-    with open(os.path.abspath(file_path), "wb") as f:
+    with open(os.path.abspath(file_path), "wb") as fle:
         try:
-            f.write(data)
+            fle.write(data)
         except FileNotFoundError as not_found:
             logger.error(f"{not_found.filename} could not be found")
 
-    f.close
 
-
-def export_manifest_csv(file_path, manifest):
+def export_manifest_csv(file_path: str, manifest: Union[pd.DataFrame, str]) -> None:
     """
     Export manifest as a CSV by using google drive api
-    Args:
-        manifest: could be a dataframe or a manifest url
-        file_path: file path of the exported manifest
-        mimeType: exporting mimetype
-
     result: Google sheet gets exported as a CSV
-    """
 
+    Args:
+        file_path (str):  file path of the exported manifest
+        manifest (Union[pd.DataFrame, str]): could be a dataframe or a manifest url
+    """
     if isinstance(manifest, pd.DataFrame):
         manifest.to_csv(file_path, index=False)
     else:
-        export_manifest_drive_service(manifest, file_path, mimeType="text/csv")
+        export_manifest_drive_service(manifest, file_path, mime_type="text/csv")
 
 
-def export_manifest_excel(manifest, output_excel=None):
+# This function doesn't appear to be used or tested
+# pd.ExcelWriter is an ABC class which means it SHOULD NOT be instantiated
+def export_manifest_excel(
+    manifest: Union[pd.DataFrame, str], output_excel: Optional[str] = None
+) -> None:
     """
-    Export manifest as an Excel spreadsheet by using google sheet API. This approach could export hidden sheet
+    Export manifest as an Excel spreadsheet by using google sheet API.
+    This approach could export hidden sheet
+    Google sheet gets exported as an excel spreadsheet.
+    If there's a hidden sheet, the hidden sheet also gets exported.
+
     Args:
-        manifest: could be a dataframe or a manifest url
-        output_excel: name of the exported manifest sheet
-    result: Google sheet gets exported as an excel spreadsheet. If there's a hidden sheet, the hidden sheet also gets exported.
+        manifest (Union[pd.DataFrame, str]): could be a dataframe or a manifest url
+        output_excel (Optional[str], optional): name of the exported manifest sheet.
+          Defaults to None.
     """
-    # intialize drive service
+    # initialize drive service
     services_creds = build_service_account_creds()
     sheet_service = services_creds["sheet_service"]
 
@@ -200,17 +217,21 @@ def export_manifest_excel(manifest, output_excel=None):
 
         # use google sheet api
         sheet_metadata = (
-            sheet_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+            sheet_service.spreadsheets()  # pylint: disable=no-member
+            .get(spreadsheetId=spreadsheet_id)
+            .execute()
         )
         sheets = sheet_metadata.get("sheets")
 
         # export to Excel
-        writer = pd.ExcelWriter(output_excel)
+        writer = pd.ExcelWriter(
+            output_excel
+        )  # pylint: disable=abstract-class-instantiated
 
         # export each sheet in manifest
         for sheet in sheets:
             dataset = (
-                sheet_service.spreadsheets()
+                sheet_service.spreadsheets()  # pylint: disable=no-member
                 .values()
                 .get(spreadsheetId=spreadsheet_id, range=sheet["properties"]["title"])
                 .execute()
