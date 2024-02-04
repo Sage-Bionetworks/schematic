@@ -235,7 +235,7 @@ def create_temp_folder(path: str) -> str:
 
 def profile(
     output_file: Optional[str] = None,
-    sort_by="cumulative",
+    sort_by:Any="cumulative",
     lines_to_print: Optional[int] = None,
     strip_dirs: bool = False,
 ) -> Callable:
