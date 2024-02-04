@@ -188,7 +188,7 @@ def get_error(
     return ["NA", error_col, error_message, error_val]
 
 
-def validate_single_rule(validation_rule, attribute, input_filetype):
+def validate_single_rule(validation_rule:str, attribute:str, input_filetype:str):
     """
     Perform validation for a single rule to ensure it is specified
       correctly with an appropriate number of arguments
@@ -269,7 +269,7 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
     return errors
 
 
-def validate_schema_rules(validation_rules, attribute, input_filetype: str) -> None:
+def validate_schema_rules(validation_rules:list[str], attribute:str, input_filetype: str) -> None:
     """
     validation_rules: list
     input_filetype: str, used in error generation to aid user in
