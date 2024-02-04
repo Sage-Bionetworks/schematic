@@ -136,7 +136,9 @@ def check_synapse_cache_size(directory="/root/.synapseCache") -> Union[float, in
     # Note: this command might fail on windows user.
     # But since this command is primarily for running on AWS, it is fine.
     command = ["du", "-sh", directory]
-    output = subprocess.run(command, capture_output=True, check=False).stdout.decode("utf-8")
+    output = subprocess.run(command, capture_output=True, check=False).stdout.decode(
+        "utf-8"
+    )
 
     # Parsing the output to extract the directory size
     size = output.split("\t")[0]
