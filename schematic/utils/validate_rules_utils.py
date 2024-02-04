@@ -8,7 +8,9 @@ from jsonschema import ValidationError
 logger = logging.getLogger(__name__)
 
 
-def validation_rule_info() -> dict[str, dict[str, Union[tuple[int, int], str, list[str], None]]]:
+def validation_rule_info() -> (
+    dict[str, dict[str, Union[tuple[int, int], str, list[str], None]]]
+):
     """
     Function to return dict that holds information about each rule
     Will be pulled into validate_single_rule, validate_manifest_rules, validate_schema_rules
@@ -188,7 +190,7 @@ def get_error(
     return ["NA", error_col, error_message, error_val]
 
 
-def validate_single_rule(validation_rule:str, attribute:str, input_filetype:str):
+def validate_single_rule(validation_rule: str, attribute: str, input_filetype: str):
     """
     Perform validation for a single rule to ensure it is specified
       correctly with an appropriate number of arguments
@@ -269,7 +271,9 @@ def validate_single_rule(validation_rule:str, attribute:str, input_filetype:str)
     return errors
 
 
-def validate_schema_rules(validation_rules:list[str], attribute:str, input_filetype: str) -> None:
+def validate_schema_rules(
+    validation_rules: list[str], attribute: str, input_filetype: str
+) -> None:
     """
     validation_rules: list
     input_filetype: str, used in error generation to aid user in

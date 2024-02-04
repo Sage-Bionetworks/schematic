@@ -10,11 +10,11 @@ from datetime import datetime, timedelta
 from functools import wraps
 from typing import Union, TypeVar, Any, Optional, Sequence, Callable
 
-from synapseclient.core.exceptions import SynapseHTTPError #type: ignore
-from synapseclient.entity import File, Folder, Project #type: ignore
-from synapseclient.table import EntityViewSchema #type: ignore
-from synapseclient.core import cache #type: ignore
-from synapseclient import Synapse #type: ignore
+from synapseclient.core.exceptions import SynapseHTTPError  # type: ignore
+from synapseclient.entity import File, Folder, Project  # type: ignore
+from synapseclient.table import EntityViewSchema  # type: ignore
+from synapseclient.core import cache  # type: ignore
+from synapseclient import Synapse  # type: ignore
 
 # pylint: disable=logging-fstring-interpolation
 
@@ -124,7 +124,9 @@ def calculate_datetime(
     return date_time_result
 
 
-def check_synapse_cache_size(directory:str="/root/.synapseCache") -> Union[float, int]:
+def check_synapse_cache_size(
+    directory: str = "/root/.synapseCache",
+) -> Union[float, int]:
     """use du --sh command to calculate size of .synapseCache.
 
     Args:

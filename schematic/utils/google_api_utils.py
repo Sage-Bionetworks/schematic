@@ -6,8 +6,8 @@ import json
 from typing import Any, Union, Optional
 
 import pandas as pd
-from googleapiclient.discovery import build # type :ignore
-from google.oauth2 import service_account # type :ignoreS
+from googleapiclient.discovery import build  # type :ignore
+from google.oauth2 import service_account  # type :ignoreS
 from schematic.configuration.configuration import CONFIG
 from schematic.store.synapse import SynapseStorage
 

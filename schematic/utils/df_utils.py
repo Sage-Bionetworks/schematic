@@ -3,12 +3,12 @@
 import logging
 from copy import deepcopy
 from time import perf_counter
-from typing import Union, Any
+from typing import Union
 from datetime import datetime
 import dateparser as dp
 import pandas as pd
 import numpy as np
-from pandarallel import pandarallel #type: ignore
+from pandarallel import pandarallel  # type: ignore
 
 # pylint: disable=logging-fstring-interpolation
 
@@ -41,11 +41,8 @@ def load_df(
     t_load_df = perf_counter()
 
     # Read CSV to df as type specified in kwargs
-    org_df = pd.read_csv(  #type: ignore
-        file_path,
-        keep_default_na=True,
-        encoding="utf8",
-        **load_args
+    org_df = pd.read_csv(  # type: ignore
+        file_path, keep_default_na=True, encoding="utf8", **load_args
     )
     assert isinstance(org_df, pd.DataFrame)
 
@@ -80,7 +77,7 @@ def load_df(
 
     else:  # parallelize iterations for large manfiests
         pandarallel.initialize(verbose=1)
-        ints: pd.DataFrame = org_df.parallel_applymap( #type: ignore
+        ints: pd.DataFrame = org_df.parallel_applymap(  # type: ignore
             lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
         ).fillna(False)
 
