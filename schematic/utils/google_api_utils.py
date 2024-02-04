@@ -161,9 +161,9 @@ def export_manifest_drive_service(
 
     # use google drive
     data = (
-        drive_service.files()
+        drive_service.files()  # pylint: disable=no-member
         .export(fileId=spreadsheet_id, mimeType=mime_type)
-        .execute()  # pylint: disable=no-member
+        .execute()
     )
 
     # open file and write data
@@ -205,6 +205,9 @@ def export_manifest_excel(
         output_excel (Optional[str], optional): name of the exported manifest sheet.
           Defaults to None.
     """
+    # pylint: disable=abstract-class-instantiated
+    # pylint: disable=no-member
+
     # initialize drive service
     services_creds = build_service_account_creds()
     sheet_service = services_creds["sheet_service"]
@@ -217,21 +220,17 @@ def export_manifest_excel(
 
         # use google sheet api
         sheet_metadata = (
-            sheet_service.spreadsheets()  # pylint: disable=no-member
-            .get(spreadsheetId=spreadsheet_id)
-            .execute()
+            sheet_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
         )
         sheets = sheet_metadata.get("sheets")
 
         # export to Excel
-        writer = pd.ExcelWriter(
-            output_excel
-        )  # pylint: disable=abstract-class-instantiated
+        writer = pd.ExcelWriter(output_excel)
 
         # export each sheet in manifest
         for sheet in sheets:
             dataset = (
-                sheet_service.spreadsheets()  # pylint: disable=no-member
+                sheet_service.spreadsheets()
                 .values()
                 .get(spreadsheetId=spreadsheet_id, range=sheet["properties"]["title"])
                 .execute()
