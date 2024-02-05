@@ -1,5 +1,7 @@
 """df utils"""
 
+# pylint: disable=logging-fstring-interpolation
+
 import logging
 from copy import deepcopy
 from time import perf_counter
@@ -9,8 +11,6 @@ import dateparser as dp
 import pandas as pd
 import numpy as np
 from pandarallel import pandarallel  # type: ignore
-
-# pylint: disable=logging-fstring-interpolation
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,7 @@
 """General utils"""
 
+# pylint: disable=logging-fstring-interpolation
+
 import logging
 import os
 import pstats
@@ -15,8 +17,6 @@ from synapseclient.entity import File, Folder, Project  # type: ignore
 from synapseclient.table import EntityViewSchema  # type: ignore
 from synapseclient.core import cache  # type: ignore
 from synapseclient import Synapse  # type: ignore
-
-# pylint: disable=logging-fstring-interpolation
 
 logger = logging.getLogger(__name__)
 

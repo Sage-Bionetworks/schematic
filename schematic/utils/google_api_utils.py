@@ -1,17 +1,17 @@
 """Google API utils"""
 
+# pylint: disable=logging-fstring-interpolation
+
 import os
 import logging
 import json
-from typing import Any, Union, Optional
+from typing import Any, Union
 
 import pandas as pd
 from googleapiclient.discovery import build  # type: ignore
 from google.oauth2 import service_account  # type: ignore
 from schematic.configuration.configuration import CONFIG
 from schematic.store.synapse import SynapseStorage
-
-# pylint: disable=logging-fstring-interpolation
 
 logger = logging.getLogger(__name__)
 
@@ -21,23 +21,6 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
 ]
-
-
-# This function doesn't appear to be used or tested anywhere in schematic.
-# TO DO: replace by pygsheets calls?
-def build_credentials() -> dict[str, Any]:  # pylint: disable=missing-function-docstring
-    creds = generate_token()  # pylint: disable=undefined-variable
-
-    # get a Google Sheet API service
-    sheet_service = build("sheets", "v4", credentials=creds)
-    # get a Google Drive API service
-    drive_service = build("drive", "v3", credentials=creds)
-
-    return {
-        "sheet_service": sheet_service,
-        "drive_service": drive_service,
-        "creds": creds,
-    }
 
 
 def build_service_account_creds() -> dict[str, Any]:
@@ -159,6 +142,7 @@ def export_manifest_drive_service(
     spreadsheet_id = manifest_url.split("/")[-1]
 
     # use google drive
+    # Pylint seems to have trouble with the google api classes, recognizing their methods
     data = (
         drive_service.files()  # pylint: disable=no-member
         .export(fileId=spreadsheet_id, mimeType=mime_type)
@@ -186,59 +170,3 @@ def export_manifest_csv(file_path: str, manifest: Union[pd.DataFrame, str]) -> N
         manifest.to_csv(file_path, index=False)
     else:
         export_manifest_drive_service(manifest, file_path, mime_type="text/csv")
-
-
-# This function doesn't appear to be used or tested
-# pd.ExcelWriter is an ABC class which means it SHOULD NOT be instantiated
-def export_manifest_excel(
-    manifest: Union[pd.DataFrame, str], output_excel: Optional[str] = None
-) -> None:
-    """
-    Export manifest as an Excel spreadsheet by using google sheet API.
-    This approach could export hidden sheet
-    Google sheet gets exported as an excel spreadsheet.
-    If there's a hidden sheet, the hidden sheet also gets exported.
-
-    Args:
-        manifest (Union[pd.DataFrame, str]): could be a dataframe or a manifest url
-        output_excel (Optional[str], optional): name of the exported manifest sheet.
-          Defaults to None.
-    """
-    # pylint: disable=abstract-class-instantiated
-    # pylint: disable=no-member
-
-    # initialize drive service
-    services_creds = build_service_account_creds()
-    sheet_service = services_creds["sheet_service"]
-
-    if isinstance(manifest, pd.DataFrame):
-        manifest.to_excel(output_excel, index=False)
-    else:
-        # get spreadsheet id from url
-        spreadsheet_id = manifest.split("/")[-1]
-
-        # use google sheet api
-        sheet_metadata = (
-            sheet_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
-        )
-        sheets = sheet_metadata.get("sheets")
-
-        # export to Excel
-        writer = pd.ExcelWriter(output_excel)
-
-        # export each sheet in manifest
-        for sheet in sheets:
-            dataset = (
-                sheet_service.spreadsheets()
-                .values()
-                .get(spreadsheetId=spreadsheet_id, range=sheet["properties"]["title"])
-                .execute()
-            )
-            dataset_df = pd.DataFrame(dataset["values"])
-            dataset_df.columns = dataset_df.iloc[0]
-            dataset_df.drop(dataset_df.index[0], inplace=True)
-            dataset_df.to_excel(
-                writer, sheet_name=sheet["properties"]["title"], index=False
-            )
-        writer.save()
-        writer.close()

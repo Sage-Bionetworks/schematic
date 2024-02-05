@@ -1,5 +1,7 @@
 """Validation utils"""
 
+# pylint: disable = anomalous-backslash-in-string
+
 import re
 from collections.abc import Mapping
 from typing import Pattern, Union, Iterable, Any, Optional
@@ -9,8 +11,6 @@ import numpy as np
 import pandas as pd
 from schematic.utils.io_utils import load_json
 from schematic import LOADER
-
-# pylint: disable = anomalous-backslash-in-string
 
 
 def validate_schema(schema: Union[Mapping, bool]) -> None:

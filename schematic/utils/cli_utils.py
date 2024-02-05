@@ -1,5 +1,8 @@
 """CLI utils"""
 
+# pylint: disable=logging-fstring-interpolation
+# pylint: disable=anomalous-backslash-in-string
+
 import logging
 
 from typing import Any, Mapping, Sequence, Union, Optional
@@ -7,10 +10,6 @@ from functools import reduce
 import re
 
 logger = logging.getLogger(__name__)
-
-# We are using fstrings in logger methods
-# pylint: disable=logging-fstring-interpolation
-# pylint: disable = anomalous-backslash-in-string
 
 
 def query_dict(dictionary: Mapping[Any, Any], keys: Sequence[Any]) -> Union[Any, None]:
