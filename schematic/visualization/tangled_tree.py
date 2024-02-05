@@ -796,7 +796,7 @@ class TangledTree:
         layers_json,
         cn: str = "",
         all_layers: Optional[list[str]] = None,
-    ):
+    ) -> list[str]:
         """
         Inputs:
             save_file (bool): Indicates whether to save a file locally or not.:
