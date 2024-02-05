@@ -6,9 +6,10 @@ import json
 import logging
 import os
 from os import path
-from typing import Optional, Any
+from typing import Optional, Any, Literal
 
 import networkx as nx  # type: ignore
+from networkx.classes.reportviews import NodeView, EdgeDataView  # type: ignore
 import numpy as np
 import pandas as pd
 
@@ -85,7 +86,9 @@ class TangledTree:
         string = "".join(string.split())
         return string
 
-    def get_text_for_tangled_tree(self, text_type, save_file=False):
+    def get_text_for_tangled_tree(
+        self, text_type: Literal["highlighted", "plain"], save_file: bool = False
+    ) -> Optional[str]:
         """
         Gather the text that needs to be either highlighted or plain for the
           tangled tree visualization.
@@ -156,7 +159,9 @@ class TangledTree:
 
         return df.to_csv()
 
-    def get_topological_generations(self):
+    def get_topological_generations(
+        self,
+    ) -> tuple[list[list], NodeView, EdgeDataView, nx.DiGraph]:
         """Gather topological_gen, nodes and edges based on figure type.
         Outputs:
             topological_gen (List(list)):list of lists. Indicates layers of nodes.
@@ -200,7 +205,7 @@ class TangledTree:
             cond_req = cond_req_new.replace("If", "").lstrip().rstrip()
         return cond_req
 
-    def get_ca_alias(self, conditional_requirements: list) -> dict:
+    def get_ca_alias(self, conditional_requirements: list) -> dict[str, str]:
         """Get the alias for each conditional attribute.
 
         NOTE: Obtaining attributes(attr) and aliases(ali) in this function is specific
@@ -236,7 +241,9 @@ class TangledTree:
                     ca_alias[elem] = attr
         return ca_alias
 
-    def gather_component_dependency_info(self, cn, attributes_df):
+    def gather_component_dependency_info(
+        self, cn: str, attributes_df: pd.DataFrame
+    ) -> tuple[list[str], dict[str, str], list[str]]:
         """Gather all component dependency information.
         Inputs:
             cn: (str) component name
@@ -282,7 +289,12 @@ class TangledTree:
 
         return conditional_attributes, ca_alias, all_attributes
 
-    def find_source_nodes(self, nodes, edges, all_attributes=None):
+    def find_source_nodes(
+        self,
+        nodes: NodeView,
+        edges: EdgeDataView,
+        all_attributes: Optional[list[str]] = None,
+    ) -> list[str]:
         """Find all nodes in the graph that do not have a parent node.
         Inputs:
             nodes: (Networkx NodeView) Nodes of the component or dependency graph.
@@ -315,7 +327,9 @@ class TangledTree:
                     source_nodes.append(node)
         return source_nodes
 
-    def get_parent_child_dictionary(self, edges, all_attributes=None):
+    def get_parent_child_dictionary(
+        self, edges: EdgeDataView, all_attributes: Optional[list[str]] = None
+    ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
         """
         Based on the dependency type, create dictionaries between parent and
           child and child and parent attributes.
@@ -332,10 +346,9 @@ class TangledTree:
                 value: list of the parents children
         """
         # pylint: disable=too-many-branches
-        if all_attributes is None:
-            all_attributes = []
-        child_parents = {}
-        parent_children = {}
+        all_attributes_list = [] if all_attributes is None else all_attributes
+        child_parents: dict[str, list[str]] = {}
+        parent_children: dict[str, list[str]] = {}
 
         if self.dependency_type == "requiresComponent":
             # Construct child_parents dictionary
@@ -360,30 +373,30 @@ class TangledTree:
             # Construct child_parents dictionary
             for edge in edges:
                 # Check if child is an attribute for the current component
-                if edge[0] in all_attributes:
+                if edge[0] in all_attributes_list:
                     # Add child as a key
                     if edge[0] not in child_parents:
                         child_parents[edge[0]] = []
 
                     # Add parent to list if it is an attribute for the current component
-                    if edge[1] in all_attributes:
+                    if edge[1] in all_attributes_list:
                         child_parents[edge[0]].append(edge[1])
 
             # Construct parent_children dictionary
             for edge in edges:
                 # Check if parent is an attribute for the current component
-                if edge[1] in all_attributes:
+                if edge[1] in all_attributes_list:
                     # Add parent as a key
                     if edge[1] not in parent_children:
                         parent_children[edge[1]] = []
 
                     # Add child to list if it is an attribute for the current component
-                    if edge[0] in all_attributes:
+                    if edge[0] in all_attributes_list:
                         parent_children[edge[1]].append(edge[0])
 
         return child_parents, parent_children
 
-    def alias_edges(self, ca_alias: dict, edges) -> list[list]:
+    def alias_edges(self, ca_alias: dict[str, str], edges: EdgeDataView) -> list[list]:
         """Create new edges based on aliasing between an attribute and its response.
         Purpose:
             Create aliased edges.
@@ -435,8 +448,11 @@ class TangledTree:
         return aliased_edges
 
     def prune_expand_topological_gen(
-        self, topological_gen, all_attributes, conditional_attributes
-    ):
+        self,
+        topological_gen: list[list[str]],
+        all_attributes: list[str],
+        conditional_attributes: list[str],
+    ) -> list[list[str]]:
         """
         Purpose:
             Remake topological_gen with only relevant nodes.
@@ -672,7 +688,7 @@ class TangledTree:
         child_parents: dict,
         parent_children: dict,
         all_parent_children: dict,
-    ):
+    ) -> list[list[dict[str, list[str]]]]:
         """Convert node_layers to a list of lists of dictionaries that specifies each node and
          its parents (if applicable).
         Inputs:
@@ -689,7 +705,9 @@ class TangledTree:
              parents (if applicable)
         """
         num_layers = len(node_layers)
-        layers_list = [[] for i in range(0, num_layers)]
+        layers_list: list[list[dict[str, list[str]]]] = [
+            [] for i in range(0, num_layers)
+        ]
         for i, layer in enumerate(node_layers):
             for node in layer:
                 if node in child_parents.keys():
@@ -793,8 +811,7 @@ class TangledTree:
                  tangled tree.
                 If save_file ==True: is an empty list.
         """
-        if all_layers is None:
-            all_layers = []
+        all_layers_list = [] if all_layers is None else all_layers
         if save_file:
             if cn:
                 output_file_name = (
@@ -818,10 +835,10 @@ class TangledTree:
                     f"{os.path.join(self.json_output_path, output_file_name)}"
                 )
             )
-            all_layers = layers_json
+            all_layers_list = layers_json
         else:
-            all_layers.append(layers_json)
-        return all_layers
+            all_layers_list.append(layers_json)
+        return all_layers_list
 
     def get_ancestors_nodes(
         self, subgraph: nx.DiGraph, components: list[str]
