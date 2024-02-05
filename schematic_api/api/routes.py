@@ -729,8 +729,7 @@ def get_asset_view_table(asset_view, return_type):
         file_view_table_df.to_csv(export_path, index=False)
         return export_path
 
-@profile(sort_by='cumulative', strip_dirs=True)
-def get_project_manifests(project_id, asset_view):
+def get_project_manifests(project_id, asset_view, project_scope=None):
     # Access token now stored in request header
     access_token = get_access_token()
 
@@ -738,7 +737,7 @@ def get_project_manifests(project_id, asset_view):
     config_handler(asset_view=asset_view)
 
     # use Synapse Storage
-    store = SynapseStorage(access_token=access_token)
+    store = SynapseStorage(access_token=access_token, project_scope=project_scope)
 
     # call getprojectManifest function
     lst_manifest = store.getProjectManifests(projectId=project_id)
