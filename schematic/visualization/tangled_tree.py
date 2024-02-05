@@ -1,7 +1,6 @@
 """Tangled tree class"""
 
 # pylint: disable=logging-fstring-interpolation
-# pylint: disable=too-many-instance-attributes
 
 from io import StringIO
 import json
@@ -24,7 +23,7 @@ from schematic.utils.io_utils import load_json
 logger = logging.getLogger(__name__)
 
 
-class TangledTree:
+class TangledTree:  # pylint: disable=too-many-instance-attributes
     """Tangled tree class"""
 
     def __init__(
@@ -820,7 +819,8 @@ class TangledTree:
         if save_file:
             if component_name:
                 output_file_name = (
-                    f"{self.schema_abbr}_{self.figure_type}_{component_name}_tangled_tree.json"
+                    f"{self.schema_abbr}_{self.figure_type}_"
+                    f"{component_name}_tangled_tree.json"
                 )
             else:
                 output_file_name = (
