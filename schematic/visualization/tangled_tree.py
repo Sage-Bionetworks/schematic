@@ -1,5 +1,7 @@
 """Tangled tree class"""
 
+# pylint: disable=logging-fstring-interpolation
+# pylint: disable=too-many-instance-attributes
 
 from io import StringIO
 import json
@@ -24,9 +26,6 @@ logger = logging.getLogger(__name__)
 
 class TangledTree:
     """Tangled tree class"""
-
-    # pylint: disable=too-many-instance-attributes
-    # pylint: disable=invalid-name
 
     def __init__(
         self,
@@ -64,11 +63,15 @@ class TangledTree:
         self.schema_abbr = self.schema_name.split("_")[0]
 
         # Initialize AttributesExplorer
-        self.ae = AttributesExplorer(self.path_to_json_ld)
+        self.attributes_explorer = AttributesExplorer(self.path_to_json_ld)
 
         # Create output paths.
-        self.text_csv_output_path = self.ae.create_output_path("text_csv")
-        self.json_output_path = self.ae.create_output_path("tangled_tree_json")
+        self.text_csv_output_path = self.attributes_explorer.create_output_path(
+            "text_csv"
+        )
+        self.json_output_path = self.attributes_explorer.create_output_path(
+            "tangled_tree_json"
+        )
 
     def strip_double_quotes(self, string: str) -> str:
         """Removes double quotes from string
@@ -135,29 +138,29 @@ class TangledTree:
                 plain_descendants = [n for n in nodes if n != node]
             else:
                 # Format highlighted text for Observable.
-                for hd in highlight_descendants:
-                    highlighted.append([node, "id", hd])
+                for descendant in highlight_descendants:
+                    highlighted.append([node, "id", descendant])
                 # Gather the non-highlighted text as plain text descendants.
                 plain_descendants = [
                     node for node in nodes if node not in highlight_descendants
                 ]
 
             # Format all the plain text for observable.
-            for nd in plain_descendants:
-                plain.append([node, "id", nd])
+            for descendant in plain_descendants:
+                plain.append([node, "id", descendant])
 
         # Prepare df depending on what type of text we need.
-        df = pd.DataFrame(
+        dataframe = pd.DataFrame(
             locals()[text_type.lower()], columns=["Component", "type", "name"]
         )
 
         # Depending on input either export csv locally to disk or as a string.
         if save_file:
             file_name = f"{self.schema_abbr}_{self.figure_type}_{text_type}.csv"
-            df.to_csv(os.path.join(self.text_csv_output_path, file_name))
+            dataframe.to_csv(os.path.join(self.text_csv_output_path, file_name))
             return None
 
-        return df.to_csv()
+        return dataframe.to_csv()
 
     def get_topological_generations(
         self,
@@ -242,11 +245,11 @@ class TangledTree:
         return ca_alias
 
     def gather_component_dependency_info(
-        self, cn: str, attributes_df: pd.DataFrame
+        self, component_name: str, attributes_df: pd.DataFrame
     ) -> tuple[list[str], dict[str, str], list[str]]:
         """Gather all component dependency information.
         Inputs:
-            cn: (str) component name
+            component name: (str) component name
             attributes_df: (Pandas DataFrame) Details for all attributes across all components.
               From AttributesExplorer.
         Outputs:
@@ -259,7 +262,7 @@ class TangledTree:
 
         # Gather all component dependency information
         component_attributes = self.dmge.get_descendants_by_edge_type(
-            cn, self.dependency_type, connected=True
+            component_name, self.dependency_type, connected=True
         )
 
         # Dont want to display `Component` in the figure so remove
@@ -270,12 +273,14 @@ class TangledTree:
         if "Cond_Req" in attributes_df.columns:
             conditional_attributes = list(
                 attributes_df[
-                    (attributes_df["Cond_Req"]) & (attributes_df["Component"] == cn)
+                    (attributes_df["Cond_Req"])
+                    & (attributes_df["Component"] == component_name)
                 ]["Label"]
             )
             conditional_requirements = list(
                 attributes_df[
-                    (attributes_df["Cond_Req"]) & (attributes_df["Component"] == cn)
+                    (attributes_df["Cond_Req"])
+                    & (attributes_df["Component"] == component_name)
                 ]["Conditional Requirements"]
             )
             ca_alias = self.get_ca_alias(conditional_requirements)
@@ -501,7 +506,7 @@ class TangledTree:
         topological_gen: list[list],
         child_parents: dict,
         source_nodes: list,
-        cn: str,
+        component_name: str,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         """
         Purpose:
@@ -527,7 +532,7 @@ class TangledTree:
                 key: child
                 value: list of the child's parents
             source_nodes: list, list of nodes that do not have a parent.
-            cn: str, component name, default=''
+            component_name: str, component name, default=''
         Output:
             base_layers: dict, key: component name, value: layer
                 represents initial layering of topological_gen
@@ -590,7 +595,7 @@ class TangledTree:
                                 parent_levels.count(parent_levels[0])
                                 != len(parent_levels)
                             )
-                            and par != cn
+                            and par != component_name
                         ):
                             # If so, remove its position from parent_levels
                             parent_levels.remove(base_layers_copy[par])
@@ -741,7 +746,7 @@ class TangledTree:
         source_nodes: list[str],
         child_parents: dict,
         parent_children: dict,
-        cn: str = "",
+        component_name: str = "",
         all_parent_children: Optional[dict] = None,
     ) -> str:
         """Return all the layers of a single tangled tree as a JSON String.
@@ -763,7 +768,7 @@ class TangledTree:
         """
 
         base_layers, base_layers_copy_copy = self.get_base_layers(
-            topological_gen, child_parents, source_nodes, cn
+            topological_gen, child_parents, source_nodes, component_name
         )
 
         # Rearrange node_layers to follow the pattern laid out in component layers.
@@ -794,14 +799,14 @@ class TangledTree:
         self,
         save_file: bool,
         layers_json,
-        cn: str = "",
+        component_name: str = "",
         all_layers: Optional[list[str]] = None,
     ) -> list[str]:
         """
         Inputs:
             save_file (bool): Indicates whether to save a file locally or not.:
             layers_json (JSON String): Layers of nodes in the tangled tree as a json string.
-            cn (str): component name, default=''
+            component_name (str): component name, default=''
             all_layers (list of json strings): Each string represents contains the layers for
                 a single tangled tree. If a dependency figure the list is added to each time
                 this function is called, so starts incomplete. default=[].
@@ -813,9 +818,9 @@ class TangledTree:
         """
         all_layers_list = [] if all_layers is None else all_layers
         if save_file:
-            if cn:
+            if component_name:
                 output_file_name = (
-                    f"{self.schema_abbr}_{self.figure_type}_{cn}_tangled_tree.json"
+                    f"{self.schema_abbr}_{self.figure_type}_{component_name}_tangled_tree.json"
                 )
             else:
                 output_file_name = (
@@ -828,7 +833,6 @@ class TangledTree:
             ) as outfile:
                 outfile.write(layers_json)
 
-            # pylint: disable=logging-fstring-interpolation
             logger.info(
                 (
                     "Tangled Tree JSON String saved to "
@@ -910,17 +914,19 @@ class TangledTree:
             component_nodes = component_dg.nodes()
 
             # Get table of attributes.
-            attributes_csv_str = self.ae.parse_attributes(save_file=False)
+            attributes_csv_str = self.attributes_explorer.parse_attributes(
+                save_file=False
+            )
             attributes_df = pd.read_table(StringIO(attributes_csv_str), sep=",")
 
             all_layers = []
-            for cn in component_nodes:
+            for component_name in component_nodes:
                 # Gather attribute and dependency information per node
                 (
                     conditional_attributes,
                     ca_alias,
                     all_attributes,
-                ) = self.gather_component_dependency_info(cn, attributes_df)
+                ) = self.gather_component_dependency_info(component_name, attributes_df)
 
                 # Gather all source nodes
                 source_nodes = self.find_source_nodes(
@@ -947,9 +953,11 @@ class TangledTree:
                     source_nodes,
                     child_parents,
                     parent_children,
-                    cn,
+                    component_name,
                 )
 
                 # If indicated save outputs locally else, gather all layers.
-                all_layers = self.save_outputs(save_file, layers_json, cn, all_layers)
+                all_layers = self.save_outputs(
+                    save_file, layers_json, component_name, all_layers
+                )
         return all_layers

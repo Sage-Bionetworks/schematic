@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument
 # pylint: disable=useless-return
 # pylint: disable=unused-variable
+# pylint: disable=logging-fstring-interpolation
 
 import logging
 import sys
@@ -40,7 +41,6 @@ def viz(ctx: Any, config: str) -> None:  # use as `schematic model ...`
     Sub-commands for Visualization methods.
     """
     try:
-        # pylint: disable=logging-fstring-interpolation
         logger.debug(f"Loading config file contents in '{config}'")
         CONFIG.load_config(config)
         ctx.obj = CONFIG
