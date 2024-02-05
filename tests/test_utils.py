@@ -260,9 +260,13 @@ class TestDfUtils:
         test_col = "Check NA"
         file_path = helpers.get_data_path("mock_manifests", "Invalid_Test_Manifest.csv")
 
+        unprocessed_df = pd.read_csv(file_path, encoding="utf8")
         df = df_utils.load_df(file_path, preserve_raw_input=preserve_raw_input, data_model=False)
 
         assert df["Component"].dtype == "object"
+
+        # Ensure empty rows are removed from the dataframe
+        assert unprocessed_df.shape[0] == 4
         assert df.shape[0] == 3
 
         if preserve_raw_input:
