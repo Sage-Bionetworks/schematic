@@ -7,7 +7,6 @@ import urllib.request
 import logging
 import pathlib
 import pickle
-import time
 
 import connexion
 from connexion.decorators.uri_parsing import Swagger2URIParser
@@ -40,7 +39,6 @@ from synapseclient.core.exceptions import (
 )
 from schematic.utils.general import entity_type_mapping
 from schematic.utils.schema_utils import get_property_label_from_display_name
-from schematic.utils.general import profile
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
