@@ -265,9 +265,11 @@ class TestDfUtils:
 
         assert df["Component"].dtype == "object"
 
-        # Ensure empty rows are removed from the dataframe
-        assert unprocessed_df.shape[0] == 4
-        assert df.shape[0] == 3
+        n_unprocessed_rows = unprocessed_df.shape[0]
+        n_processed_rows = df.shape[0]
+
+        assert n_unprocessed_rows == 4
+        assert n_processed_rows == 3
 
         if preserve_raw_input:
             assert isinstance(df[test_col].iloc[0], str)
