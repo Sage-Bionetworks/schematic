@@ -204,7 +204,7 @@ def submit_manifest(
     "-ps",
     "--project_scope",
     default=None,
-    callback=parse_synIDs,
+    callback=parse_syn_ids,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.pass_obj
