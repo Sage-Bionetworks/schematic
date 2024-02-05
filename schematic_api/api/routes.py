@@ -1013,27 +1013,3 @@ def get_schematic_version() -> str:
             "Using this endpoint to check the version of schematic is only supported when the API is running in a docker container."
         )
     return version
-
-def test_time_out():
-    """return test time out
-    """
-    time.sleep(59.9)
-    return "okay"
-
-def test_time_out_two():
-    """return test time out
-    """
-    time.sleep(60)
-    return "okay"
-
-def test_time_out_three():
-    """return test time out
-    """
-    time.sleep(120)
-    return "okay"
-
-def test_time_out_four():
-    """return test time out
-    """
-    time.sleep(180)
-    return "okay"
