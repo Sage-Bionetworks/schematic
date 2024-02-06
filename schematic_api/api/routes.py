@@ -267,13 +267,15 @@ def get_manifest_route(
     output_format=None,
     title=None,
     strict_validation: bool = True,
-    data_model_labels: str = 'class_label'
+    data_model_labels: str = "class_label",
+    data_type: str = None,
 ):
     """Get the immediate dependencies that are related to a given source node.
     Args:
         schema_url: link to data model in json ld or csv format
         title: title of a given manifest.
         dataset_id: Synapse ID of the "dataset" entity on Synapse (for a given center/project).
+        data_type: data model components.
         output_format: contains three option: "excel", "google_sheet", and "dataframe". if set to "excel", return an excel spreadsheet
         use_annotations: Whether to use existing annotations during manifest generation
         asset_view: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.
@@ -285,56 +287,37 @@ def get_manifest_route(
     # Get access token from request header
     access_token = get_access_token()
 
-    # call config_handler()
     config_handler(asset_view=asset_view)
-
-    temp_path = get_temp_model_path(schema_url=schema_url)
-
-    # Gather all data_types to make manifests for.
-    all_args = connexion.request.args
-    args_dict = dict(all_args.lists())
-    data_type = args_dict["data_type"]
-
-    # Gather all dataset_ids
-    try:
-        dataset_ids = args_dict["dataset_id"]
-    except:
-        pass
-
-    if dataset_ids:
-        # Check that the number of submitted data_types matches
-        # the number of dataset_ids (if applicable)
-        len_data_types = len(data_type)
-        len_dataset_ids = len(dataset_ids)
-
-        try:
-            len_data_types == len_dataset_ids
-        except:
-            raise ValueError(
-                f"There is a mismatch in the number of data_types and dataset_id's that "
-                f"submitted. Please check your submission and try again."
-            )
-
-        # Raise an error if used in conjunction with datatype = 'all_manifests'
-        try:
-            data_type[0] != "all manifests"
-        except:
-            raise ValueError(
-                f"When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
-                f"Please check your submission and try again."
-            )
 
     all_results = ManifestGenerator.create_manifests(
         path_to_data_model=schema_url,
         output_format=output_format,
         data_types=data_type,
-        data_model_labels=data_model_labels,
         title=title,
         access_token=access_token,
-        dataset_ids=dataset_ids,
+        dataset_ids=dataset_id,
         strict=strict_validation,
         use_annotations=use_annotations,
+        data_model_labels=data_model_labels,
     )
+
+    # return an excel file if output_format is set to "excel"
+    if output_format == "excel":
+        # should only contain one excel spreadsheet path
+        if len(all_results) > 0:
+            result = all_results[0]
+            dir_name = os.path.dirname(result)
+            file_name = os.path.basename(result)
+            mimetype = (
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            return send_from_directory(
+                directory=dir_name,
+                path=file_name,
+                as_attachment=True,
+                mimetype=mimetype,
+                max_age=0,
+            )
 
     return all_results
 

@@ -11,7 +11,6 @@ from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
 from typing import Dict, List, Optional, Tuple, Union, BinaryIO, Literal
-from flask import send_from_directory
 
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
@@ -1575,21 +1574,22 @@ class ManifestGenerator(object):
         title: Optional[str] = None,
         output_format: Literal["google_sheet", "excel", "dataframe"] = "google_sheet",
         use_annotations: Optional[bool] = False,
-    ) -> Union[str, pd.DataFrame, BinaryIO]:
+    ) -> Union[str, pd.DataFrame]:
         """Create a single manifest
 
         Args:
-            jsonld (str): jsonld schema
+            path_to_data_model (str): data model schema
+            graph_data_model (nx.MultiDiGraph): graph data model
             data_type (str): data type of a manifest
-            access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
-            dataset_id (str, optional): dataset id when generating an existing manifest. Defaults to None.
-            strict (bool, optional): strictness with which to apply validation rules to google sheets. Defaults to True.
-            title (str, optional): title of a given manifest. Defaults to None.
-            output_format (str, optional): format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
-            use_annotations (bool, optional): whether to use annotations. Defaults to False.
+            access_token (Optional[str], optional): synapse access token. Required when getting an existing manifest. Defaults to None.
+            dataset_id (Optional[str], optional):dataset id when generating an existing manifest. Defaults to None. Defaults to None.
+            strict (Optional[bool], optional): strictness with which to apply validation rules to google sheets. Defaults to True.
+            title (Optional[str], optional):title of a given manifest. Defaults to None.
+            output_format (Literal['google_sheet', 'excel', 'dataframe'], optional): format of manifest. Defaults to "google_sheet".
+            use_annotations (Optional[bool], optional):whether to use annotations. Defaults to False.
 
         Returns:
-            Union[str, pd.DataFrame, BinaryIO]: Googlesheet URL or pandas dataframe or Excel.
+            Union[str, pd.DataFrame]: Googlesheet URL or pandas dataframe or an excel file path
         """
         # create object of type ManifestGenerator
         manifest_generator = ManifestGenerator(
@@ -1614,21 +1614,6 @@ class ManifestGenerator(object):
             strict=strict,
         )
 
-        # return an excel file if output_format is set to "excel"
-        if output_format == "excel":
-            dir_name = os.path.dirname(result)
-            file_name = os.path.basename(result)
-            mimetype = (
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            return send_from_directory(
-                directory=dir_name,
-                path=file_name,
-                as_attachment=True,
-                mimetype=mimetype,
-                max_age=0,
-            )
-
         return result
 
     @staticmethod
@@ -1642,22 +1627,41 @@ class ManifestGenerator(object):
         title: Optional[str] = None,
         strict: Optional[bool] = True,
         use_annotations: Optional[bool] = False,
-    ) -> Union[List[str], List[pd.DataFrame], BinaryIO]:
+    ) -> Union[List[str], List[pd.DataFrame]]:
         """Create multiple manifests
 
         Args:
             path_to_data_model (str): str path to data model
-            data_type (list): a list of data types
+            data_types (list): a list of data types
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
-            dataset_id (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
+            dataset_ids (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
             output_format (str, optional):format of manifest. It has three options: google sheet, excel or dataframe. Defaults to None.
             title (str, optional): title of a given manifest. Defaults to None.
             strict (bool, optional): strictness with which to apply validation rules to google sheets. Defaults to None.
             use_annotations (bool, optional): whether to use annotations. Defaults to False.
 
         Returns:
-            Union[List[str], List[pd.DataFrame], BinaryIO]: a list of Googlesheet URLs, a list of pandas dataframes or an Excel file.
+            Union[List[str], List[pd.DataFrame]]: a list of Googlesheet URLs, a list of pandas dataframes or excel file paths
         """
+        if dataset_ids:
+            # Check that the number of submitted data_types matches
+            # the number of dataset_ids (if applicable)
+            len_data_types = len(data_types)
+            len_dataset_ids = len(dataset_ids)
+
+            if len_data_types != len_dataset_ids:
+                raise ValueError(
+                    f"There is a mismatch in the number of data_types and dataset_id's that "
+                    f"submitted. Please check your submission and try again."
+                )
+
+            # Raise an error if used in conjunction with datatype = 'all_manifests'
+            if data_types[0] == "all manifests":
+                raise ValueError(
+                    "When submitting 'all manifests' as the data_type cannot also submit dataset_id. "
+                    "Please check your submission and try again."
+                )
+
         data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
 
         # Parse Model
@@ -1687,6 +1691,7 @@ class ManifestGenerator(object):
                         graph_data_model=graph_data_model,
                         output_format=output_format,
                         title=t,
+                        strict=strict,
                         access_token=access_token,
                     )
                     all_results.append(result)
@@ -1712,6 +1717,7 @@ class ManifestGenerator(object):
                         dataset_id=dataset_ids[i],
                         output_format=output_format,
                         title=t,
+                        strict=strict,
                         access_token=access_token,
                         use_annotations=use_annotations,
                     )
@@ -1722,6 +1728,7 @@ class ManifestGenerator(object):
                         graph_data_model=graph_data_model,
                         output_format=output_format,
                         title=t,
+                        strict=strict,
                         access_token=access_token,
                         use_annotations=use_annotations,
                     )

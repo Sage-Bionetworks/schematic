@@ -3,9 +3,11 @@ import json
 import logging
 import networkx as nx
 import string
-from typing import List, Dict
+from typing import Dict, List, Literal
 
 logger = logging.getLogger(__name__)
+
+DisplayLabelType = Literal["class_label", "display_label"]
 
 
 def attr_dict_template(key_name: str) -> Dict[str, dict[str, dict]]:
