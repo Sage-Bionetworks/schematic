@@ -262,7 +262,7 @@ def get_temp_model_path(schema_url):
 def get_manifest_route(
     schema_url: str,
     use_annotations: bool,
-    dataset_ids=None,
+    dataset_id=None,
     asset_view=None,
     output_format=None,
     title=None,
