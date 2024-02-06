@@ -1,7 +1,7 @@
 from inspect import isfunction
 import networkx as nx
 from rdflib import Namespace
-from typing import Any, Dict, Optional, Text, List, Callable
+from typing import Any, Dict, Optional, Text, List, Literal, Callable
 
 from schematic.schemas.data_model_parser import DataModelJSONLDParser
 from schematic.schemas.data_model_relationships import DataModelRelationships
@@ -11,6 +11,7 @@ from schematic.utils.schema_utils import (
     get_attribute_display_name_from_label,
     convert_bool_to_str,
     parse_validation_rules,
+    DisplayLabelType,
 )
 from schematic.utils.validate_rules_utils import validate_schema_rules
 from schematic.schemas.curie import uri2curie, curie2uri
@@ -130,7 +131,7 @@ class DataModelNodes:
         attr_relationships={},
         csv_header="",
         entry_type="",
-        data_model_labels: str = "class_label",
+        data_model_labels: DisplayLabelType = "class_label",
     ):
         """This function exists to centralzie handling of functions for filling out node information, makes sure all the proper parameters are passed to each function.
         Args:
@@ -183,7 +184,7 @@ class DataModelNodes:
         self,
         node_display_name: str,
         attr_rel_dict: dict,
-        data_model_labels: str = "class_label",
+        data_model_labels: DisplayLabelType = "class_label",
     ) -> dict:
         """Gather information to be attached to each node.
         Args:

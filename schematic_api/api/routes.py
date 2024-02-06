@@ -38,7 +38,7 @@ from synapseclient.core.exceptions import (
     SynapseTimeoutError,
 )
 from schematic.utils.general import entity_type_mapping
-from schematic.utils.schema_utils import get_property_label_from_display_name
+from schematic.utils.schema_utils import get_property_label_from_display_name, DisplayLabelType
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -267,7 +267,7 @@ def get_manifest_route(
     output_format=None,
     title=None,
     strict_validation: bool = True,
-    data_model_labels: str = "class_label",
+    data_model_labels: DisplayLabelType = "class_label",
     data_type: str = None,
 ):
     """Get the immediate dependencies that are related to a given source node.

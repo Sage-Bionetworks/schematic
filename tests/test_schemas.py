@@ -18,6 +18,7 @@ from schematic.utils.schema_utils import (
     get_attribute_display_name_from_label,
     convert_bool_to_str,
     parse_validation_rules,
+    DisplayLabelType
 )
 from schematic.utils.io_utils import load_json
 
@@ -79,7 +80,7 @@ def get_data_model_parser(
 
 
 def generate_graph_data_model(
-    helpers, data_model_name: str, data_model_labels: str = "class_label"
+    helpers, data_model_name: str, data_model_labels: DisplayLabelType = "class_label",
 ) -> nx.MultiDiGraph:
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
@@ -104,7 +105,7 @@ def generate_graph_data_model(
 
 
 def generate_data_model_nodes(
-    helpers, data_model_name: str, data_model_labels: str = "class_label"
+    helpers, data_model_name: str, data_model_labels: DisplayLabelType = "class_label",
 ) -> DataModelNodes:
     # Instantiate Parser
     data_model_parser = get_data_model_parser(

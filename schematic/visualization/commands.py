@@ -73,15 +73,22 @@ def get_attributes(ctx):
     type=click.Choice(["plain", "highlighted"], case_sensitive=False),
     help=query_dict(viz_commands, ("visualization", "tangled_tree", "text_format")),
 )
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    default="class_label",
+    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
+    help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
+)
 @click.pass_obj
-def get_tangled_tree_text(ctx, figure_type, text_format):
+def get_tangled_tree_text(ctx, figure_type, text_format, data_model_labels):
     """Get text to be placed on the tangled tree visualization."""
     # Get JSONLD file path
     path_to_jsonld = CONFIG.model_location
     log_value_from_config("jsonld", path_to_jsonld)
 
     # Initialize TangledTree
-    tangled_tree = TangledTree(path_to_jsonld, figure_type)
+    tangled_tree = TangledTree(path_to_jsonld, figure_type, data_model_labels)
 
     # Get text for tangled tree.
     text_df = tangled_tree.get_text_for_tangled_tree(text_format, save_file=True)
@@ -96,15 +103,22 @@ def get_tangled_tree_text(ctx, figure_type, text_format):
     type=click.Choice(["component", "dependency"], case_sensitive=False),
     help=query_dict(viz_commands, ("visualization", "tangled_tree", "figure_type")),
 )
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    default="class_label",
+    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
+    help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
+)
 @click.pass_obj
-def get_tangled_tree_component_layers(ctx, figure_type):
+def get_tangled_tree_component_layers(ctx, figure_type, data_model_labels):
     """Get the components that belong in each layer of the tangled tree visualization."""
     # Get JSONLD file path
     path_to_jsonld = CONFIG.model_location
     log_value_from_config("jsonld", path_to_jsonld)
 
     # Initialize Tangled Tree
-    tangled_tree = TangledTree(path_to_jsonld, figure_type)
+    tangled_tree = TangledTree(path_to_jsonld, figure_type, data_model_labels)
 
     # Get tangled trees layers JSON.
     layers = tangled_tree.get_tangled_tree_layers(save_file=True)

@@ -605,7 +605,7 @@ class TestSchemaUtils:
         ["display_label", "class_label"],
         ids=["display_label", "class_label"],
     )
-    def test_get_label_from_display_name(self, test_dn, data_model_labels):
+    def test_get_label_from_display_name(self, test_dn: str, data_model_labels: str):
         display_name = test_dn
         for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
             label = ""

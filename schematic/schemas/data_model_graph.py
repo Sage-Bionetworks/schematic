@@ -12,6 +12,7 @@ from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import (
     get_property_label_from_display_name,
     get_class_label_from_display_name,
+    DisplayLabelType,
 )
 from schematic.utils.general import unlist
 from schematic.utils.viz_utils import visualize
@@ -44,7 +45,7 @@ class DataModelGraph:
     __metaclass__ = DataModelGraphMeta
 
     def __init__(
-        self, attribute_relationships_dict: dict, data_model_labels: str = "class_label"
+        self, attribute_relationships_dict: dict, data_model_labels: DisplayLabelType = "class_label",
     ) -> None:
         """Load parsed data model.
         Args:
