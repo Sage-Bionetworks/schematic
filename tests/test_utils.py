@@ -260,10 +260,16 @@ class TestDfUtils:
         test_col = "Check NA"
         file_path = helpers.get_data_path("mock_manifests", "Invalid_Test_Manifest.csv")
 
+        unprocessed_df = pd.read_csv(file_path, encoding="utf8")
         df = df_utils.load_df(file_path, preserve_raw_input=preserve_raw_input, data_model=False)
 
         assert df["Component"].dtype == "object"
-        assert df.shape[0] == 3
+
+        n_unprocessed_rows = unprocessed_df.shape[0]
+        n_processed_rows = df.shape[0]
+
+        assert n_unprocessed_rows == 4
+        assert n_processed_rows == 3
 
         if preserve_raw_input:
             assert isinstance(df[test_col].iloc[0], str)

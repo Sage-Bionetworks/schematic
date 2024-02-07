@@ -1,0 +1,15 @@
+# This is a valid config, but missing the asset store section
+
+manifest:
+  manifest_folder: "folder_name"
+  title: "title"
+  data_type:
+    - "data_type"
+
+model:
+  location: "model.jsonld"
+
+google_sheets:
+  service_acct_creds_synapse_id: "syn1"
+  service_acct_creds: "creds.json"
+  strict_validation: false
