@@ -127,7 +127,7 @@ def get_stripped_label(
         ][0]
 
     logger.warning(
-        f"Cannot use display name {display_name} as the data model label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {label}"
+        f"Cannot use display name {display_name} as the data model label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {stripped_label}"
     )
     return stripped_label
 
