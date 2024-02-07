@@ -52,6 +52,9 @@ from schematic.utils.schema_utils import (
     get_class_label_from_display_name,
     strip_context,
     get_label_from_display_name,
+    get_schema_label,
+    get_stripped_label,
+    check_if_display_name_is_valid_label,
 )
 
 
@@ -594,6 +597,67 @@ class TestSchemaUtils:
             assert stripped_contex == ("", "id")
         elif "sms:required" == context_value:
             assert stripped_contex == ("sms", "required")
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
+    )
+    def test_check_if_display_name_is_valid_label(self, test_dn):
+        display_name = test_dn
+        blacklisted_chars=["(", ")", ".", " ", "-"]
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            valid_label = check_if_display_name_is_valid_label(test_dn, blacklisted_chars)
+            if test_dn in ["Bio-things", "bio things", "Bio Things"]:
+                assert valid_label == False
+            else:
+                assert valid_label == True
+
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys())[-2:],
+        ids=list(TEST_DN_DICT.keys())[-2:],
+    )
+    def test_get_stripped_label(self, test_dn:str):
+        display_name = test_dn
+        blacklisted_chars=["(", ")", ".", " ", "-"]
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            label = ""
+
+            label = get_stripped_label(
+                entry_type=entry_type,
+                display_name=display_name,
+                blacklisted_chars=blacklisted_chars,
+            )
+            assert label == expected_result
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
+    )
+    def test_get_schema_label(self, test_dn:str):
+        display_name = test_dn
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            label = ""
+
+            label = get_schema_label(
+                entry_type=entry_type,
+                display_name=display_name,
+                strict_camel_case=False,
+            )
+
+            if '-' in display_name:
+                # In this case, biothings will not strip the blacklisted character, 
+                # so it will not match the dictionary.
+                if entry_type == 'class':
+                    assert label == display_name.capitalize()
+                else:
+                    assert label == display_name[0].lower()+ display_name[1:]
+            else:
+                assert label == expected_result
+            
 
     @pytest.mark.parametrize(
         "test_dn",
