@@ -45,7 +45,9 @@ class DataModelGraph:
     __metaclass__ = DataModelGraphMeta
 
     def __init__(
-        self, attribute_relationships_dict: dict, data_model_labels: DisplayLabelType = "class_label",
+        self,
+        attribute_relationships_dict: dict,
+        data_model_labels: DisplayLabelType = "class_label",
     ) -> None:
         """Load parsed data model.
         Args:

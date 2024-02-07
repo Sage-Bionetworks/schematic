@@ -185,9 +185,7 @@ def get_label_from_display_name(
             label = display_name
         # If not, set get a stripped class or property label (as indicated by the entry type)
         else:
-            label = get_stripped_label(
-                display_name=display_name, entry_type=entry_type
-            )
+            label = get_stripped_label(display_name=display_name, entry_type=entry_type)
 
     else:
         label = get_schema_label(
