@@ -10,7 +10,12 @@ from pandarallel import pandarallel
 logger = logging.getLogger(__name__)
 
 
-def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
+def load_df(
+    file_path: str,
+    preserve_raw_input: bool = True,
+    data_model: bool = False,
+    **load_args,
+) -> pd.DataFrame:
     """
     Universal function to load CSVs and return DataFrames
     Parses string entries to convert as appropriate to type int, float, and pandas timestamp
@@ -31,14 +36,14 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
     # Read CSV to df as type specified in kwargs
     org_df = pd.read_csv(file_path, keep_default_na=True, encoding="utf8", **load_args)
 
+    # only trim if not data model csv
+    if not data_model:
+        org_df = trim_commas_df(org_df)
+
     # If type inference not allowed: trim and return
     if preserve_raw_input:
-        # only trim if not data model csv
-        if not data_model:
-            org_df = trim_commas_df(org_df)
-
-            # log manifest load and processing time
-            logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
+        # log manifest load and processing time
+        logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
 
     # If type inferences is allowed: infer types, trim, and return
@@ -75,11 +80,8 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
             # replace values that couldn't be converted to float with the original str values
             float_df[col].fillna(org_df[col][float_df[col].isna()], inplace=True)
 
-        # Trim nans and empty rows and columns
-        processed_df = trim_commas_df(float_df)
-
         # Store values that were converted to type int in the final dataframe
-        processed_df = processed_df.mask(ints_tf_df, other=ints)
+        processed_df = float_df.mask(ints_tf_df, other=ints)
 
         # log manifest load and processing time
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
