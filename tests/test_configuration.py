@@ -10,7 +10,10 @@ from schematic.configuration.dataclasses import (
     ModelConfig,
     GoogleSheetsConfig,
 )
-from schematic.configuration.configuration import Configuration, ConfigNonAllowedFieldError
+from schematic.configuration.configuration import (
+    Configuration,
+    ConfigNonAllowedFieldError,
+)
 
 
 class TestDataclasses:
