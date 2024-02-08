@@ -10,7 +10,7 @@ from datetime import datetime
 import dateparser as dp
 import pandas as pd
 import numpy as np
-from pandarallel import pandarallel # type: ignore
+from pandarallel import pandarallel  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -67,64 +67,67 @@ def load_df(
     return processed_df
 
 
-def find_and_convert_ints(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def find_and_convert_ints(dataframe: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Find strings that represent integers and convert to type int
     Args:
-        df: dataframe with nulls masked as empty strings
+        dataframe: dataframe with nulls masked as empty strings
     Returns:
         ints: dataframe with values that were converted to type int
         is_int: dataframe with boolean values indicating which cells were converted to type int
 
     """
+    # pylint: disable=unnecessary-lambda
     large_manifest_cutoff_size = 1000
     # Find integers stored as strings and replace with entries of type np.int64
     if (
-        df.size < large_manifest_cutoff_size
+        dataframe.size < large_manifest_cutoff_size
     ):  # If small manifest, iterate as normal for improved performance
-        ints = df.map(lambda x: convert_ints(x), na_action="ignore").fillna(False)
+        ints = dataframe.map(
+            lambda cell: convert_ints(cell), na_action="ignore"
+        ).fillna(False)
 
-    else:  # parallelize iterations for large manfiests
+    else:  # parallelize iterations for large manifests
         pandarallel.initialize(verbose=1)
-        ints = df.parallel_map(lambda x: convert_ints(x), na_action="ignore").fillna(
-            False
-        )
+        ints = dataframe.parallel_map(
+            lambda cell: convert_ints(cell), na_action="ignore"
+        ).fillna(False)
 
-    # Identify cells converted to intergers
+    # Identify cells converted to integers
     is_int = ints.map(pd.api.types.is_integer)
 
     return ints, is_int
 
 
-def convert_ints(x: str) -> Union[np.int64, bool]:
+def convert_ints(string: str) -> Union[np.int64, bool]:
     """
     Lambda function to convert a string to an integer if possible, otherwise returns False
     Args:
-        x: string to attempt conversion to int
+        string: string to attempt conversion to int
     Returns:
-        x converted to type int if possible, otherwise False
+        string converted to type int if possible, otherwise False
     """
-    return np.int64(x) if str.isdigit(x) else False
+    return np.int64(string) if str.isdigit(string) else False
 
 
-def convert_floats(df: pd.DataFrame) -> pd.DataFrame:
+def convert_floats(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Convert strings that represent floats to type float
     Args:
-        df: dataframe with nulls masked as empty strings
+        dataframe: dataframe with nulls masked as empty strings
     Returns:
         float_df: dataframe with values that were converted to type float. Columns are type object
     """
     # create a separate copy of the manifest
     # before beginning conversions to store float values
-    float_df = deepcopy(df)
+    float_df = deepcopy(dataframe)
 
     # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
-    for col in df.columns:
+    for col in dataframe.columns:
         float_df[col] = pd.to_numeric(float_df[col], errors="coerce").astype("object")
 
         # replace values that couldn't be converted to float with the original str values
-        float_df[col].fillna(df[col][float_df[col].isna()], inplace=True)
+        float_df[col].fillna(dataframe[col][float_df[col].isna()], inplace=True)
 
     return float_df
 
