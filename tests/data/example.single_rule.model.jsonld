@@ -8,6 +8,23 @@
     },
     "@graph": [
         {
+            "@id": "bts:Component",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "Component",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:Thing"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Component",
+            "sms:required": "sms:true",
+            "sms:validationRules": []
+        },
+        {
             "@id": "bts:Patient",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
@@ -126,23 +143,6 @@
             ],
             "sms:displayName": "Diagnosis",
             "sms:required": "sms:true",
-            "sms:validationRules": []
-        },
-        {
-            "@id": "bts:Component",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "Component",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:Thing"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Component",
-            "sms:required": "sms:false",
             "sms:validationRules": []
         },
         {
@@ -967,7 +967,7 @@
             "sms:displayName": "Check List",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "list strict"
+                "list strict  error"
             ]
         },
         {
@@ -986,8 +986,8 @@
             "sms:displayName": "Check Regex List",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "list strict",
-                "regex match [a-f]"
+                "list strict error",
+                "regex match [a-f] error"
             ]
         },
         {
@@ -1006,7 +1006,7 @@
             "sms:displayName": "Check Regex Single",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "regex search [a-f]"
+                "regex search [a-f] error"
             ]
         },
         {
@@ -1025,7 +1025,7 @@
             "sms:displayName": "Check Regex Format",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "regex match [a-f]"
+                "regex match [a-f] error"
             ]
         },
         {
@@ -1044,7 +1044,7 @@
             "sms:displayName": "Check Regex Integer",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "regex search ^\\d+$"
+                "regex search ^\\d+$ error"
             ]
         },
         {
@@ -1063,7 +1063,7 @@
             "sms:displayName": "Check Num",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "num"
+                "num error"
             ]
         },
         {
@@ -1082,7 +1082,7 @@
             "sms:displayName": "Check Float",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "float"
+                "float error"
             ]
         },
         {
@@ -1101,7 +1101,7 @@
             "sms:displayName": "Check Int",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "int"
+                "int error"
             ]
         },
         {
@@ -1120,7 +1120,7 @@
             "sms:displayName": "Check String",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "str"
+                "str error"
             ]
         },
         {
@@ -1139,7 +1139,7 @@
             "sms:displayName": "Check URL",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "url"
+                "url error"
             ]
         },
         {
@@ -1158,7 +1158,7 @@
             "sms:displayName": "Check Match at Least",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchAtLeastOne Patient.PatientID set"
+                "matchAtLeastOne Patient.PatientID set  warning"
             ]
         },
         {
@@ -1177,7 +1177,7 @@
             "sms:displayName": "Check Match at Least values",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchAtLeastOne MockComponent.checkMatchatLeastvalues value"
+                "matchAtLeastOne MockComponent.checkMatchatLeastvalues value  warning"
             ]
         },
         {
@@ -1196,7 +1196,7 @@
             "sms:displayName": "Check Match Exactly",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkMatchExactly set"
+                "matchExactlyOne warning MockComponent.checkMatchExactly set  warning"
             ]
         },
         {
@@ -1215,7 +1215,7 @@
             "sms:displayName": "Check Match Exactly values",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "matchExactlyOne MockComponent.checkMatchExactlyvalues value"
+                "matchExactlyOne MockComponent.checkMatchExactlyvalues value warning"
             ]
         },
         {
@@ -1234,7 +1234,7 @@
             "sms:displayName": "Check Recommended",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "recommended"
+                "recommended  warning"
             ]
         },
         {
@@ -1253,7 +1253,7 @@
             "sms:displayName": "Check Ages",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "protectAges"
+                "protectAges warning"
             ]
         },
         {
@@ -1310,7 +1310,7 @@
             "sms:displayName": "Check Date",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "date"
+                "date error"
             ]
         },
         {
@@ -1329,8 +1329,8 @@
             "sms:displayName": "Check NA",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "int",
-                "IsNA"
+                "int error",
+                "IsNA warning"
             ]
         },
         {
@@ -1400,6 +1400,25 @@
             "sms:displayName": "gh",
             "sms:required": "sms:false",
             "sms:validationRules": []
+        },
+        {
+            "@id": "bts:CheckOptionalAge",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckOptionalAge",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check OptionalAge",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "protectAges error"
+            ]
         },
         {
             "@id": "bts:MockRDB",
