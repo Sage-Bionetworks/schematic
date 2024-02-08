@@ -1405,6 +1405,25 @@
             "sms:validationRules": []
         },
         {
+            "@id": "bts:CheckOptionalAge",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckOptionalAge",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check OptionalAge",
+            "sms:required": "sms:false",
+            "sms:validationRules": [
+                "protectAges error"
+            ]
+        },
+        {
             "@id": "bts:MockRDB",
             "@type": "rdfs:Class",
             "rdfs:comment": "TBD",
