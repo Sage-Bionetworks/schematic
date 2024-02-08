@@ -229,7 +229,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             for req in conditional_requirements
         ]
 
-        for _, req in enumerate(conditional_requirements):
+        for req in conditional_requirements:
             if "OR" not in req:
                 attr, ali = req.split(" is ")
                 attr = "".join(attr.split())
@@ -424,7 +424,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             aliased_edges (list[list]) of aliased edges.
         """
         aliased_edges = []
-        for _, edge in enumerate(edges):
+        for edge in edges:
             # construct one set of edges at a time
             edge_set = []
 
@@ -477,7 +477,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         pruned_topological_gen = []
 
         # For each layer(gen) in the topological generation list
-        for _, layer in enumerate(topological_gen):
+        for layer in topological_gen:
             current_layer = []
             next_layer = []
 
@@ -676,7 +676,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         Output:
             node_layers (List(list)): modified to move source nodes to the bottom of each layer.
         """
-        for _, layer in enumerate(node_layers):
+        for layer in node_layers:
             nodes_to_move = []
             for node in layer:
                 if node in source_nodes:
@@ -889,7 +889,9 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             source_nodes = self.find_source_nodes(nodes, edges)
 
             # Map all children to their parents and vice versa
-            child_parents, parent_children = self.get_parent_child_dictionary(edges)
+            child_parents, parent_children = self.get_parent_child_dictionary(
+                edges=edges
+            )
 
             # find all the downstream nodes
             all_parent_children = self.get_ancestors_nodes(
