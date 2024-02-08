@@ -255,6 +255,31 @@ class TestIOUtils:
 
 
 class TestDfUtils:
+    @pytest.mark.parametrize("preserve_raw_input", [True, False], ids=["Do not infer datatypes", "Infer datatypes"])
+    def test_load_df(self, helpers, preserve_raw_input):
+        test_col = "Check NA"
+        file_path = helpers.get_data_path("mock_manifests", "Invalid_Test_Manifest.csv")
+
+        unprocessed_df = pd.read_csv(file_path, encoding="utf8")
+        df = df_utils.load_df(file_path, preserve_raw_input=preserve_raw_input, data_model=False)
+
+        assert df["Component"].dtype == "object"
+
+        n_unprocessed_rows = unprocessed_df.shape[0]
+        n_processed_rows = df.shape[0]
+
+        assert n_unprocessed_rows == 4
+        assert n_processed_rows == 3
+
+        if preserve_raw_input:
+            assert isinstance(df[test_col].iloc[0], str)
+            assert isinstance(df[test_col].iloc[1], str)
+            assert isinstance(df[test_col].iloc[2], str)
+        else:
+            assert isinstance(df[test_col].iloc[0], np.int64)
+            assert isinstance(df[test_col].iloc[1], float)
+            assert isinstance(df[test_col].iloc[2], str)
+
     def test_update_df_col_present(self, helpers):
 
         synapse_manifest = helpers.get_data_frame(
@@ -286,7 +311,7 @@ class TestDfUtils:
             [[np.nan] * len(local_manifest.columns)], columns=local_manifest.columns
         )
 
-        df_with_nans = local_manifest.append(nan_row, ignore_index=True)
+        df_with_nans = pd.concat([local_manifest, nan_row], ignore_index=True)
 
         df_with_nans["Unnamed: 1"] = np.nan
         trimmed_df = df_utils.trim_commas_df(df_with_nans)
