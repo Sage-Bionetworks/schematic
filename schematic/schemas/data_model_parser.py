@@ -1,6 +1,7 @@
 import logging
 import pandas as pd
 import pathlib
+
 from typing import Any, Dict, Optional, Text, List, Union
 
 from schematic.utils.df_utils import load_df
@@ -418,9 +419,7 @@ class DataModelJSONLDParser:
                                     else:
                                         attr_rel_dictionary[p_attr_key][
                                             "Relationships"
-                                        ].update(
-                                            {rel_csv_header: [entry[dn_jsonld_key]]}
-                                        )
+                                        ][rel_csv_header].extend([entry[dn_jsonld_key]])
                                 # If the parsed_val is not already recorded in the dictionary, add it
                                 elif attr_in_dict == False:
                                     # Get the display name for the parsed value

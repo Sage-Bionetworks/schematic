@@ -22,6 +22,7 @@ from schematic.utils.google_api_utils import (
 )
 from schematic.utils.df_utils import update_df, load_df
 from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.schema_utils import DisplayLabelType
 
 # TODO: This module should only be aware of the store interface
 # we shouldn't need to expose Synapse functionality explicitly
@@ -1620,6 +1621,7 @@ class ManifestGenerator(object):
     def create_manifests(
         path_to_data_model: str,
         data_types: list,
+        data_model_labels: DisplayLabelType = "class_label",
         access_token: Optional[str] = None,
         dataset_ids: Optional[list] = None,
         output_format: Literal["google_sheet", "excel", "dataframe"] = "google_sheet",
@@ -1667,7 +1669,7 @@ class ManifestGenerator(object):
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
+        data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
         # Generate graph
         graph_data_model = data_model_grapher.generate_data_model_graph()

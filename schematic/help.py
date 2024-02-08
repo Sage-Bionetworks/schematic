@@ -54,6 +54,12 @@ manifest_commands = {
                 "Specify to alphabetize valid attribute values either ascending (a) or descending (d)."
                 "Optional"
             ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
+            ),
         },
         "migrate": {
             "short_help": (
@@ -133,6 +139,12 @@ model_commands = {
                 "class_label, display_label, display_name, default, class_label. When true annotations and table columns will be uploaded with the display name formatting with blacklisted characters removed. "
                 "To use for tables, use in conjunction with the use_schema_label flag."
             ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
+            ),
         },
         "validate": {
             "short_help": ("Validation of manifest files."),
@@ -158,6 +170,12 @@ model_commands = {
             "project_scope": (
                 "Specify a comma-separated list of projects to search through for cross manifest validation."
             ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
+            ),
         },
     }
 }
@@ -172,6 +190,12 @@ schema_commands = {
             ),
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
+            ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
             ),
         }
     }
@@ -199,6 +223,12 @@ viz_commands = {
             ),
             "text_format": (
                 "Specify the type of text to gather for tangled tree visualization, either 'plain' or 'highlighted'."
+            ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
             ),
         },
     }

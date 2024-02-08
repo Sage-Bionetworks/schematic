@@ -494,14 +494,14 @@ class SynapseStorage(BaseStorage):
             # Try to use uncensored manifest first
             not_censored = ~censored
             if any(not_censored):
-                manifest_syn_id = manifest[not_censored]["id"][0]
+                manifest_syn_id = manifest[not_censored]["id"].iloc[0]
             # if only censored manifests are available, just use the first censored manifest
             else:
-                manifest_syn_id = manifest["id"][0]
+                manifest_syn_id = manifest["id"].iloc[0]
 
         # otherwise, use the first (implied only) version that exists
         else:
-            manifest_syn_id = manifest["id"][0]
+            manifest_syn_id = manifest["id"].iloc[0]
 
         return manifest_syn_id
 
@@ -1543,11 +1543,15 @@ class SynapseStorage(BaseStorage):
             else:
                 manifest["Id"] = ""
 
+        # Retrieve the ID column name (id, Id and ID) are treated the same.
+        id_col_name = [col for col in manifest.columns if col.lower() == "id"][0]
+
+        # Check if values have been added to the Id coulumn, if not add a UUID so value in the row is not blank.
         for idx, row in manifest.iterrows():
-            if not row["Id"]:
+            if not row[id_col_name]:
                 gen_uuid = str(uuid.uuid4())
-                row["Id"] = gen_uuid
-                manifest.loc[idx, "Id"] = gen_uuid
+                row[id_col_name] = gen_uuid
+                manifest.loc[idx, id_col_name] = gen_uuid
 
         # add entityId as a column if not already there or
         # fill any blanks with an empty string.

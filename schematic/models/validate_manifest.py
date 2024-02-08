@@ -10,6 +10,7 @@ import pandas as pd
 import re
 import sys
 from time import perf_counter
+from numbers import Number
 
 # allows specifying explicit variable types
 from typing import Any, Dict, Optional, Text, List
@@ -19,6 +20,7 @@ from urllib.request import Request
 from urllib import error
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
+
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
@@ -179,7 +181,7 @@ class ValidateManifest(object):
         regex_re = re.compile("regex.*")
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
-            manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+            manifest.map(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = dmge.get_node_validation_rules(node_display_name=col)
 
             # TODO: Can remove when handling updated so split within graph
@@ -261,11 +263,8 @@ class ValidateManifest(object):
             include=[int, np.int64, float, np.float64]
         ).columns:
             manifest[col] = manifest[col].astype("string")
-        manifest = manifest.applymap(
-            lambda x: str(x)
-            if isinstance(x, (int, np.int64, float, np.float64))
-            else x,
-            na_action="ignore",
+        manifest = manifest.map(
+            lambda x: str(x) if isinstance(x, Number) else x, na_action="ignore"
         )
 
         annotations = json.loads(manifest.to_json(orient="records"))
