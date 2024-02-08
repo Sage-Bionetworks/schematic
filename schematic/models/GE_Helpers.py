@@ -163,7 +163,7 @@ class GreatExpectationsHelpers(object):
             meta = {}
 
             # remove trailing/leading whitespaces from manifest
-            self.manifest.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+            self.manifest.map(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = self.dmge.get_node_validation_rules(
                 node_display_name=col
             )
