@@ -165,7 +165,7 @@ class TestManifestValidation:
             attribute_name = 'Check Date',
             dmge = dmge,
             row_num = ['2','3','4'],
-            error_val = ['84-43-094', '32-984', 'notADate'],
+            invalid_entry = ['84-43-094', '32-984', 'notADate'],
             )[0]
         error_in_list = [date_err[2] in error for error in errors]
         assert any(error_in_list)
@@ -175,7 +175,7 @@ class TestManifestValidation:
             attribute_name = 'Check Unique',
             dmge = dmge,
             row_num = ['2','3','4'],
-            error_val = ['str1'],  
+            invalid_entry = ['str1'],  
             )[0] in errors
 
         assert GenerateError.generate_content_error(
@@ -183,7 +183,7 @@ class TestManifestValidation:
             attribute_name = 'Check Range',
             dmge = dmge,
             row_num = ['3'],
-            error_val = ['30'], 
+            invalid_entry = ['30'], 
             )[0] in errors
 
         #check warnings
@@ -198,7 +198,7 @@ class TestManifestValidation:
             attribute_name = 'Check Ages',
             dmge = dmge,
             row_num = ['2','3'],
-            error_val = ['6549','32851'], 
+            invalid_entry = ['6549','32851'], 
             )[1] in warnings
 
         assert GenerateError.generate_cross_warning(

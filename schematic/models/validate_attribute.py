@@ -353,7 +353,7 @@ class GenerateError:
         attribute_name: str,
         dmge: DataModelGraphExplorer,
         row_num=None,
-        error_val=None,
+        invalid_entry=None,
     ) -> (List[str], List[str]):
         """
         Purpose:
@@ -368,7 +368,7 @@ class GenerateError:
                 attribute_name: str, attribute being validated
                 dmge: DataModelGraphExplorer object
                 row_num: str, row where the error was detected
-                error_val: erroneous value(s)
+                invalid_entry: erroneous value(s)
         Returns:
             Errors: List[str] Error details for further storage.
             warnings: List[str] Warning details for further storage.
@@ -376,7 +376,7 @@ class GenerateError:
 
         error_col = attribute_name  # Attribute name
         error_row = row_num
-        error_val = iterable_to_str_list(set(error_val)) if error_val else None
+        error_val = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
 
         # log warning or error message
         if val_rule.startswith("recommended"):
