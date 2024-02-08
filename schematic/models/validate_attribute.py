@@ -199,7 +199,6 @@ class GenerateError:
         if validation_rules and "::" in validation_rules[0]:
             validation_rules = validation_rules[0].split("::")
 
-
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
@@ -331,7 +330,6 @@ class GenerateError:
             elif val_rule.__contains__("value"):
                 cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
 
-
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = cross_error_str
@@ -447,20 +445,26 @@ class GenerateError:
         rule_parts = val_rule.split(" ")
         rule_name = rule_parts[0]
         specified_level = rule_parts[-1].lower()
-        specified_level = specified_level if specified_level in ["error", "warning"] else None
+        specified_level = (
+            specified_level if specified_level in ["error", "warning"] else None
+        )
 
         is_schema_error = rule_name == "schema"
         includes_recommended_modifier = "recommended" in val_rule
         includes_na_modifier = "IsNA" in val_rule_list if val_rule_list else False
-        is_required = dmge.get_node_required(node_display_name=error_col)  
-        error_val_is_na = error_val.lower() == "not applicable" if isinstance(error_val, str) else False   
+        is_required = dmge.get_node_required(node_display_name=error_col)
+        error_val_is_na = (
+            error_val.lower() == "not applicable"
+            if isinstance(error_val, str)
+            else False
+        )
 
         if is_schema_error:
             return "error"
-        
+
         if specified_level:
             return specified_level
-        
+
         if (error_val_is_na and includes_na_modifier) or val_rule == "IsNA":
             return None
 
@@ -469,7 +473,9 @@ class GenerateError:
         elif is_required and includes_recommended_modifier:
             return None
 
-        default_rule_message_level = validation_rule_info()[rule_name]["default_message_level"]
+        default_rule_message_level = validation_rule_info()[rule_name][
+            "default_message_level"
+        ]
         return default_rule_message_level
 
     def raise_and_store_message(
@@ -480,7 +486,7 @@ class GenerateError:
         error_message: str,
         error_val: Union[str, List[str]],
         val_rule_list: Optional[List[str]] = None,
-        ) -> (list[str], list[str]):
+    ) -> (list[str], list[str]):
         """
         Purpose:
             Log and store error messages in a list for further storage.
@@ -496,15 +502,17 @@ class GenerateError:
             error_list: list of errors
             warning_list: list of warnings
         """
-    
-        error_list = []
-        warning_list = []    
 
-        message_level = GenerateError.get_message_level(dmge, error_col, error_val, val_rule, val_rule_list)
+        error_list = []
+        warning_list = []
+
+        message_level = GenerateError.get_message_level(
+            dmge, error_col, error_val, val_rule, val_rule_list
+        )
 
         if message_level is None:
             return error_list, warning_list
-        
+
         message_logger = getattr(logger, message_level)
         message_logger(error_message)
 
@@ -514,6 +522,7 @@ class GenerateError:
             warning_list = [error_row, error_col, error_message, error_val]
 
         return error_list, warning_list
+
 
 class ValidateAttribute(object):
     """
