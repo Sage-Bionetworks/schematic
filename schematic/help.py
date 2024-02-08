@@ -224,6 +224,12 @@ viz_commands = {
             "text_format": (
                 "Specify the type of text to gather for tangled tree visualization, either 'plain' or 'highlighted'."
             ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
+            ),
         },
     }
 }

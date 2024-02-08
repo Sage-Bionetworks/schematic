@@ -85,11 +85,11 @@ def get_attributes(ctx: Any) -> None:
     "-dml",
     default="class_label",
     type=click.Choice(["display_label", "class_label"], case_sensitive=True),
-    help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
+    help=query_dict(viz_commands, ("visualization", "tangled_tree", "data_model_labels")),
 )
 @click.pass_obj
 def get_tangled_tree_text(
-    ctx: Any, figure_type: str, text_format: str, data_model_labels: DisplayLabelType
+    ctx: Any, figure_type: str, text_format: str, data_model_labels: DisplayLabelType = "class_label",
 ) -> None:
     """Get text to be placed on the tangled tree visualization."""
     # Get JSONLD file path
@@ -117,11 +117,11 @@ def get_tangled_tree_text(
     "-dml",
     default="class_label",
     type=click.Choice(["display_label", "class_label"], case_sensitive=True),
-    help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
+    help=query_dict(viz_commands, ("visualization", "tangled_tree", "data_model_labels")),
 )
 @click.pass_obj
 def get_tangled_tree_component_layers(
-    ctx: Any, figure_type: str, data_model_labels: DisplayLabelType
+    ctx: Any, figure_type: str, data_model_labels: DisplayLabelType = "class_label",
 ) -> None:
     """Get the components that belong in each layer of the tangled tree visualization."""
     # Get JSONLD file path
