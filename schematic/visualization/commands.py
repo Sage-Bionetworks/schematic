@@ -1,14 +1,20 @@
-#!/usr/bin/env python3
+"""visualization commands"""
+# pylint: disable=unused-argument
+# pylint: disable=useless-return
+# pylint: disable=unused-variable
+# pylint: disable=logging-fstring-interpolation
 
 import logging
 import sys
+from typing import Any
 
 import click
-import click_log
+import click_log  # type: ignore
 
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
 from schematic.utils.cli_utils import log_value_from_config, query_dict
+from schematic.utils.schema_utils import DisplayLabelType
 from schematic.help import viz_commands
 from schematic.help import model_commands
 from schematic.configuration.configuration import CONFIG
@@ -16,10 +22,11 @@ from schematic.configuration.configuration import CONFIG
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
 
-CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
+CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}  # help options
 
 
-# invoke_without_command=True -> forces the application not to show aids before losing them with a --h
+# invoke_without_command=True -> forces the application not to show aids before
+# losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click_log.simple_verbosity_option(logger)
 @click.option(
@@ -30,7 +37,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
     help=query_dict(model_commands, ("model", "config")),
 )
 @click.pass_context
-def viz(ctx, config):  # use as `schematic model ...`
+def viz(ctx: Any, config: str) -> None:  # use as `schematic model ...`
     """
     Sub-commands for Visualization methods.
     """
@@ -38,9 +45,9 @@ def viz(ctx, config):  # use as `schematic model ...`
         logger.debug(f"Loading config file contents in '{config}'")
         CONFIG.load_config(config)
         ctx.obj = CONFIG
-    except ValueError as e:
+    except ValueError as exc:
         logger.error("'--config' not provided or environment variable not set.")
-        logger.exception(e)
+        logger.exception(exc)
         sys.exit(1)
 
 
@@ -49,8 +56,8 @@ def viz(ctx, config):  # use as `schematic model ...`
 )
 @click_log.simple_verbosity_option(logger)
 @click.pass_obj
-def get_attributes(ctx):
-    """ """
+def get_attributes(ctx: Any) -> None:
+    """Gets attributes"""
     # Get JSONLD file path
     path_to_jsonld = CONFIG.model_location
     log_value_from_config("jsonld", path_to_jsonld)
@@ -81,7 +88,9 @@ def get_attributes(ctx):
     help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
 )
 @click.pass_obj
-def get_tangled_tree_text(ctx, figure_type, text_format, data_model_labels):
+def get_tangled_tree_text(
+    ctx: Any, figure_type: str, text_format: str, data_model_labels: DisplayLabelType
+) -> None:
     """Get text to be placed on the tangled tree visualization."""
     # Get JSONLD file path
     path_to_jsonld = CONFIG.model_location
@@ -111,7 +120,9 @@ def get_tangled_tree_text(ctx, figure_type, text_format, data_model_labels):
     help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
 )
 @click.pass_obj
-def get_tangled_tree_component_layers(ctx, figure_type, data_model_labels):
+def get_tangled_tree_component_layers(
+    ctx: Any, figure_type: str, data_model_labels: DisplayLabelType
+) -> None:
     """Get the components that belong in each layer of the tangled tree visualization."""
     # Get JSONLD file path
     path_to_jsonld = CONFIG.model_location

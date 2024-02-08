@@ -6,11 +6,17 @@ import dateparser as dp
 import pandas as pd
 import numpy as np
 from pandarallel import pandarallel
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
 
-def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
+def load_df(
+    file_path: str,
+    preserve_raw_input: bool = True,
+    data_model: bool = False,
+    **load_args,
+) -> pd.DataFrame:
     """
     Universal function to load CSVs and return DataFrames
     Parses string entries to convert as appropriate to type int, float, and pandas timestamp
@@ -24,66 +30,94 @@ def load_df(file_path, preserve_raw_input=True, data_model=False, **load_args):
 
     Returns: a processed dataframe for manifests or unprocessed df for data models and where indicated
     """
-    large_manifest_cutoff_size = 1000
     # start performance timer
     t_load_df = perf_counter()
 
     # Read CSV to df as type specified in kwargs
     org_df = pd.read_csv(file_path, keep_default_na=True, encoding="utf8", **load_args)
 
-    # If type inference not allowed: trim and return
-    if preserve_raw_input:
-        # only trim if not data model csv
-        if not data_model:
-            org_df = trim_commas_df(org_df)
+    # only trim if not data model csv
+    if not data_model:
+        org_df = trim_commas_df(org_df)
 
-            # log manifest load and processing time
-            logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
+    if preserve_raw_input:
+        logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
 
-    # If type inferences is allowed: infer types, trim, and return
-    else:
-        # create a separate copy of the manifest
-        # before beginning conversions to store float values
-        float_df = deepcopy(org_df)
+    is_null = org_df.isnull()
+    org_df = org_df.astype(str).mask(is_null, "")
 
-        # Cast the columns in the dataframe to string and
-        # replace Null values with empty strings
-        null_cells = org_df.isnull()
-        org_df = org_df.astype(str).mask(null_cells, "")
+    ints, is_int = find_and_convert_ints(org_df)
 
-        # Find integers stored as strings and replace with entries of type np.int64
-        if (
-            org_df.size < large_manifest_cutoff_size
-        ):  # If small manifest, iterate as normal for improved performance
-            ints = org_df.applymap(
-                lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
-            ).fillna(False)
+    float_df = convert_floats(org_df)
 
-        else:  # parallelize iterations for large manfiests
-            pandarallel.initialize(verbose=1)
-            ints = org_df.parallel_applymap(
-                lambda x: np.int64(x) if str.isdigit(x) else False, na_action="ignore"
-            ).fillna(False)
+    # Store values that were converted to type int in the final dataframe
+    processed_df = float_df.mask(is_int, other=ints)
 
-        # Identify cells converted to intergers
-        ints_tf_df = ints.applymap(pd.api.types.is_integer)
+    logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
+    return processed_df
 
-        # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
-        for col in org_df.columns:
-            float_df[col] = pd.to_numeric(float_df[col], errors="coerce")
-            # replace values that couldn't be converted to float with the original str values
-            float_df[col].fillna(org_df[col][float_df[col].isna()], inplace=True)
 
-        # Trim nans and empty rows and columns
-        processed_df = trim_commas_df(float_df)
+def find_and_convert_ints(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Find strings that represent integers and convert to type int
+    Args:
+        df: dataframe with nulls masked as empty strings
+    Returns:
+        ints: dataframe with values that were converted to type int
+        is_int: dataframe with boolean values indicating which cells were converted to type int
 
-        # Store values that were converted to type int in the final dataframe
-        processed_df = processed_df.mask(ints_tf_df, other=ints)
+    """
+    large_manifest_cutoff_size = 1000
+    # Find integers stored as strings and replace with entries of type np.int64
+    if (
+        df.size < large_manifest_cutoff_size
+    ):  # If small manifest, iterate as normal for improved performance
+        ints = df.map(lambda x: convert_ints(x), na_action="ignore").fillna(False)
 
-        # log manifest load and processing time
-        logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
-        return processed_df
+    else:  # parallelize iterations for large manfiests
+        pandarallel.initialize(verbose=1)
+        ints = df.parallel_map(lambda x: convert_ints(x), na_action="ignore").fillna(
+            False
+        )
+
+    # Identify cells converted to intergers
+    is_int = ints.map(pd.api.types.is_integer)
+
+    return ints, is_int
+
+
+def convert_ints(x: str) -> Union[np.int64, bool]:
+    """
+    Lambda function to convert a string to an integer if possible, otherwise returns False
+    Args:
+        x: string to attempt conversion to int
+    Returns:
+        x converted to type int if possible, otherwise False
+    """
+    return np.int64(x) if str.isdigit(x) else False
+
+
+def convert_floats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert strings that represent floats to type float
+    Args:
+        df: dataframe with nulls masked as empty strings
+    Returns:
+        float_df: dataframe with values that were converted to type float. Columns are type object
+    """
+    # create a separate copy of the manifest
+    # before beginning conversions to store float values
+    float_df = deepcopy(df)
+
+    # convert strings to numerical dtype (float) if possible, preserve non-numerical strings
+    for col in df.columns:
+        float_df[col] = pd.to_numeric(float_df[col], errors="coerce").astype("object")
+
+        # replace values that couldn't be converted to float with the original str values
+        float_df[col].fillna(df[col][float_df[col].isna()], inplace=True)
+
+    return float_df
 
 
 def _parse_dates(date_string):
