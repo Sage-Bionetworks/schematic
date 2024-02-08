@@ -596,7 +596,7 @@ class DataModelGraphExplorer:
 
     def get_node_validation_rules(
         self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
-    ) -> str:
+    ) -> list:
         """Get validation rules associated with a node,
 
         Args:
