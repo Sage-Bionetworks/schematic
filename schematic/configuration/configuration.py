@@ -83,13 +83,14 @@ class Configuration:
         self._google_sheets_config = GoogleSheetsConfig(
             **config.get("google_sheets", {})
         )
-        self._set_asset_store(config.get("asset_store", {}))
+        asset_store_config = config.get("asset_store", None)
+        if asset_store_config:
+            self._set_asset_store(asset_store_config)
 
     def _set_asset_store(self, config: dict[str, Any]) -> None:
         allowed_config_fields = {"synapse"}
-        if not config:
-            pass
-        if not set(config.keys()).issubset(allowed_config_fields):
+        all_fields_are_valid = set(config.keys()).issubset(allowed_config_fields)
+        if not all_fields_are_valid:
             raise ConfigNonAllowedFieldError(
                 "Non allowed fields in asset_store of configuration file.",
                 list(config.keys()),
@@ -180,6 +181,15 @@ class Configuration:
         return normalize_path(
             self._google_sheets_config.service_acct_creds, self._parent_directory
         )
+
+    @service_account_credentials_path.setter
+    def service_account_credentials_path(self, path: str) -> None:
+        """Sets the path of the Google service account credentials.
+
+        Args:
+            path (str): The path of the Google service account credentials.
+        """
+        self._google_sheets_config.service_acct_creds = path
 
     @property
     def google_sheets_master_template_id(self) -> str:
