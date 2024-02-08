@@ -85,12 +85,14 @@ def get_attributes(
 @click.option(
     "-ft",
     "--figure_type",
+    required=True,
     type=click.Choice(["component", "dependency"], case_sensitive=False),
     help=query_dict(viz_commands, ("visualization", "tangled_tree", "figure_type")),
 )
 @click.option(
     "-tf",
     "--text_format",
+    required=True,
     type=click.Choice(["plain", "highlighted"], case_sensitive=False),
     help=query_dict(viz_commands, ("visualization", "tangled_tree", "text_format")),
 )
@@ -128,6 +130,7 @@ def get_tangled_tree_text(
 @click.option(
     "-ft",
     "--figure_type",
+    required=True,
     type=click.Choice(["component", "dependency"], case_sensitive=False),
     help=query_dict(viz_commands, ("visualization", "tangled_tree", "figure_type")),
 )
