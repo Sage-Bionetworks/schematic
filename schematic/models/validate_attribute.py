@@ -7,7 +7,7 @@ from time import perf_counter
 from os import getenv
 
 # allows specifying explicit variable types
-from typing import Any, Dict, List, Optional, Text
+from typing import Any, Dict, List, Optional, Text, Union
 from urllib import error
 from urllib.parse import urlparse
 from urllib.request import HTTPDefaultErrorHandler, OpenerDirector, Request, urlopen
@@ -49,24 +49,6 @@ class GenerateError:
             - attribute_name: the attribute the error occurred on.
             - error_msg: Error message
         """
-        error_list = []
-        warning_list = []
-
-        # Determine which, if any, message to raise
-        if attribute_name.lower() == "wrong schema":
-            raises = "error"
-        else:
-            raises = GenerateError.get_message_level(
-                val_rule="schema",
-                attribute_name=attribute_name,
-                dmge=dmge,
-            )
-
-        # if a message needs to be raised, get the approrpiate function to do so
-        if raises:
-            logLevel = getattr(logger, raises)
-        else:
-            return error_list, warning_list
 
         error_col = attribute_name  # Attribute name
         error_row = row_num  # index row of the manifest where the error presented.
@@ -75,12 +57,15 @@ class GenerateError:
         arg_error_string = (
             f"For the attribute '{error_col}', on row {error_row}, {error_message}."
         )
-        logLevel(arg_error_string)
 
-        if raises == "error":
-            error_list = [error_row, error_col, error_message, invalid_entry]
-        elif raises == "warning":
-            warning_list = [error_row, error_col, error_message, invalid_entry]
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule="schema",
+            error_row=error_row,
+            error_col=error_col,
+            error_message=error_message,
+            error_val=None,
+        )
 
         return error_list, warning_list
 
@@ -107,40 +92,26 @@ class GenerateError:
         warnings: List[str] Warning details for further storage.
         """
 
-        error_list = []
-        warning_list = []
-
-        # Determine which, if any, message to raise
-        raises = GenerateError.get_message_level(
-            val_rule=val_rule,
-            attribute_name=attribute_name,
-            dmge=dmge,
-        )
-
-        # if a message needs to be raised, get the approrpiate function to do so
-        if raises:
-            logLevel = getattr(logger, raises)
-        else:
-            return error_list, warning_list
-
         if list_error == "not_comma_delimited":
             error_str = (
                 f"For attribute {attribute_name} in row {row_num} it does not "
                 f"appear as if you provided a comma delimited string. Please check "
                 f"your entry ('{list_string}'') and try again."
             )
-            logLevel(error_str)
             error_row = row_num  # index row of the manifest where the error presented.
             error_col = attribute_name  # Attribute name
             error_message = error_str
             error_val = invalid_entry
             # return error and empty list for warnings
 
-        if raises == "error":
-            error_list = [error_row, error_col, error_message, error_val]
-        # return warning and empty list for errors
-        elif raises == "warning":
-            warning_list = [error_row, error_col, error_message, error_val]
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=error_row,
+            error_col=error_col,
+            error_message=error_message,
+            error_val=error_val,
+        )
 
         return error_list, warning_list
 
@@ -168,38 +139,24 @@ class GenerateError:
         Errors: List[str] Error details for further storage.
         warnings: List[str] Warning details for further storage.
         """
-        error_list = []
-        warning_list = []
-
-        # Determine which, if any, message to raise
-        raises = GenerateError.get_message_level(
-            val_rule=val_rule,
-            attribute_name=attribute_name,
-            dmge=dmge,
-        )
-
-        # if a message needs to be raised, get the approrpiate function to do so
-        if raises:
-            logLevel = getattr(logger, raises)
-        else:
-            return error_list, warning_list
 
         regex_error_string = (
             f"For the attribute {attribute_name}, on row {row_num}, the string is not properly formatted. "
             f'It should follow the following re.{module_to_call} pattern "{reg_expression}".'
         )
-        logLevel(regex_error_string)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = regex_error_string
         error_val = invalid_entry
 
-        # return error and empty list for warnings
-        if raises == "error":
-            error_list = [error_row, error_col, error_message, error_val]
-        # return warning and empty list for errors
-        elif raises == "warning":
-            warning_list = [error_row, error_col, error_message, error_val]
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=error_row,
+            error_col=error_col,
+            error_message=error_message,
+            error_val=error_val,
+        )
 
         return error_list, warning_list
 
@@ -224,22 +181,6 @@ class GenerateError:
         warnings: List[str] Warning details for further storage.
         """
 
-        error_list = []
-        warning_list = []
-
-        # Determine which, if any, message to raise
-        raises = GenerateError.get_message_level(
-            dmge=dmge,
-            attribute_name=attribute_name,
-            val_rule=val_rule,
-        )
-
-        # if a message needs to be raised, get the approrpiate function to do so
-        if raises:
-            logLevel = getattr(logger, raises)
-        else:
-            return error_list, warning_list
-
         type_error_str = (
             f"On row {row_num} the attribute {attribute_name} "
             f"does not contain the proper value type {val_rule}."
@@ -258,19 +199,16 @@ class GenerateError:
         if validation_rules and "::" in validation_rules[0]:
             validation_rules = validation_rules[0].split("::")
 
-        # If IsNA rule is being used to allow `Not Applicable` entries, do not log a message
-        if error_val.lower() == "not applicable" and rule_in_rule_list(
-            "IsNA", validation_rules
-        ):
-            pass
-        else:
-            logLevel(type_error_str)
-            # return error and empty list for warnings
-            if raises == "error":
-                error_list = [error_row, error_col, error_message, error_val]
-            # return warning and empty list for errors
-            elif raises == "warning":
-                warning_list = [error_row, error_col, error_message, error_val]
+
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=error_row,
+            error_col=error_col,
+            error_message=error_message,
+            error_val=error_val,
+            val_rule_list=validation_rules,
+        )
 
         return error_list, warning_list
 
@@ -309,22 +247,6 @@ class GenerateError:
         warnings: List[str] Warning details for further storage.
         """
 
-        error_list = []
-        warning_list = []
-
-        # Determine which, if any, message to raise
-        raises = GenerateError.get_message_level(
-            val_rule=val_rule,
-            attribute_name=attribute_name,
-            dmge=dmge,
-        )
-
-        # if a message needs to be raised, get the approrpiate function to do so
-        if raises:
-            logLevel = getattr(logger, raises)
-        else:
-            return error_list, warning_list
-
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         if url_error == "invalid_url":
@@ -333,7 +255,6 @@ class GenerateError:
                 f"conform to the standards of a URL. Please make sure you are entering a real, working URL "
                 f"as required by the Schema."
             )
-            logLevel(invalid_url_error_string)
             error_message = invalid_url_error_string
             error_val = invalid_entry
         elif url_error == "arg_error":
@@ -341,7 +262,6 @@ class GenerateError:
                 f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
                 f"conform to the schema specifications and does not contain the required element: {argument}."
             )
-            logLevel(arg_error_string)
             error_message = arg_error_string
             error_val = f"URL Error: Argument Error"
         elif url_error == "random_entry":
@@ -349,16 +269,17 @@ class GenerateError:
                 f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
                 f"look like a URL, please check input and try again."
             )
-            logLevel(random_entry_error_str)
             error_message = random_entry_error_str
             error_val = f"URL Error: Random Entry"
 
-        # return error and empty list for warnings
-        if raises == "error":
-            error_list = [error_row, error_col, error_message, error_val]
-        # return warning and empty list for errors
-        elif raises == "warning":
-            warning_list = [error_row, error_col, error_message, error_val]
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=error_row,
+            error_col=error_col,
+            error_message=error_message,
+            error_val=error_val,
+        )
 
         return error_list, warning_list
 
@@ -387,21 +308,6 @@ class GenerateError:
         Errors: List[str] Error details for further storage.
         warnings: List[str] Warning details for further storage.
         """
-        error_list = []
-        warning_list = []
-
-        # Determine which, if any, message to raise
-        raises = GenerateError.get_message_level(
-            val_rule=val_rule,
-            attribute_name=attribute_name,
-            dmge=dmge,
-        )
-
-        # if a message needs to be raised, get the approrpiate function to do so
-        if raises:
-            logLevel = getattr(logger, raises)
-        else:
-            return error_list, warning_list
 
         if val_rule.__contains__("matchAtLeast"):
             cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing."
@@ -425,18 +331,20 @@ class GenerateError:
             elif val_rule.__contains__("value"):
                 cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
 
-        logLevel(cross_error_str)
+
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
         error_message = cross_error_str
         error_val = invalid_entry  # Value from source manifest missing from targets
 
-        # return error and empty list for warnings
-        if raises == "error":
-            error_list = [error_row, error_col, error_message, error_val]
-        # return warning and empty list for errors
-        elif raises == "warning":
-            warning_list = [error_row, error_col, error_message, error_val]
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=error_row,
+            error_col=error_col,
+            error_message=error_message,
+            error_val=error_val,
+        )
 
         return error_list, warning_list
 
@@ -460,45 +368,22 @@ class GenerateError:
                 attribute_name: str, attribute being validated
                 dmge: DataModelGraphExplorer object
                 row_num: str, row where the error was detected
-                error_val: value duplicated
-
+                error_val: erroneous value(s)
         Returns:
-            logger.error or logger.warning.
             Errors: List[str] Error details for further storage.
             warnings: List[str] Warning details for further storage.
         """
-        error_list = []
-        warning_list = []
+
         error_col = attribute_name  # Attribute name
-        if error_val:
-            error_val = iterable_to_str_list(set(error_val))
-
-        # Determine which, if any, message to raise
-        raises = GenerateError.get_message_level(
-            val_rule=val_rule,
-            attribute_name=attribute_name,
-            dmge=dmge,
-        )
-
-        # if a message needs to be raised, get the approrpiate function to do so
-        if raises:
-            logLevel = getattr(logger, raises)
-        else:
-            return error_list, warning_list
+        error_row = row_num
+        error_val = iterable_to_str_list(set(error_val)) if error_val else None
 
         # log warning or error message
         if val_rule.startswith("recommended"):
             content_error_str = f"Column {attribute_name} is recommended but empty."
-            logLevel(content_error_str)
             error_message = content_error_str
-
-            if raises == "error":
-                error_list = [error_col, error_message]
-            # return warning and empty list for errors
-            elif raises == "warning":
-                warning_list = [error_col, error_message]
-
-            return error_list, warning_list
+            error_row = None
+            error_val = None
 
         elif val_rule.startswith("unique"):
             content_error_str = f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
@@ -508,30 +393,34 @@ class GenerateError:
 
         elif val_rule.startswith("inRange"):
             content_error_str = f"{attribute_name} values in rows {row_num} are out of the specified range."
+
         elif val_rule.startswith("date"):
             content_error_str = (
                 f"{attribute_name} values in rows {row_num} are not parsable as dates."
             )
+
         elif val_rule.startswith("IsNA"):
             content_error_str = f"{attribute_name} values in rows {row_num} are not marked as 'Not Applicable'."
 
-        if val_rule != "IsNA":
-            logLevel(content_error_str)
-            error_row = row_num
-            error_message = content_error_str
-            # return error and empty list for warnings
-            if raises == "error":
-                error_list = [error_row, error_col, error_message, error_val]
-            # return warning and empty list for errors
-            elif raises == "warning":
-                warning_list = [error_row, error_col, error_message, error_val]
+        error_message = content_error_str
+
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=error_row,
+            error_col=error_col,
+            error_message=error_message,
+            error_val=error_val,
+        )
 
         return error_list, warning_list
 
     def get_message_level(
         dmge: DataModelGraphExplorer,
-        attribute_name: str,
+        error_col: str,
+        error_val: Union[str, List[str]],
         val_rule: str,
+        val_rule_list: Optional[List[str]] = None,
     ) -> str:
         """
         Purpose:
@@ -542,39 +431,89 @@ class GenerateError:
             if node is recommended and requried,
                 return None
             for other rules, parse possible, if not use default specified in validation_rule_info
-
         Input:
                 val_rule: str, defined in the schema.
                 dmge: DataModelGraphExplorer object
-                attribute_name: str, attribute being validated
+                error_col: str, attribute being validated
+                error_val: erroneous value
+                val_rule_list: list of all validation rules for the attribute
         Returns:
             'error', 'warning' or None
+        Raises:
+            Logging messagees, either error, warning, or no message
         # TODO: recommended and other rules
         """
 
-        level = None
         rule_parts = val_rule.split(" ")
-        rule_info = validation_rule_info()
+        rule_name = rule_parts[0]
+        specified_level = rule_parts[-1].lower()
+        specified_level = specified_level if specified_level in ["error", "warning"] else None
 
-        # set message level to default and change after
-        if rule_parts[0] != "schema":
-            level = rule_info[rule_parts[0]]["default_message_level"]
-        # Parse rule for level, set to default if not specified
-        if rule_parts[-1].lower() == "error" or rule_parts[0] == "schema":
-            level = "error"
-        elif rule_parts[-1].lower() == "warning":
-            level = "warning"
-        elif not dmge.get_node_required(node_display_name=attribute_name):
-            # If not required raise warnings to notify
-            level = "warning"
-        elif (
-            dmge.get_node_required(node_display_name=attribute_name)
-            and "recommended" in val_rule
-        ):
-            level = None
+        is_schema_error = rule_name == "schema"
+        includes_recommended_modifier = "recommended" in val_rule
+        includes_na_modifier = "IsNA" in val_rule_list if val_rule_list else False
+        is_required = dmge.get_node_required(node_display_name=error_col)  
+        error_val_is_na = error_val.lower() == "not applicable" if isinstance(error_val, str) else False   
 
-        return level
+        if is_schema_error:
+            return "error"
+        
+        if specified_level:
+            return specified_level
+        
+        if (error_val_is_na and includes_na_modifier) or val_rule == "IsNA":
+            return None
 
+        if not is_required:
+            return "warning"
+        elif is_required and includes_recommended_modifier:
+            return None
+
+        default_rule_message_level = validation_rule_info()[rule_name]["default_message_level"]
+        return default_rule_message_level
+
+    def raise_and_store_message(
+        dmge: DataModelGraphExplorer,
+        val_rule: str,
+        error_row: str,
+        error_col: str,
+        error_message: str,
+        error_val: Union[str, List[str]],
+        val_rule_list: Optional[List[str]] = None,
+        ) -> (list[str], list[str]):
+        """
+        Purpose:
+            Log and store error messages in a list for further storage.
+        Input:
+            - dmge: DataModelGraphExplorer object
+            - val_rule: str, single validation rule who's error is being logged
+            - error_row: str, row where the error was detected
+            - error_col: str, attribute being validated
+            - error_message: str, error message string
+            - error_val: str, erroneous value
+            - val_rule_list: list of all validation rules for the attribute
+        Returns:
+            error_list: list of errors
+            warning_list: list of warnings
+        """
+    
+        error_list = []
+        warning_list = []    
+
+        message_level = GenerateError.get_message_level(dmge, error_col, error_val, val_rule, val_rule_list)
+
+        if message_level is None:
+            return error_list, warning_list
+        
+        message_logger = getattr(logger, message_level)
+        message_logger(error_message)
+
+        if message_level == "error":
+            error_list = [error_row, error_col, error_message, error_val]
+        elif message_level == "warning":
+            warning_list = [error_row, error_col, error_message, error_val]
+
+        return error_list, warning_list
 
 class ValidateAttribute(object):
     """
