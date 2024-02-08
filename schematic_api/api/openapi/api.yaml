@@ -699,7 +699,7 @@ paths:
             type: string
             nullable: false
           description: Project ID
-          example: syn30988314
+          example: syn23643250
           required: true
         - in: query
           name: asset_view
@@ -709,16 +709,6 @@ paths:
           description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
           example: syn23643253
           required: true
-        - in: query
-          name: project_scope
-          schema:
-            type: array
-            items: 
-              type: string
-            nullable: false
-          description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse.
-          example: ['syn23643250', 'syn47218127', 'syn47218347']
-          required: false
       responses:
         "200":
           description: A list of tuples(json). 
