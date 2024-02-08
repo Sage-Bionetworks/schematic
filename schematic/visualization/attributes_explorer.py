@@ -162,8 +162,8 @@ class AttributesExplorer:
             # Gather all attributes, their valid values and requirements
             for key, value in json_schema["properties"].items():
                 data_dict[key] = {}
-                for key in value.keys():
-                    if key == "enum":
+                for inner_key in value.keys():
+                    if inner_key == "enum":
                         data_dict[key]["Valid Values"] = value["enum"]
                 if key in json_schema["required"]:
                     data_dict[key]["Required"] = True
