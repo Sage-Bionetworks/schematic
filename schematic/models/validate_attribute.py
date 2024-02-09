@@ -1,16 +1,12 @@
-import builtins
 import logging
 import re
-import sys
-import time
 from time import perf_counter
 from os import getenv
 
 # allows specifying explicit variable types
-from typing import Any, Dict, List, Optional, Text, Union, Tuple
-from urllib import error
+from typing import List, Optional, Union, Tuple
 from urllib.parse import urlparse
-from urllib.request import HTTPDefaultErrorHandler, OpenerDirector, Request, urlopen
+from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
@@ -18,7 +14,6 @@ from jsonschema import ValidationError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 
-from schematic.store.base import BaseStorage
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (
