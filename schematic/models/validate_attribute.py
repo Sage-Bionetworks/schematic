@@ -1,7 +1,6 @@
 import logging
 import re
 from time import perf_counter
-from os import getenv
 
 # allows specifying explicit variable types
 from typing import List, Optional, Union, Tuple
