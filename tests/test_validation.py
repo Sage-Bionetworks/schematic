@@ -192,45 +192,57 @@ class TestManifestValidation:
         )
 
         date_err = GenerateError.generate_content_error(
-            val_rule = 'date',
-            attribute_name = 'Check Date',
-            dmge = dmge,
-            row_num = ['2','3','4'],
-            invalid_entry = ['84-43-094', '32-984', 'notADate'],
-            )[0]
+            val_rule="date",
+            attribute_name="Check Date",
+            dmge=dmge,
+            row_num=["2", "3", "4"],
+            invalid_entry=["84-43-094", "32-984", "notADate"],
+        )[0]
         error_in_list = [date_err[2] in error for error in errors]
         assert any(error_in_list)
 
-        assert GenerateError.generate_content_error(
-            val_rule = 'unique error', 
-            attribute_name = 'Check Unique',
-            dmge = dmge,
-            row_num = ['2','3','4'],
-            invalid_entry = ['str1'],  
-            )[0] in errors
+        assert (
+            GenerateError.generate_content_error(
+                val_rule="unique error",
+                attribute_name="Check Unique",
+                dmge=dmge,
+                row_num=["2", "3", "4"],
+                invalid_entry=["str1"],
+            )[0]
+            in errors
+        )
 
-        assert GenerateError.generate_content_error(
-            val_rule = 'inRange 50 100 error', 
-            attribute_name = 'Check Range',
-            dmge = dmge,
-            row_num = ['3'],
-            invalid_entry = ['30'], 
-            )[0] in errors
+        assert (
+            GenerateError.generate_content_error(
+                val_rule="inRange 50 100 error",
+                attribute_name="Check Range",
+                dmge=dmge,
+                row_num=["3"],
+                invalid_entry=["30"],
+            )[0]
+            in errors
+        )
 
-        #check warnings
-        assert GenerateError.generate_content_error(
-            val_rule = 'recommended', 
-            attribute_name = 'Check Recommended',
-            dmge = dmge,
-            )[1] in warnings
-        
-        assert GenerateError.generate_content_error(
-            val_rule = 'protectAges', 
-            attribute_name = 'Check Ages',
-            dmge = dmge,
-            row_num = ['2','3'],
-            invalid_entry = ['6549','32851'], 
-            )[1] in warnings
+        # check warnings
+        assert (
+            GenerateError.generate_content_error(
+                val_rule="recommended",
+                attribute_name="Check Recommended",
+                dmge=dmge,
+            )[1]
+            in warnings
+        )
+
+        assert (
+            GenerateError.generate_content_error(
+                val_rule="protectAges",
+                attribute_name="Check Ages",
+                dmge=dmge,
+                row_num=["2", "3"],
+                invalid_entry=["6549", "32851"],
+            )[1]
+            in warnings
+        )
 
         assert (
             GenerateError.generate_cross_warning(
