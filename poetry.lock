@@ -4746,4 +4746,4 @@ api = ["Flask", "Flask-Cors", "Jinja2", "connexion", "uWSGI"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "f81e639645b02362da8f6f51e1a1c359c5129751f1b44e49486951d8146f2cb3"
+content-hash = "c1357a7b00dd799ba38081b73d9ac3a81275d90c75cc82b703a7697c5c4736b0"
