@@ -18,7 +18,12 @@ from synapseclient.core.exceptions import SynapseHTTPError
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_jsonld import DataModelJsonLD, BaseTemplate, PropertyTemplate, ClassTemplate
+from schematic.schemas.data_model_jsonld import (
+    DataModelJsonLD,
+    BaseTemplate,
+    PropertyTemplate,
+    ClassTemplate,
+)
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 
 from schematic.schemas.data_model_relationships import DataModelRelationships
@@ -29,24 +34,43 @@ from schematic.exceptions import (
     MissingConfigAndArgumentValueError,
 )
 from schematic import LOADER
-from schematic.exceptions import (MissingConfigAndArgumentValueError,
-                                  MissingConfigValueError)
+from schematic.exceptions import (
+    MissingConfigAndArgumentValueError,
+    MissingConfigValueError,
+)
 
-from schematic.utils import (cli_utils, df_utils, general, io_utils,
-                             validate_utils)
-from schematic.utils.general import (calculate_datetime,
-                                     check_synapse_cache_size,
-                                     clear_synapse_cache, entity_type_mapping)
-from schematic.utils.schema_utils import (export_schema,
-                                          get_property_label_from_display_name,
-                                          get_class_label_from_display_name,
-                                          strip_context)
+from schematic.utils import cli_utils, df_utils, general, io_utils, validate_utils
+from schematic.utils.general import (
+    calculate_datetime,
+    check_synapse_cache_size,
+    clear_synapse_cache,
+    entity_type_mapping,
+)
+from schematic.utils.schema_utils import (
+    export_schema,
+    get_property_label_from_display_name,
+    get_class_label_from_display_name,
+    strip_context,
+    get_label_from_display_name,
+    get_schema_label,
+    get_stripped_label,
+    check_if_display_name_is_valid_label,
+)
 
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
+
+TEST_DN_DICT = {
+    "Bio Things": {"class": "BioThings", "property": "bioThings"},
+    "bio things": {"class": "Biothings", "property": "biothings"},
+    "BioThings": {"class": "BioThings", "property": "bioThings"},
+    "Bio-things": {"class": "Biothings", "property": "biothings"},
+    "bio_things": {"class": "BioThings", "property": "bioThings"},
+}
+
 
 class TestGeneral:
     def test_clear_synapse_cache(self, tmp_path):
@@ -55,14 +79,18 @@ class TestGeneral:
         mock_synapse_cache_dir.mkdir()
         mock_sub_folder = mock_synapse_cache_dir / "123"
         mock_sub_folder.mkdir()
-        mock_table_query_folder = mock_sub_folder/ "456"
+        mock_table_query_folder = mock_sub_folder / "456"
         mock_table_query_folder.mkdir()
 
         # create mock table query csv and a mock cache map
-        mock_synapse_table_query_csv = mock_table_query_folder/ "mock_synapse_table_query.csv"
+        mock_synapse_table_query_csv = (
+            mock_table_query_folder / "mock_synapse_table_query.csv"
+        )
         mock_synapse_table_query_csv.write_text("mock table query content")
-        mock_cache_map = mock_table_query_folder/ ".cacheMap"
-        mock_cache_map.write_text(f"{mock_synapse_table_query_csv}: '2022-06-13T19:24:27.000Z'")
+        mock_cache_map = mock_table_query_folder / ".cacheMap"
+        mock_cache_map.write_text(
+            f"{mock_synapse_table_query_csv}: '2022-06-13T19:24:27.000Z'"
+        )
 
         assert os.path.exists(mock_synapse_table_query_csv)
 
@@ -76,31 +104,43 @@ class TestGeneral:
         # make sure that cache files are now gone
         assert os.path.exists(mock_synapse_table_query_csv) == False
         assert os.path.exists(mock_cache_map) == False
-    
+
     def test_calculate_datetime_before_minutes(self):
-        input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
-        minutes_before = calculate_datetime(input_date=input_date, minutes=10, before_or_after="before")
-        expected_result_date_before = datetime.strptime("07/20/23 17:26:34", '%m/%d/%y %H:%M:%S')
+        input_date = datetime.strptime("07/20/23 17:36:34", "%m/%d/%y %H:%M:%S")
+        minutes_before = calculate_datetime(
+            input_date=input_date, minutes=10, before_or_after="before"
+        )
+        expected_result_date_before = datetime.strptime(
+            "07/20/23 17:26:34", "%m/%d/%y %H:%M:%S"
+        )
         assert minutes_before == expected_result_date_before
 
     def test_calculate_datetime_after_minutes(self):
-        input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
-        minutes_after = calculate_datetime(input_date=input_date, minutes=10, before_or_after="after")
-        expected_result_date_after = datetime.strptime("07/20/23 17:46:34", '%m/%d/%y %H:%M:%S')
+        input_date = datetime.strptime("07/20/23 17:36:34", "%m/%d/%y %H:%M:%S")
+        minutes_after = calculate_datetime(
+            input_date=input_date, minutes=10, before_or_after="after"
+        )
+        expected_result_date_after = datetime.strptime(
+            "07/20/23 17:46:34", "%m/%d/%y %H:%M:%S"
+        )
         assert minutes_after == expected_result_date_after
 
     def test_calculate_datetime_raise_error(self):
         with pytest.raises(ValueError):
-            input_date = datetime.strptime("07/20/23 17:36:34", '%m/%d/%y %H:%M:%S')
-            minutes = calculate_datetime(input_date=input_date, minutes=10, before_or_after="error")
-    
+            input_date = datetime.strptime("07/20/23 17:36:34", "%m/%d/%y %H:%M:%S")
+            minutes = calculate_datetime(
+                input_date=input_date, minutes=10, before_or_after="error"
+            )
+
     # this test might fail for windows machine
     @pytest.mark.not_windows
-    def test_check_synapse_cache_size(self,tmp_path):
+    def test_check_synapse_cache_size(self, tmp_path):
         mock_synapse_cache_dir = tmp_path / ".synapseCache"
         mock_synapse_cache_dir.mkdir()
 
-        mock_synapse_table_query_csv = mock_synapse_cache_dir/ "mock_synapse_table_query.csv"
+        mock_synapse_table_query_csv = (
+            mock_synapse_cache_dir / "mock_synapse_table_query.csv"
+        )
         mock_synapse_table_query_csv.write_text("example file for calculating cache")
 
         file_size = check_synapse_cache_size(mock_synapse_cache_dir)
@@ -112,7 +152,6 @@ class TestGeneral:
             assert file_size == 4000
 
     def test_find_duplicates(self):
-
         mock_list = ["foo", "bar", "foo"]
         mock_dups = {"foo"}
 
@@ -120,7 +159,6 @@ class TestGeneral:
         assert test_dups == mock_dups
 
     def test_dict2list_with_dict(self):
-
         mock_dict = {"foo": "bar"}
         mock_list = [{"foo": "bar"}]
 
@@ -128,14 +166,22 @@ class TestGeneral:
         assert test_list == mock_list
 
     def test_dict2list_with_list(self):
-
         # mock_dict = {'foo': 'bar'}
         mock_list = [{"foo": "bar"}]
 
         test_list = general.dict2list(mock_list)
         assert test_list == mock_list
 
-    @pytest.mark.parametrize("entity_id,expected_type", [("syn27600053","folder"), ("syn29862078", "file"), ("syn23643253", "asset view"), ("syn30988314", "folder"), ("syn51182432", "org.sagebionetworks.repo.model.table.TableEntity")])
+    @pytest.mark.parametrize(
+        "entity_id,expected_type",
+        [
+            ("syn27600053", "folder"),
+            ("syn29862078", "file"),
+            ("syn23643253", "asset view"),
+            ("syn30988314", "folder"),
+            ("syn51182432", "org.sagebionetworks.repo.model.table.TableEntity"),
+        ],
+    )
     def test_entity_type_mapping(self, synapse_store, entity_id, expected_type):
         syn = synapse_store.syn
 
@@ -157,7 +203,6 @@ class TestGeneral:
 
 class TestCliUtils:
     def test_query_dict(self):
-
         mock_dict = {"k1": {"k2": {"k3": "foobar"}}}
         mock_keys_valid = ["k1", "k2", "k3"]
         mock_keys_invalid = ["k1", "k2", "k4"]
@@ -192,7 +237,6 @@ class FakeResponse:
 
 class TestIOUtils:
     def test_json_load(self, tmpdir):
-
         json_file = tmpdir.join("example.json")
         json_file.write_text(json.dumps([{"k1": "v1"}, {"k2": "v2"}]), encoding="utf-8")
 
@@ -204,7 +248,6 @@ class TestIOUtils:
         assert local_result == expected
 
     def test_json_load_online(self, mocker):
-
         mock_urlopen = mocker.patch(
             "urllib.request.urlopen",
             return_value=FakeResponse(
@@ -218,7 +261,6 @@ class TestIOUtils:
         assert mock_urlopen.call_count == 1
 
     def test_export_json(self, tmpdir):
-
         json_str = json.dumps([{"k1": "v1"}, {"k2": "v2"}])
 
         export_file = tmpdir.join("export_json_expected.json")
@@ -230,7 +272,6 @@ class TestIOUtils:
         assert expected == json_str
 
     def test_load_default(self):
-
         biothings_schema = io_utils.load_default()
 
         expected_ctx_keys = ["bts", "rdf", "rdfs", "schema", "xsd"]
@@ -242,10 +283,36 @@ class TestIOUtils:
         assert expected_no_of_keys == actual_no_of_keys
 
     def test_load_schema_org(self):
-
         schema_org_schema = io_utils.load_schemaorg()
 
-        expected_ctx_keys = ['brick', 'csvw', 'dc', 'dcam', 'dcat', 'dcmitype', 'dcterms', 'doap', 'foaf', 'odrl', 'org', 'owl', 'prof', 'prov', 'qb', 'rdf', 'rdfs', 'schema', 'sh', 'skos', 'sosa', 'ssn', 'time', 'vann', 'void', 'xsd']
+        expected_ctx_keys = [
+            "brick",
+            "csvw",
+            "dc",
+            "dcam",
+            "dcat",
+            "dcmitype",
+            "dcterms",
+            "doap",
+            "foaf",
+            "odrl",
+            "org",
+            "owl",
+            "prof",
+            "prov",
+            "qb",
+            "rdf",
+            "rdfs",
+            "schema",
+            "sh",
+            "skos",
+            "sosa",
+            "ssn",
+            "time",
+            "vann",
+            "void",
+            "xsd",
+        ]
         actual_ctx_keys = list(schema_org_schema["@context"].keys())
         assert expected_ctx_keys == actual_ctx_keys
 
@@ -281,7 +348,6 @@ class TestDfUtils:
             assert isinstance(df[test_col].iloc[2], str)
 
     def test_update_df_col_present(self, helpers):
-
         synapse_manifest = helpers.get_data_frame(
             "mock_manifests", "synapse_manifest.csv"
         )
@@ -293,7 +359,6 @@ class TestDfUtils:
         assert_frame_equal(col_pres_res, synapse_manifest)
 
     def test_update_df_col_absent(self, helpers):
-
         synapse_manifest = helpers.get_data_frame(
             "mock_manifests", "synapse_manifest.csv"
         )
@@ -304,7 +369,6 @@ class TestDfUtils:
             df_utils.update_df(local_manifest, synapse_manifest, "Col_Not_In_Dfs")
 
     def test_trim_commas_df(self, helpers):
-
         local_manifest = helpers.get_data_frame("mock_manifests", "local_manifest.csv")
 
         nan_row = pd.DataFrame(
@@ -349,87 +413,331 @@ class TestDfUtils:
 
     def test_populate_column(self):
         input_df = pd.DataFrame(
-            {
-                "column1": ["col1Val","col1Val"],
-                "column2": [None, None]
-            }
+            {"column1": ["col1Val", "col1Val"], "column2": [None, None]}
         )
 
-        output_df = df_utils.populate_df_col_with_another_col(input_df,'column1','column2')
-        assert (output_df["column2"].values == ["col1Val","col1Val"]).all()
+        output_df = df_utils.populate_df_col_with_another_col(
+            input_df, "column1", "column2"
+        )
+        assert (output_df["column2"].values == ["col1Val", "col1Val"]).all()
+
 
 class TestSchemaUtils:
     def test_get_property_label_from_display_name(self, helpers):
-
         # tests where strict_camel_case is the same
-        assert(get_property_label_from_display_name("howToAcquire") == "howToAcquire")
-        assert(get_property_label_from_display_name("howToAcquire", strict_camel_case = True) == "howToAcquire")
-        assert(get_property_label_from_display_name("how_to_acquire") == "howToAcquire")
-        assert(get_property_label_from_display_name("how_to_acquire", strict_camel_case = True) == "howToAcquire")
-        assert(get_property_label_from_display_name("howtoAcquire") == "howtoAcquire")
-        assert(get_property_label_from_display_name("howtoAcquire", strict_camel_case = True) == "howtoAcquire")
-        assert(get_property_label_from_display_name("How To Acquire") == "howToAcquire")
-        assert(get_property_label_from_display_name("How To Acquire", strict_camel_case = True) == "howToAcquire")
-        assert(get_property_label_from_display_name("Model Of Manifestation") == "modelOfManifestation")
-        assert(get_property_label_from_display_name("Model Of Manifestation", strict_camel_case = True) == "modelOfManifestation")
-        assert(get_property_label_from_display_name("ModelOfManifestation") == "modelOfManifestation")
-        assert(get_property_label_from_display_name("ModelOfManifestation", strict_camel_case = True) == "modelOfManifestation")
-        assert(get_property_label_from_display_name("model Of Manifestation") == "modelOfManifestation")
-        assert(get_property_label_from_display_name("model Of Manifestation", strict_camel_case = True) == "modelOfManifestation")
+        assert get_property_label_from_display_name("howToAcquire") == "howToAcquire"
+        assert (
+            get_property_label_from_display_name("howToAcquire", strict_camel_case=True)
+            == "howToAcquire"
+        )
+        assert get_property_label_from_display_name("how_to_acquire") == "howToAcquire"
+        assert (
+            get_property_label_from_display_name(
+                "how_to_acquire", strict_camel_case=True
+            )
+            == "howToAcquire"
+        )
+        assert get_property_label_from_display_name("howtoAcquire") == "howtoAcquire"
+        assert (
+            get_property_label_from_display_name("howtoAcquire", strict_camel_case=True)
+            == "howtoAcquire"
+        )
+        assert get_property_label_from_display_name("How To Acquire") == "howToAcquire"
+        assert (
+            get_property_label_from_display_name(
+                "How To Acquire", strict_camel_case=True
+            )
+            == "howToAcquire"
+        )
+        assert (
+            get_property_label_from_display_name("Model Of Manifestation")
+            == "modelOfManifestation"
+        )
+        assert (
+            get_property_label_from_display_name(
+                "Model Of Manifestation", strict_camel_case=True
+            )
+            == "modelOfManifestation"
+        )
+        assert (
+            get_property_label_from_display_name("ModelOfManifestation")
+            == "modelOfManifestation"
+        )
+        assert (
+            get_property_label_from_display_name(
+                "ModelOfManifestation", strict_camel_case=True
+            )
+            == "modelOfManifestation"
+        )
+        assert (
+            get_property_label_from_display_name("model Of Manifestation")
+            == "modelOfManifestation"
+        )
+        assert (
+            get_property_label_from_display_name(
+                "model Of Manifestation", strict_camel_case=True
+            )
+            == "modelOfManifestation"
+        )
 
         # tests where strict_camel_case changes the result
-        assert(get_property_label_from_display_name("how to Acquire") == "howtoAcquire")
-        assert(get_property_label_from_display_name("how to Acquire", strict_camel_case = True) == "howToAcquire")
-        assert(get_property_label_from_display_name("How to Acquire") == "howtoAcquire")
-        assert(get_property_label_from_display_name("How to Acquire", strict_camel_case = True) == "howToAcquire")
-        assert(get_property_label_from_display_name("how to acquire") == "howtoacquire")
-        assert(get_property_label_from_display_name("how to acquire", strict_camel_case = True) == "howToAcquire")
-        assert(get_property_label_from_display_name("model of manifestation") == "modelofmanifestation")
-        assert(get_property_label_from_display_name("model of manifestation", strict_camel_case = True) == "modelOfManifestation")
-        assert(get_property_label_from_display_name("model of manifestation") == "modelofmanifestation")
-        assert(get_property_label_from_display_name("model of manifestation", strict_camel_case = True) == "modelOfManifestation")
+        assert get_property_label_from_display_name("how to Acquire") == "howtoAcquire"
+        assert (
+            get_property_label_from_display_name(
+                "how to Acquire", strict_camel_case=True
+            )
+            == "howToAcquire"
+        )
+        assert get_property_label_from_display_name("How to Acquire") == "howtoAcquire"
+        assert (
+            get_property_label_from_display_name(
+                "How to Acquire", strict_camel_case=True
+            )
+            == "howToAcquire"
+        )
+        assert get_property_label_from_display_name("how to acquire") == "howtoacquire"
+        assert (
+            get_property_label_from_display_name(
+                "how to acquire", strict_camel_case=True
+            )
+            == "howToAcquire"
+        )
+        assert (
+            get_property_label_from_display_name("model of manifestation")
+            == "modelofmanifestation"
+        )
+        assert (
+            get_property_label_from_display_name(
+                "model of manifestation", strict_camel_case=True
+            )
+            == "modelOfManifestation"
+        )
+        assert (
+            get_property_label_from_display_name("model of manifestation")
+            == "modelofmanifestation"
+        )
+        assert (
+            get_property_label_from_display_name(
+                "model of manifestation", strict_camel_case=True
+            )
+            == "modelOfManifestation"
+        )
 
     def test_get_class_label_from_display_name(self, helpers):
-
         # tests where strict_camel_case is the same
-        assert(get_class_label_from_display_name("howToAcquire") == "HowToAcquire")
-        assert(get_class_label_from_display_name("howToAcquire", strict_camel_case = True) == "HowToAcquire")
-        assert(get_class_label_from_display_name("how_to_acquire") == "HowToAcquire")
-        assert(get_class_label_from_display_name("how_to_acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(get_class_label_from_display_name("howtoAcquire") == "HowtoAcquire")
-        assert(get_class_label_from_display_name("howtoAcquire", strict_camel_case = True) == "HowtoAcquire")
-        assert(get_class_label_from_display_name("How To Acquire") == "HowToAcquire")
-        assert(get_class_label_from_display_name("How To Acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(get_class_label_from_display_name("Model Of Manifestation") == "ModelOfManifestation")
-        assert(get_class_label_from_display_name("Model Of Manifestation", strict_camel_case = True) == "ModelOfManifestation")
-        assert(get_class_label_from_display_name("ModelOfManifestation") == "ModelOfManifestation")
-        assert(get_class_label_from_display_name("ModelOfManifestation", strict_camel_case = True) == "ModelOfManifestation")
-        assert(get_class_label_from_display_name("model Of Manifestation") == "ModelOfManifestation")
-        assert(get_class_label_from_display_name("model Of Manifestation", strict_camel_case = True) == "ModelOfManifestation")
+        assert get_class_label_from_display_name("howToAcquire") == "HowToAcquire"
+        assert (
+            get_class_label_from_display_name("howToAcquire", strict_camel_case=True)
+            == "HowToAcquire"
+        )
+        assert get_class_label_from_display_name("how_to_acquire") == "HowToAcquire"
+        assert (
+            get_class_label_from_display_name("how_to_acquire", strict_camel_case=True)
+            == "HowToAcquire"
+        )
+        assert get_class_label_from_display_name("howtoAcquire") == "HowtoAcquire"
+        assert (
+            get_class_label_from_display_name("howtoAcquire", strict_camel_case=True)
+            == "HowtoAcquire"
+        )
+        assert get_class_label_from_display_name("How To Acquire") == "HowToAcquire"
+        assert (
+            get_class_label_from_display_name("How To Acquire", strict_camel_case=True)
+            == "HowToAcquire"
+        )
+        assert (
+            get_class_label_from_display_name("Model Of Manifestation")
+            == "ModelOfManifestation"
+        )
+        assert (
+            get_class_label_from_display_name(
+                "Model Of Manifestation", strict_camel_case=True
+            )
+            == "ModelOfManifestation"
+        )
+        assert (
+            get_class_label_from_display_name("ModelOfManifestation")
+            == "ModelOfManifestation"
+        )
+        assert (
+            get_class_label_from_display_name(
+                "ModelOfManifestation", strict_camel_case=True
+            )
+            == "ModelOfManifestation"
+        )
+        assert (
+            get_class_label_from_display_name("model Of Manifestation")
+            == "ModelOfManifestation"
+        )
+        assert (
+            get_class_label_from_display_name(
+                "model Of Manifestation", strict_camel_case=True
+            )
+            == "ModelOfManifestation"
+        )
 
         # tests where strict_camel_case changes the result
-        assert(get_class_label_from_display_name("how to Acquire") == "HowtoAcquire")
-        assert(get_class_label_from_display_name("how to Acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(get_class_label_from_display_name("How to Acquire") == "HowtoAcquire")
-        assert(get_class_label_from_display_name("How to Acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(get_class_label_from_display_name("how to acquire") == "Howtoacquire")
-        assert(get_class_label_from_display_name("how to acquire", strict_camel_case = True) == "HowToAcquire")
-        assert(get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
-        assert(get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
-        assert(get_class_label_from_display_name("model of manifestation") == "Modelofmanifestation")
-        assert(get_class_label_from_display_name("model of manifestation", strict_camel_case = True) == "ModelOfManifestation")
+        assert get_class_label_from_display_name("how to Acquire") == "HowtoAcquire"
+        assert (
+            get_class_label_from_display_name("how to Acquire", strict_camel_case=True)
+            == "HowToAcquire"
+        )
+        assert get_class_label_from_display_name("How to Acquire") == "HowtoAcquire"
+        assert (
+            get_class_label_from_display_name("How to Acquire", strict_camel_case=True)
+            == "HowToAcquire"
+        )
+        assert get_class_label_from_display_name("how to acquire") == "Howtoacquire"
+        assert (
+            get_class_label_from_display_name("how to acquire", strict_camel_case=True)
+            == "HowToAcquire"
+        )
+        assert (
+            get_class_label_from_display_name("model of manifestation")
+            == "Modelofmanifestation"
+        )
+        assert (
+            get_class_label_from_display_name(
+                "model of manifestation", strict_camel_case=True
+            )
+            == "ModelOfManifestation"
+        )
+        assert (
+            get_class_label_from_display_name("model of manifestation")
+            == "Modelofmanifestation"
+        )
+        assert (
+            get_class_label_from_display_name(
+                "model of manifestation", strict_camel_case=True
+            )
+            == "ModelOfManifestation"
+        )
 
-    @pytest.mark.parametrize("context_value", ['@id', 'sms:required'], ids=['remove_at', 'remove_sms'])
+    @pytest.mark.parametrize(
+        "context_value", ["@id", "sms:required"], ids=["remove_at", "remove_sms"]
+    )
     def test_strip_context(self, helpers, context_value):
         stripped_contex = strip_context(context_value=context_value)
-        if '@id' == context_value:
-            assert stripped_contex == ('', 'id')
-        elif 'sms:required' == context_value:
-            assert stripped_contex == ('sms', 'required')
+        if "@id" == context_value:
+            assert stripped_contex == ("", "id")
+        elif "sms:required" == context_value:
+            assert stripped_contex == ("sms", "required")
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
+    )
+    def test_check_if_display_name_is_valid_label(self, test_dn):
+        display_name = test_dn
+        blacklisted_chars = ["(", ")", ".", " ", "-"]
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            valid_label = check_if_display_name_is_valid_label(
+                test_dn, blacklisted_chars
+            )
+            if test_dn in ["Bio-things", "bio things", "Bio Things"]:
+                assert valid_label == False
+            else:
+                assert valid_label == True
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys())[-2:],
+        ids=list(TEST_DN_DICT.keys())[-2:],
+    )
+    def test_get_stripped_label(self, test_dn: str):
+        display_name = test_dn
+        blacklisted_chars = ["(", ")", ".", " ", "-"]
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            label = ""
+
+            label = get_stripped_label(
+                entry_type=entry_type,
+                display_name=display_name,
+                blacklisted_chars=blacklisted_chars,
+            )
+            assert label == expected_result
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
+    )
+    def test_get_schema_label(self, test_dn: str):
+        display_name = test_dn
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            label = ""
+
+            label = get_schema_label(
+                entry_type=entry_type,
+                display_name=display_name,
+                strict_camel_case=False,
+            )
+
+            if "-" in display_name:
+                # In this case, biothings will not strip the blacklisted character,
+                # so it will not match the dictionary.
+                if entry_type == "class":
+                    assert label == display_name.capitalize()
+                else:
+                    assert label == display_name[0].lower() + display_name[1:]
+            else:
+                assert label == expected_result
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
+    )
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["display_label", "class_label"],
+    )
+    def test_get_label_from_display_name(self, test_dn: str, data_model_labels: str):
+        display_name = test_dn
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            label = ""
+
+            try:
+                label = get_label_from_display_name(
+                    entry_type=entry_type,
+                    display_name=display_name,
+                    data_model_labels=data_model_labels,
+                )
+            except:
+                # Under these conditions should only fail if the display name cannot be used as a label.
+                assert test_dn in [
+                    "Bio Things",
+                    "bio things",
+                    "Bio-things",
+                    "bio_things",
+                ]
+            if label:
+                if data_model_labels == "display_label":
+                    if test_dn in ["Bio Things", "bio things", "Bio-things"]:
+                        assert label == expected_result
+
+                    else:
+                        assert label == test_dn
+                else:
+                    # The dash has an odd handling
+                    if display_name == "Bio-things":
+                        if entry_type == "property":
+                            assert label == "bio-things"
+                        else:
+                            assert label == "Bio-things"
+                    else:
+                        assert label == expected_result
+
+            else:
+                return
+        return
+
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
-        '''
+        """
         Previously did:
         se_obj = helpers.get_schema_explorer("example.model.jsonld")
         actual = validate_utils.validate_schema(se_obj.schema)
@@ -437,15 +745,14 @@ class TestValidateUtils:
         schema is defined as: self.schema = load_json(schema)
 
         TODO: Validate this is doing what its supposed to.
-        '''
+        """
         # Get data model path
         data_model_path = helpers.get_data_path("example.model.jsonld")
         schema = io_utils.load_json(data_model_path)
-        #need to pass the jsonschema
+        # need to pass the jsonschema
         actual = validate_utils.validate_schema(schema)
 
         assert actual is None
-
 
     def test_validate_class_schema(self, helpers):
         """
@@ -460,12 +767,11 @@ class TestValidateUtils:
         mock_class["@type"] = "rdfs:Class"
         mock_class["@rdfs:comment"] = "This is a mock class"
         mock_class["@rdfs:label"] = "MockClass"
-        mock_class["rdfs:subClassOf"].append({"@id":"bts:Patient"})
+        mock_class["rdfs:subClassOf"].append({"@id": "bts:Patient"})
 
         error = validate_utils.validate_class_schema(mock_class)
 
         assert error is None
-        
 
     def test_validate_property_schema(self, helpers):
         """
@@ -479,13 +785,13 @@ class TestValidateUtils:
         mock_class["@id"] = "bts:MockProperty"
         mock_class["@type"] = "rdf:Property"
         mock_class["@rdfs:comment"] = "This is a mock Patient class"
-        mock_class["@rdfs:label"] = "MockProperty"      
-        mock_class["schema:domainIncludes"].append({"@id":"bts:Patient"})
+        mock_class["@rdfs:label"] = "MockProperty"
+        mock_class["schema:domainIncludes"].append({"@id": "bts:Patient"})
 
         error = validate_utils.validate_property_schema(mock_class)
 
         assert error is None
-        
+
 
 class TestCsvUtils:
     def test_csv_to_schemaorg(self, helpers, tmp_path):
@@ -498,9 +804,9 @@ class TestCsvUtils:
         csv_path = helpers.get_data_path("example.model.csv")
 
         # Instantiate DataModelParser
-        data_model_parser = DataModelParser(path_to_data_model = csv_path)
-        
-        #Parse Model
+        data_model_parser = DataModelParser(path_to_data_model=csv_path)
+
+        # Parse Model
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph

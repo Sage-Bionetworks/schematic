@@ -98,6 +98,18 @@ paths:
             default: True
           description: If using Google Sheets, can set the strictness of Google Sheets regex match validation. True (default) will block users from entering incorrect values, False will throw a warning to users.
           required: false
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       operationId: schematic_api.api.routes.get_manifest_route
       responses:
         "200":
@@ -239,6 +251,18 @@ paths:
           example: Patient
           required: true
         - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+        - in: query
           name: restrict_rules
           schema:
             type: boolean
@@ -325,6 +349,18 @@ paths:
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
         - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+        - in: query
           name: data_type
           schema:
             type: string
@@ -374,7 +410,7 @@ paths:
             type: string
             nullable: false
           description: A JSON object
-          example: '[{
+          example: [{
           "Patient ID": 123,
           "Sex": "Female",
           "Year of Birth": "",
@@ -382,7 +418,7 @@ paths:
           "Component": "Patient",
           "Cancer Type": "Breast",
           "Family History": "Breast, Lung",
-          }]'
+          }]
         - in: query
           name: table_manipulation
           description: Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.replace' will remove the rows and columns from the existing table and store the new rows and columns, preserving the name and synID.'upsert' will add the new rows to the table and preserve the exisitng rows and columns in the existing table. If nothing is selected, the default is "replace"
@@ -455,6 +491,18 @@ paths:
             default: false
           description: if False return component requirements as a list; if True return component requirements as a dependency graph (i.e. a DAG)
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       operationId: schematic_api.api.routes.get_component_requirements
       responses:
         "200":
@@ -488,6 +536,18 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
         - in: query
           name: data_type
           schema:
@@ -796,6 +856,18 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: A pickle file gets downloaded and local file path of the pickle file gets returned.
@@ -830,6 +902,18 @@ paths:
           description: schema class
           example: MolecularEntity
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: A list of properties of a given class. 
@@ -858,7 +942,18 @@ paths:
             nullable: false
           description: Relationship (i.e. parentOf, requiresDependency, rangeValue, domainValue)
           example: requiresDependency
-          required: true        
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
       responses:
         "200":
           description: A list of tuples.
@@ -899,6 +994,15 @@ paths:
           description: Display label of a node
           example: FamilyHistory
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.nclass_label, default, use standard class or property label. Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: return a boolean 
@@ -931,6 +1035,18 @@ paths:
           description: List of node labels.
           example: ['FamilyHistory', 'Biospecimen']
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: false
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: return List[str]
@@ -962,6 +1078,18 @@ paths:
           description: Display label of node
           example: CheckRegexList
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: return a list
@@ -992,6 +1120,18 @@ paths:
           description: The node whose dependencies are needed
           example: Patient
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
         - in: query
           name: return_display_names
           schema:
@@ -1068,6 +1208,18 @@ paths:
           example: FamilyHistory
           required: true
         - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+        - in: query
           name: return_display_names
           schema:
             type: boolean
@@ -1105,6 +1257,18 @@ paths:
           description: Figure type to generate.
           example: 'component'
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: Returns a dataframe as a JSON String.
@@ -1145,6 +1309,18 @@ paths:
           description: Text formatting type.
           example: 'plain'
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: Returns a dataframe as a JSON String.
@@ -1170,6 +1346,18 @@ paths:
           example: >-
             https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: Returns a CSV as a JSON String.
@@ -1210,6 +1398,18 @@ paths:
             default: false
           description: Whether to include the indexes of the datafram in the returned JSON string (true) or not (false).
           required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
       responses:
         "200":
           description: Returns a CSV as a JSON String.
