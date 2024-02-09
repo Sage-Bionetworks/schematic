@@ -363,7 +363,6 @@ class GenerateError:
         # log warning or error message
         if val_rule.startswith("recommended"):
             content_error_str = f"Column {attribute_name} is recommended but empty."
-            error_message = content_error_str
             error_row = None
             error_val = None
 
