@@ -22,7 +22,7 @@ docker compose up --build --remove-orphans
 ### install uWSGI
 Install uWSGI by doing: 
 ```
-poetry install --with aws
+poetry install --all-extras
 ```
 Note: this approach only works for unix OSs users or windows user with WSL
 
