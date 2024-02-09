@@ -463,7 +463,9 @@ class GenerateError:
         if specified_level:
             return specified_level
 
-        if (error_val_is_na and rules_include_na_modifier) or rule_name.lower() == "isna":
+        if (
+            error_val_is_na and rules_include_na_modifier
+        ) or rule_name.lower() == "isna":
             return None
 
         if not col_is_required:
@@ -504,7 +506,10 @@ class GenerateError:
         warning_list = []
 
         message_level = GenerateError.get_message_level(
-            dmge, error_col, error_val, val_rule,
+            dmge,
+            error_col,
+            error_val,
+            val_rule,
         )
 
         if message_level is None:
@@ -519,6 +524,7 @@ class GenerateError:
             warning_list = [error_row, error_col, error_message, error_val]
 
         return error_list, warning_list
+
 
 class ValidateAttribute(object):
     """
