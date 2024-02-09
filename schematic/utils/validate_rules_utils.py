@@ -108,14 +108,23 @@ def validation_rule_info():
             "default_message_level": "error",
         },
         "IsNA": {
-            "arguments": (1, 0),
+            "arguments": (0, 0),
             "type": "content_validation",
             "complementary_rules": [
                 "int",
                 "float",
                 "num",
+                "date",
+                "regex",
+                "url",
+                "list",
+                "matchAtLeastOne",
+                "matchExactlyOne",
+                "protectAges",
+                "unique",
+                "inRange",
             ],
-            "default_message_level": "warning",
+            "default_message_level": None,
         },
     }
 
