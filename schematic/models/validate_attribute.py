@@ -48,10 +48,6 @@ class GenerateError:
         error_row = row_num  # index row of the manifest where the error presented.
         error_message = error_msg
 
-        arg_error_string = (
-            f"For the attribute '{error_col}', on row {error_row}, {error_message}."
-        )
-
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule="schema",
