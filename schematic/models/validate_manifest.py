@@ -185,9 +185,12 @@ class ValidateManifest(object):
             validation_rules = dmge.get_node_validation_rules(node_display_name=col)
 
             # Parse the validation rules
-            if validation_rules and type(validation_rules)==dict:
-                validation_rules=extract_component_validation_rules(manifest_component = manifest['Component'][0], validation_rules=validation_rules)
-                '''
+            if validation_rules and type(validation_rules) == dict:
+                validation_rules = extract_component_validation_rules(
+                    manifest_component=manifest["Component"][0],
+                    validation_rules=validation_rules,
+                )
+                """
                 if type(validation_rules)==dict:
                     manifest_component = manifest['Component'][0]
                     manifest_component_rule = validation_rules.get(manifest_component)
@@ -205,9 +208,9 @@ class ValidateManifest(object):
                             validation_rules=manifest_component_rule
                     else:
                         validation_rules=[]
-                '''
+                """
             # TODO: Can remove when handling updated so split within graph
-            #if validation_rules and "::" in validation_rules[0]:
+            # if validation_rules and "::" in validation_rules[0]:
             #    validation_rules = validation_rules[0].split("::")
 
             # Check that attribute rules conform to limits:
