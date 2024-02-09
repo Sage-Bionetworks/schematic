@@ -7,7 +7,7 @@ from time import perf_counter
 from os import getenv
 
 # allows specifying explicit variable types
-from typing import Any, Dict, List, Optional, Text, Union
+from typing import Any, Dict, List, Optional, Text, Union, Tuple
 from urllib import error
 from urllib.parse import urlparse
 from urllib.request import HTTPDefaultErrorHandler, OpenerDirector, Request, urlopen
@@ -41,7 +41,7 @@ class GenerateError:
         error_msg: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> List[str]:
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose: Process error messages generated from schema
         Input:
@@ -77,7 +77,7 @@ class GenerateError:
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
-    ) -> List[str]:
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose:
             If an error is found in the string formatting, detect and record
@@ -123,7 +123,7 @@ class GenerateError:
         attribute_name: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> List[str]:
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -166,7 +166,7 @@ class GenerateError:
         attribute_name: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> List[str]:
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -210,7 +210,7 @@ class GenerateError:
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
-    ) -> List[str]:
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -280,7 +280,7 @@ class GenerateError:
         missing_manifest_ID=None,
         invalid_entry=None,
         row_num=None,
-    ) -> List[str]:
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -342,7 +342,7 @@ class GenerateError:
         dmge: DataModelGraphExplorer,
         row_num=None,
         invalid_entry=None,
-    ) -> (List[str], List[str]):
+    ) -> Tuple[List[str], List[str]]:
         """
         Purpose:
             Generate an logging error or warning as well as a stored error/warning message when validating the content of a manifest attribute.
@@ -484,7 +484,7 @@ class GenerateError:
         error_col: str,
         error_message: str,
         error_val: Union[str, List[str]],
-    ) -> (list[str], list[str]):
+    ) -> Tuple[list[str], list[str]]:
         """
         Purpose:
             Log and store error messages in a list for further storage.
@@ -582,7 +582,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> (List[List[str]], List[List[str]], pd.core.series.Series):
+    ) -> Tuple[List[List[str]], List[List[str]], pd.core.series.Series]:
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
@@ -639,7 +639,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> (List[List[str]], List[List[str]]):
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose:
             Check if values for a given manifest attribue conform to the reguar expression,
@@ -739,7 +739,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> (List[List[str]], List[List[str]]):
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose:
             Check if values for a given manifest attribue are the same type
@@ -801,7 +801,7 @@ class ValidateAttribute(object):
 
     def url_validation(
         self, val_rule: str, manifest_col: str, dmge: DataModelGraphExplorer
-    ) -> (List[List[str]], List[List[str]]):
+    ) -> Tuple[List[List[str]], List[List[str]]]:
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
