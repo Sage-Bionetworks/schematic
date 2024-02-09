@@ -32,6 +32,9 @@ def load_df(
         data_model (bool, optional): bool, indicates if importing a data model
         **load_args(dict): dict of key value pairs to be passed to the pd.read_csv function
 
+    Raises:
+        ValueError: When pd.read_csv on the file path doesn't return as dataframe
+
     Returns:
         pd.DataFrame: a processed dataframe for manifests or unprocessed df for data models and
       where indicated
@@ -43,7 +46,13 @@ def load_df(
     org_df = pd.read_csv(  # type: ignore
         file_path, keep_default_na=True, encoding="utf8", **load_args
     )
-    assert isinstance(org_df, pd.DataFrame)
+    if not isinstance(org_df, pd.DataFrame):
+        raise ValueError(
+            (
+                "Pandas did not return a dataframe. "
+                "Pandas will return a TextFileReader if chunksize parameter is used."
+            )
+        )
 
     # only trim if not data model csv
     if not data_model:
