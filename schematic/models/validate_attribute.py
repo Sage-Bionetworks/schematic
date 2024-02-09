@@ -58,7 +58,7 @@ class GenerateError:
             error_row=error_row,
             error_col=error_col,
             error_message=error_message,
-            error_val=None,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
