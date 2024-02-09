@@ -419,16 +419,18 @@ class GenerateError:
         error_val: Union[str, List[str]],
         val_rule: str,
         val_rule_list: Optional[List[str]] = None,
-    ) -> str:
+    ) -> Optional[str]:
         """
         Purpose:
             Determine whether an error or warning message should be logged and displayed
 
-            if node is not required,
-                return warning
-            if node is recommended and requried,
-                return None
-            for other rules, parse possible, if not use default specified in validation_rule_info
+            Message determination hierarchy is as follows:
+                1. Schema errors are always logged as errors.
+                2. If a message level is specified in the validation rule, it is logged as such.
+                3. If the erroneous value is 'not applicable' and the rule is modified by 'IsNA', no message is logged.
+                    3a. Messages are never logged specifically for the IsNA rule.
+                4. If no level is specified and there is an erroneous value, level is determined by whether or not the attribute is required and if the rule set is modified by the recommended modifier.
+                5. If none of the above conditions apply, the default message level for the rule is logged.
         Input:
                 val_rule: str, defined in the schema.
                 dmge: DataModelGraphExplorer object
