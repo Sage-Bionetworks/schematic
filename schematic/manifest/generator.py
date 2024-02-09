@@ -1137,7 +1137,7 @@ class ManifestGenerator(object):
             validation_rules = self.dmge.get_node_validation_rules(
                 node_display_name=req
             )
-            if type(validation_rules) == dict:
+            if isistance(validation_rules, dict):
                 validation_rules = extract_component_validation_rules(
                     validation_rules=validation_rules, manifest_component=self.root
                 )

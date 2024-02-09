@@ -171,33 +171,18 @@ class GreatExpectationsHelpers(object):
                 node_display_name=col
             )
 
-            # Check if the validation rule applies to this manifest
-            if validation_rules and type(validation_rules) == dict:
-                validation_rules = extract_component_validation_rules(
-                    manifest_component=self.manifest["Component"][0],
-                    validation_rules=validation_rules,
-                )
-
-                """
-                if type(validation_rules)==dict:
-                    manifest_component = self.manifest['Component'][0]
-                    manifest_component_rule = validation_rules.get(manifest_component)
-                    if manifest_component_rule and type(manifest_component_rule)==str:
-                        validation_rules=[manifest_component_rule]
-                    elif manifest_component_rule:
-                        validation_rules=manifest_component_rule
-                    else:
-                        validation_rules=[]
-                """
-
             # check if attribute has any rules associated with it
             if validation_rules:
+                # Check if the validation rule applies to this manifest
+                if isinstance(validation_rules, dict):
+                    validation_rules = extract_component_validation_rules(
+                        manifest_component=self.manifest["Component"][0],
+                        validation_rules=validation_rules,
+                    )
                 # iterate through all validation rules for an attribute
                 for rule in validation_rules:
-                    try:
-                        base_rule = rule.split(" ")[0]
-                    except:
-                        breakpoint()
+                    base_rule = rule.split(" ")[0]
+
                     # check if rule has an implemented expectation
                     if rule_in_rule_list(rule, self.unimplemented_expectations):
                         continue
