@@ -3,7 +3,7 @@ import json
 import networkx as nx
 import re
 import string
-from typing import Any, List, Dict
+from typing import List, Dict, Tuple, Union
 
 DELIMITERS = {
     "component_name_delimiter": "#",
@@ -123,44 +123,61 @@ def convert_bool_to_str(provided_bool: bool) -> str:
     return str(provided_bool)
 
 
-def parse_component_validation_rules(validation_rule_string: str):
+def get_component_rules(component_rule: str, validation_rules: list) -> list:
+    # Separate multiple rules (defined by addition of the rule delimiter)
+    if DELIMITERS["rule_delimiter"] in component_rule:
+        validation_rules.append(component_rule.split(DELIMITERS["rule_delimiter"]))
+    # Get single rule
+    else:
+        validation_rules.append(component_rule)
+    return validation_rules
+
+
+def get_component_name(component_names: list, component_rule: str) -> Tuple[list, str]:
+    # If a component name is not attached to the rule, have it apply to all other components
+    if DELIMITERS["component_name_delimiter"] != component_rule[0]:
+        component_names.append("all_other_components")
+    # Get the component name if available
+    else:
+        component_names.append(
+            component_rule.split(" ")[0].replace(
+                DELIMITERS["component_name_delimiter"], ""
+            )
+        )
+        try:
+            assert component_names[-1] != " "
+        except:
+            ValueError(
+                f"There was an error capturing at least one of the component name in the following rule: {component_rule}, "
+                f"please ensure there is not extra whitespace or non-allowed characters."
+            )
+        component_rule = component_rule.replace(component_rule.split(" ")[0], "")
+        component_rule = component_rule.strip()
+    return component_names, component_rule
+
+
+def parse_component_validation_rules(validation_rule_string: str) -> Dict:
     component_names = []
     validation_rules = []
 
     component_rules = validation_rule_string.split(
         DELIMITERS["component_rules_delimiter"]
     )
-    # extract component name
+    # Extract component rules, per component
     for component_rule in component_rules:
         component_rule = component_rule.strip()
         if component_rule:
-            if DELIMITERS["component_name_delimiter"] != component_rule[0]:
-                component_names.append("all_other_components")
-            else:
-                component_names.append(
-                    component_rule.split(" ")[0].replace(
-                        DELIMITERS["component_name_delimiter"], ""
-                    )
-                )
-                try:
-                    assert component_names[-1] != " "
-                except:
-                    ValueError(
-                        f"There was an error capturing at least one of the component name in the following rule: {component_rule}, "
-                        f"please ensure there is not extra whitespace or non-allowed characters."
-                    )
-                component_rule = component_rule.replace(
-                    component_rule.split(" ")[0], ""
-                )
-                component_rule = component_rule.strip()
-            # parse rules
-            if DELIMITERS["rule_delimiter"] in component_rule:
-                validation_rules.append(
-                    component_rule.split(DELIMITERS["rule_delimiter"])
-                )
-            else:
-                validation_rules.append(component_rule)
+            # Get component name attached to rule
+            component_names, component_rule = get_component_name(
+                component_names=component_names, component_rule=component_rule
+            )
 
+            # Get rules
+            validation_rules = get_component_rules(
+                component_rule=component_rule, validation_rules=validation_rules
+            )
+
+    # Ensure we collected the component names and validation rules like expected
     try:
         assert len(component_names) == len(validation_rules)
     except:
@@ -188,7 +205,7 @@ def parse_single_set_validation_rules(validation_rule_string: str) -> list:
         return validation_rule_string.split(DELIMITERS["rule_delimiter"])
 
 
-def parse_validation_rules(validation_rules: Any) -> Any:
+def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, dict]:
     """Split multiple validation rules based on :: delimiter
     Args:
         validation_rules, Any[List[str], Dict]: List or Dictionary of validation rules,

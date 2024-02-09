@@ -731,7 +731,7 @@ class ManifestGenerator(object):
 
     def _request_regex_match_vr_formatting(
         self,
-        validation_rules: Any,
+        validation_rules: List[str],
         i: int,
         spreadsheet_id: str,
         requests_body: dict,
@@ -1137,7 +1137,7 @@ class ManifestGenerator(object):
             validation_rules = self.dmge.get_node_validation_rules(
                 node_display_name=req
             )
-            if isistance(validation_rules, dict):
+            if isinstance(validation_rules, dict):
                 validation_rules = extract_component_validation_rules(
                     validation_rules=validation_rules, manifest_component=self.root
                 )
