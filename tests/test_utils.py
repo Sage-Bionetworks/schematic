@@ -311,7 +311,7 @@ class TestDfUtils:
             [[np.nan] * len(local_manifest.columns)], columns=local_manifest.columns
         )
 
-        df_with_nans = local_manifest.append(nan_row, ignore_index=True)
+        df_with_nans = pd.concat([local_manifest, nan_row], ignore_index=True)
 
         df_with_nans["Unnamed: 1"] = np.nan
         trimmed_df = df_utils.trim_commas_df(df_with_nans)

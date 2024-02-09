@@ -116,29 +116,19 @@ jobs:
         run: |
           # ran only on certain files for now
           # add here when checked
-          poetry run pylint schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
+          poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
 
       #----------------------------------------------
       #              run test suite
       #----------------------------------------------
-      - name: Run regular tests and rule combination tests
-        env:
-          SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
-        if: ${{ contains(github.event.head_commit.message, 'runcombos') }}
-        run: >
-          source .venv/bin/activate;
-          pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not (google_credentials_needed or schematic_api or table_operations)" --reruns 2 -n auto
-
       - name: Run tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
           SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
-        if: ${{ false == contains(github.event.head_commit.message, 'runcombos') }}
         run: >
           source .venv/bin/activate;
           pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not (google_credentials_needed or rule_combos or schematic_api or table_operations)" --reruns 2  -n auto
+          -m "not (google_credentials_needed or schematic_api or table_operations)" --reruns 2 -n auto
 
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
