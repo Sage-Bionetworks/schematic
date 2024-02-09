@@ -190,15 +190,6 @@ class GenerateError:
         error_message = type_error_str
         error_val = invalid_entry
 
-        # TODO: not sure if this i needed (to split)
-        validation_rules = dmge.get_node_validation_rules(
-            node_display_name=attribute_name
-        )
-
-        # TODO: Can remove when handling updated so split within graph
-        if validation_rules and "::" in validation_rules[0]:
-            validation_rules = validation_rules[0].split("::")
-
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
@@ -206,7 +197,6 @@ class GenerateError:
             error_col=error_col,
             error_message=error_message,
             error_val=error_val,
-            val_rule_list=validation_rules,
         )
 
         return error_list, warning_list
@@ -418,7 +408,6 @@ class GenerateError:
         error_col: str,
         error_val: Union[str, List[str]],
         val_rule: str,
-        val_rule_list: Optional[List[str]] = None,
     ) -> Optional[str]:
         """
         Purpose:
@@ -436,13 +425,15 @@ class GenerateError:
                 dmge: DataModelGraphExplorer object
                 error_col: str, attribute being validated
                 error_val: erroneous value
-                val_rule_list: list of all validation rules for the attribute
         Returns:
             'error', 'warning' or None
         Raises:
             Logging messagees, either error, warning, or no message
         # TODO: recommended and other rules
         """
+        not_applicable_strings = [
+            "not applicable",
+        ]
 
         rule_parts = val_rule.split(" ")
         rule_name = rule_parts[0]
@@ -451,12 +442,17 @@ class GenerateError:
             specified_level if specified_level in ["error", "warning"] else None
         )
 
+        # Get all of the specified validation rules for the attribute
+        validation_rule_list = dmge.get_node_validation_rules(
+            node_display_name=error_col
+        )
+
         is_schema_error = rule_name == "schema"
-        includes_recommended_modifier = "recommended" in val_rule
-        includes_na_modifier = "IsNA" in val_rule_list if val_rule_list else False
-        is_required = dmge.get_node_required(node_display_name=error_col)
+        col_is_recommended = rule_name == "recommended"
+        col_is_required = dmge.get_node_required(node_display_name=error_col)
+        rules_include_na_modifier = rule_in_rule_list("IsNA", validation_rule_list)
         error_val_is_na = (
-            error_val.lower() == "not applicable"
+            error_val.lower() in not_applicable_strings
             if isinstance(error_val, str)
             else False
         )
@@ -467,12 +463,12 @@ class GenerateError:
         if specified_level:
             return specified_level
 
-        if (error_val_is_na and includes_na_modifier) or val_rule == "IsNA":
+        if (error_val_is_na and rules_include_na_modifier) or rule_name.lower() == "isna":
             return None
 
-        if not is_required:
+        if not col_is_required:
             return "warning"
-        elif is_required and includes_recommended_modifier:
+        elif col_is_required and col_is_recommended:
             return None
 
         default_rule_message_level = validation_rule_info()[rule_name][
@@ -487,7 +483,6 @@ class GenerateError:
         error_col: str,
         error_message: str,
         error_val: Union[str, List[str]],
-        val_rule_list: Optional[List[str]] = None,
     ) -> (list[str], list[str]):
         """
         Purpose:
@@ -509,7 +504,7 @@ class GenerateError:
         warning_list = []
 
         message_level = GenerateError.get_message_level(
-            dmge, error_col, error_val, val_rule, val_rule_list
+            dmge, error_col, error_val, val_rule,
         )
 
         if message_level is None:
@@ -524,7 +519,6 @@ class GenerateError:
             warning_list = [error_row, error_col, error_message, error_val]
 
         return error_list, warning_list
-
 
 class ValidateAttribute(object):
     """
