@@ -429,7 +429,6 @@ class GenerateError:
             'error', 'warning' or None
         Raises:
             Logging messagees, either error, warning, or no message
-        # TODO: recommended and other rules
         """
         not_applicable_strings = [
             "not applicable",
