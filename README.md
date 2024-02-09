@@ -74,7 +74,13 @@ This command will install the dependencies based on what we specify in poetry.lo
 If you want to install the API you will need to install those dependencies as well:
 
 ```
-poetry install --all-extras
+poetry install --extras "api"
+```
+
+If you want to install the uwsgi:
+
+```
+poetry install --extras "api"
 ```
 
 5. Fill in credential files: 

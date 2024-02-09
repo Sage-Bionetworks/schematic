@@ -4766,9 +4766,10 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.link
 testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy (>=0.9.1)", "pytest-ruff"]
 
 [extras]
-api = ["Flask", "Flask-Cors", "Jinja2", "connexion", "uWSGI"]
+api = ["Flask", "Flask-Cors", "Jinja2", "connexion"]
+aws = ["uWSGI"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "122de090099558f6bac7d0f7167e3fd3cfbc42e33adcd03c0630027236561954"
+content-hash = "fd6dbe19c700a80fedc739825f3c26d63476360d1a5f605f8abc2726ce9c3157"

@@ -77,7 +77,8 @@ uWSGI = {version = "^2.0.21", optional = true}
 Jinja2 = {version = ">2.11.3", optional = true}
 
 [tool.poetry.extras]
-api = ["connexion", "Flask", "Flask-Cors", "uWSGI", "Jinja2"]
+api = ["connexion", "Flask", "Flask-Cors", "Jinja2"]
+aws = ["uWSGI"]
 
 
 [tool.poetry.group.dev.dependencies]
