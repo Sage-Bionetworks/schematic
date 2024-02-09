@@ -1,8 +1,9 @@
 import inflection
 import json
 import networkx as nx
+import re
 import string
-from typing import List, Dict
+from typing import Any, List, Dict
 
 
 def attr_dict_template(key_name: str) -> Dict[str, dict[str, dict]]:
@@ -122,9 +123,78 @@ def parse_validation_rules(validation_rules: List[str]) -> List[str]:
         validation_rules, list: list containing a string validation rule
     Returns:
         validation_rules, list: if submitted List
+    Raises:
+        ValueError if Rule is not formatted properly
     """
-    if validation_rules and "::" in validation_rules[0]:
-        validation_rules = validation_rules[0].split("::")
+    delimiters = {
+        "component_name_delimiter": "#",
+        "component_rules_delimiter": "^^",
+        "rule_delimiter": "::",
+    }
+    
+
+    validation_rule_string=validation_rules[0]
+
+    component_names = []
+    validation_rules = []
+    # Separate out component rules
+    
+    if '^^' in validation_rule_string:
+        component_rules = validation_rule_string.split('^^')
+        # extract component name
+        for component_rule in component_rules:
+            component_rule = component_rule.strip()
+            if component_rule:
+                if "#" != component_rule[0]:
+                    component_names.append('all_other_components')
+                    #raise ValueError(f'The provided component rule {component_rule} is not structured properly in the data model, '
+                    #                 f'should have hashtag prior to the Component name, please refer to documentation for proper structure')
+                else:
+                    component_names.append(component_rule.split(" ")[0].replace('#',''))
+                    try:
+                        assert component_names[-1] != ' '
+                    except:
+                        ValueError(f'There was an error capturing at least one of the component name in the following rule: {component_rule}, please ensure there is not extra whitespace or non-allowed characters.')
+                    component_rule = component_rule.replace(component_rule.split(" ")[0], '')
+                    component_rule = component_rule.strip()
+                # parse rules
+                if "::" in component_rule:
+                    validation_rules.append(component_rule.split("::"))
+                else:
+                    validation_rules.append(component_rule)
+
+        try:
+            assert len(component_names) == len(validation_rules)
+        except:
+            ValueError(f'The number of components names and validation rules does not match for validation rule: {validation_rule_string}.')
+        
+        validation_rules_dict = dict(map(lambda i,j : (i,j) , component_names, validation_rules))
+
+        return validation_rules_dict
+
+    else:
+        if '#' == validation_rule_string[0]:
+            ValueError(f"The provided validation rule {validation_rule_string}, looks to be formatted as a component based rule, but is missing the necessary formatting, "
+                f"please refer to the SchemaHub documentation for more details.")
+        if "::" in validation_rule_string:
+            validation_rules = validation_rule_string.split("::")
+        return validation_rules
+
+def extract_component_validation_rules(manifest_component:str, validation_rules:dict) -> list:
+    manifest_component_rule = validation_rules.get(manifest_component)
+    all_component_rules = validation_rules.get('all_other_components')
+    if manifest_component_rule:
+        if type(manifest_component_rule)==str:
+            validation_rules=[manifest_component_rule]
+        else:
+            validation_rules=manifest_component_rule
+    elif all_component_rules:
+        if type(all_component_rules) == str:
+            validation_rules=[all_component_rules]
+        else:
+            validation_rules=all_component_rules
+    else:
+        validation_rules=[]
     return validation_rules
 
 

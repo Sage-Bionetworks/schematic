@@ -10,7 +10,7 @@ import pandas as pd
 from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
-from typing import Dict, List, Optional, Tuple, Union, BinaryIO, Literal
+from typing import Any, Dict, List, Optional, Tuple, Union, BinaryIO, Literal
 
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
@@ -21,6 +21,7 @@ from schematic.utils.google_api_utils import (
     build_service_account_creds,
 )
 from schematic.utils.df_utils import update_df, load_df
+from schematic.utils.schema_utils import extract_component_validation_rules
 from schematic.utils.validate_utils import rule_in_rule_list
 
 # TODO: This module should only be aware of the store interface
@@ -730,7 +731,7 @@ class ManifestGenerator(object):
 
     def _request_regex_match_vr_formatting(
         self,
-        validation_rules: List[str],
+        validation_rules: Any,
         i: int,
         spreadsheet_id: str,
         requests_body: dict,
@@ -750,7 +751,7 @@ class ManifestGenerator(object):
                 - Upon correct format entry, text will turn black.
                 - If incorrect format is entered a validation error will pop up.
         Input:
-            validation_rules: List[str], defines the validation rules
+            validation_rules: Any(List[str], Dict), defines the validation rules
                 applied to a particular column.
             i: int, defines current column.
             requests_body: dict, containing all the update requests to add to the gs
@@ -1136,6 +1137,9 @@ class ManifestGenerator(object):
             validation_rules = self.dmge.get_node_validation_rules(
                 node_display_name=req
             )
+            if type(validation_rules)==dict:
+                validation_rules = extract_component_validation_rules(
+                        validation_rules=validation_rules, manifest_component=self.root)
 
             # Add regex match validaiton rule to Google Sheets.
             if validation_rules and sheet_url:

@@ -32,6 +32,8 @@ from great_expectations.exceptions.exceptions import GreatExpectationsError
 from schematic.models.validate_attribute import GenerateError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 
+from schematic.utils.schema_utils import extract_component_validation_rules
+
 from schematic.utils.validate_utils import (
     rule_in_rule_list,
     np_array_to_str_list,
@@ -164,16 +166,35 @@ class GreatExpectationsHelpers(object):
 
             # remove trailing/leading whitespaces from manifest
             self.manifest.map(lambda x: x.strip() if isinstance(x, str) else x)
+
             validation_rules = self.dmge.get_node_validation_rules(
                 node_display_name=col
             )
+
+            # Check if the validation rule applies to this manifest
+            if validation_rules and type(validation_rules)==dict:
+                validation_rules=extract_component_validation_rules(manifest_component = self.manifest['Component'][0], validation_rules=validation_rules)
+
+                '''
+                if type(validation_rules)==dict:
+                    manifest_component = self.manifest['Component'][0]
+                    manifest_component_rule = validation_rules.get(manifest_component)
+                    if manifest_component_rule and type(manifest_component_rule)==str:
+                        validation_rules=[manifest_component_rule]
+                    elif manifest_component_rule:
+                        validation_rules=manifest_component_rule
+                    else:
+                        validation_rules=[]
+                '''
 
             # check if attribute has any rules associated with it
             if validation_rules:
                 # iterate through all validation rules for an attribute
                 for rule in validation_rules:
-                    base_rule = rule.split(" ")[0]
-
+                    try:
+                        base_rule = rule.split(" ")[0]
+                    except:
+                        breakpoint()
                     # check if rule has an implemented expectation
                     if rule_in_rule_list(rule, self.unimplemented_expectations):
                         continue

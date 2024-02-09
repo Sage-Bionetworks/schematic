@@ -2,7 +2,7 @@ from ast import arg
 from jsonschema import ValidationError
 import logging
 import pandas as pd
-from typing import Any, Dict, Optional, Text, List
+from typing import Any, Dict, Optional, Text, List, Tuple
 
 
 logger = logging.getLogger(__name__)

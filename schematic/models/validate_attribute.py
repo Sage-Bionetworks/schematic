@@ -254,10 +254,6 @@ class GenerateError:
             node_display_name=attribute_name
         )
 
-        # TODO: Can remove when handling updated so split within graph
-        if validation_rules and "::" in validation_rules[0]:
-            validation_rules = validation_rules[0].split("::")
-
         # If IsNA rule is being used to allow `Not Applicable` entries, do not log a message
         if error_val.lower() == "not applicable" and rule_in_rule_list(
             "IsNA", validation_rules
