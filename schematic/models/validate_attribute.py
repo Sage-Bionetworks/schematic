@@ -32,7 +32,7 @@ class GenerateError:
     def generate_schema_error(
         row_num: str,
         attribute_name: str,
-        error_msg: str,
+        error_message: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
     ) -> Tuple[list[list[str]], list[list[str]]]:
@@ -44,15 +44,11 @@ class GenerateError:
             - error_msg: Error message
         """
 
-        error_col = attribute_name  # Attribute name
-        error_row = row_num  # index row of the manifest where the error presented.
-        error_message = error_msg
-
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule="schema",
-            error_row=error_row,
-            error_col=error_col,
+            error_row=row_num,
+            error_col=attribute_name,
             error_message=error_message,
             error_val=invalid_entry,
         )
@@ -83,24 +79,19 @@ class GenerateError:
         """
 
         if list_error == "not_comma_delimited":
-            error_str = (
+            error_message = (
                 f"For attribute {attribute_name} in row {row_num} it does not "
                 f"appear as if you provided a comma delimited string. Please check "
                 f"your entry ('{list_string}'') and try again."
             )
-            error_row = row_num  # index row of the manifest where the error presented.
-            error_col = attribute_name  # Attribute name
-            error_message = error_str
-            error_val = invalid_entry
-            # return error and empty list for warnings
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
-            error_row=error_row,
-            error_col=error_col,
+            error_row=row_num,
+            error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
@@ -130,22 +121,18 @@ class GenerateError:
         warnings: list[str] Warning details for further storage.
         """
 
-        regex_error_string = (
+        error_message = (
             f"For the attribute {attribute_name}, on row {row_num}, the string is not properly formatted. "
             f'It should follow the following re.{module_to_call} pattern "{reg_expression}".'
         )
-        error_row = row_num  # index row of the manifest where the error presented.
-        error_col = attribute_name  # Attribute name
-        error_message = regex_error_string
-        error_val = invalid_entry
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
-            error_row=error_row,
-            error_col=error_col,
+            error_row=row_num,
+            error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
@@ -171,22 +158,18 @@ class GenerateError:
         warnings: list[str] Warning details for further storage.
         """
 
-        type_error_str = (
+        error_message = (
             f"On row {row_num} the attribute {attribute_name} "
             f"does not contain the proper value type {val_rule}."
         )
-        error_row = row_num  # index row of the manifest where the error presented.
-        error_col = attribute_name  # Attribute name
-        error_message = type_error_str
-        error_val = invalid_entry
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
-            error_row=error_row,
-            error_col=error_col,
+            error_row=row_num,
+            error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
@@ -226,36 +209,31 @@ class GenerateError:
         warnings: list[str] Warning details for further storage.
         """
 
-        error_row = row_num  # index row of the manifest where the error presented.
-        error_col = attribute_name  # Attribute name
         if url_error == "invalid_url":
-            invalid_url_error_string = (
+            error_message = (
                 f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
                 f"conform to the standards of a URL. Please make sure you are entering a real, working URL "
                 f"as required by the Schema."
             )
-            error_message = invalid_url_error_string
             error_val = invalid_entry
         elif url_error == "arg_error":
-            arg_error_string = (
+            error_message = (
                 f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
                 f"conform to the schema specifications and does not contain the required element: {argument}."
             )
-            error_message = arg_error_string
             error_val = f"URL Error: Argument Error"
         elif url_error == "random_entry":
-            random_entry_error_str = (
+            error_message = (
                 f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
                 f"look like a URL, please check input and try again."
             )
-            error_message = random_entry_error_str
             error_val = f"URL Error: Random Entry"
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
-            error_row=error_row,
-            error_col=error_col,
+            error_row=row_num,
+            error_col=attribute_name,
             error_message=error_message,
             error_val=error_val,
         )
@@ -289,8 +267,8 @@ class GenerateError:
         """
 
         if val_rule.__contains__("matchAtLeast"):
-            cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing."
-            cross_error_str += (
+            error_message = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing."
+            error_message += (
                 f" Manifest(s) {missing_manifest_ID} are missing the value(s)."
                 if missing_manifest_ID
                 else ""
@@ -298,30 +276,25 @@ class GenerateError:
 
         elif val_rule.__contains__("matchExactly"):
             if matching_manifests != []:
-                cross_error_str = f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1."
-                cross_error_str += (
+                error_message = f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1."
+                error_message += (
                     f" Manifests {matching_manifests} match the values in the source attribute."
                     if matching_manifests
                     else ""
                 )
 
             elif val_rule.__contains__("set"):
-                cross_error_str = f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
+                error_message = f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
             elif val_rule.__contains__("value"):
-                cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
-
-        error_row = row_num  # index row of the manifest where the error presented.
-        error_col = attribute_name  # Attribute name
-        error_message = cross_error_str
-        error_val = invalid_entry  # Value from source manifest missing from targets
+                error_message = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
-            error_row=error_row,
-            error_col=error_col,
+            error_row=row_num,
+            error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
@@ -352,40 +325,37 @@ class GenerateError:
             warnings: list[str] Warning details for further storage.
         """
 
-        error_col = attribute_name  # Attribute name
         error_row = row_num
         error_val = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
 
         # log warning or error message
         if val_rule.startswith("recommended"):
-            content_error_str = f"Column {attribute_name} is recommended but empty."
+            error_message = f"Column {attribute_name} is recommended but empty."
             error_row = None
             error_val = None
 
         elif val_rule.startswith("unique"):
-            content_error_str = f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
+            error_message = f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
 
         elif val_rule.startswith("protectAges"):
-            content_error_str = f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
+            error_message = f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
 
         elif val_rule.startswith("inRange"):
-            content_error_str = f"{attribute_name} values in rows {row_num} are out of the specified range."
+            error_message = f"{attribute_name} values in rows {row_num} are out of the specified range."
 
         elif val_rule.startswith("date"):
-            content_error_str = (
+            error_message = (
                 f"{attribute_name} values in rows {row_num} are not parsable as dates."
             )
 
         elif val_rule.startswith("IsNA"):
-            content_error_str = f"{attribute_name} values in rows {row_num} are not marked as 'Not Applicable'."
-
-        error_message = content_error_str
+            error_message = f"{attribute_name} values in rows {row_num} are not marked as 'Not Applicable'."
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
             error_row=error_row,
-            error_col=error_col,
+            error_col=attribute_name,
             error_message=error_message,
             error_val=error_val,
         )

@@ -280,7 +280,7 @@ class ValidateManifest(object):
                 val_errors, val_warnings = GenerateError.generate_schema_error(
                     row_num=errorRow,
                     attribute_name=errorColName,
-                    error_msg=errorMsg,
+                    error_message=errorMsg,
                     invalid_entry=errorVal,
                     dmge=dmge,
                 )
