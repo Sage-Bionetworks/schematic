@@ -78,8 +78,7 @@ class GenerateError:
             - invalid_entry: The value that caused the error
             - dmge: DataModelGraphExplorer object
             - val_rule: validation rule str, defined in the schema.
-        Returns:
-        logger.error or logger.warning.
+        Returns
         Errors: list[str] Error details for further storage.
         warnings: list[str] Warning details for further storage.
         """
@@ -124,7 +123,6 @@ class GenerateError:
             invalid_entry: value that caused the error
             dmge: DataModelGraphExplorer object
         Returns:
-        logger.error or logger.warning.
         Errors: list[str] Error details for further storage.
         warnings: list[str] Warning details for further storage.
         """
@@ -163,7 +161,6 @@ class GenerateError:
             invalid_entry: str, value that caused the error
             dmge: DataModelGraphExplorer object
         Returns:
-        logger.error or logger.warning.
         Errors: list[str] Error details for further storage.
         warnings: list[str] Warning details for further storage.
         """
@@ -218,7 +215,6 @@ class GenerateError:
             dmge: DataModelGraphExplorer object
             val_rule: validation rule str, defined in the schema.
         Returns:
-        logger.error or logger.warning.
         Errors: list[str] Error details for further storage.
         warnings: list[str] Warning details for further storage.
         """
@@ -276,7 +272,6 @@ class GenerateError:
             invalid_entry: str, value present in source manifest that is missing in the target
             row_num: row in source manifest with value missing in target manifests
         Returns:
-        logger.error or logger.warning.
         Errors: list[str] Error details for further storage.
         warnings: list[str] Warning details for further storage.
         """
@@ -469,6 +464,8 @@ class GenerateError:
             - error_col: str, attribute being validated
             - error_message: str, error message string
             - error_val: str, erroneous value
+        Raises:
+            logger.error or logger.warning or no message
         Returns:
             error_list: list of errors
             warning_list: list of warnings
