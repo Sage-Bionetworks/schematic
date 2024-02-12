@@ -41,7 +41,9 @@ class GenerateError:
         Input:
             - row_num: the row the error occurred on.
             - attribute_name: the attribute the error occurred on.
-            - error_msg: Error message
+            - error_message: Error message
+            - invalid_entry: The value that caused the error
+            - dmge: DataModelGraphExplorer object
         """
 
         error_list, warning_list = GenerateError.raise_and_store_message(
@@ -72,6 +74,10 @@ class GenerateError:
             - list_string: the user input list, that is represented as a string.
             - row_num: the row the error occurred on.
             - attribute_name: the attribute the error occurred on.
+            - list_error: the type of list error that occurred.
+            - invalid_entry: The value that caused the error
+            - dmge: DataModelGraphExplorer object
+            - val_rule: validation rule str, defined in the schema.
         Returns:
         logger.error or logger.warning.
         Errors: list[str] Error details for further storage.
@@ -115,6 +121,8 @@ class GenerateError:
             row_num: str, row where the error was detected
             module_to_call: re module specified in the schema
             attribute_name: str, attribute being validated
+            invalid_entry: value that caused the error
+            dmge: DataModelGraphExplorer object
         Returns:
         logger.error or logger.warning.
         Errors: list[str] Error details for further storage.
@@ -152,6 +160,8 @@ class GenerateError:
             val_rule: str, defined in the schema.
             row_num: str, row where the error was detected
             attribute_name: str, attribute being validated
+            invalid_entry: str, value that caused the error
+            dmge: DataModelGraphExplorer object
         Returns:
         logger.error or logger.warning.
         Errors: list[str] Error details for further storage.
@@ -201,8 +211,12 @@ class GenerateError:
         Input:
             url: str, that was input by the user.
             url_error: str, error detected in url_validation()
+            row_num: str, row where the error was detected
             attribute_name: str, attribute being validated
             argument: str, argument being validated.
+            invalid_entry: str, value that caused the error
+            dmge: DataModelGraphExplorer object
+            val_rule: validation rule str, defined in the schema.
         Returns:
         logger.error or logger.warning.
         Errors: list[str] Error details for further storage.
@@ -255,9 +269,10 @@ class GenerateError:
             a cross validation error is encountered.
         Input:
             val_rule: str, defined in the schema.
+            attribute_name: str, attribute being validated
+            dmge: DataModelGraphExplorer object
             matching_manifests: list of manifests with all values in the target attribute present
             manifest_ID: str, synID of the target manifest missing the source value
-            attribute_name: str, attribute being validated
             invalid_entry: str, value present in source manifest that is missing in the target
             row_num: row in source manifest with value missing in target manifests
         Returns:
@@ -380,10 +395,10 @@ class GenerateError:
                 4. If no level is specified and there is an erroneous value, level is determined by whether or not the attribute is required and if the rule set is modified by the recommended modifier.
                 5. If none of the above conditions apply, the default message level for the rule is logged.
         Input:
-                val_rule: str, defined in the schema.
                 dmge: DataModelGraphExplorer object
                 error_col: str, attribute being validated
                 error_val: erroneous value
+                val_rule: str, defined in the schema.
         Returns:
             'error', 'warning' or None
         Raises:
@@ -454,7 +469,6 @@ class GenerateError:
             - error_col: str, attribute being validated
             - error_message: str, error message string
             - error_val: str, erroneous value
-            - val_rule_list: list of all validation rules for the attribute
         Returns:
             error_list: list of errors
             warning_list: list of warnings
