@@ -3,7 +3,7 @@ import re
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import List, Optional, Union, Tuple
+from typing import Optional, Union, Tuple
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -35,7 +35,7 @@ class GenerateError:
         error_msg: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose: Process error messages generated from schema
         Input:
@@ -67,7 +67,7 @@ class GenerateError:
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             If an error is found in the string formatting, detect and record
@@ -78,8 +78,8 @@ class GenerateError:
             - attribute_name: the attribute the error occurred on.
         Returns:
         logger.error or logger.warning.
-        Errors: List[str] Error details for further storage.
-        warnings: List[str] Warning details for further storage.
+        Errors: list[str] Error details for further storage.
+        warnings: list[str] Warning details for further storage.
         """
 
         if list_error == "not_comma_delimited":
@@ -113,7 +113,7 @@ class GenerateError:
         attribute_name: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -126,8 +126,8 @@ class GenerateError:
             attribute_name: str, attribute being validated
         Returns:
         logger.error or logger.warning.
-        Errors: List[str] Error details for further storage.
-        warnings: List[str] Warning details for further storage.
+        Errors: list[str] Error details for further storage.
+        warnings: list[str] Warning details for further storage.
         """
 
         regex_error_string = (
@@ -156,7 +156,7 @@ class GenerateError:
         attribute_name: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -167,8 +167,8 @@ class GenerateError:
             attribute_name: str, attribute being validated
         Returns:
         logger.error or logger.warning.
-        Errors: List[str] Error details for further storage.
-        warnings: List[str] Warning details for further storage.
+        Errors: list[str] Error details for further storage.
+        warnings: list[str] Warning details for further storage.
         """
 
         type_error_str = (
@@ -200,7 +200,7 @@ class GenerateError:
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -222,8 +222,8 @@ class GenerateError:
             argument: str, argument being validated.
         Returns:
         logger.error or logger.warning.
-        Errors: List[str] Error details for further storage.
-        warnings: List[str] Warning details for further storage.
+        Errors: list[str] Error details for further storage.
+        warnings: list[str] Warning details for further storage.
         """
 
         error_row = row_num  # index row of the manifest where the error presented.
@@ -270,7 +270,7 @@ class GenerateError:
         missing_manifest_ID=None,
         invalid_entry=None,
         row_num=None,
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -284,8 +284,8 @@ class GenerateError:
             row_num: row in source manifest with value missing in target manifests
         Returns:
         logger.error or logger.warning.
-        Errors: List[str] Error details for further storage.
-        warnings: List[str] Warning details for further storage.
+        Errors: list[str] Error details for further storage.
+        warnings: list[str] Warning details for further storage.
         """
 
         if val_rule.__contains__("matchAtLeast"):
@@ -332,7 +332,7 @@ class GenerateError:
         dmge: DataModelGraphExplorer,
         row_num=None,
         invalid_entry=None,
-    ) -> Tuple[List[str], List[str]]:
+    ) -> Tuple[list[str], list[str]]:
         """
         Purpose:
             Generate an logging error or warning as well as a stored error/warning message when validating the content of a manifest attribute.
@@ -348,8 +348,8 @@ class GenerateError:
                 row_num: str, row where the error was detected
                 invalid_entry: erroneous value(s)
         Returns:
-            Errors: List[str] Error details for further storage.
-            warnings: List[str] Warning details for further storage.
+            Errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
         """
 
         error_col = attribute_name  # Attribute name
@@ -395,7 +395,7 @@ class GenerateError:
     def get_message_level(
         dmge: DataModelGraphExplorer,
         error_col: str,
-        error_val: Union[str, List[str]],
+        error_val: Union[str, list[str]],
         val_rule: str,
     ) -> Optional[str]:
         """
@@ -472,7 +472,7 @@ class GenerateError:
         error_row: str,
         error_col: str,
         error_message: str,
-        error_val: Union[str, List[str]],
+        error_val: Union[str, list[str]],
     ) -> Tuple[list[str], list[str]]:
         """
         Purpose:
@@ -530,7 +530,7 @@ class ValidateAttribute(object):
     """
 
     def get_target_manifests(
-        target_component, project_scope: List, access_token: str = None
+        target_component, project_scope: list, access_token: str = None
     ):
         t_manifest_search = perf_counter()
         target_manifest_IDs = []
@@ -571,7 +571,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[List[List[str]], List[List[str]], pd.core.series.Series]:
+    ) -> Tuple[list[list[str]], list[list[str]], pd.core.series.Series]:
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
@@ -581,8 +581,8 @@ class ValidateAttribute(object):
         Returns:
             - manifest_col: Input values in manifest arere-formatted to a list
             logger.error or logger.warning.
-            Errors: List[str] Error details for further storage.
-            warnings: List[str] Warning details for further storage.
+            Errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
         """
 
         # For each 'list' (input as a string with a , delimiter) entered,
@@ -628,7 +628,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Check if values for a given manifest attribue conform to the reguar expression,
@@ -649,8 +649,8 @@ class ValidateAttribute(object):
             - This function will return errors when the user input value
             does not match schema specifications.
             logger.error or logger.warning.
-            Errors: List[str] Error details for further storage.
-            warnings: List[str] Warning details for further storage.
+            Errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
         TODO:
             move validation to convert step.
         """
@@ -728,7 +728,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Check if values for a given manifest attribue are the same type
@@ -743,8 +743,8 @@ class ValidateAttribute(object):
             -This function will return errors when the user input value
             does not match schema specifications.
             logger.error or logger.warning.
-            Errors: List[str] Error details for further storage.
-            warnings: List[str] Warning details for further storage.
+            Errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
         TODO:
             Convert all inputs to .lower() just to prevent any entry errors.
         """
@@ -790,7 +790,7 @@ class ValidateAttribute(object):
 
     def url_validation(
         self, val_rule: str, manifest_col: str, dmge: DataModelGraphExplorer
-    ) -> Tuple[List[List[str]], List[List[str]]]:
+    ) -> Tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
@@ -891,10 +891,10 @@ class ValidateAttribute(object):
         self,
         val_rule: str,
         manifest_col: pd.core.series.Series,
-        project_scope: List,
+        project_scope: list,
         dmge: DataModelGraphExplorer,
         access_token: str,
-    ) -> List[List[str]]:
+    ) -> list[list[str]]:
         """
         Purpose:
             Do cross validation between the current manifest and all other manifests a user has access to on Synapse.
