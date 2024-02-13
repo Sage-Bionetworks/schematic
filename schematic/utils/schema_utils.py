@@ -123,17 +123,17 @@ def convert_bool_to_str(provided_bool: bool) -> str:
     return str(provided_bool)
 
 
-def get_component_rules(component_rule: str, validation_rules: list) -> list:
+def get_individual_rules(rule: str, validation_rules: list[str]) -> list:
     # Separate multiple rules (defined by addition of the rule delimiter)
-    if DELIMITERS["rule_delimiter"] in component_rule:
-        validation_rules.append(component_rule.split(DELIMITERS["rule_delimiter"]))
+    if DELIMITERS["rule_delimiter"] in rule:
+        validation_rules.append(parse_single_set_validation_rules(rule))
     # Get single rule
     else:
-        validation_rules.append(component_rule)
+        validation_rules.append(rule)
     return validation_rules
 
 
-def get_component_name(component_names: list, component_rule: str) -> Tuple[list, str]:
+def get_component_name_rules(component_names: list, component_rule: str) -> Tuple[list, str]:
     # If a component name is not attached to the rule, have it apply to all other components
     if DELIMITERS["component_name_delimiter"] != component_rule[0]:
         component_names.append("all_other_components")
@@ -146,9 +146,10 @@ def get_component_name(component_names: list, component_rule: str) -> Tuple[list
         )
         try:
             assert component_names[-1] != " "
-        except:
-            ValueError(
-                f"There was an error capturing at least one of the component name in the following rule: {component_rule}, "
+        except ValueError:
+            print (
+                f"There was an error capturing at least one of the component name "
+                f"in the following rule: {component_rule}, "
                 f"please ensure there is not extra whitespace or non-allowed characters."
             )
         component_rule = component_rule.replace(component_rule.split(" ")[0], "")
@@ -168,21 +169,22 @@ def parse_component_validation_rules(validation_rule_string: str) -> Dict:
         component_rule = component_rule.strip()
         if component_rule:
             # Get component name attached to rule
-            component_names, component_rule = get_component_name(
+            component_names, component_rule = get_component_name_rules(
                 component_names=component_names, component_rule=component_rule
             )
 
             # Get rules
-            validation_rules = get_component_rules(
-                component_rule=component_rule, validation_rules=validation_rules
+            validation_rules = get_individual_rules(
+                rule=component_rule, validation_rules=validation_rules
             )
 
     # Ensure we collected the component names and validation rules like expected
     try:
         assert len(component_names) == len(validation_rules)
-    except:
-        raise ValueError(
-            f"The number of components names and validation rules does not match for validation rule: {validation_rule_string}."
+    except ValueError:
+        print (
+            f"The number of components names and validation rules does not match "
+            f"for validation rule: {validation_rule_string}."
         )
 
     validation_rules_dict = dict(
@@ -201,8 +203,7 @@ def parse_single_set_validation_rules(validation_rule_string: str) -> list:
         )
 
     # Parse rules that are set across *all* components/manifests
-    if DELIMITERS["rule_delimiter"] in validation_rule_string:
-        return validation_rule_string.split(DELIMITERS["rule_delimiter"])
+    return validation_rule_string.split(DELIMITERS["rule_delimiter"])
 
 
 def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, dict]:
@@ -221,16 +222,18 @@ def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, d
         # Rules pulled in as a dict can be used directly
         return validation_rules
     elif isinstance(validation_rules, list):
-        validation_rule_string = validation_rules[0]
+        # If rules are already parsed from the JSONLD
+        if len(validation_rules) > 1 and isinstance(validation_rules[-1], str):
+           return validation_rules
         # Parse rules set for a subset of components/manifests
-        if DELIMITERS["component_rules_delimiter"] in validation_rule_string:
+        elif DELIMITERS["component_rules_delimiter"] in validation_rules[0]:
             return parse_component_validation_rules(
-                validation_rule_string=validation_rule_string
+                validation_rule_string= validation_rules[0]
             )
         # Parse rules that are set across *all* components/manifests
         else:
             return parse_single_set_validation_rules(
-                validation_rule_string=validation_rule_string
+                validation_rule_string= validation_rules[0]
             )
     else:
         raise ValueError(
@@ -239,19 +242,32 @@ def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, d
 
 
 def extract_component_validation_rules(
-    manifest_component: str, validation_rules: dict
+    manifest_component: str, validation_rules: dict[str, list]
 ) -> list:
+    """Parse a component validation rule dictionary to pull out the rule (if any) for a given manifest
+        Args:
+            manifest_component, str: Component label, pulled from the manifest directly
+            validation_rules, dict[str, list[Union[list,str]]: Validation rules dictionary, where keys are the manifest component label, 
+                and the value is a parsed set of validation rules.
+        Returns:
+            validation_rules, list[str]:
+    """
     manifest_component_rule = validation_rules.get(manifest_component)
     all_component_rules = validation_rules.get("all_other_components")
-    if manifest_component_rule:
-        if type(manifest_component_rule) == str:
-            validation_rules = [manifest_component_rule]
-        else:
+
+    # Capture situation where manifest_component rule is an empty string
+    if manifest_component_rule is not None:
+        if isinstance(manifest_component_rule, str):
+            if manifest_component_rule == '':
+                validation_rules = []
+            else:
+                validation_rules = [manifest_component_rule]
+        elif isinstance(manifest_component_rule, list):
             validation_rules = manifest_component_rule
     elif all_component_rules:
-        if type(all_component_rules) == str:
+        if isinstance(all_component_rules, str):
             validation_rules = [all_component_rules]
-        else:
+        elif isinstance(all_component_rules, list):
             validation_rules = all_component_rules
     else:
         validation_rules = []
