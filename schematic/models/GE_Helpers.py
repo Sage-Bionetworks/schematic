@@ -145,12 +145,6 @@ class GreatExpectationsHelpers(object):
             "unique": "expect_column_values_to_be_unique",
             "inRange": "expect_column_values_to_be_between",
             "IsNA": "expect_column_values_to_match_regex_list",
-            # To be implemented rules with possible expectations
-            # "list": "expect_column_values_to_not_match_regex_list",
-            # "regex": "expect_column_values_to_match_regex",
-            # "url": "expect_column_values_to_be_valid_urls",
-            # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
         }
 
         # create blank expectation suite
