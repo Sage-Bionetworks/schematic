@@ -233,6 +233,7 @@ class MetadataModel(object):
         manifest = load_df(
             manifestPath,
             preserve_raw_input=False,
+            allow_na_values=True,
             **load_args,
         )  # read manifest csv file as is from manifest path
 
