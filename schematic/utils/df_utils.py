@@ -10,7 +10,8 @@ from datetime import datetime
 import dateparser as dp
 import pandas as pd
 import numpy as np
-from pandarallel import pandarallel  # type: ignore
+from pandarallel import pandarallel
+from typing import Union, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,8 @@ def load_df(
     file_path: str,
     preserve_raw_input: bool = True,
     data_model: bool = False,
-    **load_args: dict,
+    allow_na_values: bool = False,
+    **load_args,
 ) -> pd.DataFrame:
     """
     Universal function to load CSVs and return DataFrames
@@ -56,14 +58,11 @@ def load_df(
 
     # only trim if not data model csv
     if not data_model:
-        org_df = trim_commas_df(org_df)
+        org_df = trim_commas_df(org_df, allow_na_values=allow_na_values)
 
     if preserve_raw_input:
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
-
-    is_null = org_df.isnull()
-    org_df = org_df.astype(str).mask(is_null, "")
 
     ints, is_int = find_and_convert_ints(org_df)
 
@@ -116,7 +115,14 @@ def convert_ints(string: str) -> Union[np.int64, bool]:
     Returns:
         string converted to type int if possible, otherwise False
     """
-    return np.int64(string) if str.isdigit(string) else False
+    str_is_digit = False
+    
+    cell_is_str = isinstance(x, str)
+    if cell_is_str:
+        str_is_digit = str.isdigit(x)
+        
+    return np.int64(x) if (cell_is_str and str_is_digit) else False
+
 
 
 def convert_floats(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -234,7 +240,7 @@ def update_df(
     return input_df_idx
 
 
-def trim_commas_df(dataframe: pd.DataFrame) -> pd.DataFrame:
+def trim_commas_df(df: pd.DataFrame, allow_na_values: Optional[bool] = False,):
     """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
 
     Args:
@@ -249,9 +255,11 @@ def trim_commas_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     # remove all completely empty rows
     dataframe = dataframe.dropna(how="all", axis=0)
 
-    # Fill in nan cells with empty strings
-    dataframe.fillna("", inplace=True)
-    return dataframe
+    if allow_na_values is False:
+        # Fill in nan cells with empty strings
+        df.fillna("", inplace=True)
+    
+    return df
 
 
 def col_in_dataframe(col: str, dataframe: pd.DataFrame) -> bool:
