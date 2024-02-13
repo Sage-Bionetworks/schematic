@@ -190,6 +190,17 @@ class TestManifestValidation:
                 invalid_entry=["30"],
             )[0] in errors
 
+        assert (
+            GenerateError.generate_content_error(
+                val_rule="protectAges",
+                attribute_name="Check OptionalAge",
+                dmge=dmge,
+                row_num=["2", "3"],
+                invalid_entry=["6549", "32851"],
+            )[1]
+            in errors
+        )
+
         # check warnings
         assert GenerateError.generate_content_error(
                 val_rule="recommended",
