@@ -116,13 +116,12 @@ def convert_ints(string: str) -> Union[np.int64, bool]:
         string converted to type int if possible, otherwise False
     """
     str_is_digit = False
-    
+
     cell_is_str = isinstance(x, str)
     if cell_is_str:
         str_is_digit = str.isdigit(x)
-        
-    return np.int64(x) if (cell_is_str and str_is_digit) else False
 
+    return np.int64(x) if (cell_is_str and str_is_digit) else False
 
 
 def convert_floats(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -240,7 +239,10 @@ def update_df(
     return input_df_idx
 
 
-def trim_commas_df(df: pd.DataFrame, allow_na_values: Optional[bool] = False,):
+def trim_commas_df(
+    df: pd.DataFrame,
+    allow_na_values: Optional[bool] = False,
+):
     """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
 
     Args:
@@ -258,7 +260,7 @@ def trim_commas_df(df: pd.DataFrame, allow_na_values: Optional[bool] = False,):
     if allow_na_values is False:
         # Fill in nan cells with empty strings
         df.fillna("", inplace=True)
-    
+
     return df
 
 
