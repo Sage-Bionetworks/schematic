@@ -73,7 +73,10 @@
             },
             "sms:displayName": "Patient ID",
             "sms:required": "sms:true",
-            "sms:validationRules": []
+            "sms:validationRules": {
+                "Biospecimen": "unique error",
+                "Patient": "unique warning"
+            }
         },
         {
             "@id": "bts:Sex",
@@ -577,7 +580,7 @@
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
-                    "@id": "bts:Biospecimen"
+                    "@id": "bts:Patient"
                 }
             ],
             "sms:requiresDependency": [
@@ -586,6 +589,9 @@
                 },
                 {
                     "@id": "bts:SampleID"
+                },
+                {
+                    "@id": "bts:PatientID"
                 },
                 {
                     "@id": "bts:FileFormat"
