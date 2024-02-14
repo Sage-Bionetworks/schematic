@@ -295,7 +295,7 @@ class TestManifestValidation:
         assert any(warning_in_list)
 
 
- def test_in_house_validation(self, helpers, dmge, metadataModel):
+    def test_in_house_validation(self, helpers, dmge, metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
