@@ -89,6 +89,13 @@ class GenerateError:
                 f"appear as if you provided a comma delimited string. Please check "
                 f"your entry ('{list_string}'') and try again."
             )
+        elif list_error == "not_a_string":
+            error_message = (
+                f"For attribute {attribute_name} in row {row_num} it does not "
+                f"appear as if you provided a string. Please check "
+                f"your entry ('{list_string}'') and try again."
+            )
+
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
@@ -419,13 +426,6 @@ class GenerateError:
         col_is_recommended = rule_name == "recommended"
         col_is_required = dmge.get_node_required(node_display_name=error_col)
         rules_include_na_modifier = rule_in_rule_list("IsNA", validation_rule_list)
-
-        if isinstance(error_val, str):
-            error_val_is_na = error_val.lower() in not_applicable_strings
-        elif error_val is None:
-            error_val_is_na = True
-        else:
-            error_val_is_na = False
             
 
         if is_schema_error:
@@ -434,9 +434,18 @@ class GenerateError:
         if specified_level:
             return specified_level
 
-        if (
-            error_val_is_na and rules_include_na_modifier
-        ) or rule_name.lower() == "isna":
+        if rule_name.lower() == "isna":
+            return None
+
+        if isinstance(error_val, str):
+            error_val_is_na = error_val.lower() in not_applicable_strings
+        elif (error_val is None) or pd.isnull(error_val):
+            error_val_is_na = True
+        else:
+            error_val_is_na = False
+
+
+        if (error_val_is_na and rules_include_na_modifier):
             return None
 
         if not col_is_required:
@@ -574,7 +583,12 @@ class ValidateAttribute(object):
         # white spaces removed.
         errors = []
         warnings = []
-        manifest_col = manifest_col.astype(str)
+        manifest_col = manifest_col.convert_dtypes(
+            infer_objects=False,
+            convert_string=True,
+            convert_integer=False,
+            convert_boolean=False,
+            convert_floating=False)
         csv_re = comma_separated_list_regex()
 
         rule_parts = val_rule.lower().split(" ")
@@ -586,8 +600,13 @@ class ValidateAttribute(object):
         if list_robustness == "strict":
             # This will capture any if an entry is not formatted properly. Only for strict lists
             for i, list_string in enumerate(manifest_col):
-                if not re.fullmatch(csv_re, list_string):
+                list_error = None
+                if not isinstance(list_string, str):
+                    list_error = "not_a_string"                    
+                elif not re.fullmatch(csv_re, list_string):
                     list_error = "not_comma_delimited"
+
+                if list_error:
                     vr_errors, vr_warnings = GenerateError.generate_list_error(
                         list_string,
                         row_num=str(i + 2),

@@ -116,6 +116,7 @@ class ValidateManifest(object):
             "regex.*",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
+            "IsNA",
         ]
 
         in_house_rules = [
@@ -209,9 +210,10 @@ class ValidateManifest(object):
                     rule_in_rule_list(rule, in_house_rules) and restrict_rules
                 ):
                     if not rule_in_rule_list(rule, in_house_rules):
-                        logger.warning(
-                            f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations."
-                        )
+                        if rule.lower() != "isna":
+                            logger.warning(
+                                f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations."
+                            )
                         continue
 
                     t_indiv_rule = perf_counter()
