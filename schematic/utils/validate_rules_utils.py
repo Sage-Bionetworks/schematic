@@ -1,9 +1,7 @@
 """validate rules utils"""
 
-from typing import Union
 import logging
-import pandas as pd
-from typing import Any, Dict, Optional, Text, List, Tuple
+from typing import Union
 from jsonschema import ValidationError
 
 
