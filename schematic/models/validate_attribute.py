@@ -97,7 +97,6 @@ class GenerateError:
                 f"your entry ('{list_string}'') and try again."
             )
 
-
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
             val_rule=val_rule,
@@ -438,8 +437,7 @@ class GenerateError:
         else:
             error_val_is_na = False
 
-
-        if (error_val_is_na and rules_include_na_modifier):
+        if error_val_is_na and rules_include_na_modifier:
             return None
 
         if is_schema_error:
@@ -585,7 +583,8 @@ class ValidateAttribute(object):
             convert_string=True,
             convert_integer=False,
             convert_boolean=False,
-            convert_floating=False)
+            convert_floating=False,
+        )
         csv_re = comma_separated_list_regex()
 
         rule_parts = val_rule.lower().split(" ")
@@ -599,7 +598,7 @@ class ValidateAttribute(object):
             for i, list_string in enumerate(manifest_col):
                 list_error = None
                 if not isinstance(list_string, str):
-                    list_error = "not_a_string"                    
+                    list_error = "not_a_string"
                 elif not re.fullmatch(csv_re, list_string):
                     list_error = "not_comma_delimited"
 
@@ -705,7 +704,7 @@ class ValidateAttribute(object):
         # Validating single re's
         else:
             for i, re_to_check in enumerate(manifest_col):
-                if not isinstance(re_to_check, NAType): 
+                if not isinstance(re_to_check, NAType):
                     if not bool(module_to_call(reg_expression, str(re_to_check))):
                         vr_errors, vr_warnings = GenerateError.generate_regex_error(
                             val_rule=val_rule,
