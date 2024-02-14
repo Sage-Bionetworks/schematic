@@ -7,7 +7,6 @@ import string
 from typing import List, Literal, Dict, Tuple, Union
 
 
-
 logger = logging.getLogger(__name__)
 
 DisplayLabelType = Literal["class_label", "display_label"]
