@@ -786,6 +786,10 @@ class TestDataModelNodes:
                 for ind, rule in enumerate(vrs):
                     if "::" in rule[0]:
                         assert parsed_vrs[ind] == rule[0].split("::")
+                    elif '^^' in rule[0]:
+                        component_rule_sets = rule[0].split("^^")
+                        components = [cr.split(' ')[0].replace('#', '') for cr in component_rule_sets]
+                        assert components == [k for k in parsed_vrs[0].keys()]
                     else:
                         assert parsed_vrs[ind] == rule
             elif DATA_MODEL_DICT[data_model] == "JSONLD":
