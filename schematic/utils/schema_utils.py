@@ -204,7 +204,7 @@ def get_label_from_display_name(
     Args:
         display_name, str: node display name
         entry_type, str: 'class' or 'property', defines what type the entry is.
-        strict_camel_case, bool: Default, False; defines whether or not to use strict camel 
+        strict_camel_case, bool: Default, False; defines whether or not to use strict camel
           case or not for conversion.
     Returns:
         label, str: label to be used for the provided display name.
