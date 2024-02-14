@@ -133,7 +133,9 @@ def get_individual_rules(rule: str, validation_rules: list[str]) -> list:
     return validation_rules
 
 
-def get_component_name_rules(component_names: list, component_rule: str) -> Tuple[list, str]:
+def get_component_name_rules(
+    component_names: list, component_rule: str
+) -> Tuple[list, str]:
     # If a component name is not attached to the rule, have it apply to all other components
     if DELIMITERS["component_name_delimiter"] != component_rule[0]:
         component_names.append("all_other_components")
@@ -147,7 +149,7 @@ def get_component_name_rules(component_names: list, component_rule: str) -> Tupl
         try:
             assert component_names[-1] != " "
         except ValueError:
-            print (
+            print(
                 f"There was an error capturing at least one of the component name "
                 f"in the following rule: {component_rule}, "
                 f"please ensure there is not extra whitespace or non-allowed characters."
@@ -182,7 +184,7 @@ def parse_component_validation_rules(validation_rule_string: str) -> Dict:
     try:
         assert len(component_names) == len(validation_rules)
     except ValueError:
-        print (
+        print(
             f"The number of components names and validation rules does not match "
             f"for validation rule: {validation_rule_string}."
         )
@@ -224,16 +226,16 @@ def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, d
     elif isinstance(validation_rules, list):
         # If rules are already parsed from the JSONLD
         if len(validation_rules) > 1 and isinstance(validation_rules[-1], str):
-           return validation_rules
+            return validation_rules
         # Parse rules set for a subset of components/manifests
         elif DELIMITERS["component_rules_delimiter"] in validation_rules[0]:
             return parse_component_validation_rules(
-                validation_rule_string= validation_rules[0]
+                validation_rule_string=validation_rules[0]
             )
         # Parse rules that are set across *all* components/manifests
         else:
             return parse_single_set_validation_rules(
-                validation_rule_string= validation_rules[0]
+                validation_rule_string=validation_rules[0]
             )
     else:
         raise ValueError(
@@ -245,12 +247,12 @@ def extract_component_validation_rules(
     manifest_component: str, validation_rules: dict[str, list]
 ) -> list:
     """Parse a component validation rule dictionary to pull out the rule (if any) for a given manifest
-        Args:
-            manifest_component, str: Component label, pulled from the manifest directly
-            validation_rules, dict[str, list[Union[list,str]]: Validation rules dictionary, where keys are the manifest component label, 
-                and the value is a parsed set of validation rules.
-        Returns:
-            validation_rules, list[str]:
+    Args:
+        manifest_component, str: Component label, pulled from the manifest directly
+        validation_rules, dict[str, list[Union[list,str]]: Validation rules dictionary, where keys are the manifest component label,
+            and the value is a parsed set of validation rules.
+    Returns:
+        validation_rules, list[str]:
     """
     manifest_component_rule = validation_rules.get(manifest_component)
     all_component_rules = validation_rules.get("all_other_components")
@@ -258,7 +260,7 @@ def extract_component_validation_rules(
     # Capture situation where manifest_component rule is an empty string
     if manifest_component_rule is not None:
         if isinstance(manifest_component_rule, str):
-            if manifest_component_rule == '':
+            if manifest_component_rule == "":
                 validation_rules = []
             else:
                 validation_rules = [manifest_component_rule]
