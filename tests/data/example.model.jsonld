@@ -580,7 +580,7 @@
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
-                    "@id": "bts:Patient"
+                    "@id": "bts:Biospecimen"
                 }
             ],
             "sms:requiresDependency": [
@@ -589,9 +589,6 @@
                 },
                 {
                     "@id": "bts:SampleID"
-                },
-                {
-                    "@id": "bts:PatientID"
                 },
                 {
                     "@id": "bts:FileFormat"
