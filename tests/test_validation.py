@@ -475,16 +475,14 @@ class TestManifestValidation:
         ],
         ids=["biospecimen_manifest", "patient_manifest"],
     )
-    def test_component_validations(self, helpers, manifest_path):
+    def test_component_validations(self, helpers, manifest_path, dmge):
         full_manifest_path = helpers.get_data_path(manifest_path)
         manifest = helpers.get_data_frame(full_manifest_path)
 
         root_node = manifest["Component"][0]
 
-        dmge = helpers.get_data_model_graph_explorer(path="example_new_vrs.model.csv")
-
         data_model_js = DataModelJSONSchema(
-            jsonld_path=helpers.get_data_path("example_new_vrs.model.csv"),
+            jsonld_path=helpers.get_data_path("example.model.csv"),
             graph=dmge.graph,
         )
 
