@@ -424,10 +424,6 @@ class GenerateError:
         col_is_recommended = rule_name == "recommended"
         col_is_required = dmge.get_node_required(node_display_name=error_col)
         rules_include_na_modifier = rule_in_rule_list("IsNA", validation_rule_list)
-            
-
-        if is_schema_error:
-            return "error"
 
         if specified_level:
             return specified_level
@@ -445,6 +441,9 @@ class GenerateError:
 
         if (error_val_is_na and rules_include_na_modifier):
             return None
+
+        if is_schema_error:
+            return "error"
 
         if not col_is_required:
             return "warning"
