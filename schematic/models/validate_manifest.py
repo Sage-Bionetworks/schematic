@@ -264,7 +264,7 @@ class ValidateManifest(object):
         warnings = []
         col_attr = {}  # save the mapping between column index and attribute name
 
-        # numerical and null values need to be type string for the jsonValidator
+        # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(
             include=[int, np.int64, float, np.float64]
         ).columns:
@@ -272,7 +272,6 @@ class ValidateManifest(object):
         manifest = manifest.map(
             lambda x: str(x) if isinstance(x, Number) else x, na_action="ignore"
         )
-        manifest.fillna("", inplace=True)
 
         annotations = json.loads(manifest.to_json(orient="records"))
         for i, annotation in enumerate(annotations):
