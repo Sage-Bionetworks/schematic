@@ -1,14 +1,18 @@
-from ast import arg
-from jsonschema import ValidationError
+"""validate rules utils"""
+
+from typing import Union
 import logging
 import pandas as pd
 from typing import Any, Dict, Optional, Text, List, Tuple
+from jsonschema import ValidationError
 
 
 logger = logging.getLogger(__name__)
 
 
-def validation_rule_info():
+def validation_rule_info() -> (
+    dict[str, dict[str, Union[tuple[int, int], str, list[str], None]]]
+):
     """
     Function to return dict that holds information about each rule
     Will be pulled into validate_single_rule, validate_manifest_rules, validate_schema_rules
@@ -19,7 +23,7 @@ def validation_rule_info():
             'complementary_rules': [<rules available for pairing>]}
         }
     """
-    rule_dict = {
+    return {
         "int": {
             "arguments": (1, 0),
             "type": "type_validation",
@@ -119,15 +123,13 @@ def validation_rule_info():
         },
     }
 
-    return rule_dict
-
 
 def get_error(
-    validation_rules: list,
+    validation_rules: str,
     attribute_name: str,
     error_type: str,
     input_filetype: str,
-) -> List[str]:
+) -> list[str]:
     """
     Generate error message for errors when trying to specify
     multiple validation rules.
@@ -137,55 +139,65 @@ def get_error(
     if error_type == "delimiter":
         error_str = (
             f"The {input_filetype}, has an error in the validation rule "
-            f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) are improperly "
-            f"specified. Please check your delimiter is '::'"
+            f"for the attribute: {attribute_name}, the provided validation rules "
+            f"({validation_rules}) are improperly "
+            "specified. Please check your delimiter is '::'"
         )
         logging.error(error_str)
         error_message = error_str
-        error_val = f"Multiple Rules: Delimiter"
+        error_val = "Multiple Rules: Delimiter"
 
     if error_type == "not_rule":
         error_str = (
             f"The {input_filetype}, has an error in the validation rule "
-            f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) is not "
-            f"a valid rule. Please check spelling."
+            f"for the attribute: {attribute_name}, the provided validation rules "
+            f"({validation_rules}) is not "
+            "a valid rule. Please check spelling."
         )
         logging.error(error_str)
         error_message = error_str
-        error_val = f"Not a Rule"
+        error_val = "Not a Rule"
 
     if error_type == "args_not_allowed":
         error_str = (
             f"The {input_filetype}, has an error in the validation rule "
-            f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) is not"
-            f"formatted properly. No additional arguments are allowed for this rule."
+            f"for the attribute: {attribute_name}, the provided validation rules "
+            f"({validation_rules}) is not"
+            "formatted properly. No additional arguments are allowed for this rule."
         )
         logging.error(error_str)
         error_message = error_str
-        error_val = f"Args not allowed."
+        error_val = "Args not allowed."
     if error_type == "incorrect_num_args":
         rule_type = validation_rules.split(" ")[0]
 
         if rule_type in validation_rule_info():
-            no_allowed, no_required = validation_rule_info()[rule_type]["arguments"]
+            arg_tuple = validation_rule_info()[rule_type]["arguments"]
+            assert isinstance(arg_tuple, tuple)
+            assert len(arg_tuple) == 2
+            number_allowed = str(arg_tuple[0])
+            number_required = str(arg_tuple[1])
         else:
-            no_allowed, no_required = ("", "")
+            number_allowed, number_required = ("", "")
 
         error_str = (
             f"The {input_filetype}, has an error in the validation rule "
-            f"for the attribute: {attribute_name}, the provided validation rules ({validation_rules}) is not "
-            f"formatted properly. The number of provided arguments does not match the number allowed({no_allowed}) or required({no_required})."
+            f"for the attribute: {attribute_name}, the provided validation rules "
+            f"({validation_rules}) is not "
+            "formatted properly. The number of provided arguments does not match the "
+            f"number allowed({number_allowed}) or required({number_required})."
         )
         logging.error(error_str)
         error_message = error_str
-        error_val = f"Incorrect num arguments."
+        error_val = "Incorrect num arguments."
 
     return ["NA", error_col, error_message, error_val]
 
 
-def validate_single_rule(validation_rule, attribute, input_filetype):
+def validate_single_rule(validation_rule: str, attribute: str, input_filetype: str):
     """
-    Perform validation for a single rule to ensure it is specified correctly with an appropriate number of arguments
+    Perform validation for a single rule to ensure it is specified
+      correctly with an appropriate number of arguments
     Inputs:
         validation_rule: single rule being validated
         attribute: attribute validation rule was specified for
@@ -213,7 +225,7 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
             )
         )
     # Check that the rule is actually a valid rule type.
-    elif rule_type not in validation_types.keys():
+    elif rule_type not in validation_types:
         errors.append(
             get_error(
                 validation_rule,
@@ -224,10 +236,14 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
         )
     # if the rule is indeed a rule and formatted correctly, check that arguments are appropriate
     else:
-        arguments_allowed, arguments_required = validation_types[rule_type]["arguments"]
+        arg_tuple = validation_rule_info()[rule_type]["arguments"]
+        assert isinstance(arg_tuple, tuple)
+        assert len(arg_tuple) == 2
+        arguments_allowed, arguments_required = arg_tuple
         # Remove any fixed args from our calc.
-        if "fixed_arg" in validation_types[rule_type].keys():
+        if "fixed_arg" in validation_types[rule_type]:
             fixed_args = validation_types[rule_type]["fixed_arg"]
+            assert isinstance(fixed_args, list)
             num_args = (
                 len([vr for vr in validation_rule_with_args if vr not in fixed_args])
                 - 1
@@ -263,7 +279,9 @@ def validate_single_rule(validation_rule, attribute, input_filetype):
     return errors
 
 
-def validate_schema_rules(validation_rules, attribute, input_filetype):
+def validate_schema_rules(
+    validation_rules: list[str], attribute: str, input_filetype: str
+) -> None:
     """
     validation_rules: list
     input_filetype: str, used in error generation to aid user in
@@ -285,5 +303,3 @@ def validate_schema_rules(validation_rules, attribute, input_filetype):
             f"for attribute {attribute}. "
             f"Validation failed with the following errors: {errors}"
         )
-
-    return

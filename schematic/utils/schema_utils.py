@@ -1,10 +1,17 @@
 import inflection
 import json
+import logging
 import networkx as nx
 import re
 import string
-from typing import List, Dict, Tuple, Union
+from typing import List, Literal, Dict, Tuple, Union
 
+
+
+logger = logging.getLogger(__name__)
+
+DisplayLabelType = Literal["class_label", "display_label"]
+BLACKLISTED_CHARS = ["(", ")", ".", " ", "-"]
 DELIMITERS = {
     "component_name_delimiter": "#",
     "component_rules_delimiter": "^^",
@@ -83,10 +90,60 @@ def get_attribute_display_name_from_label(
     return display_name
 
 
-def get_label_from_display_name(
-    display_name: str, entry_type: str, strict_camel_case: bool = False
+def check_if_display_name_is_valid_label(
+    display_name: str,
+    blacklisted_chars: list[str] = BLACKLISTED_CHARS,
+) -> bool:
+    """Check if the display name can be used as a display label
+    Args:
+        display_name, str: node display name
+        blacklisted_chars, list[str]: characters that are not permitted for synapse annotations uploads.
+    Returns:
+        valid_label, bool: True, if the display name can be used as a label, False, if it cannot.
+    """
+    valid_label = True
+    if any(map(display_name.__contains__, blacklisted_chars)):
+        valid_label = False
+    return valid_label
+
+
+def get_stripped_label(
+    display_name: str,
+    entry_type: str,
+    blacklisted_chars: list[str] = BLACKLISTED_CHARS,
 ) -> str:
-    """Get node label from provided display name, based on whether the node is a class or property
+    """
+    Args:
+        display_name, str: node display name
+        entry_type, str: 'class' or 'property', defines what type the entry is.
+        blacklisted_chars, list[str]: characters that are not permitted for synapse annotations uploads.
+    Returns:
+        stripped_label, str: class or property label that has been stripped of blacklisted characters.
+    """
+    if entry_type.lower() == "class":
+        stripped_label = [
+            get_class_label_from_display_name(str(display_name)).translate(
+                {ord(x): "" for x in blacklisted_chars}
+            )
+        ][0]
+
+    elif entry_type.lower() == "property":
+        stripped_label = [
+            get_property_label_from_display_name(str(display_name)).translate(
+                {ord(x): "" for x in blacklisted_chars}
+            )
+        ][0]
+
+    logger.warning(
+        f"Cannot use display name {display_name} as the data model label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {stripped_label}"
+    )
+    return stripped_label
+
+
+def get_schema_label(
+    display_name: str, entry_type: str, strict_camel_case: bool
+) -> str:
+    """Get the class or property label for a given display name
     Args:
         display_name, str: node display name
         entry_type, str: 'class' or 'property', defines what type the entry is.
@@ -95,7 +152,6 @@ def get_label_from_display_name(
         label, str: class label of display name
     Raises:
         ValueError if entry_type.lower(), is not either 'class' or 'property'
-
     """
     if entry_type.lower() == "class":
         label = get_class_label_from_display_name(
@@ -110,6 +166,42 @@ def get_label_from_display_name(
         raise ValueError(
             f"The entry type submitted: {entry_type}, is not one of the permitted types: 'class' or 'property'"
         )
+    return label
+
+
+def get_label_from_display_name(
+    display_name: str,
+    entry_type: str,
+    strict_camel_case: bool = False,
+    data_model_labels: DisplayLabelType = "class_label",
+) -> str:
+    """Get node label from provided display name, based on whether the node is a class or property
+    Args:
+        display_name, str: node display name
+        entry_type, str: 'class' or 'property', defines what type the entry is.
+        strict_camel_case, bool: Default, False; defines whether or not to use strict camel case or not for conversion.
+    Returns:
+        label, str: label to be used for the provided display name.
+    """
+    if data_model_labels == "display_label":
+        # Check that display name can be used as a label.
+        valid_display_name = check_if_display_name_is_valid_label(
+            display_name=display_name
+        )
+        # If the display name is valid, set the label to be the display name
+        if valid_display_name:
+            label = display_name
+        # If not, set get a stripped class or property label (as indicated by the entry type)
+        else:
+            label = get_stripped_label(display_name=display_name, entry_type=entry_type)
+
+    else:
+        label = get_schema_label(
+            display_name=display_name,
+            entry_type=entry_type,
+            strict_camel_case=strict_camel_case,
+        )
+
     return label
 
 

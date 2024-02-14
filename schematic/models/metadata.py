@@ -38,6 +38,7 @@ class MetadataModel(object):
         self,
         inputMModelLocation: str,
         inputMModelLocationType: str,
+        data_model_labels: str,
     ) -> None:
         """Instantiates a MetadataModel object.
 
@@ -59,7 +60,7 @@ class MetadataModel(object):
         parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
+        data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
         # Generate graph
         self.graph_data_model = data_model_grapher.generate_data_model_graph()

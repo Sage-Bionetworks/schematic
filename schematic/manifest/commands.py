@@ -10,7 +10,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.manifest.generator import ManifestGenerator
 
-from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_synIDs
+from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_syn_ids
 from schematic.utils.google_api_utils import export_manifest_csv
 from schematic.help import manifest_commands
 
@@ -105,6 +105,13 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     default="ascending",
     help=query_dict(manifest_commands, ("manifest", "get", "alphabetize_valid_values")),
 )
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    default="class_label",
+    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
+    help=query_dict(manifest_commands, ("manifest", "get", "data_model_labels")),
+)
 @click.pass_obj
 def get_manifest(
     ctx,
@@ -118,6 +125,7 @@ def get_manifest(
     json_schema,
     output_xlsx,
     alphabetize_valid_values,
+    data_model_labels,
 ):
     """
     Running CLI with manifest generation options.
@@ -141,7 +149,7 @@ def get_manifest(
     parsed_data_model = data_model_parser.parse_model()
 
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     logger.info("Generating data model graph.")
@@ -253,7 +261,7 @@ def get_manifest(
     "-ps",
     "--project_scope",
     default=None,
-    callback=parse_synIDs,
+    callback=parse_syn_ids,
     help=query_dict(manifest_commands, ("manifest", "migrate", "project_scope")),
 )
 @click.option(

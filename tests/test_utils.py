@@ -51,6 +51,10 @@ from schematic.utils.schema_utils import (
     get_property_label_from_display_name,
     get_class_label_from_display_name,
     strip_context,
+    get_label_from_display_name,
+    get_schema_label,
+    get_stripped_label,
+    check_if_display_name_is_valid_label,
     get_individual_rules,
     get_component_name_rules,
     parse_component_validation_rules,
@@ -139,6 +143,14 @@ TEST_VALIDATION_RULES = {
         "validation_rules": ["list::regex match \(\d{3}\) \d{3}-\d{4}"],
         "parsed_rules": ["list", "regex match \(\d{3}\) \d{3}-\d{4}"],
     },
+}
+
+TEST_DN_DICT = {
+    "Bio Things": {"class": "BioThings", "property": "bioThings"},
+    "bio things": {"class": "Biothings", "property": "biothings"},
+    "BioThings": {"class": "BioThings", "property": "bioThings"},
+    "Bio-things": {"class": "Biothings", "property": "biothings"},
+    "bio_things": {"class": "BioThings", "property": "bioThings"},
 }
 
 
@@ -800,11 +812,123 @@ class TestSchemaUtils:
                         component
                     ]
                 )
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
+    )
+    def test_check_if_display_name_is_valid_label(self, test_dn):
+        display_name = test_dn
+        blacklisted_chars = ["(", ")", ".", " ", "-"]
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            valid_label = check_if_display_name_is_valid_label(
+                test_dn, blacklisted_chars
+            )
+            if test_dn in ["Bio-things", "bio things", "Bio Things"]:
+                assert valid_label == False
+            else:
+                assert valid_label == True
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys())[-2:],
+        ids=list(TEST_DN_DICT.keys())[-2:],
+    )
+    def test_get_stripped_label(self, test_dn: str):
+        display_name = test_dn
+        blacklisted_chars = ["(", ")", ".", " ", "-"]
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            label = ""
+
+            label = get_stripped_label(
+                entry_type=entry_type,
+                display_name=display_name,
+                blacklisted_chars=blacklisted_chars,
+            )
+            assert label == expected_result
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
+    )
+    def test_get_schema_label(self, test_dn: str):
+        display_name = test_dn
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            label = ""
+
+            label = get_schema_label(
+                entry_type=entry_type,
+                display_name=display_name,
+                strict_camel_case=False,
+            )
+
+            if "-" in display_name:
+                # In this case, biothings will not strip the blacklisted character,
+                # so it will not match the dictionary.
+                if entry_type == "class":
+                    assert label == display_name.capitalize()
+                else:
+                    assert label == display_name[0].lower() + display_name[1:]
+            else:
+                assert label == expected_result
+
+    @pytest.mark.parametrize(
+        "test_dn",
+        list(TEST_DN_DICT.keys()),
+        ids=list(TEST_DN_DICT.keys()),
+    )
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["display_label", "class_label"],
+    )
+    def test_get_label_from_display_name(self, test_dn: str, data_model_labels: str):
+        display_name = test_dn
+        for entry_type, expected_result in TEST_DN_DICT[test_dn].items():
+            label = ""
+
+            try:
+                label = get_label_from_display_name(
+                    entry_type=entry_type,
+                    display_name=display_name,
+                    data_model_labels=data_model_labels,
+                )
+            except:
+                # Under these conditions should only fail if the display name cannot be used as a label.
+                assert test_dn in [
+                    "Bio Things",
+                    "bio things",
+                    "Bio-things",
+                    "bio_things",
+                ]
+            if label:
+                if data_model_labels == "display_label":
+                    if test_dn in ["Bio Things", "bio things", "Bio-things"]:
+                        assert label == expected_result
+
+                    else:
+                        assert label == test_dn
+                else:
+                    # The dash has an odd handling
+                    if display_name == "Bio-things":
+                        if entry_type == "property":
+                            assert label == "bio-things"
+                        else:
+                            assert label == "Bio-things"
+                    else:
+                        assert label == expected_result
+
+            else:
+                return
+        return
 
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
-        """ """
+        """
+        """
+
         # Get data model path
         data_model_path = helpers.get_data_path("example.model.jsonld")
         schema = io_utils.load_json(data_model_path)

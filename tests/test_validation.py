@@ -33,6 +33,7 @@ def metadataModel(helpers):
     metadataModel = MetadataModel(
         inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
         inputMModelLocationType="local",
+        data_model_labels="class_label",
     )
 
     yield metadataModel
@@ -293,7 +294,8 @@ class TestManifestValidation:
         warning_in_list = [cross_warning[1] in warning for warning in warnings]
         assert any(warning_in_list)
 
-    def test_in_house_validation(self, helpers, dmge, metadataModel):
+
+ def test_in_house_validation(self, helpers, dmge, metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
@@ -519,6 +521,7 @@ class TestManifestValidation:
                 and vmr_warnings[0][0] == ["2", "3"]
                 and vmr_warnings[0][-1] == ["123"]
             )
+
 
     @pytest.mark.rule_combos(
         reason="This introduces a great number of tests covering every possible rule combination that are only necessary on occasion."

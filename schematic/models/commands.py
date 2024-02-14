@@ -14,7 +14,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.utils.cli_utils import (
     log_value_from_config,
     query_dict,
-    parse_synIDs,
+    parse_syn_ids,
     parse_comma_str_to_list,
 )
 from schematic.help import model_commands
@@ -98,7 +98,7 @@ def model(ctx, config):  # use as `schematic model ...`
     "-ps",
     "--project_scope",
     default=None,
-    callback=parse_synIDs,
+    callback=parse_syn_ids,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.option(
@@ -107,6 +107,13 @@ def model(ctx, config):  # use as `schematic model ...`
     default="replace",
     type=click.Choice(["replace", "upsert"], case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "table_manipulation")),
+)
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    default="class_label",
+    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "data_model_labels")),
 )
 @click.option(
     "--table_column_names",
@@ -135,6 +142,7 @@ def submit_manifest(
     restrict_rules,
     project_scope,
     table_manipulation,
+    data_model_labels,
     table_column_names,
     annotation_keys,
 ):
@@ -146,7 +154,9 @@ def submit_manifest(
     log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
+        inputMModelLocation=jsonld,
+        inputMModelLocationType="local",
+        data_model_labels=data_model_labels,
     )
 
     manifest_id = metadata_model.submit_metadata_manifest(
@@ -204,12 +214,24 @@ def submit_manifest(
     "-ps",
     "--project_scope",
     default=None,
-    callback=parse_synIDs,
+    callback=parse_syn_ids,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
+)
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    is_flag=True,
+    help=query_dict(model_commands, ("model", "validate", "data_model_labels")),
 )
 @click.pass_obj
 def validate_manifest(
-    ctx, manifest_path, data_type, json_schema, restrict_rules, project_scope
+    ctx,
+    manifest_path,
+    data_type,
+    json_schema,
+    restrict_rules,
+    project_scope,
+    data_model_labels,
 ):
     """
     Running CLI for manifest validation.
@@ -233,7 +255,9 @@ def validate_manifest(
     log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType="local"
+        inputMModelLocation=jsonld,
+        inputMModelLocationType="local",
+        data_model_labels=data_model_labels,
     )
 
     errors, warnings = metadata_model.validateModelManifest(

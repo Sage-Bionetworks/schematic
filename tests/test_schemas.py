@@ -18,6 +18,7 @@ from schematic.utils.schema_utils import (
     get_attribute_display_name_from_label,
     convert_bool_to_str,
     parse_validation_rules,
+    DisplayLabelType
 )
 from schematic.utils.io_utils import load_json
 
@@ -61,26 +62,33 @@ TEST_DN_DICT = {
     "Bio Things": {"class": "BioThings", "property": "bioThings"},
     "bio things": {"class": "Biothings", "property": "biothings"},
 }
-NODE_DISPLAY_NAME_DICT = {"Patient": False, "Sex": True}
+NODE_DISPLAY_NAME_DICT = {"Patient": False, "Sex": True, "MockRDB_id": True}
 
 
-def get_data_model_parser(helpers, data_model_name: str = None):
+def get_data_model_parser(
+    helpers,
+    data_model_name: str = None,
+):
     # Get path to data model
     fullpath = helpers.get_data_path(path=data_model_name)
 
     # Instantiate DataModelParser
-    data_model_parser = DataModelParser(path_to_data_model=fullpath)
+    data_model_parser = DataModelParser(
+        path_to_data_model=fullpath,
+    )
     return data_model_parser
 
 
-def generate_graph_data_model(helpers, data_model_name: str) -> nx.MultiDiGraph:
+def generate_graph_data_model(
+    helpers, data_model_name: str, data_model_labels: DisplayLabelType = "class_label",
+) -> nx.MultiDiGraph:
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
     """
-
     # Instantiate Parser
     data_model_parser = get_data_model_parser(
-        helpers=helpers, data_model_name=data_model_name
+        helpers=helpers,
+        data_model_name=data_model_name,
     )
 
     # Parse Model
@@ -88,7 +96,7 @@ def generate_graph_data_model(helpers, data_model_name: str) -> nx.MultiDiGraph:
 
     # Convert parsed model to graph
     # Instantiate DataModelGraph
-    data_model_grapher = DataModelGraph(parsed_data_model)
+    data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
     graph_data_model = data_model_grapher.generate_data_model_graph()
@@ -96,10 +104,13 @@ def generate_graph_data_model(helpers, data_model_name: str) -> nx.MultiDiGraph:
     return graph_data_model
 
 
-def generate_data_model_nodes(helpers, data_model_name: str) -> DataModelNodes:
+def generate_data_model_nodes(
+    helpers, data_model_name: str, data_model_labels: DisplayLabelType = "class_label",
+) -> DataModelNodes:
     # Instantiate Parser
     data_model_parser = get_data_model_parser(
-        helpers=helpers, data_model_name=data_model_name
+        helpers=helpers,
+        data_model_name=data_model_name,
     )
     # Parse Model
     parsed_data_model = data_model_parser.parse_model()
@@ -270,7 +281,10 @@ class TestDataModelCsvParser:
 @pytest.mark.parametrize("data_model", ["example.model.jsonld"], ids=["jsonld"])
 class TestDataModelJsonLdParser:
     def test_gather_jsonld_attributes_relationships(
-        self, helpers, data_model: str, jsonld_parser: DataModelJSONLDParser
+        self,
+        helpers,
+        data_model: str,
+        jsonld_parser: DataModelJSONLDParser,
     ):
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
         path_to_data_model = helpers.get_data_path(path=data_model)
@@ -278,7 +292,7 @@ class TestDataModelJsonLdParser:
 
         # Get output of the function:
         attr_rel_dict = jsonld_parser.gather_jsonld_attributes_relationships(
-            model_jsonld=model_jsonld["@graph"]
+            model_jsonld=model_jsonld["@graph"],
         )
 
         # Test the attr_rel_dict is formatted as expected:
@@ -292,7 +306,10 @@ class TestDataModelJsonLdParser:
         assert "Attribute" in attr_rel_dict[attribute_key]["Relationships"]
 
     def test_parse_jsonld_model(
-        self, helpers, data_model: str, jsonld_parser: DataModelJSONLDParser
+        self,
+        helpers,
+        data_model: str,
+        jsonld_parser: DataModelJSONLDParser,
     ):
         """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
         path_to_data_model = helpers.get_data_path(path=data_model)
@@ -300,7 +317,7 @@ class TestDataModelJsonLdParser:
 
         # Get output of the function:
         attr_rel_dictionary = jsonld_parser.parse_jsonld_model(
-            path_to_data_model=path_to_data_model
+            path_to_data_model=path_to_data_model,
         )
 
         # Test the attr_rel_dictionary is formatted as expected:
@@ -385,25 +402,49 @@ class TestDataModelGraph:
         ["example.model.csv", "example.model.jsonld"],
         ids=["csv", "jsonld"],
     )
-    def test_generate_data_model_graph(self, helpers, data_model):
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["data_model_labels-display_label", "data_model_labels-class_label"],
+    )
+    def test_generate_data_model_graph(self, helpers, data_model, data_model_labels):
         """Check that data model graph is constructed properly, requires calling various classes.
         TODO: In another test, check conditional dependencies.
         """
-        graph = generate_graph_data_model(helpers=helpers, data_model_name=data_model)
+        graph = generate_graph_data_model(
+            helpers=helpers,
+            data_model_name=data_model,
+            data_model_labels=data_model_labels,
+        )
 
         # Check that some edges are present as expected:
         assert ("FamilyHistory", "Breast") in graph.edges("FamilyHistory")
-        assert ("BulkRNA-seqAssay", "Biospecimen") in graph.edges("BulkRNA-seqAssay")
-        assert ["Ab", "Cd", "Ef", "Gh"] == [
+
+        if data_model_labels == "display_label":
+            expected_valid_values = ["ab", "cd", "ef", "gh"]
+            mock_id_label = "MockRDB_id"
+            assert ("BulkRNAseqAssay", "Biospecimen") in graph.edges("BulkRNAseqAssay")
+
+        else:
+            expected_valid_values = ["Ab", "Cd", "Ef", "Gh"]
+            mock_id_label = "MockRDBId"
+            assert ("BulkRNA-seqAssay", "Biospecimen") in graph.edges(
+                "BulkRNA-seqAssay"
+            )
+        assert expected_valid_values == [
             k
             for k, v in graph["CheckList"].items()
             for vk, vv in v.items()
             if vk == "rangeValue"
         ]
 
+        assert mock_id_label in graph.nodes
+
         # Check that all relationships recorded between 'CheckList' and 'Ab' are present
-        assert "rangeValue" and "parentOf" in graph["CheckList"]["Ab"]
-        assert "requiresDependency" not in graph["CheckList"]["Ab"]
+        assert (
+            "rangeValue" and "parentOf" in graph["CheckList"][expected_valid_values[0]]
+        )
+        assert "requiresDependency" not in graph["CheckList"][expected_valid_values[0]]
 
         # Check nodes:
         assert "Patient" in graph.nodes
@@ -532,7 +573,8 @@ class TestDataModelNodes:
 
         # Instantiate DataModelNodes
         data_model_nodes = generate_data_model_nodes(
-            helpers, data_model_name=data_model
+            helpers,
+            data_model_name=data_model,
         )
 
         attr_info = ("Patient", attr_rel_dictionary["Patient"])
@@ -787,25 +829,38 @@ class TestDataModelNodes:
     @pytest.mark.parametrize(
         "node_display_name",
         list(NODE_DISPLAY_NAME_DICT.keys()),
-        ids=[str(v) for v in NODE_DISPLAY_NAME_DICT.values()],
+        ids=["Node_required-" + str(v) for v in NODE_DISPLAY_NAME_DICT.values()],
     )
-    def test_generate_node_dict(self, helpers, data_model, node_display_name):
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["data_model_labels-display_label", "data_model_labels-class_label"],
+    )
+    def test_generate_node_dict(
+        self, helpers, data_model, node_display_name, data_model_labels
+    ):
         # Instantiate Parser
         data_model_parser = get_data_model_parser(
-            helpers=helpers, data_model_name=data_model
+            helpers=helpers,
+            data_model_name=data_model,
         )
 
         # Parse Model
         attr_rel_dictionary = data_model_parser.parse_model()
 
+        # Change SourceManifest to sockComponent so we can check the data_model_labels is working as expected
+
         # Instantiate DataModelNodes
         data_model_nodes = generate_data_model_nodes(
-            helpers, data_model_name=data_model
+            helpers,
+            data_model_name=data_model,
+            data_model_labels=data_model_labels,
         )
 
         node_dict = data_model_nodes.generate_node_dict(
             node_display_name=node_display_name,
             attr_rel_dict=attr_rel_dictionary,
+            data_model_labels=data_model_labels,
         )
 
         # Check that the output is as expected for the required key.
@@ -815,6 +870,13 @@ class TestDataModelNodes:
             # Looking up this way, in case we add empty defaults back to JSONLD it wont fail, but will only be absent in JSONLD not CSV.
             if not node_dict["required"] == False:
                 assert DATA_MODEL_DICT[data_model] == "JSONLD"
+
+        # Check that the display name matches the label
+        if data_model_labels == "display_label":
+            try:
+                assert node_display_name == node_dict["label"]
+            except:
+                breakpoint()
 
     def test_generate_node(self, helpers, data_model):
         # Test adding a dummy node
@@ -1256,10 +1318,19 @@ class TestDataModelJsonLd:
         "template_type", ["property", "class"], ids=["property", "class"]
     )
     @pytest.mark.parametrize("node", ["", "Patient"], ids=["no node", "Patient"])
-    def test_fill_entry_template(self, helpers, data_model, template_type, node):
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["data_model_labels-display_label", "data_model_labels-class_label"],
+    )
+    def test_fill_entry_template(
+        self, helpers, data_model, template_type, node, data_model_labels
+    ):
         # Get Graph
         graph_data_model = generate_graph_data_model(
-            helpers, data_model_name=data_model
+            helpers,
+            data_model_name=data_model,
+            data_model_labels=data_model_labels,
         )
 
         # Instantiate DataModelJsonLD
@@ -1313,9 +1384,14 @@ class TestDataModelJsonLd:
                     "sms:requiresDependency",
                     "sms:validationRules",
                 ]
+
             assert (set(actual_keys) - set(expected_keys)) == (
                 set(expected_keys) - set(actual_keys)
             )
+            if data_model_labels == "display_label":
+                assert (
+                    object_template["rdfs:label"] == object_template["sms:displayName"]
+                )
 
     @pytest.mark.parametrize(
         "data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values())
@@ -1447,7 +1523,8 @@ class TestDataModelJsonLd:
 
         # Get Graph
         graph_data_model = generate_graph_data_model(
-            helpers, data_model_name=data_model
+            helpers,
+            data_model_name=data_model,
         )
 
         # Instantiate DataModelJsonLD

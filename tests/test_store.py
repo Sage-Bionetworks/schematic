@@ -582,6 +582,7 @@ class TestTableOperations:
         # assert table exists
         assert table_name in existing_tables.keys()
 
+
     @pytest.mark.parametrize(
         "table_column_names",
         ["display_label", "class_label"],
@@ -673,6 +674,7 @@ class TestTableOperations:
             manifest_record_type="table_and_file",
             hideBlanks=True,
             restrict_manifest=False,
+            table_manipulation=table_manipulation,
             table_column_names=table_column_names,
             annotation_keys=annotation_keys,
         )
@@ -690,6 +692,7 @@ class TestTableOperations:
         assert (daysToFollowUp == 89).all()
         # delete table
         synapse_store.syn.delete(tableId)
+
 
     @pytest.mark.parametrize(
         "annotation_keys",
