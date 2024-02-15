@@ -783,16 +783,18 @@ class TestDataModelNodes:
 
             assert len(vrs) == len(parsed_vrs)
             if DATA_MODEL_DICT[data_model] == "CSV":
-                assert vrs != parsed_vrs
+                for ind, rule in enumerate(vrs):
+                    if "::" in rule[0]:
+                        assert parsed_vrs[ind] == rule[0].split("::")
+                    elif '^^' in rule[0]:
+                        component_rule_sets = rule[0].split("^^")
+                        components = [cr.split(' ')[0].replace('#', '') for cr in component_rule_sets]
+                        assert components == [k for k in parsed_vrs[0].keys()]
+                    else:
+                        assert parsed_vrs[ind] == rule
             elif DATA_MODEL_DICT[data_model] == "JSONLD":
                 # JSONLDs already contain parsed validaiton rules so the raw vrs will match the parsed_vrs
                 assert vrs == parsed_vrs
-
-            # For all validation rules where there are multiple rules, make sure they have been split as expected.
-            for i, pvr in enumerate(parsed_vrs):
-                delim_count = vrs[i][0].count("::")
-                if delim_count:
-                    assert len(pvr) == delim_count + 1
 
         elif rel_func == get_label_from_display_name:
             # For a limited set check label is returned as expected.

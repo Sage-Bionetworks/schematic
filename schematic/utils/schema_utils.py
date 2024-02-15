@@ -2,13 +2,18 @@ import inflection
 import json
 import logging
 import networkx as nx
+import re
 import string
-from typing import Dict, List, Literal
+from typing import List, Literal, Dict, Tuple, Union
+
 
 logger = logging.getLogger(__name__)
 
 DisplayLabelType = Literal["class_label", "display_label"]
 BLACKLISTED_CHARS = ["(", ")", ".", " ", "-"]
+COMPONENT_NAME_DELIMITER = "#"
+COMPONENT_RULES_DELIMITER = "^^"
+RULE_DELIMITER = "::"
 
 
 def attr_dict_template(key_name: str) -> Dict[str, dict[str, dict]]:
@@ -143,7 +148,7 @@ def get_schema_label(
     Returns:
         label, str: class label of display name
     Raises:
-        ValueError if entry_type.lower(), is not either 'class' or 'property'
+        Error Logged if entry_type.lower(), is not either 'class' or 'property'
     """
     if entry_type.lower() == "class":
         label = get_class_label_from_display_name(
@@ -155,7 +160,7 @@ def get_schema_label(
             display_name=display_name, strict_camel_case=strict_camel_case
         )
     else:
-        raise ValueError(
+        logger.error(
             f"The entry type submitted: {entry_type}, is not one of the permitted types: 'class' or 'property'"
         )
     return label
@@ -207,15 +212,207 @@ def convert_bool_to_str(provided_bool: bool) -> str:
     return str(provided_bool)
 
 
-def parse_validation_rules(validation_rules: List[str]) -> List[str]:
+def get_individual_rules(
+    rule: str, validation_rules: list[Union[str, None]]
+) -> Union[str, list]:
+    """Extract individual rules from a string and add to a list of rules
+    Args:
+        rule, str: valdation rule that has been parsed from a component rule.
+        validaiton_rules, list: list of rules being collected,
+            if this is the first time the list is being added to, it will be empty
+    Returns:
+        validaiton_rules, list: list of rules being collected.
+    """
+    # Separate multiple rules (defined by addition of the rule delimiter)
+    if RULE_DELIMITER in rule:
+        validation_rules.append(parse_single_set_validation_rules(rule))
+    # Get single rule
+    else:
+        validation_rules.append(rule)
+    return validation_rules
+
+
+def get_component_name_rules(
+    component_names: list[Union[str, None]], component_rule: str
+) -> Tuple[list, str]:
+    """Get component name and rule from an string that was initilly split by the COMPONENT_RULES_DELIMITER
+    Args:
+        component_names, list[Union[str,None]]: list of components, will be empty if being added to for the first time.
+        component_rule, str: component rule string that has only been split by the COMPONENT_RULES_DELIMETER
+    Returns:
+        Tuple[list,str]: list with the a new component name or 'all_other_components' appended,
+            rule with the component name stripped off.
+    Raises:
+        Error Logged if it looks like a component name should have been added to the list, but wass not.
+    """
+    # If a component name is not attached to the rule, have it apply to all other components
+    if COMPONENT_NAME_DELIMITER != component_rule[0]:
+        component_names.append("all_other_components")
+    # Get the component name if available
+    else:
+        component_names.append(
+            component_rule.split(" ")[0].replace(COMPONENT_NAME_DELIMITER, "")
+        )
+        if component_names[-1] == " ":
+            logger.error(
+                f"There was an error capturing at least one of the component names "
+                f"in the following rule: {component_rule}, "
+                f"please ensure there is not extra whitespace or non-allowed characters."
+            )
+
+        component_rule = component_rule.replace(component_rule.split(" ")[0], "")
+        component_rule = component_rule.strip()
+    return component_names, component_rule
+
+
+def check_for_duplicate_components(
+    component_names: list[str], validation_rule_string: str
+) -> None:
+    """Check if component names are repeated in a validation rule
+    Args:
+        component_names, list[str]: list of components identified in the validation rule
+        validation_rule_str, str: validation rule, used if error needs to be raised.
+    Returns:
+        None
+    Raises: Error Logged if a component name is duplicated.
+    """
+    duplicated_entries = [cn for cn in component_names if component_names.count(cn) > 1]
+    if duplicated_entries:
+        logger.error(
+            f"Oops, it looks like the following rule {validation_rule_string}, contains the same component "
+            f"name more than once. An attribute can only have a single rule applied per manifest/component."
+        )
+    return
+
+
+def parse_component_validation_rules(validation_rule_string: str) -> Dict:
+    """If a validation rule is identified to be fomatted as a component validation rule, parse to a dictionary of components:rules
+    Args:
+        validation_rule_string, str: validation rule provided by user.
+    Returns:
+        validation_rules_dict, dict: validation rules parsed to a dictionary where
+            the key is the component name (or 'all_other_components') and the value is the parsed validaiton rule for
+            the given component.
+    """
+    component_names = []
+    validation_rules = []
+
+    component_rules = validation_rule_string.split(COMPONENT_RULES_DELIMITER)
+    # Extract component rules, per component
+    for component_rule in component_rules:
+        component_rule = component_rule.strip()
+        if component_rule:
+            # Get component name attached to rule
+            component_names, component_rule = get_component_name_rules(
+                component_names=component_names, component_rule=component_rule
+            )
+
+            # Get rules
+            validation_rules = get_individual_rules(
+                rule=component_rule, validation_rules=validation_rules
+            )
+
+    # Ensure we collected the component names and validation rules like expected
+    if len(component_names) != len(validation_rules):
+        logger.error(
+            f"The number of components names and validation rules does not match "
+            f"for validation rule: {validation_rule_string}."
+        )
+
+    # If a component name is repeated throw an error.
+    check_for_duplicate_components(component_names, validation_rule_string)
+
+    validation_rules_dict = dict(zip(component_names, validation_rules))
+
+    return validation_rules_dict
+
+
+def parse_single_set_validation_rules(validation_rule_string: str) -> list:
+    """Parse a single set of validation rules.
+    Args:
+        validation_rule_string, str: validation rule provided by user.
+    Returns:
+        list, the valiation rule string split by the rule delimiter
+    Raise:
+        ValueEror if the string contains a component name delimter in the beginning.
+            This would indicate that a user was trying to set component rules, but did so improperly.
+    """
+    # Try to catch an improperly formatted rule
+    if COMPONENT_NAME_DELIMITER == validation_rule_string[0]:
+        logger.error(
+            f"The provided validation rule {validation_rule_string}, looks to be formatted as a component "
+            f"based rule, but is missing the necessary formatting, "
+            f"please refer to the SchemaHub documentation for more details."
+        )
+
+    return validation_rule_string.split(RULE_DELIMITER)
+
+
+def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, dict]:
     """Split multiple validation rules based on :: delimiter
     Args:
-        validation_rules, list: list containing a string validation rule
+        validation_rules, Any[List[str], Dict]: List or Dictionary of validation rules,
+            if list, contains a string validation rule; if dictionary, key is the component the
+            rule (value) is applied to
     Returns:
-        validation_rules, list: if submitted List
+        validation_rules, Union[list,dict]: Parsed validation rules, component rules are output as a dictionary,
+            single sets are a list.
+    Raises:
+        Error Logged if Rule is not formatted properly
     """
-    if validation_rules and "::" in validation_rules[0]:
-        validation_rules = validation_rules[0].split("::")
+
+    if isinstance(validation_rules, dict):
+        # Rules pulled in as a dict can be used directly
+        return validation_rules
+    elif isinstance(validation_rules, list):
+        # If rules are already parsed from the JSONLD
+        if len(validation_rules) > 1 and isinstance(validation_rules[-1], str):
+            return validation_rules
+        # Parse rules set for a subset of components/manifests
+        elif COMPONENT_RULES_DELIMITER in validation_rules[0]:
+            return parse_component_validation_rules(
+                validation_rule_string=validation_rules[0]
+            )
+        # Parse rules that are set across *all* components/manifests
+        else:
+            return parse_single_set_validation_rules(
+                validation_rule_string=validation_rules[0]
+            )
+    return
+
+
+def extract_component_validation_rules(
+    manifest_component: str, validation_rules: dict[str, list]
+) -> list:
+    """Parse a component validation rule dictionary to pull out the rule (if any) for a given manifest
+    Args:
+        manifest_component, str: Component label, pulled from the manifest directly
+        validation_rules, dict[str, list[Union[list,str]]: Validation rules dictionary, where keys are the manifest component label,
+            and the value is a parsed set of validation rules.
+    Returns:
+        validation_rules, list[str]: rule for the provided manifest component if one is available,
+            if a validation rule is not specified for a given component but "all_other_components" is specified (as a key), then pull that one,
+            otherwise return an empty list.
+    """
+    manifest_component_rule = validation_rules.get(manifest_component)
+    all_component_rules = validation_rules.get("all_other_components")
+
+    # Capture situation where manifest_component rule is an empty string
+    if manifest_component_rule is not None:
+        if isinstance(manifest_component_rule, str):
+            if manifest_component_rule == "":
+                validation_rules = []
+            else:
+                validation_rules = [manifest_component_rule]
+        elif isinstance(manifest_component_rule, list):
+            validation_rules = manifest_component_rule
+    elif all_component_rules:
+        if isinstance(all_component_rules, str):
+            validation_rules = [all_component_rules]
+        elif isinstance(all_component_rules, list):
+            validation_rules = all_component_rules
+    else:
+        validation_rules = []
     return validation_rules
 
 

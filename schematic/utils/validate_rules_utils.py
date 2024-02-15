@@ -1,7 +1,7 @@
 """validate rules utils"""
 
-from typing import Union
 import logging
+from typing import Union
 from jsonschema import ValidationError
 
 
