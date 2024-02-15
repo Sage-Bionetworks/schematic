@@ -61,6 +61,7 @@ from schematic.utils.schema_utils import (
     parse_single_set_validation_rules,
     parse_validation_rules,
     extract_component_validation_rules,
+    check_for_duplicate_components,
 )
 
 
@@ -143,6 +144,11 @@ TEST_VALIDATION_RULES = {
         "validation_rules": ["list::regex match \(\d{3}\) \d{3}-\d{4}"],
         "parsed_rules": ["list", "regex match \(\d{3}\) \d{3}-\d{4}"],
     },
+    "duplicated_component": {
+        "validation_rules": ["#Patient unique^^#Patient int"],
+        "parsed_rules": "raises_exception",
+        }
+
 }
 
 TEST_DN_DICT = {
@@ -767,6 +773,24 @@ class TestSchemaUtils:
             assert validation_rule_string == "#Patient int::inRange 100 900"
 
     @pytest.mark.parametrize(
+        "component_names",
+        [
+            ["duplicated_component", ['Patient', 'Biospecimen', 'Patient']],
+            ["individual_component", ['Patient', 'Biospecimen']],
+            ["no_component", []]
+        ],
+        ids=["duplicated_component", "individual_component", "no_component"],
+    )
+    def test_check_for_duplicate_components(self, component_names):
+        """Test that we are properly identifying duplicates in a list.
+            Exception should only be triggered when the duplicate component list is passed.
+        """
+        try:
+            check_for_duplicate_components(component_names=component_names[1], validation_rule_string='dummy_str')
+        except:
+            assert component_names[0] == "duplicated_component"
+
+    @pytest.mark.parametrize(
         "test_rule_name",
         list(TEST_VALIDATION_RULES.keys()),
         ids=list(TEST_VALIDATION_RULES.keys()),
@@ -788,7 +812,7 @@ class TestSchemaUtils:
             )
             assert expected_parsed_rules == parsed_validation_rules
         except:
-            assert test_rule_name == "str_rule"
+            assert test_rule_name in ["str_rule", "duplicated_component"] 
 
     @pytest.mark.parametrize(
         "test_rule_name",

@@ -241,13 +241,25 @@ def get_component_name_rules(
             assert component_names[-1] != " "
         except ValueError:
             print(
-                f"There was an error capturing at least one of the component name "
+                f"There was an error capturing at least one of the component names "
                 f"in the following rule: {component_rule}, "
                 f"please ensure there is not extra whitespace or non-allowed characters."
             )
         component_rule = component_rule.replace(component_rule.split(" ")[0], "")
         component_rule = component_rule.strip()
     return component_names, component_rule
+
+def check_for_duplicate_components(component_names:list[str], validation_rule_string:str)->None:
+    """
+
+    """
+    duplicated_entries = [cn for cn in component_names if component_names.count(cn) > 1]
+    if duplicated_entries:
+        raise ValueError(
+            f"Oops, it looks like the following rule {validation_rule_string}, contains the same component "
+            f"name more than once. An attribute can only have a single rule applied per manifest/component."
+        )
+    return
 
 
 def parse_component_validation_rules(validation_rule_string: str) -> Dict:
@@ -279,6 +291,9 @@ def parse_component_validation_rules(validation_rule_string: str) -> Dict:
             f"The number of components names and validation rules does not match "
             f"for validation rule: {validation_rule_string}."
         )
+
+    # If a component name is repeated throw an error.
+    check_for_duplicate_components(component_names, validation_rule_string)
 
     validation_rules_dict = dict(
         map(lambda i, j: (i, j), component_names, validation_rules)
