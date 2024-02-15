@@ -249,10 +249,11 @@ def get_component_name_rules(
         component_rule = component_rule.strip()
     return component_names, component_rule
 
-def check_for_duplicate_components(component_names:list[str], validation_rule_string:str)->None:
-    """
 
-    """
+def check_for_duplicate_components(
+    component_names: list[str], validation_rule_string: str
+) -> None:
+    """ """
     duplicated_entries = [cn for cn in component_names if component_names.count(cn) > 1]
     if duplicated_entries:
         raise ValueError(
