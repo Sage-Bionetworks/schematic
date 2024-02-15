@@ -148,7 +148,7 @@ def get_schema_label(
     Returns:
         label, str: class label of display name
     Raises:
-        ValueError if entry_type.lower(), is not either 'class' or 'property'
+        Error Logged if entry_type.lower(), is not either 'class' or 'property'
     """
     if entry_type.lower() == "class":
         label = get_class_label_from_display_name(
@@ -160,7 +160,7 @@ def get_schema_label(
             display_name=display_name, strict_camel_case=strict_camel_case
         )
     else:
-        raise ValueError(
+        logger.error(
             f"The entry type submitted: {entry_type}, is not one of the permitted types: 'class' or 'property'"
         )
     return label
@@ -243,7 +243,7 @@ def get_component_name_rules(
         Tuple[list,str]: list with the a new component name or 'all_other_components' appended,
             rule with the component name stripped off.
     Raises:
-        ValueError if it looks like a component name should have been added to the list, but wass not.
+        Error Logged if it looks like a component name should have been added to the list, but wass not.
     """
     # If a component name is not attached to the rule, have it apply to all other components
     if COMPONENT_NAME_DELIMITER != component_rule[0]:
@@ -253,14 +253,13 @@ def get_component_name_rules(
         component_names.append(
             component_rule.split(" ")[0].replace(COMPONENT_NAME_DELIMITER, "")
         )
-        try:
-            assert component_names[-1] != " "
-        except ValueError:
-            print(
+        if component_names[-1] == " ":
+            logger.error(
                 f"There was an error capturing at least one of the component names "
                 f"in the following rule: {component_rule}, "
                 f"please ensure there is not extra whitespace or non-allowed characters."
             )
+
         component_rule = component_rule.replace(component_rule.split(" ")[0], "")
         component_rule = component_rule.strip()
     return component_names, component_rule
@@ -275,11 +274,11 @@ def check_for_duplicate_components(
         validation_rule_str, str: validation rule, used if error needs to be raised.
     Returns:
         None
-    Raises: ValueError if a component name is duplicated.
+    Raises: Error Logged if a component name is duplicated.
     """
     duplicated_entries = [cn for cn in component_names if component_names.count(cn) > 1]
     if duplicated_entries:
-        raise ValueError(
+        logger.error(
             f"Oops, it looks like the following rule {validation_rule_string}, contains the same component "
             f"name more than once. An attribute can only have a single rule applied per manifest/component."
         )
@@ -314,10 +313,8 @@ def parse_component_validation_rules(validation_rule_string: str) -> Dict:
             )
 
     # Ensure we collected the component names and validation rules like expected
-    try:
-        assert len(component_names) == len(validation_rules)
-    except ValueError:
-        print(
+    if len(component_names) != len(validation_rules):
+        logger.error(
             f"The number of components names and validation rules does not match "
             f"for validation rule: {validation_rule_string}."
         )
@@ -342,7 +339,7 @@ def parse_single_set_validation_rules(validation_rule_string: str) -> list:
     """
     # Try to catch an improperly formatted rule
     if COMPONENT_NAME_DELIMITER == validation_rule_string[0]:
-        raise ValueError(
+        logger.error(
             f"The provided validation rule {validation_rule_string}, looks to be formatted as a component "
             f"based rule, but is missing the necessary formatting, "
             f"please refer to the SchemaHub documentation for more details."
@@ -361,7 +358,7 @@ def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, d
         validation_rules, Union[list,dict]: Parsed validation rules, component rules are output as a dictionary,
             single sets are a list.
     Raises:
-        ValueError if Rule is not formatted properly
+        Error Logged if Rule is not formatted properly
     """
 
     if isinstance(validation_rules, dict):
