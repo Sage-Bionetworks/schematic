@@ -488,22 +488,23 @@ class GreatExpectationsHelpers(object):
                 elif (
                     validation_types[rule.split(" ")[0]]["type"] == "content_validation"
                 ):
-                    vr_errors, vr_warnings = GenerateError.generate_content_error(
-                        val_rule=rule,
-                        attribute_name=errColumn,
-                        row_num=np_array_to_str_list(np.array(indices) + 2),
-                        invalid_entry=iterable_to_str_list(values),
-                        dmge=self.dmge,
-                    )
-                    if vr_errors:
-                        errors.append(vr_errors)
-                        if rule.startswith("protectAges"):
-                            self.censor_ages(vr_errors, errColumn)
+                    for row, value in zip(indices, values):
+                        vr_errors, vr_warnings = GenerateError.generate_content_error(
+                            val_rule=rule,
+                            attribute_name=errColumn,
+                            row_num=str(row + 2),
+                            invalid_entry=value,
+                            dmge=self.dmge,
+                        )
+                        if vr_errors:
+                            errors.append(vr_errors)
+                            if rule.startswith("protectAges"):
+                                self.censor_ages(vr_errors, errColumn)
 
-                    if vr_warnings:
-                        warnings.append(vr_warnings)
-                        if rule.startswith("protectAges"):
-                            self.censor_ages(vr_warnings, errColumn)
+                        if vr_warnings:
+                            warnings.append(vr_warnings)
+                            if rule.startswith("protectAges"):
+                                self.censor_ages(vr_warnings, errColumn)
 
         return errors, warnings
 

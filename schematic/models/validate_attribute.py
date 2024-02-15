@@ -340,16 +340,16 @@ class GenerateError:
         """
 
         error_row = row_num
-        error_val = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
+        #error_val = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
 
         # log warning or error message
         if val_rule.startswith("recommended"):
             error_message = f"Column {attribute_name} is recommended but empty."
             error_row = None
-            error_val = None
+            #error_val = None
 
         elif val_rule.startswith("unique"):
-            error_message = f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
+            error_message = f"Column {attribute_name} has the duplicate value(s) {invalid_entry} in rows: {row_num}."
 
         elif val_rule.startswith("protectAges"):
             error_message = f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
@@ -371,7 +371,7 @@ class GenerateError:
             error_row=error_row,
             error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
