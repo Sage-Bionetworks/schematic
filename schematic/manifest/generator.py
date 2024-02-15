@@ -752,7 +752,7 @@ class ManifestGenerator(object):
                 - Upon correct format entry, text will turn black.
                 - If incorrect format is entered a validation error will pop up.
         Input:
-            validation_rules: Any(List[str], Dict), defines the validation rules
+            validation_rules: List[str], defines the validation rules
                 applied to a particular column.
             i: int, defines current column.
             requests_body: dict, containing all the update requests to add to the gs
