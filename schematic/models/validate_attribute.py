@@ -340,13 +340,13 @@ class GenerateError:
         """
 
         error_row = row_num
-        #error_val = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
+        # error_val = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
 
         # log warning or error message
         if val_rule.startswith("recommended"):
             error_message = f"Column {attribute_name} is recommended but empty."
             error_row = None
-            #error_val = None
+            # error_val = None
 
         elif val_rule.startswith("unique"):
             error_message = f"Column {attribute_name} has the duplicate value(s) {invalid_entry} in rows: {row_num}."
@@ -912,8 +912,10 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
         missing_values = {}
-        #missing_manifest_log = {}
-        missing_manifest_log = pd.DataFrame(columns=["missing_rows", "missing_values", "missing_manifest_IDs"])
+        # missing_manifest_log = {}
+        missing_manifest_log = pd.DataFrame(
+            columns=["missing_rows", "missing_values", "missing_manifest_IDs"]
+        )
         present_manifest_log = []
         target_column = pd.Series(dtype=object)
         # parse sources and targets
@@ -955,18 +957,24 @@ class ValidateAttribute(object):
                     missing_values = manifest_col[~manifest_col.isin(target_column)]
                     missing_values.dropna(inplace=True)
 
-
                     if missing_values.empty:
                         present_manifest_log.append(target_manifest_ID)
                     else:
                         missing_rows = missing_values.index.to_numpy() + 2
                         missing_values = np.array(missing_values.values)
-                        missing_manifest_IDs = np.array([target_manifest_ID] * len(missing_values))
-                        data = {"missing_rows": missing_rows, "missing_values": missing_values, "missing_manifest_IDs": missing_manifest_IDs}
+                        missing_manifest_IDs = np.array(
+                            [target_manifest_ID] * len(missing_values)
+                        )
+                        data = {
+                            "missing_rows": missing_rows,
+                            "missing_values": missing_values,
+                            "missing_manifest_IDs": missing_manifest_IDs,
+                        }
 
                         missing_values_df = pd.DataFrame(data=data)
-                        missing_manifest_log = pd.concat([missing_manifest_log, missing_values_df], ignore_index=True)
-                        
+                        missing_manifest_log = pd.concat(
+                            [missing_manifest_log, missing_values_df], ignore_index=True
+                        )
 
             elif scope.__contains__("value"):
                 if target_attribute in column_names:
@@ -988,7 +996,6 @@ class ValidateAttribute(object):
         if scope.__contains__("value"):
             missing_values = manifest_col[~manifest_col.isin(target_column)]
             missing_values.dropna(inplace=True)
-
 
             duplicated_values = manifest_col[
                 manifest_col.isin(target_column[target_column.duplicated()])
@@ -1046,17 +1053,24 @@ class ValidateAttribute(object):
                 val_rule.__contains__("matchAtLeastOne")
                 and len(present_manifest_log) < 1
             ):
-                
-                aggregation_functions = {"missing_values": "first", "missing_manifest_IDs": ", ".join}
-                missing_manifest_log = missing_manifest_log.groupby('missing_rows').aggregate(aggregation_functions)
+                aggregation_functions = {
+                    "missing_values": "first",
+                    "missing_manifest_IDs": ", ".join,
+                }
+                missing_manifest_log = missing_manifest_log.groupby(
+                    "missing_rows"
+                ).aggregate(aggregation_functions)
                 missing_manifest_log.dropna(inplace=True)
-
 
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                     val_rule=val_rule,
-                    row_num=np_array_to_str_list(np.array(missing_manifest_log.index)+2),
+                    row_num=np_array_to_str_list(
+                        np.array(missing_manifest_log.index) + 2
+                    ),
                     attribute_name=source_attribute,
-                    invalid_entry=iterable_to_str_list(missing_manifest_log["missing_values"]),
+                    invalid_entry=iterable_to_str_list(
+                        missing_manifest_log["missing_values"]
+                    ),
                     missing_manifest_ID=missing_manifest_IDs,
                     dmge=dmge,
                 )
