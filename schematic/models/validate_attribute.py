@@ -432,6 +432,8 @@ class GenerateError:
 
         if isinstance(error_val, str):
             error_val_is_na = error_val.lower() in not_applicable_strings
+        elif isinstance(error_val, list):
+            error_val_is_na = False
         elif (error_val is None) or pd.isnull(error_val):
             error_val_is_na = True
         else:
@@ -910,7 +912,8 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
         missing_values = {}
-        missing_manifest_log = {}
+        #missing_manifest_log = {}
+        missing_manifest_log = pd.DataFrame(columns=["missing_rows", "missing_values", "missing_manifest_IDs"])
         present_manifest_log = []
         target_column = pd.Series(dtype=object)
         # parse sources and targets
@@ -950,11 +953,20 @@ class ValidateAttribute(object):
 
                     # Do the validation on both columns
                     missing_values = manifest_col[~manifest_col.isin(target_column)]
+                    missing_values.dropna(inplace=True)
+
 
                     if missing_values.empty:
                         present_manifest_log.append(target_manifest_ID)
                     else:
-                        missing_manifest_log[target_manifest_ID] = missing_values
+                        missing_rows = missing_values.index.to_numpy() + 2
+                        missing_values = np.array(missing_values.values)
+                        missing_manifest_IDs = np.array([target_manifest_ID] * len(missing_values))
+                        data = {"missing_rows": missing_rows, "missing_values": missing_values, "missing_manifest_IDs": missing_manifest_IDs}
+
+                        missing_values_df = pd.DataFrame(data=data)
+                        missing_manifest_log = pd.concat([missing_manifest_log, missing_values_df], ignore_index=True)
+                        
 
             elif scope.__contains__("value"):
                 if target_attribute in column_names:
@@ -969,13 +981,15 @@ class ValidateAttribute(object):
                         ignore_index=True,
                     )
                     target_column = target_column.astype("object")
-                    # print(target_column)
 
         missing_rows = []
         missing_values = []
 
         if scope.__contains__("value"):
             missing_values = manifest_col[~manifest_col.isin(target_column)]
+            missing_values.dropna(inplace=True)
+
+
             duplicated_values = manifest_col[
                 manifest_col.isin(target_column[target_column.duplicated()])
             ]
@@ -983,11 +997,13 @@ class ValidateAttribute(object):
             if val_rule.__contains__("matchAtLeastOne") and not missing_values.empty:
                 missing_rows = missing_values.index.to_numpy() + 2
                 missing_rows = np_array_to_str_list(missing_rows)
+                missing_values = iterable_to_str_list(missing_values)
+
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                     val_rule=val_rule,
                     row_num=missing_rows,
                     attribute_name=source_attribute,
-                    invalid_entry=iterable_to_str_list(missing_values),
+                    invalid_entry=missing_values,
                     dmge=dmge,
                 )
                 if vr_errors:
@@ -999,7 +1015,7 @@ class ValidateAttribute(object):
             ):
                 invalid_values = pd.merge(
                     duplicated_values, missing_values, how="outer"
-                )
+                ).squeeze()
                 invalid_rows = (
                     pd.merge(
                         duplicated_values,
@@ -1011,11 +1027,12 @@ class ValidateAttribute(object):
                     + 2
                 )
                 invalid_rows = np_array_to_str_list(invalid_rows)
+                invalid_values = iterable_to_str_list(invalid_values)
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                     val_rule=val_rule,
                     row_num=invalid_rows,
                     attribute_name=source_attribute,
-                    invalid_entry=iterable_to_str_list(invalid_values.squeeze()),
+                    invalid_entry=invalid_values,
                     dmge=dmge,
                 )
                 if vr_errors:
@@ -1029,20 +1046,17 @@ class ValidateAttribute(object):
                 val_rule.__contains__("matchAtLeastOne")
                 and len(present_manifest_log) < 1
             ):
-                missing_entries = list(missing_manifest_log.values())
-                missing_manifest_IDs = list(missing_manifest_log.keys())
-                for missing_entry in missing_entries:
-                    missing_rows.append(missing_entry.index[0] + 2)
-                    missing_values.append(missing_entry.values[0])
+                
+                aggregation_functions = {"missing_values": "first", "missing_manifest_IDs": ", ".join}
+                missing_manifest_log = missing_manifest_log.groupby('missing_rows').aggregate(aggregation_functions)
+                missing_manifest_log.dropna(inplace=True)
 
-                missing_rows = iterable_to_str_list(set(missing_rows))
-                missing_values = iterable_to_str_list(set(missing_values))
 
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                     val_rule=val_rule,
-                    row_num=missing_rows,
+                    row_num=np_array_to_str_list(np.array(missing_manifest_log.index)+2),
                     attribute_name=source_attribute,
-                    invalid_entry=missing_values,
+                    invalid_entry=iterable_to_str_list(missing_manifest_log["missing_values"]),
                     missing_manifest_ID=missing_manifest_IDs,
                     dmge=dmge,
                 )
