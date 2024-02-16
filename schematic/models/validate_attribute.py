@@ -1063,7 +1063,7 @@ class ValidateAttribute(object):
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                     val_rule=val_rule,
                     row_num=np_array_to_str_list(
-                        np.array(missing_manifest_log.index) + 2
+                        np.array(missing_manifest_log.index)
                     ),
                     attribute_name=source_attribute,
                     invalid_entry=iterable_to_str_list(
