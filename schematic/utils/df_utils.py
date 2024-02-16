@@ -98,7 +98,7 @@ def find_and_convert_ints(dataframe: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
 
     else:  # parallelize iterations for large manifests
         pandarallel.initialize(verbose=1)
-        ints = dataframe.parallel_map(
+        ints = dataframe.parallel_applymap(
             lambda cell: convert_ints(cell), na_action="ignore"
         ).fillna(False)
 
