@@ -5,13 +5,12 @@
 import logging
 from copy import deepcopy
 from time import perf_counter
-from typing import Union
 from datetime import datetime
+from typing import Union, Optional
 import dateparser as dp
 import pandas as pd
 import numpy as np
 from pandarallel import pandarallel
-from typing import Union, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +31,7 @@ def load_df(
         file_path (str): path of csv to open
         preserve_raw_input (bool, optional): If false, convert cell datatypes to an inferred type
         data_model (bool, optional): bool, indicates if importing a data model
+        allow_na_values (bool, optional): If true, allow pd.NA values in the dataframe
         **load_args(dict): dict of key value pairs to be passed to the pd.read_csv function
 
     Raises:
@@ -247,6 +247,7 @@ def trim_commas_df(
 
     Args:
         dataframe: pandas dataframe with data from manifest file.
+        allow_na_values (bool, optional): If true, allow pd.NA values in the dataframe
 
     Returns:
         dataframe: cleaned-up pandas dataframe.
