@@ -712,7 +712,7 @@ class ValidateAttribute(object):
                             row_num=str(i + 2),
                             module_to_call=reg_exp_rules[1],
                             attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i],
+                            invalid_entry=str(manifest_col[i]),
                             dmge=dmge,
                         )
                         if vr_errors:
