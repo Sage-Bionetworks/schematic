@@ -79,41 +79,31 @@ class TestManifestValidation:
         )
 
         # Check errors
-        assert (
-            GenerateError.generate_type_error(
+        assert GenerateError.generate_type_error(
                 val_rule="num",
                 row_num="3",
                 attribute_name="Check Num",
                 invalid_entry="c",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_type_error(
+        assert GenerateError.generate_type_error(
                 val_rule="int",
                 row_num="3",
                 attribute_name="Check Int",
                 invalid_entry="5.63",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_type_error(
+        assert GenerateError.generate_type_error(
                 val_rule="str",
                 row_num="3",
                 attribute_name="Check String",
                 invalid_entry="94",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_list_error(
+        assert GenerateError.generate_list_error(
                 val_rule="list strict",
                 list_string="invalid list values",
                 row_num="3",
@@ -121,12 +111,9 @@ class TestManifestValidation:
                 list_error="not_comma_delimited",
                 invalid_entry="invalid list values",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_list_error(
+        assert GenerateError.generate_list_error(
                 val_rule="list strict",
                 list_string="ab cd ef",
                 row_num="3",
@@ -134,12 +121,9 @@ class TestManifestValidation:
                 list_error="not_comma_delimited",
                 invalid_entry="ab cd ef",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_regex_error(
+        assert GenerateError.generate_regex_error(
                 val_rule="regex",
                 reg_expression="[a-f]",
                 row_num="3",
@@ -147,12 +131,9 @@ class TestManifestValidation:
                 module_to_call="match",
                 invalid_entry="m",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_regex_error(
+        assert GenerateError.generate_regex_error(
                 val_rule="regex",
                 reg_expression="[a-f]",
                 row_num="3",
@@ -160,12 +141,9 @@ class TestManifestValidation:
                 module_to_call="search",
                 invalid_entry="q",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_regex_error(
+        assert GenerateError.generate_regex_error(
                 val_rule="regex",
                 reg_expression="^\d+$",
                 row_num="2",
@@ -173,12 +151,9 @@ class TestManifestValidation:
                 module_to_call="search",
                 invalid_entry="5.4",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_url_error(
+        assert GenerateError.generate_url_error(
                 val_rule="url",
                 url="http://googlef.com/",
                 url_error="invalid_url",
@@ -187,9 +162,7 @@ class TestManifestValidation:
                 argument=None,
                 invalid_entry="http://googlef.com/",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
         date_err = GenerateError.generate_content_error(
             val_rule="date",
@@ -201,88 +174,67 @@ class TestManifestValidation:
         error_in_list = [date_err[2] in error for error in errors]
         assert any(error_in_list)
 
-        assert (
-            GenerateError.generate_content_error(
+        assert GenerateError.generate_content_error(
                 val_rule="unique error",
                 attribute_name="Check Unique",
                 dmge=dmge,
                 row_num=["2", "3", "4"],
                 invalid_entry=["str1"],
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_content_error(
+        assert GenerateError.generate_content_error(
                 val_rule="inRange 50 100 error",
                 attribute_name="Check Range",
                 dmge=dmge,
                 row_num=["3"],
                 invalid_entry=["30"],
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
         # check warnings
-        assert (
-            GenerateError.generate_content_error(
+        assert GenerateError.generate_content_error(
                 val_rule="recommended",
                 attribute_name="Check Recommended",
                 dmge=dmge,
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
-        assert (
-            GenerateError.generate_content_error(
+        assert GenerateError.generate_content_error(
                 val_rule="protectAges",
                 attribute_name="Check Ages",
                 dmge=dmge,
                 row_num=["2", "3"],
                 invalid_entry=["6549", "32851"],
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
-        assert (
-            GenerateError.generate_cross_warning(
+        assert GenerateError.generate_cross_warning(
                 val_rule="matchAtLeastOne",
                 row_num=["3"],
                 attribute_name="Check Match at Least",
                 invalid_entry=["7163"],
                 missing_manifest_ID=["syn27600110", "syn29381803"],
                 dmge=dmge,
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
-        assert (
-            GenerateError.generate_cross_warning(
+        assert GenerateError.generate_cross_warning(
                 val_rule="matchAtLeastOne MockComponent.checkMatchatLeastvalues value",
                 row_num=["3"],
                 attribute_name="Check Match at Least values",
                 invalid_entry=["51100"],
                 dmge=dmge,
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
-        assert (
+        assert \
             GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
                 matching_manifests=["syn29862078", "syn27648165"],
                 dmge=dmge,
-            )[1]
-            in warnings
+            )[1] in warnings \
             or GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
                 matching_manifests=["syn29862066", "syn27648165"],
                 dmge=dmge,
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
         cross_warning = GenerateError.generate_cross_warning(
             val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
@@ -306,52 +258,39 @@ class TestManifestValidation:
         )
 
         # Check errors
-        assert (
-            GenerateError.generate_type_error(
+        assert GenerateError.generate_type_error(
                 val_rule="num",
                 row_num="3",
                 attribute_name="Check Num",
                 invalid_entry="c",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_type_error(
+        assert GenerateError.generate_type_error(
                 val_rule="int",
                 row_num="3",
                 attribute_name="Check Int",
                 invalid_entry="5.63",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_type_error(
+        assert GenerateError.generate_type_error(
                 val_rule="str",
                 row_num="3",
                 attribute_name="Check String",
                 invalid_entry="94",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_type_error(
+        assert GenerateError.generate_type_error(
                 val_rule="int",
                 row_num="3",
                 attribute_name="Check NA",
                 invalid_entry="9.5",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_list_error(
+        assert GenerateError.generate_list_error(
                 val_rule="list strict",
                 list_string="invalid list values",
                 row_num="3",
@@ -359,12 +298,9 @@ class TestManifestValidation:
                 list_error="not_comma_delimited",
                 invalid_entry="invalid list values",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_list_error(
+        assert GenerateError.generate_list_error(
                 val_rule="list strict",
                 list_string="ab cd ef",
                 row_num="3",
@@ -372,12 +308,9 @@ class TestManifestValidation:
                 list_error="not_comma_delimited",
                 invalid_entry="ab cd ef",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_regex_error(
+        assert GenerateError.generate_regex_error(
                 val_rule="regex",
                 reg_expression="[a-f]",
                 row_num="3",
@@ -385,12 +318,9 @@ class TestManifestValidation:
                 module_to_call="search",
                 invalid_entry="q",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_regex_error(
+        assert GenerateError.generate_regex_error(
                 val_rule="regex",
                 reg_expression="[a-f]",
                 row_num="3",
@@ -398,12 +328,9 @@ class TestManifestValidation:
                 module_to_call="match",
                 invalid_entry="m",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
-        assert (
-            GenerateError.generate_url_error(
+        assert GenerateError.generate_url_error(
                 val_rule="url",
                 url="http://googlef.com/",
                 url_error="invalid_url",
@@ -412,61 +339,47 @@ class TestManifestValidation:
                 argument=None,
                 invalid_entry="http://googlef.com/",
                 dmge=dmge,
-            )[0]
-            in errors
-        )
+            )[0] in errors
 
         # Check Warnings
-        assert (
-            GenerateError.generate_cross_warning(
+        assert GenerateError.generate_cross_warning(
                 val_rule="matchAtLeastOne",
                 row_num=["3"],
                 attribute_name="Check Match at Least",
                 invalid_entry=["7163"],
                 missing_manifest_ID=["syn27600110", "syn29381803"],
                 dmge=dmge,
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
-        assert (
-            GenerateError.generate_cross_warning(
+        assert GenerateError.generate_cross_warning(
                 val_rule="matchAtLeastOne MockComponent.checkMatchatLeastvalues value",
                 row_num=["3"],
                 attribute_name="Check Match at Least values",
                 invalid_entry=["51100"],
                 dmge=dmge,
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
-        assert (
+        assert \
             GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
                 matching_manifests=["syn29862078", "syn27648165"],
                 dmge=dmge,
-            )[1]
-            in warnings
+            )[1] in warnings \
             or GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
                 matching_manifests=["syn29862066", "syn27648165"],
                 dmge=dmge,
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
-        assert (
-            GenerateError.generate_cross_warning(
+        assert GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
                 row_num=["2", "3", "4"],
                 attribute_name="Check Match Exactly values",
                 invalid_entry=["71738", "98085", "210065"],
                 dmge=dmge,
-            )[1]
-            in warnings
-        )
+            )[1] in warnings
 
     @pytest.mark.rule_combos(
         reason="This introduces a great number of tests covering every possible rule combination that are only necessary on occasion."
