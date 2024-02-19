@@ -117,11 +117,11 @@ def convert_ints(string: str) -> Union[np.int64, bool]:
     """
     str_is_digit = False
 
-    cell_is_str = isinstance(x, str)
+    cell_is_str = isinstance(string, str)
     if cell_is_str:
-        str_is_digit = str.isdigit(x)
+        str_is_digit = str.isdigit(string)
 
-    return np.int64(x) if (cell_is_str and str_is_digit) else False
+    return np.int64(string) if (cell_is_str and str_is_digit) else False
 
 
 def convert_floats(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -240,7 +240,7 @@ def update_df(
 
 
 def trim_commas_df(
-    df: pd.DataFrame,
+    dataframe: pd.DataFrame,
     allow_na_values: Optional[bool] = False,
 ):
     """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
@@ -249,7 +249,7 @@ def trim_commas_df(
         dataframe: pandas dataframe with data from manifest file.
 
     Returns:
-        df: cleaned-up pandas dataframe.
+        dataframe: cleaned-up pandas dataframe.
     """
     # remove all columns which have substring "Unnamed" in them
     dataframe = dataframe.loc[:, ~dataframe.columns.str.contains("^Unnamed")]
@@ -259,9 +259,9 @@ def trim_commas_df(
 
     if allow_na_values is False:
         # Fill in nan cells with empty strings
-        df.fillna("", inplace=True)
+        dataframe.fillna("", inplace=True)
 
-    return df
+    return dataframe
 
 
 def col_in_dataframe(col: str, dataframe: pd.DataFrame) -> bool:
