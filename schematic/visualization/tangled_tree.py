@@ -1,17 +1,18 @@
 """Tangled tree class"""
 
 # pylint: disable=logging-fstring-interpolation
+# pylint: disable=too-many-lines
 
 from io import StringIO
 import json
 import logging
 import os
 from os import path
-from typing import Optional, Any, Literal
+from typing import Optional, Literal, TypedDict
+from typing_extensions import assert_never
 
 import networkx as nx  # type: ignore
 from networkx.classes.reportviews import NodeView, EdgeDataView  # type: ignore
-import numpy as np
 import pandas as pd
 
 from schematic.visualization.attributes_explorer import AttributesExplorer
@@ -23,6 +24,24 @@ from schematic.utils.schema_utils import DisplayLabelType
 
 logger = logging.getLogger(__name__)
 
+FigureType = Literal["component", "dependency"]
+TextType = Literal["highlighted", "plain"]
+# A list of lists, nodes in layers
+NodeLayers = list[list[str]]
+# A dict where the keys are node names and the values are lists of node names
+NodeDict = dict[str, list[str]]
+# A dict where the keys are node names and the values are the number of a level
+NodeLevelDict = dict[str, int]
+
+
+class Node(TypedDict):
+    """Represents a node and its relationships as a dict"""
+
+    id: str
+    parents: list[str]
+    direct_children: list[str]
+    children: list[str]
+
 
 class TangledTree:  # pylint: disable=too-many-instance-attributes
     """Tangled tree class"""
@@ -30,7 +49,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
     def __init__(
         self,
         path_to_json_ld: str,
-        figure_type: str,
+        figure_type: FigureType,
         data_model_labels: DisplayLabelType,
     ) -> None:
         # Load jsonld
@@ -58,7 +77,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         self.dmge = DataModelGraphExplorer(self.graph_data_model)
 
         # Set Parameters
-        self.figure_type = figure_type.lower()
+        self.figure_type: FigureType = figure_type
         self.dependency_type = "".join(("requires", self.figure_type.capitalize()))
 
         # Get names
@@ -78,7 +97,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             "tangled_tree_json"
         )
 
-    def strip_double_quotes(self, string: str) -> str:
+    def _strip_double_quotes(self, string: str) -> str:
         """Removes double quotes from string
 
         Args:
@@ -95,7 +114,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         return string
 
     def get_text_for_tangled_tree(
-        self, text_type: Literal["highlighted", "plain"], save_file: bool = False
+        self, text_type: TextType, save_file: bool = False
     ) -> Optional[str]:
         """
         Gather the text that needs to be either highlighted or plain for the
@@ -113,12 +132,14 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         cdg = self.dmge.get_digraph_by_edge_type(self.dependency_type)
         nodes = cdg.nodes()
 
-        if self.dependency_type == "requiresComponent":
+        if self.figure_type == "component":
             component_nodes = nodes
-        else:
+        elif self.figure_type == "dependency":
             # get component nodes if making dependency figure
             component_dg = self.dmge.get_digraph_by_edge_type("requiresComponent")
             component_nodes = component_dg.nodes()
+        else:
+            assert_never(self.figure_type)
 
         # Initialize lists
         highlighted = []
@@ -133,6 +154,8 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 )
             elif self.figure_type == "dependency":
                 highlight_descendants = [node]
+            else:
+                assert_never(self.figure_type)
 
             # Format text to be highlighted and gather text to be formatted plain.
             if not highlight_descendants:
@@ -156,7 +179,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         # Prepare df depending on what type of text we need.
         dataframe = pd.DataFrame(
-            locals()[text_type.lower()], columns=["Component", "type", "name"]
+            locals()[text_type], columns=["Component", "type", "name"]
         )
 
         # Depending on input either export csv locally to disk or as a string.
@@ -167,12 +190,12 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         return dataframe.to_csv()
 
-    def get_topological_generations(
+    def _get_topological_generations(
         self,
-    ) -> tuple[list[list], NodeView, EdgeDataView, nx.DiGraph]:
+    ) -> tuple[NodeLayers, NodeView, EdgeDataView, nx.DiGraph]:
         """Gather topological_gen, nodes and edges based on figure type.
         Outputs:
-            topological_gen (List(list)):list of lists. Indicates layers of nodes.
+            topological_gen (NodeLayers):list of lists. Indicates layers of nodes.
             nodes: (Networkx NodeView) Nodes of the component or dependency graph.
               When iterated over it functions like a list.
             edges: (Networkx EdgeDataView) Edges of component or dependency graph.
@@ -195,9 +218,12 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             edges = rev_digraph.edges()
             topological_gen = list(nx.topological_generations(subgraph))
 
+        else:
+            assert_never(self.figure_type)
+
         return topological_gen, nodes, edges, subgraph
 
-    def remove_unwanted_characters_from_conditional_statement(
+    def _remove_unwanted_characters_from_conditional_statement(
         self, cond_req: str
     ) -> str:
         """Remove unwanted characters from conditional statement
@@ -213,7 +239,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             cond_req = cond_req_new.replace("If", "").lstrip().rstrip()
         return cond_req
 
-    def get_ca_alias(self, conditional_requirements: list) -> dict[str, str]:
+    def _get_ca_alias(self, conditional_requirements: list[str]) -> dict[str, str]:
         """Get the alias for each conditional attribute.
 
         NOTE: Obtaining attributes(attr) and aliases(ali) in this function is specific
@@ -227,11 +253,11 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 key: alias (attribute response)
                 value: attribute
         """
-        ca_alias = {}
+        ca_alias: dict[str, str] = {}
 
         # clean up conditional requirements
         conditional_requirements = [
-            self.remove_unwanted_characters_from_conditional_statement(req)
+            self._remove_unwanted_characters_from_conditional_statement(req)
             for req in conditional_requirements
         ]
 
@@ -239,17 +265,17 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             if "OR" not in req:
                 attr, ali = req.split(" is ")
                 attr = "".join(attr.split())
-                ali = self.strip_double_quotes(ali)
+                ali = self._strip_double_quotes(ali)
                 ca_alias[ali] = attr
             else:
                 attr, alias_str = req.split(" is ")
                 alias_lst = alias_str.split(" OR ")
                 for elem in alias_lst:
-                    elem = self.strip_double_quotes(elem)
+                    elem = self._strip_double_quotes(elem)
                     ca_alias[elem] = attr
         return ca_alias
 
-    def gather_component_dependency_info(
+    def _gather_component_dependency_info(
         self, component_name: str, attributes_df: pd.DataFrame
     ) -> tuple[list[str], dict[str, str], list[str]]:
         """Gather all component dependency information.
@@ -276,7 +302,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         # Gather conditional attributes so they can be added to the figure.
         if "Cond_Req" in attributes_df.columns:
-            conditional_attributes = list(
+            conditional_attributes: list[str] = list(
                 attributes_df[
                     (attributes_df["Cond_Req"])
                     & (attributes_df["Component"] == component_name)
@@ -288,18 +314,18 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                     & (attributes_df["Component"] == component_name)
                 ]["Conditional Requirements"]
             )
-            ca_alias = self.get_ca_alias(conditional_requirements)
+            ca_alias = self._get_ca_alias(conditional_requirements)
         else:
             # If there are no conditional attributes/requirements, initialize blank lists.
             conditional_attributes = []
             ca_alias = {}
 
         # Gather a list of all attributes for the current component.
-        all_attributes = list(np.append(component_attributes, conditional_attributes))
+        all_attributes = component_attributes + conditional_attributes
 
         return conditional_attributes, ca_alias, all_attributes
 
-    def find_source_nodes(
+    def _find_source_nodes(
         self,
         nodes: NodeView,
         edges: EdgeDataView,
@@ -337,7 +363,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                     source_nodes.append(node)
         return source_nodes
 
-    def get_parent_child_dictionary(
+    def _get_parent_child_dictionary(
         self, edges: EdgeDataView, all_attributes: Optional[list[str]] = None
     ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
         """
@@ -360,7 +386,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         child_parents: dict[str, list[str]] = {}
         parent_children: dict[str, list[str]] = {}
 
-        if self.dependency_type == "requiresComponent":
+        if self.figure_type == "component":
             # Construct child_parents dictionary
             for edge in edges:
                 # Add child as a key
@@ -379,7 +405,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 # Add children to list
                 parent_children[edge[1]].append(edge[0])
 
-        elif self.dependency_type == "requiresDependency":
+        elif self.figure_type == "dependency":
             # Construct child_parents dictionary
             for edge in edges:
                 # Check if child is an attribute for the current component
@@ -404,9 +430,12 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                     if edge[0] in all_attributes_list:
                         parent_children[edge[1]].append(edge[0])
 
+        else:
+            assert_never(self.dependency_type)
+
         return child_parents, parent_children
 
-    def alias_edges(self, ca_alias: dict[str, str], edges: EdgeDataView) -> list[list]:
+    def _alias_edges(self, ca_alias: dict[str, str], edges: EdgeDataView) -> NodeLayers:
         """Create new edges based on aliasing between an attribute and its response.
         Purpose:
             Create aliased edges.
@@ -427,42 +456,47 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             edges (Networkx EdgeDataView): Edges of component or dependency graph.
               When iterated over it works like a list of tuples.
         Output:
-            aliased_edges (list[list]) of aliased edges.
+            aliased_edges (NodeLayers) of aliased edges.
         """
-        aliased_edges = []
+        aliased_edges: NodeLayers = []
         for edge in edges:
             # construct one set of edges at a time
-            edge_set = []
+            edge_set: list[str] = []
+
+            first_edge = edge[0]
+            second_edge = edge[1]
+            assert isinstance(first_edge, str)
+            assert isinstance(second_edge, str)
 
             # If the first edge has an alias add alias to the first
             # position in the current edge set
-            if edge[0] in ca_alias.keys():
-                edge_set.append(ca_alias[edge[0]])
+            if first_edge in ca_alias.keys():
+                edge_set.append(ca_alias[first_edge])
 
             # Else add the non-aliased edge
             else:
-                edge_set.append(edge[0])
+                edge_set.append(first_edge)
 
             # If the second edge has an alias add alias to the first
             # position in the current edge set
-            if edge[1] in ca_alias.keys():
-                edge_set.append(ca_alias[edge[1]])
+            if second_edge in ca_alias.keys():
+                edge_set.append(ca_alias[second_edge])
 
             # Else add the non-aliased edge
             else:
-                edge_set.append(edge[1])
+                edge_set.append(second_edge)
 
             # Add new edge set to a the list of aliased edges.
             aliased_edges.append(edge_set)
 
         return aliased_edges
 
-    def prune_expand_topological_gen(
+    def _prune_expand_topological_gen(
         self,
-        topological_gen: list[list[str]],
+        topological_gen: NodeLayers,
         all_attributes: list[str],
         conditional_attributes: list[str],
-    ) -> list[list[str]]:
+    ) -> NodeLayers:
         """
         Purpose:
             Remake topological_gen with only relevant nodes.
@@ -472,11 +506,11 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 attributes to topological_gen so we can visualize them in the tangled tree
                 as well.
         Input:
-            topological_gen (List[list]): Indicates layers of nodes.
-            all_attributes (list): all attributes associated with a particular component.
+            topological_gen (NodeLayers): Indicates layers of nodes.
+            all_attributes (list(str)): all attributes associated with a particular component.
             conditional_attributes (list): List of conditional attributes for a particular component
         Output:
-            new_top_gen (List[list]): mimics structure of topological_gen but only
+            new_top_gen (NodeLayers): mimics structure of topological_gen but only
                 includes the nodes we want
         """
 
@@ -506,44 +540,40 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         return pruned_topological_gen
 
-    def get_base_layers(
+    def _get_base_layers(
         self,
-        topological_gen: list[list],
-        child_parents: dict,
-        source_nodes: list,
+        topological_gen: NodeLayers,
+        child_parents: NodeDict,
+        source_nodes: list[str],
         component_name: str,
-    ) -> tuple[dict[str, Any], dict[str, Any]]:
+    ) -> tuple[NodeLevelDict, NodeLevelDict]:
         """
-        Purpose:
-            Reconfigure topological gen to move things back appropriate layers if
+
+        Reconfigure topological gen to move things back appropriate layers if
             they would have a back reference.
 
-            The Tangle Tree figure requires an acyclic directed graph that has additional
-                layering rules between connected nodes.
-                - If there is a backward connection then the line connecting them will
-                    break (this would suggest a cyclic connection.)
-                - Additionally if two or more nodes are connecting to a downstream node it is
-                    best to put both parent nodes at the same level, if possible, to
-                    prevent line breaks.
-                - Also want to move any children nodes one layer below
-                    the parent node(s). If there are multiple parents, put one layer below the
-                    parent that is furthest from the origin.
+        The Tangle Tree figure requires an acyclic directed graph that has additional
+            layering rules between connected nodes.
+            - If there is a backward connection then the line connecting them will
+                break (this would suggest a cyclic connection.)
+            - Additionally if two or more nodes are connecting to a downstream node it is
+                best to put both parent nodes at the same level, if possible, to
+                prevent line breaks.
+            - Also want to move any children nodes one layer below
+                the parent node(s). If there are multiple parents, put one layer below the
+                parent that is furthest from the origin.
 
-            This is an iterative process that needs to run twice to move all the nodes to their
-            appropriate positions.
-        Input:
-            topological_gen: list of lists. Indicates layers of nodes.
-            child_parents (dict):
-                key: child
-                value: list of the child's parents
-            source_nodes: list, list of nodes that do not have a parent.
-            component_name: str, component name, default=''
-        Output:
-            base_layers: dict, key: component name, value: layer
-                represents initial layering of topological_gen
-            base_layers_copy_copy: dict, key: component name, value: layer
-                represents the final layering after moving the components/attributes to
-                their desired layer.c
+        This is an iterative process that needs to run twice to move all the nodes to their
+        appropriate positions.
+
+        Args:
+            topological_gen (NodeLayers): Indicates layers of nodes.
+            child_parents (NodeDict): The child nodes parents
+            source_nodes (list[str]): list of nodes that do not have a parent.
+            component_name (str): component name
+
+        Returns:
+            tuple[NodeLevelDict, NodeLevelDict]: _description_
         """
         # Convert topological_gen to a dictionary
         base_layers = {com: i for i, lev in enumerate(topological_gen) for com in lev}
@@ -621,23 +651,25 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         return base_layers, base_layers_copy_copy
 
-    def adjust_node_placement(
+    def _adjust_node_placement(
         self,
-        base_layers_copy_copy: dict[str, Any],
-        base_layers: dict[str, Any],
-        topological_gen: list[list],
-    ) -> list[list]:
-        """Reorder nodes within topological_generations to match how they were ordered in
-         base_layers_copy_copy
-        Input:
-            topological_gen: list of lists. Indicates layers of nodes.
-            base_layers: dict, key: component name, value: layer
-                represents initial layering of topological_gen
-            base_layers_copy_copy: dict, key: component name, value: layer
-                represents the final layering after moving the components/attributes to
-                their desired layer.
-        Output:
-            topological_gen: same format but as the incoming topological_gen but
+        base_layers_copy_copy: NodeLevelDict,
+        base_layers: NodeLevelDict,
+        topological_gen: NodeLayers,
+    ) -> NodeLayers:
+        """
+
+        Reorder nodes within topological_generations to match how they were ordered in
+          base_layers_copy_copy
+
+        Args:
+            base_layers_copy_copy (NodeLevelDict): represents the final layering after moving
+              the components/attributes to their desired layer.
+            base_layers (NodeLevelDict): represents initial layering of topological_gen
+            topological_gen (NodeLayers): Indicates layers of nodes.
+
+        Returns:
+            NodeLayers: same format but as the incoming topological_gen but
                 ordered to match base_layers_copy_copy.
         """
         if self.figure_type == "component":
@@ -669,18 +701,22 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
                     # Remove from inappropriate layer.
                     topological_gen[base_layers[node]].remove(node)
+
+        else:
+            assert_never(self.figure_type)
+
         return topological_gen
 
-    def move_source_nodes_to_bottom_of_layer(
-        self, node_layers: list[list], source_nodes: list
-    ) -> list[list]:
+    def _move_source_nodes_to_bottom_of_layer(
+        self, node_layers: NodeLayers, source_nodes: list[str]
+    ) -> NodeLayers:
         """For aesthetic purposes move source nodes to the bottom of their respective layers.
         Input:
-            node_layers (List(list)): Lists of lists of each layer and the nodes contained
+            node_layers (NodeLayers): Lists of lists of each layer and the nodes contained
               in that layer as strings.
-            source_nodes (list): list of nodes that do not have a parent.
+            source_nodes (list[str]): list of nodes that do not have a parent.
         Output:
-            node_layers (List(list)): modified to move source nodes to the bottom of each layer.
+            node_layers (NodeLayers): modified to move source nodes to the bottom of each layer.
         """
         for layer in node_layers:
             nodes_to_move = []
@@ -692,32 +728,33 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 layer.append(node)
         return node_layers
 
-    def get_layers_dict_list(
+    def _get_layers_dict_list(
         self,
-        node_layers: list[list],
-        child_parents: dict,
-        parent_children: dict,
-        all_parent_children: dict,
-    ) -> list[list[dict[str, list[str]]]]:
+        node_layers: NodeLayers,
+        child_parents: NodeDict,
+        parent_children: NodeDict,
+        all_parent_children: NodeDict,
+    ) -> list[list[Node]]:
         """Convert node_layers to a list of lists of dictionaries that specifies each node and
          its parents (if applicable).
-        Inputs:
-            node_layers: list of lists of each layer and the nodes contained in that layer
-              as strings.
-            child_parents (dict):
-                key: child
-                value: list of the child's parents
-            parent_children (dict):
-                key: parent
-                value: list of the parents children
-        Outputs:
-            layers_list (List(list): list of lists of dictionaries that specifies each node and its
+
+        Args:
+            node_layers (NodeLayers): list of lists of each layer and the nodes contained in
+              that layer as strings.
+            child_parents (NodeDict):
+              key: child
+              value: list of the child's parents
+            parent_children (NodeDict):
+              key: parent
+              value: list of the parents children
+            all_parent_children (NodeDict): _description_
+
+        Returns:
+            list[list[Node]]: list of lists of dictionaries that specifies each node and its
              parents (if applicable)
         """
         num_layers = len(node_layers)
-        layers_list: list[list[dict[str, list[str]]]] = [
-            [] for i in range(0, num_layers)
-        ]
+        layers_list: list[list[Node]] = [[] for _ in range(0, num_layers)]
         for i, layer in enumerate(node_layers):
             for node in layer:
                 if node in child_parents.keys():
@@ -734,25 +771,24 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                     all_children = all_parent_children[node]
                 else:
                     all_children = []
-                layers_list[i].append(
-                    {
-                        "id": node,
-                        "parents": parents,
-                        "direct_children": direct_children,
-                        "children": all_children,
-                    }
-                )
+                node_dict: Node = {
+                    "id": node,
+                    "parents": parents,
+                    "direct_children": direct_children,
+                    "children": all_children,
+                }
+                layers_list[i].append(node_dict)
 
         return layers_list
 
-    def get_node_layers_json(  # pylint: disable=too-many-arguments
+    def _get_node_layers_json(  # pylint: disable=too-many-arguments
         self,
-        topological_gen: list[list],
+        topological_gen: NodeLayers,
         source_nodes: list[str],
-        child_parents: dict,
-        parent_children: dict,
+        child_parents: NodeDict,
+        parent_children: NodeDict,
         component_name: str = "",
-        all_parent_children: Optional[dict] = None,
+        all_parent_children: Optional[NodeDict] = None,
     ) -> str:
         """Return all the layers of a single tangled tree as a JSON String.
         Inputs:
@@ -772,17 +808,17 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             layers_json (JSON String): Layers of nodes in the tangled tree as a json string.
         """
 
-        base_layers, base_layers_copy_copy = self.get_base_layers(
+        base_layers, base_layers_copy_copy = self._get_base_layers(
             topological_gen, child_parents, source_nodes, component_name
         )
 
         # Rearrange node_layers to follow the pattern laid out in component layers.
-        node_layers = self.adjust_node_placement(
+        node_layers = self._adjust_node_placement(
             base_layers_copy_copy, base_layers, topological_gen
         )
 
         # Move source nodes to the bottom of each layer.
-        node_layers = self.move_source_nodes_to_bottom_of_layer(
+        node_layers = self._move_source_nodes_to_bottom_of_layer(
             node_layers, source_nodes
         )
 
@@ -791,7 +827,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             # default to an empty dictionary
             all_parent_children = {}
 
-        layers_dicts = self.get_layers_dict_list(
+        layers_dicts = self._get_layers_dict_list(
             node_layers, child_parents, parent_children, all_parent_children
         )
 
@@ -800,10 +836,10 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         return layers_json
 
-    def save_outputs(
+    def _save_outputs(
         self,
         save_file: bool,
-        layers_json,
+        layers_json: str,
         component_name: str = "",
         all_layers: Optional[list[str]] = None,
     ) -> list[str]:
@@ -845,12 +881,12 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                     f"{os.path.join(self.json_output_path, output_file_name)}"
                 )
             )
-            all_layers_list = layers_json
+            all_layers_list = layers_json  # type: ignore
         else:
             all_layers_list.append(layers_json)
         return all_layers_list
 
-    def get_ancestors_nodes(
+    def _get_ancestors_nodes(
         self, subgraph: nx.DiGraph, components: list[str]
     ) -> dict[str, list[str]]:
         """
@@ -870,42 +906,47 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         return all_parent_children
 
-    def get_tangled_tree_layers(self, save_file: bool = True):
-        """Based on user indicated figure type, construct the layers of nodes of a tangled tree.
-        Inputs:
-            save_file (bool): Indicates whether to save a file locally or not.
-        Outputs:
-            all_layers (list of json strings):
-                If save_file == False: Each string represents contains the layers
-                  for a single tangled tree.
-                If save_file ==True: is an empty list.
+    def get_tangled_tree_layers(self, save_file: bool = True) -> list[str]:
+        """
+
+        Based on user indicated figure type, construct the layers of nodes of a tangled tree.
 
         Note on Dependency Tangled Tree:
             If there are many conditional requirements associated with a dependency, and those
             conditional requirements have overlapping attributes associated with them
             the tangled tree will only report one
 
+        Args:
+            save_file (bool, optional):
+             Indicates whether to save a file locally or not.
+             Defaults to True.
+
+        Returns:
+            list[str]:
+              If save_file == False: Each string represents contains the layers
+                  for a single tangled tree.
+              If save_file ==True: is an empty list.
         """
         # pylint: disable=too-many-locals
         # Gather the data model's, topological generations, nodes and edges
-        topological_gen, nodes, edges, subgraph = self.get_topological_generations()
+        topological_gen, nodes, edges, subgraph = self._get_topological_generations()
 
         if self.figure_type == "component":
             # Gather all source nodes
-            source_nodes = self.find_source_nodes(nodes, edges)
+            source_nodes = self._find_source_nodes(nodes, edges)
 
             # Map all children to their parents and vice versa
-            child_parents, parent_children = self.get_parent_child_dictionary(
+            child_parents, parent_children = self._get_parent_child_dictionary(
                 edges=edges
             )
 
             # find all the downstream nodes
-            all_parent_children = self.get_ancestors_nodes(
-                subgraph, parent_children.keys()
+            all_parent_children = self._get_ancestors_nodes(
+                subgraph, list(parent_children.keys())
             )
 
             # Get the layers that each node belongs to.
-            layers_json = self.get_node_layers_json(
+            layers_json = self._get_node_layers_json(
                 topological_gen,
                 source_nodes,
                 child_parents,
@@ -914,9 +955,9 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             )
 
             # If indicated save outputs locally else gather all layers.
-            all_layers = self.save_outputs(save_file, layers_json)
+            all_layers = self._save_outputs(save_file, layers_json)
 
-        if self.figure_type == "dependency":
+        elif self.figure_type == "dependency":
             # Get component digraph and nodes.
             component_dg = self.dmge.get_digraph_by_edge_type("requiresComponent")
             component_nodes = component_dg.nodes()
@@ -934,29 +975,31 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                     conditional_attributes,
                     ca_alias,
                     all_attributes,
-                ) = self.gather_component_dependency_info(component_name, attributes_df)
+                ) = self._gather_component_dependency_info(
+                    component_name, attributes_df
+                )
 
                 # Gather all source nodes
-                source_nodes = self.find_source_nodes(
+                source_nodes = self._find_source_nodes(
                     component_nodes, edges, all_attributes
                 )
 
                 # Alias the conditional requirement edge back to its actual parent label,
                 # then apply aliasing back to the edges
-                aliased_edges = self.alias_edges(ca_alias, edges)
+                aliased_edges = self._alias_edges(ca_alias, edges)
 
                 # Gather relationships between children and their parents.
-                child_parents, parent_children = self.get_parent_child_dictionary(
+                child_parents, parent_children = self._get_parent_child_dictionary(
                     aliased_edges, all_attributes
                 )
 
                 # Remake topological_gen so it has only relevant nodes.
-                pruned_topological_gen = self.prune_expand_topological_gen(
+                pruned_topological_gen = self._prune_expand_topological_gen(
                     topological_gen, all_attributes, conditional_attributes
                 )
 
                 # Get the layers that each node belongs to.
-                layers_json = self.get_node_layers_json(
+                layers_json = self._get_node_layers_json(
                     pruned_topological_gen,
                     source_nodes,
                     child_parents,
@@ -965,7 +1008,9 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 )
 
                 # If indicated save outputs locally else, gather all layers.
-                all_layers = self.save_outputs(
+                all_layers = self._save_outputs(
                     save_file, layers_json, component_name, all_layers
                 )
+        else:
+            assert_never(self.figure_type)
         return all_layers

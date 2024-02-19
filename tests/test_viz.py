@@ -72,7 +72,7 @@ class TestVisualization:
         Test the output of parse_component_attributes
         """
         # get attributes string
-        component_attributes_str = attributes_explorer.parse_component_attributes(
+        component_attributes_str = attributes_explorer._parse_component_attributes(
             component=component, save_file=False, include_index=False
         )
         # convert to dataframe
