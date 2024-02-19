@@ -27,6 +27,10 @@ def DMGE(helpers):
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     yield dmge
 
+@pytest.fixture(name="missing_dmge")
+def missingDMGE(helpers):
+    missing_dmge = helpers.get_data_model_graph_explorer(path="example.missing.value.model.jsonld")
+    yield missing_dmge
 
 @pytest.fixture
 def metadataModel(helpers):
@@ -38,6 +42,15 @@ def metadataModel(helpers):
 
     yield metadataModel
 
+@pytest.fixture
+def missingMetadataModel(helpers):
+    missingMetadataModel = MetadataModel(
+        inputMModelLocation=helpers.get_data_path("example.missing.value.model.jsonld"),
+        inputMModelLocationType="local",
+        data_model_labels="class_label",
+    )
+
+    yield missingMetadataModel
 
 def get_rule_combinations():
     rule_info = validation_rule_info()
@@ -55,9 +68,15 @@ class TestManifestValidation:
     if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
         os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
-    def test_valid_manifest(self, helpers, metadataModel):
-        manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
+    @pytest.mark.parametrize("metadataModelType, manifestPath", 
+                            [("metadataModel", "mock_manifests/Valid_Test_Manifest.csv"), 
+                            ("missingMetadataModel", "mock_manifests/Valid_Missing_Value_Test_Manifest.csv")], 
+                            ids=["full_manifest", "missing_value_manifest"])
+    def test_valid_manifest(self, helpers, metadataModelType, manifestPath, request):
+        manifestPath = helpers.get_data_path(manifestPath)
         rootNode = "MockComponent"
+
+        metadataModel = request.getfixturevalue(metadataModelType)
 
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
