@@ -26,6 +26,7 @@ from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.schema_utils import extract_component_validation_rules
 
 logger = logging.getLogger(__name__)
 
@@ -184,9 +185,12 @@ class ValidateManifest(object):
             manifest.map(lambda x: x.strip() if isinstance(x, str) else x)
             validation_rules = dmge.get_node_validation_rules(node_display_name=col)
 
-            # TODO: Can remove when handling updated so split within graph
-            if validation_rules and "::" in validation_rules[0]:
-                validation_rules = validation_rules[0].split("::")
+            # Parse the validation rules
+            if validation_rules and isinstance(validation_rules, dict):
+                validation_rules = extract_component_validation_rules(
+                    manifest_component=manifest["Component"][0],
+                    validation_rules=validation_rules,
+                )
 
             # Check that attribute rules conform to limits:
             # no more than two rules for an attribute.

@@ -246,6 +246,7 @@ class TestManifestValidation:
         warning_in_list = [cross_warning[1] in warning for warning in warnings]
         assert any(warning_in_list)
 
+
     def test_in_house_validation(self, helpers, dmge, metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
@@ -380,6 +381,60 @@ class TestManifestValidation:
                 invalid_entry=["71738", "98085", "210065"],
                 dmge=dmge,
             )[1] in warnings
+
+    @pytest.mark.parametrize(
+        "manifest_path",
+        [
+            "mock_manifests/example.biospecimen_component_rule.manifest.csv",
+            "mock_manifests/example.patient_component_rule.manifest.csv",
+        ],
+        ids=["biospecimen_manifest", "patient_manifest"],
+    )
+    def test_component_validations(self, helpers, manifest_path, dmge):
+        full_manifest_path = helpers.get_data_path(manifest_path)
+        manifest = helpers.get_data_frame(full_manifest_path)
+
+        root_node = manifest["Component"][0]
+
+        data_model_js = DataModelJSONSchema(
+            jsonld_path=helpers.get_data_path("example.model.csv"),
+            graph=dmge.graph,
+        )
+
+        json_schema = data_model_js.get_json_validation_schema(
+            source_node=root_node, schema_name=root_node + "_validation"
+        )
+
+        validateManifest = ValidateManifest(
+            errors=[],
+            manifest=manifest,
+            manifestPath=full_manifest_path,
+            dmge=dmge,
+            jsonSchema=json_schema,
+        )
+
+        _, vmr_errors, vmr_warnings = validateManifest.validate_manifest_rules(
+            manifest=manifest,
+            dmge=dmge,
+            restrict_rules=False,
+            project_scope=None,
+        )
+
+        if root_node == "Biospecimen":
+            assert (
+                vmr_errors
+                and vmr_errors[0][0] == ["2", "3"]
+                and vmr_errors[0][-1] == ["123"]
+            )
+            assert vmr_warnings == []
+        elif root_node == "Patient":
+            assert vmr_errors == []
+            assert (
+                vmr_warnings
+                and vmr_warnings[0][0] == ["2", "3"]
+                and vmr_warnings[0][-1] == ["123"]
+            )
+
 
     @pytest.mark.rule_combos(
         reason="This introduces a great number of tests covering every possible rule combination that are only necessary on occasion."

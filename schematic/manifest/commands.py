@@ -10,7 +10,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.manifest.generator import ManifestGenerator
 
-from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_synIDs
+from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_syn_ids
 from schematic.utils.google_api_utils import export_manifest_csv
 from schematic.help import manifest_commands
 
@@ -261,7 +261,7 @@ def get_manifest(
     "-ps",
     "--project_scope",
     default=None,
-    callback=parse_synIDs,
+    callback=parse_syn_ids,
     help=query_dict(manifest_commands, ("manifest", "migrate", "project_scope")),
 )
 @click.option(

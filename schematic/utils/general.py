@@ -1,6 +1,8 @@
-# allows specifying explicit variable types
+"""General utils"""
+
+# pylint: disable=logging-fstring-interpolation
+
 import logging
-import math
 import os
 import pstats
 import subprocess
@@ -8,53 +10,90 @@ import tempfile
 from cProfile import Profile
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Union
+from typing import Union, TypeVar, Any, Optional, Sequence, Callable
 
-from synapseclient.core.exceptions import SynapseHTTPError
-from synapseclient.entity import File, Folder, Project
-from synapseclient.table import EntityViewSchema
-
-import synapseclient.core.cache as cache
+from synapseclient.core.exceptions import SynapseHTTPError  # type: ignore
+from synapseclient.entity import File, Folder, Project  # type: ignore
+from synapseclient.table import EntityViewSchema  # type: ignore
+from synapseclient.core import cache  # type: ignore
+from synapseclient import Synapse  # type: ignore
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar("T")
 
-def find_duplicates(_list):
+
+def find_duplicates(_list: list[T]) -> set[T]:
     """Find duplicate items in a list"""
-    return set([x for x in _list if _list.count(x) > 1])
+    return {x for x in _list if _list.count(x) > 1}
 
 
-def dict2list(dictionary):
-    if type(dictionary) == list:
-        return dictionary
-    elif type(dictionary) == dict:
-        return [dictionary]
+def dict2list(item: Any) -> Optional[Union[dict, list]]:
+    """Puts a dictionary into a list
+
+    Args:
+        item (Any): Any type of input
+
+    Returns:
+        Optional[Union[dict, list]]:
+          If input is a list, return it
+          If input is a dict, return it in a list
+          Return None for anything else
+    """
+    if isinstance(item, list):
+        return item
+    if isinstance(item, dict):
+        return [item]
+    return None
 
 
-def str2list(_str):
-    if type(_str) == str:
-        return [_str]
-    elif type(_str) == list:
-        return _str
+def str2list(item: Any) -> Optional[list]:
+    """Puts a string into a list
+
+    Args:
+        item (Any): Any type of input
+
+    Returns:
+        Optional[list]:
+          If input is a list, return it
+          If input is a string, return it in a list
+          Return None for anything else
+    """
+    if isinstance(item, str):
+        return [item]
+    if isinstance(item, list):
+        return item
+    return None
 
 
-def unlist(_list):
-    if len(_list) == 1:
-        return _list[0]
-    else:
-        return _list
+def unlist(seq: Sequence) -> Any:
+    """Returns the first item of a sequence
+
+    Args:
+        seq (Sequence): Any sequence
+
+    Returns:
+        Any:
+          if sequence is length one, return the first item
+          otherwise return the sequence
+    """
+    if len(seq) == 1:
+        return seq[0]
+    return seq
 
 
-def get_dir_size(path: str):
-    """Recursively descend the directory tree rooted at the top and call .st_size function to calculate size of files in bytes.
+def get_dir_size(path: str) -> int:
+    """
+    Recursively descend the directory tree rooted at the top and call
+      .st_size function to calculate size of files in bytes.
     Args:
         path: path to a folder
     return: total size of all the files in a given directory in bytes.
     """
     total = 0
     # Recursively scan directory to find entries
-    with os.scandir(path) as it:
-        for entry in it:
+    with os.scandir(path) as itr:
+        for entry in itr:
             if entry.is_file():
                 total += entry.stat().st_size
             elif entry.is_dir():
@@ -70,7 +109,8 @@ def calculate_datetime(
     Args:
         input_date (datetime): date time object provided by users
         minutes (int): number of minutes
-        before_or_after (str): default to "before". if "before", calculate x minutes before current date time. if "after", calculate x minutes after current date time.
+        before_or_after (str): default to "before". if "before", calculate x minutes before
+         current date time. if "after", calculate x minutes after current date time.
 
     Returns:
         datetime:  return result of date time calculation
@@ -84,7 +124,9 @@ def calculate_datetime(
     return date_time_result
 
 
-def check_synapse_cache_size(directory="/root/.synapseCache") -> Union[float, int]:
+def check_synapse_cache_size(
+    directory: str = "/root/.synapseCache",
+) -> Union[float, int]:
     """use du --sh command to calculate size of .synapseCache.
 
     Args:
@@ -93,9 +135,12 @@ def check_synapse_cache_size(directory="/root/.synapseCache") -> Union[float, in
     Returns:
         float or integer: returns size of .synapsecache directory in bytes
     """
-    # Note: this command might fail on windows user. But since this command is primarily for running on AWS, it is fine.
+    # Note: this command might fail on windows user.
+    # But since this command is primarily for running on AWS, it is fine.
     command = ["du", "-sh", directory]
-    output = subprocess.run(command, capture_output=True).stdout.decode("utf-8")
+    output = subprocess.run(command, capture_output=True, check=False).stdout.decode(
+        "utf-8"
+    )
 
     # Parsing the output to extract the directory size
     size = output.split("\t")[0]
@@ -115,11 +160,11 @@ def check_synapse_cache_size(directory="/root/.synapseCache") -> Union[float, in
     return byte_size
 
 
-def clear_synapse_cache(cache: cache.Cache, minutes: int) -> int:
+def clear_synapse_cache(synapse_cache: cache.Cache, minutes: int) -> int:
     """clear synapse cache before a certain time
 
     Args:
-        cache: an object of synapseclient Cache.
+        synapse_cache: an object of synapseclient Cache.
         minutes (int): all files before this minute will be removed
     Returns:
         int: number of files that get deleted
@@ -128,49 +173,55 @@ def clear_synapse_cache(cache: cache.Cache, minutes: int) -> int:
     minutes_earlier = calculate_datetime(
         input_date=current_date, minutes=minutes, before_or_after="before"
     )
-    num_of_deleted_files = cache.purge(before_date=minutes_earlier)
+    num_of_deleted_files = synapse_cache.purge(before_date=minutes_earlier)
     return num_of_deleted_files
 
 
-def convert_gb_to_bytes(gb: int):
+def convert_gb_to_bytes(g_bytes: int) -> int:
     """convert gb to bytes
     Args:
-        gb: number of gb
+        g_bytes: number of gb
     return: total number of bytes
     """
-    return gb * 1024 * 1024 * 1024
+    return g_bytes * 1024 * 1024 * 1024
 
 
-def entity_type_mapping(syn, entity_id):
-    """
-    Return the entity type of manifest
+def entity_type_mapping(syn: Synapse, entity_id: str) -> str:
+    """Return the entity type of manifest
+
     Args:
-        entity_id: id of an entity
-    Return:
-        type_entity: type of the manifest being returned
+        syn (Synapse): Synapse object
+        entity_id (str): id of an entity
+
+    Raises:
+        SynapseHTTPError: Re-raised SynapseHTTPError
+
+    Returns:
+        str: type of the manifest being returned
     """
     # check the type of entity
     try:
         entity = syn.get(entity_id, downloadFile=False)
-    except SynapseHTTPError as e:
+    except SynapseHTTPError as exc:
         logger.error(
             f"cannot get {entity_id} from asset store. Please make sure that {entity_id} exists"
         )
         raise SynapseHTTPError(
             f"cannot get {entity_id} from asset store. Please make sure that {entity_id} exists"
-        ) from e
+        ) from exc
 
     if isinstance(entity, EntityViewSchema):
-        return "asset view"
+        entity_type = "asset view"
     elif isinstance(entity, Folder):
-        return "folder"
+        entity_type = "folder"
     elif isinstance(entity, File):
-        return "file"
+        entity_type = "file"
     elif isinstance(entity, Project):
-        return "project"
+        entity_type = "project"
     else:
         # if there's no matching type, return concreteType
-        return entity.concreteType
+        entity_type = entity.concreteType
+    return entity_type
 
 
 def create_temp_folder(path: str) -> str:
@@ -185,59 +236,70 @@ def create_temp_folder(path: str) -> str:
 
 
 def profile(
-    output_file=None, sort_by="cumulative", lines_to_print=None, strip_dirs=False
-):
+    output_file: Optional[str] = None,
+    sort_by: Any = "cumulative",
+    lines_to_print: Optional[int] = None,
+    strip_dirs: bool = False,
+) -> Callable:
     """
-    The function was initially taken from: https://towardsdatascience.com/how-to-profile-your-code-in-python-e70c834fad89
+    The function was initially taken from:
+    https://towardsdatascience.com/how-to-profile-your-code-in-python-e70c834fad89
     A time profiler decorator.
     Inspired by and modified the profile decorator of Giampaolo Rodola:
     http://code.activestate.com/recipes/577817-profile-decorator/
+
     Args:
-        output_file: str or None. Default is None
+        output_file (Optional[str], optional):
             Path of the output file. If only name of the file is given, it's
             saved in the current directory.
             If it's None, the name of the decorated function is used.
-        sort_by: str or SortKey enum or tuple/list of str/SortKey enum
+            Defaults to None.
+        sort_by (str, optional):
+            str or SortKey enum or tuple/list of str/SortKey enum
             Sorting criteria for the Stats object.
             For a list of valid string and SortKey refer to:
             https://docs.python.org/3/library/profile.html#pstats.Stats.sort_stats
-        lines_to_print: int or None
-            Number of lines to print. Default (None) is for all the lines.
+            Defaults to "cumulative".
+        lines_to_print (Optional[int], optional):
+            Number of lines to print.
             This is useful in reducing the size of the printout, especially
             that sorting by 'cumulative', the time consuming operations
             are printed toward the top of the file.
-        strip_dirs: bool
+            Default (None) is for all the lines.
+        strip_dirs (bool, optional):
             Whether to remove the leading path info from file names.
             This is also useful in reducing the size of the printout
+            Defaults to False.
+
     Returns:
-        Profile of the decorated function
+        Callable: Profile of the decorated function
     """
 
     def inner(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             _output_file = output_file or func.__name__ + ".prof"
-            pr = Profile()
-            pr.enable()
+            profiler = Profile()
+            profiler.enable()
             retval = func(*args, **kwargs)
-            pr.disable()
-            pr.dump_stats(_output_file)
+            profiler.disable()
+            profiler.dump_stats(_output_file)
 
             # if we are running the functions on AWS:
             if "SECRETS_MANAGER_SECRETS" in os.environ:
-                ps = pstats.Stats(pr)
+                p_stats = pstats.Stats(profiler)
                 # limit this to 30 line for now otherwise it will be too long for AWS log
-                ps.sort_stats("cumulative").print_stats(30)
+                p_stats.sort_stats("cumulative").print_stats(30)
             else:
-                with open(_output_file, "w") as f:
-                    ps = pstats.Stats(pr, stream=f)
+                with open(_output_file, "w", encoding="utf-8") as fle:
+                    p_stats = pstats.Stats(profiler, stream=fle)
                     if strip_dirs:
-                        ps.strip_dirs()
+                        p_stats.strip_dirs()
                     if isinstance(sort_by, (tuple, list)):
-                        ps.sort_stats(*sort_by)
+                        p_stats.sort_stats(*sort_by)
                     else:
-                        ps.sort_stats(sort_by)
-                    ps.print_stats(lines_to_print)
+                        p_stats.sort_stats(sort_by)
+                    p_stats.print_stats(lines_to_print)
             return retval
 
         return wrapper

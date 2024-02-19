@@ -759,7 +759,7 @@ paths:
             type: string
             nullable: false
           description: Project ID
-          example: syn30988314
+          example: syn23643250
           required: true
         - in: query
           name: asset_view
@@ -1452,4 +1452,3 @@ paths:
           description: Schematic version was not able to be identified.
       tags:
         - Version
-        

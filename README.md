@@ -71,6 +71,18 @@ poetry install
 ```
 This command will install the dependencies based on what we specify in poetry.lock. If this step is taking a long time, try to go back to step 2 and check your version of poetry. Alternatively, you could also try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
 
+If you want to install the API you will need to install those dependencies as well:
+
+```
+poetry install --extras "api"
+```
+
+If you want to install the uwsgi:
+
+```
+poetry install --extras "api"
+```
+
 5. Fill in credential files: 
 *Note*: If you won't interact with Synapse, please ignore this section.
 

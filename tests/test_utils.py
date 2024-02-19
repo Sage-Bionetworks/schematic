@@ -55,6 +55,13 @@ from schematic.utils.schema_utils import (
     get_schema_label,
     get_stripped_label,
     check_if_display_name_is_valid_label,
+    get_individual_rules,
+    get_component_name_rules,
+    parse_component_validation_rules,
+    parse_single_set_validation_rules,
+    parse_validation_rules,
+    extract_component_validation_rules,
+    check_for_duplicate_components,
 )
 
 
@@ -62,6 +69,87 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS")
+
+MULTI_RULE_DICT = {
+    "multi_rule": {
+        "starting_rule": "unique::list::num",
+        "parsed_rule": [["unique", "list", "num"]],
+    },
+    "double_rule": {
+        "starting_rule": "unique::list",
+        "parsed_rule": [["unique", "list"]],
+    },
+    "single_rule": {"starting_rule": "unique", "parsed_rule": ["unique"]},
+}
+
+TEST_VALIDATION_RULES = {
+    "multi_component_rule": {
+        "validation_rules": [
+            "#Patient int^^#Biospecimen unique error^^#BulkRNA-seqAssay int"
+        ],
+        "parsed_rules": {
+            "Patient": "int",
+            "Biospecimen": "unique error",
+            "BulkRNA-seqAssay": "int",
+        },
+        "extracted_rules": {
+            "Patient": ["int"],
+            "Biospecimen": ["unique error"],
+            "BulkRNA-seqAssay": ["int"],
+        },
+    },
+    "double_component_rule": {
+        "validation_rules": ["#Patient int^^#Biospecimen unique error"],
+        "parsed_rules": {"Patient": "int", "Biospecimen": "unique error"},
+        "extracted_rules": {"Patient": ["int"], "Biospecimen": ["unique error"]},
+    },
+    "single_component_rule_1": {
+        "validation_rules": ["#Patient int^^"],
+        "parsed_rules": {"Patient": "int"},
+        "extracted_rules": {"Patient": ["int"]},
+    },
+    "single_component_rule_2": {
+        "validation_rules": ["^^#Patient int"],
+        "parsed_rules": {"Patient": "int"},
+        "extracted_rules": {"Patient": ["int"]},
+    },
+    "single_component_exclusion": {
+        "validation_rules": ["int::inRange 100 900^^#Patient"],
+        "parsed_rules": {
+            "all_other_components": ["int", "inRange 100 900"],
+            "Patient": "",
+        },
+        "extracted_rules": {
+            "all_other_components": ["int", "inRange 100 900"],
+            "Patient": [],
+        },
+    },
+    "dictionary_rule": {
+        "validation_rules": {"BiospecimenManifest": "unique error", "Patient": "int"},
+        "parsed_rules": {"BiospecimenManifest": "unique error", "Patient": "int"},
+        "extracted_rules": {
+            "BiospecimenManifest": ["unique error"],
+            "Patient": ["int"],
+        },
+    },
+    "str_rule": {
+        "validation_rules": "#Patient int^^#Biospecimen unique error",
+        "parsed_rules": "raises_exception",
+    },
+    "simple_rule": {
+        "validation_rules": ["int"],
+        "parsed_rules": ["int"],
+    },
+    "double_rule": {
+        "validation_rules": ["list::regex match \(\d{3}\) \d{3}-\d{4}"],
+        "parsed_rules": ["list", "regex match \(\d{3}\) \d{3}-\d{4}"],
+    },
+    "duplicated_component": {
+        "validation_rules": ["#Patient unique^^#Patient int"],
+        "parsed_rules": "raises_exception",
+        }
+
+}
 
 TEST_DN_DICT = {
     "Bio Things": {"class": "BioThings", "property": "bioThings"},
@@ -322,13 +410,19 @@ class TestIOUtils:
 
 
 class TestDfUtils:
-    @pytest.mark.parametrize("preserve_raw_input", [True, False], ids=["Do not infer datatypes", "Infer datatypes"])
+    @pytest.mark.parametrize(
+        "preserve_raw_input",
+        [True, False],
+        ids=["Do not infer datatypes", "Infer datatypes"],
+    )
     def test_load_df(self, helpers, preserve_raw_input):
         test_col = "Check NA"
         file_path = helpers.get_data_path("mock_manifests", "Invalid_Test_Manifest.csv")
 
         unprocessed_df = pd.read_csv(file_path, encoding="utf8")
-        df = df_utils.load_df(file_path, preserve_raw_input=preserve_raw_input, data_model=False)
+        df = df_utils.load_df(
+            file_path, preserve_raw_input=preserve_raw_input, data_model=False
+        )
 
         assert df["Component"].dtype == "object"
 
@@ -624,6 +718,125 @@ class TestSchemaUtils:
             assert stripped_contex == ("sms", "required")
 
     @pytest.mark.parametrize(
+        "test_multi_rule",
+        list(MULTI_RULE_DICT.keys()),
+        ids=list(MULTI_RULE_DICT.keys()),
+    )
+    def test_get_individual_rules(self, test_multi_rule):
+        validation_rules = []
+        test_rule = MULTI_RULE_DICT[test_multi_rule]["starting_rule"]
+        expected_rule = MULTI_RULE_DICT[test_multi_rule]["parsed_rule"]
+        parsed_rule = get_individual_rules(
+            rule=test_rule,
+            validation_rules=validation_rules,
+        )
+        assert expected_rule == parsed_rule
+
+    @pytest.mark.parametrize(
+        "test_individual_component_rule",
+        [
+            ["#Patient int", [["Patient"], "int"]],
+            ["int", [["all_other_components"], "int"]],
+        ],
+        ids=["Patient_component", "no_component"],
+    )
+    def test_get_component_name_rules(self, test_individual_component_rule):
+        component_names = []
+
+        component, parsed_rule = get_component_name_rules(
+            component_names=[], component_rule=test_individual_component_rule[0]
+        )
+        expected_rule = test_individual_component_rule[1][1]
+        expected_component = test_individual_component_rule[1][0]
+
+        assert expected_rule == parsed_rule
+        assert expected_component == component
+
+    @pytest.mark.parametrize(
+        "test_individual_rule_set",
+        [
+            ["#Patient int::inRange 100 900", []],
+            ["int::inRange 100 900", ["int", "inRange 100 900"]],
+            ["int", ["int"]],
+        ],
+        ids=["improper_format", "double_rule", "single_rule"],
+    )
+    def test_parse_single_set_validation_rules(self, test_individual_rule_set):
+        validation_rule_string = test_individual_rule_set[0]
+        try:
+            parsed_rule = parse_single_set_validation_rules(
+                validation_rule_string=validation_rule_string
+            )
+            expected_rule = test_individual_rule_set[1]
+            assert parsed_rule == expected_rule
+        except:
+            assert validation_rule_string == "#Patient int::inRange 100 900"
+
+    @pytest.mark.parametrize(
+        "component_names",
+        [
+            ["duplicated_component", ['Patient', 'Biospecimen', 'Patient']],
+            ["individual_component", ['Patient', 'Biospecimen']],
+            ["no_component", []]
+        ],
+        ids=["duplicated_component", "individual_component", "no_component"],
+    )
+    def test_check_for_duplicate_components(self, component_names):
+        """Test that we are properly identifying duplicates in a list.
+            Exception should only be triggered when the duplicate component list is passed.
+        """
+        try:
+            check_for_duplicate_components(component_names=component_names[1], validation_rule_string='dummy_str')
+        except:
+            assert component_names[0] == "duplicated_component"
+
+    @pytest.mark.parametrize(
+        "test_rule_name",
+        list(TEST_VALIDATION_RULES.keys()),
+        ids=list(TEST_VALIDATION_RULES.keys()),
+    )
+    def test_parse_validation_rules(self, test_rule_name):
+        """
+        The test dictionary tests the following:
+            A dictionary rule is simply returned.
+            A string rule, raises an exception.
+            A single rule, a double rule, component rules, with a single component in either orientation,
+            double rules, multiple rules, creating a rule for all components except one.
+        """
+        validation_rules = TEST_VALIDATION_RULES[test_rule_name]["validation_rules"]
+        expected_parsed_rules = TEST_VALIDATION_RULES[test_rule_name]["parsed_rules"]
+
+        try:
+            parsed_validation_rules = parse_validation_rules(
+                validation_rules=validation_rules
+            )
+            assert expected_parsed_rules == parsed_validation_rules
+        except:
+            assert test_rule_name in ["str_rule", "duplicated_component"] 
+
+    @pytest.mark.parametrize(
+        "test_rule_name",
+        list(TEST_VALIDATION_RULES.keys()),
+        ids=list(TEST_VALIDATION_RULES.keys()),
+    )
+    def test_extract_component_validation_rules(self, test_rule_name):
+        """
+        Test that a component validation rule dictionary is parsed properly
+        """
+        attribute_rules_set = TEST_VALIDATION_RULES[test_rule_name]["parsed_rules"]
+        if isinstance(attribute_rules_set, dict):
+            for component in attribute_rules_set.keys():
+                extracted_rules = extract_component_validation_rules(
+                    component, attribute_rules_set
+                )
+                assert isinstance(extracted_rules, list)
+                assert (
+                    extracted_rules
+                    == TEST_VALIDATION_RULES[test_rule_name]["extracted_rules"][
+                        component
+                    ]
+                )
+    @pytest.mark.parametrize(
         "test_dn",
         list(TEST_DN_DICT.keys()),
         ids=list(TEST_DN_DICT.keys()),
@@ -738,14 +951,8 @@ class TestSchemaUtils:
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
         """
-        Previously did:
-        se_obj = helpers.get_schema_explorer("example.model.jsonld")
-        actual = validate_utils.validate_schema(se_obj.schema)
-
-        schema is defined as: self.schema = load_json(schema)
-
-        TODO: Validate this is doing what its supposed to.
         """
+
         # Get data model path
         data_model_path = helpers.get_data_path("example.model.jsonld")
         schema = io_utils.load_json(data_model_path)

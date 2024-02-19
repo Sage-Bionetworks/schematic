@@ -14,7 +14,7 @@ from schematic.models.metadata import MetadataModel
 from schematic.utils.cli_utils import (
     log_value_from_config,
     query_dict,
-    parse_synIDs,
+    parse_syn_ids,
     parse_comma_str_to_list,
 )
 from schematic.help import model_commands
@@ -98,7 +98,7 @@ def model(ctx, config):  # use as `schematic model ...`
     "-ps",
     "--project_scope",
     default=None,
-    callback=parse_synIDs,
+    callback=parse_syn_ids,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.option(
@@ -214,7 +214,7 @@ def submit_manifest(
     "-ps",
     "--project_scope",
     default=None,
-    callback=parse_synIDs,
+    callback=parse_syn_ids,
     help=query_dict(model_commands, ("model", "validate", "project_scope")),
 )
 @click.option(

@@ -22,6 +22,8 @@ else
     content_server=$content_server'    proxy_read_timeout 300;\n'
     content_server=$content_server'    proxy_connect_timeout 300;\n'
     content_server=$content_server'    proxy_send_timeout 300;\n'
+    content_server=$content_server'    send_timeout 300;\n'
+    content_server=$content_server'    uwsgi_read_timeout 300;\n'
     content_server=$content_server'    location / {\n'
     content_server=$content_server'        try_files $uri @app;\n'
     content_server=$content_server'    }\n'

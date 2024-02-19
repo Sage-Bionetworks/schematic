@@ -76,7 +76,7 @@ jobs:
       #    install your root project, if required
       #----------------------------------------------
       - name: Install library
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --all-extras
 
       #----------------------------------------------
       #             perform linting
@@ -117,6 +117,10 @@ jobs:
           # ran only on certain files for now
           # add here when checked
           poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
+          # do all utils but schema_utils.py
+          poetry run pylint schematic/utils/cli_utils.py schematic/utils/curie_utils.py schematic/utils/df_utils.py
+          poetry run pylint schematic/utils/general.py schematic/utils/google_api_utils.py schematic/utils/io_utils.py
+          poetry run pylint schematic/utils/validate_rules_utils.py schematic/utils/validate_utils.py schematic/utils/viz_utils.py
 
       #----------------------------------------------
       #              run test suite
