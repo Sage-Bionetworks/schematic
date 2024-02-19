@@ -1,0 +1,46 @@
+Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules
+Component,,,,,TRUE,,,,
+Patient,,,"Patient ID, Sex, Year of Birth, Diagnosis, Component",,FALSE,DataType,,,
+Patient ID,,,,,TRUE,DataProperty,,,#Patient unique warning^^#Biospecimen unique error
+Sex,,"Female, Male, Other",,,TRUE,DataProperty,,,
+Year of Birth,,,,,FALSE,DataProperty,,,
+Diagnosis,,"Healthy, Cancer",,,TRUE,DataProperty,,,
+Cancer,,,"Cancer Type, Family History",,FALSE,ValidValue,,,
+Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,
+Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list strict
+Biospecimen,,,"Sample ID, Patient ID, Tissue Status, Component",,FALSE,DataType,Patient,,
+Sample ID,,,,,TRUE,DataProperty,,,
+Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,
+Bulk RNA-seq Assay,,,"Filename, Sample ID, File Format, Component",,FALSE,DataType,Biospecimen,,
+Filename,,,,,TRUE,DataProperty,,,
+File Format,,"FASTQ, BAM, CRAM, CSV/TSV",,,TRUE,DataProperty,,,
+BAM,,,Genome Build,,FALSE,ValidValue,,,
+CRAM,,,"Genome Build, Genome FASTA",,FALSE,ValidValue,,,
+CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
+Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
+Genome FASTA,,,,,TRUE,DataProperty,,,
+MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Regex Format, Check Regex Integer, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Recommended, Check Ages, Check Unique, Check Range, Check Date, Check NA",,FALSE,DataType,,,
+Check List,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list strict::IsNa 
+Check Regex List,,,,,FALSE,DataProperty,,,list strict::regex match [a-f]::IsNa 
+Check Regex Single,,,,,FALSE,DataProperty,,,regex search [a-f]::IsNa 
+Check Regex Format,,,,,FALSE,DataProperty,,,regex match [a-f]::IsNa 
+Check Regex Integer,,,,,FALSE,DataProperty,,,regex search ^\d+$::IsNa 
+Check Num,,,,,FALSE,DataProperty,,,num::IsNa 
+Check Float,,,,,FALSE,DataProperty,,,float::IsNa 
+Check Int,,,,,FALSE,DataProperty,,,int::IsNa 
+Check String,,,,,FALSE,DataProperty,,,str::IsNa 
+Check URL,,,,,FALSE,DataProperty,,,url::IsNa 
+Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne Patient.PatientID set::IsNa 
+Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set::IsNa 
+Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value::IsNa 
+Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues value::IsNa 
+Check Recommended,,,,,FALSE,DataProperty,,,recommended
+Check Ages,,,,,FALSE,DataProperty,,,protectAges::IsNa 
+Check Unique,,,,,FALSE,DataProperty,,,unique error::IsNa 
+Check Range,,,,,FALSE,DataProperty,,,inRange 50 100 error::IsNa 
+Check Date,,,,,FALSE,DataProperty,,,date::IsNa 
+Check NA,,,,,FALSE,DataProperty,,,int::IsNA
+Check OptionalAge,,,,,FALSE,DataProperty,,,protectAges error::IsNa 
+MockRDB,,,"Component, MockRDB_id, SourceManifest",,FALSE,DataType,,,
+MockRDB_id,,,,,TRUE,DataProperty,,,int
+SourceManifest,,,,,TRUE,DataProperty,,,
