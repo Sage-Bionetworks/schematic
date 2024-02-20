@@ -1020,7 +1020,7 @@ class TestCsvUtils:
         data_model_grapher = DataModelGraph(parsed_data_model)
 
         # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
+        graph_data_model = data_model_grapher.graph
 
         # Convert graph to JSONLD
         jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
