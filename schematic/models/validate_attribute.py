@@ -494,6 +494,9 @@ class GenerateError:
         message_logger = getattr(logger, message_level)
         message_logger(error_message)
 
+        if (not isinstance(error_val,list)) and (not pd.isnull(error_val)):
+            error_val = str(error_val)
+
         if message_level == "error":
             error_list = [error_row, error_col, error_message, error_val]
         elif message_level == "warning":
