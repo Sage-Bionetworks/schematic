@@ -81,7 +81,7 @@ class Helpers:
         )
 
         # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
+        graph_data_model = data_model_grapher.graph
 
         # Instantiate DataModelGraphExplorer
         DMGE = DataModelGraphExplorer(graph_data_model)

@@ -78,7 +78,7 @@ def convert(schema, data_model_labels, output_jsonld):
 
     # Generate graph
     logger.info("Generating data model graph.")
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     # Validate generated data model.
     logger.info("Validating the data model internally.")
