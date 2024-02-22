@@ -2,6 +2,34 @@
 # pylint: disable=line-too-long
 #!/usr/bin/env python3
 
+from typing import get_args
+from schematic.utils.schema_utils import DisplayLabelType
+from schematic.visualization.tangled_tree import FigureType, TextType
+
+
+DATA_MODEL_LABELS_DICT = {
+    "display_label": "use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.",
+    "class_label": "default, use standard class or property label.",
+}
+# Ensure that all DisplayLabelTypes have a description
+for item in get_args(DisplayLabelType):
+    assert item in DATA_MODEL_LABELS_DICT
+
+# Combine each label and its description into one string
+DATA_MODEL_LABELS_LIST = [
+    f"{label}, {description}" for label, description in DATA_MODEL_LABELS_DICT.items()
+]
+
+DATA_MODEL_LABELS_HELP = (
+    "Choose how to set the label in the data model. "
+    f"{' '.join(DATA_MODEL_LABELS_LIST)} "
+    "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
+)
+
+
+FIGURE_TYPES = " or ".join([f"'{item}'" for item in get_args(FigureType)])
+TEXT_TYPES = " or ".join([f"'{item}'" for item in get_args(TextType)])
+
 # `schematic manifest` related sub-commands description
 manifest_commands = {
     "manifest": {
@@ -54,12 +82,7 @@ manifest_commands = {
                 "Specify to alphabetize valid attribute values either ascending (a) or descending (d)."
                 "Optional"
             ),
-            "data_model_labels": (
-                "Choose how to set the label in the data model. "
-                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
-                "class_label, default, use standard class or property label. "
-                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
-            ),
+            "data_model_labels": DATA_MODEL_LABELS_HELP,
         },
         "migrate": {
             "short_help": (
@@ -139,12 +162,7 @@ model_commands = {
                 "class_label, display_label, display_name, default, class_label. When true annotations and table columns will be uploaded with the display name formatting with blacklisted characters removed. "
                 "To use for tables, use in conjunction with the use_schema_label flag."
             ),
-            "data_model_labels": (
-                "Choose how to set the label in the data model. "
-                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
-                "class_label, default, use standard class or property label. "
-                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
-            ),
+            "data_model_labels": DATA_MODEL_LABELS_HELP,
         },
         "validate": {
             "short_help": ("Validation of manifest files."),
@@ -170,12 +188,7 @@ model_commands = {
             "project_scope": (
                 "Specify a comma-separated list of projects to search through for cross manifest validation."
             ),
-            "data_model_labels": (
-                "Choose how to set the label in the data model. "
-                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
-                "class_label, default, use standard class or property label. "
-                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
-            ),
+            "data_model_labels": DATA_MODEL_LABELS_HELP,
         },
     }
 }
@@ -191,12 +204,7 @@ schema_commands = {
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
-            "data_model_labels": (
-                "Choose how to set the label in the data model. "
-                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
-                "class_label, default, use standard class or property label. "
-                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
-            ),
+            "data_model_labels": DATA_MODEL_LABELS_HELP,
         }
     }
 }
@@ -219,17 +227,12 @@ viz_commands = {
         ),
         "tangled_tree": {
             "figure_type": (
-                "Specify the type of schema visualization to make. Either 'dependency' or 'component'."
+                f"Specify the type of schema visualization to make. Either {FIGURE_TYPES}."
             ),
             "text_format": (
-                "Specify the type of text to gather for tangled tree visualization, either 'plain' or 'highlighted'."
+                f"Specify the type of text to gather for tangled tree visualization, either {TEXT_TYPES}."
             ),
-            "data_model_labels": (
-                "Choose how to set the label in the data model. "
-                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
-                "class_label, default, use standard class or property label. "
-                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
-            ),
+            "data_model_labels": DATA_MODEL_LABELS_HELP,
         },
     }
 }
