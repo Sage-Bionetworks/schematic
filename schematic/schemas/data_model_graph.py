@@ -12,6 +12,7 @@ from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.schema_utils import (
     get_property_label_from_display_name,
     get_class_label_from_display_name,
+    DisplayLabelType,
 )
 from schematic.utils.general import unlist
 from schematic.utils.viz_utils import visualize
@@ -43,20 +44,27 @@ class DataModelGraph:
 
     __metaclass__ = DataModelGraphMeta
 
-    def __init__(self, attribute_relationships_dict: dict) -> None:
+    def __init__(
+        self,
+        attribute_relationships_dict: dict,
+        data_model_labels: DisplayLabelType = "class_label",
+    ) -> None:
         """Load parsed data model.
         Args:
             attributes_relationship_dict, dict: generated in data_model_parser
                 {Attribute Display Name: {
                         Relationships: {
                                     CSV Header: Value}}}
-        Raises:
+            data_model_labels: str, display_label or class_label.
+                display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to schema_label.
+                class_label, default, use standard class or property label.         Raises:
             ValueError, attribute_relationship_dict not loaded.
         """
         self.attribute_relationships_dict = attribute_relationships_dict
         self.dmn = DataModelNodes(self.attribute_relationships_dict)
         self.dme = DataModelEdges()
         self.dmr = DataModelRelationships()
+        self.data_model_labels = data_model_labels
 
         if not self.attribute_relationships_dict:
             raise ValueError(
@@ -86,7 +94,9 @@ class DataModelGraph:
         for node in all_nodes:
             # Gather information for each node
             node_dict = self.dmn.generate_node_dict(
-                node, self.attribute_relationships_dict
+                node_display_name=node,
+                attr_rel_dict=self.attribute_relationships_dict,
+                data_model_labels=self.data_model_labels,
             )
 
             # Add each node to the all_node_dict to be used for generating edges
@@ -110,7 +120,7 @@ class DataModelGraph:
 
         # Add edges to the Graph
         for node_1, node_2, edge_dict in edge_list:
-            G.add_edge(node_1, node_2, key=edge_dict['key'], weight=edge_dict['weight'])
+            G.add_edge(node_1, node_2, key=edge_dict["key"], weight=edge_dict["weight"])
         return G
 
 
@@ -364,7 +374,7 @@ class DataModelGraphExplorer:
             )
 
         edge_key = self.rel_dict[key]["edge_key"]
-        
+
         # Handle out edges
         if self.rel_dict[key]["jsonld_direction"] == "out":
             # use outedges

@@ -1,7 +1,7 @@
 Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules
 Component,,,,,TRUE,,,,
 Patient,,,"Patient ID, Sex, Year of Birth, Diagnosis, Component",,FALSE,DataType,,,
-Patient ID,,,,,TRUE,DataProperty,,,
+Patient ID,,,,,TRUE,DataProperty,,,#Patient unique warning^^#Biospecimen unique error
 Sex,,"Female, Male, Other",,,TRUE,DataProperty,,,
 Year of Birth,,,,,FALSE,DataProperty,,,
 Diagnosis,,"Healthy, Cancer",,,TRUE,DataProperty,,,

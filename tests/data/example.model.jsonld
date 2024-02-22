@@ -73,7 +73,10 @@
             },
             "sms:displayName": "Patient ID",
             "sms:required": "sms:true",
-            "sms:validationRules": []
+            "sms:validationRules": {
+                "Biospecimen": "unique error",
+                "Patient": "unique warning"
+            }
         },
         {
             "@id": "bts:Sex",

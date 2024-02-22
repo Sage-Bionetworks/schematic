@@ -54,6 +54,12 @@ manifest_commands = {
                 "Specify to alphabetize valid attribute values either ascending (a) or descending (d)."
                 "Optional"
             ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
+            ),
         },
         "migrate": {
             "short_help": (
@@ -101,11 +107,6 @@ model_commands = {
                 "The component or data type from the data model which you can use to validate the "
                 "data filled in your manifest template."
             ),
-            "use_schema_label": (
-                "Store attributes using the schema label (--use_schema_label, default) or store attributes using the display label "
-                "(--use_display_label). Attribute display names in the schema must not only include characters that are "
-                "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
-            ),
             "hide_blanks": (
                 "This is a boolean flag. If flag is provided when command line utility is executed, annotations with blank values will be hidden from a dataset's annotation list in Synaspe."
                 "If not, annotations with blank values will be displayed."
@@ -127,7 +128,22 @@ model_commands = {
                 "'upsert' should be used for initial table uploads if users intend to upsert into them at a later time."
                 "Using 'upsert' at creation will generate the metadata necessary for upsert functionality."
                 "Upsert functionality requires primary keys to be specified in the data model and manfiest as <component>_id."
-                "Currently it is required to use -dl/--use_display_label with table upserts."
+                "Currently it is required to use --table_column_names = display_name with table upserts."
+            ),
+            "annotation_keys": (
+                "Store attributes using the class label (default) or store attributes using the display label. "
+                "Attribute display names in the schema must not only include characters that are "
+                "not accepted by Synapse. Annotation names may only contain: letters, numbers, '_' and '.'"
+            ),
+            "table_column_names": (
+                "class_label, display_label, display_name, default, class_label. When true annotations and table columns will be uploaded with the display name formatting with blacklisted characters removed. "
+                "To use for tables, use in conjunction with the use_schema_label flag."
+            ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
             ),
         },
         "validate": {
@@ -154,6 +170,12 @@ model_commands = {
             "project_scope": (
                 "Specify a comma-separated list of projects to search through for cross manifest validation."
             ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
+            ),
         },
     }
 }
@@ -168,6 +190,12 @@ schema_commands = {
             ),
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
+            ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
             ),
         }
     }
@@ -195,6 +223,12 @@ viz_commands = {
             ),
             "text_format": (
                 "Specify the type of text to gather for tangled tree visualization, either 'plain' or 'highlighted'."
+            ),
+            "data_model_labels": (
+                "Choose how to set the label in the data model. "
+                "display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label. "
+                "class_label, default, use standard class or property label. "
+                "Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly."
             ),
         },
     }

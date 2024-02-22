@@ -22,6 +22,7 @@ click_log.basic_config(logger)
 # dict() -> new empty dictionary
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
 
+
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click_log.simple_verbosity_option(logger)
@@ -38,7 +39,6 @@ main.add_command(manifest_cli)  # add manifest commands
 main.add_command(model_cli)  # add model commands
 main.add_command(schema_cli)  # add schema commands
 main.add_command(viz_cli)  # add viz commands
-
 
 
 if __name__ == "__main__":
