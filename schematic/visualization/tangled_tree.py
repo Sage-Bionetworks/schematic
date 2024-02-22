@@ -8,7 +8,7 @@ import json
 import logging
 import os
 from os import path
-from typing import Optional, Literal, TypedDict
+from typing import Optional, Literal, TypedDict, Union
 from typing_extensions import assert_never
 
 import networkx as nx  # type: ignore
@@ -842,20 +842,22 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         layers_json: str,
         component_name: str = "",
         all_layers: Optional[list[str]] = None,
-    ) -> list[str]:
+    ) -> Union[str, list[str]]:
         """
-        Inputs:
-            save_file (bool): Indicates whether to save a file locally or not.:
-            layers_json (JSON String): Layers of nodes in the tangled tree as a json string.
-            component_name (str): component name, default=''
-            all_layers (list of json strings): Each string represents contains the layers for
-                a single tangled tree. If a dependency figure the list is added to each time
-                this function is called, so starts incomplete. default=[].
-        Outputs:
-            all_layers (list of json strings):
-                If save_file == False: Each string represents contains the layers for a single
-                 tangled tree.
-                If save_file ==True: is an empty list.
+        Args:
+            save_file (bool): Indicates whether to save a file locally or not.
+            layers_json (str): Layers of nodes in the tangled tree as a json string.
+            component_name (str, optional): component name. Defaults to "".
+            all_layers (Optional[list[str]], optional):
+                Each string represents contains the layers for a single tangled tree. If a
+                dependency figure the list is added to each time this function is called,
+                so starts incomplete. Defaults to None.
+
+        Returns:
+            Union[str, list[str]]:
+                If save_file == False: [list[str]], Each string represents contains the layers
+                  for a single tangled tree.
+                If save_file == True: str, the layers_json is returned
         """
         all_layers_list = [] if all_layers is None else all_layers
         if save_file:
@@ -881,10 +883,11 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                     f"{os.path.join(self.json_output_path, output_file_name)}"
                 )
             )
-            all_layers_list = layers_json  # type: ignore
+            result: Union[str, list[str]] = layers_json
         else:
-            all_layers_list.append(layers_json)
-        return all_layers_list
+            result = all_layers_list
+            result.append(layers_json)
+        return result
 
     def _get_ancestors_nodes(
         self, subgraph: nx.DiGraph, components: list[str]
@@ -906,7 +909,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         return all_parent_children
 
-    def get_tangled_tree_layers(self, save_file: bool = True) -> list[str]:
+    def get_tangled_tree_layers(self, save_file: bool = True) -> Union[str, list[str]]:
         """
 
         Based on user indicated figure type, construct the layers of nodes of a tangled tree.
@@ -922,10 +925,10 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
              Defaults to True.
 
         Returns:
-            list[str]:
-              If save_file == False: Each string represents contains the layers
+            Union[str, list[str]]:
+                If save_file == False: [list[str]], Each string represents contains the layers
                   for a single tangled tree.
-              If save_file ==True: is an empty list.
+                If save_file == True: str, the layers_json is returned
         """
         # pylint: disable=too-many-locals
         # Gather the data model's, topological generations, nodes and edges
@@ -968,7 +971,6 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             )
             attributes_df = pd.read_table(StringIO(attributes_csv_str), sep=",")
 
-            all_layers = []
             for component_name in component_nodes:
                 # Gather attribute and dependency information per node
                 (
@@ -1008,9 +1010,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
                 )
 
                 # If indicated save outputs locally else, gather all layers.
-                all_layers = self._save_outputs(
-                    save_file, layers_json, component_name, all_layers
-                )
+                all_layers = self._save_outputs(save_file, layers_json, component_name)
         else:
             assert_never(self.figure_type)
         return all_layers
