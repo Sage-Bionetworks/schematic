@@ -2,7 +2,7 @@ import os
 import logging
 from pathlib import Path
 import sys
-from typing import List
+from typing import get_args, List
 import click
 import click_log
 
@@ -10,6 +10,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.manifest.generator import ManifestGenerator
 
+from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_syn_ids
 from schematic.utils.google_api_utils import export_manifest_csv
 from schematic.help import manifest_commands
@@ -109,7 +110,7 @@ def manifest(ctx, config):  # use as `schematic manifest ...`
     "--data_model_labels",
     "-dml",
     default="class_label",
-    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
+    type=click.Choice(list(get_args(DisplayLabelType)), case_sensitive=True),
     help=query_dict(manifest_commands, ("manifest", "get", "data_model_labels")),
 )
 @click.pass_obj

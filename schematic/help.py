@@ -12,8 +12,7 @@ DATA_MODEL_LABELS_DICT = {
     "class_label": "default, use standard class or property label.",
 }
 # Ensure that all DisplayLabelTypes have a description
-for item in get_args(DisplayLabelType):
-    assert item in DATA_MODEL_LABELS_DICT
+assert sorted(DATA_MODEL_LABELS_DICT.keys()) == sorted(get_args(DisplayLabelType))
 
 # Combine each label and its description into one string
 DATA_MODEL_LABELS_LIST = [
