@@ -83,6 +83,12 @@ def validation_rule_info() -> (
             "complementary_rules": None,
             "default_message_level": "warning",
         },
+        "matchUnique": {
+            "arguments": (3, 2),
+            "type": "cross_validation",
+            "complementary_rules": None,
+            "default_message_level": "warning",
+        },
         "recommended": {
             "arguments": (1, 0),
             "type": "content_validation",

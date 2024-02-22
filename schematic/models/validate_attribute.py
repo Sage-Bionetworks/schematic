@@ -421,6 +421,8 @@ class GenerateError:
             elif val_rule.__contains__("value"):
                 cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
 
+        elif val_rule.__contains__("matchUnique"):
+            breakpoint()
         logLevel(cross_error_str)
         error_row = row_num  # index row of the manifest where the error presented.
         error_col = attribute_name  # Attribute name
@@ -618,7 +620,6 @@ class ValidateAttribute(object):
                 ):
                     target_manifest_IDs.append(target_dataset[1][0])
                     target_dataset_IDs.append(target_dataset[0][0])
-
         logger.debug(
             f"Cross manifest gathering elapsed time {perf_counter()-t_manifest_search}"
         )
@@ -971,6 +972,7 @@ class ValidateAttribute(object):
         missing_values = {}
         missing_manifest_log = {}
         present_manifest_log = []
+        total_target_manifest_entries = 0
         target_column = pd.Series(dtype=object)
         # parse sources and targets
         source_attribute = manifest_col.name
@@ -1010,6 +1012,8 @@ class ValidateAttribute(object):
                     # Do the validation on both columns
                     missing_values = manifest_col[~manifest_col.isin(target_column)]
 
+                    # Count the number of entries
+                    total_target_manifest_entries += len(target_column)
                     if missing_values.empty:
                         present_manifest_log.append(target_manifest_ID)
                     else:
@@ -1081,6 +1085,8 @@ class ValidateAttribute(object):
                     errors.append(vr_errors)
                 if vr_warnings:
                     warnings.append(vr_warnings)
+            elif val_rule.__contains__("matchUnique") and duplicated_values.any():
+                breakpoint()
 
         # generate warnings if necessary
         elif scope.__contains__("set"):
@@ -1123,6 +1129,11 @@ class ValidateAttribute(object):
                     errors.append(vr_errors)
                 if vr_warnings:
                     warnings.append(vr_warnings)
+            elif val_rule.__contains__("matchUnique"):
+                for mml_values in missing_manifest_log.values():
+                    total_values = len(mml_values)
+                if len(total_target_manifest_entries) != total_values:
+                    breakpoint()
 
         logger.debug(
             f"cross manifest validation time {perf_counter()-t_cross_manifest}"

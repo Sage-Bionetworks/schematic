@@ -116,6 +116,7 @@ class ValidateManifest(object):
             "regex.*",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
+            "matchUnique.*"
         ]
 
         in_house_rules = [
@@ -128,6 +129,7 @@ class ValidateManifest(object):
             "list",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
+            "matchUnique.*"
         ]
 
         # initialize error and warning handling lists.
@@ -216,9 +218,12 @@ class ValidateManifest(object):
 
                     t_indiv_rule = perf_counter()
                     # Validate for each individual validation rule.
-                    validation_method = getattr(
-                        ValidateAttribute, validation_types[validation_type]["type"]
-                    )
+                    try:
+                        validation_method = getattr(
+                            ValidateAttribute, validation_types[validation_type]["type"]
+                        )
+                    except:
+                        breakpoint()
 
                     if validation_type == "list":
                         vr_errors, vr_warnings, manifest_col = validation_method(
