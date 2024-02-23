@@ -7,7 +7,7 @@ name: Test schematic
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'develop-fix-workflow']
   pull_request:
     branches: ['*']
   workflow_dispatch:  # Allow manually triggering the workflow
@@ -66,17 +66,11 @@ jobs:
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       #----------------------------------------------
-      #    install your root project
-      #----------------------------------------------      
-      - name: Install library
-        run: poetry install --only-root
-
-      #----------------------------------------------
-      # install dependencies if cache does not exist 
+      # install dependencies and root project
       #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --all-extras --no-root
+        run: poetry install --no-interaction --all-extras
 
       #----------------------------------------------
       #             perform linting
