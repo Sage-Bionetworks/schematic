@@ -7,7 +7,7 @@ name: Test schematic
 
 on:
   push:
-    branches: ['main', 'develop-fix-workflow']
+    branches: ['main']
   pull_request:
     branches: ['*']
   workflow_dispatch:  # Allow manually triggering the workflow
@@ -68,7 +68,7 @@ jobs:
       #----------------------------------------------
       # install dependencies and root project
       #----------------------------------------------
-      - name: Install dependencies
+      - name: Install dependencies and root project
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --all-extras
 
