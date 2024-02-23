@@ -6,12 +6,14 @@ import logging
 import sys
 import time
 import re
+from typing import get_args
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_validator import DataModelValidator
 from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
 
+from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.cli_utils import query_dict
 from schematic.utils.schema_utils import export_schema
 from schematic.help import schema_commands
@@ -45,7 +47,7 @@ def schema():  # use as `schematic model ...`
     "--data_model_labels",
     "-dml",
     default="class_label",
-    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
+    type=click.Choice(list(get_args(DisplayLabelType)), case_sensitive=True),
     help=query_dict(schema_commands, ("schema", "convert", "data_model_labels")),
 )
 @click.option(
