@@ -54,17 +54,11 @@ jobs:
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       #----------------------------------------------
-      # install dependencies if cache does not exist
+      # install dependencies and root project
       #----------------------------------------------
-      - name: Install dependencies
+      - name: Install dependencies and root project
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root --all-extras
-
-      #----------------------------------------------
-      #    install your root project, if required
-      #----------------------------------------------
-      - name: Install library
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --all-extras
 
       #----------------------------------------------
       #              run API test suite
