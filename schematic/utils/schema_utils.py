@@ -417,9 +417,7 @@ def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, d
             validation_rule_string=validation_rules[0]
         )
     # Parse rules that are set across *all* components/manifests
-    return parse_single_set_validation_rules(
-        validation_rule_string=validation_rules[0]
-    )
+    return parse_single_set_validation_rules(validation_rule_string=validation_rules[0])
 
 
 def extract_component_validation_rules(
