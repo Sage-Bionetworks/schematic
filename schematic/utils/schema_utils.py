@@ -21,13 +21,13 @@ RULE_DELIMITER = "::"
 
 
 def attr_dict_template(key_name: str) -> dict[str, dict[str, dict]]:
-    """_summary_
+    """Create a single empty attribute_dict template.
 
     Args:
-        key_name (str): _description_
+        key_name (str): Attribute/node to use as the key in the dict.
 
     Returns:
-        dict[str, dict[str, dict]]: _description_
+        dict[str, dict[str, dict]]: template single empty attribute_relationships dictionary
     """
     return {key_name: {"Relationships": {}}}
 
@@ -313,8 +313,8 @@ def check_for_duplicate_components(
     Error Logged if a component name is duplicated.
 
     Args:
-        component_names (list[str]): _description_
-        validation_rule_string (str): _description_
+        component_names (list[str]): list of components identified in the validation rule
+        validation_rule_string (str): validation rule, used if error needs to be raised.
     """
     duplicated_entries = [cn for cn in component_names if component_names.count(cn) > 1]
     if duplicated_entries:
@@ -392,24 +392,23 @@ def parse_single_set_validation_rules(validation_rule_string: str) -> list[str]:
     return validation_rule_string.split(RULE_DELIMITER)
 
 
-def parse_validation_rules(validation_rules: Any) -> Optional[Union[list, dict]]:
+def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, dict]:
     """Split multiple validation rules based on :: delimiter
-    Args:
-        validation_rules, Any[List[str], Dict]: List or Dictionary of validation rules,
-            if list, contains a string validation rule; if dictionary, key is the component the
-            rule (value) is applied to
-    Returns:
-        validation_rules, Union[list,dict]: Parsed validation rules, component rules are output
-          as a dictionary, single sets are a list.
-    Raises:
-        Error Logged if Rule is not formatted properly
-    """
 
+    Args:
+        validation_rules (Union[list, dict]): List or Dictionary of validation rules,
+            if list:, contains a string validation rule
+            if dict:, key is the component the rule (value) is applied to
+
+    Returns:
+        Union[list, dict]: Parsed validation rules, component rules are output
+          as a dictionary, single sets are a list.
+    """
     if isinstance(validation_rules, dict):
         # Rules pulled in as a dict can be used directly
         return validation_rules
 
-    if isinstance(validation_rules, list):
+    else:
         # If rules are already parsed from the JSONLD
         if len(validation_rules) > 1 and isinstance(validation_rules[-1], str):
             return validation_rules
@@ -422,8 +421,6 @@ def parse_validation_rules(validation_rules: Any) -> Optional[Union[list, dict]]
         return parse_single_set_validation_rules(
             validation_rule_string=validation_rules[0]
         )
-
-    return None
 
 
 def extract_component_validation_rules(
