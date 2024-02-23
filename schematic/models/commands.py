@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from typing import get_args
 from gc import callbacks
 import logging
 import sys
@@ -20,6 +21,7 @@ from schematic.utils.cli_utils import (
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
 from schematic.configuration.configuration import CONFIG
+from schematic.utils.schema_utils import DisplayLabelType
 
 logger = logging.getLogger("schematic")
 click_log.basic_config(logger)
@@ -112,7 +114,7 @@ def model(ctx, config):  # use as `schematic model ...`
     "--data_model_labels",
     "-dml",
     default="class_label",
-    type=click.Choice(["display_label", "class_label"], case_sensitive=True),
+    type=click.Choice(list(get_args(DisplayLabelType)), case_sensitive=True),
     help=query_dict(model_commands, ("model", "submit", "data_model_labels")),
 )
 @click.option(
