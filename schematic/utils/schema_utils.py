@@ -5,7 +5,7 @@
 import json
 import logging
 import string
-from typing import Literal, Union, Optional, Any
+from typing import Literal, Union, Optional
 
 import inflection
 
@@ -408,19 +408,18 @@ def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, d
         # Rules pulled in as a dict can be used directly
         return validation_rules
 
-    else:
-        # If rules are already parsed from the JSONLD
-        if len(validation_rules) > 1 and isinstance(validation_rules[-1], str):
-            return validation_rules
-        # Parse rules set for a subset of components/manifests
-        if COMPONENT_RULES_DELIMITER in validation_rules[0]:
-            return parse_component_validation_rules(
-                validation_rule_string=validation_rules[0]
-            )
-        # Parse rules that are set across *all* components/manifests
-        return parse_single_set_validation_rules(
+    # If rules are already parsed from the JSONLD
+    if len(validation_rules) > 1 and isinstance(validation_rules[-1], str):
+        return validation_rules
+    # Parse rules set for a subset of components/manifests
+    if COMPONENT_RULES_DELIMITER in validation_rules[0]:
+        return parse_component_validation_rules(
             validation_rule_string=validation_rules[0]
         )
+    # Parse rules that are set across *all* components/manifests
+    return parse_single_set_validation_rules(
+        validation_rule_string=validation_rules[0]
+    )
 
 
 def extract_component_validation_rules(
