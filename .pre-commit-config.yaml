@@ -11,7 +11,3 @@ repos:
         # https://pre-commit.com/#top_level-default_language_version
         language_version: python3.10
         files: schematic/
-  - repo: meta
-    hooks:
-      - id: identity
-        files: schematic/
