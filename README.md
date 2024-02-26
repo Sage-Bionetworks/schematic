@@ -189,6 +189,13 @@ Most Google sheet functionality could be authenticated with service account. How
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
 
+8. Set up pre-commit hooks
+
+This repository is configured to utilize pre-commit hooks as part of the development process. To enable these hooks, please run the following command and look for the following success message:
+```
+$ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+```
 
 ### Development process instruction
 
