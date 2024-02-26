@@ -67,7 +67,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         # Initialize AttributesExplorer
         self.attributes_explorer = AttributesExplorer(
-            self.path_to_json_ld, data_model_labels
+            self.path_to_json_ld, data_model_labels, data_model_grapher = data_model_grapher, data_model_graph_explorer = self.dmge, parsed_data_model = parsed_data_model
         )
 
         # Create output paths.

@@ -8,6 +8,7 @@ import pandas as pd
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from typing import Any, Dict
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.utils.io_utils import load_json
 
@@ -21,27 +22,33 @@ class AttributesExplorer:
         self,
         path_to_jsonld: str,
         data_model_labels: str,
+        data_model_grapher: DataModelGraph = None, 
+        data_model_graph_explorer: DataModelGraphExplorer=None,
+        parsed_data_model: Dict[str, Dict[str, Any]]=None
     ) -> None:
         self.path_to_jsonld = path_to_jsonld
 
         self.jsonld = load_json(self.path_to_jsonld)
 
-        # Instantiate Data Model Parser
-        data_model_parser = DataModelParser(
-            path_to_data_model=self.path_to_jsonld,
-        )
-
         # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
+        if not parsed_data_model:
+            data_model_parser = DataModelParser(
+            path_to_data_model=self.path_to_jsonld,
+        )            
+            parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
+        if not data_model_grapher:
+            data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
         # Generate graph
         self.graph_data_model = data_model_grapher.graph
 
         # Instantiate Data Model Graph Explorer
-        self.dmge = DataModelGraphExplorer(self.graph_data_model)
+        if not data_model_graph_explorer:
+            self.dmge = DataModelGraphExplorer(self.graph_data_model)
+        else:
+            self.dmge = data_model_graph_explorer
 
         # Instantiate Data Model Json Schema
         self.data_model_js = DataModelJSONSchema(
