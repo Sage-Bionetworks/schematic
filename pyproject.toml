@@ -59,7 +59,6 @@ tenacity = "^8.0.1"
 toml = "^0.10.2"
 great-expectations = "^0.15.0"
 sphinx-click = "^4.0.0"
-MarkupSafe = "2.1.0"
 itsdangerous = "^2.0.0"
 openpyxl = "^3.0.9"
 "backports.zoneinfo" = {markers = "python_version < \"3.9\"", version = "^0.2.1"}
