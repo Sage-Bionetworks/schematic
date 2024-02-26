@@ -971,6 +971,7 @@ class ValidateAttribute(object):
         warnings = []
         missing_values = {}
         missing_manifest_log = {}
+        repeat_manifest_log = {}
         present_manifest_log = []
         total_target_manifest_entries = 0
         target_column = pd.Series(dtype=object)
@@ -1011,6 +1012,11 @@ class ValidateAttribute(object):
 
                     # Do the validation on both columns
                     missing_values = manifest_col[~manifest_col.isin(target_column)]
+
+                    repeat_values = manifest_col[~manifest_col.isin(target_column)]
+
+                    if repeat_values:
+                        repeat_manifest_log[target_manifest_ID] = repeat_values
 
                     # Count the number of entries
                     total_target_manifest_entries += len(target_column)
@@ -1130,9 +1136,7 @@ class ValidateAttribute(object):
                 if vr_warnings:
                     warnings.append(vr_warnings)
             elif val_rule.__contains__("matchUnique"):
-                for mml_values in missing_manifest_log.values():
-                    total_values = len(mml_values)
-                if len(total_target_manifest_entries) != total_values:
+                if repeat_manifest_log:
                     breakpoint()
 
         logger.debug(
