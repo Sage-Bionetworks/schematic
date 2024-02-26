@@ -604,7 +604,7 @@ def get_viz_component_attributes_explorer(
 
     attributes_csv = AttributesExplorer(
         data_model, data_model_labels
-    ).parse_component_attributes(
+    )._parse_component_attributes(
         component, save_file=False, include_index=include_index
     )
 
