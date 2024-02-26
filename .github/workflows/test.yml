@@ -66,16 +66,10 @@ jobs:
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       #----------------------------------------------
-      # install dependencies if cache does not exist
+      # install dependencies and root project
       #----------------------------------------------
-      - name: Install dependencies
+      - name: Install dependencies and root project
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root --all-extras
-
-      #----------------------------------------------
-      #    install your root project, if required
-      #----------------------------------------------
-      - name: Install library
         run: poetry install --no-interaction --all-extras
 
       #----------------------------------------------
@@ -107,7 +101,7 @@ jobs:
           # add here when checked
           # poetry run mypy --install-types --non-interactive
           # add here when enforced
-          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
+          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization
 
       #----------------------------------------------
       #             linting
