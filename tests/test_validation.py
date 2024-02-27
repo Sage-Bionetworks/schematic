@@ -504,16 +504,20 @@ class TestManifestValidation:
         if root_node == "Biospecimen":
             assert (
                 vmr_errors
-                and vmr_errors[0][0] == ["2", "3"]
-                and vmr_errors[0][-1] == ["123"]
+                and vmr_errors[0][0] == "2"
+                and vmr_errors[1][0] == "3"
+                and vmr_errors[0][-1] == "123"
+                and vmr_errors[1][-1] == "123"
             )
             assert vmr_warnings == []
         elif root_node == "Patient":
             assert vmr_errors == []
             assert (
                 vmr_warnings
-                and vmr_warnings[0][0] == ["2", "3"]
-                and vmr_warnings[0][-1] == ["123"]
+                and vmr_warnings[0][0] == "2"
+                and vmr_warnings[1][0] == "3"
+                and vmr_warnings[0][-1] == "123"
+                and vmr_warnings[1][-1] == "123"
             )
 
 
