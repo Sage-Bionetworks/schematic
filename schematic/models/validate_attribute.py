@@ -494,7 +494,7 @@ class GenerateError:
         message_logger = getattr(logger, message_level)
         message_logger(error_message)
 
-        if (not isinstance(error_val,list)) and (not pd.isnull(error_val)):
+        if (not isinstance(error_val, list)) and (not pd.isnull(error_val)):
             error_val = str(error_val)
 
         if message_level == "error":
@@ -1056,8 +1056,11 @@ class ValidateAttribute(object):
             ):
                 aggregation_functions = {
                     "missing_values": "first",
-                    "missing_manifest_IDs": ", ".join,
+                    "missing_manifest_IDs": list,
                 }
+                missing_manifests = iterable_to_str_list(
+                    missing_manifest_log["missing_manifest_IDs"].unique()
+                )
                 missing_manifest_log = missing_manifest_log.groupby(
                     "missing_rows"
                 ).aggregate(aggregation_functions)
@@ -1070,7 +1073,7 @@ class ValidateAttribute(object):
                     invalid_entry=iterable_to_str_list(
                         missing_manifest_log["missing_values"]
                     ),
-                    missing_manifest_ID=missing_manifest_IDs,
+                    missing_manifest_ID=missing_manifests,
                     dmge=dmge,
                 )
                 if vr_errors:
