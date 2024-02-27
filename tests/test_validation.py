@@ -74,6 +74,7 @@ class TestManifestValidation:
                             ("missingMetadataModel", "mock_manifests/Valid_Missing_Value_Test_Manifest.csv")], 
                             ids=["full_manifest", "missing_value_manifest"])
     def test_valid_manifest(self, helpers, metadataModelType, manifestPath, request):
+        complete_manifest = "missing" not in manifestPath.lower()
         manifestPath = helpers.get_data_path(manifestPath)
         rootNode = "MockComponent"
 
@@ -84,9 +85,14 @@ class TestManifestValidation:
             rootNode=rootNode,
             project_scope=["syn23643250"],
         )
-
-        assert errors == []
+        
         assert warnings == []
+
+        if complete_manifest:
+            assert errors == []
+        else:
+            assert len(errors) == 1
+            assert "too many rules" in errors[0][-1]
 
     def test_invalid_manifest(self, helpers, dmge, metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
