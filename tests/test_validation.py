@@ -318,7 +318,7 @@ class TestManifestValidation:
             invalid_entry=["71738", "98085", "210065"],
             dmge=dmge,
         )[1]
-        warning_in_list = [cross_warning[1] in warning for warning in warnings]
+        warning_in_list = [cross_warning[1] in warning[1] for warning in warnings]
         assert any(warning_in_list)
 
 
