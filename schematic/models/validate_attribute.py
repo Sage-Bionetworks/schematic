@@ -1013,9 +1013,9 @@ class ValidateAttribute(object):
                     # Do the validation on both columns
                     missing_values = manifest_col[~manifest_col.isin(target_column)]
 
-                    repeat_values = manifest_col[~manifest_col.isin(target_column)]
+                    repeat_values = manifest_col[manifest_col.isin(target_column)]
 
-                    if repeat_values:
+                    if repeat_values.any():
                         repeat_manifest_log[target_manifest_ID] = repeat_values
 
                     # Count the number of entries
@@ -1041,7 +1041,9 @@ class ValidateAttribute(object):
                     # print(target_column)
 
         missing_rows = []
+        repeat_rows = []
         missing_values = []
+        repeat_values = []
 
         if scope.__contains__("value"):
             missing_values = manifest_col[~manifest_col.isin(target_column)]
@@ -1135,8 +1137,28 @@ class ValidateAttribute(object):
                     errors.append(vr_errors)
                 if vr_warnings:
                     warnings.append(vr_warnings)
-            elif val_rule.__contains__("matchUnique"):
-                if repeat_manifest_log:
+            elif val_rule.__contains__("matchUnique") and repeat_manifest_log:
+                repeat_entries = list(repeat_manifest_log.values())
+                repeat_manifest_IDs = list(repeat_manifest_log.keys())
+                for repeat_entry in repeat_entries:
+                    repeat_rows.append(repeat_entry.index[0] + 2)
+                    repeat_values.append(repeat_entry.values[0])
+
+                repeat_rows = iterable_to_str_list(set(repeat_rows))
+                repeat_values = iterable_to_str_list(set(repeat_values))
+
+                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
+                    val_rule=val_rule,
+                    row_num=repeat_rows,
+                    attribute_name=source_attribute,
+                    invalid_entry=repeat_values,
+                    missing_manifest_ID=repeat_manifest_IDs,
+                    dmge=dmge,
+                )
+                if vr_errors:
+                    errors.append(vr_errors)
+                if vr_warnings:
+                    warnings.append(vr_warnings)
                     breakpoint()
 
         logger.debug(
