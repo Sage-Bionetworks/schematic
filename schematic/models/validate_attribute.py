@@ -9,7 +9,6 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
-from pandas._libs.missing import NAType
 from jsonschema import ValidationError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
@@ -683,31 +682,30 @@ class ValidateAttribute(object):
                 manifest_col = parse_str_series_to_list(manifest_col)
 
             for i, row_values in enumerate(manifest_col):
-                if isinstance(row_values, NAType):
-                    continue
-                for j, re_to_check in enumerate(row_values):
-                    re_to_check = str(re_to_check) if re_to_check else None
-                    if not bool(module_to_call(reg_expression, re_to_check)) and bool(
-                        re_to_check
-                    ):
-                        vr_errors, vr_warnings = GenerateError.generate_regex_error(
-                            val_rule=val_rule,
-                            reg_expression=reg_expression,
-                            row_num=str(i + 2),
-                            module_to_call=reg_exp_rules[1],
-                            attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i],
-                            dmge=dmge,
-                        )
-                        if vr_errors:
-                            errors.append(vr_errors)
-                        if vr_warnings:
-                            warnings.append(vr_warnings)
+                if isinstance(row_values, list):
+                    for j, re_to_check in enumerate(row_values):
+                        re_to_check = str(re_to_check) if re_to_check else None
+                        if not bool(module_to_call(reg_expression, re_to_check)) and bool(
+                            re_to_check
+                        ):
+                            vr_errors, vr_warnings = GenerateError.generate_regex_error(
+                                val_rule=val_rule,
+                                reg_expression=reg_expression,
+                                row_num=str(i + 2),
+                                module_to_call=reg_exp_rules[1],
+                                attribute_name=manifest_col.name,
+                                invalid_entry=manifest_col[i],
+                                dmge=dmge,
+                            )
+                            if vr_errors:
+                                errors.append(vr_errors)
+                            if vr_warnings:
+                                warnings.append(vr_warnings)
 
         # Validating single re's
         else:
             for i, re_to_check in enumerate(manifest_col):
-                if not isinstance(re_to_check, NAType):
+                if isinstance(re_to_check, (str, np.int64, float)):
                     if not bool(module_to_call(reg_expression, str(re_to_check))):
                         vr_errors, vr_warnings = GenerateError.generate_regex_error(
                             val_rule=val_rule,
