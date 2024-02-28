@@ -118,8 +118,7 @@ def convert_ints(string: str) -> Union[np.int64, bool]:
 
     if isinstance(string, str) and str.isdigit(string):
         return np.int64(string)
-    else:
-        return False
+    return False
 
 
 def convert_floats(dataframe: pd.DataFrame) -> pd.DataFrame:
