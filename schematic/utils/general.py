@@ -66,14 +66,17 @@ def str2list(item: Any) -> Optional[list]:
     return None
 
 
-def unlist(seq: Sequence) -> Any:
+X = TypeVar("X")
+
+
+def unlist(seq: Sequence[X]) -> Union[Sequence[X], X]:
     """Returns the first item of a sequence
 
     Args:
-        seq (Sequence): Any sequence
+        seq (Sequence[X]): A Sequence of any type
 
     Returns:
-        Any:
+        Union[Sequence[X], X]:
           if sequence is length one, return the first item
           otherwise return the sequence
     """
@@ -151,12 +154,12 @@ def check_synapse_cache_size(
         size_in_mb = float(size.rstrip("M"))
         byte_size = size_in_mb * 1000000
     elif "G" in size:
-        size_in_gb = float(size.rstrip("G"))
+        size_in_gb = int(size.rstrip("G"))
         byte_size = convert_gb_to_bytes(size_in_gb)
     elif "B" in size:
         byte_size = float(size.rstrip("B"))
     else:
-        logger.error("Cannot recongize the file size unit")
+        logger.error("Cannot recognize the file size unit")
     return byte_size
 
 
@@ -275,9 +278,9 @@ def profile(
         Callable: Profile of the decorated function
     """
 
-    def inner(func):
+    def inner(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Callable:
             _output_file = output_file or func.__name__ + ".prof"
             profiler = Profile()
             profiler.enable()
@@ -299,7 +302,7 @@ def profile(
                         p_stats.sort_stats(*sort_by)
                     else:
                         p_stats.sort_stats(sort_by)
-                    p_stats.print_stats(lines_to_print)
+                    p_stats.print_stats(lines_to_print)  # type: ignore
             return retval
 
         return wrapper

@@ -81,7 +81,7 @@ WORKDIR ${APP_DIR}
 COPY ./pyproject.toml ./poetry.lock ./main.py ./
 COPY ./config_example.yml ./config.yml
 RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --no-ansi --no-root --with aws
+RUN poetry install --no-interaction --all-extras --no-root
 
 # copy schematic_api folder
 COPY  schematic_api ./schematic_api
