@@ -24,9 +24,9 @@ class AttributesExplorer:
         self,
         path_to_jsonld: str,
         data_model_labels: DisplayLabelType,
-        data_model_grapher: DataModelGraph = None, 
-        data_model_graph_explorer: DataModelGraphExplorer=None,
-        parsed_data_model: Dict[str, Dict[str, Any]]=None
+        data_model_grapher: DataModelGraph = None,
+        data_model_graph_explorer: DataModelGraphExplorer = None,
+        parsed_data_model: Dict[str, Dict[str, Any]] = None,
     ) -> None:
         self.path_to_jsonld = path_to_jsonld
 
@@ -35,8 +35,8 @@ class AttributesExplorer:
         # Parse Model
         if not parsed_data_model:
             data_model_parser = DataModelParser(
-            path_to_data_model=self.path_to_jsonld,
-        )            
+                path_to_data_model=self.path_to_jsonld,
+            )
             parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
