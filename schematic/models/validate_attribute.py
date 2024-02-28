@@ -685,9 +685,9 @@ class ValidateAttribute(object):
                 if isinstance(row_values, list):
                     for j, re_to_check in enumerate(row_values):
                         re_to_check = str(re_to_check) if re_to_check else None
-                        if not bool(module_to_call(reg_expression, re_to_check)) and bool(
-                            re_to_check
-                        ):
+                        if not bool(
+                            module_to_call(reg_expression, re_to_check)
+                        ) and bool(re_to_check):
                             vr_errors, vr_warnings = GenerateError.generate_regex_error(
                                 val_rule=val_rule,
                                 reg_expression=reg_expression,
