@@ -154,7 +154,7 @@ def get_manifest(
 
     # Generate graph
     logger.info("Generating data model graph.")
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator

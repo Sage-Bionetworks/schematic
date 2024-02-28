@@ -31,7 +31,7 @@ def graph_data_model_func(helpers, data_model_name):
     data_model_grapher = DataModelGraph(parsed_data_model)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     return graph_data_model
 
