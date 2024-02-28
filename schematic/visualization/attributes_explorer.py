@@ -2,14 +2,12 @@
 import json
 import logging
 import os
-from typing import Optional, no_type_check
-
+from typing import Optional, no_type_check, Any, Dict
 import numpy as np
 import pandas as pd
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from typing import Any, Dict
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.io_utils import load_json
@@ -24,9 +22,9 @@ class AttributesExplorer:
         self,
         path_to_jsonld: str,
         data_model_labels: DisplayLabelType,
-        data_model_grapher: DataModelGraph = None,
-        data_model_graph_explorer: DataModelGraphExplorer = None,
-        parsed_data_model: Dict[str, Dict[str, Any]] = None,
+        data_model_grapher: Optional[DataModelGraph] = None,
+        data_model_graph_explorer: Optional[DataModelGraphExplorer] = None,
+        parsed_data_model: Optional[dict] = None,
     ) -> None:
         self.path_to_jsonld = path_to_jsonld
 
