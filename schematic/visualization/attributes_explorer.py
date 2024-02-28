@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 class AttributesExplorer:
     """AttributesExplorer class"""
 
+    # pylint: disable=R0913
     def __init__(
         self,
         path_to_jsonld: str,
