@@ -115,13 +115,11 @@ def convert_ints(string: str) -> Union[np.int64, bool]:
     Returns:
         string converted to type int if possible, otherwise False
     """
-    str_is_digit = False
 
-    cell_is_str = isinstance(string, str)
-    if cell_is_str:
-        str_is_digit = str.isdigit(string)
-
-    return np.int64(string) if (cell_is_str and str_is_digit) else False
+    if isinstance(string, str) and str.isdigit(string):
+        return np.int64(string)
+    else:
+        return False
 
 
 def convert_floats(dataframe: pd.DataFrame) -> pd.DataFrame:
