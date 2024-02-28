@@ -506,6 +506,10 @@ class GreatExpectationsHelpers(object):
                             if rule.startswith("protectAges"):
                                 self.censor_ages(vr_warnings, errColumn)
 
+                        # Only log one message per recommended column
+                        if rule.lower() == "recommended":
+                            break
+
         return errors, warnings
 
     def get_age_limits(
