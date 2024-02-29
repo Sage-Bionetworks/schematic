@@ -180,3 +180,4 @@ manifests/*
 
 # schematic config file
 config.yml
+tests/data/mock_manifests/Invalid_Missing_Value_Test_Manifest_censored.csv
