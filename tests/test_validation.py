@@ -93,10 +93,17 @@ class TestManifestValidation:
         else:
             assert len(errors) == 1
             assert "too many rules" in errors[0][-1]
-
-    def test_invalid_manifest(self, helpers, dmge, metadataModel):
-        manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
+    
+    @pytest.mark.parametrize("metadataModelType, manifestPath", 
+                            [("metadataModel", "mock_manifests/Invalid_Test_Manifest.csv"), 
+                            ("missingMetadataModel", "mock_manifests/Invalid_Missing_Value_Test_Manifest.csv")], 
+                            ids=["full_manifest", "missing_value_manifest"])
+    def test_invalid_manifest(self, helpers, dmge, metadataModelType, manifestPath, request):
+        complete_manifest = "missing" not in manifestPath.lower()
+        manifestPath = helpers.get_data_path(manifestPath)
         rootNode = "MockComponent"
+
+        metadataModel = request.getfixturevalue(metadataModelType)
 
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
@@ -303,29 +310,30 @@ class TestManifestValidation:
                 dmge=dmge,
             )[1] in warnings
 
-        assert \
-            GenerateError.generate_cross_warning(
-                val_rule="matchExactlyOne",
-                attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862078", "syn27648165"],
-                dmge=dmge,
-            )[1] in warnings \
-            or GenerateError.generate_cross_warning(
-                val_rule="matchExactlyOne",
-                attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862066", "syn27648165"],
-                dmge=dmge,
-            )[1] in warnings
+        if complete_manifest:
+            assert \
+                GenerateError.generate_cross_warning(
+                    val_rule="matchExactlyOne",
+                    attribute_name="Check Match Exactly",
+                    matching_manifests=["syn29862078", "syn27648165"],
+                    dmge=dmge,
+                )[1] in warnings \
+                or GenerateError.generate_cross_warning(
+                    val_rule="matchExactlyOne",
+                    attribute_name="Check Match Exactly",
+                    matching_manifests=["syn29862066", "syn27648165"],
+                    dmge=dmge,
+                )[1] in warnings
 
-        cross_warning = GenerateError.generate_cross_warning(
-            val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
-            row_num=["2", "3", "4"],
-            attribute_name="Check Match Exactly values",
-            invalid_entry=["71738", "98085", "210065"],
-            dmge=dmge,
-        )[1]
-        warning_in_list = [cross_warning[1] in warning[1] for warning in warnings]
-        assert any(warning_in_list)
+            cross_warning = GenerateError.generate_cross_warning(
+                val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
+                row_num=["2", "3", "4"],
+                attribute_name="Check Match Exactly values",
+                invalid_entry=["71738", "98085", "210065"],
+                dmge=dmge,
+            )[1]
+            warning_in_list = [cross_warning[1] in warning[1] for warning in warnings]
+            assert any(warning_in_list)
 
 
     def test_in_house_validation(self, helpers, dmge, metadataModel):
