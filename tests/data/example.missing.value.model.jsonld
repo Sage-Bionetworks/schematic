@@ -970,7 +970,7 @@
             "sms:displayName": "Check List",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "list strict",
+                "list strict error",
                 "IsNa"
             ]
         },
@@ -1071,7 +1071,7 @@
             "sms:displayName": "Check Num",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "num",
+                "num error",
                 "IsNa"
             ]
         },
@@ -1350,7 +1350,7 @@
             "sms:displayName": "Check NA",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "int",
+                "int error",
                 "IsNA"
             ]
         },
