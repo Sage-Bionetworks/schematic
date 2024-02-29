@@ -421,12 +421,6 @@ class GenerateError:
         col_is_required = dmge.get_node_required(node_display_name=error_col)
         rules_include_na_modifier = rule_in_rule_list("IsNA", validation_rule_list)
 
-        if specified_level:
-            return specified_level
-
-        if rule_name.lower() == "isna":
-            return None
-
         if isinstance(error_val, str):
             error_val_is_na = error_val.lower() in not_applicable_strings
         elif isinstance(error_val, list):
@@ -437,6 +431,12 @@ class GenerateError:
             error_val_is_na = False
 
         if error_val_is_na and rules_include_na_modifier:
+            return None
+
+        if specified_level:
+            return specified_level
+
+        if rule_name.lower() == "isna":
             return None
 
         if is_schema_error:
