@@ -21,24 +21,24 @@ Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
 Genome FASTA,,,,,TRUE,DataProperty,,,
 MockComponent,,,"Component, Check List, Check Regex List, Check Regex Single, Check Regex Format, Check Regex Integer, Check Num, Check Float, Check Int, Check String, Check URL,Check Match at Least, Check Match at Least values, Check Match Exactly, Check Match Exactly values, Check Recommended, Check Ages, Check Unique, Check Range, Check Date, Check NA",,FALSE,DataType,,,
 Check List,,"ab, cd, ef, gh",,,FALSE,DataProperty,,,list strict error::IsNa 
-Check Regex List,,,,,FALSE,DataProperty,,,list strict::regex match [a-f]::IsNa 
-Check Regex Single,,,,,FALSE,DataProperty,,,regex search [a-f]::IsNa 
-Check Regex Format,,,,,FALSE,DataProperty,,,regex match [a-f]::IsNa 
-Check Regex Integer,,,,,FALSE,DataProperty,,,regex search ^\d+$::IsNa 
+Check Regex List,,,,,FALSE,DataProperty,,,list strict error::regex match [a-f] error::IsNa 
+Check Regex Single,,,,,FALSE,DataProperty,,,regex search [a-f] error::IsNa 
+Check Regex Format,,,,,FALSE,DataProperty,,,regex match [a-f] error::IsNa 
+Check Regex Integer,,,,,FALSE,DataProperty,,,regex search ^\d+$ error::IsNa 
 Check Num,,,,,FALSE,DataProperty,,,num error::IsNa 
-Check Float,,,,,FALSE,DataProperty,,,float::IsNa 
-Check Int,,,,,FALSE,DataProperty,,,int::IsNa 
-Check String,,,,,FALSE,DataProperty,,,str::IsNa 
-Check URL,,,,,FALSE,DataProperty,,,url::IsNa 
-Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne Patient.PatientID set::IsNa 
-Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set::IsNa 
-Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value::IsNa 
-Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues value::IsNa 
+Check Float,,,,,FALSE,DataProperty,,,float error::IsNa 
+Check Int,,,,,FALSE,DataProperty,,,int error::IsNa 
+Check String,,,,,FALSE,DataProperty,,,str error::IsNa 
+Check URL,,,,,FALSE,DataProperty,,,url error::IsNa 
+Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne Patient.PatientID set warning::IsNa 
+Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set warning::IsNa 
+Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value warning::IsNa 
+Check Match Exactly values,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactlyvalues value warning::IsNa 
 Check Recommended,,,,,FALSE,DataProperty,,,recommended
-Check Ages,,,,,FALSE,DataProperty,,,protectAges::IsNa 
+Check Ages,,,,,FALSE,DataProperty,,,protectAges warning::IsNa 
 Check Unique,,,,,FALSE,DataProperty,,,unique error::IsNa 
 Check Range,,,,,FALSE,DataProperty,,,inRange 50 100 error::IsNa 
-Check Date,,,,,FALSE,DataProperty,,,date::IsNa 
+Check Date,,,,,FALSE,DataProperty,,,date error::IsNa 
 Check NA,,,,,FALSE,DataProperty,,,int error::IsNA
 Check OptionalAge,,,,,FALSE,DataProperty,,,protectAges error::IsNa 
 MockRDB,,,"Component, MockRDB_id, SourceManifest",,FALSE,DataType,,,
