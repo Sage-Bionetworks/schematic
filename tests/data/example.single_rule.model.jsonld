@@ -1139,7 +1139,7 @@
             "sms:displayName": "Check URL",
             "sms:required": "sms:false",
             "sms:validationRules": [
-                "url error"
+                "url"
             ]
         },
         {
