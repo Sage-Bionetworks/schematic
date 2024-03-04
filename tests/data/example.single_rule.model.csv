@@ -29,7 +29,7 @@ Check Num,,,,,FALSE,DataProperty,,,num error
 Check Float,,,,,FALSE,DataProperty,,,float error
 Check Int,,,,,FALSE,DataProperty,,,int error
 Check String,,,,,FALSE,DataProperty,,,str error
-Check URL,,,,,FALSE,DataProperty,,,url error
+Check URL,,,,,FALSE,DataProperty,,,url
 Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne Patient.PatientID set  warning
 Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne warning MockComponent.checkMatchExactly set  warning
 Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value  warning
