@@ -70,9 +70,12 @@ class TestManifestValidation:
         os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
     @pytest.mark.parametrize("metadataModelType, manifestPath", 
-                            [("metadataModel", "mock_manifests/Valid_Test_Manifest.csv"), 
-                            ("missingMetadataModel", "mock_manifests/Valid_Missing_Value_Test_Manifest.csv")], 
-                            ids=["full_manifest", "missing_value_manifest"])
+                            [
+                                ("metadataModel", "mock_manifests/Valid_Test_Manifest.csv"), 
+                                ("missingMetadataModel", "mock_manifests/Valid_Missing_Value_Test_Manifest.csv")], 
+                            ids=
+                            [   "full_manifest", 
+                                "missing_value_manifest"])
     def test_valid_manifest(self, helpers, metadataModelType, manifestPath, request):
         complete_manifest = "missing" not in manifestPath.lower()
         manifestPath = helpers.get_data_path(manifestPath)
