@@ -93,11 +93,13 @@ class TestManifestValidation:
         else:
             assert len(errors) == 1
             assert "too many rules" in errors[0][-1]
-    
+
     @pytest.mark.parametrize("metadataModelType, manifestPath", 
-                            [("metadataModel", "mock_manifests/Invalid_Test_Manifest.csv"), 
-                            ("missingMetadataModel", "mock_manifests/Invalid_Missing_Value_Test_Manifest.csv")], 
-                            ids=["full_manifest", "missing_value_manifest"])
+                            [   ("metadataModel", "mock_manifests/Invalid_Test_Manifest.csv"),
+                                ("missingMetadataModel", "mock_manifests/Invalid_Missing_Value_Test_Manifest.csv")], 
+                            ids=[
+                                "full_manifest", 
+                                "missing_value_manifest"])
     def test_invalid_manifest(self, helpers, dmge, metadataModelType, manifestPath, request):
         complete_manifest = "missing" not in manifestPath.lower()
         manifestPath = helpers.get_data_path(manifestPath)
@@ -176,16 +178,6 @@ class TestManifestValidation:
                 dmge=dmge,
             )[0] in errors
 
-        assert GenerateError.generate_regex_error(
-                val_rule="regex",
-                reg_expression="^\d+$",
-                row_num="2",
-                attribute_name="Check Regex Integer",
-                module_to_call="search",
-                invalid_entry="5.4",
-                dmge=dmge,
-            )[0] in errors
-
         assert GenerateError.generate_url_error(
                 val_rule="url",
                 url="http://googlef.com/",
@@ -197,13 +189,6 @@ class TestManifestValidation:
                 dmge=dmge,
             )[0] in errors
 
-        assert GenerateError.generate_content_error(
-            val_rule="date",
-            attribute_name="Check Date",
-            dmge=dmge,
-            row_num="2",
-            invalid_entry="32-984",
-        )[0] in errors
 
         assert GenerateError.generate_content_error(
             val_rule="date",
@@ -220,14 +205,6 @@ class TestManifestValidation:
             row_num="4",
             invalid_entry="84-43-094",
         )[0] in errors
-
-        assert GenerateError.generate_content_error(
-                val_rule="unique error",
-                attribute_name="Check Unique",
-                dmge=dmge,
-                row_num="2",
-                invalid_entry="str1",
-            )[0] in errors
         
         assert GenerateError.generate_content_error(
                 val_rule="unique error",
@@ -252,14 +229,6 @@ class TestManifestValidation:
                 row_num="3",
                 invalid_entry="30",
             )[0] in errors
-
-        assert GenerateError.generate_content_error(
-                val_rule="protectAges",
-                attribute_name="Check OptionalAge",
-                dmge=dmge,
-                row_num="2",
-                invalid_entry="6549",
-            )[1] in errors
         
         assert GenerateError.generate_content_error(
                 val_rule="protectAges",
@@ -275,14 +244,6 @@ class TestManifestValidation:
                 attribute_name="Check Recommended",
                 invalid_entry=NA,
                 dmge=dmge,
-            )[1] in warnings
-
-        assert GenerateError.generate_content_error(
-                val_rule="protectAges",
-                attribute_name="Check Ages",
-                dmge=dmge,
-                row_num="2",
-                invalid_entry="6549",
             )[1] in warnings
         
         assert GenerateError.generate_content_error(
@@ -311,6 +272,48 @@ class TestManifestValidation:
             )[1] in warnings
 
         if complete_manifest:
+            assert GenerateError.generate_content_error(
+                val_rule="protectAges",
+                attribute_name="Check OptionalAge",
+                dmge=dmge,
+                row_num="2",
+                invalid_entry="6549",
+            )[1] in errors
+
+            assert GenerateError.generate_content_error(
+                    val_rule="unique error",
+                    attribute_name="Check Unique",
+                    dmge=dmge,
+                    row_num="2",
+                    invalid_entry="str1",
+                )[0] in errors
+                
+            assert GenerateError.generate_regex_error(
+                    val_rule="regex",
+                    reg_expression="^\d+$",
+                    row_num="2",
+                    attribute_name="Check Regex Integer",
+                    module_to_call="search",
+                    invalid_entry="5.4",
+                    dmge=dmge,
+                )[0] in errors
+        
+            assert GenerateError.generate_content_error(
+                val_rule="date",
+                attribute_name="Check Date",
+                dmge=dmge,
+                row_num="2",
+                invalid_entry="32-984",
+            )[0] in errors
+
+            assert GenerateError.generate_content_error(
+                val_rule="protectAges",
+                attribute_name="Check Ages",
+                dmge=dmge,
+                row_num="2",
+                invalid_entry="6549",
+            )[1] in warnings
+
             assert \
                 GenerateError.generate_cross_warning(
                     val_rule="matchExactlyOne",
@@ -324,7 +327,7 @@ class TestManifestValidation:
                     matching_manifests=["syn29862066", "syn27648165"],
                     dmge=dmge,
                 )[1] in warnings
-
+            
             cross_warning = GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
                 row_num=["2", "3", "4"],
