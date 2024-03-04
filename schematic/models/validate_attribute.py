@@ -171,9 +171,11 @@ class GenerateError:
         warnings: list[str] Warning details for further storage.
         """
 
+        base_rule = val_rule.split(" ")[0]
+
         error_message = (
             f"On row {row_num} the attribute {attribute_name} "
-            f"does not contain the proper value type {val_rule}."
+            f"does not contain the proper value type {base_rule}."
         )
 
         error_list, warning_list = GenerateError.raise_and_store_message(
