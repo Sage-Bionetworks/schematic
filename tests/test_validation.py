@@ -181,18 +181,6 @@ class TestManifestValidation:
                 dmge=dmge,
             )[0] in errors
 
-        assert GenerateError.generate_url_error(
-                val_rule="url",
-                url="http://googlef.com/",
-                url_error="invalid_url",
-                row_num="3",
-                attribute_name="Check URL",
-                argument=None,
-                invalid_entry="http://googlef.com/",
-                dmge=dmge,
-            )[0] in errors
-
-
         assert GenerateError.generate_content_error(
             val_rule="date",
             attribute_name="Check Date",
@@ -275,6 +263,19 @@ class TestManifestValidation:
             )[1] in warnings
 
         if complete_manifest:
+
+            # this rule is only here becasuse of a bug, should be moved back to main section after resolution of FDS-1825
+            assert GenerateError.generate_url_error(
+                val_rule="url",
+                url="http://googlef.com/",
+                url_error="invalid_url",
+                row_num="3",
+                attribute_name="Check URL",
+                argument=None,
+                invalid_entry="http://googlef.com/",
+                dmge=dmge,
+            )[0] in errors
+
             assert GenerateError.generate_content_error(
                 val_rule="protectAges",
                 attribute_name="Check OptionalAge",
