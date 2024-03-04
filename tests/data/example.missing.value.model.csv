@@ -29,7 +29,7 @@ Check Num,,,,,FALSE,DataProperty,,,num error::IsNa
 Check Float,,,,,FALSE,DataProperty,,,float error::IsNa 
 Check Int,,,,,FALSE,DataProperty,,,int error::IsNa 
 Check String,,,,,FALSE,DataProperty,,,str error::IsNa 
-Check URL,,,,,FALSE,DataProperty,,,url error::IsNa 
+Check URL,,,,,FALSE,DataProperty,,,url::IsNa 
 Check Match at Least,,,,,FALSE,DataProperty,,,matchAtLeastOne Patient.PatientID set warning::IsNa 
 Check Match Exactly,,,,,FALSE,DataProperty,,,matchExactlyOne MockComponent.checkMatchExactly set warning::IsNa 
 Check Match at Least values,,,,,FALSE,DataProperty,,,matchAtLeastOne MockComponent.checkMatchatLeastvalues value warning::IsNa 
