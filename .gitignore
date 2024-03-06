@@ -170,6 +170,7 @@ tests/data/example.MockComponent.schema.json
 tests/data/mock_manifests/Invalid_Test_Manifest_censored.csv
 tests/data/mock_manifests/valid_test_manifest_censored.csv
 tests/data/mock_manifests/Rule_Combo_Manifest_censored.csv
+tests/data/mock_manifests/Invalid_Missing_Value_Test_Manifest_censored.csv
 
 # Pickle file
 tests/data/schema.gpickle
@@ -180,4 +181,3 @@ manifests/*
 
 # schematic config file
 config.yml
-tests/data/mock_manifests/Invalid_Missing_Value_Test_Manifest_censored.csv
