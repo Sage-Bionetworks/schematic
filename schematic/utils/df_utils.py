@@ -10,7 +10,7 @@ from typing import Union, Optional
 import dateparser as dp
 import pandas as pd
 import numpy as np
-from pandarallel import pandarallel
+from pandarallel import pandarallel # type: ignore
 
 logger = logging.getLogger(__name__)
 
