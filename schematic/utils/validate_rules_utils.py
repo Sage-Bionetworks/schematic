@@ -15,7 +15,7 @@ class Rule(TypedDict):
     arguments: tuple[int, int]
     type: str
     complementary_rules: Optional[list[str]]
-    default_message_level: str
+    default_message_level: Optional[str]
     fixed_arg: Optional[list[str]]
 
 
