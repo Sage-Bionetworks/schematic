@@ -106,7 +106,7 @@ def get_MockComponent_attribute():
     data_model_grapher = DataModelGraph(parsed_data_model)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     dmge = DataModelGraphExplorer(graph_data_model)
     # sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld")
