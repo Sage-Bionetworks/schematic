@@ -3,7 +3,7 @@ import re
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, Literal
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -61,7 +61,7 @@ class GenerateError:
         list_string: str,
         row_num: str,
         attribute_name: str,
-        list_error: str,
+        list_error: Literal["not_comma_delimited", "not_a_string"],
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
