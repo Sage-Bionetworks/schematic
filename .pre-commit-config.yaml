@@ -1,0 +1,13 @@
+repos:
+  # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
+  # This is recommended by psf/black: https://github.com/psf/black/blob/main/.pre-commit-hooks.yaml
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 23.7.0
+    hooks:
+      - id: black
+        # It is recommended to specify the latest version of Python
+        # supported by your project here, or alternatively use
+        # pre-commit's default_language_version, see
+        # https://pre-commit.com/#top_level-default_language_version
+        language_version: python3.10
+        files: schematic/
