@@ -55,3 +55,17 @@ jobs:
           build-args: |
             TAG=${{ env.RELEASE_VERSION }}
             
+      - name: Lowercase image name for trivy
+        id: string
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ env.IMAGE_PATH }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ steps.string.outputs.lowercase }}:${{ steps.meta.outputs.version }}'
+          format: 'table'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
