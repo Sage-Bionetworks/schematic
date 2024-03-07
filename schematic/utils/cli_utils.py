@@ -32,7 +32,7 @@ def query_dict(dictionary: Mapping[Any, Any], keys: Sequence[Any]) -> Union[Any,
             return None
         return dictionary.get(key)
 
-    return reduce(extract, keys, dictionary)
+    return reduce(extract, keys, dictionary)  # type: ignore
 
 
 def log_value_from_config(arg_name: str, config_value: Any) -> None:

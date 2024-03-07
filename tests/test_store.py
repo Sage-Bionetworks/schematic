@@ -192,7 +192,7 @@ class TestSynapseStorage:
         data_model_grapher = DataModelGraph(parsed_data_model)
 
         # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
+        graph_data_model = data_model_grapher.graph
 
         # Instantiate DataModelGraphExplorer
         dmge = DataModelGraphExplorer(graph_data_model)
@@ -558,7 +558,7 @@ class TestTableOperations:
         data_model_grapher = DataModelGraph(parsed_data_model)
 
         # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
+        graph_data_model = data_model_grapher.graph
 
         # Instantiate DataModelGraphExplorer
         dmge = DataModelGraphExplorer(graph_data_model)
@@ -636,7 +636,7 @@ class TestTableOperations:
         data_model_grapher = DataModelGraph(parsed_data_model)
 
         # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
+        graph_data_model = data_model_grapher.graph
 
         # Instantiate DataModelGraphExplorer
         dmge = DataModelGraphExplorer(graph_data_model)
@@ -740,7 +740,7 @@ class TestTableOperations:
         data_model_grapher = DataModelGraph(parsed_data_model)
 
         # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
+        graph_data_model = data_model_grapher.graph
 
         # Instantiate DataModelGraphExplorer
         dmge = DataModelGraphExplorer(graph_data_model)

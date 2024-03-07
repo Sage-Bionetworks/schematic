@@ -63,7 +63,7 @@ class MetadataModel(object):
         data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
         # Generate graph
-        self.graph_data_model = data_model_grapher.generate_data_model_graph()
+        self.graph_data_model = data_model_grapher.graph
 
         self.dmge = DataModelGraphExplorer(self.graph_data_model)
 
