@@ -242,7 +242,7 @@ def update_df(
 def trim_commas_df(
     dataframe: pd.DataFrame,
     allow_na_values: Optional[bool] = False,
-):
+) -> pd.DataFrame:
     """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
 
     Args:
