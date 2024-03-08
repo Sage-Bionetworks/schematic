@@ -1,0 +1,1454 @@
+openapi: 3.0.0
+info:
+  title: Schematic REST API
+  version: 0.1.0
+  description: >-
+    This service exposes core functionalities from schematic as REST API
+    endpoints
+    
+servers:
+  - url: /v1
+
+components:
+  securitySchemes:
+    access_token:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      x-bearerInfoFunc: schematic_api.api.security_controller_.info_from_bearerAuth
+
+# TO DO: refactor query parameters and remove access_token
+paths:
+  /manifest/generate:
+    get:
+      summary: Endpoint to facilitate manifest generation
+      description: Endpoint to create dynamically create metadata manifest files
+      security:
+        - access_token: []
+        - {}
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: >
+            Title of Manifest or Title Prefix, 
+            if making multiple manifests
+          example: Example
+          required: false
+        - in: query
+          name: data_type
+          style: form
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: true
+          description: >
+            Data Model Component(s). 
+            To make all manifests, enter "all manifests".
+          example: 
+            - Patient
+            - Biospecimen
+          required: true
+        - in: query
+          name: use_annotations
+          schema:
+            type: boolean
+            default: false
+          description: To Use Annotations
+          required: false
+        - in: query
+          name: dataset_id
+          style: form
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: true
+          description: >
+            Dataset ID. If you want to get an existing manifest, this dataset_id should be the parent ID of the manifest. Can enter multiple dataset_ids, corresponding to order of multiple data_types entered above. Do not enter multiple if calling 'all manifests' for data_type.
+          required: false
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: true
+          description: ID of view listing all project data assets. E.g. for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          required: false
+        - in: query
+          name: output_format
+          schema:
+            type: string
+            enum: ["excel", "google_sheet", "dataframe (only if getting existing manifests)"]
+          description: If "excel" gets selected, this approach would avoid sending metadata to Google sheet APIs; if "google_sheet" gets selected, this would return a Google sheet URL. This parameter could potentially override sheet_url parameter. 
+          required: false
+        - in: query
+          name: strict_validation
+          schema:
+            type: boolean
+            default: True
+          description: If using Google Sheets, can set the strictness of Google Sheets regex match validation. True (default) will block users from entering incorrect values, False will throw a warning to users.
+          required: false
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      operationId: schematic_api.api.routes.get_manifest_route
+      responses:
+        "200":
+          description: Googlesheet link created OR an excel file gets returned OR pandas dataframe gets returned
+          content:
+            application/vnd.ms-excel:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: string
+      tags:
+        - Manifest Operations
+  /manifest/download:
+    get:
+      summary: Endpoint to download an existing manifest by using a manifest id
+      description: Endpoint to download an existing manifest by using a manifest id
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: manifest_id
+          schema:
+            type: string
+            nullable: true
+          description: manifest id
+          example: syn51078535
+          required: true
+        - in: query
+          name: new_manifest_name
+          schema:
+            type: string
+            nullable: true
+          description: Fill in if you want to change the filename of the downloaded manifest.
+          required: false
+        - in: query
+          name: as_json
+          schema:
+            type: boolean
+            default: True
+          description: if True return the manifest in JSON format. Default to True
+          required: false
+      operationId: schematic_api.api.routes.download_manifest
+      responses:
+        "200":
+          description: A manifest gets downloaded and local file path of the manifest gets returned.
+          content:
+            text/csv:
+              schema:
+                type: string
+        "403":
+          description: You don't have access to the requested resources. 
+        "500":
+          description: Please check schematic log
+      tags:
+        - Manifest Operations            
+  /dataset/manifest/download:
+    get:
+      summary: Endpoint to download an existing manifest by using a dataset id
+      description: Endpoint to download an existing manifest by using a dataset id
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn28559058
+          required: true
+        - in: query
+          name: dataset_id
+          schema:
+            type: string
+            nullable: true
+          description: this dataset_id should be the parent ID of the manifest.
+          example: syn28268700
+          required: true
+        - in: query
+          name: as_json
+          schema:
+            type: boolean
+            default: false
+          description: if True return the manifest in JSON format
+          required: false
+        - in: query
+          name: new_manifest_name
+          schema:
+            type: string
+            nullable: true
+          description: Fill in if you want to change the filename of the downloaded manifest.
+          required: false
+      operationId: schematic_api.api.routes.download_dataset_manifest
+      responses:
+        "200":
+          description: A manifest gets downloaded and local file path of the manifest gets returned.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Manifest Operations
+  /model/validate:
+    post:
+      summary: Endpoint to facilitate manifest validation
+      description: Endpoint to validate metadata manifest files
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                # file_name will be the field name in
+                # this multipart request
+                file_name:
+                  description: Upload a json or a csv file. 
+                  type: string
+                  format: binary
+      security:
+        - access_token: []
+        - {}
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: data_type
+          schema:
+            type: string
+            nullable: true
+          description: Data Model Component
+          example: Patient
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+        - in: query
+          name: restrict_rules
+          schema:
+            type: boolean
+            default: false
+          description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
+          required: false
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
+          example: '[{
+          "Patient ID": 123,
+          "Sex": "Female",
+          "Year of Birth": "",
+          "Diagnosis": "Healthy",
+          "Component": "Patient",
+          "Cancer Type": "Breast",
+          "Family History": "Breast, Lung",
+          }]'
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project (i.e. master_fileview_id in config_example.yml). Required for validating manifests involving cross-manifest validation.
+          example: syn23643253
+          required: false
+        - in: query
+          name: project_scope
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: false
+          description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse. Relevant for validating manifests involving cross-manifest validation, but optional.
+          example: ['syn23643250', 'syn47218127', 'syn47218347']
+          required: false
+
+      operationId: schematic_api.api.routes.validate_manifest_route
+      responses:
+        "200":
+          description: Manifest Validated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: array
+                  items:
+                    anyOf:
+                      - type: integer
+                      - type: string
+                      - type: array
+                        items:
+                          type: string
+      tags:
+        - Model Operations
+  /model/submit:
+    post:
+      summary: Endpoint to facilitate manifest submission
+      description: Endpoint to submit annotated manifest files
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file_name:
+                  description: Upload a json or a csv file. 
+                  type: string
+                  format: binary
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+        - in: query
+          name: data_type
+          schema:
+            type: string
+            nullable: true
+          description: Data Model Component. Providing a data type will also validate the manfiest against the rules specified for the data type's attributes.
+          example: Patient
+        - in: query
+          name: dataset_id
+          schema:
+            type: string
+            nullable: true
+          description: Dataset SynID
+          required: true
+        - in: query
+          name: manifest_record_type
+          schema:
+            type: string
+            enum: ["file_only", "file_and_entities", "table_and_file", "table_file_and_entities"]
+          description: Manifest storage type, will default to "table_file_and_entities" if none selected.'file_and_entities' will store the manifest as a csv and create Synapse files for each row in the manifest. 'table_and_file' will store the manifest as a table and a csv on Synapse. 'file_only' will store the manifest as a csv only on Synapse. 'table_file_and_entities' will perform the options file_with_entites and table in combination.
+          example: 'table_and_file'
+        - in: query
+          name: restrict_rules
+          schema:
+            type: boolean
+            default: false
+          description: If True, validation suite will only run with in-house validation rule. If False, the Great Expectations suite will be utilized and all rules will be available.
+          required: true
+        - in: query
+          name: hide_blanks
+          schema:
+            type: boolean
+          description: If true, annotations with blank values will be hidden from a dataset's annotation list in Synaspe. If false, annotations with blank values will be displayed. Default to false
+          required: false
+          example: false
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: json_str
+          required: false
+          schema:
+            type: string
+            nullable: false
+          description: A JSON object
+          example: [{
+          "Patient ID": 123,
+          "Sex": "Female",
+          "Year of Birth": "",
+          "Diagnosis": "Healthy",
+          "Component": "Patient",
+          "Cancer Type": "Breast",
+          "Family History": "Breast, Lung",
+          }]
+        - in: query
+          name: table_manipulation
+          description: Specify the way the manifest tables should be store as on Synapse when one with the same name already exists. Options are 'replace' and 'upsert'.replace' will remove the rows and columns from the existing table and store the new rows and columns, preserving the name and synID.'upsert' will add the new rows to the table and preserve the exisitng rows and columns in the existing table. If nothing is selected, the default is "replace"
+          schema:
+            type: string
+            enum: ["replace", "upsert"]
+          required: false
+        - in: query
+          name: table_column_names
+          description: Specify how table column names should be formatted. display_name would use the raw attribute display name as the column name. display_label, would strip all blacklisted characters (including spaces) from the display name, while retaining the rest of the display name formatting (best used when display name is already in camelcase), class_label (default) converts the display name to upper camelcase and strips blacklisted characters.
+          schema:
+            type: string
+            enum: ["display_name", "display_label", "class_label"]
+            default: "class_label"
+          required: false
+        - in: query
+          name: annotation_keys
+          description: Specify how table column names should be formatted. display_label, would strip all blacklisted characters (including spaces) from the display name, while retaining the rest of the display name formatting (best used when display name is already in camelcase), class_label (default) converts the display name to upper camelcase and strips blacklisted characters.
+          schema:
+            type: string
+            enum: ["display_label", "class_label"]
+            default: "class_label"
+          required: false
+        - in: query
+          name: project_scope
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: false
+          description: List, a subset of the projects contained within the asset view that are relevant for the current operation. Speeds up some operations that interact with Synapse.
+          example: ['syn23643250', 'syn47218127', 'syn47218347']
+          required: false
+      operationId: schematic_api.api.routes.submit_manifest_route
+      responses:
+        "200":
+          description: Manifest ID (e.g. Synapse ID if your asset management platform is Synapse)
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Check schematic log
+      tags:
+        - Model Operations
+  /model/component-requirements:
+    get:
+      summary: Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it.
+      description: Given a source model component (see https://w3id.org/biolink/vocab/category for definnition of component), return all components required by it. Useful to construct requirement dependencies not only between specific attributes but also between categories/components of attributes; it can be utilized to track metadata completion progress across multiple categories of attributes.
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: source_component
+          schema:
+            type: string
+          description: an attribute label indicating the source component. (i.e. Patient, Biospecimen, ScRNA-seqLevel1, ScRNA-seqLevel2)
+          example: Biospecimen
+          required: true
+        - in: query
+          name: as_graph
+          schema:
+            type: boolean
+            default: false
+          description: if False return component requirements as a list; if True return component requirements as a dependency graph (i.e. a DAG)
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      operationId: schematic_api.api.routes.get_component_requirements
+      responses:
+        "200":
+          description: A list of required components associated with the source component.
+          content:
+            application/json:
+              schema:
+                type: array
+                example: ["MolecularTest","Therapy","Diagnosis","FollowUp","Exposure","FamilyHistory","Demographics","Patient","BreastCancerTier3"]
+      tags:
+        - Manifest Operations
+  /manifest/populate:
+    post:
+      summary: Create a Google sheet link based on an existing manifest. 
+      description: Create a Google sheet link based on an existing manifest.  
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                csv_file:
+                  type: string
+                  format: binary
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+        - in: query
+          name: data_type
+          schema:
+            type: string
+            nullable: true
+          description: Data Model Component
+          example: Patient
+          required: true
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: Title of Manifest
+          example: Example
+          required: false
+        - in: query
+          name: return_excel
+          schema:
+            type: boolean
+            nullable: true
+          description: If true, this would return an Excel spreadsheet.(This approach would avoid sending metadata to Google sheet APIs)
+          required: false
+      operationId: schematic_api.api.routes.populate_manifest_route
+      responses:
+        "200":
+          description: Googlesheet link created
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":
+          description: Check schematic log
+      tags:
+        - Manifest Operations
+  /get/datatype/manifest:
+    get:
+      summary:  Get datatype of attributes in manifest
+      description: Get datatype of attributes in manifest
+      operationId: schematic_api.api.routes.get_manifest_datatype
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: manifest_id
+          schema:
+            type: string
+            nullable: false
+          description: Manifest ID
+          example: syn27600110
+          required: true
+      responses:
+        "200":
+          description: A list of json
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Manifest Operations
+  /storage/projects:
+    get:
+      summary: Get all storage projects the current user has access to
+      description: Gets all storage projects the current user has access to, within the scope of the 'storageFileview' attribute.
+      operationId: schematic_api.api.routes.get_storage_projects
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
+          required: true
+      responses:
+        "200":
+          description: A list of tuples
+        "500":
+          description: Check log
+      tags:
+        - Synapse Storage
+  /storage/project/datasets:
+    get:
+      summary: Gets all datasets in folder under a given storage project that the current user has access to.
+      description: Gets all datasets in folder under a given storage project that the current user has access to.
+      operationId: schematic_api.api.routes.get_storage_projects_datasets
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: project_id
+          schema:
+            type: string
+            nullable: false
+          description: synapse ID of a storage project.
+          example: syn26251192
+          required: true
+      responses:
+        "200":
+          description: A list of tuples
+        "500":
+          description: Check log
+      tags:
+        - Synapse Storage
+  /storage/dataset/files:
+    get:
+      summary: Get all files in a given dataset folder
+      description: Get all files in a given dataset folder
+      operationId: schematic_api.api.routes.get_files_storage_dataset
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: dataset_id
+          schema:
+            type: string
+            nullable: false
+          description: synapse ID of a storage dataset.
+          example: syn23643250
+          required: true
+        - in: query
+          name: file_names
+          schema:
+            type: array
+            items:
+              type: string
+            nullable: true
+          description: a list of files with particular names (i.e. Sample_A.txt). If you leave it empty, it will return all dataset files under the dataset ID. 
+          required: false
+        - in: query
+          name: full_path
+          schema:
+            type: boolean
+            nullable: false
+          description: if True return the full path as part of this filename; otherwise return just base filename
+          required: true
+      responses:
+        "200":
+          description: A list of tuples
+        "500":
+          description: Check schematic log
+      tags:
+        - Synapse Storage
+  /storage/assets/tables:
+    get:
+      summary: Retrieve asset view table as a dataframe.
+      description: Retrieve asset view table as a dataframe.
+      operationId: schematic_api.api.routes.get_asset_view_table
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: return_type
+          schema:
+            type: string
+            enum: ["json", "csv"]
+          description: Type of return
+          example: 'json'
+          required: true
+      responses:
+        "200":
+          description: csv file path or json
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
+  /storage/project/manifests:
+    get:
+      summary: Gets all metadata manifest files across all datasets in a specified project.
+      description: Gets all metadata manifest files across all datasets in a specified project.
+      operationId: schematic_api.api.routes.get_project_manifests
+      security:
+        - access_token: []
+      parameters:
+        - in: query
+          name: project_id
+          schema:
+            type: string
+            nullable: false
+          description: Project ID
+          example: syn23643250
+          required: true
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
+          required: true
+      responses:
+        "200":
+          description: A list of tuples(json). 
+          content:
+            application/json:
+              schema:
+                type: array
+                example: [
+                        [
+                            [datasetId, dataName],
+                            [manifestId, manifestName],
+                            [componentSchemaLabel, componentSchemaLabel]
+                        ]
+                    ]
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
+  /storage/entity/type:
+    get:
+      summary: Check type of an entity
+      description: Check type of an entity and return entity type
+      operationId: schematic_api.api.routes.check_entity_type
+      security:
+        - access_token: []      
+      parameters:
+        - in: query
+          name: entity_id
+          schema:
+            type: string
+            nullable: false
+          description: ID of an entity. It could be a file, a folder, a project, or an asset view
+          example: syn30988314
+          required: true
+      responses:
+        "200":
+          description: return type of a schematic entity
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
+
+  /storage/if_in_asset_view:
+    get:
+      summary: Check if a file or a folder is in a given asset view. Return "true" or "false"
+      description: Check if a file or a folder is in a given asset view. Return "true" or "false"
+      operationId: schematic_api.api.routes.check_if_files_in_assetview
+      security:
+        - access_token: []      
+      parameters:
+        - in: query
+          name: asset_view
+          schema:
+            type: string
+            nullable: false
+          description: ID of view listing all project data assets. For example, for Synapse this would be the Synapse ID of the fileview listing all data assets for a given project.(i.e. master_fileview_id in config_example.yml)
+          example: syn23643253
+          required: true
+        - in: query
+          name: entity_id
+          schema:
+            type: string
+            nullable: false
+          description: ID of file or folder. For example, for Synapse this would be the Synapse ID. 
+          example: syn30988314
+          required: true
+      responses:
+        "200":
+          description: return "true" or "false"
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Synapse Storage
+  /schemas/get/schema:
+    get:
+      summary: Return schema as a pickle file
+      description: Return schema as a pickle file
+      operationId: schematic_api.api.routes.get_schema_pickle
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: A pickle file gets downloaded and local file path of the pickle file gets returned.
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+
+  /schemas/find_class_specific_properties:
+    get:
+      summary: Find properties specifically associated with a given class
+      description: Find properties specifically associated with a given class
+      operationId: schematic_api.api.routes.find_class_specific_properties
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: schema_class
+          schema:
+            type: string
+            nullable: false
+          description: schema class
+          example: MolecularEntity
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: A list of properties of a given class. 
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+  /schemas/get/graph_by_edge_type:
+    get:
+      summary: Get a subgraph containing all edges of a given type (aka relationship)
+      description: Get a subgraph containing all edges of a given type (aka relationship)
+      operationId: schematic_api.api.routes.get_subgraph_by_edge_type
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: relationship
+          schema:
+            type: string
+            nullable: false
+          description: Relationship (i.e. parentOf, requiresDependency, rangeValue, domainValue)
+          example: requiresDependency
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+      responses:
+        "200":
+          description: A list of tuples.
+          content:
+            application/json:
+              schema:
+                type: array
+                example: [
+                        [
+                            [Patient, PatientID],
+                            [Patient,Sex],
+                            [Patient, YearofBirth]
+                        ]
+                    ]
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+  /schemas/is_node_required:
+    get:
+      summary: Check if a node is required or not
+      description: Check if a node is required or not
+      operationId: schematic_api.api.routes.get_if_node_required
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_display_name
+          schema:
+            type: string
+            nullable: false
+          description: Display label of a node
+          example: FamilyHistory
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.nclass_label, default, use standard class or property label. Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: return a boolean 
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+
+  /schemas/get_nodes_display_names:
+    get:
+      summary: Get display names for nodes labels in a list.
+      description: et display names for nodes labels in a list.
+      operationId: schematic_api.api.routes.get_nodes_display_names
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_list
+          schema:
+            type: array
+            items: 
+              type: string
+            nullable: false
+          description: List of node labels.
+          example: ['FamilyHistory', 'Biospecimen']
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: false
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: return List[str]
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+
+
+  /schemas/get_node_validation_rules:
+    get:
+      summary: Get validation rules for a given node
+      description: Get validation rules for a given node
+      operationId: schematic_api.api.routes.get_node_validation_rules
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_display_name
+          schema:
+            type: string
+            nullable: false
+          description: Display label of node
+          example: CheckRegexList
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: return a list
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+
+  /schemas/get_node_dependencies:
+    get:
+      summary: Get the immediate dependencies that are related to a given source node
+      description: Get the immediate dependencies that are related to a given source node
+      operationId: schematic_api.api.routes.get_node_dependencies
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: source_node
+          schema:
+            type: string
+            nullable: false
+          description: The node whose dependencies are needed
+          example: Patient
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+        - in: query
+          name: return_display_names
+          schema:
+            type: boolean
+            nullable: true
+          description: Return display names or not
+          required: false
+          example: true
+        - in: query
+          name: return_schema_ordered
+          schema:
+            type: boolean
+            nullable: true
+          description: Return schema ordered or not
+          required: false
+          example: true
+      responses:
+        "200":
+          description: List of nodes that are dependent on the source node.
+        "500":
+          description: Check schematic log.
+      tags:
+        - Schema Operation
+        
+  /utils/get_property_label_from_display_name:
+    get:
+      summary: Converts a given display name string into a proper property label string
+      description: Converts a given display name string into a proper property label string
+      operationId: schematic_api.api.routes.get_property_label_from_display_name_route
+      parameters:
+        - in: query
+          name: display_name
+          schema:
+            type: string
+            nullable: false
+          description: The display name to be converted
+          example: MolecularEntity
+          required: true
+        - in: query
+          name: strict_camel_case
+          schema:
+            type: boolean
+            nullable: false
+          description: If true the more strict way of
+            converting to camel case is used.
+      responses:
+        "200":
+          description: The property label of the display name.
+        "500":
+          description: Check schematic log. 
+      tags:
+        - Schema Operation
+      
+  /schemas/get_node_range:
+    get:
+      summary: Get all the valid values that are associated with a node label.
+      description: Get all the valid values that are associated with a node label.
+      operationId: schematic_api.api.routes.get_node_range
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: node_label
+          schema:
+            type: string
+            nullable: false
+          description: Node / term for which you need to retrieve the range.
+          example: FamilyHistory
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+        - in: query
+          name: return_display_names
+          schema:
+            type: boolean
+          description: If true returns the display names of the nodes.
+          required: false
+      responses:
+        "200":
+          description: A list of nodes.
+        "500":
+          description: Check schematic log.
+      tags:
+        - Schema Operation
+
+
+  /visualize/tangled_tree/layers:
+    get:
+      summary: Get layers of tangled tree.
+      description: >-
+        Get tangled tree node layers to display for a given data model and figure type
+      operationId: schematic_api.api.routes.get_viz_tangled_tree_layers
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: figure_type
+          schema:
+            type: string
+            enum: ["component", "dependency"]
+          description: Figure type to generate.
+          example: 'component'
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: Returns a dataframe as a JSON String.
+          content:
+            text/json:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
+  /visualize/tangled_tree/text:
+    get:
+      summary: Get text to display on tangled tree.
+      description: >-
+        Get tangled tree plain or higlighted text to display for a given data model, text formatting and figure type
+      operationId: schematic_api.api.routes.get_viz_tangled_tree_text
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: figure_type
+          schema:
+            type: string
+            enum: ["component", "dependency"]
+          description: Figure type to generate.
+          example: 'component'
+          required: true
+        - in: query
+          name: text_format
+          schema:
+            type: string
+            enum: ["plain", "highlighted"]
+          description: Text formatting type.
+          example: 'plain'
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: Returns a dataframe as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
+  /visualize/attributes:
+    get:
+      summary: Get an attributes table for a data model, as a CSV (JSON String)
+      description: >-
+        Get all the attributes associated with a data model formatted as a
+        dataframe (stored as a JSON String) for use in Observable visualization.
+      operationId: schematic_api.api.routes.get_viz_attributes_explorer
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: Returns a CSV as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+      tags:
+        - Visualization Operations
+  /visualize/component:
+    get:
+      summary: Get an attributes table for a specific component of a data model, as a CSV (JSON String)
+      description: >-
+        Get all the attributes associated with a specific data model component formatted as a
+        dataframe (stored as a JSON String).
+      operationId: schematic_api.api.routes.get_viz_component_attributes_explorer
+      parameters:
+        - in: query
+          name: schema_url
+          schema:
+            type: string
+          description: Data Model URL
+          example: >-
+            https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld
+          required: true
+        - in: query
+          name: component
+          schema:
+            type: string
+          description: Component of the data model to explore
+          example: >-
+            Patient
+          required: true
+        - in: query
+          name: include_index
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include the indexes of the datafram in the returned JSON string (true) or not (false).
+          required: true
+        - in: query
+          name: data_model_labels
+          schema:
+            type: string
+            nullable: true
+            enum: ["display_label", "class_label"]
+            default: 'class_label'
+          description: Choose how to set the label in the data model. 
+                  display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to class_label.
+                  class_label, default, use standard class or property label.
+                  Do not change from default unless there is a real need, using 'display_label' can have consequences if not used properly.
+          required: false
+      responses:
+        "200":
+          description: Returns a CSV as a JSON String.
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: Attribute,Label,Description,Required,Cond_Req,Valid Values,Conditional Requirements,Component
+
+                          Component,Component,TBD,False,,,,Patient
+                          
+                          Patient ID,PatientID,TBD,True,,,,Patient
+                          
+                          Year of Birth,YearofBirth,TBD,False,,,,Patient
+
+                          Sex,Sex,TBD,True,,"['Female', 'Other', 'Male']",,Patient                      
+
+                          Diagnosis,Diagnosis,TBD,True,,"['Cancer', 'Healthy']",,Patient
+
+                          Cancer Type,CancerType,TBD,False,True,"['Lung', 'Skin', 'Colorectal', 'Breast', 'Prostate', '']"," If Diagnosis is ""Cancer"" then ""Cancer Type"" is required",Patient
+
+                          Family History,FamilyHistory,TBD,False,True,," If Diagnosis is ""Cancer"" then ""Family History"" is required",Patient                  
+      tags:
+        - Visualization Operations
+
+  /version:
+    get:
+      summary: Get the version of schematic currently being used
+      description: >-
+        Get the version of schematic that is currently deployed and being used
+      operationId: schematic_api.api.routes.get_schematic_version
+      responses:
+        "200":
+          description: Returns a JSON String containing the version of schematic.
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Schematic version was not able to be identified.
+      tags:
+        - Version

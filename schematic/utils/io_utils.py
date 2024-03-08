@@ -1,11 +1,12 @@
-import os
+"""io utils"""
+
+from typing import Any
 import json
 import urllib.request
+from schematic import LOADER
 
-from schematic import CONFIG, LOADER
 
-
-def load_json(file_path):
+def load_json(file_path: str) -> Any:
     """Load json document from file path or url
 
     :arg str file_path: The path of the url doc, could be url or file path
@@ -16,28 +17,26 @@ def load_json(file_path):
             return data
     # handle file path
     else:
-        with open(file_path, encoding="utf8") as f:
-            data = json.load(f)
+        with open(file_path, encoding="utf8") as fle:
+            data = json.load(fle)
             return data
 
 
-def export_json(json_doc, file_path):
+def export_json(json_doc: Any, file_path: str) -> None:
     """Export JSON doc to file"""
-    with open(file_path, "w", encoding="utf8") as f:
-        json.dump(json_doc, f, sort_keys=True, indent=4, ensure_ascii=False)
+    with open(file_path, "w", encoding="utf8") as fle:
+        json.dump(json_doc, fle, sort_keys=True, indent=4, ensure_ascii=False)
 
 
-def load_default():
+def load_default() -> Any:
     """Load biolink vocabulary"""
     data_path = "data_models/biothings.model.jsonld"
     biothings_path = LOADER.filename(data_path)
-
     return load_json(biothings_path)
 
 
-def load_schemaorg():
-    """Load SchemOrg vocabulary"""
+def load_schemaorg() -> Any:
+    """Load SchemaOrg vocabulary"""
     data_path = "data_models/schema_org.model.jsonld"
-    schemaorg_path = LOADER.filename(data_path)
-
-    return load_json(schemaorg_path)
+    schema_org_path = LOADER.filename(data_path)
+    return load_json(schema_org_path)

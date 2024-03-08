@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+from typing import get_args
+from gc import callbacks
 import logging
 import sys
+from time import perf_counter
 
 import click
 import click_log
@@ -9,15 +12,22 @@ import click_log
 from jsonschema import ValidationError
 
 from schematic.models.metadata import MetadataModel
-from schematic.utils.cli_utils import get_from_config, fill_in_from_config, query_dict
+from schematic.utils.cli_utils import (
+    log_value_from_config,
+    query_dict,
+    parse_syn_ids,
+    parse_comma_str_to_list,
+)
 from schematic.help import model_commands
 from schematic.exceptions import MissingConfigValueError
-from schematic import CONFIG
+from schematic.configuration.configuration import CONFIG
+from schematic.utils.schema_utils import DisplayLabelType
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("schematic")
 click_log.basic_config(logger)
 
 CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
+
 
 # invoke_without_command=True -> forces the application not to show aids before losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -36,7 +46,8 @@ def model(ctx, config):  # use as `schematic model ...`
     """
     try:
         logger.debug(f"Loading config file contents in '{config}'")
-        ctx.obj = CONFIG.load_config(config)
+        CONFIG.load_config(config)
+        ctx.obj = CONFIG
     except ValueError as e:
         logger.error("'--config' not provided or environment variable not set.")
         logger.exception(e)
@@ -64,77 +75,110 @@ def model(ctx, config):  # use as `schematic model ...`
     help=query_dict(model_commands, ("model", "submit", "validate_component")),
 )
 @click.option(
-    "--use_schema_label/--use_display_label",
-    "-sl/-dl",
-    default=True,
-    help=query_dict(model_commands, ("model", "submit", "use_schema_label")),
-)
-@click.option(
     "--hide_blanks",
     "-hb",
     is_flag=True,
-    help=query_dict(model_commands,("model","submit","hide_blanks")),
+    help=query_dict(model_commands, ("model", "submit", "hide_blanks")),
 )
 @click.option(
     "--manifest_record_type",
     "-mrt",
-    default='both',
-    type=click.Choice(['table', 'entity', 'both'], case_sensitive=True),
-    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")))
+    default="table_file_and_entities",
+    type=click.Choice(
+        ["table_and_file", "file_only", "file_and_entities", "table_file_and_entities"],
+        case_sensitive=True,
+    ),
+    help=query_dict(model_commands, ("model", "submit", "manifest_record_type")),
+)
 @click.option(
     "-rr",
     "--restrict_rules",
     is_flag=True,
-    help=query_dict(model_commands,("model","validate","restrict_rules")),
+    help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
+)
+@click.option(
+    "-ps",
+    "--project_scope",
+    default=None,
+    callback=parse_syn_ids,
+    help=query_dict(model_commands, ("model", "validate", "project_scope")),
+)
+@click.option(
+    "--table_manipulation",
+    "-tm",
+    default="replace",
+    type=click.Choice(["replace", "upsert"], case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "table_manipulation")),
+)
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    default="class_label",
+    type=click.Choice(list(get_args(DisplayLabelType)), case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "data_model_labels")),
+)
+@click.option(
+    "--table_column_names",
+    "-tcn",
+    default="class_label",
+    type=click.Choice(
+        ["class_label", "display_label", "display_name"], case_sensitive=True
+    ),
+    help=query_dict(model_commands, ("model", "submit", "table_column_names")),
+)
+@click.option(
+    "--annotation_keys",
+    "-ak",
+    default="class_label",
+    type=click.Choice(["class_label", "display_label"], case_sensitive=True),
+    help=query_dict(model_commands, ("model", "submit", "annotation_keys")),
 )
 @click.pass_obj
 def submit_manifest(
-    ctx, manifest_path, dataset_id, validate_component, manifest_record_type, use_schema_label, hide_blanks, restrict_rules,
+    ctx,
+    manifest_path,
+    dataset_id,
+    validate_component,
+    manifest_record_type,
+    hide_blanks,
+    restrict_rules,
+    project_scope,
+    table_manipulation,
+    data_model_labels,
+    table_column_names,
+    annotation_keys,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
     """
-    jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
 
-    model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
+    jsonld = CONFIG.model_location
+    log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
+        inputMModelLocation=jsonld,
+        inputMModelLocationType="local",
+        data_model_labels=data_model_labels,
     )
 
-    try:
-        manifest_id = metadata_model.submit_metadata_manifest(
-            manifest_path=manifest_path,
-            dataset_id=dataset_id,
-            validate_component=validate_component,
-            manifest_record_type=manifest_record_type,
-            restrict_rules=restrict_rules,
-            use_schema_label=use_schema_label,
-            hide_blanks=hide_blanks,
-        )
+    manifest_id = metadata_model.submit_metadata_manifest(
+        path_to_json_ld=jsonld,
+        manifest_path=manifest_path,
+        dataset_id=dataset_id,
+        validate_component=validate_component,
+        manifest_record_type=manifest_record_type,
+        restrict_rules=restrict_rules,
+        hide_blanks=hide_blanks,
+        project_scope=project_scope,
+        table_manipulation=table_manipulation,
+        table_column_names=table_column_names,
+        annotation_keys=annotation_keys,
+    )
 
-        '''
-        if censored_manifest_id:
-            logger.info(
-                f"File at '{manifest_path}' was censored and successfully associated "
-                f"with dataset '{dataset_id}'. "
-                f"An uncensored version has also been associated with dataset '{dataset_id}' "
-                f"and submitted to the Synapse Access Control Team to begin the process "
-                f"of adding terms of use or review board approval."
-            )
-        '''
-        if manifest_id:
-            logger.info(
-                f"File at '{manifest_path}' was successfully associated "
-                f"with dataset '{dataset_id}'."
-            )
-    except ValueError:
-        logger.error(
-            f"Component '{validate_component}' is not present in '{jsonld}', or is invalid."
-        )
-    except ValidationError:
-        logger.error(
-            f"Validation errors resulted while validating with '{validate_component}'."
+    if manifest_id:
+        logger.info(
+            f"File at '{manifest_path}' was successfully associated "
+            f"with dataset '{dataset_id}'."
         )
 
 
@@ -154,6 +198,7 @@ def submit_manifest(
 @click.option(
     "-dt",
     "--data_type",
+    callback=parse_comma_str_to_list,
     help=query_dict(model_commands, ("model", "validate", "data_type")),
 )
 @click.option(
@@ -165,32 +210,64 @@ def submit_manifest(
     "-rr",
     "--restrict_rules",
     is_flag=True,
-    help=query_dict(model_commands,("model","validate","restrict_rules")),
+    help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
+)
+@click.option(
+    "-ps",
+    "--project_scope",
+    default=None,
+    callback=parse_syn_ids,
+    help=query_dict(model_commands, ("model", "validate", "project_scope")),
+)
+@click.option(
+    "--data_model_labels",
+    "-dml",
+    is_flag=True,
+    help=query_dict(model_commands, ("model", "validate", "data_model_labels")),
 )
 @click.pass_obj
-def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules):
+def validate_manifest(
+    ctx,
+    manifest_path,
+    data_type,
+    json_schema,
+    restrict_rules,
+    project_scope,
+    data_model_labels,
+):
     """
     Running CLI for manifest validation.
     """
-    data_type = fill_in_from_config("data_type", data_type, ("manifest", "data_type"))
+    if data_type is None:
+        data_type = CONFIG.manifest_data_type
+        log_value_from_config("data_type", data_type)
 
-    json_schema = fill_in_from_config(
-        "json_schema",
-        json_schema,
-        ("model", "input", "validation_schema"),
-        allow_none=True,
-    )
+    try:
+        len(data_type) == 1
+    except:
+        logger.error(
+            f"Can only validate a single data_type at a time. Please provide a single data_type"
+        )
 
-    jsonld = get_from_config(CONFIG.DATA, ("model", "input", "location"))
+    data_type = data_type[0]
 
-    model_file_type = get_from_config(CONFIG.DATA, ("model", "input", "file_type"))
+    t_validate = perf_counter()
+
+    jsonld = CONFIG.model_location
+    log_value_from_config("jsonld", jsonld)
 
     metadata_model = MetadataModel(
-        inputMModelLocation=jsonld, inputMModelLocationType=model_file_type
+        inputMModelLocation=jsonld,
+        inputMModelLocationType="local",
+        data_model_labels=data_model_labels,
     )
 
     errors, warnings = metadata_model.validateModelManifest(
-        manifestPath=manifest_path, rootNode=data_type, jsonSchema=json_schema, restrict_rules=restrict_rules,
+        manifestPath=manifest_path,
+        rootNode=data_type,
+        jsonSchema=json_schema,
+        restrict_rules=restrict_rules,
+        project_scope=project_scope,
     )
 
     if not errors:
@@ -201,3 +278,5 @@ def validate_manifest(ctx, manifest_path, data_type, json_schema, restrict_rules
         )
     else:
         click.echo(errors)
+
+    logger.debug(f"Total elapsed time {perf_counter()-t_validate} seconds")

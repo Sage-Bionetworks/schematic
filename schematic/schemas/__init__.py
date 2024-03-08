@@ -1,3 +1,7 @@
-from schematic.schemas.explorer import SchemaExplorer
-from schematic.schemas.generator import SchemaGenerator
-from schematic.schemas.validator import SchemaValidator
+from schematic.schemas.data_model_edges import DataModelEdges
+from schematic.schemas.data_model_nodes import DataModelNodes
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+from schematic.schemas.data_model_jsonld import DataModelJsonLD
+from schematic.schemas.data_model_relationships import DataModelRelationships
+from schematic.schemas.data_model_validator import DataModelValidator

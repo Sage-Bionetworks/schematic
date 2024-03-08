@@ -1,0 +1,29 @@
+[
+  {
+    "Patient ID": 1234,
+    "Sex": "Female",
+    "Year of Birth": "",
+    "Diagnosis": "Healthy",
+    "Component": "Patient",
+    "Cancer Type": "",
+    "Family History": "Lung,Breast"
+  },
+  {
+    "Patient ID": 4567,
+    "Sex": "Male",
+    "Year of Birth": "",
+    "Diagnosis": "Healthy",
+    "Component": "Patient",
+    "Cancer Type": "",
+    "Family History": "Lung,Breast"
+  },
+  {
+    "Patient ID": 8901,
+    "Sex": "Male",
+    "Year of Birth": "",
+    "Diagnosis": "Cancer",
+    "Component": "Patient",
+    "Cancer Type": "Colorectal",
+    "Family History": "Lung,Breast"
+  }
+]

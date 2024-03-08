@@ -1,0 +1,5 @@
+# This is a invalid config, but has fields in the synapse section that are not supported
+asset_store:
+  synapse:
+    invalid_field: "xxx"
+

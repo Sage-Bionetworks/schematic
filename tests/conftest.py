@@ -1,16 +1,24 @@
+from multiprocessing.sharedctypes import Value
 import os
 import logging
+import sys
 
+import shutil
 import pytest
 import pandas as pd
 from dotenv import load_dotenv, find_dotenv
+from time import perf_counter
 
-from schematic.schemas.explorer import SchemaExplorer
-from schematic.configuration import CONFIG
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_nodes import DataModelNodes
+from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+
+from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
+from schematic.store.synapse import SynapseStorage
 
 load_dotenv()
-
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -24,11 +32,9 @@ logging.getLogger("google_auth_httplib2").setLevel(logging.INFO)
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(TESTS_DIR, "data")
-CONFIG_PATH = os.path.join(DATA_DIR, "test_config.yml")
-CONFIG.load_config(CONFIG_PATH)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def dataset_id():
     yield "syn25614635"
 
@@ -52,27 +58,73 @@ class Helpers:
         return load_df(fullpath, **kwargs)
 
     @staticmethod
-    def get_schema_explorer(path=None, *paths):
+    def get_data_model_graph_explorer(
+        path=None, data_model_labels: str = "class_label", *paths
+    ):
+        # commenting this now bc we dont want to have multiple instances
         if path is None:
-            return SchemaExplorer()
+            return
 
         fullpath = Helpers.get_data_path(path, *paths)
 
-        se = SchemaExplorer()
-        se.load_schema(fullpath)
-        return se
+        # Instantiate DataModelParser
+        data_model_parser = DataModelParser(
+            path_to_data_model=fullpath,
+        )
+
+        # Parse Model
+        parsed_data_model = data_model_parser.parse_model()
+
+        # Instantiate DataModelGraph
+        data_model_grapher = DataModelGraph(
+            parsed_data_model, data_model_labels=data_model_labels
+        )
+
+        # Generate graph
+        graph_data_model = data_model_grapher.graph
+
+        # Instantiate DataModelGraphExplorer
+        DMGE = DataModelGraphExplorer(graph_data_model)
+
+        return DMGE
+
+    @staticmethod
+    def get_python_version():
+        version = sys.version
+        base_version = ".".join(version.split(".")[0:2])
+
+        return base_version
+
+    @staticmethod
+    def get_python_project(self):
+        version = self.get_python_version()
+
+        python_projects = {
+            "3.7": "syn47217926",
+            "3.8": "syn47217967",
+            "3.9": "syn47218127",
+            "3.10": "syn47218347",
+        }
+
+        return python_projects[version]
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def helpers():
     yield Helpers
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def config():
     yield CONFIG
 
 
-@pytest.fixture
-def config_path():
-    yield CONFIG_PATH
+@pytest.fixture(scope="session")
+def synapse_store(request):
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synapse_store = SynapseStorage(access_token=access_token)
+    else:
+        synapse_store = SynapseStorage()
+
+    yield synapse_store

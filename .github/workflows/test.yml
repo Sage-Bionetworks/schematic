@@ -5,20 +5,38 @@
 
 name: Test schematic
 
-on: [push, pull_request]
-
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['*']
+  workflow_dispatch:  # Allow manually triggering the workflow
+concurrency:
+  # cancel the current running workflow from the same branch, PR when a new workflow is triggered
+  # when the trigger is not a PR but a push, it will use the commit sha to generate the concurrency group
+  # {{ github.workflow }}: the workflow name is used to generate the concurrency group. This allows you to have more than one workflows
+  # {{ github.ref_type }}: the type of Git ref object created in the repository. Can be either branch or tag
+  # {{ github.event.pull_request.number}}: get PR number
+  # {{ github.sha }}: full commit sha
+  # credit: https://github.com/Sage-Bionetworks-Workflows/sagetasks/blob/main/.github/workflows/ci.yml
+  group: >-
+    ${{ github.workflow }}-${{ github.ref_type }}-
+    ${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 jobs:
   test:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-4core-16GBRAM-150GBSSD
+    env:
+      POETRY_VERSION:  1.3.0
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ["3.9", "3.10"]
 
     steps:
 
       #----------------------------------------------
-      #       check-out repo and set-up python     
+      #       check-out repo and set-up python
       #----------------------------------------------
       - name: Check out repository
         uses: actions/checkout@v2
@@ -27,18 +45,18 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      
-      #----------------------------------------------
-      #          install & configure poetry         
-      #----------------------------------------------
-      - name: Install Poetry
-        uses: snok/install-poetry@v1.1.1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
 
       #----------------------------------------------
-      #       load cached venv if cache exists      
+      #          install & configure poetry
+      #----------------------------------------------
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org \
+            | python3 - --version ${{ env.POETRY_VERSION }};
+          poetry config virtualenvs.create true;
+          poetry config virtualenvs.in-project true;
+      #----------------------------------------------
+      #       load cached venv if cache exists
       #----------------------------------------------
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -48,21 +66,15 @@ jobs:
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       #----------------------------------------------
-      # install dependencies if cache does not exist 
+      # install dependencies and root project
       #----------------------------------------------
-      - name: Install dependencies
+      - name: Install dependencies and root project
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-        
-      #----------------------------------------------
-      #    install your root project, if required 
-      #----------------------------------------------      
-      - name: Install library
-        run: poetry install --no-interaction
-      
+        run: poetry install --no-interaction --all-extras
+
       #----------------------------------------------
       #             perform linting
-      #----------------------------------------------    
+      #----------------------------------------------
       # Disabled until we agree to turn it on
       # - name: Lint with flake8
       #   run: |
@@ -74,23 +86,45 @@ jobs:
       #----------------------------------------------
       #             check formatting
       #----------------------------------------------
-      # Disabled until we agree to turn it on
-      # - name: Code formatting with black
-      #   run: |
-      #     # run black in check mode
-      #     # if files are not formatted correctly, the build will not go through
-      #     black . --check
+      - name: Code formatting with black
+        run: |
+          # ran only on certain files for now
+          # add here when checked
+          poetry run black schematic --check
+
       #----------------------------------------------
-      #              run test suite   
+      #             type checking/enforcement
+      #----------------------------------------------
+      - name: Type checking with mypy
+        run: |
+          # ran only on certain files for now
+          # add here when checked
+          # poetry run mypy --install-types --non-interactive
+          # add here when enforced
+          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization
+          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/utils/cli_utils.py schematic/utils/curie_utils.py schematic/utils/df_utils.py schematic/utils/general.py schematic/utils/google_api_utils.py schematic/utils/validate_rules_utils.py schematic/utils/viz_utils.py
+
+      #----------------------------------------------
+      #             linting
+      #----------------------------------------------
+      - name: Lint with pylint
+        run: |
+          # ran only on certain files for now
+          # add here when checked
+          poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py
+
+      #----------------------------------------------
+      #              run test suite
       #----------------------------------------------
       - name: Run tests
         env:
           SYNAPSE_ACCESS_TOKEN: ${{ secrets.SYNAPSE_ACCESS_TOKEN }}
+          SERVICE_ACCOUNT_CREDS: ${{ secrets.SERVICE_ACCOUNT_CREDS }}
         run: >
-          source .venv/bin/activate; 
-          pytest --cov-report=term --cov-report=html:htmlcov --cov=schematic/
-          -m "not google_credentials_needed"
-    
+          source .venv/bin/activate;
+          pytest --durations=0 --cov-report=term --cov-report=html:htmlcov --cov=schematic/
+          -m "not (google_credentials_needed or schematic_api or table_operations)" --reruns 2 -n auto
+
       - name: Upload pytest test results
         uses: actions/upload-artifact@v2
         with:

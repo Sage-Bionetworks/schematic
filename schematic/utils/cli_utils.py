@@ -1,16 +1,13 @@
-#!/usr/bin/env python3
+"""CLI utils"""
 
-import inspect
+# pylint: disable=logging-fstring-interpolation
+# pylint: disable=anomalous-backslash-in-string
+
 import logging
 
-from typing import Any, Mapping, Sequence, Union
+from typing import Any, Mapping, Sequence, Union, Optional
 from functools import reduce
-
-from schematic import CONFIG
-from schematic.exceptions import (
-    MissingConfigValueError,
-    MissingConfigAndArgumentValueError,
-)
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -35,87 +32,71 @@ def query_dict(dictionary: Mapping[Any, Any], keys: Sequence[Any]) -> Union[Any,
             return None
         return dictionary.get(key)
 
-    return reduce(extract, keys, dictionary)
+    return reduce(extract, keys, dictionary)  # type: ignore
 
 
-def get_from_config(
-    dictionary: Mapping[Any, Any], keys: Sequence[Any]
-) -> Union[Any, None]:
-    """Access a nested configuration value from a yaml
-    configuration file.
+def log_value_from_config(arg_name: str, config_value: Any) -> None:
+    """Logs when getting a value from the config
 
     Args:
-        dictionary: A dictionary containing anything.
-        keys: A sequence of values corresponding to keys
-            in `dictionary`.
-
-    Returns:
-        The nested value corresponding to the given series.
-
-    Raises:
-        MissingConfigValueError: When configuration value not
-            found in config.yml file for given key.
+        arg_name (str): Name of the argument. Used for logging.
+        config_value (Any): The value in the config
     """
-    # get configuration value from config file
-    config_value = query_dict(dictionary, keys)
-
-    # if configuration value not present then raise Exception
-    if config_value is None:
-        raise MissingConfigValueError(keys)
-
-    config_keys_str = " > ".join(keys)
-
     logger.info(
-        f"The ({config_keys_str}) argument with value "
-        f"'{config_value}' is being read from the config file."
+        f"The {arg_name} argument is being taken from configuration file, i.e., {config_value}."
     )
 
-    return config_value
 
-
-def fill_in_from_config(
-    arg_name: str, arg_value: Any, config_keys: Sequence[Any], allow_none: bool = False
-) -> Any:
-    """Fill in a missing value from a configuration object.
+def parse_syn_ids(
+    ctx: Any,  # pylint: disable=unused-argument
+    param: str,  # pylint: disable=unused-argument
+    syn_ids: str,
+) -> Optional[list[str]]:
+    """Parse and validate a comma separated string of synapse ids
 
     Args:
-        arg_name: Name of the argument. Used for logging.
-        config_keys: List of keys used to access a nested
-            value in `config` corresponding to `arg_name`.
-        arg_value: Value of the argument provided at the
-            command line.
-        allow_none: Return None if argument value and
-            configuration value are both None (rather
-            than raising an error).
-
-    Returns:
-        The argument value, either from the calling context
-        or the corresponding field in the configuration.
+        ctx (Any): click option context
+        param (str): click option argument name
+        syn_ids (str): comma separated string of synapse ids
 
     Raises:
-        AssertionError: If both the argument value and the
-            configuration object are `None`.
+        ValueError:  If the entire string does not match a regex for
+            a valid comma separated string of SynIDs
+
+    Returns:
+        Optional[list[str]]:  List of synapse ids
     """
+    if not syn_ids:
+        return None
 
-    # Avoid accessing config if argument value is provided
-    if arg_value is not None:
-        return arg_value
+    project_regex = re.compile("(syn\d+\,?)+")
+    valid = project_regex.fullmatch(syn_ids)
 
-    # raise Exception if both, configuration value not present
-    # in config file and CLI argument value is missing
-    try:
-        config_value = get_from_config(CONFIG.DATA, config_keys)
-    except MissingConfigValueError:
-        if allow_none:
-            return None
-        raise MissingConfigAndArgumentValueError(arg_name, config_keys)
+    if not valid:
+        raise ValueError(
+            f"The provided list of project synID(s): {syn_ids}, is not formatted correctly. "
+            "\nPlease check your list of projects for errors."
+        )
 
-    # Make sure argument value and
-    config_keys_str = " > ".join(config_keys)
+    return syn_ids.split(",")
 
-    logger.info(
-        f"The '--{arg_name}' argument is being taken from configuration "
-        f"file ({config_keys_str}), i.e., '{config_value}'."
-    )
 
-    return config_value
+def parse_comma_str_to_list(
+    ctx: Any,  # pylint: disable=unused-argument
+    param: str,  # pylint: disable=unused-argument
+    comma_string: str,
+) -> Optional[list[str]]:
+    """Separates a comma separated sting into a list of strings
+
+    Args:
+        ctx (Any): click option context
+        param (str): click option argument name
+        comma_string (str): comma separated string
+
+    Returns:
+        Optional[list[str]]: _description_
+    """
+    if not comma_string:
+        return None
+
+    return comma_string.split(",")

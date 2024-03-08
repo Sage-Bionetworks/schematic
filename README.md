@@ -20,7 +20,7 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 # Installation
 ## Installation Requirements
-* Python 3.7.1 or higher
+* Python version 3.9.0≤x<3.11.0 
 
 Note: You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have the right permissions to download the Google credentials files from Synapse.
 
@@ -54,22 +54,13 @@ When contributing to this repository, please first discuss the change you wish t
 
 Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in all your interactions with the project.
 
-### General instructions
-1. Clone this repository to your local machine so that you can begin making changes. 
-2. Follow the [Github docs](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/making-changes-in-a-branch/managing-branches#creating-a-branch) to create a branch off the `develop` branch. Name the branch appropriately, either briefly summarizing the bug (ex., `spatil/add-restapi-layer`) or feature or simply use the issue number in the name (ex., `spatil/issue-414-fix`).
-3. Push all your changes to your develop branch. 
-4. When all changes are tested locally and ready to be merged, follow the [Github docs](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) and create a pull request in GitHub.
-
-> A Sage Bionetworks engineer must review and accept your pull request. A code review (which happens with both the contributor and the reviewer present) is required for contributing.
-
-*Note*: Make sure you have the latest version of the `develop` branch on your local machine.
-
 ### Development environment setup
 1. Clone the `schematic` package repository.
 ```
 git clone https://github.com/Sage-Bionetworks/schematic.git
 ```
-2. Follow the [instructions](https://python-poetry.org/docs/) here to install `poetry`
+2. Install `poetry` (version 1.3.0 or later) using either the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer) or [pipx](https://python-poetry.org/docs/#installing-with-pipx). If you have an older installation of Poetry, we recommend uninstalling it first. 
+
 3. Start the virtual environment by doing: 
 ```
 poetry shell
@@ -78,13 +69,25 @@ poetry shell
 ```
 poetry install
 ```
-This command will install the dependencies based on what we specify in poetry.lock
+This command will install the dependencies based on what we specify in poetry.lock. If this step is taking a long time, try to go back to step 2 and check your version of poetry. Alternatively, you could also try deleting the lock file and regenerate it by doing `poetry install` (Please note this method should be used as a last resort because this would force other developers to change their development environment)
+
+If you want to install the API you will need to install those dependencies as well:
+
+```
+poetry install --extras "api"
+```
+
+If you want to install the uwsgi:
+
+```
+poetry install --extras "api"
+```
 
 5. Fill in credential files: 
 *Note*: If you won't interact with Synapse, please ignore this section.
 
-There are two main configuration files that need to be edited :
-[config.yml](https://github.com/Sage-Bionetworks/schematic/blob/develop/config.yml)
+There are two main configuration files that need to be edited:
+config.yml
 and [synapseConfig](https://raw.githubusercontent.com/Sage-Bionetworks/synapsePythonClient/v2.3.0-rc/synapseclient/.synapseConfig)
 
 <strong>Configure .synapseConfig File</strong>
@@ -97,58 +100,84 @@ editor of your choice and edit the `username` and `authtoken` attribute under th
 
 <strong>Configure config.yml File</strong>
 
-Description of `config.yml` attributes
+There are some defaults in schematic that can be configured. These fields are in ``config_example.yml``:
 
-    definitions:
-        synapse_config: "~/path/to/.synapseConfig"
-        creds_path: "~/path/to/credentials.json"
-        token_pickle: "~/path/to/token.pickle"
-        service_acct_creds: "~/path/to/service_account_creds.json"
+```text
 
-    synapse:
-        master_fileview: "syn23643253" # fileview of project with datasets on Synapse
-        manifest_folder: "~/path/to/manifest_folder/" # manifests will be downloaded to this folder
-        manifest_basename: "filename" # base name of the manifest file in the project dataset, without extension
-        token_creds: "syn23643259" # synapse ID of credentials.json file
-        service_acct_creds: "syn25171627" # synapse ID of service_account_creds.json file
+# This is an example config for Schematic.
+# All listed values are those that are the default if a config is not used.
+# Save this as config.yml, this will be gitignored.
+# Remove any fields in the config you don't want to change
+# Change the values of any fields you do want to change
 
-    manifest:
-        title: "Patient Manifest " # title of metadata manifest file
-        data_type: "Patient" # component or data type from the data model
 
-    model:
-        input:
-            location: "data/schema_org_schemas/example.jsonld" # path to JSON-LD data model
-            file_type: "local" # only type "local" is supported currently
-            validation_schema: "~/path/to/validation_schema.json" # path to custom JSON Validation Schema JSON file
-            log_location: "~/path/to/log_folder/validation_schema.json" # auto-generated JSON Validation Schemas can be logged
-        
+# This describes where assets such as manifests are stored
+asset_store:
+  # This is when assets are stored in a synapse project
+  synapse:
+    # Synapse ID of the file view listing all project data assets.
+    master_fileview_id: "syn23643253"
+    # Path to the synapse config file, either absolute or relative to this file
+    config: ".synapseConfig"
+    # Base name that manifest files will be saved as
+    manifest_basename: "synapse_storage_manifest"
 
-*Note*: Paths can be specified relative to the `config.yml` file or as absolute paths.
+# This describes information about manifests as it relates to generation and validation
+manifest:
+  # Location where manifests will saved to
+  manifest_folder: "manifests"
+  # Title or title prefix given to generated manifest(s)
+  title: "example"
+  # Data types of manifests to be generated or data type (singular) to validate manifest against
+  data_type:
+    - "Biospecimen"
+    - "Patient"
 
-6. Obtain Google credential Files
+# Describes the location of your schema
+model:
+  # Location of your schema jsonld, it must be a path relative to this file or absolute
+  location: "tests/data/example.model.jsonld"
 
-To obtain ``credentials.json`` and ``token.pickle``, please run:
+# This section is for using google sheets with Schematic
+google_sheets:
+  # The Synapse id of the Google service account credentials.
+  service_acct_creds_synapse_id: "syn25171627"
+  # Path to the synapse config file, either absolute or relative to this file
+  service_acct_creds: "schematic_service_account_creds.json"
+  # When doing google sheet validation (regex match) with the validation rules.
+  #   true is alerting the user and not allowing entry of bad values.
+  #   false is warning but allowing the entry on to the sheet.
+  strict_validation: true
+```
 
+If you want to change any of these copy ``config_example.yml`` to ``config.yml``, change any fields you want to, and remove any fields you don't.
+
+For example if you wanted to change the folder where manifests are downloaded your config should look like:
+
+```text
+
+manifest:
+  manifest_folder: "my_manifest_folder_path"
+```
+
+_Note_: `config.yml` is ignored by git.
+
+_Note_: Paths can be specified relative to the `config.yml` file or as absolute paths.
+
+6. Login to Synapse by using the command line
+On the CLI in your virtual environment, run the following command: 
+```
+synapse login -u <synapse username> -p <synapse password> --rememberMe
+```
+Please make sure that you run the command before running `schematic init` below
+
+7. Obtain Google credential Files
+To obtain  ``schematic_service_account_creds.json``, please run: 
 ```
 schematic init --config ~/path/to/config.yml
 ```
-This should prompt you with a URL that will take you through Google OAuth. Your `credentials.json` and `token.pickle` will get automatically downloaded the first time you run this command.
+> As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
 
-*Note* : The ``credentials.json`` file is required when you are using
-[OAuth2](https://developers.google.com/identity/protocols/oauth2)
-to authenticate with the Google APIs.
-
-For details about the steps involved in the [OAuth2 authorization
-flow](https://github.com/Sage-Bionetworks/schematic/blob/develop/schematic/utils/google_api_utils.py#L18)
-refer to the ``Credentials`` section in the
-[docs/md/details](https://github.com/Sage-Bionetworks/schematic/blob/develop/docs/md/details.md#credentials)
-document.
-
-To obtain  ``schematic_service_account_creds.json``, please run: 
-```
-schematic init --config ~/path/to/config.yml --auth service_account
-```
 *Notes*: Use the ``schematic_service_account_creds.json`` file for the service
 account mode of authentication (*for Google services/APIs*). Service accounts 
 are special Google accounts that can be used by applications to access Google APIs 
@@ -160,8 +189,111 @@ Most Google sheet functionality could be authenticated with service account. How
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
 
+8. Set up pre-commit hooks
+
+This repository is configured to utilize pre-commit hooks as part of the development process. To enable these hooks, please run the following command and look for the following success message:
+```
+$ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+```
+
+### Development process instruction
+
+For new features, bugs, enhancements
+
+1. Pull the latest code from [develop branch in the upstream repo](https://github.com/Sage-Bionetworks/schematic)
+2. Checkout a new branch develop-<feature/fix-name> from the develop branch
+3. Do development on branch develop-<feature/fix-name>
+   a. may need to ensure that schematic poetry toml and lock files are compatible with your local environment
+4. Add changed files for tracking and commit changes using [best practices](https://www.perforce.com/blog/vcs/git-best-practices-git-commit)
+5. Have granular commits: not “too many” file changes, and not hundreds of code lines of changes
+6. Commits with work in progress are encouraged:
+   a. add WIP to the beginning of the commit message for “Work In Progress” commits
+7. Keep commit messages descriptive but less than a page long, see best practices
+8. Push code to develop-<feature/fix-name> in upstream repo
+9. Branch out off develop-<feature/fix-name> if needed to work on multiple features associated with the same code base
+10. After feature work is complete and before creating a PR to the develop branch in upstream
+    a. ensure that code runs locally
+    b. test for logical correctness locally
+    c. wait for git workflow to complete (e.g. tests are run) on github
+11. Create a PR from develop-<feature/fix-name> into the develop branch of the upstream repo
+12. Request a code review on the PR
+13. Once code is approved merge in the develop branch
+14. Delete the develop-<feature/fix-name> branch
+
+*Note*: Make sure you have the latest version of the `develop` branch on your local machine.
+
+## Installation Guide - Docker 
+
+1. Install docker from https://www.docker.com/ . <br>
+2.  Identify docker image of interest from [Schematic DockerHub](https://hub.docker.com/r/sagebionetworks/schematic/tags) <br>
+    Ex `docker pull sagebionetworks/schematic:latest` from the CLI or, run `docker compose up` after cloning the schematic github repo <br>
+    in this case, `sagebionetworks/schematic:latest` is the name of the image chosen
+3. Run Schematic Command with `docker run <flags> <schematic command and args>`. <br>
+<t> - For more information on flags for `docker run` and what they do, visit the [Docker Documentation](https://docs.docker.com/engine/reference/commandline/run/) <br>
+<t> - These example commands assume that you have navigated to the directory you want to run schematic from. To specify your working directory, use `$(pwd)` on MacOS/Linux or `%cd%` on Windows.  <br>
+<t> - If not using the latest image, then the full name should be specified: ie `sagebionetworks/schematic:commit-e611e4a` <br>
+<t> - If using local image created by `docker compose up`, then the docker image name should be changed: i.e. `schematic_schematic` <br>
+<t> - Using the `--name` flag sets the name of the container running locally on your machine <br>
+
+### Example For REST API <br>
+
+#### Use file path of `config.yml` to run API endpoints: 
+```
+docker run --rm -p 3001:3001 \
+  -v $(pwd):/schematic -w /schematic --name schematic \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic \
+  python /usr/src/app/run_api.py
+``` 
+
+#### Use content of `config.yml` and `schematic_service_account_creds.json`as an environment variable to run API endpoints: 
+1. save content of `config.yml` as to environment variable `SCHEMATIC_CONFIG_CONTENT` by doing: `export SCHEMATIC_CONFIG_CONTENT=$(cat /path/to/config.yml)`
+
+2. Similarly, save the content of `schematic_service_account_creds.json` as `SERVICE_ACCOUNT_CREDS` by doing: `export SERVICE_ACCOUNT_CREDS=$(cat /path/to/schematic_service_account_creds.json)`
+
+3. Pass `SCHEMATIC_CONFIG_CONTENT` and `schematic_service_account_creds` as environment variables by using `docker run`
+
+```
+docker run --rm -p 3001:3001 \
+  -v $(pwd):/schematic -w /schematic --name schematic \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  -e SCHEMATIC_CONFIG_CONTENT=$SCHEMATIC_CONFIG_CONTENT \
+  -e SERVICE_ACCOUNT_CREDS=$SERVICE_ACCOUNT_CREDS \
+  sagebionetworks/schematic \
+  python /usr/src/app/run_api.py
+``` 
+
+
+### Example For Schematic on mac/linux <br>
+To run example below, first clone schematic into your home directory  `git clone https://github.com/sage-bionetworks/schematic ~/schematic` <br>
+Then update .synapseConfig with your credentials
+```
+docker run \
+  -v ~/schematic:/schematic \
+  -w /schematic \
+  -e SCHEMATIC_CONFIG=/schematic/config.yml \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic schematic model \
+  -c /schematic/config.yml validate \
+  -mp /schematic/tests/data/mock_manifests/Valid_Test_Manifest.csv \
+  -dt MockComponent \
+  -js /schematic/tests/data/example.model.jsonld
+``` 
+
+### Example For Schematic on Windows <br>
+```
+docker run -v %cd%:/schematic \
+  -w /schematic \
+  -e GE_HOME=/usr/src/app/great_expectations/ \
+  sagebionetworks/schematic \
+  schematic model \
+  -c config.yml validate -mp tests/data/mock_manifests/inValid_Test_Manifest.csv -dt MockComponent -js /schematic/data/example.model.jsonld
+```
+
 # Other Contribution Guidelines
-## Update readthedocs documentation
+## Updating readthedocs documentation
 1. `cd docs`
 2. After making relevant changes, you could run the `make html` command to re-generate the `build` folder.
 3. Please contact the dev team to publish your updates
@@ -175,7 +307,7 @@ token-based authentication and keep only service account authentication in the f
 If you install external libraries by using `poetry add <name of library>`, please make sure that you include `pyproject.toml` and `poetry.lock` file in your commit.
 
 ## Reporting bugs or feature requests
-You can use the [`Issues`](https://github.com/Sage-Bionetworks/schematic/issues) tab to **create bug and feature requests**. Providing enough details to the developers to verify and troubleshoot your issue is paramount:
+You can **create bug and feature requests** through [Sage Bionetwork's FAIR Data service desk](https://sagebionetworks.jira.com/servicedesk/customer/portal/5/group/8). Providing enough details to the developers to verify and troubleshoot your issue is paramount:
 - **Provide a clear and descriptive title as well as a concise summary** of the issue to identify the problem.
 - **Describe the exact steps which reproduce the problem** in as many details as possible.
 - **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
