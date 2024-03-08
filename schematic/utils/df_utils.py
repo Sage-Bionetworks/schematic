@@ -6,7 +6,7 @@ import logging
 from copy import deepcopy
 from time import perf_counter
 from datetime import datetime
-from typing import Union, Optional
+from typing import Union, Optional, Any
 import dateparser as dp
 import pandas as pd
 import numpy as np
@@ -20,7 +20,7 @@ def load_df(
     preserve_raw_input: bool = True,
     data_model: bool = False,
     allow_na_values: bool = False,
-    **load_args,
+    **load_args: Any,
 ) -> pd.DataFrame:
     """
     Universal function to load CSVs and return DataFrames
