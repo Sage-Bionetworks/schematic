@@ -2,13 +2,14 @@
 import json
 import logging
 import os
-
+from typing import Optional, no_type_check
 import numpy as np
 import pandas as pd
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
+from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.io_utils import load_json
 
 logger = logging.getLogger(__name__)
@@ -17,31 +18,38 @@ logger = logging.getLogger(__name__)
 class AttributesExplorer:
     """AttributesExplorer class"""
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         path_to_jsonld: str,
-        data_model_labels: str,
+        data_model_labels: DisplayLabelType,
+        data_model_grapher: Optional[DataModelGraph] = None,
+        data_model_graph_explorer: Optional[DataModelGraphExplorer] = None,
+        parsed_data_model: Optional[dict] = None,
     ) -> None:
         self.path_to_jsonld = path_to_jsonld
 
         self.jsonld = load_json(self.path_to_jsonld)
 
-        # Instantiate Data Model Parser
-        data_model_parser = DataModelParser(
-            path_to_data_model=self.path_to_jsonld,
-        )
-
         # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
+        if not parsed_data_model:
+            data_model_parser = DataModelParser(
+                path_to_data_model=self.path_to_jsonld,
+            )
+            parsed_data_model = data_model_parser.parse_model()
 
         # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
+        if not data_model_grapher:
+            data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
         # Generate graph
-        self.graph_data_model = data_model_grapher.generate_data_model_graph()
+        self.graph_data_model = data_model_grapher.graph
 
         # Instantiate Data Model Graph Explorer
-        self.dmge = DataModelGraphExplorer(self.graph_data_model)
+        if not data_model_graph_explorer:
+            self.dmge = DataModelGraphExplorer(self.graph_data_model)
+        else:
+            self.dmge = data_model_graph_explorer
 
         # Instantiate Data Model Json Schema
         self.data_model_js = DataModelJSONSchema(
@@ -66,7 +74,7 @@ class AttributesExplorer:
             os.makedirs(output_path)
         return output_path
 
-    def convert_string_cols_to_json(
+    def _convert_string_cols_to_json(
         self, dataframe: pd.DataFrame, cols_to_modify: list[str]
     ) -> pd.DataFrame:
         """Converts values in a column from strings to JSON list
@@ -81,17 +89,16 @@ class AttributesExplorer:
                 )
         return dataframe
 
-    def parse_attributes(self, save_file: bool = True) -> pd.DataFrame:
+    def parse_attributes(self, save_file: bool = True) -> Optional[str]:
         """
-        Args: save_file (bool):
-                True: merged_df is saved locally to output_path.
-                False: merged_df is returned.
+        Args:
+            save_file (bool, optional):
+              True: merged_df is saved locally to output_path.
+              False: merged_df is returned as a string
+              Defaults to True.
 
         Returns:
-            merged_df (pd.DataFrame): dataframe containing data relating to attributes
-                for the provided data model for all components in the data model.
-                Dataframe is saved locally as a csv if save_file == True, or returned if
-                save_file == False.
+            Optional[str]: if save_file=False, the dataframe as a string, otherwise None
 
         """
         # get all components
@@ -102,44 +109,51 @@ class AttributesExplorer:
         # have to provide.
         return self._parse_attributes(components, save_file)
 
-    def parse_component_attributes(
-        self, component=None, save_file: bool = True, include_index: bool = True
-    ) -> pd.DataFrame:
+    def _parse_component_attributes(
+        self,
+        component: Optional[str] = None,
+        save_file: bool = True,
+        include_index: bool = True,
+    ) -> Optional[str]:
         """
-        Args: save_file (bool):
-                True: merged_df is saved locally to output_path.
-                False: merged_df is returned.
-              include_index (bool):
-                Whether to include the index in the returned dataframe (True) or not (False)
+
+        Args:
+            component (Optional[str], optional): A component. Defaults to None.
+            save_file (bool, optional):
+              True: merged_df is saved locally to output_path.
+              False: merged_df is returned as a string
+              Defaults to True.
+            include_index (bool, optional):
+              Whether to include the index in the returned dataframe (True) or not (False)
+              Defaults to True.
+
+        Raises:
+            ValueError: If Component is None
 
         Returns:
-            merged_df (pd.DataFrame): dataframe containing data relating to attributes
-                for the provided data model for the specified component in the data model.
-                Dataframe is saved locally as a csv if save_file == True, or returned if
-                save_file == False.
+            Optional[str]: if save_file=False, the dataframe as a string, otherwise None
         """
-
         if not component:
             raise ValueError("You must provide a component to visualize.")
         return self._parse_attributes([component], save_file, include_index)
 
+    @no_type_check
     def _parse_attributes(
-        self, components: list, save_file=True, include_index=True
-    ) -> pd.DataFrame:
+        self, components: list[str], save_file: bool = True, include_index: bool = True
+    ) -> Optional[str]:
         """
         Args: save_file (bool):
                 True: merged_df is saved locally to output_path.
                 False: merged_df is returned.
-              components (list):
+              components (list[str]):
                 list of components to parse attributes for
               include_index (bool):
                 Whether to include the index in the returned dataframe (True) or not (False)
 
         Returns:
-            merged_df (pd.DataFrame): dataframe containing data relating to attributes
-                for the provided data model for specified components in the data model.
-                Dataframe is saved locally as a csv if save_file == True, or returned if
-                save_file == False.
+            Optional[str]:
+              if save_file=False, the dataframe as a string, otherwise None
+
         Raises:
             ValueError:
                 If unable hits an error while attempting to get conditional requirements.
@@ -150,6 +164,7 @@ class AttributesExplorer:
         # pylint: disable=too-many-nested-blocks
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-statements
+        # type
 
         # For each data type to be loaded gather all attributes the user would
         # have to provide.
@@ -264,7 +279,7 @@ class AttributesExplorer:
             ]
             cols = [col for col in cols if col in data_dict_df.columns]
             data_dict_df = data_dict_df[cols]
-            data_dict_df = self.convert_string_cols_to_json(
+            data_dict_df = self._convert_string_cols_to_json(
                 data_dict_df, ["Valid Values"]
             )
             df_store.append(data_dict_df)
