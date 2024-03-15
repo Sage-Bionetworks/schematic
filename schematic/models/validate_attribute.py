@@ -1376,9 +1376,6 @@ class ValidateAttribute(object):
             )
             validation_store = [missing_values, duplicated_values, repeat_values]
 
-        
-        
-
         return (
             t_cross_manifest,
             validation_store
