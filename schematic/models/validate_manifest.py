@@ -116,7 +116,7 @@ class ValidateManifest(object):
             "regex.*",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
-            "matchUnique.*"
+            "matchNone.*"
         ]
 
         in_house_rules = [
@@ -129,7 +129,7 @@ class ValidateManifest(object):
             "list",
             "matchAtLeastOne.*",
             "matchExactlyOne.*",
-            "matchUnique.*"
+            "matchNone.*"
         ]
 
         # initialize error and warning handling lists.
