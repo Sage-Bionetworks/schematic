@@ -920,6 +920,12 @@
                     "@id": "bts:CheckMatchExactlyvalues"
                 },
                 {
+                    "@id": "bts:CheckMatchNone"
+                },
+                {
+                    "@id": "bts:CheckMatchNonevalues"
+                },
+                {
                     "@id": "bts:CheckRecommended"
                 },
                 {
@@ -1219,6 +1225,44 @@
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "matchExactlyOne MockComponent.checkMatchExactlyvalues value"
+            ]
+        },
+        {
+            "@id": "bts:CheckMatchNone",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckMatchNone",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Match None",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "matchNone MockComponent.checkMatchNone set error"
+            ]
+        },
+        {
+            "@id": "bts:CheckMatchNonevalues",
+            "@type": "rdfs:Class",
+            "rdfs:comment": "TBD",
+            "rdfs:label": "CheckMatchNonevalues",
+            "rdfs:subClassOf": [
+                {
+                    "@id": "bts:DataProperty"
+                }
+            ],
+            "schema:isPartOf": {
+                "@id": "http://schema.biothings.io"
+            },
+            "sms:displayName": "Check Match None values",
+            "sms:required": "sms:true",
+            "sms:validationRules": [
+                "matchNone MockComponent.checkMatchNonevalues value error"
             ]
         },
         {
