@@ -159,22 +159,37 @@ TEST_DN_DICT = {
     "bio_things": {"class": "BioThings", "property": "bioThings"},
 }
 
+test_disk_storage = [
+    (2, 4000, 8000), 
+    (1000, 4000, 8000), 
+    (2000000, 1900000, 8000), 
+    (1073741825, 1073741824, 8000), 
+]
+
+@pytest.fixture()
+def create_temp_query_file(tmp_path, request):
+    # define location of mock synapse cache
+    mock_synapse_cache_dir = tmp_path / ".synapseCache/"
+    mock_synapse_cache_dir.mkdir()
+    mock_sub_folder = mock_synapse_cache_dir / "123"
+    mock_sub_folder.mkdir()
+    mock_table_query_folder = mock_sub_folder / "456"
+    mock_table_query_folder.mkdir()
+
+    # create mock table query csv and a mock cache map
+    mock_synapse_table_query_csv = (
+        mock_table_query_folder / "mock_synapse_table_query.csv"
+    )
+    with open(mock_synapse_table_query_csv, "wb") as f:
+        f.write(b'\0' * request.param)
+    yield mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv
+
 
 class TestGeneral:
-    def test_clear_synapse_cache(self, tmp_path):
+    @pytest.mark.parametrize("create_temp_query_file", [3, 1000], indirect=True)
+    def test_clear_synapse_cache(self, create_temp_query_file):
         # define location of mock synapse cache
-        mock_synapse_cache_dir = tmp_path / ".synapseCache/"
-        mock_synapse_cache_dir.mkdir()
-        mock_sub_folder = mock_synapse_cache_dir / "123"
-        mock_sub_folder.mkdir()
-        mock_table_query_folder = mock_sub_folder / "456"
-        mock_table_query_folder.mkdir()
-
-        # create mock table query csv and a mock cache map
-        mock_synapse_table_query_csv = (
-            mock_table_query_folder / "mock_synapse_table_query.csv"
-        )
-        mock_synapse_table_query_csv.write_text("mock table query content")
+        mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv = create_temp_query_file
         mock_cache_map = mock_table_query_folder / ".cacheMap"
         mock_cache_map.write_text(
             f"{mock_synapse_table_query_csv}: '2022-06-13T19:24:27.000Z'"
@@ -222,22 +237,17 @@ class TestGeneral:
 
     # this test might fail for windows machine
     @pytest.mark.not_windows
-    def test_check_synapse_cache_size(self, tmp_path):
-        mock_synapse_cache_dir = tmp_path / ".synapseCache"
-        mock_synapse_cache_dir.mkdir()
-
-        mock_synapse_table_query_csv = (
-            mock_synapse_cache_dir / "mock_synapse_table_query.csv"
-        )
-        mock_synapse_table_query_csv.write_text("example file for calculating cache")
-
-        file_size = check_synapse_cache_size(mock_synapse_cache_dir)
+    @pytest.mark.parametrize("create_temp_query_file,local_disk_size,gh_disk_size",test_disk_storage,indirect=["create_temp_query_file"])
+    def test_check_synapse_cache_size(self,create_temp_query_file,local_disk_size,gh_disk_size):
+        mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv = create_temp_query_file
+        disk_size = check_synapse_cache_size(mock_synapse_cache_dir)
 
         # For some reasons, when running in github action, the size of file changes.
         if IN_GITHUB_ACTIONS:
-            assert file_size == 8000
+            assert disk_size == gh_disk_size
+            print('file size in gh action', disk_size)
         else:
-            assert file_size == 4000
+            assert disk_size == local_disk_size
 
     def test_find_duplicates(self):
         mock_list = ["foo", "bar", "foo"]
