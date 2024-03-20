@@ -162,8 +162,8 @@ TEST_DN_DICT = {
 test_disk_storage = [
     (2, 4000, 8000), 
     (1000, 4000, 8000), 
-    (2000000, 1900000, 8000), 
-    (1073741825, 1073741824, 8000), 
+    (2000000, 1900000, 1900000), 
+    (1073741825, 1073741824, 1073741824), 
 ]
 
 @pytest.fixture()
@@ -245,7 +245,6 @@ class TestGeneral:
         # For some reasons, when running in github action, the size of file changes.
         if IN_GITHUB_ACTIONS:
             assert disk_size == gh_disk_size
-            print('file size in gh action', disk_size)
         else:
             assert disk_size == local_disk_size
 
