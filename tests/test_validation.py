@@ -62,7 +62,7 @@ class TestManifestValidation:
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
             rootNode=rootNode,
-            project_scope=["syn23643250"],
+            project_scope=["syn54126707"],
         )
 
         assert errors == []
@@ -75,7 +75,7 @@ class TestManifestValidation:
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
             rootNode=rootNode,
-            project_scope=["syn23643250"],
+            project_scope=["syn54126707"],
         )
 
         # Check errors
@@ -223,6 +223,18 @@ class TestManifestValidation:
             in errors
         )
 
+        assert (
+            GenerateError.generate_cross_warning(
+                val_rule="matchNone error",
+                row_num=["3"],
+                attribute_name="Check Match None",
+                manifest_ID=["syn54126950"],
+                invalid_entry=["123"],
+                dmge=dmge,
+            )[0]
+             in errors
+        )
+
         # check warnings
         assert (
             GenerateError.generate_content_error(
@@ -250,7 +262,7 @@ class TestManifestValidation:
                 row_num=["3"],
                 attribute_name="Check Match at Least",
                 invalid_entry=["7163"],
-                manifest_ID=["syn27600110", "syn29381803"],
+                manifest_ID=["syn54126997", "syn54127001"],
                 dmge=dmge,
             )[1]
             in warnings
@@ -271,14 +283,14 @@ class TestManifestValidation:
             GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862078", "syn27648165"],
+                matching_manifests=["syn54126950", "syn54127008"],
                 dmge=dmge,
             )[1]
             in warnings
             or GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862066", "syn27648165"],
+                matching_manifests=["syn54127702", "syn54127008"],
                 dmge=dmge,
             )[1]
             in warnings
@@ -291,6 +303,7 @@ class TestManifestValidation:
             invalid_entry=["71738", "98085", "210065"],
             dmge=dmge,
         )[1]
+
         warning_in_list = [cross_warning[1] in warning for warning in warnings]
         assert any(warning_in_list)
 
@@ -303,8 +316,10 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode,
             restrict_rules=True,
-            project_scope=["syn23643250"],
+            project_scope=["syn54126707"],
         )
+
+        #syn23643250
 
         # Check errors
         assert (
@@ -424,7 +439,7 @@ class TestManifestValidation:
                 row_num=["3"],
                 attribute_name="Check Match at Least",
                 invalid_entry=["7163"],
-                manifest_ID=["syn27600110", "syn29381803"],
+                manifest_ID=["syn54126997", "syn54127001"],
                 dmge=dmge,
             )[1]
             in warnings
@@ -445,14 +460,14 @@ class TestManifestValidation:
             GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862078", "syn27648165"],
+                matching_manifests=["syn54126950", "syn54127008"],
                 dmge=dmge,
             )[1]
             in warnings
             or GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862066", "syn27648165"],
+                matching_manifests=["syn54127702", "syn54127008"],
                 dmge=dmge,
             )[1]
             in warnings
@@ -468,6 +483,7 @@ class TestManifestValidation:
             )[1]
             in warnings
         )
+
 
     @pytest.mark.parametrize(
         "manifest_path",
