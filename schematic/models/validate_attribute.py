@@ -616,6 +616,7 @@ class ValidateAttribute(object):
 
         # Get list of all projects user has access to
         projects = synStore.getStorageProjects(project_scope=project_scope)
+
         for project in projects:
             # get all manifests associated with datasets in the projects
             target_datasets = synStore.getProjectManifests(projectId=project[0])
@@ -1006,7 +1007,8 @@ class ValidateAttribute(object):
         invalid_entry = iterable_to_str_list(invalid_values.squeeze())
         return invalid_rows, invalid_entry
 
-    def _format_invalid_row_values(invalid_values):
+    def _format_invalid_row_values(invalid_values:Dict[str, pd.core.series.Series])->tuple([[], []]
+        ):
         """
         Args:
             invalid_values, Dict[str, pd.core.series.Series]:
@@ -1173,9 +1175,9 @@ class ValidateAttribute(object):
                 duplicated_values, missing_values
             )
 
-        elif "matchNone" in val_rule and duplicated_values.any():
-            invalid_rows, invalid_entry = ValidateAttribute._format_invalid_row_values(duplicated_values)
-        
+        elif "matchNone" in val_rule and repeat_values.any():
+            invalid_rows, invalid_entry = ValidateAttribute._format_invalid_row_values(repeat_values)
+
         # If invalid rows/entries found, raise warning/error
         if invalid_rows and invalid_entry:
             errors, warnings = ValidateAttribute._get_cross_errors_warnings(
@@ -1185,7 +1187,6 @@ class ValidateAttribute(object):
                 invalid_entry=invalid_entry,
                 dmge=dmge,
             )
-
         return errors, warnings
 
     def _run_validation_across_targets_set(
@@ -1423,7 +1424,7 @@ class ValidateAttribute(object):
                     concatenated_target_column=target_column,
                     target_manifest=target_manifest,
                 )
-        
+
         # Store outputs according to the scope for which they are used.
         if "set" in rule_scope:
             validation_store = [
