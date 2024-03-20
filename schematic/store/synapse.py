@@ -231,7 +231,7 @@ class SynapseStorage(BaseStorage):
         # try clearing the cache
         # scan a directory and check size of files
         if os.path.exists(self.root_synapse_cache):
-            maximum_storage_allowed_cache_bytes = maximum_storage_allowed_cache_gb * 1024 * 1024 * 1024
+            maximum_storage_allowed_cache_bytes = maximum_storage_allowed_cache_gb * (1024 ** 3)
             nbytes = get_dir_size(self.root_synapse_cache)
             dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
             # if 1 GB has already been taken, purge cache before 15 min
