@@ -154,8 +154,8 @@ def check_synapse_cache_size(
         size_in_mb = float(size.rstrip("M"))
         byte_size = size_in_mb * 1000000
     elif "G" in size:
-        size_in_gb = int(size.rstrip("G"))
-        byte_size = convert_gb_to_bytes(size_in_gb)
+        size_in_gb = float(size.rstrip("G"))
+        byte_size = size_in_gb * 1024 * 1024 * 1024
     elif "B" in size:
         byte_size = float(size.rstrip("B"))
     else:
