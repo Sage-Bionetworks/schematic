@@ -129,14 +129,14 @@ def calculate_datetime(
 
 def check_synapse_cache_size(
     directory: str = "/root/.synapseCache",
-) -> Union[float, int]:
+) -> float:
     """use du --sh command to calculate size of .synapseCache.
 
     Args:
         directory (str, optional): .synapseCache directory. Defaults to '/root/.synapseCache'
 
     Returns:
-        float or integer: returns size of .synapsecache directory in bytes
+        float: returns size of .synapsecache directory in bytes
     """
     # Note: this command might fail on windows user.
     # But since this command is primarily for running on AWS, it is fine.
@@ -178,15 +178,6 @@ def clear_synapse_cache(synapse_cache: cache.Cache, minutes: int) -> int:
     )
     num_of_deleted_files = synapse_cache.purge(before_date=minutes_earlier)
     return num_of_deleted_files
-
-
-def convert_gb_to_bytes(g_bytes: int) -> int:
-    """convert gb to bytes
-    Args:
-        g_bytes: number of gb
-    return: total number of bytes
-    """
-    return g_bytes * 1024 * 1024 * 1024
 
 
 def entity_type_mapping(syn: Synapse, entity_id: str) -> str:
