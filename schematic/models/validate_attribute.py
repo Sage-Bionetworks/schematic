@@ -4,7 +4,7 @@ import re
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Any, Dict, List, Optional, Text, Literal, Union
+from typing import Any, Dict, List, Optional, Text, Literal, Union, Tuple
 from urllib import error
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -281,8 +281,8 @@ class GenerateError:
         """
 
         if "matchAtLeast" in val_rule:
-            cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing."
-            cross_error_str += (
+            error_message = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing."
+            error_message += (
                 f" Manifest(s) {manifest_id} are missing the value(s)."
                 if manifest_id
                 else ""
@@ -298,28 +298,20 @@ class GenerateError:
                 )
 
             elif "set" in val_rule:
-                cross_error_str = f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
+                error_message = f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
             elif "value" in val_rule:
-                cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
+                error_message = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
 
         elif "matchNone" in val_rule:
-            cross_error_str = f(
-                (
+            error_message = (
                     f"Value(s) {invalid_entry} from row(s) {row_num} for the attribute {attribute_name} "
                     f"in the source manifest are not unique."
-                )
             )
-            cross_error_str += (
+            error_message += (
                 f" Manifest(s) {manifest_id} contain duplicate values."
                 if manifest_id
                 else ""
             )
-
-        logLevel(cross_error_str)
-        error_row = row_num  # index row of the manifest where the error presented.
-        error_col = attribute_name  # Attribute name
-        error_message = cross_error_str
-        error_val = invalid_entry  # Value from source manifest missing from targets
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
@@ -1010,7 +1002,7 @@ class ValidateAttribute(object):
                 row_num=invalid_rows,
                 attribute_name=source_attribute,
                 invalid_entry=invalid_entries,
-                manifest_ID=manifest_ids,
+                manifest_id=manifest_ids,
                 dmge=dmge,
             )
 
