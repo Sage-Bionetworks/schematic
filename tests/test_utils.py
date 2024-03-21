@@ -176,7 +176,7 @@ def create_temp_query_file(tmp_path, request):
     mock_table_query_folder = mock_sub_folder / "456"
     mock_table_query_folder.mkdir()
 
-    # create mock table query csv and a mock cache map
+    # create mock table query csv
     mock_synapse_table_query_csv = (
         mock_table_query_folder / "mock_synapse_table_query.csv"
     )
@@ -190,6 +190,7 @@ class TestGeneral:
     def test_clear_synapse_cache(self, create_temp_query_file):
         # define location of mock synapse cache
         mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv = create_temp_query_file
+        # create a mock cache map 
         mock_cache_map = mock_table_query_folder / ".cacheMap"
         mock_cache_map.write_text(
             f"{mock_synapse_table_query_csv}: '2022-06-13T19:24:27.000Z'"
