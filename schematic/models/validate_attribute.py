@@ -304,8 +304,8 @@ class GenerateError:
 
         elif "matchNone" in val_rule:
             error_message = (
-                    f"Value(s) {invalid_entry} from row(s) {row_num} for the attribute {attribute_name} "
-                    f"in the source manifest are not unique."
+                f"Value(s) {invalid_entry} from row(s) {row_num} for the attribute {attribute_name} "
+                f"in the source manifest are not unique."
             )
             error_message += (
                 f" Manifest(s) {manifest_id} contain duplicate values."
