@@ -106,6 +106,7 @@ def validation_rule_info() -> dict[str, Rule]:
             "type": "cross_validation",
             "complementary_rules": None,
             "default_message_level": "warning",
+            "fixed_arg": None,
         },
         "recommended": {
             "arguments": (1, 0),
