@@ -365,10 +365,10 @@ class GenerateError:
         val_rule: str,
         attribute_name: str,
         dmge: DataModelGraphExplorer,
-        matching_manifests:list=[],
-        manifest_id:list=None,
-        invalid_entry:list=None,
-        row_num:list=None,
+        matching_manifests: list = [],
+        manifest_id: list = None,
+        invalid_entry: list = None,
+        row_num: list = None,
     ) -> List[str]:
         """
         Purpose:
@@ -380,7 +380,7 @@ class GenerateError:
             dmge: DataModelGraphExplorer object
             matching_manifests: list of manifests with all values in the target attribute present
             manifest_id: list, synID of the target manifest missing the source value
-            
+
             invalid_entry: list, value present in source manifest that is missing in the target
             row_num: list, row in source manifest with value missing in target manifests
         Returns:
@@ -427,8 +427,10 @@ class GenerateError:
                 cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
 
         elif "matchNone" in val_rule:
-            cross_error_str = f"Value(s) {invalid_entry} from row(s) {row_num} for the attribute {attribute_name} "
+            cross_error_str = f(
+                "Value(s) {invalid_entry} from row(s) {row_num} for the attribute {attribute_name} "
                 f"in the source manifest are not unique."
+            )
             cross_error_str += (
                 f" Manifest(s) {manifest_id} contain duplicate values."
                 if manifest_id
@@ -959,7 +961,9 @@ class ValidateAttribute(object):
                                 warnings.append(vr_warnings)
         return errors, warnings
 
-    def _parse_validation_log(validation_log: Dict[str, pd.core.series.Series]) -> tuple([[], [], []]):
+    def _parse_validation_log(
+        validation_log: Dict[str, pd.core.series.Series]
+    ) -> tuple([[], [], []]):
         """Parse validation log, so values can be used to raise warnings/errors
         Args:
             validation_log, Dict[str, pd.core.series.Series]:
@@ -984,7 +988,9 @@ class ValidateAttribute(object):
 
         return invalid_rows, invalid_entries, manifest_ids
 
-    def _merge_format_invalid_rows_values(series_1:pd.core.series.Series, series_2:pd.core.series.Series) -> tuple([[], []]):
+    def _merge_format_invalid_rows_values(
+        series_1: pd.core.series.Series, series_2: pd.core.series.Series
+    ) -> tuple([[], []]):
         """Merge two series to identify gather all invalid values, and parse out invalid rows and entries
         Args:
             series_1, pd.core.series.Series: first set of invalid values to extract
@@ -1032,7 +1038,7 @@ class ValidateAttribute(object):
     def _gather_set_warnings_errors(
         val_rule: str,
         source_attribute: str,
-        set_validation_store: list[{},[],{}],
+        set_validation_store: list[{}, [], {}],
         dmge: DataModelGraphExplorer,
     ) -> tuple([[], []]):
         """Based on the cross manifest validation rule, and in set rule scope, pass variables to _get_cross_errors_warnings
@@ -1146,7 +1152,7 @@ class ValidateAttribute(object):
     def _gather_value_warnings_errors(
         val_rule: str,
         source_attribute: str,
-        value_validation_store: list[{},{},{}],
+        value_validation_store: list[{}, {}, {}],
         dmge: DataModelGraphExplorer,
     ) -> tuple([[], []]):
         """For value rule scope, find invalid rows and entries, and generate appropriate errors and warnings
@@ -1202,7 +1208,7 @@ class ValidateAttribute(object):
 
     def _run_validation_across_targets_set(
         val_rule: str,
-        column_names: Dict[str,str],
+        column_names: Dict[str, str],
         manifest_col: pd.core.series.Series,
         target_attribute: str,
         target_column: pd.core.series.Series,
@@ -1277,7 +1283,7 @@ class ValidateAttribute(object):
         Args:
             column_names, Dict: {stripped_col_name:original_column_name}
             target_attribute, str: current target attribute
-            concatenated_target_column, pd.core.series.Series: target column in the process of being built, possibly 
+            concatenated_target_column, pd.core.series.Series: target column in the process of being built, possibly
                 passed through this function multiple times based on the number of manifests
             target_manifest, pd.core.series.Series: current target manifest
         Returns:
@@ -1316,7 +1322,7 @@ class ValidateAttribute(object):
             manifest_col, pd.core.series.Series: Current source manifest column
             concatenated_target_column, pd.core.series.Series: All target columns concatenated into a single column
         Returns:
-            missing_values, pd.core.series.Series: values that are present in the source manifest, but not present 
+            missing_values, pd.core.series.Series: values that are present in the source manifest, but not present
                 in the target manifest
             duplicated_values, pd.core.series.Series: values that duplicated in the concatenated target column, and
                 also present in the source manifest column
@@ -1338,7 +1344,7 @@ class ValidateAttribute(object):
 
         return missing_values, duplicated_values, repeat_values
 
-    def _get_column_names(target_manifest: pd.core.series.Series) -> Dict[str,str]:
+    def _get_column_names(target_manifest: pd.core.series.Series) -> Dict[str, str]:
         """Convert manifest column names into validation rule input format
         Args:
             target_manifest, pd.core.series.Series: Current target manifest
@@ -1423,7 +1429,7 @@ class ValidateAttribute(object):
                 target_manifest=target_manifest
             )
 
-            # Read each target manifest and run validation of current manifest column (set) against each 
+            # Read each target manifest and run validation of current manifest column (set) against each
             # manifest individually, gather results
             if "set" in rule_scope:
                 (
