@@ -228,7 +228,7 @@ class TestManifestValidation:
                 val_rule="matchNone error",
                 row_num=["3"],
                 attribute_name="Check Match None",
-                manifest_ID=["syn54126950"],
+                manifest_id=["syn54126950"],
                 invalid_entry=["123"],
                 dmge=dmge,
             )[0]
@@ -274,7 +274,7 @@ class TestManifestValidation:
                 row_num=["3"],
                 attribute_name="Check Match at Least",
                 invalid_entry=["7163"],
-                manifest_ID=["syn54126997", "syn54127001"],
+                manifest_id=["syn54126997", "syn54127001"],
                 dmge=dmge,
             )[1]
             in warnings
@@ -447,7 +447,7 @@ class TestManifestValidation:
                 val_rule="matchNone error",
                 row_num=["3"],
                 attribute_name="Check Match None",
-                manifest_ID=["syn54126950"],
+                manifest_id=["syn54126950"],
                 invalid_entry=["123"],
                 dmge=dmge,
             )[0]
@@ -472,7 +472,7 @@ class TestManifestValidation:
                 row_num=["3"],
                 attribute_name="Check Match at Least",
                 invalid_entry=["7163"],
-                manifest_ID=["syn54126997", "syn54127001"],
+                manifest_id=["syn54126997", "syn54127001"],
                 dmge=dmge,
             )[1]
             in warnings
