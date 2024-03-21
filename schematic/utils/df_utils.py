@@ -6,7 +6,6 @@ import logging
 from copy import deepcopy
 from time import perf_counter
 from datetime import datetime
-from typing import Union, Optional
 from typing import Union, Optional, Any
 import dateparser as dp
 import pandas as pd
