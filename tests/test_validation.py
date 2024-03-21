@@ -235,6 +235,18 @@ class TestManifestValidation:
              in errors
         )
 
+        assert (
+            GenerateError.generate_cross_warning(
+                val_rule="matchNone value error",
+                row_num=["4"],
+                attribute_name="Check Match None values",
+                invalid_entry=["123"],
+                dmge=dmge,
+            )[0]
+             in errors
+        )
+
+
         # check warnings
         assert (
             GenerateError.generate_content_error(
@@ -318,8 +330,6 @@ class TestManifestValidation:
             restrict_rules=True,
             project_scope=["syn54126707"],
         )
-
-        #syn23643250
 
         # Check errors
         assert (
@@ -430,6 +440,29 @@ class TestManifestValidation:
                 dmge=dmge,
             )[0]
             in errors
+        )
+
+        assert (
+            GenerateError.generate_cross_warning(
+                val_rule="matchNone error",
+                row_num=["3"],
+                attribute_name="Check Match None",
+                manifest_ID=["syn54126950"],
+                invalid_entry=["123"],
+                dmge=dmge,
+            )[0]
+             in errors
+        )
+
+        assert (
+            GenerateError.generate_cross_warning(
+                val_rule="matchNone value error",
+                row_num=["4"],
+                attribute_name="Check Match None values",
+                invalid_entry=["123"],
+                dmge=dmge,
+            )[0]
+             in errors
         )
 
         # Check Warnings
