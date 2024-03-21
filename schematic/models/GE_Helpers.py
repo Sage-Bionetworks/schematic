@@ -151,6 +151,7 @@ class GreatExpectationsHelpers(object):
             # "url": "expect_column_values_to_be_valid_urls",
             # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
             # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+            # "matchNone": "expect_compound_columns_to_be_unique",
         }
 
         # create blank expectation suite
