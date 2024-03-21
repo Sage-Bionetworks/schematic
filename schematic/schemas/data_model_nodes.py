@@ -155,7 +155,9 @@ class DataModelNodes:
             )
 
         elif rel_func == parse_validation_rules:
-            return parse_validation_rules(attr_relationships[csv_header])
+            rules = attr_relationships[csv_header]
+            if isinstance(rules, dict) or isinstance(rules, list):
+                return parse_validation_rules(rules)
 
         elif rel_func == get_label_from_display_name:
             return get_label_from_display_name(

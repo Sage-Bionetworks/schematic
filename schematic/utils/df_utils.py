@@ -7,6 +7,7 @@ from copy import deepcopy
 from time import perf_counter
 from datetime import datetime
 from typing import Union, Optional
+from typing import Union, Optional, Any
 import dateparser as dp
 import pandas as pd
 import numpy as np
@@ -20,7 +21,7 @@ def load_df(
     preserve_raw_input: bool = True,
     data_model: bool = False,
     allow_na_values: bool = False,
-    **load_args,
+    **load_args: Any,
 ) -> pd.DataFrame:
     """
     Universal function to load CSVs and return DataFrames
@@ -91,18 +92,21 @@ def find_and_convert_ints(dataframe: pd.DataFrame) -> tuple[pd.DataFrame, pd.Dat
     if (
         dataframe.size < large_manifest_cutoff_size
     ):  # If small manifest, iterate as normal for improved performance
-        ints = dataframe.map(
+        ints = dataframe.map(  # type:ignore
             lambda cell: convert_ints(cell), na_action="ignore"
         ).fillna(False)
 
     else:  # parallelize iterations for large manifests
         pandarallel.initialize(verbose=1)
-        ints = dataframe.parallel_applymap(
+        ints = dataframe.parallel_applymap(  # type:ignore
             lambda cell: convert_ints(cell), na_action="ignore"
         ).fillna(False)
 
     # Identify cells converted to integers
-    is_int = ints.map(pd.api.types.is_integer)
+    is_int = ints.map(pd.api.types.is_integer)  # type:ignore
+
+    assert isinstance(ints, pd.DataFrame)
+    assert isinstance(is_int, pd.DataFrame)
 
     return ints, is_int
 
@@ -239,7 +243,7 @@ def update_df(
 def trim_commas_df(
     dataframe: pd.DataFrame,
     allow_na_values: Optional[bool] = False,
-):
+) -> pd.DataFrame:
     """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
 
     Args:
