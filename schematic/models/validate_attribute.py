@@ -762,21 +762,25 @@ class ValidateAttribute(object):
         # num indicates either a float or int.
         if val_rule == "num":
             for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, specified_type[val_rule]):
-                    vr_errors, vr_warnings = GenerateError.generate_type_error(
-                        val_rule=val_rule,
-                        row_num=str(i + 2),
-                        attribute_name=manifest_col.name,
-                        invalid_entry=str(manifest_col[i]),
-                        dmge=dmge,
-                    )
-                    if vr_errors:
-                        errors.append(vr_errors)
-                    if vr_warnings:
-                        warnings.append(vr_warnings)
+                # If value is not a NAN and has a value and the type of the value does not belong to the
+                # types specified by the rule, raise an error.
+                    if not pd.isna(value) and bool(value) and not isinstance(value, specified_type[val_rule]):
+                        vr_errors, vr_warnings = GenerateError.generate_type_error(
+                            val_rule=val_rule,
+                            row_num=str(i + 2),
+                            attribute_name=manifest_col.name,
+                            invalid_entry=str(manifest_col[i]),
+                            dmge=dmge,
+                        )
+                        if vr_errors:
+                            errors.append(vr_errors)
+                        if vr_warnings:
+                            warnings.append(vr_warnings)
         elif val_rule in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, specified_type[val_rule]):
+                # If value is not a NAN and has a value and the type of the value does not belong to the
+                # types specified by the rule, raise an error.
+                if not pd.isna(value) and bool(value) and not isinstance(value, specified_type[val_rule]):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
                         val_rule=val_rule,
                         row_num=str(i + 2),
