@@ -15,7 +15,7 @@ class Rule(TypedDict):
     arguments: tuple[int, int]
     type: str
     complementary_rules: Optional[list[str]]
-    default_message_level: str
+    default_message_level: Optional[str]
     fixed_arg: Optional[list[str]]
 
 
@@ -132,14 +132,14 @@ def validation_rule_info() -> dict[str, Rule]:
             "fixed_arg": None,
         },
         "IsNA": {
-            "arguments": (1, 0),
+            "arguments": (0, 0),
             "type": "content_validation",
             "complementary_rules": [
                 "int",
                 "float",
                 "num",
             ],
-            "default_message_level": "warning",
+            "default_message_level": None,
             "fixed_arg": None,
         },
     }

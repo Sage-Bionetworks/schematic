@@ -511,7 +511,7 @@ class GreatExpectationsHelpers(object):
                         val_rule=rule,
                         attribute_name=errColumn,
                         row_num=np_array_to_str_list(np.array(indices) + 2),
-                        error_val=iterable_to_str_list(values),
+                        invalid_entry=iterable_to_str_list(values),
                         dmge=self.dmge,
                     )
                     if vr_errors:
