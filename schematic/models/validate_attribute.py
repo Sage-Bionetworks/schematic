@@ -1009,7 +1009,7 @@ class ValidateAttribute(object):
 
     def _format_invalid_row_values(invalid_values:Dict[str, pd.core.series.Series])->tuple([[], []]
         ):
-        """
+        """ Parse invalid_values dictionary, to extract invalid_rows and invalid_entry to be used later to raise warnings or errors.
         Args:
             invalid_values, Dict[str, pd.core.series.Series]:
         Returns:
@@ -1031,7 +1031,7 @@ class ValidateAttribute(object):
         set_validation_store: list,
         dmge: DataModelGraphExplorer,
     ) -> tuple([[], []]):
-        """
+        """ Based on the cross manifest validation rule, and in set rule scope, pass variables to _get_cross_errors_warnings to log appropriate error or warning.
         Args:
             val_rule, str: Validation Rule
             source_attribute, str: Source manifest column name
@@ -1106,7 +1106,7 @@ class ValidateAttribute(object):
         manifest_ID: list = None,
         invalid_entry: list = None,
     ) -> tuple([[], []]):
-        """
+        """Helper to call GenerateError.generate_cross_warning in a consistent way, gather warnings and errors.
         Args:
             val_rule, str: Validation Rule
             attribute_name, str: source attribute name
@@ -1145,7 +1145,7 @@ class ValidateAttribute(object):
         value_validation_store: list,
         dmge: DataModelGraphExplorer,
     ) -> tuple([[], []]):
-        """
+        """ For value rule scope, find invalid rows and entries, and generate appropriate errors and warnings
         Args:
             val_rule, str: Validation rule
             source_attribute, str: source manifest column name
@@ -1204,7 +1204,7 @@ class ValidateAttribute(object):
         Dict[str, pd.core.series.Series],
         Dict[str, pd.core.series.Series]],
         ):
-        """
+        """ For set rule scope, go through the given target column and look 
         Args:
             val_rule, str: Validation rule
             target_column, pd.core.series.Series: Empty target_column to fill out in this function
@@ -1234,16 +1234,20 @@ class ValidateAttribute(object):
 
             # Do the validation on both columns
             if "matchNone" in val_rule:
+                # Look for repeats between the source manifest and target_column, if there are repeats log the repeat value and manifest
                 repeat_values = manifest_col[manifest_col.isin(target_column)]
 
                 if repeat_values.any():
                     repeat_manifest_log[target_manifest_ID] = repeat_values
             else:
+                # Determine elements in manifest column that are missing from the target column
                 missing_values = manifest_col[~manifest_col.isin(target_column)]
 
                 if missing_values.empty:
+                    # If there are no missing values in the target column, log this manifest as one where all items are present
                     present_manifest_log.append(target_manifest_ID)
                 else:
+                    # If there are missing values in the target manifest, log the manifest and the missing values.
                     missing_manifest_log[target_manifest_ID] = missing_values
 
         return missing_manifest_log, present_manifest_log, repeat_manifest_log
@@ -1434,7 +1438,7 @@ class ValidateAttribute(object):
             ]
 
         elif "value" in rule_scope:
-            # From the concatedated target column, for value scope, run validation
+            # From the concatenated target column, for value scope, run validation
             (
                 missing_values,
                 duplicated_values,
@@ -1460,7 +1464,7 @@ class ValidateAttribute(object):
     ) -> List[List[str]]:
         """
         Purpose:
-            Do cross validation between the current manifest and all other manifests a user has access to on Synapse.
+            Do cross validation between the current manifest and all other manifests in a given asset view (limited by project scope, if provided).
         Args:
             val_rule, str: Validation rule
             manifest_col, pd.core.series.Series: column for a given
