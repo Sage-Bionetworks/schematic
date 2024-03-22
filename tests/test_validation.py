@@ -76,8 +76,10 @@ class TestManifestValidation:
                             ids=
                             [   "full_manifest", 
                                 "missing_value_manifest"])
+
+    ## TODO: Modify to take in both models, and check that both valid models pass.
+    ## Rewrite, get metadata model from a helper instead of a fixture, so can pass the model as a parameter.
     def test_valid_manifest(self, helpers, metadataModelType, manifestPath, request):
-        complete_manifest = "missing" not in manifestPath.lower()
         manifestPath = helpers.get_data_path(manifestPath)
         rootNode = "MockComponent"
 
@@ -90,12 +92,7 @@ class TestManifestValidation:
         )
         
         assert warnings == []
-
-        if complete_manifest:
-            assert errors == []
-        else:
-            assert len(errors) == 1
-            assert "too many rules" in errors[0][-1]
+        assert errors == []
 
     @pytest.mark.parametrize("metadataModelType, manifestPath", 
                             [   ("metadataModel", "mock_manifests/Invalid_Test_Manifest.csv"),
@@ -103,6 +100,7 @@ class TestManifestValidation:
                             ids=[
                                 "full_manifest", 
                                 "missing_value_manifest"])
+    ## TODO change ids to be consistent
     def test_invalid_manifest(self, helpers, dmge, metadataModelType, manifestPath, request):
         complete_manifest = "missing" not in manifestPath.lower()
         manifestPath = helpers.get_data_path(manifestPath)
