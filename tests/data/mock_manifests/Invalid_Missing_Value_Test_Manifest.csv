@@ -1,0 +1,4 @@
+Component,Check List,Check Regex List,Check Regex Single,Check Regex Format,Check Regex Integer,Check Num,Check Float,Check Int,Check String,Check URL,Check Match at Least,Check Match at Least values,Check Match Exactly,Check Match Exactly values,Check Recommended,Check Ages,Check Unique,Check Range,Check Date,Check NA,Check OptionalAge
+MockComponent,,,,,,,,,,,,,,,,,,,,,
+MockComponent,invalid list values,ab cd ef,q,m,0,c,99,5.63,94,http://googlef.com/,7163,51100,9965,71738,,32851,str1,30,notADate,9.5,32851
+MockComponent,"ab,cd","ab,cd,ef",b,b,683902,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,8085,8085,1738,210065,,6550,str1,90,84-43-094,Not Applicable,

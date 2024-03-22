@@ -131,13 +131,22 @@ def validation_rule_info() -> dict[str, Rule]:
             "default_message_level": "error",
             "fixed_arg": None,
         },
-        "IsNA": {
+        "IsNa": {
             "arguments": (0, 0),
             "type": "content_validation",
             "complementary_rules": [
                 "int",
                 "float",
                 "num",
+                "date",
+                "regex",
+                "url",
+                "list",
+                "matchAtLeastOne",
+                "matchExactlyOne",
+                "protectAges",
+                "unique",
+                "inRange",
             ],
             "default_message_level": None,
             "fixed_arg": None,

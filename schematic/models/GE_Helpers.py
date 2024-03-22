@@ -140,17 +140,10 @@ class GreatExpectationsHelpers(object):
             "str": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
             "date": "expect_column_values_to_be_dateutil_parseable",
-            "recommended": "expect_column_values_to_not_match_regex_list",
+            "recommended": "expect_column_values_to_not_be_null",
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
             "inRange": "expect_column_values_to_be_between",
-            "IsNA": "expect_column_values_to_match_regex_list",
-            # To be implemented rules with possible expectations
-            # "list": "expect_column_values_to_not_match_regex_list",
-            # "regex": "expect_column_values_to_match_regex",
-            # "url": "expect_column_values_to_be_valid_urls",
-            # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
         }
 
         # create blank expectation suite
@@ -254,7 +247,6 @@ class GreatExpectationsHelpers(object):
 
                     elif base_rule == ("recommended"):
                         args["mostly"] = 0.0000000001
-                        args["regex_list"] = ["^$"]
                         meta = {
                             "notes": {
                                 "format": "markdown",
@@ -312,17 +304,6 @@ class GreatExpectationsHelpers(object):
                             "validation_rule": rule,
                         }
 
-                    elif base_rule == ("IsNA"):
-                        args["mostly"] = 1.0
-                        args["regex_list"] = ["Not Applicable"]
-                        meta = {
-                            "notes": {
-                                "format": "markdown",
-                                "content": "Expect column values to be marked Not Applicable. **Markdown** `Supported`",
-                            },
-                            "validation_rule": rule,
-                        }
-
                     # add expectation for attribute to suite
                     self.add_expectation(
                         rule=rule,
@@ -365,16 +346,22 @@ class GreatExpectationsHelpers(object):
             adds expectation to self.suite
 
         """
-        # Create an Expectation
-        expectation_configuration = ExpectationConfiguration(
-            # Name of expectation type being added
-            expectation_type=validation_expectation[rule.split(" ")[0]],
-            # add arguments and meta message
-            kwargs={**args},
-            meta={**meta},
-        )
-        # Add the Expectation to the suite
-        self.suite.add_expectation(expectation_configuration=expectation_configuration)
+        # Find expectation type (if available)
+        expectation_type = validation_expectation.get(rule.split(" ")[0])
+
+        if expectation_type:
+            # Create an Expectation
+            expectation_configuration = ExpectationConfiguration(
+                # Name of expectation type being added
+                expectation_type=expectation_type,
+                # add arguments and meta message
+                kwargs={**args},
+                meta={**meta},
+            )
+            # Add the Expectation to the suite
+            self.suite.add_expectation(expectation_configuration=expectation_configuration)
+        else:
+            return
 
     def build_checkpoint(self):
         """
@@ -507,22 +494,27 @@ class GreatExpectationsHelpers(object):
                 elif (
                     validation_types[rule.split(" ")[0]]["type"] == "content_validation"
                 ):
-                    vr_errors, vr_warnings = GenerateError.generate_content_error(
-                        val_rule=rule,
-                        attribute_name=errColumn,
-                        row_num=np_array_to_str_list(np.array(indices) + 2),
-                        invalid_entry=iterable_to_str_list(values),
-                        dmge=self.dmge,
-                    )
-                    if vr_errors:
-                        errors.append(vr_errors)
-                        if rule.startswith("protectAges"):
-                            self.censor_ages(vr_errors, errColumn)
+                    for row, value in zip(indices, values):
+                        vr_errors, vr_warnings = GenerateError.generate_content_error(
+                            val_rule=rule,
+                            attribute_name=errColumn,
+                            row_num=str(row + 2),
+                            invalid_entry=value,
+                            dmge=self.dmge,
+                        )
+                        if vr_errors:
+                            errors.append(vr_errors)
+                            if rule.startswith("protectAges"):
+                                self.censor_ages(vr_errors, errColumn)
 
-                    if vr_warnings:
-                        warnings.append(vr_warnings)
-                        if rule.startswith("protectAges"):
-                            self.censor_ages(vr_warnings, errColumn)
+                        if vr_warnings:
+                            warnings.append(vr_warnings)
+                            if rule.startswith("protectAges"):
+                                self.censor_ages(vr_warnings, errColumn)
+
+                        # Only log one message per recommended column
+                        if rule.lower() == "recommended":
+                            break
 
         return errors, warnings
 

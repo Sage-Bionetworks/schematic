@@ -6,6 +6,7 @@ import jsonschema
 import pytest
 from pathlib import Path
 import itertools
+from pandas import NA
 
 from schematic.models.validate_attribute import ValidateAttribute, GenerateError
 from schematic.models.validate_manifest import ValidateManifest
@@ -27,6 +28,10 @@ def DMGE(helpers):
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     yield dmge
 
+@pytest.fixture(name="missing_dmge")
+def missingDMGE(helpers):
+    missing_dmge = helpers.get_data_model_graph_explorer(path="example.missing.value.model.jsonld")
+    yield missing_dmge
 
 @pytest.fixture
 def metadataModel(helpers):
@@ -38,6 +43,15 @@ def metadataModel(helpers):
 
     yield metadataModel
 
+@pytest.fixture
+def missingMetadataModel(helpers):
+    missingMetadataModel = MetadataModel(
+        inputMModelLocation=helpers.get_data_path("example.missing.value.model.jsonld"),
+        inputMModelLocationType="local",
+        data_model_labels="class_label",
+    )
+
+    yield missingMetadataModel
 
 def get_rule_combinations():
     rule_info = validation_rule_info()
@@ -55,22 +69,44 @@ class TestManifestValidation:
     if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
         os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
-    def test_valid_manifest(self, helpers, metadataModel):
-        manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
+    @pytest.mark.parametrize("metadataModelType, manifestPath", 
+                            [
+                                ("metadataModel", "mock_manifests/Valid_Test_Manifest.csv"), 
+                                ("missingMetadataModel", "mock_manifests/Valid_Missing_Value_Test_Manifest.csv")], 
+                            ids=
+                            [   "full_manifest", 
+                                "missing_value_manifest"])
+
+    ## TODO: Modify to take in both models, and check that both valid models pass.
+    ## Rewrite, get metadata model from a helper instead of a fixture, so can pass the model as a parameter.
+    def test_valid_manifest(self, helpers, metadataModelType, manifestPath, request):
+        manifestPath = helpers.get_data_path(manifestPath)
         rootNode = "MockComponent"
+
+        metadataModel = request.getfixturevalue(metadataModelType)
 
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
             rootNode=rootNode,
             project_scope=["syn23643250"],
         )
-
-        assert errors == []
+        
         assert warnings == []
+        assert errors == []
 
-    def test_invalid_manifest(self, helpers, dmge, metadataModel):
-        manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
+    @pytest.mark.parametrize("metadataModelType, manifestPath", 
+                            [   ("metadataModel", "mock_manifests/Invalid_Test_Manifest.csv"),
+                                ("missingMetadataModel", "mock_manifests/Invalid_Missing_Value_Test_Manifest.csv")], 
+                            ids=[
+                                "full_manifest", 
+                                "missing_value_manifest"])
+    ## TODO change ids to be consistent
+    def test_invalid_manifest(self, helpers, dmge, metadataModelType, manifestPath, request):
+        complete_manifest = "missing" not in manifestPath.lower()
+        manifestPath = helpers.get_data_path(manifestPath)
         rootNode = "MockComponent"
+
+        metadataModel = request.getfixturevalue(metadataModelType)
 
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
@@ -143,66 +179,68 @@ class TestManifestValidation:
                 dmge=dmge,
             )[0] in errors
 
-        assert GenerateError.generate_regex_error(
-                val_rule="regex",
-                reg_expression="^\d+$",
-                row_num="2",
-                attribute_name="Check Regex Integer",
-                module_to_call="search",
-                invalid_entry="5.4",
-                dmge=dmge,
-            )[0] in errors
-
-        assert GenerateError.generate_url_error(
-                val_rule="url",
-                url="http://googlef.com/",
-                url_error="invalid_url",
-                row_num="3",
-                attribute_name="Check URL",
-                argument=None,
-                invalid_entry="http://googlef.com/",
-                dmge=dmge,
-            )[0] in errors
-
-        date_err = GenerateError.generate_content_error(
+        assert GenerateError.generate_content_error(
             val_rule="date",
             attribute_name="Check Date",
             dmge=dmge,
-            row_num=["2", "3", "4"],
-            invalid_entry=["84-43-094", "32-984", "notADate"],
-        )[0]
-        error_in_list = [date_err[2] in error for error in errors]
-        assert any(error_in_list)
+            row_num="3",
+            invalid_entry="notADate",
+        )[0] in errors
 
+        assert GenerateError.generate_content_error(
+            val_rule="date",
+            attribute_name="Check Date",
+            dmge=dmge,
+            row_num="4",
+            invalid_entry="84-43-094",
+        )[0] in errors
+        
         assert GenerateError.generate_content_error(
                 val_rule="unique error",
                 attribute_name="Check Unique",
                 dmge=dmge,
-                row_num=["2", "3", "4"],
-                invalid_entry=["str1"],
+                row_num="3",
+                invalid_entry="str1",
+            )[0] in errors
+        
+        assert GenerateError.generate_content_error(
+                val_rule="unique error",
+                attribute_name="Check Unique",
+                dmge=dmge,
+                row_num="4",
+                invalid_entry="str1",
             )[0] in errors
 
         assert GenerateError.generate_content_error(
                 val_rule="inRange 50 100 error",
                 attribute_name="Check Range",
                 dmge=dmge,
-                row_num=["3"],
-                invalid_entry=["30"],
+                row_num="3",
+                invalid_entry="30",
             )[0] in errors
+        
+        assert GenerateError.generate_content_error(
+                val_rule="protectAges",
+                attribute_name="Check OptionalAge",
+                dmge=dmge,
+                row_num="3",
+                invalid_entry="32851",
+            )[1] in errors
 
         # check warnings
         assert GenerateError.generate_content_error(
                 val_rule="recommended",
                 attribute_name="Check Recommended",
+                invalid_entry=NA,
                 dmge=dmge,
             )[1] in warnings
-
+        
         assert GenerateError.generate_content_error(
                 val_rule="protectAges",
                 attribute_name="Check Ages",
                 dmge=dmge,
-                row_num=["2", "3"],
-                invalid_entry=["6549", "32851"],
+                row_num="3",
+                invalid_entry="32851",
             )[1] in warnings
 
         assert GenerateError.generate_cross_warning(
@@ -222,29 +260,85 @@ class TestManifestValidation:
                 dmge=dmge,
             )[1] in warnings
 
-        assert \
-            GenerateError.generate_cross_warning(
-                val_rule="matchExactlyOne",
-                attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862078", "syn27648165"],
+        if complete_manifest:
+
+            # this rule is only here becasuse of a bug, should be moved back to main section after resolution of FDS-1825
+            assert GenerateError.generate_url_error(
+                val_rule="url",
+                url="http://googlef.com/",
+                url_error="invalid_url",
+                row_num="3",
+                attribute_name="Check URL",
+                argument=None,
+                invalid_entry="http://googlef.com/",
                 dmge=dmge,
-            )[1] in warnings \
-            or GenerateError.generate_cross_warning(
-                val_rule="matchExactlyOne",
-                attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862066", "syn27648165"],
+            )[0] in errors
+
+            assert GenerateError.generate_content_error(
+                val_rule="protectAges",
+                attribute_name="Check OptionalAge",
                 dmge=dmge,
+                row_num="2",
+                invalid_entry="6549",
+            )[1] in errors
+
+            assert GenerateError.generate_content_error(
+                    val_rule="unique error",
+                    attribute_name="Check Unique",
+                    dmge=dmge,
+                    row_num="2",
+                    invalid_entry="str1",
+                )[0] in errors
+                
+            assert GenerateError.generate_regex_error(
+                    val_rule="regex",
+                    reg_expression="^\d+$",
+                    row_num="2",
+                    attribute_name="Check Regex Integer",
+                    module_to_call="search",
+                    invalid_entry="5.4",
+                    dmge=dmge,
+                )[0] in errors
+        
+            assert GenerateError.generate_content_error(
+                val_rule="date",
+                attribute_name="Check Date",
+                dmge=dmge,
+                row_num="2",
+                invalid_entry="32-984",
+            )[0] in errors
+
+            assert GenerateError.generate_content_error(
+                val_rule="protectAges",
+                attribute_name="Check Ages",
+                dmge=dmge,
+                row_num="2",
+                invalid_entry="6549",
             )[1] in warnings
 
-        cross_warning = GenerateError.generate_cross_warning(
-            val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
-            row_num=["2", "3", "4"],
-            attribute_name="Check Match Exactly values",
-            invalid_entry=["71738", "98085", "210065"],
-            dmge=dmge,
-        )[1]
-        warning_in_list = [cross_warning[1] in warning for warning in warnings]
-        assert any(warning_in_list)
+            assert \
+                GenerateError.generate_cross_warning(
+                    val_rule="matchExactlyOne",
+                    attribute_name="Check Match Exactly",
+                    matching_manifests=["syn29862078", "syn27648165"],
+                    dmge=dmge,
+                )[1] in warnings \
+                or GenerateError.generate_cross_warning(
+                    val_rule="matchExactlyOne",
+                    attribute_name="Check Match Exactly",
+                    matching_manifests=["syn29862066", "syn27648165"],
+                    dmge=dmge,
+                )[1] in warnings
+            
+            cross_warning = GenerateError.generate_cross_warning(
+                val_rule="matchExactlyOne MockComponent.checkMatchExactlyvalues MockComponent.checkMatchExactlyvalues value",
+                row_num=["2", "3", "4"],
+                attribute_name="Check Match Exactly values",
+                invalid_entry=["71738", "98085", "210065"],
+                dmge=dmge,
+            )[1]
+            warning_in_list = [cross_warning[1] in warning[1] for warning in warnings]
+            assert any(warning_in_list)
 
 
     def test_in_house_validation(self, helpers, dmge, metadataModel):
@@ -423,16 +517,20 @@ class TestManifestValidation:
         if root_node == "Biospecimen":
             assert (
                 vmr_errors
-                and vmr_errors[0][0] == ["2", "3"]
-                and vmr_errors[0][-1] == ["123"]
+                and vmr_errors[0][0] == "2"
+                and vmr_errors[1][0] == "3"
+                and vmr_errors[0][-1] == "123"
+                and vmr_errors[1][-1] == "123"
             )
             assert vmr_warnings == []
         elif root_node == "Patient":
             assert vmr_errors == []
             assert (
                 vmr_warnings
-                and vmr_warnings[0][0] == ["2", "3"]
-                and vmr_warnings[0][-1] == ["123"]
+                and vmr_warnings[0][0] == "2"
+                and vmr_warnings[1][0] == "3"
+                and vmr_warnings[0][-1] == "123"
+                and vmr_warnings[1][-1] == "123"
             )
 
 

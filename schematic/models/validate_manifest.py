@@ -192,13 +192,18 @@ class ValidateManifest(object):
                     validation_rules=validation_rules,
                 )
 
+            # IsNa is operates differently than most rules, do not consider it as a rule for evaluating if the number of rule pairs has been exceeded.
+            combined_rules = validation_rules.copy()
+            if 'IsNa' in validation_rules:
+                combined_rules.remove('IsNa')
+
             # Check that attribute rules conform to limits:
             # no more than two rules for an attribute.
             # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?
-            if len(validation_rules) > 2:
+            if len(combined_rules) > 2:
                 errors.append(
                     self.get_multiple_types_error(
-                        validation_rules, col, error_type="too_many_rules"
+                        combined_rules, col, error_type="too_many_rules"
                     )
                 )
 
@@ -209,9 +214,10 @@ class ValidateManifest(object):
                     rule_in_rule_list(rule, in_house_rules) and restrict_rules
                 ):
                     if not rule_in_rule_list(rule, in_house_rules):
-                        logger.warning(
-                            f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations."
-                        )
+                        if rule.lower() != "isna":
+                            logger.warning(
+                                f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations."
+                            )
                         continue
 
                     t_indiv_rule = perf_counter()
@@ -219,6 +225,9 @@ class ValidateManifest(object):
                     validation_method = getattr(
                         ValidateAttribute, validation_types[validation_type]["type"]
                     )
+
+                    if validation_type.lower() == "isna":
+                        breakpoint()
 
                     if validation_type == "list":
                         vr_errors, vr_warnings, manifest_col = validation_method(
