@@ -346,16 +346,22 @@ class GreatExpectationsHelpers(object):
             adds expectation to self.suite
 
         """
-        # Create an Expectation
-        expectation_configuration = ExpectationConfiguration(
-            # Name of expectation type being added
-            expectation_type=validation_expectation[rule.split(" ")[0]],
-            # add arguments and meta message
-            kwargs={**args},
-            meta={**meta},
-        )
-        # Add the Expectation to the suite
-        self.suite.add_expectation(expectation_configuration=expectation_configuration)
+        # Find expectation type (if available)
+        expectation_type = validation_expectation.get(rule.split(" ")[0])
+
+        if expectation_type:
+            # Create an Expectation
+            expectation_configuration = ExpectationConfiguration(
+                # Name of expectation type being added
+                expectation_type=expectation_type,
+                # add arguments and meta message
+                kwargs={**args},
+                meta={**meta},
+            )
+            # Add the Expectation to the suite
+            self.suite.add_expectation(expectation_configuration=expectation_configuration)
+        else:
+            return
 
     def build_checkpoint(self):
         """
