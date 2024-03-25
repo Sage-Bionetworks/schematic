@@ -2,6 +2,7 @@ import os
 
 import pytest
 import pickle
+import json
 
 from click.testing import CliRunner
 
@@ -83,10 +84,18 @@ class TestSchemaCli:
         )
 
         assert jsonld_export.exit_code == 0
+        with open(data_model_jsonld_path, 'r') as file:
+            json_jsonld = json.load(file)
+        assert '@context' in list(json_jsonld)
+        os.remove(data_model_jsonld_path)
 
         all_export = runner.invoke(
             schema, ["convert", data_model_csv_path, "--output_type", "all"]
         )
+        with open(data_model_jsonld_path, 'r') as file:
+            all_jsonld = json.load(file)
+        assert '@context' in list(all_jsonld)
+        os.remove(data_model_jsonld_path)
 
         assert all_export.exit_code == 0
         with open(data_model_pickle_path, 'rb') as file:
