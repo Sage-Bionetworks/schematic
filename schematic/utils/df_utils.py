@@ -125,6 +125,7 @@ def convert_ints(string: str) -> Union[np.int64, bool]:
         return np.int64(string)
     return False
 
+
 def convert_floats(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Convert strings that represent floats to type float

@@ -192,12 +192,11 @@ class ValidateManifest(object):
                     validation_rules=validation_rules,
                 )
 
-            
             # Check that attribute rules conform to limits:
             # IsNa is operates differently than most rules, do not consider it as a rule for evaluating if the number of rule pairs has been exceeded.
             combined_rules = validation_rules.copy()
-            if 'IsNa' in validation_rules:
-                combined_rules.remove('IsNa')
+            if "IsNa" in validation_rules:
+                combined_rules.remove("IsNa")
 
             # no more than two rules for an attribute.
             # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?

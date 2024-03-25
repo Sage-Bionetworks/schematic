@@ -378,9 +378,11 @@ class GenerateError:
 
         return error_list, warning_list
 
-    def _get_rule_attributes(val_rule:str, error_col_name:str, dmge:DataModelGraphExplorer) -> tuple[[str,str,str]]:
-        """ Extract different attributes from the given rule
-        Args:   
+    def _get_rule_attributes(
+        val_rule: str, error_col_name: str, dmge: DataModelGraphExplorer
+    ) -> tuple[[str, str, str]]:
+        """Extract different attributes from the given rule
+        Args:
             val_rule, str:
             error_col_name, str
             dmge, DataModelGraphExplorer Object
@@ -396,17 +398,26 @@ class GenerateError:
         is_schema_error = rule_name == "schema"
         col_is_recommended = rule_name == "recommended"
         col_is_required = dmge.get_node_required(node_display_name=error_col_name)
-        return rule_parts, rule_name, specified_level, is_schema_error, col_is_recommended, col_is_required
+        return (
+            rule_parts,
+            rule_name,
+            specified_level,
+            is_schema_error,
+            col_is_recommended,
+            col_is_required,
+        )
 
-    def _get_is_na_allowed(node_display_name:str, dmge:DataModelGraphExplorer) -> bool:
-        """ Determine if NAs are allowed based on the original set of rules
+    def _get_is_na_allowed(
+        node_display_name: str, dmge: DataModelGraphExplorer
+    ) -> bool:
+        """Determine if NAs are allowed based on the original set of rules
         Args:
             node_display_name, str: display name for the current attribure
             dmge, DataModelGraphExplorer
         Returns:
             bool: True, if IsNA is one of the rules, else False
         """
-        # Get -all- of the specified validation rules for the attribute, 
+        # Get -all- of the specified validation rules for the attribute,
         validation_rule_list = dmge.get_node_validation_rules(
             node_display_name=node_display_name
         )
@@ -417,8 +428,8 @@ class GenerateError:
         else:
             return False
 
-    def _get_error_value_is_na(error_val:Any, na_allowed:bool) -> bool:
-        """ Determine if the erroring value is NA
+    def _get_error_value_is_na(error_val: Any, na_allowed: bool) -> bool:
+        """Determine if the erroring value is NA
         Args:
             error_val: erroneous value
         Returns:
@@ -437,9 +448,15 @@ class GenerateError:
             return True
         return False
 
-    def _determine_messaging_level(rule_name, error_val_is_na, specified_level,
-            is_schema_error, col_is_required, col_is_recommended)-> Optional[MessageLevelType]:
-        """ Deterimine messaging level given infromation that was gathered about the rule and the error value
+    def _determine_messaging_level(
+        rule_name,
+        error_val_is_na,
+        specified_level,
+        is_schema_error,
+        col_is_required,
+        col_is_recommended,
+    ) -> Optional[MessageLevelType]:
+        """Deterimine messaging level given infromation that was gathered about the rule and the error value
         Args:
             rule_name, str:
             error_val_is_na, bool:
@@ -496,7 +513,7 @@ class GenerateError:
                 2. If a message level is specified in the validation rule, it is logged as such.
                 3. If the erroneous value is 'not applicable' and the rule is modified by 'IsNA', no message is logged.
                     3a. Messages are never logged specifically for the IsNA rule.
-                4. If no level is specified and there is an erroneous value, level is determined by whether or not 
+                4. If no level is specified and there is an erroneous value, level is determined by whether or not
                 the attribute is required and if the rule set is modified by the recommended modifier.
                 5. If none of the above conditions apply, the default message level for the rule is logged.
         Input:
@@ -518,25 +535,28 @@ class GenerateError:
             specified_level,
             is_schema_error,
             col_is_recommended,
-            col_is_required) = GenerateError._get_rule_attributes(
-                                                val_rule=val_rule,
-                                                error_col_name=error_col,
-                                                dmge=dmge)
-        
-        # Determine if NA values are allowed.
-        na_allowed = GenerateError._get_is_na_allowed(node_display_name=error_col, dmge=dmge)
+            col_is_required,
+        ) = GenerateError._get_rule_attributes(
+            val_rule=val_rule, error_col_name=error_col, dmge=dmge
+        )
 
-        # Determine if the provided value that is 
+        # Determine if NA values are allowed.
+        na_allowed = GenerateError._get_is_na_allowed(
+            node_display_name=error_col, dmge=dmge
+        )
+
+        # Determine if the provided value that is
         error_val_is_na = GenerateError._get_error_value_is_na(error_val, na_allowed)
-        
+
         # Return Messaging Level as appropriate, determined based on logic and heirarchy
         message_level = GenerateError._determine_messaging_level(
-                                rule_name,
-                                error_val_is_na,
-                                specified_level,
-                                is_schema_error,
-                                col_is_required,
-                                col_is_recommended)
+            rule_name,
+            error_val_is_na,
+            specified_level,
+            is_schema_error,
+            col_is_required,
+            col_is_recommended,
+        )
 
         return message_level
 
