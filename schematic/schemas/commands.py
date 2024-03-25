@@ -58,12 +58,13 @@ def schema():  # use as `schematic model ...`
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
 @click.option(
-    "--export_as_graph",
-    "-eag",
-    is_flag=True,
-    help=query_dict(schema_commands, ("schema", "convert", "export_as_graph")),
+    "--output_type",
+    "-ot",
+    type=click.Choice(['jsonld', 'graph', 'all'], case_sensitive=False),
+    default="jsonld",
+    help=query_dict(schema_commands, ("schema", "convert", "output_type")),
 )
-def convert(schema, data_model_labels, output_jsonld, export_as_graph):
+def convert(schema, data_model_labels, output_jsonld, output_type):
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
@@ -111,35 +112,40 @@ def convert(schema, data_model_labels, output_jsonld, export_as_graph):
             elif isinstance(war, list):
                 for w in war:
                     logger.warning(w)
+    
+    if output_jsonld is None:
+        output_file_no_ext = re.sub("[.](jsonld|csv)$", "", schema)
+    else:
+        output_file_no_ext = re.sub("[.](jsonld|csv)$", "", output_jsonld)
+    
+    logger.info(
+        "By default, the JSON-LD output will be stored alongside the first "
+        f"input CSV or JSON-LD file. In this case, it will appear here: '{output_jsonld}'. "
+        "You can use the `--output_jsonld` argument to specify another file path."
+    )
+        
+    if output_type in ["graph", "all"]:
+        logger.info("Export graph to pickle if requested")
+        output_graph = output_file_no_ext + ".pickle"
+        try:
+            with open(output_graph, "wb") as file:
+                pickle.dump(graph_data_model, file)
+            click.echo(
+                f"The graph was created and saved to '{output_graph}'."
+            )
+        except:
+            click.echo(
+                f"The graph failed to save to '{output_graph}'. Please check your file path again."
+            )
 
-    logger.info("Export graph to pickle if requested")
-    if export_as_graph:
-        if output_jsonld is None:
-            graph_file_no_ext = re.sub("[.](jsonld|csv)$", "", schema)
-            output_graph = graph_file_no_ext + ".pickle"
-        else:
-            graph_file_no_ext = re.sub("[.](jsonld|csv)$", "", output_jsonld)
-            output_graph = graph_file_no_ext + ".pickle"
-        with open(output_graph, "wb") as file:
-            pickle.dump(graph_data_model, file)
+    if output_type == "graph":
         return output_graph
 
     logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
 
     # output JSON-LD file alongside CSV file by default, get path.
-    if output_jsonld is None:
-        if not ".jsonld" in schema:
-            csv_no_ext = re.sub("[.]csv$", "", schema)
-            output_jsonld = csv_no_ext + ".jsonld"
-        else:
-            output_jsonld = schema
-
-        logger.info(
-            "By default, the JSON-LD output will be stored alongside the first "
-            f"input CSV or JSON-LD file. In this case, it will appear here: '{output_jsonld}'. "
-            "You can use the `--output_jsonld` argument to specify another file path."
-        )
+    output_jsonld = output_file_no_ext + ".jsonld"
 
     # saving updated schema.org schema
     try:
