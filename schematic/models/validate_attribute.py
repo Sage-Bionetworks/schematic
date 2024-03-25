@@ -3,7 +3,7 @@ import re
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Literal, Any
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -27,6 +27,8 @@ from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 logger = logging.getLogger(__name__)
 
+MessageLevelType = Literal["warning", "error"]
+
 
 class GenerateError:
     def generate_schema_error(
@@ -35,7 +37,7 @@ class GenerateError:
         error_message: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose: Process error messages generated from schema
         Input:
@@ -61,11 +63,11 @@ class GenerateError:
         list_string: str,
         row_num: str,
         attribute_name: str,
-        list_error: str,
+        list_error: Literal["not_comma_delimited", "not_a_string"],
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             If an error is found in the string formatting, detect and record
@@ -89,6 +91,12 @@ class GenerateError:
                 f"appear as if you provided a comma delimited string. Please check "
                 f"your entry ('{list_string}'') and try again."
             )
+        elif list_error == "not_a_string":
+            error_message = (
+                f"For attribute {attribute_name} in row {row_num} it does not "
+                f"appear as if you provided a string. Please check "
+                f"your entry ('{list_string}'') and try again."
+            )
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
@@ -109,7 +117,7 @@ class GenerateError:
         attribute_name: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -149,7 +157,7 @@ class GenerateError:
         attribute_name: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -165,9 +173,11 @@ class GenerateError:
         warnings: list[str] Warning details for further storage.
         """
 
+        base_rule = val_rule.split(" ")[0]
+
         error_message = (
             f"On row {row_num} the attribute {attribute_name} "
-            f"does not contain the proper value type {val_rule}."
+            f"does not contain the proper value type {base_rule}."
         )
 
         error_list, warning_list = GenerateError.raise_and_store_message(
@@ -190,7 +200,7 @@ class GenerateError:
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -225,19 +235,16 @@ class GenerateError:
                 f"conform to the standards of a URL. Please make sure you are entering a real, working URL "
                 f"as required by the Schema."
             )
-            error_val = invalid_entry
         elif url_error == "arg_error":
             error_message = (
                 f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
                 f"conform to the schema specifications and does not contain the required element: {argument}."
             )
-            error_val = f"URL Error: Argument Error"
         elif url_error == "random_entry":
             error_message = (
                 f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
                 f"look like a URL, please check input and try again."
             )
-            error_val = f"URL Error: Random Entry"
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
@@ -245,7 +252,7 @@ class GenerateError:
             error_row=row_num,
             error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
@@ -258,7 +265,7 @@ class GenerateError:
         missing_manifest_ID=None,
         invalid_entry=None,
         row_num=None,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -315,7 +322,7 @@ class GenerateError:
         dmge: DataModelGraphExplorer,
         row_num=None,
         invalid_entry=None,
-    ) -> Tuple[list[str], list[str]]:
+    ) -> tuple[list[str], list[str]]:
         """
         Purpose:
             Generate an logging error or warning as well as a stored error/warning message when validating the content of a manifest attribute.
@@ -336,7 +343,6 @@ class GenerateError:
         """
 
         error_row = row_num
-        error_val = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
 
         # log warning or error message
         if val_rule.startswith("recommended"):
@@ -345,7 +351,7 @@ class GenerateError:
             error_val = None
 
         elif val_rule.startswith("unique"):
-            error_message = f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
+            error_message = f"Column {attribute_name} has the duplicate value(s) {invalid_entry} in rows: {row_num}."
 
         elif val_rule.startswith("protectAges"):
             error_message = f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
@@ -367,10 +373,113 @@ class GenerateError:
             error_row=error_row,
             error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
+
+    def _get_rule_attributes(val_rule:str, error_col_name:str, dmge:DataModelGraphExplorer) -> tuple[[str,str,str]]:
+        """ Extract different attributes from the given rule
+        Args:   
+            val_rule, str:
+            error_col_name, str
+            dmge, DataModelGraphExplorer Object
+        Returns:
+        """
+        rule_parts = val_rule.split(" ")
+        rule_name = rule_parts[0]
+        specified_level = rule_parts[-1].lower()
+        specified_level = (
+            specified_level if specified_level in ["warning", "error"] else None
+        )
+
+        is_schema_error = rule_name == "schema"
+        col_is_recommended = rule_name == "recommended"
+        col_is_required = dmge.get_node_required(node_display_name=error_col_name)
+        return rule_parts, rule_name, specified_level, is_schema_error, col_is_recommended, col_is_required
+
+    def _get_is_na_allowed(node_display_name:str, dmge:DataModelGraphExplorer) -> bool:
+        """ Determine if NAs are allowed based on the original set of rules
+        Args:
+            node_display_name, str: display name for the current attribure
+            dmge, DataModelGraphExplorer
+        Returns:
+            bool: True, if IsNA is one of the rules, else False
+        """
+        # Get -all- of the specified validation rules for the attribute, 
+        validation_rule_list = dmge.get_node_validation_rules(
+            node_display_name=node_display_name
+        )
+
+        # Determine if IsNA is one of the rules, if it is return True, else return False
+        if rule_in_rule_list("IsNA", validation_rule_list):
+            return True
+        else:
+            return False
+
+    def _get_error_value_is_na(error_val:Any, na_allowed:bool) -> bool:
+        """ Determine if the erroring value is NA
+        Args:
+            error_val: erroneous value
+        Returns:
+            bool: Returns True, if the error value is evaluated to be NA, and False if not
+        """
+        not_applicable_strings = [
+            "not applicable",
+        ]
+
+        # Try to figure out if the erroring value is NA
+        if isinstance(error_val, str) and na_allowed:
+            return error_val.lower() in not_applicable_strings
+        if isinstance(error_val, list):
+            return False
+        if (error_val is None) or pd.isnull(error_val):
+            return True
+        return False
+
+    def _determine_messaging_level(rule_name, error_val_is_na, specified_level,
+            is_schema_error, col_is_required, col_is_recommended)-> Optional[MessageLevelType]:
+        """ Deterimine messaging level given infromation that was gathered about the rule and the error value
+        Args:
+            rule_name, str:
+            error_val_is_na, bool:
+            specified_level, MessageLevelType:
+            is_schema_error, bool:
+            col_is_required, bool:
+            col_is_recommended, bool:
+        Returns:
+            Optional[MessageLevelType]:
+        """
+
+        # If the erroring value is NA, do not raise message. Do not worry about if value is required or not bc this is already accounted for in JSON Validation.
+        # This allows flexibiity to where, we dont need the value to be provided, but also the case where NA is recorded as the value 'Not Applicable'
+        if error_val_is_na:
+            return None
+
+        # If the level was specified, return that level
+        if specified_level:
+            return specified_level
+
+        # If the rule being evaluated IsNa then do not raise message
+        if rule_name.lower() == "isna":
+            return None
+
+        # If schema error return Error
+        if is_schema_error:
+            return "error"
+
+        # If the column is not required, raise a warning, if is required, but recommended, do not raise message
+        if not col_is_required:
+            return "warning"
+        elif col_is_required and col_is_recommended:
+            return None
+
+        # If none of the above statements catches, then return the default message level, determine for a given rule.
+        # Rules have default messaging levels.
+        default_rule_message_level = validation_rule_info()[rule_name][
+            "default_message_level"
+        ]
+        return default_rule_message_level
 
     def get_message_level(
         dmge: DataModelGraphExplorer,
@@ -387,64 +496,49 @@ class GenerateError:
                 2. If a message level is specified in the validation rule, it is logged as such.
                 3. If the erroneous value is 'not applicable' and the rule is modified by 'IsNA', no message is logged.
                     3a. Messages are never logged specifically for the IsNA rule.
-                4. If no level is specified and there is an erroneous value, level is determined by whether or not the attribute is required and if the rule set is modified by the recommended modifier.
+                4. If no level is specified and there is an erroneous value, level is determined by whether or not 
+                the attribute is required and if the rule set is modified by the recommended modifier.
                 5. If none of the above conditions apply, the default message level for the rule is logged.
         Input:
                 dmge: DataModelGraphExplorer object
-                error_col: str, attribute being validated
-                error_val: erroneous value
-                val_rule: str, defined in the schema.
+                error_col: str, Display name of attribute being validated
+                error_val: Any, erroneous value
+                val_rule: str, current attribute rule, defined in the schema, and being evaluated in this step
+                    (single rule set)
         Returns:
             'error', 'warning' or None
         Raises:
             Logging messagees, either error, warning, or no message
         """
-        not_applicable_strings = [
-            "not applicable",
-        ]
 
-        rule_parts = val_rule.split(" ")
-        rule_name = rule_parts[0]
-        specified_level = rule_parts[-1].lower()
-        specified_level = (
-            specified_level if specified_level in ["error", "warning"] else None
-        )
+        # Extract attributes from the current val_rule
+        (
+            rule_parts,
+            rule_name,
+            specified_level,
+            is_schema_error,
+            col_is_recommended,
+            col_is_required) = GenerateError._get_rule_attributes(
+                                                val_rule=val_rule,
+                                                error_col_name=error_col,
+                                                dmge=dmge)
+        
+        # Determine if NA values are allowed.
+        na_allowed = GenerateError._get_is_na_allowed(node_display_name=error_col, dmge=dmge)
 
-        # Get all of the specified validation rules for the attribute
-        validation_rule_list = dmge.get_node_validation_rules(
-            node_display_name=error_col
-        )
+        # Determine if the provided value that is 
+        error_val_is_na = GenerateError._get_error_value_is_na(error_val, na_allowed)
+        
+        # Return Messaging Level as appropriate, determined based on logic and heirarchy
+        message_level = GenerateError._determine_messaging_level(
+                                rule_name,
+                                error_val_is_na,
+                                specified_level,
+                                is_schema_error,
+                                col_is_required,
+                                col_is_recommended)
 
-        is_schema_error = rule_name == "schema"
-        col_is_recommended = rule_name == "recommended"
-        col_is_required = dmge.get_node_required(node_display_name=error_col)
-        rules_include_na_modifier = rule_in_rule_list("IsNA", validation_rule_list)
-        error_val_is_na = (
-            error_val.lower() in not_applicable_strings
-            if isinstance(error_val, str)
-            else False
-        )
-
-        if is_schema_error:
-            return "error"
-
-        if specified_level:
-            return specified_level
-
-        if (
-            error_val_is_na and rules_include_na_modifier
-        ) or rule_name.lower() == "isna":
-            return None
-
-        if not col_is_required:
-            return "warning"
-        elif col_is_required and col_is_recommended:
-            return None
-
-        default_rule_message_level = validation_rule_info()[rule_name][
-            "default_message_level"
-        ]
-        return default_rule_message_level
+        return message_level
 
     def raise_and_store_message(
         dmge: DataModelGraphExplorer,
@@ -453,7 +547,7 @@ class GenerateError:
         error_col: str,
         error_message: str,
         error_val: Union[str, list[str]],
-    ) -> Tuple[list[str], list[str]]:
+    ) -> tuple[list[str], list[str]]:
         """
         Purpose:
             Log and store error messages in a list for further storage.
@@ -552,7 +646,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]], pd.core.series.Series]:
+    ) -> tuple[list[list[str]], list[list[str]], pd.core.series.Series]:
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
@@ -609,7 +703,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Check if values for a given manifest attribue conform to the reguar expression,
@@ -709,7 +803,7 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Check if values for a given manifest attribue are the same type
@@ -771,7 +865,7 @@ class ValidateAttribute(object):
 
     def url_validation(
         self, val_rule: str, manifest_col: str, dmge: DataModelGraphExplorer
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.

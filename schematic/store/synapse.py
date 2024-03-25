@@ -574,7 +574,10 @@ class SynapseStorage(BaseStorage):
 
         # load manifest dataframe
         manifest = load_df(
-            manifest_filepath, preserve_raw_input=False, data_model=False
+            metadataManifestPath,
+                preserve_raw_input=False,
+                allow_na_values=False,
+                **load_args,
         )
 
         # convert the dataFrame to use best possible dtypes.
