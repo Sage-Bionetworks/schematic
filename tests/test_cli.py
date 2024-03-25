@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import pickle
 
 from click.testing import CliRunner
 
@@ -46,6 +47,8 @@ class TestSchemaCli:
 
     def test_schema_convert_cli(self, runner, helpers):
         data_model_csv_path = helpers.get_data_path("example.model.csv")
+        data_model_pickle_path = helpers.get_data_path("example.model.pickle")
+        data_model_jsonld_path = helpers.get_data_path("example.model.jsonld")
 
         output_path = helpers.get_data_path("example.model.jsonld")
 
@@ -64,10 +67,32 @@ class TestSchemaCli:
         assert expected_substr in result.output
 
         graph_export = runner.invoke(
-            schema, ["convert", data_model_csv_path, "--export_as_graph"]
+            schema, ["convert", data_model_csv_path, "--output_type", "graph"]
         )
 
+        # Test that the command runs without error and the pickle file is read
+        # as miltidigraph class.
         assert graph_export.exit_code == 0
+        with open(data_model_pickle_path, 'rb') as file:
+            graph_pickle = pickle.load(file)
+        assert type(graph_pickle).__name__.lower() == 'multidigraph'
+        os.remove(data_model_pickle_path)
+
+        jsonld_export = runner.invoke(
+            schema, ["convert", data_model_csv_path, "--output_type", "jsonld"]
+        )
+
+        assert jsonld_export.exit_code == 0
+
+        all_export = runner.invoke(
+            schema, ["convert", data_model_csv_path, "--output_type", "all"]
+        )
+
+        assert all_export.exit_code == 0
+        with open(data_model_pickle_path, 'rb') as file:
+            all_pickle = pickle.load(file)
+        assert type(all_pickle).__name__.lower() == 'multidigraph'
+        os.remove(data_model_pickle_path)
 
     # get manifest by default
     # by default this should download the manifest as a CSV file
