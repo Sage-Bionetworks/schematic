@@ -65,7 +65,7 @@ class ValidateManifest(object):
             error_val = f"Multiple Rules: list not first"
         return ["NA", error_col, error_message, error_val]
 
-    def check_max_rule_num(validation_rules:str, errors:list) -> list[list[str]]:
+    def check_max_rule_num(validation_rules: str, errors: list) -> list[list[str]]:
         """
         validation_rules, str:
         errors, list:
@@ -214,7 +214,9 @@ class ValidateManifest(object):
                 )
 
             # Check for max rule allowance
-            errors = self.check_max_rule_num(validation_rules=validation_rules, errors=errors)
+            errors = self.check_max_rule_num(
+                validation_rules=validation_rules, errors=errors
+            )
 
             # Given a validation rule, run validation. Skip validations already performed by GE
             for rule in validation_rules:

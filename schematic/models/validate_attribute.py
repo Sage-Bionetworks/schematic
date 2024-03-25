@@ -449,12 +449,12 @@ class GenerateError:
         return False
 
     def _determine_messaging_level(
-        rule_name:str,
-        error_val_is_na:bool,
+        rule_name: str,
+        error_val_is_na: bool,
         specified_level: MessageLevelType,
-        is_schema_error:bool,
-        col_is_required:bool,
-        col_is_recommended:bool,
+        is_schema_error: bool,
+        col_is_required: bool,
+        col_is_recommended: bool,
     ) -> Optional[MessageLevelType]:
         """Deterimine messaging level given infromation that was gathered about the rule and the error value
         Args:
@@ -473,34 +473,32 @@ class GenerateError:
         # This allows flexibiity to where, we dont need the value to be provided,
         # but also the case where NA is recorded as the value 'Not Applicable'
         if error_val_is_na:
-            message_level =  None
+            message_level = None
 
         # If the level was specified, return that level
         elif specified_level:
-            message_level =  specified_level
+            message_level = specified_level
 
         # If the rule being evaluated IsNa then do not raise message
         elif rule_name.lower() == "isna":
-            message_level =  None
+            message_level = None
 
         # If schema error return Error
         elif is_schema_error:
-            message_level =  "error"
+            message_level = "error"
 
-        # If the column is not required, raise a warning, 
+        # If the column is not required, raise a warning,
         elif not col_is_required:
-            message_level =  "warning"
+            message_level = "warning"
         # If is the column is required, but recommended, do not raise message
         elif col_is_required and col_is_recommended:
-            message_level =  None
+            message_level = None
 
         # If none of the above statements catches, then return the default message level, determine for a given rule.
         # Rules have default messaging levels.
-        
+
         else:
-            message_level = validation_rule_info()[rule_name][
-                "default_message_level"
-            ]
+            message_level = validation_rule_info()[rule_name]["default_message_level"]
         return message_level
 
     def get_message_level(
