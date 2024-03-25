@@ -63,6 +63,12 @@ class TestSchemaCli:
 
         assert expected_substr in result.output
 
+        graph_export = runner.invoke(
+            schema, ["convert", data_model_csv_path, "--export_as_graph"]
+        )
+
+        assert graph_export.exit_code == 0
+
     # get manifest by default
     # by default this should download the manifest as a CSV file
     @pytest.mark.google_credentials_needed
