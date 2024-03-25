@@ -61,7 +61,7 @@ def schema():  # use as `schematic model ...`
     "--export_as_graph",
     "-eag",
     is_flag=True,
-    help="Export the graph as a pickle file"
+    help=query_dict(schema_commands, ("schema", "convert", "export_as_graph")),
 )
 def convert(schema, data_model_labels, output_jsonld, export_as_graph):
     """

@@ -203,6 +203,9 @@ schema_commands = {
             "output_jsonld": (
                 "Path to where the generated JSON-LD file needs to be outputted."
             ),
+            "export_as_graph": (
+                "Export the graph as a pickle file."
+            ),
             "data_model_labels": DATA_MODEL_LABELS_HELP,
         }
     }
