@@ -66,7 +66,7 @@ class ValidateManifest(object):
         return ["NA", error_col, error_message, error_val]
 
     def check_max_rule_num(
-        self, validation_rules: str, col: pd.core.series.Series, errors: list
+        self, validation_rules: str, col: pd.core.series.Series, errors: list[list[str]]
     ) -> list[list[str]]:
         """
         validation_rules, str:
