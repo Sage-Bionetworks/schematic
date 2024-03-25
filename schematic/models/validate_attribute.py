@@ -428,7 +428,9 @@ class GenerateError:
         else:
             return False
 
-    def _get_error_value_is_na(error_val: Any, na_allowed: bool) -> bool:
+    def _get_error_value_is_na(
+        error_val: Optional[Union[str, list, pd.core.series.Series]], na_allowed: bool
+    ) -> bool:
         """Determine if the erroring value is NA
         Args:
             error_val: erroneous value
@@ -441,12 +443,14 @@ class GenerateError:
 
         # Try to figure out if the erroring value is NA
         if isinstance(error_val, str) and na_allowed:
-            return error_val.lower() in not_applicable_strings
-        if isinstance(error_val, list):
-            return False
-        if (error_val is None) or pd.isnull(error_val):
-            return True
-        return False
+            error_val_is_na = error_val.lower() in not_applicable_strings
+        elif isinstance(error_val, list):
+            error_val_is_na = False
+        elif (error_val is None) or pd.isnull(error_val):
+            error_val_is_na = True
+        else:
+            error_val_is_na = False
+        return error_val_is_na
 
     def _determine_messaging_level(
         rule_name: str,
