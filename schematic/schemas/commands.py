@@ -6,6 +6,7 @@ import logging
 import sys
 import time
 import re
+import pickle
 from typing import get_args
 
 from schematic.schemas.data_model_parser import DataModelParser
@@ -56,7 +57,13 @@ def schema():  # use as `schematic model ...`
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
-def convert(schema, data_model_labels, output_jsonld):
+@click.option(
+    "--export_as_graph",
+    "-eag",
+    is_flag=True,
+    help="Export the graph as a pickle file"
+)
+def convert(schema, data_model_labels, output_jsonld, export_as_graph):
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
@@ -104,6 +111,18 @@ def convert(schema, data_model_labels, output_jsonld):
             elif isinstance(war, list):
                 for w in war:
                     logger.warning(w)
+
+    logger.info("Export graph to pickle if requested")
+    if export_as_graph:
+        if output_jsonld is None:
+            graph_file_no_ext = re.sub("[.](jsonld|csv)$", "", schema)
+            output_graph = graph_file_no_ext + ".pickle"
+        else:
+            graph_file_no_ext = re.sub("[.](jsonld|csv)$", "", output_jsonld)
+            output_graph = graph_file_no_ext + ".pickle"
+        with open(output_graph, "wb") as file:
+            pickle.dump(graph_data_model, file)
+        return output_graph
 
     logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
