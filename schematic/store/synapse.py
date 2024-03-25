@@ -574,9 +574,8 @@ class SynapseStorage(BaseStorage):
 
         # load manifest dataframe
         manifest = load_df(
-            metadataManifestPath,
+            manifest_filepath,
             preserve_raw_input=False,
-            allow_na_values=False,
             **load_args,
         )
 
@@ -1511,7 +1510,10 @@ class SynapseStorage(BaseStorage):
                 "dtype": "string",
             }
             manifest = load_df(
-                metadataManifestPath, preserve_raw_input=False, **load_args
+                metadataManifestPath,
+                preserve_raw_input=False,
+                allow_na_values=False,
+                **load_args,
             )
         except FileNotFoundError as err:
             raise FileNotFoundError(

@@ -348,7 +348,7 @@ class GenerateError:
         if val_rule.startswith("recommended"):
             error_message = f"Column {attribute_name} is recommended but empty."
             error_row = None
-            error_val = None
+            invalid_entry = None
 
         elif val_rule.startswith("unique"):
             error_message = f"Column {attribute_name} has the duplicate value(s) {invalid_entry} in rows: {row_num}."
@@ -449,12 +449,12 @@ class GenerateError:
         return False
 
     def _determine_messaging_level(
-        rule_name,
-        error_val_is_na,
-        specified_level,
-        is_schema_error,
-        col_is_required,
-        col_is_recommended,
+        rule_name:str,
+        error_val_is_na:bool,
+        specified_level: MessageLevelType,
+        is_schema_error:bool,
+        col_is_required:bool,
+        col_is_recommended:bool,
     ) -> Optional[MessageLevelType]:
         """Deterimine messaging level given infromation that was gathered about the rule and the error value
         Args:
@@ -468,35 +468,40 @@ class GenerateError:
             Optional[MessageLevelType]:
         """
 
-        # If the erroring value is NA, do not raise message. Do not worry about if value is required or not bc this is already accounted for in JSON Validation.
-        # This allows flexibiity to where, we dont need the value to be provided, but also the case where NA is recorded as the value 'Not Applicable'
+        # If the erroring value is NA, do not raise message. Do not worry about if value is required or not
+        # bc this is already accounted for in JSON Validation.
+        # This allows flexibiity to where, we dont need the value to be provided,
+        # but also the case where NA is recorded as the value 'Not Applicable'
         if error_val_is_na:
-            return None
+            message_level =  None
 
         # If the level was specified, return that level
-        if specified_level:
-            return specified_level
+        elif specified_level:
+            message_level =  specified_level
 
         # If the rule being evaluated IsNa then do not raise message
-        if rule_name.lower() == "isna":
-            return None
+        elif rule_name.lower() == "isna":
+            message_level =  None
 
         # If schema error return Error
-        if is_schema_error:
-            return "error"
+        elif is_schema_error:
+            message_level =  "error"
 
-        # If the column is not required, raise a warning, if is required, but recommended, do not raise message
-        if not col_is_required:
-            return "warning"
+        # If the column is not required, raise a warning, 
+        elif not col_is_required:
+            message_level =  "warning"
+        # If is the column is required, but recommended, do not raise message
         elif col_is_required and col_is_recommended:
-            return None
+            message_level =  None
 
         # If none of the above statements catches, then return the default message level, determine for a given rule.
         # Rules have default messaging levels.
-        default_rule_message_level = validation_rule_info()[rule_name][
-            "default_message_level"
-        ]
-        return default_rule_message_level
+        
+        else:
+            message_level = validation_rule_info()[rule_name][
+                "default_message_level"
+            ]
+        return message_level
 
     def get_message_level(
         dmge: DataModelGraphExplorer,
