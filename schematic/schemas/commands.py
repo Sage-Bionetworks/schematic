@@ -64,7 +64,7 @@ def schema():  # use as `schematic model ...`
     default="jsonld",
     help=query_dict(schema_commands, ("schema", "convert", "output_type")),
 )
-def convert(schema, data_model_labels, output_jsonld, output_type):
+def convert(schema: str, data_model_labels:str, output_jsonld:str, output_type:str) -> str:
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
@@ -112,18 +112,18 @@ def convert(schema, data_model_labels, output_jsonld, output_type):
             elif isinstance(war, list):
                 for w in war:
                     logger.warning(w)
-    
+
     if output_jsonld is None:
         output_file_no_ext = re.sub("[.](jsonld|csv)$", "", schema)
     else:
         output_file_no_ext = re.sub("[.](jsonld|csv)$", "", output_jsonld)
-    
+
     logger.info(
         "By default, the JSON-LD output will be stored alongside the first "
         f"input CSV or JSON-LD file. In this case, it will appear here: '{output_jsonld}'. "
         "You can use the `--output_jsonld` argument to specify another file path."
     )
-        
+
     if output_type in ["graph", "all"]:
         logger.info("Export graph to pickle if requested")
         output_graph = output_file_no_ext + ".pickle"
@@ -133,10 +133,11 @@ def convert(schema, data_model_labels, output_jsonld, output_type):
             click.echo(
                 f"The graph was created and saved to '{output_graph}'."
             )
-        except:
+        except SystemExit as e:
             click.echo(
                 f"The graph failed to save to '{output_graph}'. Please check your file path again."
             )
+            raise e
 
     if output_type == "graph":
         return output_graph
