@@ -76,8 +76,9 @@ def parse_str_series_to_list(col: pd.Series) -> pd.Series:
         Output: ['a','b','c']
 
     """
-    col = col.apply(lambda x: [s.strip() for s in str(x).split(",")])
-
+    col = col.apply(
+        lambda x: [s.strip() for s in str(x).split(",")] if not pd.isnull(x) else pd.NA
+    )
     return col
 
 
