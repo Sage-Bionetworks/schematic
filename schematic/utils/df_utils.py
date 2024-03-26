@@ -64,9 +64,6 @@ def load_df(
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
 
-    is_null = org_df.isnull()
-    org_df = org_df.astype(str).mask(is_null, "")
-
     ints, is_int = find_and_convert_ints(org_df)
 
     float_df = convert_floats(org_df)

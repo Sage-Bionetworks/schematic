@@ -35,7 +35,7 @@ class GenerateError:
         row_num: str,
         attribute_name: str,
         error_message: str,
-        invalid_entry: str,
+        invalid_entry,
         dmge: DataModelGraphExplorer,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -64,7 +64,7 @@ class GenerateError:
         row_num: str,
         attribute_name: str,
         list_error: Literal["not_comma_delimited", "not_a_string"],
-        invalid_entry: str,
+        invalid_entry,
         dmge: DataModelGraphExplorer,
         val_rule: str,
     ) -> tuple[list[list[str]], list[list[str]]]:
@@ -115,7 +115,7 @@ class GenerateError:
         row_num: str,
         module_to_call: str,
         attribute_name: str,
-        invalid_entry: str,
+        invalid_entry,
         dmge: DataModelGraphExplorer,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -155,7 +155,7 @@ class GenerateError:
         val_rule: str,
         row_num: str,
         attribute_name: str,
-        invalid_entry: str,
+        invalid_entry,
         dmge: DataModelGraphExplorer,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -197,7 +197,7 @@ class GenerateError:
         row_num: str,
         attribute_name: str,
         argument: str,
-        invalid_entry: str,
+        invalid_entry,
         dmge: DataModelGraphExplorer,
         val_rule: str,
     ) -> tuple[list[list[str]], list[list[str]]]:
@@ -429,7 +429,7 @@ class GenerateError:
             return False
 
     def _get_error_value_is_na(
-        error_val: Optional[Union[str, list, pd.core.series.Series]], na_allowed: bool
+        error_val, na_allowed: bool=False, col_is_required:bool=False,
     ) -> bool:
         """Determine if the erroring value is NA
         Args:
@@ -446,7 +446,7 @@ class GenerateError:
             error_val_is_na = error_val.lower() in not_applicable_strings
         elif isinstance(error_val, list):
             error_val_is_na = False
-        elif (error_val is None) or pd.isnull(error_val):
+        elif (error_val is None) or pd.isnull(error_val) or (error_val == '<NA>' and not col_is_required):
             error_val_is_na = True
         else:
             error_val_is_na = False
@@ -508,7 +508,7 @@ class GenerateError:
     def get_message_level(
         dmge: DataModelGraphExplorer,
         error_col: str,
-        error_val: Union[str, list[str]],
+        error_val,
         val_rule: str,
     ) -> Optional[str]:
         """
@@ -553,7 +553,7 @@ class GenerateError:
         )
 
         # Determine if the provided value that is
-        error_val_is_na = GenerateError._get_error_value_is_na(error_val, na_allowed)
+        error_val_is_na = GenerateError._get_error_value_is_na(error_val, na_allowed, col_is_required)
 
         # Return Messaging Level as appropriate, determined based on logic and heirarchy
         message_level = GenerateError._determine_messaging_level(
@@ -573,7 +573,7 @@ class GenerateError:
         error_row: str,
         error_col: str,
         error_message: str,
-        error_val: Union[str, list[str]],
+        error_val,
     ) -> tuple[list[str], list[str]]:
         """
         Purpose:
@@ -630,6 +630,20 @@ class ValidateAttribute(object):
         - Add year validator
         - Add string length validator
     """
+
+    def get_no_entry_and_not_required(dmge, entry, node_display_name, col_is_required):
+        #check if <NA> in list let pass if not required and no value is recorded.
+        no_entry_and_not_required=False
+        if not col_is_required:
+            na_allowed = GenerateError._get_is_na_allowed(node_display_name=node_display_name, dmge=dmge)
+            value_is_na = GenerateError._get_error_value_is_na(entry, na_allowed, col_is_required)
+            if value_is_na:
+                no_entry_and_not_required=True
+        
+        return no_entry_and_not_required
+
+    def get_entry_has_value_or_required(dmge, entry, node_display_name, col_is_required):
+        return not ValidateAttribute.get_no_entry_and_not_required(dmge, entry, node_display_name, col_is_required)
 
     def get_target_manifests(
         target_component, project_scope: list, access_token: str = None
@@ -692,7 +706,7 @@ class ValidateAttribute(object):
         # white spaces removed.
         errors = []
         warnings = []
-        manifest_col = manifest_col.astype(str)
+        
         csv_re = comma_separated_list_regex()
 
         rule_parts = val_rule.lower().split(" ")
@@ -702,9 +716,18 @@ class ValidateAttribute(object):
             list_robustness = "strict"
 
         if list_robustness == "strict":
+            manifest_col = manifest_col.astype(str)
+
+            col_is_required = dmge.get_node_required(node_display_name=manifest_col.name)
             # This will capture any if an entry is not formatted properly. Only for strict lists
             for i, list_string in enumerate(manifest_col):
-                if not re.fullmatch(csv_re, list_string):
+                list_error = None
+                entry_has_value_or_is_required = ValidateAttribute.get_entry_has_value_or_required(dmge=dmge,
+                    entry=list_string, node_display_name=manifest_col.name, col_is_required=col_is_required)
+
+                if not isinstance(list_string, str) and entry_has_value_or_is_required:
+                    list_error = "not_a_string"
+                elif not re.fullmatch(csv_re, list_string) and entry_has_value_or_is_required:
                     list_error = "not_comma_delimited"
                     vr_errors, vr_warnings = GenerateError.generate_list_error(
                         list_string,
@@ -774,6 +797,7 @@ class ValidateAttribute(object):
         validation_rules = dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
         )
+        col_is_required = dmge.get_node_required(node_display_name=manifest_col.name)
         if validation_rules and "::" in validation_rules[0]:
             validation_rules = validation_rules[0].split("::")
         # Handle case where validating re's within a list.
@@ -782,33 +806,41 @@ class ValidateAttribute(object):
                 # Convert string to list.
                 manifest_col = parse_str_series_to_list(manifest_col)
 
+           
             for i, row_values in enumerate(manifest_col):
                 for j, re_to_check in enumerate(row_values):
-                    re_to_check = str(re_to_check)
-                    if not bool(module_to_call(reg_expression, re_to_check)) and bool(
-                        re_to_check
-                    ):
-                        vr_errors, vr_warnings = GenerateError.generate_regex_error(
-                            val_rule=val_rule,
-                            reg_expression=reg_expression,
-                            row_num=str(i + 2),
-                            module_to_call=reg_exp_rules[1],
-                            attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i],
-                            dmge=dmge,
-                        )
-                        if vr_errors:
-                            errors.append(vr_errors)
-                        if vr_warnings:
-                            warnings.append(vr_warnings)
+                    entry_has_value_or_is_required = ValidateAttribute.get_entry_has_value_or_required(dmge=dmge,
+                        entry=re_to_check, node_display_name=manifest_col.name, col_is_required=col_is_required)
+                    if entry_has_value_or_is_required:
+                        re_to_check = str(re_to_check)
+                        if not bool(module_to_call(reg_expression, re_to_check)) and bool(
+                            re_to_check
+                        ):
+                            vr_errors, vr_warnings = GenerateError.generate_regex_error(
+                                val_rule=val_rule,
+                                reg_expression=reg_expression,
+                                row_num=str(i + 2),
+                                module_to_call=reg_exp_rules[1],
+                                attribute_name=manifest_col.name,
+                                invalid_entry=manifest_col[i],
+                                dmge=dmge,
+                            )
+                            if vr_errors:
+                                errors.append(vr_errors)
+                            if vr_warnings:
+                                warnings.append(vr_warnings)
 
         # Validating single re's
         else:
             manifest_col = manifest_col.astype(str)
             for i, re_to_check in enumerate(manifest_col):
+
+                #check if <NA> in list let pass.
+                entry_has_value_or_is_required = ValidateAttribute.get_entry_has_value_or_required(dmge=dmge,
+                        entry=re_to_check, node_display_name=manifest_col.name, col_is_required=col_is_required)
+
                 if not bool(module_to_call(reg_expression, re_to_check)) and bool(
-                    re_to_check
-                ):
+                    re_to_check) and entry_has_value_or_is_required:
                     vr_errors, vr_warnings = GenerateError.generate_regex_error(
                         val_rule=val_rule,
                         reg_expression=reg_expression,
@@ -859,10 +891,14 @@ class ValidateAttribute(object):
 
         errors = []
         warnings = []
+        col_is_required = dmge.get_node_required(node_display_name=manifest_col.name)
+
         # num indicates either a float or int.
         if val_rule == "num":
             for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, specified_type[val_rule]):
+                entry_has_value_or_is_required = ValidateAttribute.get_entry_has_value_or_required(dmge=dmge,
+                        entry=value, node_display_name=manifest_col.name, col_is_required=col_is_required)
+                if bool(value) and not isinstance(value, specified_type[val_rule]) and entry_has_value_or_is_required:
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
                         val_rule=val_rule,
                         row_num=str(i + 2),
@@ -876,7 +912,9 @@ class ValidateAttribute(object):
                         warnings.append(vr_warnings)
         elif val_rule in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, specified_type[val_rule]):
+                entry_has_value_or_is_required = ValidateAttribute.get_entry_has_value_or_required(dmge=dmge,
+                        entry=value, node_display_name=manifest_col.name, col_is_required=col_is_required)
+                if bool(value) and not isinstance(value, specified_type[val_rule]) and entry_has_value_or_is_required:
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
                         val_rule=val_rule,
                         row_num=str(i + 2),
@@ -912,47 +950,24 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
 
+        col_is_required = dmge.get_node_required(node_display_name=manifest_col.name)
+
         for i, url in enumerate(manifest_col):
-            # Check if a random phrase, string or number was added and
-            # log the appropriate error.
-            if not isinstance(url, str) or not (
-                urlparse(url).scheme
-                + urlparse(url).netloc
-                + urlparse(url).params
-                + urlparse(url).query
-                + urlparse(url).fragment
-            ):
-                #
-                url_error = "random_entry"
-                valid_url = False
-                vr_errors, vr_warnings = GenerateError.generate_url_error(
-                    url,
-                    url_error=url_error,
-                    row_num=str(i + 2),
-                    attribute_name=manifest_col.name,
-                    argument=url_args,
-                    invalid_entry=manifest_col[i],
-                    dmge=dmge,
-                    val_rule=val_rule,
-                )
-                if vr_errors:
-                    errors.append(vr_errors)
-                if vr_warnings:
-                    warnings.append(vr_warnings)
-            else:
-                # add scheme to the URL if not currently added.
-                if not urlparse(url).scheme:
-                    url = "http://" + url
-                try:
-                    # Check that the URL points to a working webpage
-                    # if not log the appropriate error.
-                    request = Request(url)
-                    response = urlopen(request)
-                    valid_url = True
-                    response_code = response.getcode()
-                except:
+            entry_has_value_or_is_required = ValidateAttribute.get_entry_has_value_or_required(dmge=dmge,
+                entry=url, node_display_name=manifest_col.name, col_is_required=col_is_required)
+            if entry_has_value_or_is_required:    
+                # Check if a random phrase, string or number was added and
+                # log the appropriate error.
+                if not isinstance(url, str) or not (
+                    urlparse(url).scheme
+                    + urlparse(url).netloc
+                    + urlparse(url).params
+                    + urlparse(url).query
+                    + urlparse(url).fragment
+                ):
+                    #
+                    url_error = "random_entry"
                     valid_url = False
-                    url_error = "invalid_url"
                     vr_errors, vr_warnings = GenerateError.generate_url_error(
                         url,
                         url_error=url_error,
@@ -967,26 +982,54 @@ class ValidateAttribute(object):
                         errors.append(vr_errors)
                     if vr_warnings:
                         warnings.append(vr_warnings)
-                if valid_url == True:
-                    # If the URL works, check to see if it contains the proper arguments
-                    # as specified in the schema.
-                    for arg in url_args:
-                        if arg not in url:
-                            url_error = "arg_error"
-                            vr_errors, vr_warnings = GenerateError.generate_url_error(
-                                url,
-                                url_error=url_error,
-                                row_num=str(i + 2),
-                                attribute_name=manifest_col.name,
-                                argument=arg,
-                                invalid_entry=manifest_col[i],
-                                dmge=dmge,
-                                val_rule=val_rule,
-                            )
-                            if vr_errors:
-                                errors.append(vr_errors)
-                            if vr_warnings:
-                                warnings.append(vr_warnings)
+                else:
+                    # add scheme to the URL if not currently added.
+                    if not urlparse(url).scheme:
+                        url = "http://" + url
+                    try:
+                        # Check that the URL points to a working webpage
+                        # if not log the appropriate error.
+                        request = Request(url)
+                        response = urlopen(request)
+                        valid_url = True
+                        response_code = response.getcode()
+                    except:
+                        valid_url = False
+                        url_error = "invalid_url"
+                        vr_errors, vr_warnings = GenerateError.generate_url_error(
+                            url,
+                            url_error=url_error,
+                            row_num=str(i + 2),
+                            attribute_name=manifest_col.name,
+                            argument=url_args,
+                            invalid_entry=manifest_col[i],
+                            dmge=dmge,
+                            val_rule=val_rule,
+                        )
+                        if vr_errors:
+                            errors.append(vr_errors)
+                        if vr_warnings:
+                            warnings.append(vr_warnings)
+                    if valid_url == True:
+                        # If the URL works, check to see if it contains the proper arguments
+                        # as specified in the schema.
+                        for arg in url_args:
+                            if arg not in url:
+                                url_error = "arg_error"
+                                vr_errors, vr_warnings = GenerateError.generate_url_error(
+                                    url,
+                                    url_error=url_error,
+                                    row_num=str(i + 2),
+                                    attribute_name=manifest_col.name,
+                                    argument=arg,
+                                    invalid_entry=manifest_col[i],
+                                    dmge=dmge,
+                                    val_rule=val_rule,
+                                )
+                                if vr_errors:
+                                    errors.append(vr_errors)
+                                if vr_warnings:
+                                    warnings.append(vr_warnings)
         return errors, warnings
 
     def cross_validation(
@@ -1021,6 +1064,7 @@ class ValidateAttribute(object):
         [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
         scope = val_rule.lower().split(" ")[2]
         target_column.name = target_attribute
+        col_is_required = dmge.get_node_required(node_display_name=manifest_col.name)
 
         # Get IDs of manifests with target component
         (
@@ -1054,6 +1098,9 @@ class ValidateAttribute(object):
                     # Do the validation on both columns
                     missing_values = manifest_col[~manifest_col.isin(target_column)]
 
+                    if not col_is_required:
+                        missing_values.dropna(inplace=True)
+
                     if missing_values.empty:
                         present_manifest_log.append(target_manifest_ID)
                     else:
@@ -1077,15 +1124,21 @@ class ValidateAttribute(object):
         missing_rows = []
         missing_values = []
 
+        
+
         if scope.__contains__("value"):
             missing_values = manifest_col[~manifest_col.isin(target_column)]
             duplicated_values = manifest_col[
                 manifest_col.isin(target_column[target_column.duplicated()])
             ]
+            if not col_is_required:
+                missing_values.dropna(inplace=True)
+                duplicated_values.dropna(inplace=True)
 
             if val_rule.__contains__("matchAtLeastOne") and not missing_values.empty:
                 missing_rows = missing_values.index.to_numpy() + 2
                 missing_rows = np_array_to_str_list(missing_rows)
+
                 vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                     val_rule=val_rule,
                     row_num=missing_rows,
@@ -1103,6 +1156,7 @@ class ValidateAttribute(object):
                 invalid_values = pd.merge(
                     duplicated_values, missing_values, how="outer"
                 )
+
                 invalid_rows = (
                     pd.merge(
                         duplicated_values,
@@ -1134,6 +1188,7 @@ class ValidateAttribute(object):
             ):
                 missing_entries = list(missing_manifest_log.values())
                 missing_manifest_IDs = list(missing_manifest_log.keys())
+
                 for missing_entry in missing_entries:
                     missing_rows.append(missing_entry.index[0] + 2)
                     missing_values.append(missing_entry.values[0])
