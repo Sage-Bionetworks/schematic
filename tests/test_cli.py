@@ -103,6 +103,15 @@ class TestSchemaCli:
         assert type(all_pickle).__name__.lower() == 'multidigraph'
         os.remove(data_model_pickle_path)
 
+        no_ot = runner.invoke(
+            schema, ["convert", data_model_csv_path]
+        )
+        assert no_ot.exit_code == 0
+        with open(data_model_jsonld_path, 'r') as file:
+            no_ot_json = json.load(file)
+        assert '@context' in list(no_ot_json)
+        os.remove(data_model_jsonld_path)
+
     # get manifest by default
     # by default this should download the manifest as a CSV file
     @pytest.mark.google_credentials_needed
