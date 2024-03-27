@@ -343,12 +343,14 @@ class GenerateError:
         """
 
         error_row = row_num
+        invalid_entry = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
 
         # log warning or error message
         if val_rule.startswith("recommended"):
             error_message = f"Column {attribute_name} is recommended but empty."
             error_row = None
             invalid_entry = None
+
 
         elif val_rule.startswith("unique"):
             error_message = f"Column {attribute_name} has the duplicate value(s) {invalid_entry} in rows: {row_num}."
@@ -482,7 +484,10 @@ class GenerateError:
         # bc this is already accounted for in JSON Validation.
         # This allows flexibiity to where, we dont need the value to be provided,
         # but also the case where NA is recorded as the value 'Not Applicable'
-        if error_val_is_na:
+        if error_val_is_na and col_is_recommended:
+            message_level = "warning"
+
+        elif error_val_is_na:
             message_level = None
 
         # If the level was specified, return that level
