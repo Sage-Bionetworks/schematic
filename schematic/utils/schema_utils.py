@@ -336,8 +336,8 @@ def parse_component_validation_rules(
         validation_rule_string (str):  validation rule provided by user.
 
     Returns:
-        dict[str, list[str]]: validation rules parsed to a dictionary where the key 
-          is the component name (or 'all_other_components') and the value is the parsed 
+        dict[str, list[str]]: validation rules parsed to a dictionary where the key
+          is the component name (or 'all_other_components') and the value is the parsed
           validation rule for the given component.
     """
     component_names: list[str] = []
@@ -430,7 +430,7 @@ def extract_component_validation_rules(
     Args:
         manifest_component, str: Component label, pulled from the manifest directly
         validation_rules_dict, dict[str, list[Union[list,str]]: Validation rules dictionary,
-          where keys are the manifest component label, and the value is a parsed set of 
+          where keys are the manifest component label, and the value is a parsed set of
           validation rules.
     Returns:
         validation_rules, list[str]: rule for the provided manifest component if one is available,
