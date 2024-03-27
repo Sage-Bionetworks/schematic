@@ -325,7 +325,9 @@ def check_for_duplicate_components(
         )
 
 
-def parse_component_validation_rules(validation_rule_string: str) -> dict[str, list[str]]:
+def parse_component_validation_rules(
+    validation_rule_string: str,
+) -> dict[str, list[str]]:
     """
     If a validation rule is identified to be formatted as a component validation rule,
       parse to a dictionary of components:rules
@@ -334,9 +336,9 @@ def parse_component_validation_rules(validation_rule_string: str) -> dict[str, l
         validation_rule_string (str):  validation rule provided by user.
 
     Returns:
-        dict[str, list[str]]: validation rules parsed to a dictionary where the key is the component name
-          (or 'all_other_components') and the value is the parsed validation rule for the
-          given component.
+        dict[str, list[str]]: validation rules parsed to a dictionary where the key 
+          is the component name (or 'all_other_components') and the value is the parsed 
+          validation rule for the given component.
     """
     component_names: list[str] = []
     validation_rules: list[list[str]] = []
@@ -427,8 +429,9 @@ def extract_component_validation_rules(
 
     Args:
         manifest_component, str: Component label, pulled from the manifest directly
-        validation_rules_dict, dict[str, list[Union[list,str]]: Validation rules dictionary, where keys
-          are the manifest component label, and the value is a parsed set of validation rules.
+        validation_rules_dict, dict[str, list[Union[list,str]]: Validation rules dictionary,
+          where keys are the manifest component label, and the value is a parsed set of 
+          validation rules.
     Returns:
         validation_rules, list[str]: rule for the provided manifest component if one is available,
             if a validation rule is not specified for a given component but "all_other_components"
@@ -441,7 +444,7 @@ def extract_component_validation_rules(
     if manifest_component_rule is not None:
         if isinstance(manifest_component_rule, str):
             if manifest_component_rule == "":
-                validation_rules_list:list[Union[str, list]] = []
+                validation_rules_list: list[Union[str, list]] = []
             else:
                 validation_rules_list = [manifest_component_rule]
         elif isinstance(manifest_component_rule, list):
