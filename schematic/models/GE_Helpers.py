@@ -177,7 +177,7 @@ class GreatExpectationsHelpers(object):
                 if isinstance(validation_rules, dict):
                     validation_rules = extract_component_validation_rules(
                         manifest_component=self.manifest["Component"][0],
-                        validation_rules=validation_rules,
+                        validation_rules_dict=validation_rules,
                     )
                 # iterate through all validation rules for an attribute
                 for rule in validation_rules:
