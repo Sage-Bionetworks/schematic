@@ -27,16 +27,13 @@ def DMGE(helpers):
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     yield dmge
 
-
-@pytest.fixture
-def metadataModel(helpers):
+def get_metadataModel(helpers, model_name:str):
     metadataModel = MetadataModel(
-        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+        inputMModelLocation=helpers.get_data_path(model_name),
         inputMModelLocationType="local",
         data_model_labels="class_label",
     )
-
-    yield metadataModel
+    return metadataModel
 
 
 def get_rule_combinations():
@@ -55,10 +52,20 @@ class TestManifestValidation:
     if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
         os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
-    def test_valid_manifest(self, helpers, metadataModel):
-        manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
+    @pytest.mark.parametrize(
+        ("model_name", "manifest_name"),
+        [
+            ("example.model.jsonld","mock_manifests/Valid_Test_Manifest.csv"),
+            ("example_test_nones.model.jsonld","mock_manifests/Valid_Test_Manifest_with_nones.csv"),
+        ],
+        ids=["example_model", "example_with_nones"],
+    )
+
+    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str):
+        manifestPath = helpers.get_data_path(manifest_name)
         rootNode = "MockComponent"
 
+        metadataModel = get_metadataModel(helpers, model_name)
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
             rootNode=rootNode,
@@ -68,7 +75,9 @@ class TestManifestValidation:
         assert errors == []
         assert warnings == []
 
-    def test_invalid_manifest(self, helpers, dmge, metadataModel):
+    def test_invalid_manifest(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
+        
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
@@ -189,7 +198,7 @@ class TestManifestValidation:
                 row_num=["3"],
                 invalid_entry=["30"],
             )[0] in errors
-
+   
         # check warnings
         assert GenerateError.generate_content_error(
                 val_rule="recommended",
@@ -220,7 +229,7 @@ class TestManifestValidation:
                 attribute_name="Check Match at Least values",
                 invalid_entry=["51100"],
                 dmge=dmge,
-            )[1] in warnings
+            )[1] in warnings       
 
         assert \
             GenerateError.generate_cross_warning(
@@ -247,7 +256,8 @@ class TestManifestValidation:
         assert any(warning_in_list)
 
 
-    def test_in_house_validation(self, helpers, dmge, metadataModel):
+    def test_in_house_validation(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
@@ -441,7 +451,7 @@ class TestManifestValidation:
     )
     @pytest.mark.parametrize("base_rule, second_rule", get_rule_combinations())
     def test_rule_combinations(
-        self, helpers, dmge, base_rule, second_rule, metadataModel
+        self, helpers, dmge, base_rule, second_rule,
     ):
         """
         TODO: Describe what this test is doing.
@@ -450,6 +460,8 @@ class TestManifestValidation:
         """
         rule_regex = re.compile(base_rule + ".*")
         rootNode = "MockComponent"
+
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
 
         manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
         manifest = helpers.get_data_frame(manifestPath)
