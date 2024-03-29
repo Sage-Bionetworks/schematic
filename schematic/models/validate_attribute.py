@@ -263,7 +263,7 @@ class GenerateError:
         dmge: DataModelGraphExplorer,
         matching_manifests=[],
         missing_manifest_ID=None,
-        invalid_entry=None,
+        invalid_entry="No Invalid Entry Recorded",
         row_num=None,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -619,6 +619,9 @@ class GenerateError:
 
         message_logger = getattr(logger, message_level)
         message_logger(error_message)
+
+        if error_val == "No Invalid Entry Recorded":
+            error_val=None
 
         if message_level == "error":
             error_list = [error_row, error_col, error_message, error_val]
