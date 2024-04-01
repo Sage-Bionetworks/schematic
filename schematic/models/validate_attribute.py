@@ -1267,7 +1267,7 @@ class ValidateAttribute(object):
         """Helper to remove NAs from a list of invalid entries (if applicable, and allowed), remove the row
         too from row_num. This will make sure errors are not rasied for NA entries unless the value is required.
         Args:
-            invalid_entry, list[str]: default=None, list of entries in the source manifest where 
+            invalid_entry, list[str]: default=None, list of entries in the source manifest where
                 invalid values were located.
             row_num, list[str[: default=None, list of rows in the source manifest where invalid values were located
             attribute_name, str: source attribute name
