@@ -323,6 +323,7 @@ class MetadataModel(object):
         restrict_rules: bool,
         access_token: Optional[str] = None,
         validate_component: Optional[str] = None,
+        file_annotations_upload: Optional[bool] = True,
         hide_blanks: bool = False,
         project_scope: List = None,
         table_manipulation: str = "replace",
@@ -388,6 +389,7 @@ class MetadataModel(object):
                         table_manipulation=table_manipulation,
                         table_column_names=table_column_names,
                         annotation_keys=annotation_keys,
+                        file_annotations_upload = file_annotations_upload
                     )
                     restrict_maniest = True
 
@@ -401,6 +403,7 @@ class MetadataModel(object):
                     table_manipulation=table_manipulation,
                     table_column_names=table_column_names,
                     annotation_keys=annotation_keys,
+                    file_annotations_upload = file_annotations_upload
                 )
 
                 logger.info(f"No validation errors occured during validation.")
@@ -423,6 +426,7 @@ class MetadataModel(object):
                 table_manipulation=table_manipulation,
                 table_column_names=table_column_names,
                 annotation_keys=annotation_keys,
+                file_annotations_upload=file_annotations_upload
             )
             restrict_maniest = True
 
@@ -436,6 +440,7 @@ class MetadataModel(object):
             table_manipulation=table_manipulation,
             table_column_names=table_column_names,
             annotation_keys=annotation_keys,
+            file_annotations_upload=file_annotations_upload
         )
 
         logger.debug(
