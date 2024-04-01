@@ -1,9 +1,11 @@
+"""Data model Nodes"""
+
+from typing import Optional, Callable
+
 from inspect import isfunction
 import networkx as nx
 from rdflib import Namespace
-from typing import Any, Dict, Optional, Text, List, Literal, Callable
 
-from schematic.schemas.data_model_parser import DataModelJSONLDParser
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 from schematic.utils.schema_utils import (
@@ -13,15 +15,13 @@ from schematic.utils.schema_utils import (
     parse_validation_rules,
     DisplayLabelType,
 )
-from schematic.utils.validate_rules_utils import validate_schema_rules
-from schematic.schemas.curie import uri2curie, curie2uri
-
 
 class DataModelNodes:
+    """Data model Nodes"""
     def __init__(self, attribute_relationships_dict):
-        self.namespaces = dict(
-            rdf=Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-        )
+        self.namespaces = {
+            "rdf": Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+        }
         self.data_model_relationships = DataModelRelationships()
         self.value_relationships = (
             self.data_model_relationships.retreive_rel_headers_dict(edge=False)
@@ -36,9 +36,14 @@ class DataModelNodes:
         self.node_relationships = list(self.edge_relationships_dictionary.values())
 
     def gather_nodes(self, attr_info: tuple) -> list:
-        """Take in a tuple containing attriute name and relationship dictionary, and find all nodes defined in attribute information.
+        """
+        Take in a tuple containing attriute name and relationship dictionary,
+          and find all nodes defined in attribute information.
+
         Args:
-            attr_info, tuple: (Display Name, Relationships Dictionary portion of attribute_relationships dictionary)
+            attr_info, tuple: (Display Name, Relationships Dictionary portion of
+              attribute_relationships dictionary)
+
         Returns:
             nodes, list: nodes related to the given node (specified in attr_info).
         Note:
@@ -65,7 +70,8 @@ class DataModelNodes:
                         Relationships: {
                                     CSV Header: Value}}}
         Returns:
-            all_nodes, list: List of all node display names in the data model preserving order entered.
+            all_nodes, list: List of all node display names in the data model
+              preserving order entered.
         Note:
             Gathering nodes in this fashion ensures order is preserved.
         """
@@ -83,15 +89,17 @@ class DataModelNodes:
             relationship, str: relationship key to match.
         Returns:
             rel_key, str: relationship node label
-            rel_node_dict, dict: node_attr_dict, from relationships dictionary for a given relationship
+            rel_node_dict, dict: node_attr_dict, from relationships dictionary for a
+              given relationship
         TODO: Move to data_model_relationships.
         """
-        for k, v in self.data_model_relationships.relationships_dictionary.items():
-            if k == relationship:
-                if "node_attr_dict" in v.keys():
-                    rel_key = v["node_label"]
-                    rel_node_dict = v["node_attr_dict"]
+        for key, value in self.data_model_relationships.relationships_dictionary.items():
+            if key == relationship:
+                if "node_attr_dict" in value:
+                    rel_key = value["node_label"]
+                    rel_node_dict = value["node_attr_dict"]
                     return rel_key, rel_node_dict
+        return None
 
     def get_data_model_properties(self, attr_rel_dict: dict) -> list:
         """Identify all properties defined in the data model.
@@ -104,7 +112,7 @@ class DataModelNodes:
             properties,list: properties defined in the data model
         """
         properties = []
-        for attribute, relationships in attr_rel_dict.items():
+        for relationships in attr_rel_dict.values():
             if "Properties" in relationships["Relationships"].keys():
                 properties.extend(relationships["Relationships"]["Properties"])
         properties = list(set(properties))
@@ -125,15 +133,18 @@ class DataModelNodes:
 
     def run_rel_functions(
         self,
-        rel_func: callable,
+        rel_func: Callable,
         node_display_name: str = "",
         key: str = "",
-        attr_relationships={},
+        attr_relationships=None,
         csv_header="",
         entry_type="",
         data_model_labels: DisplayLabelType = "class_label",
     ):
-        """This function exists to centralzie handling of functions for filling out node information, makes sure all the proper parameters are passed to each function.
+        """
+        This function exists to centralzie handling of functions for filling out node information,
+          makes sure all the proper parameters are passed to each function.
+
         Args:
             rel_func, callable: Function to call to get information to attach to the node
             node_display_name, str: node display name
@@ -147,40 +158,52 @@ class DataModelNodes:
 
         For legacy:
         elif key == 'id' and rel_func == get_label_from_display_name:
-            func_output = get_label_from_display_name(display_name =node_display_name, entry_type=entry_type)
+            func_output = get_label_from_display_name(
+                display_name =node_display_name, entry_type=entry_type
+            )
         """
-        if rel_func == get_attribute_display_name_from_label:
+        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-return-statements
+        if attr_relationships is None:
+            attr_relationships = {}
+
+        if rel_func == get_attribute_display_name_from_label: # pylint: disable=comparison-with-callable
             return get_attribute_display_name_from_label(
                 node_display_name, attr_relationships
             )
 
-        elif rel_func == parse_validation_rules:
+        if rel_func == parse_validation_rules: # pylint: disable=comparison-with-callable
             rules = attr_relationships[csv_header]
-            if isinstance(rules, dict) or isinstance(rules, list):
+            if isinstance(rules, (dict, list)):
                 return parse_validation_rules(rules)
 
-        elif rel_func == get_label_from_display_name:
+        if rel_func == get_label_from_display_name: # pylint: disable=comparison-with-callable
             return get_label_from_display_name(
                 display_name=node_display_name,
                 entry_type=entry_type,
                 data_model_labels=data_model_labels,
             )
 
-        elif rel_func == convert_bool_to_str:
-            if type(attr_relationships[csv_header]) == str:
+        if rel_func == convert_bool_to_str: # pylint: disable=comparison-with-callable
+            if isinstance(attr_relationships[csv_header], str):
                 if attr_relationships[csv_header].lower() == "true":
                     return True
-                elif attr_relationships[csv_header].lower() == "false":
+                if attr_relationships[csv_header].lower() == "false":
                     return False
+                return None
 
-            elif type(attr_relationships[csv_header]) == bool:
+            if isinstance(attr_relationships[csv_header], bool):
                 return attr_relationships[csv_header]
 
-        else:
-            # Raise Error if the rel_func provided is not captured.
-            raise ValueError(
-                f"The function provided ({rel_func}) to define the relationship {key} is not captured in the function run_rel_functions, please update."
+            return None
+
+        # Raise Error if the rel_func provided is not captured.
+        raise ValueError(
+            (
+                f"The function provided ({rel_func}) to define the relationship {key} "
+                "is not captured in the function run_rel_functions, please update."
             )
+        )
 
     def generate_node_dict(
         self,
@@ -189,22 +212,29 @@ class DataModelNodes:
         data_model_labels: DisplayLabelType = "class_label",
     ) -> dict:
         """Gather information to be attached to each node.
+
+        Note:
+            If the default calls function, call that function for the default or alternate
+              implementation.
+            May need to update this logic for varying function calls. (for example the current
+              function takes in the node display name would need to update if new function took
+              in something else.)
+
         Args:
-            node_display_name, str: display name for current node
-            attr_rel_dict, dict: generated in data_model_parser
-                {Attribute Display Name: {
+            node_display_name (str): display name for current node
+            attr_rel_dict (dict): generated in data_model_parser
+              {Attribute Display Name: {
                         Relationships: {
                                     CSV Header: Value}}}
-            data_model_labels: str, display_label or class_label.
-                display_label, use the display name as a label, if it is valid (contains no blacklisted characters) otherwise will default to schema_label.
+            data_model_labels (DisplayLabelType, optional):str, display_label or class_label.
+                display_label, use the display name as a label, if it is valid (contains no 
+                  blacklisted characters) otherwise will default to schema_label.
                 class_label, default, use standard class or property label.
+
         Returns:
-            node_dict, dict: dictionary of relationship information about the current node
-                {'displayName': '', 'label': '', 'comment': 'TBD', 'required': None, 'validationRules': [], 'isPartOf': '', 'uri': ''}
-        Note:
-            If the default calls function, call that function for the default or alternate implementation.
-            May need to update this logic for varying function calls. (for example the current function takes in the node display name
-            would need to update if new function took in something else.)
+            dict: dictionary of relationship information about the current node
+                {'displayName': '', 'label': '', 'comment': 'TBD', 'required': None, 
+                 'validationRules': [], 'isPartOf': '', 'uri': ''}
         """
         # Strip whitespace from node display name
         node_display_name = node_display_name.strip()
@@ -273,16 +303,18 @@ class DataModelNodes:
 
         return node_dict
 
-    def generate_node(self, G: nx.MultiDiGraph, node_dict: dict) -> nx.MultiDiGraph:
+    def generate_node(self, graph: nx.MultiDiGraph, node_dict: dict) -> nx.MultiDiGraph:
         """Create a node and add it to the networkx multidigraph being built
         Args:
-            G, nx.MultiDigraph: networkx multidigraph object, that is in the process of being fully built.
+            graph, nx.MultiDigraph: networkx multidigraph object, that is in the process of 
+              being fully built.
             node_dict, dict: dictionary of relationship information about the current node
         Returns:
-            G, nx.MultiDigraph: networkx multidigraph object, that has had an additional node added to it.
+            nx.MultiDigraph: networkx multidigraph object, that has had an additional 
+              node added to it.
         """
-        G.add_node(node_dict["label"], **node_dict)
-        return G
+        graph.add_node(node_dict["label"], **node_dict)
+        return graph
 
     def edit_node(self):
         """Stub for future node editor."""
