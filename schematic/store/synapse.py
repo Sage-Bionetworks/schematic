@@ -203,7 +203,7 @@ class SynapseStorage(BaseStorage):
         token: Optional[str] = None,  # optional parameter retrieved from browser cookie
         access_token: Optional[str] = None,
         project_scope: Optional[list] = None,
-        synapse_cache_path: str = "/root/.synapseCache"
+        synapse_cache_path: str = "/root/.synapseCache",
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
@@ -271,9 +271,7 @@ class SynapseStorage(BaseStorage):
             raise AccessCredentialsError(self.storageFileview)
 
     def login(
-        self,
-        token:Optional[str]=None,
-        access_token:Optional[str]=None
+        self, token: Optional[str] = None, access_token: Optional[str] = None
     ) -> synapseclient.Synapse:
         """Login to Synapse
 
@@ -299,7 +297,9 @@ class SynapseStorage(BaseStorage):
             try:
                 syn.login(sessionToken=token, silent=True)
             except SynapseHTTPError as exc:
-                raise ValueError("Please make sure you are logged into synapse.org.") from exc
+                raise ValueError(
+                    "Please make sure you are logged into synapse.org."
+                ) from exc
         elif access_token:
             try:
                 syn = synapseclient.Synapse(cache_path=self.root_synapse_cache)
