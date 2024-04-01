@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
 
+
 class GenerateError:
     def generate_schema_error(
         row_num: str,
@@ -656,6 +657,7 @@ class ValidateAttribute(object):
         - Add year validator
         - Add string length validator
     """
+
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
 
@@ -759,12 +761,10 @@ class ValidateAttribute(object):
             # This will capture any if an entry is not formatted properly. Only for strict lists
             for i, list_string in enumerate(manifest_col):
                 list_error = None
-                entry_has_value_or_is_required = (
-                    self.get_entry_has_value_or_required(
-                        entry=list_string,
-                        node_display_name=manifest_col.name,
-                        col_is_required=col_is_required,
-                    )
+                entry_has_value_or_is_required = self.get_entry_has_value_or_required(
+                    entry=list_string,
+                    node_display_name=manifest_col.name,
+                    col_is_required=col_is_required,
                 )
 
                 if not isinstance(list_string, str) and entry_has_value_or_is_required:
@@ -841,7 +841,9 @@ class ValidateAttribute(object):
         validation_rules = self.dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
         )
-        col_is_required = self.dmge.get_node_required(node_display_name=manifest_col.name)
+        col_is_required = self.dmge.get_node_required(
+            node_display_name=manifest_col.name
+        )
         if validation_rules and "::" in validation_rules[0]:
             validation_rules = validation_rules[0].split("::")
         # Handle case where validating re's within a list.
@@ -883,12 +885,10 @@ class ValidateAttribute(object):
             manifest_col = manifest_col.astype(str)
             for i, re_to_check in enumerate(manifest_col):
                 # check if <NA> in list let pass.
-                entry_has_value_or_is_required = (
-                    self.get_entry_has_value_or_required(
-                        entry=re_to_check,
-                        node_display_name=manifest_col.name,
-                        col_is_required=col_is_required,
-                    )
+                entry_has_value_or_is_required = self.get_entry_has_value_or_required(
+                    entry=re_to_check,
+                    node_display_name=manifest_col.name,
+                    col_is_required=col_is_required,
                 )
 
                 if (
@@ -944,17 +944,17 @@ class ValidateAttribute(object):
 
         errors = []
         warnings = []
-        col_is_required = self.dmge.get_node_required(node_display_name=manifest_col.name)
+        col_is_required = self.dmge.get_node_required(
+            node_display_name=manifest_col.name
+        )
 
         # num indicates either a float or int.
         if val_rule == "num":
             for i, value in enumerate(manifest_col):
-                entry_has_value_or_is_required = (
-                    self.get_entry_has_value_or_required(
-                        entry=value,
-                        node_display_name=manifest_col.name,
-                        col_is_required=col_is_required,
-                    )
+                entry_has_value_or_is_required = self.get_entry_has_value_or_required(
+                    entry=value,
+                    node_display_name=manifest_col.name,
+                    col_is_required=col_is_required,
                 )
                 if (
                     bool(value)
@@ -974,12 +974,10 @@ class ValidateAttribute(object):
                         warnings.append(vr_warnings)
         elif val_rule in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
-                entry_has_value_or_is_required = (
-                    self.get_entry_has_value_or_required(
-                        entry=value,
-                        node_display_name=manifest_col.name,
-                        col_is_required=col_is_required,
-                    )
+                entry_has_value_or_is_required = self.get_entry_has_value_or_required(
+                    entry=value,
+                    node_display_name=manifest_col.name,
+                    col_is_required=col_is_required,
                 )
                 if (
                     bool(value)
@@ -1022,15 +1020,15 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
 
-        col_is_required = self.dmge.get_node_required(node_display_name=manifest_col.name)
+        col_is_required = self.dmge.get_node_required(
+            node_display_name=manifest_col.name
+        )
 
         for i, url in enumerate(manifest_col):
-            entry_has_value_or_is_required = (
-                self.get_entry_has_value_or_required(
-                    entry=url,
-                    node_display_name=manifest_col.name,
-                    col_is_required=col_is_required,
-                )
+            entry_has_value_or_is_required = self.get_entry_has_value_or_required(
+                entry=url,
+                node_display_name=manifest_col.name,
+                col_is_required=col_is_required,
             )
             if entry_has_value_or_is_required:
                 # Check if a random phrase, string or number was added and
@@ -1261,7 +1259,11 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def _remove_non_entry_from_invalid_entry_list(
-            self, invalid_entry:Optional[list[str]], row_num:Optional[list[str]], attribute_name:str):
+        self,
+        invalid_entry: Optional[list[str]],
+        row_num: Optional[list[str]],
+        attribute_name: str,
+    ):
         """Helper to remove NAs from a list of invalid entries (if applicable, and allowed), remove the row
         too from row_num. This will make sure errors are not rasied for NA entries unless the value is required.
         Args:
@@ -1271,16 +1273,17 @@ class ValidateAttribute(object):
         Returns:
             invalid_entry and row_num returned with any NA and corresponding row index value removed, if applicable.
         """
-        idx_to_remove=[]
+        idx_to_remove = []
         # Check if the current attribute column is required, via the data model
-        col_is_required=self.dmge.get_node_required(node_display_name=attribute_name)
-        
+        col_is_required = self.dmge.get_node_required(node_display_name=attribute_name)
+
         if invalid_entry:
             # Check each invalid entry and determine if it has a value and/or is required.
             # If there is no entry and its not required, remove the NA value so an error is not raised.
             for idx, entry in enumerate(invalid_entry):
                 entry_has_value_or_required = self.get_entry_has_value_or_required(
-                    entry, attribute_name, col_is_required)
+                    entry, attribute_name, col_is_required
+                )
                 # If there is no value, and is not required, recored the index
                 if not entry_has_value_or_required:
                     idx_to_remove.append(idx)
@@ -1292,9 +1295,11 @@ class ValidateAttribute(object):
                     del row_num[idx]
                 # Perform check to make sure length of invalid_entry and row_num is the same. If not that would suggest
                 # there was an issue recording or removing values.
-                if len(invalid_entry)!=len(row_num):
-                    logger.error(f"There was an error handling and validating a non-entry."
-                        f"Please try again or contact Schematic administrators.")
+                if len(invalid_entry) != len(row_num):
+                    logger.error(
+                        f"There was an error handling and validating a non-entry."
+                        f"Please try again or contact Schematic administrators."
+                    )
         return invalid_entry, row_num
 
     def _get_cross_errors_warnings(
@@ -1323,8 +1328,10 @@ class ValidateAttribute(object):
 
         idx_to_remove = []
 
-        invalid_entry, row_num = self._remove_non_entry_from_invalid_entry_list(invalid_entry, row_num, attribute_name)
-        
+        invalid_entry, row_num = self._remove_non_entry_from_invalid_entry_list(
+            invalid_entry, row_num, attribute_name
+        )
+
         errors, warnings = [], []
         if invalid_entry:
             vr_errors, vr_warnings = GenerateError.generate_cross_warning(
@@ -1609,7 +1616,9 @@ class ValidateAttribute(object):
         # Set relevant parameters
         [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
         target_column.name = target_attribute
-        col_is_required = self.dmge.get_node_required(node_display_name=manifest_col.name)
+        col_is_required = self.dmge.get_node_required(
+            node_display_name=manifest_col.name
+        )
 
         # Get IDs of manifests with target component
         (
