@@ -22,6 +22,7 @@ from schematic.store.base import BaseStorage
 from schematic.store.synapse import (
     DatasetFileView,
     ManifestDownload,
+    SynapseStorage
 )
 
 logging.basicConfig(level=logging.DEBUG)
@@ -92,9 +93,10 @@ class TestBaseStorage:
 
 
 class TestSynapseStorage:
-    def test_init(self, synapse_store):
+    def test_init(self, synapse_store:SynapseStorage):
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
+        assert synapse_store.root_synapse_cache == "/root/.synapseCache"
 
     def test_getFileAnnotations(self, synapse_store):
         expected_dict = {
@@ -436,6 +438,15 @@ class TestSynapseStorage:
                     ],
                     "entityId": ["syn123", "syn456"],
                 }
+
+
+class TestSynapseStorage2:
+    """Tests a storage object with a non-default cache"""
+    def test_purge_cache(self) -> None:
+        """Tests successful purging of cache"""
+        synapse_store = SynapseStorage(synapse_cache_path="test_cache")
+        assert synapse_store.root_synapse_cache == "test_cache"
+        synapse_store._purge_synapse_cache()
 
 
 class TestDatasetFileView:

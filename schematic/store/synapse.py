@@ -45,6 +45,7 @@ from synapseclient.core.exceptions import (
     SynapseHTTPError,
     SynapseAuthenticationError,
     SynapseUnmetAccessRestrictions,
+    SynapseHTTPError,
 )
 import synapseutils
 from synapseutils.copy_functions import changeFileMetaData
@@ -202,12 +203,14 @@ class SynapseStorage(BaseStorage):
         token: Optional[str] = None,  # optional parameter retrieved from browser cookie
         access_token: Optional[str] = None,
         project_scope: Optional[list] = None,
+        synapse_cache_path: str = "/root/.synapseCache"
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
             syn: an object of type synapseclient.
             token: optional token parameter (typically a 'str') as found in browser cookie upon login to synapse.
             access_token: optional access token (personal or oauth)
+            synapse_cache_path: locaiton of synapse cache
             TODO: move away from specific project setup and work with an interface that Synapse specifies (e.g. based on schemas).
         Exceptions:
             KeyError: when the 'storage' config object is missing values for essential keys.
@@ -222,7 +225,7 @@ class SynapseStorage(BaseStorage):
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
-        self.root_synapse_cache = "/root/.synapseCache"
+        self.root_synapse_cache = synapse_cache_path
         self._query_fileview()
 
     def _purge_synapse_cache(self, maximum_storage_allowed_cache_gb=1):
@@ -267,28 +270,44 @@ class SynapseStorage(BaseStorage):
         except SynapseHTTPError:
             raise AccessCredentialsError(self.storageFileview)
 
-    @staticmethod
-    def login(token=None, access_token=None):
+    def login(
+        self,
+        token:Optional[str]=None,
+        access_token:Optional[str]=None
+    ) -> synapseclient.Synapse:
+        """Login to Synapse
+
+        Args:
+            token (Optional[str], optional): A Synapse token. Defaults to None.
+            access_token (Optional[str], optional): A synapse access token. Defaults to None.
+
+        Raises:
+            ValueError: If unabel to login with token
+            ValueError: If unable to loging with access token
+
+        Returns:
+            synapseclient.Synapse: A Synapse object that is logged in
+        """
         # If no token is provided, try retrieving access token from environment
         if not token and not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
         if token:
-            syn = synapseclient.Synapse()
+            syn = synapseclient.Synapse(cache_path=self.root_synapse_cache)
 
             try:
                 syn.login(sessionToken=token, silent=True)
-            except synapseclient.core.exceptions.SynapseHTTPError:
-                raise ValueError("Please make sure you are logged into synapse.org.")
+            except SynapseHTTPError as exc:
+                raise ValueError("Please make sure you are logged into synapse.org.") from exc
         elif access_token:
             try:
-                syn = synapseclient.Synapse()
+                syn = synapseclient.Synapse(cache_path=self.root_synapse_cache)
                 syn.default_headers["Authorization"] = f"Bearer {access_token}"
-            except synapseclient.core.exceptions.SynapseHTTPError:
+            except SynapseHTTPError as exc:
                 raise ValueError(
                     "No access to resources. Please make sure that your token is correct"
-                )
+                ) from exc
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
             syn = synapseclient.Synapse(configPath=CONFIG.synapse_configuration_path)
