@@ -1637,6 +1637,7 @@ class SynapseStorage(BaseStorage):
         hideBlanks: bool,
         manifest_synapse_table_id="",
         annotation_keys: str = "class_label",
+        file_annotations_upload: Optional[bool] = True,
     ):
         """Depending on upload type add Ids to entityId row. Add anotations to connected files.
         Args:
@@ -1649,13 +1650,17 @@ class SynapseStorage(BaseStorage):
             annotation_keys: (str) display_label/class_label(default), Determines labeling syle for annotation keys. class_label will format the display
                 name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
                 display label formatting while ensuring the label is formatted properly for Synapse annotations.
+            file_annotations_upload (bool): Default to True. If false, do not add annotations to files.
         Returns:
-            manifest (pd.DataFrame): modified to add entitiyId as appropriate.
+            manifest (pd.DataFrame): modified to add entitiyId as appropriate
 
         """
 
         # Expected behavior is to annotate files if `Filename` is present regardless of `-mrt` setting
-        if "filename" in [col.lower() for col in manifest.columns]:
+        if (
+            "filename" in [col.lower() for col in manifest.columns]
+            and file_annotations_upload
+        ):
             # get current list of files and store as dataframe
             dataset_files = self.getFilesInStorageDataset(datasetId)
             files_and_entityIds = self._get_file_entityIds(
@@ -1706,6 +1711,7 @@ class SynapseStorage(BaseStorage):
         table_manipulation: str,
         table_column_names: str,
         annotation_keys: str,
+        file_annotations_upload: Optional[bool],
     ):
         """Upload manifest to Synapse as a table and csv.
         Args:
@@ -1725,6 +1731,7 @@ class SynapseStorage(BaseStorage):
             annotation_keys: (str) display_label/class_label (default), Sets labeling syle for annotation keys. class_label will format the display
                 name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
                 display label formatting while ensuring the label is formatted properly for Synapse annotations.
+            file_annotations_upload (bool): Default to True. If false, do not add annotations to files.
         Return:
             manifest_synapse_file_id: SynID of manifest csv uploaded to synapse.
         """
@@ -1747,6 +1754,7 @@ class SynapseStorage(BaseStorage):
             hideBlanks,
             manifest_synapse_table_id,
             annotation_keys,
+            file_annotations_upload=file_annotations_upload,
         )
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
@@ -1793,6 +1801,7 @@ class SynapseStorage(BaseStorage):
         hideBlanks,
         component_name,
         annotation_keys: str,
+        file_annotations_upload: Optional[bool],
     ):
         """Upload manifest to Synapse as a csv only.
         Args:
@@ -1806,6 +1815,7 @@ class SynapseStorage(BaseStorage):
             annotation_keys: (str) display_label/class_label (default), Sets labeling syle for annotation keys. class_label will format the display
                 name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
                 display label formatting while ensuring the label is formatted properly for Synapse annotations.
+            file_annotations_upload (bool): Default to True. If false, do not add annotations to files.
         Return:
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
@@ -1816,6 +1826,7 @@ class SynapseStorage(BaseStorage):
             datasetId,
             hideBlanks,
             annotation_keys=annotation_keys,
+            file_annotations_upload=file_annotations_upload,
         )
 
         # Load manifest to synapse as a CSV File
@@ -1851,6 +1862,7 @@ class SynapseStorage(BaseStorage):
         table_manipulation,
         table_column_names: str,
         annotation_keys: str,
+        file_annotations_upload: Optional[bool],
     ):
         """Upload manifest to Synapse as a table and CSV with entities.
         Args:
@@ -1891,6 +1903,7 @@ class SynapseStorage(BaseStorage):
             hideBlanks,
             manifest_synapse_table_id,
             annotation_keys=annotation_keys,
+            file_annotations_upload=file_annotations_upload,
         )
 
         # Load manifest to synapse as a CSV File
@@ -1934,6 +1947,7 @@ class SynapseStorage(BaseStorage):
         table_manipulation: str = "replace",
         table_column_names: str = "class_label",
         annotation_keys: str = "class_label",
+        file_annotations_upload: Optional[bool] = True,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.
@@ -1973,7 +1987,6 @@ class SynapseStorage(BaseStorage):
         table_name, component_name = self._generate_table_name(manifest)
 
         # Upload manifest to synapse based on user input (manifest_record_type)
-
         if manifest_record_type == "file_only":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
                 dmge,
@@ -1985,6 +1998,7 @@ class SynapseStorage(BaseStorage):
                 manifest_record_type=manifest_record_type,
                 component_name=component_name,
                 annotation_keys=annotation_keys,
+                file_annotations_upload=file_annotations_upload,
             )
         elif manifest_record_type == "table_and_file":
             manifest_synapse_file_id = self.upload_manifest_as_table(
@@ -2000,6 +2014,7 @@ class SynapseStorage(BaseStorage):
                 table_manipulation=table_manipulation,
                 table_column_names=table_column_names,
                 annotation_keys=annotation_keys,
+                file_annotations_upload=file_annotations_upload,
             )
         elif manifest_record_type == "file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_as_csv(
@@ -2012,6 +2027,7 @@ class SynapseStorage(BaseStorage):
                 manifest_record_type=manifest_record_type,
                 component_name=component_name,
                 annotation_keys=annotation_keys,
+                file_annotations_upload=file_annotations_upload,
             )
         elif manifest_record_type == "table_file_and_entities":
             manifest_synapse_file_id = self.upload_manifest_combo(
@@ -2027,6 +2043,7 @@ class SynapseStorage(BaseStorage):
                 table_manipulation=table_manipulation,
                 table_column_names=table_column_names,
                 annotation_keys=annotation_keys,
+                file_annotations_upload=file_annotations_upload,
             )
         else:
             raise ValueError("Please enter a valid manifest_record_type.")
