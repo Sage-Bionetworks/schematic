@@ -336,6 +336,7 @@ class MetadataModel(object):
             manifest_path: Path to the manifest file, which contains the metadata.
             dataset_id: Synapse ID of the dataset on Synapse containing the metadata manifest file.
             validate_component: Component from the schema.org schema based on which the manifest template has been generated.
+            file_annotations_upload (bool): Default to True. If false, do not add annotations to files. 
         Returns:
             Manifest ID: If both validation and association were successful.
         Exceptions:
@@ -389,7 +390,7 @@ class MetadataModel(object):
                         table_manipulation=table_manipulation,
                         table_column_names=table_column_names,
                         annotation_keys=annotation_keys,
-                        file_annotations_upload = file_annotations_upload
+                        file_annotations_upload=file_annotations_upload
                     )
                     restrict_maniest = True
 
@@ -403,7 +404,7 @@ class MetadataModel(object):
                     table_manipulation=table_manipulation,
                     table_column_names=table_column_names,
                     annotation_keys=annotation_keys,
-                    file_annotations_upload = file_annotations_upload
+                    file_annotations_upload=file_annotations_upload
                 )
 
                 logger.info(f"No validation errors occured during validation.")
