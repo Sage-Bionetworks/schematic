@@ -7,8 +7,10 @@ from schematic.utils.schema_utils import (
     parse_validation_rules,
 )
 
+
 class DataModelRelationships:
     """Data Model Relationships"""
+
     def __init__(self) -> None:
         self.relationships_dictionary = self.define_data_model_relationships()
 
@@ -30,11 +32,11 @@ class DataModelRelationships:
                       False, if is a value relationship
                       Include in all sub-dictionaries.
             required_header: True, if relationship header is required for the csv
-            jsonld_default: 
+            jsonld_default:
                 Defines default values to fill for JSONLD generation.
                 Used during func DataModelJsonLD.clean_template(), to fill value with a default,
                   if not supplied in the data model.
-            node_attr_dict: This is used to add information to nodes in the model. 
+            node_attr_dict: This is used to add information to nodes in the model.
                 Only include for nodes not edges.
                 set default values for this relationship
                 key is the node relationship name, value is the default value.
@@ -192,7 +194,7 @@ class DataModelRelationships:
 
     def define_required_csv_headers(self):
         """
-        Helper function to retrieve required CSV headers, alert if required header was 
+        Helper function to retrieve required CSV headers, alert if required header was
           not provided.
         Returns:
             required_headers: lst, Required CSV headers.
@@ -227,7 +229,7 @@ class DataModelRelationships:
             if "edge_rel" in rel_dict:
                 if rel_dict["edge_rel"] and edge:
                     rel_headers_dict.update({rel: rel_dict["csv_header"]})
-                elif not rel_dict["edge_rel"]  and not edge:
+                elif not rel_dict["edge_rel"] and not edge:
                     rel_headers_dict.update({rel: rel_dict["csv_header"]})
             else:
                 raise ValueError(f"Did not provide a 'edge_rel' for relationship {rel}")

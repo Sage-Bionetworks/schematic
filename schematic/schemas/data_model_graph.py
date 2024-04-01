@@ -3,8 +3,8 @@
 import logging
 from typing import Optional, Union, Any
 
-import networkx as nx # type: ignore
-import graphviz # type: ignore
+import networkx as nx  # type: ignore
+import graphviz  # type: ignore
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
@@ -807,7 +807,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         return node_label in self.graph.nodes()
 
     def sub_schema_graph(
-        self, source: str, direction: str, size:Optional[float]=None
+        self, source: str, direction: str, size: Optional[float] = None
     ) -> Optional[graphviz.Digraph]:
         """Create a sub-schema graph
         Args:

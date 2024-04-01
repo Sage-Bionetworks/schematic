@@ -6,14 +6,14 @@ import re
 from typing import get_args
 
 import click
-import click_log
+import click_log  # type: ignore
 
 # pylint: disable=logging-fstring-interpolation
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_validator import DataModelValidator
-from schematic.schemas.data_model_jsonld import  convert_graph_to_jsonld
+from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
 
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.cli_utils import query_dict
@@ -23,7 +23,7 @@ from schematic.help import schema_commands
 logger = logging.getLogger("schematic")
 click_log.basic_config(logger)
 
-CONTEXT_SETTINGS = {"help_option_names":["--help", "-h"]}  # help options
+CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}  # help options
 
 
 # invoke_without_command=True -> forces the application not to show aids before
@@ -33,7 +33,7 @@ def schema():  # use as `schematic model ...`
     """
     Sub-commands for Schema related utilities/methods.
     """
-    pass #pylint: disable=unnecessary-pass
+    pass  # pylint: disable=unnecessary-pass
 
 
 # prototype based on submit_metadata_manifest()
@@ -64,12 +64,12 @@ def convert(schema, data_model_labels, output_jsonld):
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
 
-    Note: Currently, not configured to build off of base model, so removing --base_schema 
+    Note: Currently, not configured to build off of base model, so removing --base_schema
       argument for now
     """
-    #pylint: disable=too-many-locals
-    #pylint: disable=redefined-outer-name
-    #pylint: disable=too-many-branches
+    # pylint: disable=too-many-locals
+    # pylint: disable=redefined-outer-name
+    # pylint: disable=too-many-branches
 
     # get the start time
     start_time = time.time()
@@ -113,7 +113,7 @@ def convert(schema, data_model_labels, output_jsonld):
                     logger.warning(warning)
 
     logger.info("Converting data model to JSON-LD")
-    jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
+    jsonld_data_model = convert_graph_to_jsonld(graph=graph_data_model)
 
     # output JSON-LD file alongside CSV file by default, get path.
     if output_jsonld is None:
@@ -135,7 +135,7 @@ def convert(schema, data_model_labels, output_jsonld):
         click.echo(
             f"The Data Model was created and saved to '{output_jsonld}' location."
         )
-    except: #pylint: disable=bare-except
+    except:  # pylint: disable=bare-except
         click.echo(
             (
                 f"The Data Model could not be created by using '{output_jsonld}' location. "

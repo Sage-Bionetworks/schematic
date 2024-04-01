@@ -4,7 +4,7 @@ import logging
 import os
 from typing import Any, Optional
 
-import networkx as nx
+import networkx as nx  # type: ignore
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships

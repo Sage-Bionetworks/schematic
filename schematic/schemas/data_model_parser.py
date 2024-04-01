@@ -35,7 +35,7 @@ class DataModelParser:
 
         self.path_to_data_model = path_to_data_model
         self.model_type = self.get_model_type()
-        self.base_schema_path:Optional[str] = None
+        self.base_schema_path: Optional[str] = None
 
     def _get_base_schema_path(self, base_schema: Optional[str] = None) -> str:
         """Evaluate path to base schema.
@@ -55,7 +55,7 @@ class DataModelParser:
 
     def get_model_type(self) -> str:
         """
-        Parses the path to the data model to extract the extension and determine the 
+        Parses the path to the data model to extract the extension and determine the
           data model type.
 
         Args:
@@ -93,7 +93,7 @@ class DataModelParser:
                                     CSV Header: Value}}}
         Raises:
             Value Error if an incorrect model type is passed.
-        Note: in future will add base model parsing in this step too and extend new model 
+        Note: in future will add base model parsing in this step too and extend new model
           off base model.
         """
         # base_model = self.parse_base_model()
@@ -118,6 +118,7 @@ class DataModelParser:
 
 class DataModelCSVParser:
     """DataModelCSVParser"""
+
     def __init__(self):
         # Instantiate DataModelRelationships
         self.dmr = DataModelRelationships()
@@ -159,7 +160,6 @@ class DataModelCSVParser:
             )
         if set(self.required_headers).issubset(set(list(model_df.columns))):
             logger.debug("Schema definition csv ready for processing!")
-
 
     def parse_entry(self, attr: dict, relationship: str) -> Any:
         """Parse attr entry baed on type
@@ -253,6 +253,7 @@ class DataModelCSVParser:
 
 class DataModelJSONLDParser:
     """DataModelJSONLDParser"""
+
     def __init__(
         self,
     ):
@@ -265,7 +266,7 @@ class DataModelJSONLDParser:
         self,
         rel_entry: Any,
         id_jsonld_key: str,
-        dn_label_dict: dict[str:str], #pylint:disable=unused-argument
+        dn_label_dict: dict[str, str],  # pylint:disable=unused-argument
         model_jsonld: dict,
     ) -> Any:
         """Parse an input entry based on certain attributes
@@ -313,7 +314,7 @@ class DataModelJSONLDParser:
 
     def label_to_dn_dict(self, model_jsonld: list[dict]):
         """
-        Generate a dictionary of labels to display name, so can easily look up 
+        Generate a dictionary of labels to display name, so can easily look up
           display names using the label.
         Args:
             model_jsonld: list of dictionaries, each dictionary is an entry in the jsonld data model
@@ -377,9 +378,9 @@ class DataModelJSONLDParser:
               after the fact?
             - Right now, here we are stripping contexts, will need to track them in the future.
         """
-        #pylint:disable=too-many-locals
-        #pylint:disable=too-many-branches
-        #pylint:disable=too-many-nested-blocks
+        # pylint:disable=too-many-locals
+        # pylint:disable=too-many-branches
+        # pylint:disable=too-many-nested-blocks
 
         # Retrieve relevant JSONLD keys.
         jsonld_keys_to_extract = ["label", "subClassOf", "id", "displayName"]
@@ -521,8 +522,8 @@ class DataModelJSONLDParser:
         # Log warning that JSONLD parsing is in beta mode.
         logger.warning(
             (
-                 "JSONLD parsing is in Beta Mode. "
-                 "Please inspect outputs carefully and report any errors."
+                "JSONLD parsing is in Beta Mode. "
+                "Please inspect outputs carefully and report any errors."
             )
         )
         # Load the json_ld model to df

@@ -91,9 +91,9 @@ class SchemaValidator:
         """
         domainincludes_value = dict2list(domainincludes_value)
         for record in domainincludes_value:
-            assert record["@id"] in self.all_classes, (
-                f"value of domainincludes not recorded in schema: {domainincludes_value}"
-            )
+            assert (
+                record["@id"] in self.all_classes
+            ), f"value of domainincludes not recorded in schema: {domainincludes_value}"
 
     def validate_range_includes_field(self, rangeincludes_value):
         """Check if the value of "rangeincludes" is included in the schema

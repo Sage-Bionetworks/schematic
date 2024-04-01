@@ -4,7 +4,7 @@ import time
 import logging
 
 import multiprocessing
-import networkx as nx
+import networkx as nx  # type: ignore
 
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
@@ -88,9 +88,9 @@ class DataModelValidator:
     def run_cycles(self):
         """run_cycles"""
         cycles = nx.simple_cycles(self.graph)
-        if cycles: # pylint:disable=using-constant-test
+        if cycles:  # pylint:disable=using-constant-test
             for cycle in cycles:
-                logger.warning( # pylint:disable=logging-fstring-interpolation
+                logger.warning(  # pylint:disable=logging-fstring-interpolation
                     (
                         f"Schematic requires models be a directed acyclic graph (DAG). Your graph "
                         f"is not a DAG, we found a loop between: {cycle[0]} and {cycle[1]}, "
@@ -102,15 +102,16 @@ class DataModelValidator:
         """Check that generated graph is a directed acyclic graph
 
         Returns:
-            list[str]: 
-              List of error messages if graph is not a DAG. List will include a message 
+            list[str]:
+              List of error messages if graph is not a DAG. List will include a message
                 for each cycle found, if not there is a more generic message for the
                 graph as a whole.
         """
         error = []
         if not nx.is_directed_acyclic_graph(self.graph):
             cycles = multiprocessing.Process(
-                target=self.run_cycles, name="Get Cycles",
+                target=self.run_cycles,
+                name="Get Cycles",
             )
             cycles.start()
 
@@ -135,7 +136,7 @@ class DataModelValidator:
 
     def check_blacklisted_characters(self) -> list[str]:
         """
-        We strip these characters in store, so not sure if it matter if we have them now, 
+        We strip these characters in store, so not sure if it matter if we have them now,
          maybe add warning
 
         Returns:
@@ -205,7 +206,7 @@ class DataModelValidator:
 
     def check_namespace_similarity(self):
         """
-        Using AI, check if submitted attributes or valid values are similar to other ones, 
+        Using AI, check if submitted attributes or valid values are similar to other ones,
           warn users.
         Implement in future
         """

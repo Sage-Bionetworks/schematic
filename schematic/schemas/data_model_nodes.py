@@ -3,7 +3,7 @@
 from typing import Optional, Callable
 
 from inspect import isfunction
-import networkx as nx
+import networkx as nx  # type: ignore
 from rdflib import Namespace
 
 from schematic.schemas.data_model_relationships import DataModelRelationships
@@ -16,8 +16,10 @@ from schematic.utils.schema_utils import (
     DisplayLabelType,
 )
 
+
 class DataModelNodes:
     """Data model Nodes"""
+
     def __init__(self, attribute_relationships_dict):
         self.namespaces = {
             "rdf": Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
@@ -93,7 +95,10 @@ class DataModelNodes:
               given relationship
         TODO: Move to data_model_relationships.
         """
-        for key, value in self.data_model_relationships.relationships_dictionary.items():
+        for (
+            key,
+            value,
+        ) in self.data_model_relationships.relationships_dictionary.items():
             if key == relationship:
                 if "node_attr_dict" in value:
                     rel_key = value["node_label"]
@@ -164,27 +169,28 @@ class DataModelNodes:
         """
         # pylint: disable=too-many-arguments
         # pylint: disable=too-many-return-statements
+        # pylint: disable=comparison-with-callable
         if attr_relationships is None:
             attr_relationships = {}
 
-        if rel_func == get_attribute_display_name_from_label: # pylint: disable=comparison-with-callable
+        if rel_func == get_attribute_display_name_from_label:
             return get_attribute_display_name_from_label(
                 node_display_name, attr_relationships
             )
 
-        if rel_func == parse_validation_rules: # pylint: disable=comparison-with-callable
+        if rel_func == parse_validation_rules:
             rules = attr_relationships[csv_header]
             if isinstance(rules, (dict, list)):
                 return parse_validation_rules(rules)
 
-        if rel_func == get_label_from_display_name: # pylint: disable=comparison-with-callable
+        if rel_func == get_label_from_display_name:
             return get_label_from_display_name(
                 display_name=node_display_name,
                 entry_type=entry_type,
                 data_model_labels=data_model_labels,
             )
 
-        if rel_func == convert_bool_to_str: # pylint: disable=comparison-with-callable
+        if rel_func == convert_bool_to_str:
             if isinstance(attr_relationships[csv_header], str):
                 if attr_relationships[csv_header].lower() == "true":
                     return True
@@ -227,13 +233,13 @@ class DataModelNodes:
                         Relationships: {
                                     CSV Header: Value}}}
             data_model_labels (DisplayLabelType, optional):str, display_label or class_label.
-                display_label, use the display name as a label, if it is valid (contains no 
+                display_label, use the display name as a label, if it is valid (contains no
                   blacklisted characters) otherwise will default to schema_label.
                 class_label, default, use standard class or property label.
 
         Returns:
             dict: dictionary of relationship information about the current node
-                {'displayName': '', 'label': '', 'comment': 'TBD', 'required': None, 
+                {'displayName': '', 'label': '', 'comment': 'TBD', 'required': None,
                  'validationRules': [], 'isPartOf': '', 'uri': ''}
         """
         # Strip whitespace from node display name
@@ -306,11 +312,11 @@ class DataModelNodes:
     def generate_node(self, graph: nx.MultiDiGraph, node_dict: dict) -> nx.MultiDiGraph:
         """Create a node and add it to the networkx multidigraph being built
         Args:
-            graph, nx.MultiDigraph: networkx multidigraph object, that is in the process of 
+            graph, nx.MultiDigraph: networkx multidigraph object, that is in the process of
               being fully built.
             node_dict, dict: dictionary of relationship information about the current node
         Returns:
-            nx.MultiDigraph: networkx multidigraph object, that has had an additional 
+            nx.MultiDigraph: networkx multidigraph object, that has had an additional
               node added to it.
         """
         graph.add_node(node_dict["label"], **node_dict)

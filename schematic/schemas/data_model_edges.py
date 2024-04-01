@@ -3,13 +3,14 @@ from typing import Union, Any
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 
-class DataModelEdges: #pylint: disable=too-few-public-methods
+class DataModelEdges:  # pylint: disable=too-few-public-methods
     """Data Model Edges"""
+
     def __init__(self) -> None:
         self.dmr = DataModelRelationships()
         self.data_model_relationships = self.dmr.relationships_dictionary
 
-    def generate_edge( #pylint: disable=too-many-arguments
+    def generate_edge(  # pylint: disable=too-many-arguments
         self,
         node: str,
         all_node_dict: dict[str, dict[str, Any]],
@@ -20,8 +21,8 @@ class DataModelEdges: #pylint: disable=too-few-public-methods
         """
 
         Generate an edge between a target node and relevant other nodes the data model.
-          In short, does this current node belong to a recorded relationship in the attribute, 
-          relationshps dictionary. 
+          In short, does this current node belong to a recorded relationship in the attribute,
+          relationshps dictionary.
           Go through each attribute and relationship to find where the node may be.
 
         Args:
@@ -29,22 +30,22 @@ class DataModelEdges: #pylint: disable=too-few-public-methods
             all_node_dict (dict): a dictionary containing information about all nodes in the model
                 key: node display name
                 value: node attribute dict, containing attributes to attach to each node.
-            attr_rel_dict (dict): 
+            attr_rel_dict (dict):
                 {Attribute Display Name: {--disallow-untyped-defs
                     Relationships: {
                         CSV Header: Value}
                     }
                 }
-            edge_relationships (dict): dict, rel_key: csv_header if the key represents a value 
+            edge_relationships (dict): dict, rel_key: csv_header if the key represents a value
               relationship.
             edge_list (list): list of tuples describing the edges and the edge attributes,
               organized as (node_1, node_2, {key:edge_relationship_key, weight:int})
-              At this point, the edge list will be in the process of being built. 
+              At this point, the edge list will be in the process of being built.
               Adding edges from list so they will be added properly to the graph without being
               overwritten in the loop, and passing the Graph around more.
 
 
-          """
+        """
 
         # For each attribute in the model.
         for attribute_display_name, relationship in attr_rel_dict.items():
@@ -101,7 +102,7 @@ class DataModelEdges: #pylint: disable=too-few-public-methods
                                 )
                             )
                         # Add add rangeIncludes/valid value relationships in reverse as well,
-                            # making the attribute the parent of the valid value.
+                        # making the attribute the parent of the valid value.
                         if rel_key == "rangeIncludes":
                             edge_list.append(
                                 (
