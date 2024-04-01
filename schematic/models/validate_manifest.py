@@ -182,6 +182,10 @@ class ValidateManifest(object):
 
         t_err = perf_counter()
         regex_re = re.compile("regex.*")
+
+        # Instantiate Validate Attribute
+        validate_attribute = ValidateAttribute(dmge=dmge)
+
         for col in manifest.columns:
             # remove trailing/leading whitespaces from manifest
             manifest.map(lambda x: x.strip() if isinstance(x, str) else x)
@@ -218,31 +222,24 @@ class ValidateManifest(object):
 
                     t_indiv_rule = perf_counter()
                     # Validate for each individual validation rule.
-                    try:
-                        validation_method = getattr(
-                            ValidateAttribute, validation_types[validation_type]["type"]
-                        )
-                    except:
-                        breakpoint()
+                    validation_method = getattr(
+                        validate_attribute, validation_types[validation_type]["type"]
+                    )
 
                     if validation_type == "list":
                         vr_errors, vr_warnings, manifest_col = validation_method(
-                            self,
                             rule,
                             manifest[col],
-                            dmge,
                         )
                         manifest[col] = manifest_col
                     elif validation_type.lower().startswith("match"):
                         vr_errors, vr_warnings = validation_method(
-                            self, rule, manifest[col], project_scope, dmge, access_token
+                            rule, manifest[col], project_scope, access_token
                         )
                     else:
                         vr_errors, vr_warnings = validation_method(
-                            self,
                             rule,
                             manifest[col],
-                            dmge,
                         )
                     # Check for validation rule errors and add them to other errors.
                     if vr_errors:
