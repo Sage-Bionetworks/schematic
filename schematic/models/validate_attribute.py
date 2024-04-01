@@ -262,7 +262,7 @@ class GenerateError:
         manifest_id: Optional[list[str]] = None,
         invalid_entry: Optional[list[str]] = None,
         row_num: Optional[list[str]] = None,
-    ) -> list[str]:
+    ) -> tuple[[list[str], list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -291,11 +291,7 @@ class GenerateError:
         elif "matchExactly" in val_rule:
             if matching_manifests and matching_manifests != []:
                 error_message = f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1."
-                error_message += (
-                    f" Manifests {matching_manifests} match the values in the source attribute."
-                    if matching_manifests
-                    else ""
-                )
+                error_message += f" Manifests {matching_manifests} match the values in the source attribute."
 
             elif "set" in val_rule:
                 error_message = f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
@@ -525,11 +521,11 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
-    def __init__(self, dmge: DataModelGraphExplorer):
+    def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
 
     def get_target_manifests(
-        self, target_component, project_scope: list, access_token: str = None
+        self, target_component: str, project_scope: list[str], access_token: str = None
     ):
         t_manifest_search = perf_counter()
         target_manifest_ids = []
@@ -974,8 +970,9 @@ class ValidateAttribute(object):
         Args:
             val_rule, str: Validation Rule
             source_attribute, str: Source manifest column name
-            set_validation_store, tuple[dict[str, pd.core.series.Series], list[string], dict[str, pd.core.series.Series]]: contains the missing_manifest_log, present_manifest_log,
-                and repeat_manifest_log
+            set_validation_store, tuple[dict[str, pd.core.series.Series], list[string],
+            dict[str, pd.core.series.Series]]:
+                contains the missing_manifest_log, present_manifest_log, and repeat_manifest_log
             dmge: DataModelGraphExplorer Object.
 
         Returns:
@@ -1084,7 +1081,9 @@ class ValidateAttribute(object):
         Args:
             val_rule, str: Validation rule
             source_attribute, str: source manifest column name
-            value_validation_store, tuple(dict[str, pd.core.series.Series], dict[str, pd.core.series.Series], dict[str, pd.core.series.Series]): contains missing_values, duplicated_values, and repeat values
+            value_validation_store, tuple(dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
+                dict[str, pd.core.series.Series]):
+                contains missing_values, duplicated_values, and repeat values
         Returns:
             errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
             not pass relevant cross mannifest validation across the target manifest(s)
@@ -1133,7 +1132,6 @@ class ValidateAttribute(object):
         column_names: dict[str, str],
         manifest_col: pd.core.series.Series,
         target_attribute: str,
-        target_column: pd.core.series.Series,
         target_manifest: pd.core.series.Series,
         target_manifest_id: str,
         missing_manifest_log: dict[str, pd.core.series.Series],
@@ -1203,7 +1201,9 @@ class ValidateAttribute(object):
         concatenated_target_column: pd.core.series.Series,
         target_manifest: pd.core.series.Series,
     ) -> pd.core.series.Series:
-        """
+        """A helper function for creating a concatenating all target attribute columns across all target manifest. This function checks if the
+        target attribute is in the current target manifest. If it is, and is the first manifest with this column, start recording it, if it has
+        already been recorded from another manifest concatenate the new column to the concatenated_target_column series.
         Args:
             column_names, dict: {stripped_col_name:original_column_name}
             target_attribute, str: current target attribute
@@ -1213,14 +1213,15 @@ class ValidateAttribute(object):
         Returns:
             concatenated_target_column, pd.core.series.Series: All target columns concatenated into a single column
         """
-        # Gather information as needed to perform set/value cross manifest validation
-
+        # Check if the target_attribute is in the current target manifest.
         if target_attribute in column_names:
+            # If it is, make sure the column names match the original column names
             target_manifest.rename(
                 columns={column_names[target_attribute]: target_attribute},
                 inplace=True,
             )
-
+            # If matches with other columns have already been found, concatenate current target attribute column to
+            # the series
             if concatenated_target_column.any():
                 concatenated_target_column = pd.concat(
                     objs=[
@@ -1231,7 +1232,9 @@ class ValidateAttribute(object):
                     ignore_index=True,
                 )
             else:
+                # Otherwise, start recording the target_attribute column
                 concatenated_target_column = target_manifest[target_attribute]
+
             concatenated_target_column = concatenated_target_column.astype("object")
 
         return concatenated_target_column
@@ -1314,8 +1317,11 @@ class ValidateAttribute(object):
             target_column, pd.core.series.Series: Empty target_column to fill out in this function
         Returns:
             start_time, float: start time in fractional seconds
-            validation_store, Union[tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
-            tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series], dict[str, pd.core.series.Series]]: validation outputs, exact types depend on scope,
+            validation_store, Union[
+                tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
+                tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
+                    dict[str, pd.core.series.Series]]:
+                    validation outputs, exact types depend on scope,
         """
         # Initialize variables
         present_manifest_log = []
@@ -1366,7 +1372,6 @@ class ValidateAttribute(object):
                     column_names=column_names,
                     manifest_col=manifest_col,
                     target_attribute=target_attribute,
-                    target_column=target_column,
                     target_manifest=target_manifest,
                     target_manifest_id=target_manifest_id,
                     missing_manifest_log=missing_manifest_log,
