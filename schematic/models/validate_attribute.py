@@ -524,8 +524,9 @@ class ValidateAttribute(object):
         - Add year validator
         - Add string length validator
     """
+
     def __init__(self, dmge: DataModelGraphExplorer):
-        self.dmge=dmge
+        self.dmge = dmge
 
     def get_target_manifests(
         self, target_component, project_scope: list, access_token: str = None
@@ -783,7 +784,9 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def url_validation(
-        self, val_rule: str, manifest_col: str,
+        self,
+        val_rule: str,
+        manifest_col: str,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
@@ -937,8 +940,7 @@ class ValidateAttribute(object):
         return invalid_rows, invalid_entry
 
     def _format_invalid_row_values(
-        self,
-        invalid_values: dict[str, pd.core.series.Series]
+        self, invalid_values: dict[str, pd.core.series.Series]
     ) -> tuple[[list[str], list[str]]]:
         """Parse invalid_values dictionary, to extract invalid_rows and invalid_entry to be used later
         to raise warnings or errors.
@@ -960,7 +962,11 @@ class ValidateAttribute(object):
         self,
         val_rule: str,
         source_attribute: str,
-        set_validation_store: tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
+        set_validation_store: tuple[
+            dict[str, pd.core.series.Series],
+            list[str],
+            dict[str, pd.core.series.Series],
+        ],
     ) -> tuple[[list[str], list[str]]]:
         """Based on the cross manifest validation rule, and in set rule scope, pass variables to
         _get_cross_errors_warnings
@@ -992,9 +998,7 @@ class ValidateAttribute(object):
                 invalid_rows,
                 invalid_entries,
                 manifest_ids,
-            ) = self._parse_validation_log(
-                validation_log=missing_manifest_log
-            )
+            ) = self._parse_validation_log(validation_log=missing_manifest_log)
             errors, warnings = self._get_cross_errors_warnings(
                 val_rule=val_rule,
                 row_num=invalid_rows,
@@ -1008,7 +1012,6 @@ class ValidateAttribute(object):
                 val_rule=val_rule,
                 attribute_name=source_attribute,
                 matching_manifests=present_manifest_log,
-
             )
 
         elif "matchNone" in val_rule and repeat_manifest_log:
@@ -1016,9 +1019,7 @@ class ValidateAttribute(object):
                 invalid_rows,
                 invalid_entries,
                 manifest_ids,
-            ) = self._parse_validation_log(
-                validation_log=repeat_manifest_log
-            )
+            ) = self._parse_validation_log(validation_log=repeat_manifest_log)
             errors, warnings = self._get_cross_errors_warnings(
                 val_rule=val_rule,
                 row_num=invalid_rows,
@@ -1073,7 +1074,11 @@ class ValidateAttribute(object):
         self,
         val_rule: str,
         source_attribute: str,
-        value_validation_store: tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series], dict[str, pd.core.series.Series]],
+        value_validation_store: tuple[
+            dict[str, pd.core.series.Series],
+            dict[str, pd.core.series.Series],
+            dict[str, pd.core.series.Series],
+        ],
     ) -> tuple[[list[str], list[str]]]:
         """For value rule scope, find invalid rows and entries, and generate appropriate errors and warnings
         Args:
@@ -1110,9 +1115,7 @@ class ValidateAttribute(object):
             )
 
         elif "matchNone" in val_rule and repeat_values.any():
-            invalid_rows, invalid_entry = self._format_invalid_row_values(
-                repeat_values
-            )
+            invalid_rows, invalid_entry = self._format_invalid_row_values(repeat_values)
 
         # If invalid rows/entries found, raise warning/error
         if invalid_rows and invalid_entry:
@@ -1137,9 +1140,9 @@ class ValidateAttribute(object):
         present_manifest_log: dict[str, pd.core.series.Series],
         repeat_manifest_log: dict[str, pd.core.series.Series],
     ) -> tuple[
-            dict[str, pd.core.series.Series],
-            dict[str, pd.core.series.Series],
-            dict[str, pd.core.series.Series],
+        dict[str, pd.core.series.Series],
+        dict[str, pd.core.series.Series],
+        dict[str, pd.core.series.Series],
     ]:
         """For set rule scope, go through the given target column and look
         Args:
@@ -1266,7 +1269,9 @@ class ValidateAttribute(object):
 
         return missing_values, duplicated_values, repeat_values
 
-    def _get_column_names(self, target_manifest: pd.core.series.Series) -> dict[str, str]:
+    def _get_column_names(
+        self, target_manifest: pd.core.series.Series
+    ) -> dict[str, str]:
         """Convert manifest column names into validation rule input format
         Args:
             target_manifest, pd.core.series.Series: Current target manifest
@@ -1309,7 +1314,7 @@ class ValidateAttribute(object):
             target_column, pd.core.series.Series: Empty target_column to fill out in this function
         Returns:
             start_time, float: start time in fractional seconds
-            validation_store, Union[tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]], 
+            validation_store, Union[tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
             tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series], dict[str, pd.core.series.Series]]: validation outputs, exact types depend on scope,
         """
         # Initialize variables
@@ -1329,9 +1334,7 @@ class ValidateAttribute(object):
             synStore,
             target_manifest_ids,
             target_dataset_ids,
-        ) = self.get_target_manifests(
-            target_component, project_scope, access_token
-        )
+        ) = self.get_target_manifests(target_component, project_scope, access_token)
 
         # Start timer
         start_time = perf_counter()
@@ -1349,9 +1352,7 @@ class ValidateAttribute(object):
             target_manifest = pd.read_csv(entity.path)
 
             # Get manifest column names
-            column_names = self._get_column_names(
-                target_manifest=target_manifest
-            )
+            column_names = self._get_column_names(target_manifest=target_manifest)
 
             # Read each target manifest and run validation of current manifest column (set) against each
             # manifest individually, gather results
