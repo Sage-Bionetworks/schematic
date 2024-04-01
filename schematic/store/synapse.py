@@ -1637,7 +1637,6 @@ class SynapseStorage(BaseStorage):
         hideBlanks: bool,
         manifest_synapse_table_id="",
         annotation_keys: str = "class_label",
-        file_annotations_upload: Optional[bool] = True,
     ):
         """Depending on upload type add Ids to entityId row. Add anotations to connected files.
         Args:
@@ -1650,17 +1649,13 @@ class SynapseStorage(BaseStorage):
             annotation_keys: (str) display_label/class_label(default), Determines labeling syle for annotation keys. class_label will format the display
                 name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
                 display label formatting while ensuring the label is formatted properly for Synapse annotations.
-            file_annotations_upload (bool): Default to True. If false, do not add annotations to files.
         Returns:
             manifest (pd.DataFrame): modified to add entitiyId as appropriate
 
         """
 
-        # Expected behavior is to annotate files if `Filename` is present regardless of `-mrt` setting
-        if (
-            "filename" in [col.lower() for col in manifest.columns]
-            and file_annotations_upload
-        ):
+        # Expected behavior is to annotate files if `Filename` is present and if file_annotations_upload is set to True regardless of `-mrt` setting
+        if "filename" in [col.lower() for col in manifest.columns]:
             # get current list of files and store as dataframe
             dataset_files = self.getFilesInStorageDataset(datasetId)
             files_and_entityIds = self._get_file_entityIds(
@@ -1746,16 +1741,16 @@ class SynapseStorage(BaseStorage):
             table_column_names=table_column_names,
         )
 
-        manifest = self.add_annotations_to_entities_files(
-            dmge,
-            manifest,
-            manifest_record_type,
-            datasetId,
-            hideBlanks,
-            manifest_synapse_table_id,
-            annotation_keys,
-            file_annotations_upload=file_annotations_upload,
-        )
+        if file_annotations_upload:
+            manifest = self.add_annotations_to_entities_files(
+                dmge,
+                manifest,
+                manifest_record_type,
+                datasetId,
+                hideBlanks,
+                manifest_synapse_table_id,
+                annotation_keys,
+            )
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
             manifest,
@@ -1819,15 +1814,15 @@ class SynapseStorage(BaseStorage):
         Return:
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
-        manifest = self.add_annotations_to_entities_files(
-            dmge,
-            manifest,
-            manifest_record_type,
-            datasetId,
-            hideBlanks,
-            annotation_keys=annotation_keys,
-            file_annotations_upload=file_annotations_upload,
-        )
+        if file_annotations_upload:
+            manifest = self.add_annotations_to_entities_files(
+                dmge,
+                manifest,
+                manifest_record_type,
+                datasetId,
+                hideBlanks,
+                annotation_keys=annotation_keys,
+            )
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
@@ -1896,16 +1891,16 @@ class SynapseStorage(BaseStorage):
             table_column_names=table_column_names,
         )
 
-        manifest = self.add_annotations_to_entities_files(
-            dmge,
-            manifest,
-            manifest_record_type,
-            datasetId,
-            hideBlanks,
-            manifest_synapse_table_id,
-            annotation_keys=annotation_keys,
-            file_annotations_upload=file_annotations_upload,
-        )
+        if file_annotations_upload:
+            manifest = self.add_annotations_to_entities_files(
+                dmge,
+                manifest,
+                manifest_record_type,
+                datasetId,
+                hideBlanks,
+                manifest_synapse_table_id,
+                annotation_keys=annotation_keys,
+            )
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
