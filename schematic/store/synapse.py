@@ -220,7 +220,6 @@ class SynapseStorage(BaseStorage):
         Typical usage example:
             syn_store = SynapseStorage()
         """
-        # TODO: turn root_synapse_cache to a parameter in init
         self.syn = self.login(token, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id

@@ -119,6 +119,11 @@ class TestSynapseStorage:
 
         assert expected_dict == actual_dict
 
+    def test_login(self, synapse_store:SynapseStorage):
+        """Test login method"""
+        synapse_store.login()
+
+
     @pytest.mark.parametrize("only_new_files", [True, False])
     def test_get_file_entityIds(self, helpers, synapse_store, only_new_files):
         # TODO: Automatically reset manifest at path specified below after each test
