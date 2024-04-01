@@ -443,6 +443,13 @@ paths:
             default: "class_label"
           required: false
         - in: query
+          name: file_annotations_upload
+          schema:
+            type: boolean
+            default: true
+          description: if false, do not add annotations when submitting file-based manifests. 
+          required: false
+        - in: query
           name: project_scope
           schema:
             type: array

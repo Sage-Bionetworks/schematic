@@ -19,6 +19,7 @@ from flask import request
 
 import pandas as pd
 import json
+from typing import Optional
 
 from schematic.configuration.configuration import CONFIG
 from schematic.visualization.attributes_explorer import AttributesExplorer
@@ -392,6 +393,7 @@ def submit_manifest_route(
     project_scope=None,
     table_column_names=None,
     annotation_keys=None,
+    file_annotations_upload:Optional[bool]=True,
 ):
     # call config_handler()
     config_handler(asset_view=asset_view)
@@ -449,6 +451,7 @@ def submit_manifest_route(
         project_scope=project_scope,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
+        file_annotations_upload=file_annotations_upload
     )
 
     return manifest_id
