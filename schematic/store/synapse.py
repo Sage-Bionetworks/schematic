@@ -1882,6 +1882,7 @@ class SynapseStorage(BaseStorage):
             annotation_keys: (str) display_label/class_label (default), Sets labeling syle for annotation keys. class_label will format the display
                 name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
                 display label formatting while ensuring the label is formatted properly for Synapse annotations.
+            file_annotations_upload (bool): Default to True. If false, do not add annotations to files.
         Return:
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
