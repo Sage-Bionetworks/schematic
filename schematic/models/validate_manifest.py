@@ -73,7 +73,8 @@ class ValidateManifest(object):
         errors, list:
         """
         # Check that attribute rules conform to limits:
-        # IsNa is operates differently than most rules, do not consider it as a rule for evaluating if the number of rule pairs has been exceeded.
+        # IsNa is operates differently than most rules, do not consider it as a rule for evaluating
+        # if the number of rule pairs has been exceeded.
         combined_rules = validation_rules.copy()
         if "IsNa" in validation_rules:
             combined_rules.remove("IsNa")

@@ -1267,7 +1267,8 @@ class ValidateAttribute(object):
         """Helper to remove NAs from a list of invalid entries (if applicable, and allowed), remove the row
         too from row_num. This will make sure errors are not rasied for NA entries unless the value is required.
         Args:
-            invalid_entry, list[str]: default=None, list of entries in the source manifest where invalid values were located.
+            invalid_entry, list[str]: default=None, list of entries in the source manifest where 
+                invalid values were located.
             row_num, list[str[: default=None, list of rows in the source manifest where invalid values were located
             attribute_name, str: source attribute name
         Returns:
@@ -1276,7 +1277,6 @@ class ValidateAttribute(object):
         idx_to_remove = []
         # Check if the current attribute column is required, via the data model
         col_is_required = self.dmge.get_node_required(node_display_name=attribute_name)
-
         if invalid_entry:
             # Check each invalid entry and determine if it has a value and/or is required.
             # If there is no entry and its not required, remove the NA value so an error is not raised.
@@ -1325,13 +1325,9 @@ class ValidateAttribute(object):
             warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
             not pass relevant cross mannifest validation across the target manifest(s)
         """
-
-        idx_to_remove = []
-
         invalid_entry, row_num = self._remove_non_entry_from_invalid_entry_list(
             invalid_entry, row_num, attribute_name
         )
-
         errors, warnings = [], []
         if invalid_entry:
             vr_errors, vr_warnings = GenerateError.generate_cross_warning(
@@ -1483,9 +1479,10 @@ class ValidateAttribute(object):
         concatenated_target_column: pd.core.series.Series,
         target_manifest: pd.core.series.Series,
     ) -> pd.core.series.Series:
-        """A helper function for creating a concatenating all target attribute columns across all target manifest. This function checks if the
-        target attribute is in the current target manifest. If it is, and is the first manifest with this column, start recording it, if it has
-        already been recorded from another manifest concatenate the new column to the concatenated_target_column series.
+        """A helper function for creating a concatenating all target attribute columns across all target manifest.
+            This function checks if the target attribute is in the current target manifest. If it is, and is the
+            first manifest with this column, start recording it, if it has already been recorded from
+            another manifest concatenate the new column to the concatenated_target_column series.
         Args:
             column_names, dict: {stripped_col_name:original_column_name}
             target_attribute, str: current target attribute
@@ -1616,9 +1613,6 @@ class ValidateAttribute(object):
         # Set relevant parameters
         [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
         target_column.name = target_attribute
-        col_is_required = self.dmge.get_node_required(
-            node_display_name=manifest_col.name
-        )
 
         # Get IDs of manifests with target component
         (
