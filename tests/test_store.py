@@ -93,7 +93,7 @@ class TestBaseStorage:
 
 
 class TestSynapseStorage:
-    def test_init(self, synapse_store:SynapseStorage):
+    def test_init(self, synapse_store:SynapseStorage) -> None:
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
         assert synapse_store.root_synapse_cache == ".synapseCache"
