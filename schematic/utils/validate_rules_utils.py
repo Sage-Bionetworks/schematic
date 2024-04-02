@@ -101,6 +101,13 @@ def validation_rule_info() -> dict[str, Rule]:
             "default_message_level": "warning",
             "fixed_arg": None,
         },
+        "matchNone": {
+            "arguments": (3, 2),
+            "type": "cross_validation",
+            "complementary_rules": None,
+            "default_message_level": "warning",
+            "fixed_arg": None,
+        },
         "recommended": {
             "arguments": (1, 0),
             "type": "content_validation",

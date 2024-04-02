@@ -1,9 +1,11 @@
+import builtins
 import logging
 import re
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Optional, Union, Tuple
+from typing import Any, Optional, Text, Literal, Union
+from urllib import error
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
@@ -27,6 +29,8 @@ from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 logger = logging.getLogger(__name__)
 
+ScopeTypes = Literal["set", "value"]
+
 
 class GenerateError:
     def generate_schema_error(
@@ -35,7 +39,7 @@ class GenerateError:
         error_message: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose: Process error messages generated from schema
         Input:
@@ -65,7 +69,7 @@ class GenerateError:
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             If an error is found in the string formatting, detect and record
@@ -109,7 +113,7 @@ class GenerateError:
         attribute_name: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -149,7 +153,7 @@ class GenerateError:
         attribute_name: str,
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -190,7 +194,7 @@ class GenerateError:
         invalid_entry: str,
         dmge: DataModelGraphExplorer,
         val_rule: str,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -254,11 +258,11 @@ class GenerateError:
         val_rule: str,
         attribute_name: str,
         dmge: DataModelGraphExplorer,
-        matching_manifests=[],
-        missing_manifest_ID=None,
-        invalid_entry=None,
-        row_num=None,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+        matching_manifests: list[str] = None,
+        manifest_id: Optional[list[str]] = None,
+        invalid_entry: Optional[list[str]] = None,
+        row_num: Optional[list[str]] = None,
+    ) -> tuple[[list[str], list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -268,35 +272,42 @@ class GenerateError:
             attribute_name: str, attribute being validated
             dmge: DataModelGraphExplorer object
             matching_manifests: list of manifests with all values in the target attribute present
-            manifest_ID: str, synID of the target manifest missing the source value
-            invalid_entry: str, value present in source manifest that is missing in the target
-            row_num: row in source manifest with value missing in target manifests
+            manifest_id: list, synID of the target manifest missing the source value
+            invalid_entry: list, value present in source manifest that is missing in the target
+            row_num: list, row in source manifest with value missing in target manifests
         Returns:
         Errors: list[str] Error details for further storage.
         warnings: list[str] Warning details for further storage.
         """
 
-        if val_rule.__contains__("matchAtLeast"):
+        if "matchAtLeast" in val_rule:
             error_message = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are missing."
             error_message += (
-                f" Manifest(s) {missing_manifest_ID} are missing the value(s)."
-                if missing_manifest_ID
+                f" Manifest(s) {manifest_id} are missing the value(s)."
+                if manifest_id
                 else ""
             )
 
-        elif val_rule.__contains__("matchExactly"):
-            if matching_manifests != []:
+        elif "matchExactly" in val_rule:
+            if matching_manifests and matching_manifests != []:
                 error_message = f"All values from attribute {attribute_name} in the source manifest are present in {len(matching_manifests)} manifests instead of only 1."
-                error_message += (
-                    f" Manifests {matching_manifests} match the values in the source attribute."
-                    if matching_manifests
-                    else ""
-                )
+                error_message += f" Manifests {matching_manifests} match the values in the source attribute."
 
-            elif val_rule.__contains__("set"):
+            elif "set" in val_rule:
                 error_message = f"No matches for the values from attribute {attribute_name} in the source manifest are present in any other manifests instead of being present in exactly 1. "
-            elif val_rule.__contains__("value"):
+            elif "value" in val_rule:
                 error_message = f"Value(s) {invalid_entry} from row(s) {row_num} of the attribute {attribute_name} in the source manifest are not present in only one other manifest. "
+
+        elif "matchNone" in val_rule:
+            error_message = (
+                f"Value(s) {invalid_entry} from row(s) {row_num} for the attribute {attribute_name} "
+                f"in the source manifest are not unique."
+            )
+            error_message += (
+                f" Manifest(s) {manifest_id} contain duplicate values."
+                if manifest_id
+                else ""
+            )
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
@@ -315,7 +326,7 @@ class GenerateError:
         dmge: DataModelGraphExplorer,
         row_num=None,
         invalid_entry=None,
-    ) -> Tuple[list[str], list[str]]:
+    ) -> tuple[list[str], list[str]]:
         """
         Purpose:
             Generate an logging error or warning as well as a stored error/warning message when validating the content of a manifest attribute.
@@ -453,7 +464,7 @@ class GenerateError:
         error_col: str,
         error_message: str,
         error_val: Union[str, list[str]],
-    ) -> Tuple[list[str], list[str]]:
+    ) -> tuple[list[str], list[str]]:
         """
         Purpose:
             Log and store error messages in a list for further storage.
@@ -510,12 +521,15 @@ class ValidateAttribute(object):
         - Add string length validator
     """
 
+    def __init__(self, dmge: DataModelGraphExplorer) -> None:
+        self.dmge = dmge
+
     def get_target_manifests(
-        target_component, project_scope: list, access_token: str = None
+        self, target_component: str, project_scope: list[str], access_token: str = None
     ):
         t_manifest_search = perf_counter()
-        target_manifest_IDs = []
-        target_dataset_IDs = []
+        target_manifest_ids = []
+        target_dataset_ids = []
 
         # login
         try:
@@ -529,6 +543,7 @@ class ValidateAttribute(object):
 
         # Get list of all projects user has access to
         projects = synStore.getStorageProjects(project_scope=project_scope)
+
         for project in projects:
             # get all manifests associated with datasets in the projects
             target_datasets = synStore.getProjectManifests(projectId=project[0])
@@ -539,20 +554,18 @@ class ValidateAttribute(object):
                     target_component == target_dataset[-1][0].replace(" ", "").lower()
                     and target_dataset[1][0] != ""
                 ):
-                    target_manifest_IDs.append(target_dataset[1][0])
-                    target_dataset_IDs.append(target_dataset[0][0])
-
+                    target_manifest_ids.append(target_dataset[1][0])
+                    target_dataset_ids.append(target_dataset[0][0])
         logger.debug(
             f"Cross manifest gathering elapsed time {perf_counter()-t_manifest_search}"
         )
-        return synStore, target_manifest_IDs, target_dataset_IDs
+        return synStore, target_manifest_ids, target_dataset_ids
 
     def list_validation(
         self,
         val_rule: str,
         manifest_col: pd.core.series.Series,
-        dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]], pd.core.series.Series]:
+    ) -> tuple[list[list[str]], list[list[str]], pd.core.series.Series]:
         """
         Purpose:
             Determine if values for a particular attribute are comma separated.
@@ -591,7 +604,7 @@ class ValidateAttribute(object):
                         attribute_name=manifest_col.name,
                         list_error=list_error,
                         invalid_entry=manifest_col[i],
-                        dmge=dmge,
+                        dmge=self.dmge,
                         val_rule=val_rule,
                     )
                     if vr_errors:
@@ -608,8 +621,7 @@ class ValidateAttribute(object):
         self,
         val_rule: str,
         manifest_col: pd.core.series.Series,
-        dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Check if values for a given manifest attribue conform to the reguar expression,
@@ -650,7 +662,7 @@ class ValidateAttribute(object):
         errors = []
         warnings = []
 
-        validation_rules = dmge.get_node_validation_rules(
+        validation_rules = self.dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
         )
         if validation_rules and "::" in validation_rules[0]:
@@ -674,7 +686,7 @@ class ValidateAttribute(object):
                             module_to_call=reg_exp_rules[1],
                             attribute_name=manifest_col.name,
                             invalid_entry=manifest_col[i],
-                            dmge=dmge,
+                            dmge=self.dmge,
                         )
                         if vr_errors:
                             errors.append(vr_errors)
@@ -695,7 +707,7 @@ class ValidateAttribute(object):
                         module_to_call=reg_exp_rules[1],
                         attribute_name=manifest_col.name,
                         invalid_entry=manifest_col[i],
-                        dmge=dmge,
+                        dmge=self.dmge,
                     )
                     if vr_errors:
                         errors.append(vr_errors)
@@ -708,8 +720,7 @@ class ValidateAttribute(object):
         self,
         val_rule: str,
         manifest_col: pd.core.series.Series,
-        dmge: DataModelGraphExplorer,
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Check if values for a given manifest attribue are the same type
@@ -719,7 +730,6 @@ class ValidateAttribute(object):
                 'float', 'int', 'num', 'str'
             - manifest_col: pd.core.series.Series, column for a given
                 attribute in the manifest
-            - dmge: DataModelGraphExplorer Object
         Returns:
             -This function will return errors when the user input value
             does not match schema specifications.
@@ -747,7 +757,7 @@ class ValidateAttribute(object):
                         row_num=str(i + 2),
                         attribute_name=manifest_col.name,
                         invalid_entry=str(manifest_col[i]),
-                        dmge=dmge,
+                        dmge=self.dmge,
                     )
                     if vr_errors:
                         errors.append(vr_errors)
@@ -761,7 +771,7 @@ class ValidateAttribute(object):
                         row_num=str(i + 2),
                         attribute_name=manifest_col.name,
                         invalid_entry=str(manifest_col[i]),
-                        dmge=dmge,
+                        dmge=self.dmge,
                     )
                     if vr_errors:
                         errors.append(vr_errors)
@@ -770,8 +780,10 @@ class ValidateAttribute(object):
         return errors, warnings
 
     def url_validation(
-        self, val_rule: str, manifest_col: str, dmge: DataModelGraphExplorer
-    ) -> Tuple[list[list[str]], list[list[str]]]:
+        self,
+        val_rule: str,
+        manifest_col: str,
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Validate URL's submitted for a particular attribute in a manifest.
@@ -781,7 +793,6 @@ class ValidateAttribute(object):
             - val_rule: str, Validation rule
             - manifest_col: pd.core.series.Series, column for a given
                 attribute in the manifest
-            - dmge: DataModelGraphExplorer Object
         Output:
             This function will return errors when the user input value
             does not match schema specifications.
@@ -811,7 +822,7 @@ class ValidateAttribute(object):
                     attribute_name=manifest_col.name,
                     argument=url_args,
                     invalid_entry=manifest_col[i],
-                    dmge=dmge,
+                    dmge=self.dmge,
                     val_rule=val_rule,
                 )
                 if vr_errors:
@@ -839,7 +850,7 @@ class ValidateAttribute(object):
                         attribute_name=manifest_col.name,
                         argument=url_args,
                         invalid_entry=manifest_col[i],
-                        dmge=dmge,
+                        dmge=self.dmge,
                         val_rule=val_rule,
                     )
                     if vr_errors:
@@ -859,7 +870,7 @@ class ValidateAttribute(object):
                                 attribute_name=manifest_col.name,
                                 argument=arg,
                                 invalid_entry=manifest_col[i],
-                                dmge=dmge,
+                                dmge=self.dmge,
                                 val_rule=val_rule,
                             )
                             if vr_errors:
@@ -868,186 +879,593 @@ class ValidateAttribute(object):
                                 warnings.append(vr_warnings)
         return errors, warnings
 
-    def cross_validation(
+    def _parse_validation_log(
+        self, validation_log: dict[str, pd.core.series.Series]
+    ) -> tuple[[list[str], list[str], list[str]]]:
+        """Parse validation log, so values can be used to raise warnings/errors
+        Args:
+            validation_log, dict[str, pd.core.series.Series]:
+        Returns:
+            invalid_rows, list: invalid rows recorded in the validation log
+            invalid_entry, list: invalid values recorded in the validation log
+            manifest_ids, list:
+        """
+        # Initialize parameters
+        validation_rows, validation_values = [], []
+
+        manifest_entries = list(validation_log.values())
+        manifest_ids = list(validation_log.keys())
+        for entry in manifest_entries:
+            # Increment pandas row values by 2 so they will match manifest sheet row values.
+            validation_rows.append(entry.index[0] + 2)
+            validation_values.append(entry.values[0])
+
+        # Parse invalid_rows and invalid_values so they can be used to raise warnings/errors
+        invalid_rows = iterable_to_str_list(set(validation_rows))
+        invalid_entries = iterable_to_str_list(set(validation_values))
+
+        return invalid_rows, invalid_entries, manifest_ids
+
+    def _merge_format_invalid_rows_values(
+        self, series_1: pd.core.series.Series, series_2: pd.core.series.Series
+    ) -> tuple[[list[str], list[str]]]:
+        """Merge two series to identify gather all invalid values, and parse out invalid rows and entries
+        Args:
+            series_1, pd.core.series.Series: first set of invalid values to extract
+            series_2, pd.core.series.Series: second set of invalid values to extract
+        Returns:
+            invalid_rows, list: invalid rows taken from both series
+            invalid_entry, list: invalid values taken from both series
+        """
+        # Merge series to get invalid values and rows
+        invalid_values = pd.merge(series_1, series_2, how="outer")
+        # Increment pandas row values by 2 so they will match manifest sheet row values.
+        invalid_rows = (
+            pd.merge(
+                series_1,
+                series_2,
+                how="outer",
+                left_index=True,
+                right_index=True,
+            ).index.to_numpy()
+            + 2
+        )
+        # Parse invalid_rows and invalid_values so they can be used to raise warnings/errors
+        invalid_rows = np_array_to_str_list(invalid_rows)
+        invalid_entry = iterable_to_str_list(invalid_values.squeeze())
+        return invalid_rows, invalid_entry
+
+    def _format_invalid_row_values(
+        self, invalid_values: dict[str, pd.core.series.Series]
+    ) -> tuple[[list[str], list[str]]]:
+        """Parse invalid_values dictionary, to extract invalid_rows and invalid_entry to be used later
+        to raise warnings or errors.
+        Args:
+            invalid_values, dict[str, pd.core.series.Series]:
+        Returns:
+            invalid_rows, list: invalid rows recorded in invalid_values
+            invalid_entry, list: invalid values recorded in invalid_values
+        """
+        # Increment pandas row values by 2 so they will match manifest sheet row values.
+        invalid_rows = invalid_values.index.to_numpy() + 2
+
+        # Parse invalid_rows and invalid_values so they can be used to raise warnings/errors
+        invalid_rows = np_array_to_str_list(invalid_rows)
+        invalid_entry = iterable_to_str_list(invalid_values)
+        return invalid_rows, invalid_entry
+
+    def _gather_set_warnings_errors(
         self,
         val_rule: str,
+        source_attribute: str,
+        set_validation_store: tuple[
+            dict[str, pd.core.series.Series],
+            list[str],
+            dict[str, pd.core.series.Series],
+        ],
+    ) -> tuple[[list[str], list[str]]]:
+        """Based on the cross manifest validation rule, and in set rule scope, pass variables to
+        _get_cross_errors_warnings
+            to log appropriate error or warning.
+        Args:
+            val_rule, str: Validation Rule
+            source_attribute, str: Source manifest column name
+            set_validation_store, tuple[dict[str, pd.core.series.Series], list[string],
+            dict[str, pd.core.series.Series]]:
+                contains the missing_manifest_log, present_manifest_log, and repeat_manifest_log
+            dmge: DataModelGraphExplorer Object.
+
+        Returns:
+            errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
+            not pass relevant cross mannifest validation across the target manifest(s)
+            warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
+            not pass relevant cross mannifest validation across the target manifest(s)
+        """
+        errors, warnings = [], []
+
+        (
+            missing_manifest_log,
+            present_manifest_log,
+            repeat_manifest_log,
+        ) = set_validation_store
+
+        # Process error handling by rule
+        if "matchAtLeastOne" in val_rule and len(present_manifest_log) < 1:
+            (
+                invalid_rows,
+                invalid_entries,
+                manifest_ids,
+            ) = self._parse_validation_log(validation_log=missing_manifest_log)
+            errors, warnings = self._get_cross_errors_warnings(
+                val_rule=val_rule,
+                row_num=invalid_rows,
+                attribute_name=source_attribute,
+                invalid_entry=invalid_entries,
+                manifest_id=manifest_ids,
+            )
+
+        elif "matchExactlyOne" in val_rule and len(present_manifest_log) != 1:
+            errors, warnings = self._get_cross_errors_warnings(
+                val_rule=val_rule,
+                attribute_name=source_attribute,
+                matching_manifests=present_manifest_log,
+            )
+
+        elif "matchNone" in val_rule and repeat_manifest_log:
+            (
+                invalid_rows,
+                invalid_entries,
+                manifest_ids,
+            ) = self._parse_validation_log(validation_log=repeat_manifest_log)
+            errors, warnings = self._get_cross_errors_warnings(
+                val_rule=val_rule,
+                row_num=invalid_rows,
+                attribute_name=source_attribute,
+                invalid_entry=invalid_entries,
+                manifest_id=manifest_ids,
+            )
+
+        return errors, warnings
+
+    def _get_cross_errors_warnings(
+        self,
+        val_rule: str,
+        attribute_name: str,
+        row_num: Optional[list[str]] = None,
+        matching_manifests: Optional[list[str]] = None,
+        manifest_id: Optional[list[str]] = None,
+        invalid_entry: Optional[list[str]] = None,
+    ) -> tuple[[list[str], list[str]]]:
+        """Helper to call GenerateError.generate_cross_warning in a consistent way, gather warnings and errors.
+        Args:
+            val_rule, str: Validation Rule
+            attribute_name, str: source attribute name
+            row_num, list: default=None, list of rows in the source manifest where invalid values were located
+            matching_manifests, list: default=[], ist of manifests with all values in the target attribute present
+            manifest_id, list: default=None, list of manifests where invalid values were located.
+            invalid_entry, list: default=None, list of entries in the source manifest where invalid values were located.
+        Returns:
+            errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
+            not pass relevant cross mannifest validation across the target manifest(s)
+            warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
+            not pass relevant cross mannifest validation across the target manifest(s)
+        """
+
+        errors, warnings = [], []
+        vr_errors, vr_warnings = GenerateError.generate_cross_warning(
+            val_rule=val_rule,
+            row_num=row_num,
+            attribute_name=attribute_name,
+            matching_manifests=matching_manifests,
+            invalid_entry=invalid_entry,
+            manifest_id=manifest_id,
+            dmge=self.dmge,
+        )
+        if vr_errors:
+            errors.append(vr_errors)
+        if vr_warnings:
+            warnings.append(vr_warnings)
+        return errors, warnings
+
+    def _gather_value_warnings_errors(
+        self,
+        val_rule: str,
+        source_attribute: str,
+        value_validation_store: tuple[
+            dict[str, pd.core.series.Series],
+            dict[str, pd.core.series.Series],
+            dict[str, pd.core.series.Series],
+        ],
+    ) -> tuple[[list[str], list[str]]]:
+        """For value rule scope, find invalid rows and entries, and generate appropriate errors and warnings
+        Args:
+            val_rule, str: Validation rule
+            source_attribute, str: source manifest column name
+            value_validation_store, tuple(dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
+                dict[str, pd.core.series.Series]):
+                contains missing_values, duplicated_values, and repeat values
+        Returns:
+            errors, list[str]: list of errors to raise, as appropriate, if values in current manifest do
+            not pass relevant cross mannifest validation across the target manifest(s)
+            warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
+            not pass relevant cross mannifest validation across the target manifest(s)
+        """
+        # Initialize with empty lists
+        errors, warnings = [], []
+        invalid_rows, invalid_entry = [], []
+
+        # Unpack the value_validation_store
+        (missing_values, duplicated_values, repeat_values) = value_validation_store
+
+        # Determine invalid rows and entries based on the rule type
+        if "matchAtLeastOne" in val_rule and not missing_values.empty:
+            invalid_rows, invalid_entry = self._format_invalid_row_values(
+                missing_values
+            )
+
+        elif "matchExactlyOne" in val_rule and (
+            duplicated_values.any() or missing_values.any()
+        ):
+            (
+                invalid_rows,
+                invalid_entry,
+            ) = self._merge_format_invalid_rows_values(
+                duplicated_values, missing_values
+            )
+
+        elif "matchNone" in val_rule and repeat_values.any():
+            invalid_rows, invalid_entry = self._format_invalid_row_values(repeat_values)
+
+        # If invalid rows/entries found, raise warning/error
+        if invalid_rows and invalid_entry:
+            errors, warnings = self._get_cross_errors_warnings(
+                val_rule=val_rule,
+                row_num=invalid_rows,
+                attribute_name=source_attribute,
+                invalid_entry=invalid_entry,
+            )
+        return errors, warnings
+
+    def _run_validation_across_targets_set(
+        self,
+        val_rule: str,
+        column_names: dict[str, str],
         manifest_col: pd.core.series.Series,
-        project_scope: list,
-        dmge: DataModelGraphExplorer,
-        access_token: str,
-    ) -> list[list[str]]:
+        target_attribute: str,
+        target_manifest: pd.core.series.Series,
+        target_manifest_id: str,
+        missing_manifest_log: dict[str, pd.core.series.Series],
+        present_manifest_log: dict[str, pd.core.series.Series],
+        repeat_manifest_log: dict[str, pd.core.series.Series],
+    ) -> tuple[
+        dict[str, pd.core.series.Series],
+        dict[str, pd.core.series.Series],
+        dict[str, pd.core.series.Series],
+    ]:
+        """For set rule scope, go through the given target column and look
+        Args:
+            val_rule, str: Validation rule
+            column_names, dict[str,str]: {stripped_col_name:original_column_name}
+            target_column, pd.core.series.Series: Empty target_column to fill out in this function
+            manifest_col, pd.core.series.Series: Source manifest column
+            target_attribute, str: current target attribute
+            target_column, pd.core.series.Series: Current target column
+            target_manifest, pd.core.series.Series: Current target manifest
+            target_manifest_id, str: Current target manifest Synapse ID
+            missing_manifest_log, dict[str, pd.core.series.Series]:
+                Log of manifests with missing values, {synapse_id: index,missing value}, updated.
+            present_manifest_log, dict[str, pd.core.series.Series]
+                Log of present manifests, {synapse_id: index,present value}, updated.
+            repeat_manifest_log, dict[str, pd.core.series.Series]
+                Log of manifests with repeat values, {synapse_id: index,repeat value}, updated.
+
+        Returns:
+            missing_manifest_log, dict[str, pd.core.series.Series]:
+                Log of manifests with missing values, {synapse_id: index,missing value}, updated.
+            present_manifest_log, dict[str, pd.core.series.Series]
+                Log of present manifests, {synapse_id: index,present value}, updated.
+            repeat_manifest_log, dict[str, pd.core.series.Series]
+                Log of manifests with repeat values, {synapse_id: index,repeat value}, updated.
         """
-        Purpose:
-            Do cross validation between the current manifest and all other manifests a user has access to on Synapse.
-            Check if values in this manifest are present fully in others.
-        Input:
-            - val_rule: str, Validation rule
-            - manifest_col: pd.core.series.Series, column for a given
-                attribute in the manifest
-            - dmge: DataModelGraphExplorer Object
-        Output:
-            This function will return errors when values in the current manifest's attribute
-            are not fully present in the correct amount of other manifests.
+        # If the manifest has the target attribute for the component do the cross validation
+        if target_attribute in column_names:
+            target_column = target_manifest[column_names[target_attribute]]
+
+            # Do the validation on both columns
+            if "matchNone" in val_rule:
+                # Look for repeats between the source manifest and target_column, if there are
+                # repeats log the repeat value and manifest
+                repeat_values = manifest_col[manifest_col.isin(target_column)]
+
+                if repeat_values.any():
+                    repeat_manifest_log[target_manifest_id] = repeat_values
+            else:
+                # Determine elements in manifest column that are missing from the target column
+                missing_values = manifest_col[~manifest_col.isin(target_column)]
+
+                if missing_values.empty:
+                    # If there are no missing values in the target column, log this manifest as
+                    # one where all items are present
+                    present_manifest_log.append(target_manifest_id)
+                else:
+                    # If there are missing values in the target manifest, log the manifest
+                    # and the missing values.
+                    missing_manifest_log[target_manifest_id] = missing_values
+
+        return missing_manifest_log, present_manifest_log, repeat_manifest_log
+
+    def _gather_target_columns_value(
+        self,
+        column_names: dict[str, str],
+        target_attribute: str,
+        concatenated_target_column: pd.core.series.Series,
+        target_manifest: pd.core.series.Series,
+    ) -> pd.core.series.Series:
+        """A helper function for creating a concatenating all target attribute columns across all target manifest. This function checks if the
+        target attribute is in the current target manifest. If it is, and is the first manifest with this column, start recording it, if it has
+        already been recorded from another manifest concatenate the new column to the concatenated_target_column series.
+        Args:
+            column_names, dict: {stripped_col_name:original_column_name}
+            target_attribute, str: current target attribute
+            concatenated_target_column, pd.core.series.Series: target column in the process of being built, possibly
+                passed through this function multiple times based on the number of manifests
+            target_manifest, pd.core.series.Series: current target manifest
+        Returns:
+            concatenated_target_column, pd.core.series.Series: All target columns concatenated into a single column
         """
-        errors = []
-        warnings = []
-        missing_values = {}
-        missing_manifest_log = {}
-        present_manifest_log = []
-        target_column = pd.Series(dtype=object)
-        # parse sources and targets
-        source_attribute = manifest_col.name
-        [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
+        # Check if the target_attribute is in the current target manifest.
+        if target_attribute in column_names:
+            # If it is, make sure the column names match the original column names
+            target_manifest.rename(
+                columns={column_names[target_attribute]: target_attribute},
+                inplace=True,
+            )
+            # If matches with other columns have already been found, concatenate current target attribute column to
+            # the series
+            if concatenated_target_column.any():
+                concatenated_target_column = pd.concat(
+                    objs=[
+                        concatenated_target_column,
+                        target_manifest[target_attribute],
+                    ],
+                    join="outer",
+                    ignore_index=True,
+                )
+            else:
+                # Otherwise, start recording the target_attribute column
+                concatenated_target_column = target_manifest[target_attribute]
+
+            concatenated_target_column = concatenated_target_column.astype("object")
+
+        return concatenated_target_column
+
+    def _run_validation_across_targets_value(
+        self,
+        manifest_col: pd.core.series.Series,
+        concatenated_target_column: pd.core.series.Series,
+    ) -> tuple[[pd.core.series.Series, pd.core.series.Series, pd.core.series.Series]]:
+        """Get missing values, duplicated values and repeat values assesed comapring the source manifest to all
+            the values in all target columns.
+        Args:
+            manifest_col, pd.core.series.Series: Current source manifest column
+            concatenated_target_column, pd.core.series.Series: All target columns concatenated into a single column
+        Returns:
+            missing_values, pd.core.series.Series: values that are present in the source manifest, but not present
+                in the target manifest
+            duplicated_values, pd.core.series.Series: values that duplicated in the concatenated target column, and
+                also present in the source manifest column
+            repeat_values, pd.core.series.Series: values that are repeated between the manifest column and
+                concatenated target column
+        """
+        # Find values that are present in the source manifest, but not present in the target manifest
+        missing_values = manifest_col[~manifest_col.isin(concatenated_target_column)]
+
+        # Find values that duplicated in the concatenated target column, and also present in the source manifest column
+        duplicated_values = manifest_col[
+            manifest_col.isin(
+                concatenated_target_column[concatenated_target_column.duplicated()]
+            )
+        ]
+
+        # Find values that are repeated between the manifest column and concatenated target column
+        repeat_values = manifest_col[manifest_col.isin(concatenated_target_column)]
+
+        return missing_values, duplicated_values, repeat_values
+
+    def _get_column_names(
+        self, target_manifest: pd.core.series.Series
+    ) -> dict[str, str]:
+        """Convert manifest column names into validation rule input format
+        Args:
+            target_manifest, pd.core.series.Series: Current target manifest
+        Returns:
+            column_names, dict[str,str]: {stripped_col_name:original_column_name}
+        """
+        column_names = {}
+        for original_column_name in target_manifest.columns:
+            stripped_col_name = original_column_name.replace(" ", "").lower()
+            column_names[stripped_col_name] = original_column_name
+        return column_names
+
+    def _get_rule_scope(self, val_rule: str) -> ScopeTypes:
+        """Parse scope from validation rule
+        Args:
+            val_rule, str: Validation Rule
+        Returns:
+            scope, ScopeTypes: The scope of the rule, taken from validation rule
+        """
         scope = val_rule.lower().split(" ")[2]
+        return scope
+
+    def _run_validation_across_target_manifests(
+        self,
+        project_scope: Optional[list[str]],
+        rule_scope: ScopeTypes,
+        access_token: str,
+        val_rule: str,
+        manifest_col: pd.core.series.Series,
+        target_column: pd.core.series.Series,
+    ) -> tuple[[float, list]]:
+        """Run cross manifest validation from a source manifest, across all relevant target manifests,
+            based on scope. Output start time and validation outputs..
+        Args:
+            project_scope, Optional[list]: Projects to limit the scope of cross manifest validation to.
+            rule_scope, ScopeTypes: The scope of the rule, taken from validation rule
+            access_token, str: Asset Store access token
+            val_rule, str: Validation rule.
+            manifest_col, pd.core.series.Series: Source manifest column for a given source component
+            target_column, pd.core.series.Series: Empty target_column to fill out in this function
+        Returns:
+            start_time, float: start time in fractional seconds
+            validation_store, Union[
+                tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
+                tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
+                    dict[str, pd.core.series.Series]]:
+                    validation outputs, exact types depend on scope,
+        """
+        # Initialize variables
+        present_manifest_log = []
+        duplicated_values = {}
+        missing_values = {}
+        repeat_values = {}
+        missing_manifest_log = {}
+        repeat_manifest_log = {}
+
+        # Set relevant parameters
+        [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
         target_column.name = target_attribute
 
         # Get IDs of manifests with target component
         (
             synStore,
-            target_manifest_IDs,
-            target_dataset_IDs,
-        ) = ValidateAttribute.get_target_manifests(
-            target_component, project_scope, access_token
-        )
+            target_manifest_ids,
+            target_dataset_ids,
+        ) = self.get_target_manifests(target_component, project_scope, access_token)
 
-        t_cross_manifest = perf_counter()
-        # Read each manifest
-        for target_manifest_ID, target_dataset_ID in zip(
-            target_manifest_IDs, target_dataset_IDs
+        # Start timer
+        start_time = perf_counter()
+
+        # For each target manifest, gather target manifest column and compare to the source manifest column
+        # Save relevant data as appropriate for the given scope
+        for target_manifest_id, target_dataset_id in zip(
+            target_manifest_ids, target_dataset_ids
         ):
+            # Pull manifest from Synapse
             entity = synStore.getDatasetManifest(
-                datasetId=target_dataset_ID, downloadFile=True
+                datasetId=target_dataset_id, downloadFile=True
             )
+            # Load manifest
             target_manifest = pd.read_csv(entity.path)
 
-            # convert manifest column names into validation rule input format -
-            column_names = {}
-            for name in target_manifest.columns:
-                column_names[name.replace(" ", "").lower()] = name
+            # Get manifest column names
+            column_names = self._get_column_names(target_manifest=target_manifest)
 
-            if scope.__contains__("set"):
-                # If the manifest has the target attribute for the component do the cross validation
-                if target_attribute in column_names:
-                    target_column = target_manifest[column_names[target_attribute]]
-
-                    # Do the validation on both columns
-                    missing_values = manifest_col[~manifest_col.isin(target_column)]
-
-                    if missing_values.empty:
-                        present_manifest_log.append(target_manifest_ID)
-                    else:
-                        missing_manifest_log[target_manifest_ID] = missing_values
-
-            elif scope.__contains__("value"):
-                if target_attribute in column_names:
-                    target_manifest.rename(
-                        columns={column_names[target_attribute]: target_attribute},
-                        inplace=True,
-                    )
-
-                    target_column = pd.concat(
-                        objs=[target_column, target_manifest[target_attribute]],
-                        join="outer",
-                        ignore_index=True,
-                    )
-                    target_column = target_column.astype("object")
-                    # print(target_column)
-
-        missing_rows = []
-        missing_values = []
-
-        if scope.__contains__("value"):
-            missing_values = manifest_col[~manifest_col.isin(target_column)]
-            duplicated_values = manifest_col[
-                manifest_col.isin(target_column[target_column.duplicated()])
-            ]
-
-            if val_rule.__contains__("matchAtLeastOne") and not missing_values.empty:
-                missing_rows = missing_values.index.to_numpy() + 2
-                missing_rows = np_array_to_str_list(missing_rows)
-                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
+            # Read each target manifest and run validation of current manifest column (set) against each
+            # manifest individually, gather results
+            if "set" in rule_scope:
+                (
+                    missing_manifest_log,
+                    present_manifest_log,
+                    repeat_manifest_log,
+                ) = self._run_validation_across_targets_set(
                     val_rule=val_rule,
-                    row_num=missing_rows,
-                    attribute_name=source_attribute,
-                    invalid_entry=iterable_to_str_list(missing_values),
-                    dmge=dmge,
+                    column_names=column_names,
+                    manifest_col=manifest_col,
+                    target_attribute=target_attribute,
+                    target_manifest=target_manifest,
+                    target_manifest_id=target_manifest_id,
+                    missing_manifest_log=missing_manifest_log,
+                    present_manifest_log=present_manifest_log,
+                    repeat_manifest_log=repeat_manifest_log,
                 )
-                if vr_errors:
-                    errors.append(vr_errors)
-                if vr_warnings:
-                    warnings.append(vr_warnings)
-            elif val_rule.__contains__("matchExactlyOne") and (
-                duplicated_values.any() or missing_values.any()
-            ):
-                invalid_values = pd.merge(
-                    duplicated_values, missing_values, how="outer"
+            # Concatenate target manifest columns, in a subsequent step will run cross manifest validation from
+            # the current manifest
+            # column values against the concatenated target column
+            if "value" in rule_scope:
+                target_column = self._gather_target_columns_value(
+                    column_names=column_names,
+                    target_attribute=target_attribute,
+                    concatenated_target_column=target_column,
+                    target_manifest=target_manifest,
                 )
-                invalid_rows = (
-                    pd.merge(
-                        duplicated_values,
-                        missing_values,
-                        how="outer",
-                        left_index=True,
-                        right_index=True,
-                    ).index.to_numpy()
-                    + 2
-                )
-                invalid_rows = np_array_to_str_list(invalid_rows)
-                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
-                    val_rule=val_rule,
-                    row_num=invalid_rows,
-                    attribute_name=source_attribute,
-                    invalid_entry=iterable_to_str_list(invalid_values.squeeze()),
-                    dmge=dmge,
-                )
-                if vr_errors:
-                    errors.append(vr_errors)
-                if vr_warnings:
-                    warnings.append(vr_warnings)
 
-        # generate warnings if necessary
-        elif scope.__contains__("set"):
-            if (
-                val_rule.__contains__("matchAtLeastOne")
-                and len(present_manifest_log) < 1
-            ):
-                missing_entries = list(missing_manifest_log.values())
-                missing_manifest_IDs = list(missing_manifest_log.keys())
-                for missing_entry in missing_entries:
-                    missing_rows.append(missing_entry.index[0] + 2)
-                    missing_values.append(missing_entry.values[0])
+        # Store outputs according to the scope for which they are used.
+        if "set" in rule_scope:
+            validation_store = (
+                missing_manifest_log,
+                present_manifest_log,
+                repeat_manifest_log,
+            )
 
-                missing_rows = iterable_to_str_list(set(missing_rows))
-                missing_values = iterable_to_str_list(set(missing_values))
+        elif "value" in rule_scope:
+            # From the concatenated target column, for value scope, run validation
+            (
+                missing_values,
+                duplicated_values,
+                repeat_values,
+            ) = self._run_validation_across_targets_value(
+                manifest_col=manifest_col,
+                concatenated_target_column=target_column,
+            )
+            validation_store = (missing_values, duplicated_values, repeat_values)
 
-                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
-                    val_rule=val_rule,
-                    row_num=missing_rows,
-                    attribute_name=source_attribute,
-                    invalid_entry=missing_values,
-                    missing_manifest_ID=missing_manifest_IDs,
-                    dmge=dmge,
-                )
-                if vr_errors:
-                    errors.append(vr_errors)
-                if vr_warnings:
-                    warnings.append(vr_warnings)
-            elif (
-                val_rule.__contains__("matchExactlyOne")
-                and len(present_manifest_log) != 1
-            ):
-                vr_errors, vr_warnings = GenerateError.generate_cross_warning(
-                    val_rule=val_rule,
-                    attribute_name=source_attribute,
-                    matching_manifests=present_manifest_log,
-                    dmge=dmge,
-                )
-                if vr_errors:
-                    errors.append(vr_errors)
-                if vr_warnings:
-                    warnings.append(vr_warnings)
+        return (start_time, validation_store)
 
-        logger.debug(
-            f"cross manifest validation time {perf_counter()-t_cross_manifest}"
+    def cross_validation(
+        self,
+        val_rule: str,
+        manifest_col: pd.core.series.Series,
+        project_scope: Optional[list[str]],
+        access_token: str,
+    ) -> list[list[str]]:
+        """
+        Purpose:
+            Do cross validation between the current manifest and all other manifests in a given asset view (limited
+                by project scope, if provided).
+        Args:
+            val_rule, str: Validation rule
+            manifest_col, pd.core.series.Series: column for a given
+                attribute in the manifest
+            project_scope, Optional[list] = None: Projects to limit the scope of cross manifest validation to.
+            dmge: DataModelGraphExplorer Object
+            access_token, str: Asset Store access token
+        Returns:
+            errors, warnings, list[list[str]]: raise warnings and errors as appropriate if values in current manifest do
+            no pass relevant cross mannifest validation across the target manifest(s)
+        """
+        # Initialize target_column
+        target_column = pd.Series(dtype=object)
+
+        # Get the rule_scope from the validation rule
+        rule_scope = self._get_rule_scope(val_rule)
+
+        # Run validation from source to target manifest(s), gather outputs
+        (
+            start_time,
+            validation_store,
+        ) = self._run_validation_across_target_manifests(
+            project_scope=project_scope,
+            rule_scope=rule_scope,
+            access_token=access_token,
+            val_rule=val_rule,
+            manifest_col=manifest_col,
+            target_column=target_column,
         )
+
+        # Raise warnings/errors based on validation output and rule_scope.
+        if "set" in rule_scope:
+            errors, warnings = self._gather_set_warnings_errors(
+                val_rule=val_rule,
+                source_attribute=manifest_col.name,
+                set_validation_store=validation_store,
+            )
+        elif "value" in rule_scope:
+            errors, warnings = self._gather_value_warnings_errors(
+                val_rule=val_rule,
+                source_attribute=manifest_col.name,
+                value_validation_store=validation_store,
+            )
+
+        logger.debug(f"cross manifest validation time {perf_counter()-start_time}")
+
         return errors, warnings
