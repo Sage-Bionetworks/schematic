@@ -266,7 +266,7 @@ class GenerateError:
         dmge: DataModelGraphExplorer,
         matching_manifests: list[str] = None,
         manifest_id: Optional[list[str]] = None,
-        invalid_entry: Optional[list[str]] = "No Invalid Entry Recorded",
+        invalid_entry: Union[str, list[str]] = "No Invalid Entry Recorded",
         row_num: Optional[list[str]] = None,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -530,7 +530,7 @@ class GenerateError:
     def get_message_level(
         dmge: DataModelGraphExplorer,
         error_col: str,
-        error_val,
+        error_val:Union[str, list[str]],
         val_rule: str,
     ) -> Optional[str]:
         """
@@ -873,7 +873,7 @@ class ValidateAttribute(object):
                                 module_to_call=reg_exp_rules[1],
                                 attribute_name=manifest_col.name,
                                 invalid_entry=manifest_col[i],
-                                dmge=dmge,
+                                dmge=self.dmge,
                             )
                             if vr_errors:
                                 errors.append(vr_errors)
@@ -1078,7 +1078,7 @@ class ValidateAttribute(object):
                             attribute_name=manifest_col.name,
                             argument=url_args,
                             invalid_entry=manifest_col[i],
-                            dmge=dmge,
+                            dmge=self.dmge,
                             val_rule=val_rule,
                         )
                         if vr_errors:
@@ -1101,7 +1101,7 @@ class ValidateAttribute(object):
                                     attribute_name=manifest_col.name,
                                     argument=arg,
                                     invalid_entry=manifest_col[i],
-                                    dmge=dmge,
+                                    dmge=self.dmge,
                                     val_rule=val_rule,
                                 )
                                 if vr_errors:
@@ -1329,15 +1329,21 @@ class ValidateAttribute(object):
             invalid_entry, row_num, attribute_name
         )
         errors, warnings = [], []
-        if invalid_entry:
+
+        # Want to make sure we only generate errors when appropriate. Dont call, if we have removed all Nans,
+        # Also rules either require an invalid entry OR matching manifests. So let pass if either of those
+        # thresholds are met.
+        if invalid_entry or matching_manifests:
+            if not invalid_entry:
+                invalid_entry="No Invalid Entry Recorded"
             vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                 val_rule=val_rule,
-                row_num=row_num,
                 attribute_name=attribute_name,
-                matching_manifests=matching_manifests,
-                invalid_entry=invalid_entry,
-                manifest_id=manifest_id,
                 dmge=self.dmge,
+                matching_manifests=matching_manifests,
+                manifest_id=manifest_id,
+                invalid_entry=invalid_entry,
+                row_num=row_num,
             )
             if vr_errors:
                 errors.append(vr_errors)
