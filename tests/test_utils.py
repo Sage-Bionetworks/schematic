@@ -7,6 +7,9 @@ import tempfile
 import time
 from datetime import datetime
 from unittest import mock
+from pathlib import Path
+from typing import Union, Tuple, Generator
+from _pytest.fixtures import FixtureRequest
 
 import numpy as np
 import pandas as pd
@@ -166,8 +169,18 @@ test_disk_storage = [
     (1073741825, 1073741824, 1181116006.4), 
 ]
 
+# create temporary files with various size based on request
 @pytest.fixture()
-def create_temp_query_file(tmp_path, request):
+def create_temp_query_file(tmp_path:Path, request:FixtureRequest) -> Generator[Tuple[Path, Path, Path], None, None]:
+    """create temporary files of various size based on request parameter. 
+
+    Args:
+        tmp_path (Path): temporary file path 
+        request (any): a request for a fixture from a test
+
+    Yields:
+        Generator[Tuple[Path, Path, Path]]: return path of mock synapse cache directory, mock table query folder and csv
+    """
     # define location of mock synapse cache
     mock_synapse_cache_dir = tmp_path / ".synapseCache/"
     mock_synapse_cache_dir.mkdir()
@@ -187,10 +200,10 @@ def create_temp_query_file(tmp_path, request):
 
 class TestGeneral:
     @pytest.mark.parametrize("create_temp_query_file", [3, 1000], indirect=True)
-    def test_clear_synapse_cache(self, create_temp_query_file):
+    def test_clear_synapse_cache(self, create_temp_query_file) -> None:
         # define location of mock synapse cache
         mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv = create_temp_query_file
-        # create a mock cache map 
+        # create a mock cache map
         mock_cache_map = mock_table_query_folder / ".cacheMap"
         mock_cache_map.write_text(
             f"{mock_synapse_table_query_csv}: '2022-06-13T19:24:27.000Z'"
@@ -239,8 +252,8 @@ class TestGeneral:
     # this test might fail for windows machine
     @pytest.mark.not_windows
     @pytest.mark.parametrize("create_temp_query_file,local_disk_size,gh_disk_size",test_disk_storage,indirect=["create_temp_query_file"])
-    def test_check_synapse_cache_size(self,create_temp_query_file,local_disk_size,gh_disk_size):
-        mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv = create_temp_query_file
+    def test_check_synapse_cache_size(self,create_temp_query_file,local_disk_size:int, gh_disk_size:Union[int, float]) -> None:
+        mock_synapse_cache_dir, _, _ = create_temp_query_file
         disk_size = check_synapse_cache_size(mock_synapse_cache_dir)
 
         # For some reasons, when running in github action, the size of file changes.
