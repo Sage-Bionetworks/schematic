@@ -69,8 +69,7 @@ def build_service_account_creds() -> GoogleServiceAcountCreds:
 
 def download_creds_file() -> None:
     """Download google credentials file"""
-    store = SynapseStorage()
-    syn = store.login()
+    syn = SynapseStorage.login()
 
     # if file path of service_account does not exist
     # and if an environment variable related to service account is not found

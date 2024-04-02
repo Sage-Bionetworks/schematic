@@ -96,7 +96,11 @@ class TestSynapseStorage:
     def test_init(self, synapse_store:SynapseStorage):
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
-        assert synapse_store.root_synapse_cache == "/root/.synapseCache"
+        assert synapse_store.root_synapse_cache == ".synapseCache"
+
+    def test__purge_synapse_cache(self, synapse_store:SynapseStorage) -> None:
+        """Tests SynapseStorage._purge_synapse_cache"""
+        synapse_store._purge_synapse_cache()
 
     def test_getFileAnnotations(self, synapse_store):
         expected_dict = {
@@ -118,11 +122,6 @@ class TestSynapseStorage:
         del actual_dict["entityId"]
 
         assert expected_dict == actual_dict
-
-    def test_login(self, synapse_store:SynapseStorage):
-        """Test login method"""
-        synapse_store.login()
-
 
     @pytest.mark.parametrize("only_new_files", [True, False])
     def test_get_file_entityIds(self, helpers, synapse_store, only_new_files):
@@ -443,16 +442,6 @@ class TestSynapseStorage:
                     ],
                     "entityId": ["syn123", "syn456"],
                 }
-
-
-class TestSynapseStorage2:
-    """Tests a storage object with a non-default cache"""
-    def test_purge_cache(self) -> None:
-        """Tests successful purging of cache"""
-        synapse_store = SynapseStorage(synapse_cache_path="test_cache")
-        assert synapse_store.root_synapse_cache == "test_cache"
-        synapse_store._purge_synapse_cache()
-
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
