@@ -530,7 +530,7 @@ class GenerateError:
     def get_message_level(
         dmge: DataModelGraphExplorer,
         error_col: str,
-        error_val:Union[str, list[str]],
+        error_val: Union[str, list[str]],
         val_rule: str,
     ) -> Optional[str]:
         """
@@ -1335,7 +1335,7 @@ class ValidateAttribute(object):
         # thresholds are met.
         if invalid_entry or matching_manifests:
             if not invalid_entry:
-                invalid_entry="No Invalid Entry Recorded"
+                invalid_entry = "No Invalid Entry Recorded"
             vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                 val_rule=val_rule,
                 attribute_name=attribute_name,
