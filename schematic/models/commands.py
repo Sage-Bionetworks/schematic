@@ -97,6 +97,12 @@ def model(ctx, config):  # use as `schematic model ...`
     help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.option(
+    "--file_annotations_upload",
+    "-fa",
+    is_flag=True,
+    help=query_dict(model_commands, ("model", "submit", "file_annotations_upload")),
+)
+@click.option(
     "-ps",
     "--project_scope",
     default=None,
@@ -147,6 +153,7 @@ def submit_manifest(
     data_model_labels,
     table_column_names,
     annotation_keys,
+    file_annotations_upload
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -173,6 +180,7 @@ def submit_manifest(
         table_manipulation=table_manipulation,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
+        file_annotations_upload=file_annotations_upload
     )
 
     if manifest_id:
