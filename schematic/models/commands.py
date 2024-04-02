@@ -97,8 +97,9 @@ def model(ctx, config):  # use as `schematic model ...`
     help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.option(
-    "--file_annotations_upload",
-    "-fa",
+    "--file_annotations_upload/--no-file_annotations_upload",
+    "-fa/--no-fa",
+    default=True,
     is_flag=True,
     help=query_dict(model_commands, ("model", "submit", "file_annotations_upload")),
 )
