@@ -150,8 +150,7 @@ TEST_VALIDATION_RULES = {
     "duplicated_component": {
         "validation_rules": ["#Patient unique^^#Patient int"],
         "parsed_rules": "raises_exception",
-        }
-
+    },
 }
 
 TEST_DN_DICT = {
@@ -163,19 +162,22 @@ TEST_DN_DICT = {
 }
 
 test_disk_storage = [
-    (2, 4000, 16000), 
-    (1000, 4000, 16000), 
-    (2000000, 1900000, 2000000), 
-    (1073741825, 1073741824, 1181116006.4), 
+    (2, 4000, 16000),
+    (1000, 4000, 16000),
+    (2000000, 1900000, 2000000),
+    (1073741825, 1073741824, 1181116006.4),
 ]
+
 
 # create temporary files with various size based on request
 @pytest.fixture()
-def create_temp_query_file(tmp_path:Path, request:FixtureRequest) -> Generator[Tuple[Path, Path, Path], None, None]:
-    """create temporary files of various size based on request parameter. 
+def create_temp_query_file(
+    tmp_path: Path, request: FixtureRequest
+) -> Generator[Tuple[Path, Path, Path], None, None]:
+    """create temporary files of various size based on request parameter.
 
     Args:
-        tmp_path (Path): temporary file path 
+        tmp_path (Path): temporary file path
         request (any): a request for a fixture from a test
 
     Yields:
@@ -194,7 +196,7 @@ def create_temp_query_file(tmp_path:Path, request:FixtureRequest) -> Generator[T
         mock_table_query_folder / "mock_synapse_table_query.csv"
     )
     with open(mock_synapse_table_query_csv, "wb") as f:
-        f.write(b'\0' * request.param)
+        f.write(b"\0" * request.param)
     yield mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv
 
 
@@ -202,7 +204,11 @@ class TestGeneral:
     @pytest.mark.parametrize("create_temp_query_file", [3, 1000], indirect=True)
     def test_clear_synapse_cache(self, create_temp_query_file) -> None:
         # define location of mock synapse cache
-        mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv = create_temp_query_file
+        (
+            mock_synapse_cache_dir,
+            mock_table_query_folder,
+            mock_synapse_table_query_csv,
+        ) = create_temp_query_file
         # create a mock cache map
         mock_cache_map = mock_table_query_folder / ".cacheMap"
         mock_cache_map.write_text(
@@ -251,8 +257,17 @@ class TestGeneral:
 
     # this test might fail for windows machine
     @pytest.mark.not_windows
-    @pytest.mark.parametrize("create_temp_query_file,local_disk_size,gh_disk_size",test_disk_storage,indirect=["create_temp_query_file"])
-    def test_check_synapse_cache_size(self,create_temp_query_file,local_disk_size:int, gh_disk_size:Union[int, float]) -> None:
+    @pytest.mark.parametrize(
+        "create_temp_query_file,local_disk_size,gh_disk_size",
+        test_disk_storage,
+        indirect=["create_temp_query_file"],
+    )
+    def test_check_synapse_cache_size(
+        self,
+        create_temp_query_file,
+        local_disk_size: int,
+        gh_disk_size: Union[int, float],
+    ) -> None:
         mock_synapse_cache_dir, _, _ = create_temp_query_file
         disk_size = check_synapse_cache_size(mock_synapse_cache_dir)
 
@@ -798,18 +813,20 @@ class TestSchemaUtils:
     @pytest.mark.parametrize(
         "component_names",
         [
-            ["duplicated_component", ['Patient', 'Biospecimen', 'Patient']],
-            ["individual_component", ['Patient', 'Biospecimen']],
-            ["no_component", []]
+            ["duplicated_component", ["Patient", "Biospecimen", "Patient"]],
+            ["individual_component", ["Patient", "Biospecimen"]],
+            ["no_component", []],
         ],
         ids=["duplicated_component", "individual_component", "no_component"],
     )
     def test_check_for_duplicate_components(self, component_names):
         """Test that we are properly identifying duplicates in a list.
-            Exception should only be triggered when the duplicate component list is passed.
+        Exception should only be triggered when the duplicate component list is passed.
         """
         try:
-            check_for_duplicate_components(component_names=component_names[1], validation_rule_string='dummy_str')
+            check_for_duplicate_components(
+                component_names=component_names[1], validation_rule_string="dummy_str"
+            )
         except:
             assert component_names[0] == "duplicated_component"
 
@@ -835,7 +852,7 @@ class TestSchemaUtils:
             )
             assert expected_parsed_rules == parsed_validation_rules
         except:
-            assert test_rule_name in ["str_rule", "duplicated_component"] 
+            assert test_rule_name in ["str_rule", "duplicated_component"]
 
     @pytest.mark.parametrize(
         "test_rule_name",
@@ -859,6 +876,7 @@ class TestSchemaUtils:
                         component
                     ]
                 )
+
     @pytest.mark.parametrize(
         "test_dn",
         list(TEST_DN_DICT.keys()),
@@ -973,8 +991,7 @@ class TestSchemaUtils:
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
-        """
-        """
+        """ """
 
         # Get data model path
         data_model_path = helpers.get_data_path("example.model.jsonld")
