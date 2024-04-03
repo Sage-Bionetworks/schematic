@@ -153,7 +153,7 @@ class TestSchemaCli:
     def test_submit_file_based_manifest(
         self, runner, helpers, with_annotations, config: Configuration
     ):
-        manifest_path = helpers.get_data_path("Example-bulkrnaseq.csv")
+        manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
         config.load_config("config_example.yml")
         config.synapse_master_fileview_id = "syn55229694"
 
