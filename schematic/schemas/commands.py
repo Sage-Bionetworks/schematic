@@ -127,14 +127,14 @@ def convert(
     )
 
     if output_type in ["graph", "all"]:
-        logger.info("Export graph to pickle if requested")
+        logger.info("Export graph to pickle.")
         output_graph = output_file_no_ext + ".pickle"
         try:
             with open(output_graph, "wb") as file:
                 pickle.dump(graph_data_model, file)
-            click.echo(f"The graph was created and saved to '{output_graph}'.")
+            logger.info(f"The graph was created and saved to '{output_graph}'.")
         except SystemExit as e:
-            click.echo(
+            logger.error(
                 f"The graph failed to save to '{output_graph}'. Please check your file path again."
             )
             raise e
@@ -151,11 +151,11 @@ def convert(
     # saving updated schema.org schema
     try:
         export_schema(jsonld_data_model, output_jsonld)
-        click.echo(
+        logger.info(
             f"The Data Model was created and saved to '{output_jsonld}' location."
         )
     except:
-        click.echo(
+        logger.error(
             f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again"
         )
 
@@ -164,4 +164,4 @@ def convert(
 
     # get the execution time
     elapsed_time = time.strftime("%M:%S", time.gmtime(et - st))
-    click.echo(f"Execution time: {elapsed_time} (M:S)")
+    logger.info(f"Execution time: {elapsed_time} (M:S)")
