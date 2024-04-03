@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
@@ -155,29 +156,30 @@ class TestSchemaCli:
     ):
         manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
         config.load_config("config_example.yml")
-        config.synapse_master_fileview_id = "syn55229694"
+        config.synapse_master_fileview_id = "syn1234"
 
         if with_annotations:
             annotation_opt = "-fa"
         else:
             annotation_opt = "--no-fa"
 
-        result = runner.invoke(
-            model,
-            [
-                "-c",
-                config.config_path,
-                "submit",
-                "-mrt",
-                "file_only",
-                "-d",
-                "syn55229693",
-                "-vc",
-                "BulkRNA-seqAssay",
-                "-mp",
-                manifest_path,
-                annotation_opt,
-            ],
-        )
+        with patch("schematic.models.metadata.MetadataModel.submit_metadata_manifest"):
+            result = runner.invoke(
+                model,
+                [
+                    "-c",
+                    config.config_path,
+                    "submit",
+                    "-mrt",
+                    "file_only",
+                    "-d",
+                    "syn12345",
+                    "-vc",
+                    "BulkRNA-seqAssay",
+                    "-mp",
+                    manifest_path,
+                    annotation_opt,
+                ],
+            )
 
-        assert result.exit_code == 0
+            assert result.exit_code == 0
