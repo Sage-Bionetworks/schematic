@@ -60,11 +60,13 @@ def schema():  # use as `schematic model ...`
 @click.option(
     "--output_type",
     "-ot",
-    type=click.Choice(['jsonld', 'graph', 'all'], case_sensitive=False),
+    type=click.Choice(["jsonld", "graph", "all"], case_sensitive=False),
     default="jsonld",
     help=query_dict(schema_commands, ("schema", "convert", "output_type")),
 )
-def convert(schema: str, data_model_labels:str, output_jsonld:str, output_type:str) -> str:
+def convert(
+    schema: str, data_model_labels: str, output_jsonld: str, output_type: str
+) -> str:
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
@@ -130,9 +132,7 @@ def convert(schema: str, data_model_labels:str, output_jsonld:str, output_type:s
         try:
             with open(output_graph, "wb") as file:
                 pickle.dump(graph_data_model, file)
-            click.echo(
-                f"The graph was created and saved to '{output_graph}'."
-            )
+            click.echo(f"The graph was created and saved to '{output_graph}'.")
         except SystemExit as e:
             click.echo(
                 f"The graph failed to save to '{output_graph}'. Please check your file path again."

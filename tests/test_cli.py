@@ -46,15 +46,26 @@ class TestSchemaCli:
         except:
             pass
 
-    @pytest.mark.parametrize("model, output, expected", [
-        ("tests/data/example.model.csv", "tests/data/example.model.pickle", 0),
-        ("tests/data/example.model.csv", "tests/data/example.model.jsonld", 0)
-    ])
+    @pytest.mark.parametrize(
+        "model, output, expected",
+        [
+            ("tests/data/example.model.csv", "tests/data/example.model.pickle", 0),
+            ("tests/data/example.model.csv", "tests/data/example.model.jsonld", 0),
+        ],
+    )
     def test_schema_convert_cli(self, runner, helpers, model, output, expected):
-        label_type = 'class_label'
+        label_type = "class_label"
 
         result = runner.invoke(
-            schema, ["convert", model, "--output_jsonld", output, "--data_model_labels", label_type]
+            schema,
+            [
+                "convert",
+                model,
+                "--output_jsonld",
+                output,
+                "--data_model_labels",
+                label_type,
+            ],
         )
 
         assert result.exit_code == expected
