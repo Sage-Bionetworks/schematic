@@ -3,6 +3,7 @@ import logging
 
 import pytest
 
+from unittest.mock import Mock, patch
 from schematic.models.metadata import MetadataModel
 
 logging.basicConfig(level=logging.DEBUG)
@@ -93,3 +94,27 @@ class TestMetadataModel:
             os.remove(output_path)
         except:
             pass
+
+    @pytest.mark.parametrize("file_annotations_upload", [True, False])
+    @pytest.mark.parametrize("restrict_rules", [True, False])
+    @pytest.mark.parametrize("hide_blanks", [True, False])
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["data_model_labels-display_label", "data_model_labels-class_label"],
+    )
+    @pytest.mark.parametrize("validate_component", [None, "BulkRNA-seqAssay"])
+    def test_submit_metadata_manifest(self, helpers, file_annotations_upload, restrict_rules, data_model_labels, validate_component, hide_blanks):
+        meta_data_model = metadata_model(helpers, data_model_labels)
+        with patch(
+            "schematic.models.metadata.MetadataModel.validateModelManifest",
+            return_value=([],[])
+        ):
+            with patch(
+                "schematic.store.synapse.SynapseStorage.associateMetadataWithFiles",
+                return_value="mock manifest id"
+            ):
+                mock_manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+                data_model_jsonld = helpers.get_data_path("example.model.jsonld")
+                mock_manifest_id = meta_data_model.submit_metadata_manifest(manifest_path=mock_manifest_path, path_to_json_ld=data_model_jsonld, validate_component = validate_component, dataset_id="mock dataset id", manifest_record_type="file_only", restrict_rules=restrict_rules, file_annotations_upload=file_annotations_upload, hide_blanks=hide_blanks)
+                assert mock_manifest_id == "mock manifest id"
