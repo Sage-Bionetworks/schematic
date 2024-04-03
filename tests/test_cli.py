@@ -3,7 +3,6 @@ import os
 import pytest
 import pickle
 import json
-import tempfile
 
 from click.testing import CliRunner
 
@@ -27,14 +26,6 @@ def data_model_jsonld(helpers):
 
 
 class TestSchemaCli:
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-        self.temp_file = tempfile.NamedTemporaryFile(dir=self.temp_dir)
-
-    def tearDown(self):
-        self.temp_file.close()
-        os.rmdir(self.temp_dir())
-
     def assert_expected_file(self, result, output_path):
         extension = os.path.splitext(output_path)[-1].lower()
 
@@ -60,12 +51,6 @@ class TestSchemaCli:
         ("tests/data/example.model.csv", "tests/data/example.model.jsonld", 0)
     ])
     def test_schema_convert_cli(self, runner, helpers, model, output, expected):
-        #data_model_path = helpers.get_data_path(model)
-        #data_model_pickle_path = helpers.get_data_path("example.model.pickle")
-        #data_model_jsonld_path = helpers.get_data_path("example.model.jsonld")
-
-        #output_path = helpers.get_data_path(output)
-
         label_type = 'class_label'
 
         result = runner.invoke(
