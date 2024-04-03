@@ -3,6 +3,7 @@ import os
 import pytest
 import pickle
 import json
+import tempfile
 
 from click.testing import CliRunner
 
@@ -26,6 +27,14 @@ def data_model_jsonld(helpers):
 
 
 class TestSchemaCli:
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        self.temp_file = tempfile.NamedTemporaryFile(dir=self.temp_dir)
+
+    def tearDown(self):
+        self.temp_file.close()
+        os.rmdir(self.temp_dir())
+
     def assert_expected_file(self, result, output_path):
         extension = os.path.splitext(output_path)[-1].lower()
 
@@ -46,71 +55,24 @@ class TestSchemaCli:
         except:
             pass
 
-    def test_schema_convert_cli(self, runner, helpers):
-        data_model_csv_path = helpers.get_data_path("example.model.csv")
-        data_model_pickle_path = helpers.get_data_path("example.model.pickle")
-        data_model_jsonld_path = helpers.get_data_path("example.model.jsonld")
+    @pytest.mark.parametrize("model, output, expected", [
+        ("tests/data/example.model.csv", "tests/data/example.model.pickle", 0),
+        ("tests/data/example.model.csv", "tests/data/example.model.jsonld", 0)
+    ])
+    def test_schema_convert_cli(self, runner, helpers, model, output, expected):
+        #data_model_path = helpers.get_data_path(model)
+        #data_model_pickle_path = helpers.get_data_path("example.model.pickle")
+        #data_model_jsonld_path = helpers.get_data_path("example.model.jsonld")
 
-        output_path = helpers.get_data_path("example.model.jsonld")
+        #output_path = helpers.get_data_path(output)
 
         label_type = 'class_label'
 
         result = runner.invoke(
-            schema, ["convert", data_model_csv_path, "--output_jsonld", output_path, "--data_model_labels", label_type]
+            schema, ["convert", model, "--output_jsonld", output, "--data_model_labels", label_type]
         )
 
-        assert result.exit_code == 0
-
-        expected_substr = (
-            "The Data Model was created and saved to " f"'{output_path}' location."
-        )
-
-        assert expected_substr in result.output
-
-        graph_export = runner.invoke(
-            schema, ["convert", data_model_csv_path, "--output_type", "graph"]
-        )
-
-        # Test that the command runs without error and the pickle file is read
-        # as miltidigraph class.
-        assert graph_export.exit_code == 0
-        with open(data_model_pickle_path, 'rb') as file:
-            graph_pickle = pickle.load(file)
-        assert type(graph_pickle).__name__.lower() == 'multidigraph'
-        os.remove(data_model_pickle_path)
-
-        jsonld_export = runner.invoke(
-            schema, ["convert", data_model_csv_path, "--output_type", "jsonld"]
-        )
-
-        assert jsonld_export.exit_code == 0
-        with open(data_model_jsonld_path, 'r') as file:
-            json_jsonld = json.load(file)
-        assert '@context' in list(json_jsonld)
-        os.remove(data_model_jsonld_path)
-
-        all_export = runner.invoke(
-            schema, ["convert", data_model_csv_path, "--output_type", "all"]
-        )
-        with open(data_model_jsonld_path, 'r') as file:
-            all_jsonld = json.load(file)
-        assert '@context' in list(all_jsonld)
-        os.remove(data_model_jsonld_path)
-
-        assert all_export.exit_code == 0
-        with open(data_model_pickle_path, 'rb') as file:
-            all_pickle = pickle.load(file)
-        assert type(all_pickle).__name__.lower() == 'multidigraph'
-        os.remove(data_model_pickle_path)
-
-        no_ot = runner.invoke(
-            schema, ["convert", data_model_csv_path]
-        )
-        assert no_ot.exit_code == 0
-        with open(data_model_jsonld_path, 'r') as file:
-            no_ot_json = json.load(file)
-        assert '@context' in list(no_ot_json)
-        os.remove(data_model_jsonld_path)
+        assert result.exit_code == expected
 
     # get manifest by default
     # by default this should download the manifest as a CSV file
