@@ -1,4 +1,4 @@
-Filename,Sample ID,File Format,Component,Genome Build,Genome FASTA,Id,entityId
-Test sub folder/sample_file_one.txt,1,BAM,BulkRNA-seqAssay,GRCh37,,b0393125-7502-4c55-9fbd-eea2668a3e86,syn55229695
-Test sub folder/sample_file_three.txt,2,BAM,BulkRNA-seqAssay,GRCh37,,1cc5675e-6731-4cd2-ae2d-3a925cbff5b8,syn55229697
-Test sub folder/sample_file_two.txt,3,BAM,BulkRNA-seqAssay,GRCh37,,49156121-d736-48cf-a12b-02f7d84a0062,syn55229696
+Filename,Sample ID,File Format,Component,Genome Build,Genome FASTA
+Test sub folder/sample_file_one.txt,1,BAM,BulkRNA-seqAssay,GRCh37,
+Test sub folder/sample_file_three.txt,2,BAM,BulkRNA-seqAssay,GRCh37,
+Test sub folder/sample_file_two.txt,3,BAM,BulkRNA-seqAssay,GRCh37,
