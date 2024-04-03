@@ -266,7 +266,7 @@ class GenerateError:
         dmge: DataModelGraphExplorer,
         matching_manifests: list[str] = None,
         manifest_id: Optional[list[str]] = None,
-        invalid_entry: Optional[list[str]] = "No Invalid Entry Recorded",
+        invalid_entry: Union[str, list[str]] = "No Invalid Entry Recorded",
         row_num: Optional[list[str]] = None,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -465,11 +465,7 @@ class GenerateError:
             error_val_is_na = error_val.lower() in not_applicable_strings
         elif isinstance(error_val, list):
             error_val_is_na = False
-        elif (
-            (error_val is None)
-            or pd.isnull(error_val)
-            or (error_val == "<NA>")
-        ):
+        elif (error_val is None) or pd.isnull(error_val) or (error_val == "<NA>"):
             error_val_is_na = True
         else:
             error_val_is_na = False
@@ -534,7 +530,7 @@ class GenerateError:
     def get_message_level(
         dmge: DataModelGraphExplorer,
         error_col: str,
-        error_val,
+        error_val: Union[str, list[str]],
         val_rule: str,
     ) -> Optional[str]:
         """
@@ -580,7 +576,8 @@ class GenerateError:
 
         # Determine if the provided value that is
         error_val_is_na = GenerateError._get_error_value_is_na(
-            error_val, na_allowed,
+            error_val,
+            na_allowed,
         )
         # Return Messaging Level as appropriate, determined based on logic and heirarchy
         message_level = GenerateError._determine_messaging_level(
@@ -667,12 +664,13 @@ class ValidateAttribute(object):
     def get_no_entry(self, entry, node_display_name):
         # check if <NA> in list let pass if not required and no value is recorded.
         no_entry = False
-        #if not col_is_required:
+        # if not col_is_required:
         na_allowed = GenerateError._get_is_na_allowed(
             node_display_name=node_display_name, dmge=self.dmge
         )
-        value_is_na  = GenerateError._get_error_value_is_na(
-            entry, na_allowed,
+        value_is_na = GenerateError._get_error_value_is_na(
+            entry,
+            na_allowed,
         )
         if value_is_na:
             no_entry = True
@@ -680,12 +678,15 @@ class ValidateAttribute(object):
         return no_entry
 
     def get_entry_has_value(
-        self, entry, node_display_name,
+        self,
+        entry,
+        node_display_name,
     ):
         no_entry = self.get_no_entry(
-            entry, node_display_name,
+            entry,
+            node_display_name,
         )
-        return not no_entry 
+        return not no_entry
 
     def get_target_manifests(
         self, target_component: str, project_scope: list[str], access_token: str = None
@@ -769,10 +770,7 @@ class ValidateAttribute(object):
 
                 if not isinstance(list_string, str) and entry_has_value:
                     list_error = "not_a_string"
-                elif (
-                    not re.fullmatch(csv_re, list_string)
-                    and entry_has_value
-                ):
+                elif not re.fullmatch(csv_re, list_string) and entry_has_value:
                     list_error = "not_comma_delimited"
                     vr_errors, vr_warnings = GenerateError.generate_list_error(
                         list_string,
@@ -841,7 +839,7 @@ class ValidateAttribute(object):
         validation_rules = self.dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
         )
-        
+
         if validation_rules and "::" in validation_rules[0]:
             validation_rules = validation_rules[0].split("::")
         # Handle case where validating re's within a list.
@@ -852,11 +850,9 @@ class ValidateAttribute(object):
 
             for i, row_values in enumerate(manifest_col):
                 for j, re_to_check in enumerate(row_values):
-                    entry_has_value = (
-                        self.get_entry_has_value(
-                            entry=re_to_check,
-                            node_display_name=manifest_col.name,
-                        )
+                    entry_has_value = self.get_entry_has_value(
+                        entry=re_to_check,
+                        node_display_name=manifest_col.name,
                     )
                     if entry_has_value:
                         re_to_check = str(re_to_check)
@@ -1010,7 +1006,6 @@ class ValidateAttribute(object):
         url_args = val_rule.split(" ")[1:]
         errors = []
         warnings = []
-
 
         for i, url in enumerate(manifest_col):
             entry_has_value = self.get_entry_has_value(
@@ -1267,9 +1262,7 @@ class ValidateAttribute(object):
             # Check each invalid entry and determine if it has a value and/or is required.
             # If there is no entry and its not required, remove the NA value so an error is not raised.
             for idx, entry in enumerate(invalid_entry):
-                entry_has_value = self.get_entry_has_value(
-                    entry, attribute_name
-                )
+                entry_has_value = self.get_entry_has_value(entry, attribute_name)
                 # If there is no value, and is not required, recored the index
                 if not entry_has_value:
                     idx_to_remove.append(idx)
@@ -1315,24 +1308,26 @@ class ValidateAttribute(object):
             invalid_entry, row_num, attribute_name
         )
         errors, warnings = [], []
-        #if "matchExactly" in val_rule:
-            #breakpoint()
+
+        # Want to make sure we only generate errors when appropriate. Dont call, if we have removed all Nans,
+        # Also rules either require an invalid entry OR matching manifests. So let pass if either of those
+        # thresholds are met.
         if invalid_entry or matching_manifests:
+            if not invalid_entry:
+                invalid_entry = "No Invalid Entry Recorded"
             vr_errors, vr_warnings = GenerateError.generate_cross_warning(
                 val_rule=val_rule,
-                row_num=row_num,
                 attribute_name=attribute_name,
-                matching_manifests=matching_manifests,
-                invalid_entry=invalid_entry,
-                manifest_id=manifest_id,
                 dmge=self.dmge,
+                matching_manifests=matching_manifests,
+                manifest_id=manifest_id,
+                invalid_entry=invalid_entry,
+                row_num=row_num,
             )
             if vr_errors:
                 errors.append(vr_errors)
             if vr_warnings:
                 warnings.append(vr_warnings)
-        #if "matchExactly" in val_rule:
-            #breakpoint()
         return errors, warnings
 
     def _gather_value_warnings_errors(

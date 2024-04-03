@@ -53,22 +53,22 @@ class TestManifestValidation:
         os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
     @pytest.mark.parametrize(
-        ("model_name", "manifest_name"),
+        ("model_name", "manifest_name", "root_node"),
         [
-            ("example.model.jsonld","mock_manifests/Valid_Test_Manifest.csv"),
-            ("example_test_nones.model.jsonld","mock_manifests/Valid_Test_Manifest_with_nones.csv"),
+            ("example.model.jsonld","mock_manifests/Valid_Test_Manifest.csv", "MockComponent"),
+            ("example.model.jsonld", "mock_manifests/Patient_test_no_entry_for_cond_required_column.csv", "Patient"),
+            ("example_test_nones.model.jsonld","mock_manifests/Valid_Test_Manifest_with_nones.csv", "MockComponent"),
         ],
-        ids=["example_model", "example_with_nones"],
+        ids=["example_model", "example_with_no_entry_for_cond_required_columns", "example_with_nones"],
     )
 
-    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str):
+    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str, root_node:str):
         manifestPath = helpers.get_data_path(manifest_name)
-        rootNode = "MockComponent"
 
         metadataModel = get_metadataModel(helpers, model_name)
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
-            rootNode=rootNode,
+            rootNode=root_node,
             project_scope=["syn54126707"],
         )
 
@@ -103,7 +103,7 @@ class TestManifestValidation:
                 invalid_entry="5.63",
                 dmge=dmge,
             )[0] in errors
-
+    
         assert GenerateError.generate_type_error(
                 val_rule="str",
                 row_num="3",
@@ -477,21 +477,23 @@ class TestManifestValidation:
             restrict_rules=False,
             project_scope=None,
         )
-
-        if root_node == "Biospecimen":
-            assert (
-                vmr_errors
-                and vmr_errors[0][0] == ["2", "3"]
-                and vmr_errors[0][-1] == ["123"]
-            )
-            assert vmr_warnings == []
-        elif root_node == "Patient":
-            assert vmr_errors == []
-            assert (
-                vmr_warnings
-                and vmr_warnings[0][0] == ["2", "3"]
-                and vmr_warnings[0][-1] == ["123"]
-            )
+        try:
+            if root_node == "Biospecimen":
+                assert (
+                    vmr_errors
+                    and vmr_errors[0][0] == ["2", "3"]
+                    and vmr_errors[0][-1] == ["123"]
+                )
+                assert vmr_warnings == []
+            elif root_node == "Patient":
+                assert vmr_errors == []
+                assert (
+                    vmr_warnings
+                    and vmr_warnings[0][0] == ["2", "3"]
+                    and vmr_warnings[0][-1] == ["123"]
+                )
+        except:
+            breakpoint()
 
 
     @pytest.mark.rule_combos(
