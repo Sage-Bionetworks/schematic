@@ -207,7 +207,7 @@ class TestSynapseStorage:
         datasetId,
         manifest_record_type,
         config: Configuration,
-        dmge,
+        dmge: DataModelGraphExplorer,
     ):
         manifest_id = synapse_store.associateMetadataWithFiles(
             dmge=dmge,
@@ -537,7 +537,7 @@ class TestTableOperations:
         datasetId,
         table_column_names,
         annotation_keys,
-        dmge,
+        dmge: DataModelGraphExplorer,
     ):
         table_manipulation = None
 
@@ -595,7 +595,7 @@ class TestTableOperations:
         datasetId,
         table_column_names,
         annotation_keys,
-        dmge,
+        dmge: DataModelGraphExplorer,
     ):
         table_manipulation = "replace"
 
@@ -681,7 +681,7 @@ class TestTableOperations:
         projectId,
         datasetId,
         annotation_keys,
-        dmge,
+        dmge: DataModelGraphExplorer,
     ):
         table_manipulation = "upsert"
 
