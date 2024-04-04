@@ -154,7 +154,7 @@ def submit_manifest(
     data_model_labels,
     table_column_names,
     annotation_keys,
-    file_annotations_upload,
+    file_annotations_upload: bool,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
