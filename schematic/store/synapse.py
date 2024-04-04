@@ -26,7 +26,6 @@ from time import sleep
 # allows specifying explicit variable types
 from typing import Dict, List, Tuple, Sequence, Union, Optional
 
-
 from synapseclient import (
     Synapse,
     File,
@@ -47,7 +46,6 @@ from synapseclient.core.exceptions import (
     SynapseUnmetAccessRestrictions,
 )
 import synapseutils
-from synapseutils.copy_functions import changeFileMetaData
 
 import uuid
 
