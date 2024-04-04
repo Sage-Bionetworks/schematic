@@ -12,7 +12,6 @@ from pandas.testing import assert_frame_equal, assert_series_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
-from synapseutils.copy_functions import changeFileMetaData
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
