@@ -4,15 +4,16 @@ import logging
 import math
 import os
 from time import sleep
+from typing import Generator
 from unittest.mock import patch
 
 import pandas as pd
 import pytest
-from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 
+from schematic.configuration.configuration import Configuration
 from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_graph import (DataModelGraph,
                                                 DataModelGraphExplorer)
@@ -80,7 +81,16 @@ def datasetId(synapse_store, projectId, helpers):
 
 
 @pytest.fixture
-def dmge(helpers, config):
+def dmge(helpers, config:Configuration) -> Generator[DataModelGraphExplorer, None, None]:
+    """initiate data model explorer
+
+    Args:
+        helpers (pytest fixture): fixture
+        config (Configuration): configuration class
+
+    Yields:
+        DataModelGraphExplorer
+    """
     # associate org FollowUp metadata with files
     inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
     data_model_parser = DataModelParser(path_to_data_model=inputModelLocaiton)
