@@ -4,26 +4,23 @@ import logging
 import math
 import os
 from time import sleep
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
-from pandas.testing import assert_frame_equal, assert_series_equal
+from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_relationships import DataModelRelationships
-from schematic.store.synapse import SynapseStorage
-
 from schematic.models.metadata import MetadataModel
+from schematic.schemas.data_model_graph import (DataModelGraph,
+                                                DataModelGraphExplorer)
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import (
-    DatasetFileView,
-    ManifestDownload,
-)
+from schematic.store.synapse import (DatasetFileView, ManifestDownload,
+                                     SynapseStorage)
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
