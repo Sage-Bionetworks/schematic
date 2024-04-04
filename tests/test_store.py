@@ -94,8 +94,8 @@ def dmge(
         DataModelGraphExplorer
     """
     # associate org FollowUp metadata with files
-    inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
-    data_model_parser = DataModelParser(path_to_data_model=inputModelLocaiton)
+    input_model_location = helpers.get_data_path(os.path.basename(config.model_location))
+    data_model_parser = DataModelParser(path_to_data_model=input_model_location)
     # Parse Model
     parsed_data_model = data_model_parser.parse_model()
 
@@ -1127,7 +1127,7 @@ class TestManifestUpload:
     @pytest.mark.parametrize("restrict_rules", [True, False])
     @pytest.mark.parametrize("hide_blanks", [True, False])
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
-    def test_associateMetadataWithFiles(
+    def test_associate_metadata_with_files(
         self,
         helpers: Helpers,
         restrict_rules: bool,
