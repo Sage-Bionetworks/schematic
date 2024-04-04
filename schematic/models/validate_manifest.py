@@ -195,7 +195,7 @@ class ValidateManifest(object):
             if validation_rules and isinstance(validation_rules, dict):
                 validation_rules = extract_component_validation_rules(
                     manifest_component=manifest["Component"][0],
-                    validation_rules=validation_rules,
+                    validation_rules_dict=validation_rules,
                 )
 
             # Check that attribute rules conform to limits:
