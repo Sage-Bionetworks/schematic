@@ -16,6 +16,7 @@ from synapseclient.entity import File
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
+from schematic.store.synapse import SynapseStorage
 
 from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
@@ -921,13 +922,13 @@ class TestManifestUpload:
     def test_upload_manifest_as_csv(
         self,
         helpers,
-        dmge,
-        synapse_store,
-        file_annotations_upload,
-        manifest_record_type,
-        hideBlanks,
-        restrict,
-    ):
+        dmge: DataModelGraphExplorer,
+        synapse_store: SynapseStorage,
+        file_annotations_upload: bool,
+        manifest_record_type: str,
+        hideBlanks: bool,
+        restrict: bool,
+    ) -> None:
         with (
             patch(
                 "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
@@ -970,13 +971,13 @@ class TestManifestUpload:
     def test_upload_manifest_as_table(
         self,
         helpers,
-        synapse_store,
-        dmge,
-        file_annotations_upload,
-        hideBlanks,
-        restrict,
-        manifest_record_type,
-    ):
+        synapse_store: SynapseStorage,
+        dmge: DataModelGraphExplorer,
+        file_annotations_upload: bool,
+        hideBlanks: bool,
+        restrict: bool,
+        manifest_record_type: str,
+    ) -> None:
         mock_df = pd.DataFrame()
         with (
             patch(
@@ -1028,13 +1029,13 @@ class TestManifestUpload:
     def test_upload_manifest_combo(
         self,
         helpers,
-        synapse_store,
-        dmge,
-        file_annotations_upload,
-        hideBlanks,
-        restrict,
-        manifest_record_type,
-    ):
+        synapse_store: SynapseStorage,
+        dmge: DataModelGraphExplorer,
+        file_annotations_upload: bool,
+        hideBlanks: bool,
+        restrict: bool,
+        manifest_record_type: str,
+    ) -> None:
         mock_df = pd.DataFrame()
         manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
         manifest_df = helpers.get_data_frame(manifest_path)
@@ -1095,14 +1096,14 @@ class TestManifestUpload:
     def test_associateMetadataWithFiles(
         self,
         helpers,
-        restrict_rules,
-        hide_blanks,
-        synapse_store,
-        manifest_record_type,
-        expected,
-        file_annotations_upload,
-        dmge,
-    ):
+        restrict_rules: bool,
+        hide_blanks: bool,
+        synapse_store: SynapseStorage,
+        manifest_record_type: str,
+        expected: str,
+        file_annotations_upload: bool,
+        dmge: DataModelGraphExplorer,
+    ) -> None:
         with (
             patch(
                 "schematic.store.synapse.SynapseStorage.upload_manifest_as_csv",
