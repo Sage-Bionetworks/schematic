@@ -10,6 +10,7 @@ from schematic.schemas.commands import schema
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
 from schematic.configuration.configuration import Configuration
+from conftest import Helpers
 
 
 @pytest.fixture
@@ -152,7 +153,11 @@ class TestSchemaCli:
 
     @pytest.mark.parametrize("with_annotations", [True, False])
     def test_submit_file_based_manifest(
-        self, runner: CliRunner, helpers, with_annotations: bool, config: Configuration
+        self,
+        runner: CliRunner,
+        helpers: Helpers,
+        with_annotations: bool,
+        config: Configuration,
     ) -> None:
         manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
         config.load_config("config_example.yml")
