@@ -16,13 +16,11 @@ from pandas.testing import assert_frame_equal
 
 from schematic.configuration.configuration import Configuration
 from schematic.models.metadata import MetadataModel
-from schematic.schemas.data_model_graph import (DataModelGraph,
-                                                DataModelGraphExplorer)
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import (DatasetFileView, ManifestDownload,
-                                     SynapseStorage)
+from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -82,7 +80,9 @@ def datasetId(synapse_store, projectId, helpers):
 
 
 @pytest.fixture
-def dmge(helpers, config:Configuration) -> Generator[DataModelGraphExplorer, None, None]:
+def dmge(
+    helpers, config: Configuration
+) -> Generator[DataModelGraphExplorer, None, None]:
     """initiate data model explorer
 
     Args:
@@ -850,9 +850,18 @@ class TestDownloadManifest:
 
 
 class TestManifestUpload:
-    """Test manifest upload
-    """
-    def test_add_annotations_to_entities_files(self, helpers, synapse_store, dmge):
+    """Test manifest upload"""
+
+    def test_add_annotations_to_entities_files(
+        self, helpers, synapse_store: SynapseStorage, dmge: DataModelGraphExplorer
+    ) -> None:
+        """test adding annotations to entities files
+
+        Args:
+            helpers (fixture): a pytest fixture
+            synapse_store (SynapseStorage): mock synapse store
+            dmge (DataModelGraphExplorer): data model grpah explorer object
+        """
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
             return_value=[
@@ -890,8 +899,15 @@ class TestManifestUpload:
         ],
     )
     def test_upload_manifest_file(
-        self, helpers, synapse_store, mock_manifest_file_path
-    ):
+        self, helpers, synapse_store: SynapseStorage, mock_manifest_file_path: str
+    ) -> None:
+        """test upload manifest file function
+
+        Args:
+            helpers (fixture): a pytest fixture
+            synapse_store (SynapseStorage): mock synapse store
+            dmge (DataModelGraphExplorer): data model grpah explorer object
+        """
         test_df = pd.DataFrame(
             {
                 "Filename": {
