@@ -4,14 +4,15 @@ import logging
 import math
 import os
 from time import sleep
-from unittest.mock import Mock, patch
+from unittest.mock import patch, MagicMock
 
 import pandas as pd
 import pytest
-from pandas.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal, assert_series_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
+from synapseutils.copy_functions import changeFileMetaData
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -79,6 +80,25 @@ def datasetId(synapse_store, projectId, helpers):
     datasetId = synapse_store.syn.store(dataset).id
     sleep(5)
     yield datasetId
+
+
+@pytest.fixture
+def dmge(helpers, config):
+    # associate org FollowUp metadata with files
+    inputModelLocaiton = helpers.get_data_path(os.path.basename(config.model_location))
+    data_model_parser = DataModelParser(path_to_data_model=inputModelLocaiton)
+    # Parse Model
+    parsed_data_model = data_model_parser.parse_model()
+
+    # Instantiate DataModelGraph
+    data_model_grapher = DataModelGraph(parsed_data_model)
+
+    # Generate graph
+    graph_data_model = data_model_grapher.graph
+
+    # Instantiate DataModelGraphExplorer
+    dmge = DataModelGraphExplorer(graph_data_model)
+    yield dmge
 
 
 def raise_final_error(retry_state):
@@ -179,24 +199,8 @@ class TestSynapseStorage:
         datasetId,
         manifest_record_type,
         config: Configuration,
+        dmge,
     ):
-        # Upload dataset annotations
-
-        # Instantiate DataModelParser
-        data_model_parser = DataModelParser(path_to_data_model=config.model_location)
-
-        # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
-
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
-
-        # Generate graph
-        graph_data_model = data_model_grapher.graph
-
-        # Instantiate DataModelGraphExplorer
-        dmge = DataModelGraphExplorer(graph_data_model)
-
         manifest_id = synapse_store.associateMetadataWithFiles(
             dmge=dmge,
             metadataManifestPath=helpers.get_data_path(manifest_path),
@@ -525,6 +529,7 @@ class TestTableOperations:
         datasetId,
         table_column_names,
         annotation_keys,
+        dmge,
     ):
         table_manipulation = None
 
@@ -544,25 +549,6 @@ class TestTableOperations:
 
         # associate metadata with files
         manifest_path = "mock_manifests/table_manifest.csv"
-        inputModelLocaiton = helpers.get_data_path(
-            os.path.basename(config.model_location)
-        )
-
-        # Instantiate DataModelParser
-        data_model_parser = DataModelParser(path_to_data_model=inputModelLocaiton)
-
-        # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
-
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
-
-        # Generate graph
-        graph_data_model = data_model_grapher.graph
-
-        # Instantiate DataModelGraphExplorer
-        dmge = DataModelGraphExplorer(graph_data_model)
-
         # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
             dmge=dmge,
@@ -581,7 +567,6 @@ class TestTableOperations:
         synapse_store.syn.delete(manifestId)
         # assert table exists
         assert table_name in existing_tables.keys()
-
 
     @pytest.mark.parametrize(
         "table_column_names",
@@ -602,6 +587,7 @@ class TestTableOperations:
         datasetId,
         table_column_names,
         annotation_keys,
+        dmge,
     ):
         table_manipulation = "replace"
 
@@ -621,25 +607,6 @@ class TestTableOperations:
                 table_name
                 not in synapse_store.get_table_info(projectId=projectId).keys()
             )
-
-        # associate org FollowUp metadata with files
-        inputModelLocaiton = helpers.get_data_path(
-            os.path.basename(config.model_location)
-        )
-        # sg = SchemaGenerator(inputModelLocaiton)
-
-        data_model_parser = DataModelParser(path_to_data_model=inputModelLocaiton)
-        # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
-
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
-
-        # Generate graph
-        graph_data_model = data_model_grapher.graph
-
-        # Instantiate DataModelGraphExplorer
-        dmge = DataModelGraphExplorer(graph_data_model)
 
         # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
@@ -693,7 +660,6 @@ class TestTableOperations:
         # delete table
         synapse_store.syn.delete(tableId)
 
-
     @pytest.mark.parametrize(
         "annotation_keys",
         ["display_label", "class_label"],
@@ -707,6 +673,7 @@ class TestTableOperations:
         projectId,
         datasetId,
         annotation_keys,
+        dmge,
     ):
         table_manipulation = "upsert"
 
@@ -726,24 +693,6 @@ class TestTableOperations:
                 table_name
                 not in synapse_store.get_table_info(projectId=projectId).keys()
             )
-
-        # associate org FollowUp metadata with files
-        inputModelLocaiton = helpers.get_data_path(
-            os.path.basename(config.model_location)
-        )
-
-        data_model_parser = DataModelParser(path_to_data_model=inputModelLocaiton)
-        # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
-
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model)
-
-        # Generate graph
-        graph_data_model = data_model_grapher.graph
-
-        # Instantiate DataModelGraphExplorer
-        dmge = DataModelGraphExplorer(graph_data_model)
 
         # updating file view on synapse takes a long time
         manifestId = synapse_store.associateMetadataWithFiles(
@@ -890,3 +839,293 @@ class TestDownloadManifest:
                     "You are using entity type: folder. Please provide a file ID"
                     in record.message
                 )
+
+
+class TestManifestUpload:
+    def test_add_annotations_to_entities_files(self, helpers, synapse_store, dmge):
+        with patch(
+            "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
+            return_value=[
+                ("syn1224", "Test sub folder/sample_file_one.txt"),
+                ("syn1225", "Test sub folder/sample_file_three.txt"),
+                ("syn1226", "Test sub folder/sample_file_two.txt"),
+            ],
+        ):
+            manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+            manifest_df = helpers.get_data_frame(manifest_path)
+            new_df = synapse_store.add_annotations_to_entities_files(
+                dmge,
+                manifest_df,
+                manifest_record_type="entity",
+                datasetId="mock id",
+                hideBlanks=True,
+            )
+            file_names_lst = new_df["Filename"].tolist()
+            entity_ids_lst = new_df["entityId"].tolist()
+
+            # make sure that entityId and Id columns get added
+            assert "entityId" and "Id" in new_df.columns
+            assert file_names_lst == [
+                "Test sub folder/sample_file_one.txt",
+                "Test sub folder/sample_file_three.txt",
+                "Test sub folder/sample_file_two.txt",
+            ]
+            assert entity_ids_lst == ["syn1224", "syn1225", "syn1226"]
+
+    @pytest.mark.parametrize(
+        "mock_manifest_file_path",
+        [
+            "mock_manifests/test_mock_manifest.csv",
+            "mock_manifests/test_mock_manifest_censored.csv",
+        ],
+    )
+    def test_upload_manifest_file(
+        self, helpers, synapse_store, mock_manifest_file_path
+    ):
+        test_df = pd.DataFrame(
+            {
+                "Filename": {
+                    0: "Test sub folder/sample_file_one.txt",
+                    1: "Test sub folder/sample_file_three.txt",
+                    2: "Test sub folder/sample_file_two.txt",
+                },
+                "Sample ID": {0: 1, 1: 2, 2: 3},
+                "File Format": {0: "BAM", 1: "BAM", 2: "BAM"},
+                "Component": {
+                    0: "BulkRNA-seqAssay",
+                    1: "BulkRNA-seqAssay",
+                    2: "BulkRNA-seqAssay",
+                },
+                "Genome Build": {0: "GRCh37", 1: "GRCh37", 2: "GRCh37"},
+                "Genome FASTA": {0: "", 1: "", 2: ""},
+                "Id": {0: "mock1", 1: "mock2", 2: "mock3"},
+                "entityId": {0: "syn1224", 1: "syn1225", 2: "syn1226"},
+            }
+        )
+        with patch("synapseclient.Synapse.store") as syn_store_mock, patch(
+            "synapseutils.copy_functions.changeFileMetaData"
+        ):
+            syn_store_mock.return_value.id = "mock manifest id"
+            mock_file_path = helpers.get_data_path(mock_manifest_file_path)
+            mock_manifest_synapse_file_id = synapse_store.upload_manifest_file(
+                manifest=test_df,
+                metadataManifestPath=mock_file_path,
+                datasetId="mock dataset id",
+                restrict_manifest=True,
+            )
+            assert mock_manifest_synapse_file_id == "mock manifest id"
+
+    @pytest.mark.parametrize("file_annotations_upload", [True, False])
+    @pytest.mark.parametrize("hideBlanks", [True, False])
+    @pytest.mark.parametrize("restrict", [True, False])
+    @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
+    def test_upload_manifest_as_csv(
+        self,
+        helpers,
+        dmge,
+        synapse_store,
+        file_annotations_upload,
+        manifest_record_type,
+        hideBlanks,
+        restrict,
+    ):
+        with (
+            patch(
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+            ) as add_anno_mock,
+            patch(
+                "schematic.store.synapse.SynapseStorage.upload_manifest_file",
+                return_value="mock manifest id",
+            ) as upload_manifest_mock,
+            patch(
+                "schematic.store.synapse.SynapseStorage.format_manifest_annotations"
+            ) as format_manifest_anno_mock,
+            patch.object(synapse_store.syn, "set_annotations"),
+        ):
+            manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+            manifest_df = helpers.get_data_frame(manifest_path)
+            synapse_store.upload_manifest_as_csv(
+                dmge,
+                manifest=manifest_df,
+                metadataManifestPath=manifest_path,
+                datasetId="mock synapse id",
+                restrict=restrict,
+                manifest_record_type=manifest_record_type,
+                file_annotations_upload=file_annotations_upload,
+                hideBlanks=hideBlanks,
+                component_name="BulkRNA-seqAssay",
+                annotation_keys="class_label",
+            )
+            if file_annotations_upload:
+                add_anno_mock.assert_called_once()
+            else:
+                add_anno_mock.assert_not_called()
+
+            upload_manifest_mock.assert_called_once()
+            format_manifest_anno_mock.assert_called_once()
+
+    @pytest.mark.parametrize("file_annotations_upload", [True, False])
+    @pytest.mark.parametrize("hideBlanks", [True, False])
+    @pytest.mark.parametrize("restrict", [True, False])
+    @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
+    def test_upload_manifest_as_table(
+        self,
+        helpers,
+        synapse_store,
+        dmge,
+        file_annotations_upload,
+        hideBlanks,
+        restrict,
+        manifest_record_type,
+    ):
+        mock_df = pd.DataFrame()
+        with (
+            patch(
+                "schematic.store.synapse.SynapseStorage.uploadDB",
+                return_value=["mock_table_id", mock_df, "mock_table_manifest"],
+            ) as update_db_mock,
+            patch(
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+            ) as add_anno_mock,
+            patch(
+                "schematic.store.synapse.SynapseStorage.upload_manifest_file",
+                return_value="mock manifest id",
+            ),
+            patch.object(synapse_store.syn, "set_annotations") as set_anno_mock,
+            patch(
+                "schematic.store.synapse.SynapseStorage.format_manifest_annotations"
+            ) as format_manifest_anno_mock,
+        ):
+            manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+            manifest_df = helpers.get_data_frame(manifest_path)
+            synapse_store.upload_manifest_as_table(
+                dmge,
+                manifest=manifest_df,
+                metadataManifestPath=manifest_path,
+                datasetId="mock synapse id",
+                table_name="new table name",
+                component_name="BulkRNA-seqAssay",
+                restrict=restrict,
+                manifest_record_type=manifest_record_type,
+                hideBlanks=hideBlanks,
+                table_manipulation="replace",
+                table_column_names="class_label",
+                annotation_keys="class_label",
+                file_annotations_upload=file_annotations_upload,
+            )
+            if file_annotations_upload:
+                add_anno_mock.assert_called_once()
+            else:
+                add_anno_mock.assert_not_called()
+            # need to set annotations for both table and files
+            format_manifest_anno_mock.call_count == 2
+            set_anno_mock.call_count == 2
+            update_db_mock.call_count == 2
+
+    @pytest.mark.parametrize("file_annotations_upload", [True, False])
+    @pytest.mark.parametrize("hideBlanks", [True, False])
+    @pytest.mark.parametrize("restrict", [True, False])
+    @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
+    def test_upload_manifest_combo(
+        self,
+        helpers,
+        synapse_store,
+        dmge,
+        file_annotations_upload,
+        hideBlanks,
+        restrict,
+        manifest_record_type,
+    ):
+        mock_df = pd.DataFrame()
+        manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+        manifest_df = helpers.get_data_frame(manifest_path)
+        with (
+            patch(
+                "schematic.store.synapse.SynapseStorage.uploadDB",
+                return_value=["mock_table_id", mock_df, "mock_table_manifest"],
+            ) as update_db_mock,
+            patch(
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+            ) as add_anno_mock,
+            patch(
+                "schematic.store.synapse.SynapseStorage.upload_manifest_file",
+                return_value="mock manifest id",
+            ),
+            patch.object(synapse_store.syn, "set_annotations") as set_anno_mock,
+            patch(
+                "schematic.store.synapse.SynapseStorage.format_manifest_annotations"
+            ) as format_manifest_anno_mock,
+        ):
+            synapse_store.upload_manifest_combo(
+                dmge,
+                manifest=manifest_df,
+                metadataManifestPath=manifest_path,
+                datasetId="mock synapse id",
+                table_name="new table name",
+                component_name="BulkRNA-seqAssay",
+                restrict=restrict,
+                manifest_record_type=manifest_record_type,
+                hideBlanks=hideBlanks,
+                table_manipulation="replace",
+                table_column_names="class_label",
+                annotation_keys="class_label",
+                file_annotations_upload=file_annotations_upload,
+            )
+
+            if file_annotations_upload:
+                add_anno_mock.assert_called_once()
+            else:
+                add_anno_mock.assert_not_called()
+            # need to set annotations for both table and files
+            format_manifest_anno_mock.call_count == 2
+            set_anno_mock.call_count == 2
+            update_db_mock.call_count == 2
+
+    @pytest.mark.parametrize(
+        "manifest_record_type,expected",
+        [
+            ("file_only", "mock_id_csv"),
+            ("table_and_file", "mock_id_table"),
+            ("file_and_entities", "mock_id_csv"),
+            ("table_file_and_entities", "mock_id_entities"),
+        ],
+    )
+    @pytest.mark.parametrize("restrict_rules", [True, False])
+    @pytest.mark.parametrize("hide_blanks", [True, False])
+    @pytest.mark.parametrize("file_annotations_upload", [True, False])
+    def test_associateMetadataWithFiles(
+        self,
+        helpers,
+        restrict_rules,
+        hide_blanks,
+        synapse_store,
+        manifest_record_type,
+        expected,
+        file_annotations_upload,
+        dmge,
+    ):
+        with (
+            patch(
+                "schematic.store.synapse.SynapseStorage.upload_manifest_as_csv",
+                return_value="mock_id_csv",
+            ),
+            patch(
+                "schematic.store.synapse.SynapseStorage.upload_manifest_as_table",
+                return_value="mock_id_table",
+            ),
+            patch(
+                "schematic.store.synapse.SynapseStorage.upload_manifest_combo",
+                return_value="mock_id_entities",
+            ),
+        ):
+            manifest_path = "mock_manifests/bulkrnaseq_test.csv"
+            manifest_id = synapse_store.associateMetadataWithFiles(
+                dmge=dmge,
+                metadataManifestPath=helpers.get_data_path(manifest_path),
+                datasetId="mock_dataset_id",
+                hideBlanks=hide_blanks,
+                restrict_manifest=restrict_rules,
+                manifest_record_type=manifest_record_type,
+                file_annotations_upload=file_annotations_upload,
+            )
+        assert manifest_id == expected

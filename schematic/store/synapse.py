@@ -1303,11 +1303,11 @@ class SynapseStorage(BaseStorage):
             parent=datasetId,
             name=file_name_new,
         )
-
         manifest_synapse_file_id = self.syn.store(
             manifestSynapseFile, isRestricted=restrict_manifest
         ).id
-        changeFileMetaData(
+
+        synapseutils.copy_functions.changeFileMetaData(
             syn=self.syn, entity=manifest_synapse_file_id, downloadAs=file_name_new
         )
 
