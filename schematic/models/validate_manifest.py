@@ -66,25 +66,31 @@ class ValidateManifest(object):
         return ["NA", error_col, error_message, error_val]
 
     def check_max_rule_num(
-        self, validation_rules: str, col: pd.core.series.Series, errors: list[list[str]]
+        self,
+        validation_rules: list[str],
+        col: pd.core.series.Series,
+        errors: list[list[str]],
     ) -> list[list[str]]:
-        """
-        validation_rules, str:
-        errors, list:
+        """Check that user isnt applying more rule combinations than allowed. Do not consider certain rules as a part of this rule limit.
+        Args:
+            validation_rules, list: Validation rules for current manifest column/attribute being evaluated
+            col, pd.core.series.Series: the current manifest column being evaluated
+            errors, list[list[str]]: list of errors being compiled.
+        Returns:
+            errors, list[list[str]]: list of errors being compiled, with additional error list being appended if appropriate
         """
         # Check that attribute rules conform to limits:
         # IsNa is operates differently than most rules, do not consider it as a rule for evaluating
         # if the number of rule pairs has been exceeded.
-        combined_rules = validation_rules.copy()
         if "IsNa" in validation_rules:
-            combined_rules.remove("IsNa")
+            validation_rules.remove("IsNa")
 
         # no more than two rules for an attribute.
         # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?
-        if len(combined_rules) > 2:
+        if len(validation_rules) > 2:
             errors.append(
                 self.get_multiple_types_error(
-                    combined_rules, col, error_type="too_many_rules"
+                    validation_rules, col, error_type="too_many_rules"
                 )
             )
         return errors
