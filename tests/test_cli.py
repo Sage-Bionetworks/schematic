@@ -152,8 +152,8 @@ class TestSchemaCli:
 
     @pytest.mark.parametrize("with_annotations", [True, False])
     def test_submit_file_based_manifest(
-        self, runner, helpers, with_annotations, config: Configuration
-    ):
+        self, runner: CliRunner, helpers, with_annotations: bool, config: Configuration
+    ) -> None:
         manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
         config.load_config("config_example.yml")
         config.synapse_master_fileview_id = "syn1234"
