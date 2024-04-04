@@ -1031,7 +1031,6 @@ class ValidateAttribute(object):
                     + urlparse(url).query
                     + urlparse(url).fragment
                 ):
-                    #
                     url_error = "random_entry"
                     valid_url = False
                     vr_errors, vr_warnings = GenerateError.generate_url_error(
