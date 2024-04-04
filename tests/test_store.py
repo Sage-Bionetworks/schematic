@@ -926,7 +926,7 @@ class TestManifestUpload:
             assert mock_manifest_synapse_file_id == "mock manifest id"
 
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
-    @pytest.mark.parametrize("hideBlanks", [True, False])
+    @pytest.mark.parametrize("hide_blanks", [True, False])
     @pytest.mark.parametrize("restrict", [True, False])
     @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
     def test_upload_manifest_as_csv(
@@ -936,7 +936,7 @@ class TestManifestUpload:
         synapse_store: SynapseStorage,
         file_annotations_upload: bool,
         manifest_record_type: str,
-        hideBlanks: bool,
+        hide_blanks: bool,
         restrict: bool,
     ) -> None:
         with (
@@ -962,7 +962,7 @@ class TestManifestUpload:
                 restrict=restrict,
                 manifest_record_type=manifest_record_type,
                 file_annotations_upload=file_annotations_upload,
-                hideBlanks=hideBlanks,
+                hideBlanks=hide_blanks,
                 component_name="BulkRNA-seqAssay",
                 annotation_keys="class_label",
             )
@@ -975,7 +975,7 @@ class TestManifestUpload:
             format_manifest_anno_mock.assert_called_once()
 
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
-    @pytest.mark.parametrize("hideBlanks", [True, False])
+    @pytest.mark.parametrize("hide_blanks", [True, False])
     @pytest.mark.parametrize("restrict", [True, False])
     @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
     def test_upload_manifest_as_table(
@@ -984,7 +984,7 @@ class TestManifestUpload:
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
         file_annotations_upload: bool,
-        hideBlanks: bool,
+        hide_blanks: bool,
         restrict: bool,
         manifest_record_type: str,
     ) -> None:
@@ -1017,7 +1017,7 @@ class TestManifestUpload:
                 component_name="BulkRNA-seqAssay",
                 restrict=restrict,
                 manifest_record_type=manifest_record_type,
-                hideBlanks=hideBlanks,
+                hideBlanks=hide_blanks,
                 table_manipulation="replace",
                 table_column_names="class_label",
                 annotation_keys="class_label",
@@ -1042,7 +1042,7 @@ class TestManifestUpload:
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
         file_annotations_upload: bool,
-        hideBlanks: bool,
+        hide_blanks: bool,
         restrict: bool,
         manifest_record_type: str,
     ) -> None:
@@ -1075,7 +1075,7 @@ class TestManifestUpload:
                 component_name="BulkRNA-seqAssay",
                 restrict=restrict,
                 manifest_record_type=manifest_record_type,
-                hideBlanks=hideBlanks,
+                hideBlanks=hide_blanks,
                 table_manipulation="replace",
                 table_column_names="class_label",
                 annotation_keys="class_label",
