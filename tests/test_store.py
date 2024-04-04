@@ -850,6 +850,8 @@ class TestDownloadManifest:
 
 
 class TestManifestUpload:
+    """Test manifest upload
+    """
     def test_add_annotations_to_entities_files(self, helpers, synapse_store, dmge):
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
