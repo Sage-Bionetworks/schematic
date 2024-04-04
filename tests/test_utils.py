@@ -8,7 +8,7 @@ import time
 from datetime import datetime
 from unittest import mock
 from pathlib import Path
-from typing import Union, Tuple, Generator
+from typing import Union, Generator
 from _pytest.fixtures import FixtureRequest
 
 import numpy as np
@@ -173,7 +173,7 @@ test_disk_storage = [
 @pytest.fixture()
 def create_temp_query_file(
     tmp_path: Path, request: FixtureRequest
-) -> Generator[Tuple[Path, Path, Path], None, None]:
+) -> Generator[tuple[Path, Path, Path], None, None]:
     """create temporary files of various size based on request parameter.
 
     Args:
