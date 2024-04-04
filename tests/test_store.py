@@ -82,7 +82,7 @@ def datasetId(synapse_store, projectId, helpers):
 
 @pytest.fixture
 def dmge(
-    helpers, config: Configuration
+    helpers: Helpers, config: Configuration
 ) -> Generator[DataModelGraphExplorer, None, None]:
     """initiate data model explorer
 
@@ -94,7 +94,9 @@ def dmge(
         DataModelGraphExplorer
     """
     # associate org FollowUp metadata with files
-    input_model_location = helpers.get_data_path(os.path.basename(config.model_location))
+    input_model_location = helpers.get_data_path(
+        os.path.basename(config.model_location)
+    )
     data_model_parser = DataModelParser(path_to_data_model=input_model_location)
     # Parse Model
     parsed_data_model = data_model_parser.parse_model()
