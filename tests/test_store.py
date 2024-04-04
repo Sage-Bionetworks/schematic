@@ -1045,9 +1045,9 @@ class TestManifestUpload:
             else:
                 add_anno_mock.assert_not_called()
             # need to set annotations for both table and files
-            format_manifest_anno_mock.call_count == 2
-            set_anno_mock.call_count == 2
-            update_db_mock.call_count == 2
+            assert format_manifest_anno_mock.call_count == 2
+            assert set_anno_mock.call_count == 2
+            assert update_db_mock.call_count == 2
 
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
     @pytest.mark.parametrize("hide_blanks", [True, False])
@@ -1104,9 +1104,9 @@ class TestManifestUpload:
             else:
                 add_anno_mock.assert_not_called()
             # need to set annotations for both table and files
-            format_manifest_anno_mock.call_count == 2
-            set_anno_mock.call_count == 2
-            update_db_mock.call_count == 2
+            assert format_manifest_anno_mock.call_count == 2
+            assert set_anno_mock.call_count == 2
+            assert update_db_mock.call_count == 2
 
     @pytest.mark.parametrize(
         "manifest_record_type,expected",
