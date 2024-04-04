@@ -21,6 +21,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
+from conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -853,7 +854,10 @@ class TestManifestUpload:
     """Test manifest upload"""
 
     def test_add_annotations_to_entities_files(
-        self, helpers, synapse_store: SynapseStorage, dmge: DataModelGraphExplorer
+        self,
+        helpers: Helpers,
+        synapse_store: SynapseStorage,
+        dmge: DataModelGraphExplorer,
     ) -> None:
         """test adding annotations to entities files
 
@@ -900,7 +904,10 @@ class TestManifestUpload:
         ],
     )
     def test_upload_manifest_file(
-        self, helpers, synapse_store: SynapseStorage, mock_manifest_file_path: str
+        self,
+        helpers: Helpers,
+        synapse_store: SynapseStorage,
+        mock_manifest_file_path: str,
     ) -> None:
         """test upload manifest file function
 
@@ -948,7 +955,7 @@ class TestManifestUpload:
     @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
     def test_upload_manifest_as_csv(
         self,
-        helpers,
+        helpers: Helpers,
         dmge: DataModelGraphExplorer,
         synapse_store: SynapseStorage,
         file_annotations_upload: bool,
@@ -997,7 +1004,7 @@ class TestManifestUpload:
     @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
     def test_upload_manifest_as_table(
         self,
-        helpers,
+        helpers: Helpers,
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
         file_annotations_upload: bool,
@@ -1055,7 +1062,7 @@ class TestManifestUpload:
     @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
     def test_upload_manifest_combo(
         self,
-        helpers,
+        helpers: Helpers,
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
         file_annotations_upload: bool,
@@ -1122,7 +1129,7 @@ class TestManifestUpload:
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
     def test_associateMetadataWithFiles(
         self,
-        helpers,
+        helpers: Helpers,
         restrict_rules: bool,
         hide_blanks: bool,
         synapse_store: SynapseStorage,
