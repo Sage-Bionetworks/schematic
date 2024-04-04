@@ -1050,7 +1050,7 @@ class TestManifestUpload:
             update_db_mock.call_count == 2
 
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
-    @pytest.mark.parametrize("hideBlanks", [True, False])
+    @pytest.mark.parametrize("hide_blanks", [True, False])
     @pytest.mark.parametrize("restrict", [True, False])
     @pytest.mark.parametrize("manifest_record_type", ["entity", "table", "both"])
     def test_upload_manifest_combo(
