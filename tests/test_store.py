@@ -12,6 +12,7 @@ import pytest
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
+from pandas.testing import assert_frame_equal
 
 from schematic.configuration.configuration import Configuration
 from schematic.models.metadata import MetadataModel
