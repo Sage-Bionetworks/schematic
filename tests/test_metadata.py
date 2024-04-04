@@ -1,11 +1,11 @@
-import os
 import logging
+import os
+from typing import Optional
+from unittest.mock import patch
 
 import pytest
 
-from unittest.mock import Mock, patch
 from schematic.models.metadata import MetadataModel
-from typing import Optional
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
