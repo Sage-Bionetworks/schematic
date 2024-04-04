@@ -871,7 +871,7 @@ class TestManifestUpload:
             file_names_lst = new_df["Filename"].tolist()
             entity_ids_lst = new_df["entityId"].tolist()
 
-            # make sure that entityId and Id columns get added
+            # test entityId and Id columns get added
             assert "entityId" and "Id" in new_df.columns
             assert file_names_lst == [
                 "Test sub folder/sample_file_one.txt",
