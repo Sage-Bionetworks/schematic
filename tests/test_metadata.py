@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from schematic.models.metadata import MetadataModel
-from conftest import Helpers
+from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

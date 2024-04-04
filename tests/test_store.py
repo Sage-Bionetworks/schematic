@@ -21,7 +21,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
-from conftest import Helpers
+from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

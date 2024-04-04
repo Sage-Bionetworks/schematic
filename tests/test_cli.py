@@ -10,7 +10,7 @@ from schematic.schemas.commands import schema
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
 from schematic.configuration.configuration import Configuration
-from conftest import Helpers
+from tests.conftest import Helpers
 
 
 @pytest.fixture
