@@ -5,6 +5,7 @@ import pytest
 
 from unittest.mock import Mock, patch
 from schematic.models.metadata import MetadataModel
+from typing import Optional
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -104,17 +105,36 @@ class TestMetadataModel:
         ids=["data_model_labels-display_label", "data_model_labels-class_label"],
     )
     @pytest.mark.parametrize("validate_component", [None, "BulkRNA-seqAssay"])
-    def test_submit_metadata_manifest(self, helpers, file_annotations_upload, restrict_rules, data_model_labels, validate_component, hide_blanks):
+    def test_submit_metadata_manifest(
+        self,
+        helpers,
+        file_annotations_upload: bool,
+        restrict_rules: bool,
+        data_model_labels: str,
+        hide_blanks: bool,
+        validate_component: Optional[str],
+    ) -> None:
         meta_data_model = metadata_model(helpers, data_model_labels)
         with patch(
             "schematic.models.metadata.MetadataModel.validateModelManifest",
-            return_value=([],[])
+            return_value=([], []),
         ):
             with patch(
                 "schematic.store.synapse.SynapseStorage.associateMetadataWithFiles",
-                return_value="mock manifest id"
+                return_value="mock manifest id",
             ):
-                mock_manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+                mock_manifest_path = helpers.get_data_path(
+                    "mock_manifests/bulkrnaseq_test.csv"
+                )
                 data_model_jsonld = helpers.get_data_path("example.model.jsonld")
-                mock_manifest_id = meta_data_model.submit_metadata_manifest(manifest_path=mock_manifest_path, path_to_json_ld=data_model_jsonld, validate_component = validate_component, dataset_id="mock dataset id", manifest_record_type="file_only", restrict_rules=restrict_rules, file_annotations_upload=file_annotations_upload, hide_blanks=hide_blanks)
+                mock_manifest_id = meta_data_model.submit_metadata_manifest(
+                    manifest_path=mock_manifest_path,
+                    path_to_json_ld=data_model_jsonld,
+                    validate_component=validate_component,
+                    dataset_id="mock dataset id",
+                    manifest_record_type="file_only",
+                    restrict_rules=restrict_rules,
+                    file_annotations_upload=file_annotations_upload,
+                    hide_blanks=hide_blanks,
+                )
                 assert mock_manifest_id == "mock manifest id"
