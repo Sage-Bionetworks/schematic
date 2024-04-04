@@ -6,6 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from schematic.models.metadata import MetadataModel
+from conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ class TestMetadataModel:
     @pytest.mark.parametrize("validate_component", [None, "BulkRNA-seqAssay"])
     def test_submit_metadata_manifest(
         self,
-        helpers,
+        helpers: Helpers,
         file_annotations_upload: bool,
         restrict_rules: bool,
         data_model_labels: str,
