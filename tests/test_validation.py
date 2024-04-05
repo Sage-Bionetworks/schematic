@@ -55,18 +55,39 @@ class TestManifestValidation:
     if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
         os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
-    def test_valid_manifest(self, helpers, metadataModel):
+    @pytest.mark.parametrize(
+        "project_scope",
+        ["syn54126707", "syn55250368"],
+        ids=["project_scope_with_manifests", "project_scope_without_manifests"],
+    )
+    def test_valid_manifest(self, helpers, metadataModel, project_scope):
         manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
             rootNode=rootNode,
-            project_scope=["syn54126707"],
+            project_scope=[project_scope],
         )
 
         assert errors == []
-        assert warnings == []
+        # When submitting the first manifest for cross manifest validation, check that proper warning (to alert
+        # users that no validation will be run), is raised. The manifest is still valid to submit.
+        if project_scope == "syn55250368":
+            rule_sets = [
+                ('Check Match at Least', 'matchAtLeastOne'),
+                ('Check Match at Least values', 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value'),
+                ('Check Match Exactly', 'matchExactlyOne MockComponent.checkMatchExactly set'),
+                ('Check Match Exactly values', 'matchExactlyOne MockComponent.checkMatchExactlyvalues value'),
+                ('Check Match None', 'matchNone MockComponent.checkMatchNone set error'),
+                ('Check Match None values', 'matchNone MockComponent.checkMatchNonevalues value error'),
+            ]
+            for error_col, val_rule in rule_sets:
+                assert GenerateError.generate_no_cross_warning(
+                        error_col=error_col,
+                        val_rule=val_rule)[1] in warnings
+        else:
+            assert warnings == []
 
     def test_invalid_manifest(self, helpers, dmge, metadataModel):
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
