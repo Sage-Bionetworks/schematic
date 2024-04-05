@@ -383,9 +383,11 @@ class GenerateError:
 
         return error_list, warning_list
 
-    def generate_no_cross_warning(dmge:DataModelGraphExplorer, str, attribute_name:str, val_rule:str):
-        """ Raise a warning if no columns were found in the specified project to validate against, inform user the
-        source manifest will be uploaded without running validation. Retain standard warning 
+    def generate_no_cross_warning(
+        dmge: DataModelGraphExplorer, str, attribute_name: str, val_rule: str
+    ):
+        """Raise a warning if no columns were found in the specified project to validate against, inform user the
+        source manifest will be uploaded without running validation. Retain standard warning
         Args:
             dmge: DataModelGraphExplorer object
             attribute_name, str: str, attribute being validated
@@ -394,20 +396,23 @@ class GenerateError:
             Errors: list[str] Error details for further storage.
             warnings: list[str] Warning details for further storage.
         """
-        error_message = (f"Cross Manifest Validation Warning: There are no target columns to validate "
-                        f"this manifest against for attribute: {error_col}, "
-                        f"and validation rule: {val_rule}. It is assumed this is the first manifest in a "
-                        f"series to be submitted, so validation will pass, for now, and will run again "
-                        f"when there are manifests uploaded to validate against.")
+        error_message = (
+            f"Cross Manifest Validation Warning: There are no target columns to validate "
+            f"this manifest against for attribute: {error_col}, "
+            f"and validation rule: {val_rule}. It is assumed this is the first manifest in a "
+            f"series to be submitted, so validation will pass, for now, and will run again "
+            f"when there are manifests uploaded to validate against."
+        )
 
         _, warning_list = GenerateError.raise_and_store_message(
-                            dmge=dmge,
-                            val_rule=val_rule,
-                            error_row=None,
-                            error_col=attribute_name,
-                            error_message=error_message,
-                            error_val=None,
-                            message_level='warning')
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=None,
+            error_col=attribute_name,
+            error_message=error_message,
+            error_val=None,
+            message_level="warning",
+        )
 
         return warning_list
 
@@ -492,7 +497,7 @@ class GenerateError:
         error_col: str,
         error_message: str,
         error_val: Union[str, list[str]],
-        message_level: str=None
+        message_level: str = None,
     ) -> tuple[list[str], list[str]]:
         """
         Purpose:
@@ -1168,11 +1173,13 @@ class ValidateAttribute(object):
         missing_manifest_log: dict[str, pd.core.series.Series],
         present_manifest_log: dict[str, pd.core.series.Series],
         repeat_manifest_log: dict[str, pd.core.series.Series],
-    ) -> tuple[tuple[dict[str, pd.core.series.Series],
-        dict[str, pd.core.series.Series],
-        dict[str, pd.core.series.Series],
-        bool]
-
+    ) -> tuple[
+        tuple[
+            dict[str, pd.core.series.Series],
+            dict[str, pd.core.series.Series],
+            dict[str, pd.core.series.Series],
+            bool,
+        ]
     ]:
         """For set rule scope, go through the given target column and look
         Args:
@@ -1228,7 +1235,11 @@ class ValidateAttribute(object):
                     # and the missing values.
                     missing_manifest_log[target_manifest_id] = missing_values
 
-        return (missing_manifest_log, present_manifest_log, repeat_manifest_log), target_attribute_in_manifest
+        return (
+            missing_manifest_log,
+            present_manifest_log,
+            repeat_manifest_log,
+        ), target_attribute_in_manifest
 
     def _gather_target_columns_value(
         self,
@@ -1367,7 +1378,7 @@ class ValidateAttribute(object):
         missing_manifest_log = {}
         repeat_manifest_log = {}
 
-        target_attribute_in_manifest=False
+        target_attribute_in_manifest = False
 
         # Set relevant parameters
         [target_component, target_attribute] = val_rule.lower().split(" ")[1].split(".")
@@ -1402,9 +1413,11 @@ class ValidateAttribute(object):
             # manifest individually, gather results
             if "set" in rule_scope:
                 (
-                    (missing_manifest_log,
-                    present_manifest_log,
-                    repeat_manifest_log,),
+                    (
+                        missing_manifest_log,
+                        present_manifest_log,
+                        repeat_manifest_log,
+                    ),
                     target_attribute_in_manifest,
                 ) = self._run_validation_across_targets_set(
                     val_rule=val_rule,
@@ -1428,8 +1441,8 @@ class ValidateAttribute(object):
                     target_manifest=target_manifest,
                 )
                 if target_column.any():
-                    target_attribute_in_manifest=True
-                    
+                    target_attribute_in_manifest = True
+
         if not target_attribute_in_manifest:
             return (start_time, target_attribute_in_manifest)
         else:
@@ -1500,9 +1513,8 @@ class ValidateAttribute(object):
         if isinstance(validation_output, bool) and not validation_output:
             errors = []
             warnings = GenerateError.generate_no_cross_warning(
-                            dmge=self.dmge,
-                            attribute_name=manifest_col.name,
-                            val_rule=val_rule)
+                dmge=self.dmge, attribute_name=manifest_col.name, val_rule=val_rule
+            )
 
         elif isinstance(validation_output, tuple):
             # Raise warnings/errors based on validation output and rule_scope.
