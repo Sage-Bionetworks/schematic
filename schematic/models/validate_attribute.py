@@ -1785,9 +1785,9 @@ class ValidateAttribute(object):
         # allow users to just submit.
         if isinstance(validation_output, bool) and not validation_output:
             errors = []
-            #warnings = GenerateError.generate_no_cross_warning(
+            # warnings = GenerateError.generate_no_cross_warning(
             #    dmge=self.dmge, attribute_name=manifest_col.name, val_rule=val_rule.split(' ')[0]
-            #)
+            # )
             warnings = GenerateError.generate_no_cross_warning(
                 dmge=self.dmge, attribute_name=manifest_col.name, val_rule=val_rule
             )
