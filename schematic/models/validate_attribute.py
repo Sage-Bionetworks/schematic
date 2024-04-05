@@ -383,18 +383,26 @@ class GenerateError:
 
         return error_list, warning_list
 
-    def generate_no_cross_warning(error_col:str, val_rule:str):
+    def generate_no_cross_warning(dmge:DataModelGraphExplorer, error_col:str, val_rule:str):
         """ Raise a warning if no columns were found in the specified project to validate against, inform user the
         source manifest will be uploaded without running validation. Retain standard warning 
         """
-        error_row = None
-        error_message = (f"There are no target columns to validate this manifest against for attribute -{error_col}-,"
-                        f"and validation rule -{val_rule}-. It is assumed this is the first manifest in a "
+        #error_row = None
+        error_message = (f"Cross Manifest Validation Warning: There are no target columns to validate "
+                        f"this manifest against for attribute: {error_col}, "
+                        f"and validation rule: {val_rule}. It is assumed this is the first manifest in a "
                         f"series to be submitted, so validation will pass, for now, and will run again "
-                        f"with the next manifest upload.")
-        error_val = None
+                        f"when there are manifests uploaded to validate against.")
 
-        warning_list = [error_row, error_col, error_message, error_val]
+        _, warning_list = GenerateError.raise_and_store_message(
+                            dmge=dmge,
+                            val_rule=val_rule,
+                            error_row=None,
+                            error_col=error_col,
+                            error_message=error_message,
+                            error_val=None,
+                            message_level='warning')
+
         return warning_list
 
     def get_message_level(
@@ -478,6 +486,7 @@ class GenerateError:
         error_col: str,
         error_message: str,
         error_val: Union[str, list[str]],
+        message_level: str=None
     ) -> tuple[list[str], list[str]]:
         """
         Purpose:
@@ -489,6 +498,7 @@ class GenerateError:
             - error_col: str, attribute being validated
             - error_message: str, error message string
             - error_val: str, erroneous value
+            - message_level: str, message level to raise, if its an unchanging level.
         Raises:
             logger.error or logger.warning or no message
         Returns:
@@ -499,12 +509,13 @@ class GenerateError:
         error_list = []
         warning_list = []
 
-        message_level = GenerateError.get_message_level(
-            dmge,
-            error_col,
-            error_val,
-            val_rule,
-        )
+        if not message_level:
+            message_level = GenerateError.get_message_level(
+                dmge,
+                error_col,
+                error_val,
+                val_rule,
+            )
 
         if message_level is None:
             return error_list, warning_list
@@ -1482,7 +1493,7 @@ class ValidateAttribute(object):
         # allow users to just submit.
         if isinstance(validation_output, bool) and not validation_output:
             errors = []
-            warnings = GenerateError.generate_no_cross_warning(error_col=manifest_col.name, val_rule=val_rule)
+            warnings = GenerateError.generate_no_cross_warning(dmge=self.dmge, error_col=manifest_col.name, val_rule=val_rule)
 
         elif isinstance(validation_output, tuple):
             # Raise warnings/errors based on validation output and rule_scope.
