@@ -7,6 +7,9 @@ import tempfile
 import time
 from datetime import datetime
 from unittest import mock
+from pathlib import Path
+from typing import Union, Generator
+from _pytest.fixtures import FixtureRequest
 
 import numpy as np
 import pandas as pd
@@ -147,8 +150,7 @@ TEST_VALIDATION_RULES = {
     "duplicated_component": {
         "validation_rules": ["#Patient unique^^#Patient int"],
         "parsed_rules": "raises_exception",
-        }
-
+    },
 }
 
 TEST_DN_DICT = {
@@ -159,22 +161,55 @@ TEST_DN_DICT = {
     "bio_things": {"class": "BioThings", "property": "bioThings"},
 }
 
+test_disk_storage = [
+    (2, 4000, 16000),
+    (1000, 4000, 16000),
+    (2000000, 1900000, 2000000),
+    (1073741825, 1073741824, 1181116006.4),
+]
+
+
+# create temporary files with various size based on request
+@pytest.fixture()
+def create_temp_query_file(
+    tmp_path: Path, request: FixtureRequest
+) -> Generator[tuple[Path, Path, Path], None, None]:
+    """create temporary files of various size based on request parameter.
+
+    Args:
+        tmp_path (Path): temporary file path
+        request (any): a request for a fixture from a test
+
+    Yields:
+        Generator[Tuple[Path, Path, Path]]: return path of mock synapse cache directory, mock table query folder and csv
+    """
+    # define location of mock synapse cache
+    mock_synapse_cache_dir = tmp_path / ".synapseCache/"
+    mock_synapse_cache_dir.mkdir()
+    mock_sub_folder = mock_synapse_cache_dir / "123"
+    mock_sub_folder.mkdir()
+    mock_table_query_folder = mock_sub_folder / "456"
+    mock_table_query_folder.mkdir()
+
+    # create mock table query csv
+    mock_synapse_table_query_csv = (
+        mock_table_query_folder / "mock_synapse_table_query.csv"
+    )
+    with open(mock_synapse_table_query_csv, "wb") as f:
+        f.write(b"\0" * request.param)
+    yield mock_synapse_cache_dir, mock_table_query_folder, mock_synapse_table_query_csv
+
 
 class TestGeneral:
-    def test_clear_synapse_cache(self, tmp_path):
+    @pytest.mark.parametrize("create_temp_query_file", [3, 1000], indirect=True)
+    def test_clear_synapse_cache(self, create_temp_query_file) -> None:
         # define location of mock synapse cache
-        mock_synapse_cache_dir = tmp_path / ".synapseCache/"
-        mock_synapse_cache_dir.mkdir()
-        mock_sub_folder = mock_synapse_cache_dir / "123"
-        mock_sub_folder.mkdir()
-        mock_table_query_folder = mock_sub_folder / "456"
-        mock_table_query_folder.mkdir()
-
-        # create mock table query csv and a mock cache map
-        mock_synapse_table_query_csv = (
-            mock_table_query_folder / "mock_synapse_table_query.csv"
-        )
-        mock_synapse_table_query_csv.write_text("mock table query content")
+        (
+            mock_synapse_cache_dir,
+            mock_table_query_folder,
+            mock_synapse_table_query_csv,
+        ) = create_temp_query_file
+        # create a mock cache map
         mock_cache_map = mock_table_query_folder / ".cacheMap"
         mock_cache_map.write_text(
             f"{mock_synapse_table_query_csv}: '2022-06-13T19:24:27.000Z'"
@@ -222,22 +257,25 @@ class TestGeneral:
 
     # this test might fail for windows machine
     @pytest.mark.not_windows
-    def test_check_synapse_cache_size(self, tmp_path):
-        mock_synapse_cache_dir = tmp_path / ".synapseCache"
-        mock_synapse_cache_dir.mkdir()
-
-        mock_synapse_table_query_csv = (
-            mock_synapse_cache_dir / "mock_synapse_table_query.csv"
-        )
-        mock_synapse_table_query_csv.write_text("example file for calculating cache")
-
-        file_size = check_synapse_cache_size(mock_synapse_cache_dir)
+    @pytest.mark.parametrize(
+        "create_temp_query_file,local_disk_size,gh_disk_size",
+        test_disk_storage,
+        indirect=["create_temp_query_file"],
+    )
+    def test_check_synapse_cache_size(
+        self,
+        create_temp_query_file,
+        local_disk_size: int,
+        gh_disk_size: Union[int, float],
+    ) -> None:
+        mock_synapse_cache_dir, _, _ = create_temp_query_file
+        disk_size = check_synapse_cache_size(mock_synapse_cache_dir)
 
         # For some reasons, when running in github action, the size of file changes.
         if IN_GITHUB_ACTIONS:
-            assert file_size == 8000
+            assert disk_size == gh_disk_size
         else:
-            assert file_size == 4000
+            assert disk_size == local_disk_size
 
     def test_find_duplicates(self):
         mock_list = ["foo", "bar", "foo"]
@@ -775,18 +813,20 @@ class TestSchemaUtils:
     @pytest.mark.parametrize(
         "component_names",
         [
-            ["duplicated_component", ['Patient', 'Biospecimen', 'Patient']],
-            ["individual_component", ['Patient', 'Biospecimen']],
-            ["no_component", []]
+            ["duplicated_component", ["Patient", "Biospecimen", "Patient"]],
+            ["individual_component", ["Patient", "Biospecimen"]],
+            ["no_component", []],
         ],
         ids=["duplicated_component", "individual_component", "no_component"],
     )
     def test_check_for_duplicate_components(self, component_names):
         """Test that we are properly identifying duplicates in a list.
-            Exception should only be triggered when the duplicate component list is passed.
+        Exception should only be triggered when the duplicate component list is passed.
         """
         try:
-            check_for_duplicate_components(component_names=component_names[1], validation_rule_string='dummy_str')
+            check_for_duplicate_components(
+                component_names=component_names[1], validation_rule_string="dummy_str"
+            )
         except:
             assert component_names[0] == "duplicated_component"
 
@@ -812,7 +852,7 @@ class TestSchemaUtils:
             )
             assert expected_parsed_rules == parsed_validation_rules
         except:
-            assert test_rule_name in ["str_rule", "duplicated_component"] 
+            assert test_rule_name in ["str_rule", "duplicated_component"]
 
     @pytest.mark.parametrize(
         "test_rule_name",
@@ -836,6 +876,7 @@ class TestSchemaUtils:
                         component
                     ]
                 )
+
     @pytest.mark.parametrize(
         "test_dn",
         list(TEST_DN_DICT.keys()),
@@ -950,8 +991,7 @@ class TestSchemaUtils:
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
-        """
-        """
+        """ """
 
         # Get data model path
         data_model_path = helpers.get_data_path("example.model.jsonld")

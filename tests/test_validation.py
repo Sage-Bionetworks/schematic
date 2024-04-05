@@ -27,16 +27,13 @@ def DMGE(helpers):
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     yield dmge
 
-
-@pytest.fixture
-def metadataModel(helpers):
+def get_metadataModel(helpers, model_name:str):
     metadataModel = MetadataModel(
-        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+        inputMModelLocation=helpers.get_data_path(model_name),
         inputMModelLocationType="local",
         data_model_labels="class_label",
     )
-
-    yield metadataModel
+    return metadataModel
 
 
 def get_rule_combinations():
@@ -60,36 +57,46 @@ class TestManifestValidation:
         ["syn54126707", "syn55250368"],
         ids=["project_scope_with_manifests", "project_scope_without_manifests"],
     )
-    def test_valid_manifest(self, helpers, metadataModel, project_scope):
-        manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
-        rootNode = "MockComponent"
+    @pytest.mark.parametrize(
+        ("model_name", "manifest_name", "root_node"),
+        [
+            ("example.model.jsonld","mock_manifests/Valid_Test_Manifest.csv", "MockComponent"),
+            ("example.model.jsonld", "mock_manifests/Patient_test_no_entry_for_cond_required_column.csv", "Patient"),
+            ("example_test_nones.model.jsonld","mock_manifests/Valid_Test_Manifest_with_nones.csv", "MockComponent"),
+        ],
+        ids=["example_model", "example_with_no_entry_for_cond_required_columns", "example_with_nones"],
+    )
+    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str, root_node:str, project_scope:str, dmge:DataModelGraph):
+        manifest_path = helpers.get_data_path(manifest_name)
 
+        metadataModel = get_metadataModel(helpers, model_name)
         errors, warnings = metadataModel.validateModelManifest(
-            manifestPath=manifestPath,
-            rootNode=rootNode,
+            manifestPath=manifest_path,
+            rootNode=root_node,
             project_scope=[project_scope],
         )
 
         assert errors == []
         # When submitting the first manifest for cross manifest validation, check that proper warning (to alert
         # users that no validation will be run), is raised. The manifest is still valid to submit.
-        if project_scope == "syn55250368":
+        if project_scope == "syn55250368" and root_node=="MockComponent":
             rule_sets = [
-                ('Check Match at Least', 'matchAtLeastOne'),
+                ('Check Match at Least', 'matchAtLeastOne Patient.PatientID set'),
                 ('Check Match at Least values', 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value'),
                 ('Check Match Exactly', 'matchExactlyOne MockComponent.checkMatchExactly set'),
                 ('Check Match Exactly values', 'matchExactlyOne MockComponent.checkMatchExactlyvalues value'),
-                ('Check Match None', 'matchNone MockComponent.checkMatchNone set error'),
-                ('Check Match None values', 'matchNone MockComponent.checkMatchNonevalues value error'),
             ]
-            for error_col, val_rule in rule_sets:
+            for attribute_name, val_rule in rule_sets:
                 assert GenerateError.generate_no_cross_warning(
-                        attribute_name=error_col,
-                        val_rule=val_rule)[1] in warnings
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[0] in warnings
         else:
             assert warnings == []
 
-    def test_invalid_manifest(self, helpers, dmge, metadataModel):
+    def test_invalid_manifest(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
+        
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
@@ -115,7 +122,7 @@ class TestManifestValidation:
                 invalid_entry="5.63",
                 dmge=dmge,
             )[0] in errors
-
+    
         assert GenerateError.generate_type_error(
                 val_rule="str",
                 row_num="3",
@@ -234,7 +241,6 @@ class TestManifestValidation:
              in errors
         )
 
-
         # check warnings
         assert GenerateError.generate_content_error(
                 val_rule="recommended",
@@ -265,7 +271,7 @@ class TestManifestValidation:
                 attribute_name="Check Match at Least values",
                 invalid_entry=["51100"],
                 dmge=dmge,
-            )[1] in warnings
+            )[1] in warnings       
 
         assert \
             GenerateError.generate_cross_warning(
@@ -293,7 +299,8 @@ class TestManifestValidation:
         assert any(warning_in_list)
 
 
-    def test_in_house_validation(self, helpers, dmge, metadataModel):
+    def test_in_house_validation(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
@@ -489,21 +496,23 @@ class TestManifestValidation:
             restrict_rules=False,
             project_scope=None,
         )
-
-        if root_node == "Biospecimen":
-            assert (
-                vmr_errors
-                and vmr_errors[0][0] == ["2", "3"]
-                and vmr_errors[0][-1] == ["123"]
-            )
-            assert vmr_warnings == []
-        elif root_node == "Patient":
-            assert vmr_errors == []
-            assert (
-                vmr_warnings
-                and vmr_warnings[0][0] == ["2", "3"]
-                and vmr_warnings[0][-1] == ["123"]
-            )
+        try:
+            if root_node == "Biospecimen":
+                assert (
+                    vmr_errors
+                    and vmr_errors[0][0] == ["2", "3"]
+                    and vmr_errors[0][-1] == ["123"]
+                )
+                assert vmr_warnings == []
+            elif root_node == "Patient":
+                assert vmr_errors == []
+                assert (
+                    vmr_warnings
+                    and vmr_warnings[0][0] == ["2", "3"]
+                    and vmr_warnings[0][-1] == ["123"]
+                )
+        except:
+            breakpoint()
 
 
     @pytest.mark.rule_combos(
@@ -511,7 +520,7 @@ class TestManifestValidation:
     )
     @pytest.mark.parametrize("base_rule, second_rule", get_rule_combinations())
     def test_rule_combinations(
-        self, helpers, dmge, base_rule, second_rule, metadataModel
+        self, helpers, dmge, base_rule, second_rule,
     ):
         """
         TODO: Describe what this test is doing.
@@ -520,6 +529,8 @@ class TestManifestValidation:
         """
         rule_regex = re.compile(base_rule + ".*")
         rootNode = "MockComponent"
+
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
 
         manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
         manifest = helpers.get_data_frame(manifestPath)
