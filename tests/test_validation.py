@@ -84,7 +84,7 @@ class TestManifestValidation:
             ]
             for error_col, val_rule in rule_sets:
                 assert GenerateError.generate_no_cross_warning(
-                        error_col=error_col,
+                        attribute_name=error_col,
                         val_rule=val_rule)[1] in warnings
         else:
             assert warnings == []

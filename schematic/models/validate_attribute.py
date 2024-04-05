@@ -383,11 +383,17 @@ class GenerateError:
 
         return error_list, warning_list
 
-    def generate_no_cross_warning(dmge:DataModelGraphExplorer, error_col:str, val_rule:str):
+    def generate_no_cross_warning(dmge:DataModelGraphExplorer, str, attribute_name:str, val_rule:str):
         """ Raise a warning if no columns were found in the specified project to validate against, inform user the
         source manifest will be uploaded without running validation. Retain standard warning 
+        Args:
+            dmge: DataModelGraphExplorer object
+            attribute_name, str: str, attribute being validated
+            val_rule: str, defined in the schema.
+        Returns:
+            Errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
         """
-        #error_row = None
         error_message = (f"Cross Manifest Validation Warning: There are no target columns to validate "
                         f"this manifest against for attribute: {error_col}, "
                         f"and validation rule: {val_rule}. It is assumed this is the first manifest in a "
@@ -398,7 +404,7 @@ class GenerateError:
                             dmge=dmge,
                             val_rule=val_rule,
                             error_row=None,
-                            error_col=error_col,
+                            error_col=attribute_name,
                             error_message=error_message,
                             error_val=None,
                             message_level='warning')
@@ -1493,7 +1499,10 @@ class ValidateAttribute(object):
         # allow users to just submit.
         if isinstance(validation_output, bool) and not validation_output:
             errors = []
-            warnings = GenerateError.generate_no_cross_warning(dmge=self.dmge, error_col=manifest_col.name, val_rule=val_rule)
+            warnings = GenerateError.generate_no_cross_warning(
+                            dmge=self.dmge,
+                            attribute_name=manifest_col.name,
+                            val_rule=val_rule)
 
         elif isinstance(validation_output, tuple):
             # Raise warnings/errors based on validation output and rule_scope.
