@@ -5,7 +5,7 @@
 import logging
 from copy import deepcopy
 from time import perf_counter
-from typing import Union
+from typing import Union, Any, Optional
 from datetime import datetime
 import dateparser as dp
 import pandas as pd
@@ -19,7 +19,8 @@ def load_df(
     file_path: str,
     preserve_raw_input: bool = True,
     data_model: bool = False,
-    **load_args: dict,
+    allow_na_values: bool = False,
+    **load_args: Any,
 ) -> pd.DataFrame:
     """
     Universal function to load CSVs and return DataFrames
@@ -30,6 +31,7 @@ def load_df(
         file_path (str): path of csv to open
         preserve_raw_input (bool, optional): If false, convert cell datatypes to an inferred type
         data_model (bool, optional): bool, indicates if importing a data model
+        allow_na_values (bool, optional): If true, allow pd.NA values in the dataframe
         **load_args(dict): dict of key value pairs to be passed to the pd.read_csv function
 
     Raises:
@@ -56,14 +58,11 @@ def load_df(
 
     # only trim if not data model csv
     if not data_model:
-        org_df = trim_commas_df(org_df)
+        org_df = trim_commas_df(org_df, allow_na_values=allow_na_values)
 
     if preserve_raw_input:
         logger.debug(f"Load Elapsed time {perf_counter()-t_load_df}")
         return org_df
-
-    is_null = org_df.isnull()
-    org_df = org_df.astype(str).mask(is_null, "")
 
     ints, is_int = find_and_convert_ints(org_df)
 
@@ -119,7 +118,9 @@ def convert_ints(string: str) -> Union[np.int64, bool]:
     Returns:
         string converted to type int if possible, otherwise False
     """
-    return np.int64(string) if str.isdigit(string) else False
+    if isinstance(string, str) and str.isdigit(string):
+        return np.int64(string)
+    return False
 
 
 def convert_floats(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -237,11 +238,15 @@ def update_df(
     return input_df_idx
 
 
-def trim_commas_df(dataframe: pd.DataFrame) -> pd.DataFrame:
+def trim_commas_df(
+    dataframe: pd.DataFrame,
+    allow_na_values: Optional[bool] = False,
+) -> pd.DataFrame:
     """Removes empty (trailing) columns and empty rows from pandas dataframe (manifest data).
 
     Args:
         dataframe: pandas dataframe with data from manifest file.
+        allow_na_values (bool, optional): If true, allow pd.NA values in the dataframe
 
     Returns:
         df: cleaned-up pandas dataframe.
@@ -252,8 +257,9 @@ def trim_commas_df(dataframe: pd.DataFrame) -> pd.DataFrame:
     # remove all completely empty rows
     dataframe = dataframe.dropna(how="all", axis=0)
 
-    # Fill in nan cells with empty strings
-    dataframe.fillna("", inplace=True)
+    if allow_na_values is False:
+        # Fill in nan cells with empty strings
+        dataframe.fillna("", inplace=True)
     return dataframe
 
 

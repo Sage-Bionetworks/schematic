@@ -4,7 +4,7 @@ import re
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Any, Optional, Text, Literal, Union
+from typing import Any, Optional, Literal, Union
 from urllib import error
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -29,6 +29,7 @@ from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 logger = logging.getLogger(__name__)
 
+MessageLevelType = Literal["warning", "error"]
 ScopeTypes = Literal["set", "value"]
 
 
@@ -37,7 +38,7 @@ class GenerateError:
         row_num: str,
         attribute_name: str,
         error_message: str,
-        invalid_entry: str,
+        invalid_entry: Any,
         dmge: DataModelGraphExplorer,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -65,8 +66,8 @@ class GenerateError:
         list_string: str,
         row_num: str,
         attribute_name: str,
-        list_error: str,
-        invalid_entry: str,
+        list_error: Literal["not_comma_delimited", "not_a_string"],
+        invalid_entry: Any,
         dmge: DataModelGraphExplorer,
         val_rule: str,
     ) -> tuple[list[list[str]], list[list[str]]]:
@@ -93,6 +94,12 @@ class GenerateError:
                 f"appear as if you provided a comma delimited string. Please check "
                 f"your entry ('{list_string}'') and try again."
             )
+        elif list_error == "not_a_string":
+            error_message = (
+                f"For attribute {attribute_name} in row {row_num} it does not "
+                f"appear as if you provided a string. Please check "
+                f"your entry ('{list_string}'') and try again."
+            )
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
@@ -111,7 +118,7 @@ class GenerateError:
         row_num: str,
         module_to_call: str,
         attribute_name: str,
-        invalid_entry: str,
+        invalid_entry: Any,
         dmge: DataModelGraphExplorer,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -151,7 +158,7 @@ class GenerateError:
         val_rule: str,
         row_num: str,
         attribute_name: str,
-        invalid_entry: str,
+        invalid_entry: Any,
         dmge: DataModelGraphExplorer,
     ) -> tuple[list[list[str]], list[list[str]]]:
         """
@@ -169,9 +176,11 @@ class GenerateError:
         warnings: list[str] Warning details for further storage.
         """
 
+        base_rule = val_rule.split(" ")[0]
+
         error_message = (
             f"On row {row_num} the attribute {attribute_name} "
-            f"does not contain the proper value type {val_rule}."
+            f"does not contain the proper value type {base_rule}."
         )
 
         error_list, warning_list = GenerateError.raise_and_store_message(
@@ -191,7 +200,7 @@ class GenerateError:
         row_num: str,
         attribute_name: str,
         argument: str,
-        invalid_entry: str,
+        invalid_entry: Any,
         dmge: DataModelGraphExplorer,
         val_rule: str,
     ) -> tuple[list[list[str]], list[list[str]]]:
@@ -229,19 +238,16 @@ class GenerateError:
                 f"conform to the standards of a URL. Please make sure you are entering a real, working URL "
                 f"as required by the Schema."
             )
-            error_val = invalid_entry
         elif url_error == "arg_error":
             error_message = (
                 f"For the attribute '{attribute_name}', on row {row_num}, the URL provided ({url}) does not "
                 f"conform to the schema specifications and does not contain the required element: {argument}."
             )
-            error_val = f"URL Error: Argument Error"
         elif url_error == "random_entry":
             error_message = (
                 f"For the attribute '{attribute_name}', on row {row_num}, the input provided ('{url}'') does not "
                 f"look like a URL, please check input and try again."
             )
-            error_val = f"URL Error: Random Entry"
 
         error_list, warning_list = GenerateError.raise_and_store_message(
             dmge=dmge,
@@ -249,7 +255,7 @@ class GenerateError:
             error_row=row_num,
             error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
@@ -260,9 +266,9 @@ class GenerateError:
         dmge: DataModelGraphExplorer,
         matching_manifests: list[str] = None,
         manifest_id: Optional[list[str]] = None,
-        invalid_entry: Optional[list[str]] = None,
+        invalid_entry: Union[str, list[str]] = "No Invalid Entry Recorded",
         row_num: Optional[list[str]] = None,
-    ) -> tuple[[list[str], list[str]]]:
+    ) -> tuple[list[list[str]], list[list[str]]]:
         """
         Purpose:
             Generate an logging error as well as a stored error message, when
@@ -317,7 +323,6 @@ class GenerateError:
             error_message=error_message,
             error_val=invalid_entry,
         )
-
         return error_list, warning_list
 
     def generate_content_error(
@@ -347,16 +352,18 @@ class GenerateError:
         """
 
         error_row = row_num
-        error_val = iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
 
         # log warning or error message
         if val_rule.startswith("recommended"):
             error_message = f"Column {attribute_name} is recommended but empty."
             error_row = None
-            error_val = None
+            invalid_entry = None
 
-        elif val_rule.startswith("unique"):
-            error_message = f"Column {attribute_name} has the duplicate value(s) {error_val} in rows: {row_num}."
+        if val_rule.startswith("unique"):
+            invalid_entry = (
+                iterable_to_str_list(set(invalid_entry)) if invalid_entry else None
+            )
+            error_message = f"Column {attribute_name} has the duplicate value(s) {invalid_entry} in rows: {row_num}."
 
         elif val_rule.startswith("protectAges"):
             error_message = f"Column {attribute_name} contains ages that should be censored in rows: {row_num}."
@@ -378,10 +385,141 @@ class GenerateError:
             error_row=error_row,
             error_col=attribute_name,
             error_message=error_message,
-            error_val=error_val,
+            error_val=invalid_entry,
         )
 
         return error_list, warning_list
+
+    def _get_rule_attributes(
+        val_rule: str, error_col_name: str, dmge: DataModelGraphExplorer
+    ) -> tuple[list, str, MessageLevelType, bool, bool, bool]:
+        """Extract different attributes from the given rule
+        Args:
+            val_rule, str: validation_rule being passed.
+            error_col_name, str, the display name of the attribute the rule is being applied to
+            dmge, DataModelGraphExplorer Object
+        Returns:
+        """
+        rule_parts = val_rule.split(" ")
+        rule_name = rule_parts[0]
+        specified_level = rule_parts[-1].lower()
+        specified_level = (
+            specified_level if specified_level in ["warning", "error"] else None
+        )
+
+        is_schema_error = rule_name == "schema"
+        col_is_recommended = rule_name == "recommended"
+        col_is_required = dmge.get_node_required(node_display_name=error_col_name)
+        return (
+            rule_parts,
+            rule_name,
+            specified_level,
+            is_schema_error,
+            col_is_recommended,
+            col_is_required,
+        )
+
+    def get_is_na_allowed(node_display_name: str, dmge: DataModelGraphExplorer) -> bool:
+        """Determine if NAs are allowed based on the original set of rules
+        Args:
+            node_display_name, str: display name for the current attribure
+            dmge, DataModelGraphExplorer
+        Returns:
+            bool: True, if IsNA is one of the rules, else False
+        """
+        # Get -all- of the specified validation rules for the attribute,
+        validation_rule_list = dmge.get_node_validation_rules(
+            node_display_name=node_display_name
+        )
+
+        # Determine if IsNA is one of the rules, if it is return True, else return False
+        if rule_in_rule_list("IsNA", validation_rule_list):
+            return True
+        else:
+            return False
+
+    def get_error_value_is_na(
+        error_val,
+        na_allowed: bool = False,
+    ) -> bool:
+        """Determine if the erroring value is NA
+        Args:
+            error_val: erroneous value
+        Returns:
+            bool: Returns True, if the error value is evaluated to be NA, and False if not
+        ):
+
+        """
+        not_applicable_strings = [
+            "not applicable",
+        ]
+
+        # Try to figure out if the erroring value is NA
+        if isinstance(error_val, str) and na_allowed:
+            error_val_is_na = error_val.lower() in not_applicable_strings
+        elif isinstance(error_val, list):
+            error_val_is_na = False
+        elif (error_val is None) or pd.isnull(error_val) or (error_val == "<NA>"):
+            error_val_is_na = True
+        else:
+            error_val_is_na = False
+        return error_val_is_na
+
+    def _determine_messaging_level(
+        rule_name: str,
+        error_val_is_na: bool,
+        specified_level: MessageLevelType,
+        is_schema_error: bool,
+        col_is_required: bool,
+        col_is_recommended: bool,
+    ) -> Optional[MessageLevelType]:
+        """Deterimine messaging level given infromation that was gathered about the rule and the error value
+        Args:
+            rule_name, str: The name of the rule being applied to the data, stripped of additional information
+            error_val_is_na, bool: True if error is entry is non-value, False if entry has a value
+            specified_level, MessageLevelType: Messaging level specified in the rule.
+            is_schema_error, bool: True if rule_name=="schema"
+            col_is_required, bool: True if the attribute column is required in the schema.
+            col_is_recommended, bool: True if rule_name=="recommended"
+        Returns:
+            Optional[MessageLevelType]: Messaging level is returned, if applicable.
+        """
+
+        # If the erroring value is NA, do not raise message. Do not worry about if value is required or not
+        # bc this is already accounted for in JSON Validation.
+        # This allows flexibiity to where, we dont need the value to be provided,
+        # but also the case where NA is recorded as the value 'Not Applicable'
+        if error_val_is_na and col_is_recommended:
+            message_level = "warning"
+
+        elif error_val_is_na:
+            message_level = None
+
+        # If the level was specified, return that level
+        elif specified_level:
+            message_level = specified_level
+
+        # If the rule being evaluated IsNa then do not raise message
+        elif rule_name.lower() == "isna":
+            message_level = None
+
+        # If schema error return Error
+        elif is_schema_error:
+            message_level = "error"
+
+        # If the column is not required, raise a warning,
+        elif not col_is_required:
+            message_level = "warning"
+        # If is the column is required, but recommended, do not raise message
+        elif col_is_required and col_is_recommended:
+            message_level = None
+
+        # If none of the above statements catches, then return the default message level, determine for a given rule.
+        # Rules have default messaging levels.
+
+        else:
+            message_level = validation_rule_info()[rule_name]["default_message_level"]
+        return message_level
 
     def get_message_level(
         dmge: DataModelGraphExplorer,
@@ -398,64 +536,54 @@ class GenerateError:
                 2. If a message level is specified in the validation rule, it is logged as such.
                 3. If the erroneous value is 'not applicable' and the rule is modified by 'IsNA', no message is logged.
                     3a. Messages are never logged specifically for the IsNA rule.
-                4. If no level is specified and there is an erroneous value, level is determined by whether or not the attribute is required and if the rule set is modified by the recommended modifier.
+                4. If no level is specified and there is an erroneous value, level is determined by whether or not
+                the attribute is required and if the rule set is modified by the recommended modifier.
                 5. If none of the above conditions apply, the default message level for the rule is logged.
         Input:
                 dmge: DataModelGraphExplorer object
-                error_col: str, attribute being validated
-                error_val: erroneous value
-                val_rule: str, defined in the schema.
+                error_col: str, Display name of attribute being validated
+                error_val: Any, erroneous value
+                val_rule: str, current attribute rule, defined in the schema, and being evaluated in this step
+                    (single rule set)
         Returns:
             'error', 'warning' or None
         Raises:
             Logging messagees, either error, warning, or no message
         """
-        not_applicable_strings = [
-            "not applicable",
-        ]
 
-        rule_parts = val_rule.split(" ")
-        rule_name = rule_parts[0]
-        specified_level = rule_parts[-1].lower()
-        specified_level = (
-            specified_level if specified_level in ["error", "warning"] else None
+        # Extract attributes from the current val_rule
+        (
+            rule_parts,
+            rule_name,
+            specified_level,
+            is_schema_error,
+            col_is_recommended,
+            col_is_required,
+        ) = GenerateError._get_rule_attributes(
+            val_rule=val_rule, error_col_name=error_col, dmge=dmge
         )
 
-        # Get all of the specified validation rules for the attribute
-        validation_rule_list = dmge.get_node_validation_rules(
-            node_display_name=error_col
+        # Determine if NA values are allowed.
+        na_allowed = GenerateError.get_is_na_allowed(
+            node_display_name=error_col, dmge=dmge
         )
 
-        is_schema_error = rule_name == "schema"
-        col_is_recommended = rule_name == "recommended"
-        col_is_required = dmge.get_node_required(node_display_name=error_col)
-        rules_include_na_modifier = rule_in_rule_list("IsNA", validation_rule_list)
-        error_val_is_na = (
-            error_val.lower() in not_applicable_strings
-            if isinstance(error_val, str)
-            else False
+        # Determine if the provided value that is
+        error_val_is_na = GenerateError.get_error_value_is_na(
+            error_val,
+            na_allowed,
+        )
+        # Return Messaging Level as appropriate, determined based on logic and heirarchy
+        message_level = GenerateError._determine_messaging_level(
+            rule_name,
+            error_val_is_na,
+            specified_level,
+            is_schema_error,
+            col_is_required,
+            col_is_recommended,
         )
 
-        if is_schema_error:
-            return "error"
-
-        if specified_level:
-            return specified_level
-
-        if (
-            error_val_is_na and rules_include_na_modifier
-        ) or rule_name.lower() == "isna":
-            return None
-
-        if not col_is_required:
-            return "warning"
-        elif col_is_required and col_is_recommended:
-            return None
-
-        default_rule_message_level = validation_rule_info()[rule_name][
-            "default_message_level"
-        ]
-        return default_rule_message_level
+        return message_level
 
     def raise_and_store_message(
         dmge: DataModelGraphExplorer,
@@ -498,6 +626,9 @@ class GenerateError:
         message_logger = getattr(logger, message_level)
         message_logger(error_message)
 
+        if error_val == "No Invalid Entry Recorded":
+            error_val = None
+
         if message_level == "error":
             error_list = [error_row, error_col, error_message, error_val]
         elif message_level == "warning":
@@ -523,6 +654,45 @@ class ValidateAttribute(object):
 
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
+
+    def get_no_entry(self, entry: str, node_display_name: str) -> bool:
+        """Helper function to check if the entry is blank or contains a not applicable type string (and NA is permitted)
+        Args:
+            entry, str: manifest entry currently under evaluation
+            node_display_name, str: node display name of the attribute currently under evaluation
+        Returns:
+            True, if value_is_na and na allowed
+            False, if entry has a value, or if submitted not applicable string is not allowed.
+        """
+        na_allowed = GenerateError.get_is_na_allowed(
+            node_display_name=node_display_name, dmge=self.dmge
+        )
+        value_is_na = GenerateError.get_error_value_is_na(
+            entry,
+            na_allowed,
+        )
+        if value_is_na:
+            return True
+        else:
+            return False
+
+    def get_entry_has_value(
+        self,
+        entry: str,
+        node_display_name: str,
+    ) -> bool:
+        """Return the inverse of get_no_entry.
+        Args:
+            entry, str: manifest entry currently under evaluation
+            node_display_name, str: node display name of the attribute currently under evaluation
+        Returns:
+            True, if entry has a value, or if submitted not applicable string is not allowed.
+            False, if value_is_na and na allowed
+        """
+        return not self.get_no_entry(
+            entry,
+            node_display_name,
+        )
 
     def get_target_manifests(
         self, target_component: str, project_scope: list[str], access_token: str = None
@@ -584,7 +754,7 @@ class ValidateAttribute(object):
         # white spaces removed.
         errors = []
         warnings = []
-        manifest_col = manifest_col.astype(str)
+
         csv_re = comma_separated_list_regex()
 
         rule_parts = val_rule.lower().split(" ")
@@ -594,10 +764,22 @@ class ValidateAttribute(object):
             list_robustness = "strict"
 
         if list_robustness == "strict":
+            manifest_col = manifest_col.astype(str)
+
             # This will capture any if an entry is not formatted properly. Only for strict lists
             for i, list_string in enumerate(manifest_col):
-                if not re.fullmatch(csv_re, list_string):
+                list_error = None
+                entry_has_value = self.get_entry_has_value(
+                    entry=list_string,
+                    node_display_name=manifest_col.name,
+                )
+
+                if not isinstance(list_string, str) and entry_has_value:
+                    list_error = "not_a_string"
+                elif not re.fullmatch(csv_re, list_string) and entry_has_value:
                     list_error = "not_comma_delimited"
+
+                if list_error:
                     vr_errors, vr_warnings = GenerateError.generate_list_error(
                         list_string,
                         row_num=str(i + 2),
@@ -665,6 +847,7 @@ class ValidateAttribute(object):
         validation_rules = self.dmge.get_node_validation_rules(
             node_display_name=manifest_col.name
         )
+
         if validation_rules and "::" in validation_rules[0]:
             validation_rules = validation_rules[0].split("::")
         # Handle case where validating re's within a list.
@@ -675,30 +858,43 @@ class ValidateAttribute(object):
 
             for i, row_values in enumerate(manifest_col):
                 for j, re_to_check in enumerate(row_values):
-                    re_to_check = str(re_to_check)
-                    if not bool(module_to_call(reg_expression, re_to_check)) and bool(
-                        re_to_check
-                    ):
-                        vr_errors, vr_warnings = GenerateError.generate_regex_error(
-                            val_rule=val_rule,
-                            reg_expression=reg_expression,
-                            row_num=str(i + 2),
-                            module_to_call=reg_exp_rules[1],
-                            attribute_name=manifest_col.name,
-                            invalid_entry=manifest_col[i],
-                            dmge=self.dmge,
-                        )
-                        if vr_errors:
-                            errors.append(vr_errors)
-                        if vr_warnings:
-                            warnings.append(vr_warnings)
+                    entry_has_value = self.get_entry_has_value(
+                        entry=re_to_check,
+                        node_display_name=manifest_col.name,
+                    )
+                    if entry_has_value:
+                        re_to_check = str(re_to_check)
+                        if not bool(
+                            module_to_call(reg_expression, re_to_check)
+                        ) and bool(re_to_check):
+                            vr_errors, vr_warnings = GenerateError.generate_regex_error(
+                                val_rule=val_rule,
+                                reg_expression=reg_expression,
+                                row_num=str(i + 2),
+                                module_to_call=reg_exp_rules[1],
+                                attribute_name=manifest_col.name,
+                                invalid_entry=manifest_col[i],
+                                dmge=self.dmge,
+                            )
+                            if vr_errors:
+                                errors.append(vr_errors)
+                            if vr_warnings:
+                                warnings.append(vr_warnings)
 
         # Validating single re's
         else:
             manifest_col = manifest_col.astype(str)
             for i, re_to_check in enumerate(manifest_col):
-                if not bool(module_to_call(reg_expression, re_to_check)) and bool(
-                    re_to_check
+                # check if <NA> in list let pass.
+                entry_has_value = self.get_entry_has_value(
+                    entry=re_to_check,
+                    node_display_name=manifest_col.name,
+                )
+
+                if (
+                    not bool(module_to_call(reg_expression, re_to_check))
+                    and bool(re_to_check)
+                    and entry_has_value
                 ):
                     vr_errors, vr_warnings = GenerateError.generate_regex_error(
                         val_rule=val_rule,
@@ -748,10 +944,19 @@ class ValidateAttribute(object):
 
         errors = []
         warnings = []
+
         # num indicates either a float or int.
         if val_rule == "num":
             for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, specified_type[val_rule]):
+                entry_has_value = self.get_entry_has_value(
+                    entry=value,
+                    node_display_name=manifest_col.name,
+                )
+                if (
+                    bool(value)
+                    and not isinstance(value, specified_type[val_rule])
+                    and entry_has_value
+                ):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
                         val_rule=val_rule,
                         row_num=str(i + 2),
@@ -765,7 +970,15 @@ class ValidateAttribute(object):
                         warnings.append(vr_warnings)
         elif val_rule in ["int", "float", "str"]:
             for i, value in enumerate(manifest_col):
-                if bool(value) and not isinstance(value, specified_type[val_rule]):
+                entry_has_value = self.get_entry_has_value(
+                    entry=value,
+                    node_display_name=manifest_col.name,
+                )
+                if (
+                    bool(value)
+                    and not isinstance(value, specified_type[val_rule])
+                    and entry_has_value
+                ):
                     vr_errors, vr_warnings = GenerateError.generate_type_error(
                         val_rule=val_rule,
                         row_num=str(i + 2),
@@ -803,46 +1016,23 @@ class ValidateAttribute(object):
         warnings = []
 
         for i, url in enumerate(manifest_col):
-            # Check if a random phrase, string or number was added and
-            # log the appropriate error.
-            if not isinstance(url, str) or not (
-                urlparse(url).scheme
-                + urlparse(url).netloc
-                + urlparse(url).params
-                + urlparse(url).query
-                + urlparse(url).fragment
-            ):
-                #
-                url_error = "random_entry"
-                valid_url = False
-                vr_errors, vr_warnings = GenerateError.generate_url_error(
-                    url,
-                    url_error=url_error,
-                    row_num=str(i + 2),
-                    attribute_name=manifest_col.name,
-                    argument=url_args,
-                    invalid_entry=manifest_col[i],
-                    dmge=self.dmge,
-                    val_rule=val_rule,
-                )
-                if vr_errors:
-                    errors.append(vr_errors)
-                if vr_warnings:
-                    warnings.append(vr_warnings)
-            else:
-                # add scheme to the URL if not currently added.
-                if not urlparse(url).scheme:
-                    url = "http://" + url
-                try:
-                    # Check that the URL points to a working webpage
-                    # if not log the appropriate error.
-                    request = Request(url)
-                    response = urlopen(request)
-                    valid_url = True
-                    response_code = response.getcode()
-                except:
+            entry_has_value = self.get_entry_has_value(
+                entry=url,
+                node_display_name=manifest_col.name,
+            )
+            if entry_has_value:
+                # Check if a random phrase, string or number was added and
+                # log the appropriate error. Specifically, Raise an error if the value added is not a string or no part
+                # of the string can be parsed as a part of a URL.
+                if not isinstance(url, str) or not (
+                    urlparse(url).scheme
+                    + urlparse(url).netloc
+                    + urlparse(url).params
+                    + urlparse(url).query
+                    + urlparse(url).fragment
+                ):
+                    url_error = "random_entry"
                     valid_url = False
-                    url_error = "invalid_url"
                     vr_errors, vr_warnings = GenerateError.generate_url_error(
                         url,
                         url_error=url_error,
@@ -857,26 +1047,57 @@ class ValidateAttribute(object):
                         errors.append(vr_errors)
                     if vr_warnings:
                         warnings.append(vr_warnings)
-                if valid_url == True:
-                    # If the URL works, check to see if it contains the proper arguments
-                    # as specified in the schema.
-                    for arg in url_args:
-                        if arg not in url:
-                            url_error = "arg_error"
-                            vr_errors, vr_warnings = GenerateError.generate_url_error(
-                                url,
-                                url_error=url_error,
-                                row_num=str(i + 2),
-                                attribute_name=manifest_col.name,
-                                argument=arg,
-                                invalid_entry=manifest_col[i],
-                                dmge=self.dmge,
-                                val_rule=val_rule,
-                            )
-                            if vr_errors:
-                                errors.append(vr_errors)
-                            if vr_warnings:
-                                warnings.append(vr_warnings)
+                else:
+                    # add scheme to the URL if not currently added.
+                    if not urlparse(url).scheme:
+                        url = "http://" + url
+                    try:
+                        # Check that the URL points to a working webpage
+                        # if not log the appropriate error.
+                        request = Request(url)
+                        response = urlopen(request)
+                        valid_url = True
+                        response_code = response.getcode()
+                    except:
+                        valid_url = False
+                        url_error = "invalid_url"
+                        vr_errors, vr_warnings = GenerateError.generate_url_error(
+                            url,
+                            url_error=url_error,
+                            row_num=str(i + 2),
+                            attribute_name=manifest_col.name,
+                            argument=url_args,
+                            invalid_entry=manifest_col[i],
+                            dmge=self.dmge,
+                            val_rule=val_rule,
+                        )
+                        if vr_errors:
+                            errors.append(vr_errors)
+                        if vr_warnings:
+                            warnings.append(vr_warnings)
+                    if valid_url == True:
+                        # If the URL works, check to see if it contains the proper arguments
+                        # as specified in the schema.
+                        for arg in url_args:
+                            if arg not in url:
+                                url_error = "arg_error"
+                                (
+                                    vr_errors,
+                                    vr_warnings,
+                                ) = GenerateError.generate_url_error(
+                                    url,
+                                    url_error=url_error,
+                                    row_num=str(i + 2),
+                                    attribute_name=manifest_col.name,
+                                    argument=arg,
+                                    invalid_entry=manifest_col[i],
+                                    dmge=self.dmge,
+                                    val_rule=val_rule,
+                                )
+                                if vr_errors:
+                                    errors.append(vr_errors)
+                                if vr_warnings:
+                                    warnings.append(vr_warnings)
         return errors, warnings
 
     def _parse_validation_log(
@@ -887,7 +1108,7 @@ class ValidateAttribute(object):
             validation_log, dict[str, pd.core.series.Series]:
         Returns:
             invalid_rows, list: invalid rows recorded in the validation log
-            invalid_entry, list: invalid values recorded in the validation log
+            invalid_enties, list: invalid values recorded in the validation log
             manifest_ids, list:
         """
         # Initialize parameters
@@ -1027,6 +1248,47 @@ class ValidateAttribute(object):
 
         return errors, warnings
 
+    def _remove_non_entry_from_invalid_entry_list(
+        self,
+        invalid_entry: Optional[list[str]],
+        row_num: Optional[list[str]],
+        attribute_name: str,
+    ) -> tuple[list[str], list[str]]:
+        """Helper to remove NAs from a list of invalid entries (if applicable, and allowed), remove the row
+        too from row_num. This will make sure errors are not rasied for NA entries unless the value is required.
+        Args:
+            invalid_entry, list[str]: default=None, list of entries in the source manifest where
+                invalid values were located.
+            row_num, list[str[: default=None, list of rows in the source manifest where invalid values were located
+            attribute_name, str: source attribute name
+        Returns:
+            invalid_entry and row_num returned with any NA and corresponding row index value removed, if applicable.
+        """
+        idx_to_remove = []
+        # Check if the current attribute column is required, via the data model
+        if invalid_entry and row_num:
+            # Check each invalid entry and determine if it has a value and/or is required.
+            # If there is no entry and its not required, remove the NA value so an error is not raised.
+            for idx, entry in enumerate(invalid_entry):
+                entry_has_value = self.get_entry_has_value(entry, attribute_name)
+                # If there is no value, and is not required, recored the index
+                if not entry_has_value:
+                    idx_to_remove.append(idx)
+
+            # If indices are recorded for NA values to remove, remove them and the corresponding row
+            if idx_to_remove:
+                for idx in sorted(idx_to_remove, reverse=True):
+                    del invalid_entry[idx]
+                    del row_num[idx]
+                # Perform check to make sure length of invalid_entry and row_num is the same. If not that would suggest
+                # there was an issue recording or removing values.
+                if len(invalid_entry) != len(row_num):
+                    logger.error(
+                        f"There was an error handling and validating a non-entry."
+                        f"Please try again or contact Schematic administrators."
+                    )
+        return invalid_entry, row_num
+
     def _get_cross_errors_warnings(
         self,
         val_rule: str,
@@ -1041,7 +1303,7 @@ class ValidateAttribute(object):
             val_rule, str: Validation Rule
             attribute_name, str: source attribute name
             row_num, list: default=None, list of rows in the source manifest where invalid values were located
-            matching_manifests, list: default=[], ist of manifests with all values in the target attribute present
+            matching_manifests, list: default=None, ist of manifests with all values in the target attribute present
             manifest_id, list: default=None, list of manifests where invalid values were located.
             invalid_entry, list: default=None, list of entries in the source manifest where invalid values were located.
         Returns:
@@ -1050,21 +1312,30 @@ class ValidateAttribute(object):
             warnings, list[str]: list of warnings to raise, as appropriate, if values in current manifest do
             not pass relevant cross mannifest validation across the target manifest(s)
         """
-
-        errors, warnings = [], []
-        vr_errors, vr_warnings = GenerateError.generate_cross_warning(
-            val_rule=val_rule,
-            row_num=row_num,
-            attribute_name=attribute_name,
-            matching_manifests=matching_manifests,
-            invalid_entry=invalid_entry,
-            manifest_id=manifest_id,
-            dmge=self.dmge,
+        invalid_entry, row_num = self._remove_non_entry_from_invalid_entry_list(
+            invalid_entry, row_num, attribute_name
         )
-        if vr_errors:
-            errors.append(vr_errors)
-        if vr_warnings:
-            warnings.append(vr_warnings)
+        errors, warnings = [], []
+
+        # Want to make sure we only generate errors when appropriate. Dont call, if we have removed all Nans,
+        # Also rules either require an invalid entry OR matching manifests. So let pass if either of those
+        # thresholds are met.
+        if invalid_entry or matching_manifests:
+            if not invalid_entry:
+                invalid_entry = "No Invalid Entry Recorded"
+            vr_errors, vr_warnings = GenerateError.generate_cross_warning(
+                val_rule=val_rule,
+                attribute_name=attribute_name,
+                dmge=self.dmge,
+                matching_manifests=matching_manifests,
+                manifest_id=manifest_id,
+                invalid_entry=invalid_entry,
+                row_num=row_num,
+            )
+            if vr_errors:
+                errors.append(vr_errors)
+            if vr_warnings:
+                warnings.append(vr_warnings)
         return errors, warnings
 
     def _gather_value_warnings_errors(
@@ -1201,9 +1472,10 @@ class ValidateAttribute(object):
         concatenated_target_column: pd.core.series.Series,
         target_manifest: pd.core.series.Series,
     ) -> pd.core.series.Series:
-        """A helper function for creating a concatenating all target attribute columns across all target manifest. This function checks if the
-        target attribute is in the current target manifest. If it is, and is the first manifest with this column, start recording it, if it has
-        already been recorded from another manifest concatenate the new column to the concatenated_target_column series.
+        """A helper function for creating a concatenating all target attribute columns across all target manifest.
+            This function checks if the target attribute is in the current target manifest. If it is, and is the
+            first manifest with this column, start recording it, if it has already been recorded from
+            another manifest concatenate the new column to the concatenated_target_column series.
         Args:
             column_names, dict: {stripped_col_name:original_column_name}
             target_attribute, str: current target attribute
@@ -1378,6 +1650,7 @@ class ValidateAttribute(object):
                     present_manifest_log=present_manifest_log,
                     repeat_manifest_log=repeat_manifest_log,
                 )
+
             # Concatenate target manifest columns, in a subsequent step will run cross manifest validation from
             # the current manifest
             # column values against the concatenated target column
