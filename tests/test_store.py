@@ -855,11 +855,65 @@ class TestDownloadManifest:
 class TestManifestUpload:
     """Test manifest upload"""
 
+    @pytest.mark.parametrize(
+        "original_manifest_df, files_in_dataset, expected_entity_ids, expected_filenames",
+        [
+            # there are new files in dataset folders after a manifest gets generated
+            # but the expected behavior is to add entity ID to existing "filename" column
+            (
+                {
+                    "Filename": {0: "Test sub folder/sample_file_one.txt"},
+                    "Sample ID": {0: 1},
+                    "File Format": {0: "BAM"},
+                    "Component": {0: "BulkRNA-seqAssay"},
+                    "Genome Build": {0: "GRCh37"},
+                    "Genome FASTA": {0: ""},
+                    "entityId": {0: ""},
+                    "Id": {0: "mock_id_0"},
+                },
+                [
+                    ("syn1224", "Test sub folder/sample_file_one.txt"),
+                    ("syn1225", "Test sub folder/sample_file_two.txt"),
+                ],
+                ["syn1224"],
+                ["Test sub folder/sample_file_one.txt"],
+            ),
+            # there's no new files in dataset folder after a manifest gets generated
+            (
+                {
+                    "Filename": {
+                        0: "Test sub folder/sample_file_one.txt",
+                        1: "Test sub folder/sample_file_two.txt",
+                    },
+                    "Sample ID": {0: 1, 1: 2},
+                    "File Format": {0: "BAM", 1: "BAM"},
+                    "Component": {0: "BulkRNA-seqAssay", 1: "BulkRNA-seqAssay"},
+                    "Genome Build": {0: "GRCh37", 1: "GRCh37"},
+                    "Genome FASTA": {0: "", 1: ""},
+                    "entityId": {0: "syn1224", 1: "syn1225"},
+                    "Id": {0: "mock_id_0", 1: "mock_id_1"},
+                },
+                [
+                    ("syn1224", "Test sub folder/sample_file_one.txt"),
+                    ("syn1225", "Test sub folder/sample_file_two.txt"),
+                ],
+                ["syn1224", "syn1225"],
+                [
+                    "Test sub folder/sample_file_one.txt",
+                    "Test sub folder/sample_file_two.txt",
+                ],
+            ),
+        ],
+    )
     def test_add_annotations_to_entities_files(
         self,
         helpers: Helpers,
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
+        original_manifest_df: dict,
+        files_in_dataset: str,
+        expected_filenames: list[str],
+        expected_entity_ids: list[str],
     ) -> None:
         """test adding annotations to entities files
 
@@ -867,17 +921,17 @@ class TestManifestUpload:
             helpers (fixture): a pytest fixture
             synapse_store (SynapseStorage): mock synapse store
             dmge (DataModelGraphExplorer): data model grpah explorer object
+            original_manifest_df (Dataframe): the dataframe of manifest that you want to submit
+            files_in_dataset (str): mock entityid and file name returned by getFilesInStorageDataset function
+            expected_filenames (list(str)): expected list of file names
+            expected_entity_ids (list(str)): expected list of entity ids
         """
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
-            return_value=[
-                ("syn1224", "Test sub folder/sample_file_one.txt"),
-                ("syn1225", "Test sub folder/sample_file_three.txt"),
-                ("syn1226", "Test sub folder/sample_file_two.txt"),
-            ],
+            return_value=files_in_dataset,
         ):
-            manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
-            manifest_df = helpers.get_data_frame(manifest_path)
+            manifest_df = pd.DataFrame(original_manifest_df)
+
             new_df = synapse_store.add_annotations_to_entities_files(
                 dmge,
                 manifest_df,
@@ -891,12 +945,8 @@ class TestManifestUpload:
             # test entityId and Id columns get added
             assert "entityId" in new_df.columns
             assert "Id" in new_df.columns
-            assert file_names_lst == [
-                "Test sub folder/sample_file_one.txt",
-                "Test sub folder/sample_file_three.txt",
-                "Test sub folder/sample_file_two.txt",
-            ]
-            assert entity_ids_lst == ["syn1224", "syn1225", "syn1226"]
+            assert file_names_lst == expected_filenames
+            assert entity_ids_lst == expected_entity_ids
 
     @pytest.mark.parametrize(
         "mock_manifest_file_path",
