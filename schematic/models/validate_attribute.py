@@ -400,7 +400,6 @@ class GenerateError:
             attribute_name, str: str, attribute being validated
             val_rule: str, defined in the schema.
         Returns:
-            Errors: list[str] Error details for further storage.
             warnings: list[str] Warning details for further storage.
         """
         error_message = (
@@ -1472,7 +1471,15 @@ class ValidateAttribute(object):
         target_manifest: pd.core.series.Series,
         target_manifest_empty: list[bool],
         column_names: dict[str, str],
-    ):
+    ) -> list[bool]:
+        """  If a target manifest is found with the attribute column of interest check to see if the manifest is empty.
+        Args:
+            target_manifest, pd.core.series.Series: Current target manifest
+            target_manifest_empty, list[bool]: a list of booleans recording if the target manifest are emtpy or not.
+            column_names, dict[str, str]: {stripped_col_name:original_column_name}
+        Returns:
+            target_manifest_empty, list[bool]: a list of booleans recording if the target manifest are emtpy or not.
+        """
         # Make a copy of the target manifest with only user uploaded columns
         target_manifest_dupe = target_manifest.drop(
             [column_names["component"], column_names["id"], column_names["entityid"]],
@@ -1497,7 +1504,7 @@ class ValidateAttribute(object):
         target_manifest: pd.core.series.Series,
         target_manifest_id: str,
         missing_manifest_log: dict[str, pd.core.series.Series],
-        present_manifest_log: dict[str, pd.core.series.Series],
+        present_manifest_log: list[str],
         repeat_manifest_log: dict[str, pd.core.series.Series],
         target_attribute_in_manifest_list: list[bool],
         target_manifest_empty: list[bool],
@@ -1506,8 +1513,9 @@ class ValidateAttribute(object):
             dict[str, pd.core.series.Series],
             dict[str, pd.core.series.Series],
             dict[str, pd.core.series.Series],
-            bool,
-        ]
+        ],
+        list[bool],
+        list[bool],
     ]:
         """For set rule scope, go through the given target column and look
         Args:
@@ -1521,8 +1529,8 @@ class ValidateAttribute(object):
             target_manifest_id, str: Current target manifest Synapse ID
             missing_manifest_log, dict[str, pd.core.series.Series]:
                 Log of manifests with missing values, {synapse_id: index,missing value}, updated.
-            present_manifest_log, dict[str, pd.core.series.Series]
-                Log of present manifests, {synapse_id: index,present value}, updated.
+            present_manifest_log, list[str]
+                Log of present manifests, [synapse_id present manifest], updated.
             repeat_manifest_log, dict[str, pd.core.series.Series]
                 Log of manifests with repeat values, {synapse_id: index,repeat value}, updated.
 
@@ -1530,8 +1538,8 @@ class ValidateAttribute(object):
             tuple(
             missing_manifest_log, dict[str, pd.core.series.Series]:
                 Log of manifests with missing values, {synapse_id: index,missing value}, updated.
-            present_manifest_log, dict[str, pd.core.series.Series]
-                Log of present manifests, {synapse_id: index,present value}, updated.
+            present_manifest_log, list[str]
+                Log of present manifests, [synapse_id present manifest], updated.
             repeat_manifest_log, dict[str, pd.core.series.Series]
                 Log of manifests with repeat values, {synapse_id: index,repeat value}, updated.)
             target_attribute_in_manifest, bool: True if the target attribute is in the current manifest.
@@ -1587,7 +1595,11 @@ class ValidateAttribute(object):
         target_manifest: pd.core.series.Series,
         target_attribute_in_manifest_list: list[bool],
         target_manifest_empty: list[bool],
-    ) -> pd.core.series.Series:
+    ) -> tuple[
+          pd.core.series.Series,
+          list[bool],
+          list[bool],
+        ]:
         """A helper function for creating a concatenating all target attribute columns across all target manifest.
             This function checks if the target attribute is in the current target manifest. If it is, and is the
             first manifest with this column, start recording it, if it has already been recorded from
@@ -1704,7 +1716,10 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         target_column: pd.core.series.Series,
-    ) -> tuple[[float, list]]:
+    ) -> tuple[float, Union[Union[
+                    tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
+                    tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
+                        dict[str, pd.core.series.Series]], bool, str]]]:
         """Run cross manifest validation from a source manifest, across all relevant target manifests,
             based on scope. Output start time and validation outputs..
         Args:
@@ -1716,33 +1731,16 @@ class ValidateAttribute(object):
             target_column, pd.core.series.Series: Empty target_column to fill out in this function
         Returns:
             start_time, float: start time in fractional seconds
-            validation_output, Union[
-                tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
-                tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
-                    dict[str, pd.core.series.Series]]:
-                    validation outputs, exact types depend on scope,
-            if not target_attribute_in_manifest:
-                return (start_time, target_attribute_in_manifest)
-            else:
-                # Store outputs according to the scope for which they are used.
-                if "set" in rule_scope:
-                    validation_store = (
-                        missing_manifest_log,
-                        present_manifest_log,
-                        repeat_manifest_log,
-                    )
-
-                elif "value" in rule_scope:
-                    # From the concatenated target column, for value scope, run validation
-                    (
-                        missing_values,
-                        duplicated_values,
-                        repeat_values,
-                    ) = self._run_validation_across_targets_value(
-                        manifest_col=manifest_col,
-                        concatenated_target_column=target_column,
-                    )
-                    validation_store = (missing_values, duplicated_values, repeat_values)
+            valdiation_output: 
+                Union:
+                    target_attribute_in_manifest, bool: will return a false boolean if no target manfiest are found.
+                    "values not recorded in targets stored", str, will return a string if targets were found, but there
+                        was no data in the target.
+                    Union[
+                        tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
+                        tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
+                            dict[str, pd.core.series.Series]]:
+                            validation outputs, exact types depend on scope,
         """
         # Initialize variables
         present_manifest_log = []
@@ -1770,10 +1768,6 @@ class ValidateAttribute(object):
         # Start timer
         start_time = perf_counter()
 
-        # if not target_manifest_ids:
-        # target_manifet_present = False
-        # return (start_time, target_manifet_present)
-        # else:
         # For each target manifest, gather target manifest column and compare to the source manifest column
         # Save relevant data as appropriate for the given scope
         for target_manifest_id, target_dataset_id in zip(
