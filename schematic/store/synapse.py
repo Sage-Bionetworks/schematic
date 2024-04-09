@@ -205,12 +205,12 @@ class SynapseStorage(BaseStorage):
             token (Optional[str], optional):
               Optional token parameter as found in browser cookie upon login to synapse.
               Defaults to None.
-            access_token (Optional[list], optional): 
-              Optional access token (personal or oauth). 
+            access_token (Optional[list], optional):
+              Optional access token (personal or oauth).
               Defaults to None.
             project_scope (Optional[list], optional): Defaults to None.
             synapse_cache_path (Optional[str], optional):
-              Location of synapse cache. 
+              Location of synapse cache.
               Defaults to None.
         """
         self.syn = self.login(synapse_cache_path, token, access_token)
