@@ -203,7 +203,7 @@ class SynapseStorage(BaseStorage):
         token: Optional[str] = None,  # optional parameter retrieved from browser cookie
         access_token: Optional[str] = None,
         project_scope: Optional[list] = None,
-        synapse_cache_path: str = ".synapseCache",
+        synapse_cache_path: str = "/root/.synapseCache",
     ) -> None:
         """Initializes a SynapseStorage object.
         Args:
