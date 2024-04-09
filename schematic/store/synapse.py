@@ -227,7 +227,9 @@ class SynapseStorage(BaseStorage):
         self.root_synapse_cache = synapse_cache_path
         self._query_fileview()
 
-    def _purge_synapse_cache(self, maximum_storage_allowed_cache_gb=1, minute_buffer:int=15):
+    def _purge_synapse_cache(
+        self, maximum_storage_allowed_cache_gb=1, minute_buffer: int = 15
+    ):
         """
         Purge synapse cache if it exceeds a certain size. Default to 1GB.
         Args:
@@ -243,12 +245,15 @@ class SynapseStorage(BaseStorage):
             nbytes = get_dir_size(self.root_synapse_cache)
             dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
             import logging
+
             logging.warning(dir_size_bytes)
             logging.warning(maximum_storage_allowed_cache_bytes)
             # if 1 GB has already been taken, purge cache before 15 min
             if dir_size_bytes >= maximum_storage_allowed_cache_bytes:
                 logging.warning("TEST")
-                num_of_deleted_files = clear_synapse_cache(self.syn.cache, minutes=minute_buffer)
+                num_of_deleted_files = clear_synapse_cache(
+                    self.syn.cache, minutes=minute_buffer
+                )
                 logger.info(
                     f"{num_of_deleted_files}  files have been deleted from {self.root_synapse_cache}"
                 )
