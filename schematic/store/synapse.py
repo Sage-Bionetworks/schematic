@@ -60,7 +60,6 @@ from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_r
 from schematic.utils.general import (
     entity_type_mapping,
     get_dir_size,
-    convert_gb_to_bytes,
     create_temp_folder,
     check_synapse_cache_size,
     clear_synapse_cache,
@@ -233,8 +232,8 @@ class SynapseStorage(BaseStorage):
         # try clearing the cache
         # scan a directory and check size of files
         if os.path.exists(self.root_synapse_cache):
-            maximum_storage_allowed_cache_bytes = convert_gb_to_bytes(
-                maximum_storage_allowed_cache_gb
+            maximum_storage_allowed_cache_bytes = maximum_storage_allowed_cache_gb * (
+                1024**3
             )
             nbytes = get_dir_size(self.root_synapse_cache)
             dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
@@ -598,7 +597,9 @@ class SynapseStorage(BaseStorage):
 
         # load manifest dataframe
         manifest = load_df(
-            manifest_filepath, preserve_raw_input=False, data_model=False
+            manifest_filepath,
+            preserve_raw_input=False,
+            data_model=False,
         )
 
         # convert the dataFrame to use best possible dtypes.
@@ -1532,7 +1533,10 @@ class SynapseStorage(BaseStorage):
                 "dtype": "string",
             }
             manifest = load_df(
-                metadataManifestPath, preserve_raw_input=False, **load_args
+                metadataManifestPath,
+                preserve_raw_input=False,
+                allow_na_values=False,
+                **load_args,
             )
         except FileNotFoundError as err:
             raise FileNotFoundError(

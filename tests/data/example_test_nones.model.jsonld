@@ -580,7 +580,7 @@
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
-                    "@id": "bts:Biospecimen"
+                    "@id": "bts:Patient"
                 }
             ],
             "sms:requiresDependency": [
@@ -920,12 +920,6 @@
                     "@id": "bts:CheckMatchExactlyvalues"
                 },
                 {
-                    "@id": "bts:CheckMatchNone"
-                },
-                {
-                    "@id": "bts:CheckMatchNonevalues"
-                },
-                {
                     "@id": "bts:CheckRecommended"
                 },
                 {
@@ -974,7 +968,7 @@
                 }
             ],
             "sms:displayName": "Check List",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "list strict"
             ]
@@ -993,7 +987,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex List",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "list strict",
                 "regex match [a-f]"
@@ -1013,7 +1007,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex Single",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "regex search [a-f]"
             ]
@@ -1032,7 +1026,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex Format",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "regex match [a-f]"
             ]
@@ -1051,7 +1045,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex Integer",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "regex search ^\\d+$"
             ]
@@ -1070,7 +1064,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Num",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "num"
             ]
@@ -1089,7 +1083,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Float",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "float"
             ]
@@ -1108,7 +1102,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Int",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "int"
             ]
@@ -1127,7 +1121,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check String",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "str"
             ]
@@ -1146,7 +1140,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check URL",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "url"
             ]
@@ -1165,7 +1159,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match at Least",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "matchAtLeastOne Patient.PatientID set"
             ]
@@ -1184,7 +1178,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match at Least values",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "matchAtLeastOne MockComponent.checkMatchatLeastvalues value"
             ]
@@ -1203,7 +1197,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match Exactly",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "matchExactlyOne MockComponent.checkMatchExactly set"
             ]
@@ -1222,47 +1216,9 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match Exactly values",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "matchExactlyOne MockComponent.checkMatchExactlyvalues value"
-            ]
-        },
-        {
-            "@id": "bts:CheckMatchNone",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "CheckMatchNone",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:DataProperty"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Check Match None",
-            "sms:required": "sms:true",
-            "sms:validationRules": [
-                "matchNone MockComponent.checkMatchNone set error"
-            ]
-        },
-        {
-            "@id": "bts:CheckMatchNonevalues",
-            "@type": "rdfs:Class",
-            "rdfs:comment": "TBD",
-            "rdfs:label": "CheckMatchNonevalues",
-            "rdfs:subClassOf": [
-                {
-                    "@id": "bts:DataProperty"
-                }
-            ],
-            "schema:isPartOf": {
-                "@id": "http://schema.biothings.io"
-            },
-            "sms:displayName": "Check Match None values",
-            "sms:required": "sms:true",
-            "sms:validationRules": [
-                "matchNone MockComponent.checkMatchNonevalues value error"
             ]
         },
         {
@@ -1298,7 +1254,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Ages",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "protectAges"
             ]
@@ -1317,7 +1273,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Unique",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "unique error"
             ]
@@ -1336,7 +1292,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Range",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "inRange 50 100 error"
             ]
@@ -1355,7 +1311,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Date",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "date"
             ]
@@ -1374,7 +1330,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check NA",
-            "sms:required": "sms:true",
+            "sms:required": "sms:false",
             "sms:validationRules": [
                 "int",
                 "IsNA"
