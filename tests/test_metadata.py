@@ -23,13 +23,14 @@ def metadata_model(helpers, data_model_labels):
 
     return metadata_model
 
+
 @pytest.fixture
 def test_bulkrnaseq(helpers: Helpers) -> Generator[Path, None, None]:
     """create temporary copy of test_BulkRNAseq.csv
-    This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file 
+    This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file
     After test, the copied file is removed.
     Args:
-        helpers (Helpers): Helpers fixture 
+        helpers (Helpers): Helpers fixture
 
     Yields:
         Generator[Path, None, None]: temporary file path of the copied version test_BulkRNAseq.csv
@@ -43,6 +44,7 @@ def test_bulkrnaseq(helpers: Helpers) -> Generator[Path, None, None]:
     # Teardown
     if os.path.exists(temp_csv_path):
         os.remove(temp_csv_path)
+
 
 class TestMetadataModel:
     @pytest.mark.parametrize("as_graph", [True, False], ids=["as_graph", "as_list"])
