@@ -159,7 +159,7 @@ class TestSchemaCli:
         with_annotations: bool,
         config: Configuration,
     ) -> None:
-        manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+        manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
         config.load_config("config_example.yml")
         config.synapse_master_fileview_id = "syn1234"
 

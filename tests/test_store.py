@@ -1028,7 +1028,7 @@ class TestManifestUpload:
             ) as format_manifest_anno_mock,
             patch.object(synapse_store.syn, "set_annotations"),
         ):
-            manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+            manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
             manifest_df = helpers.get_data_frame(manifest_path)
             synapse_store.upload_manifest_as_csv(
                 dmge,
@@ -1082,7 +1082,7 @@ class TestManifestUpload:
                 "schematic.store.synapse.SynapseStorage.format_manifest_annotations"
             ) as format_manifest_anno_mock,
         ):
-            manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+            manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
             manifest_df = helpers.get_data_frame(manifest_path)
             synapse_store.upload_manifest_as_table(
                 dmge,
@@ -1123,7 +1123,7 @@ class TestManifestUpload:
         manifest_record_type: str,
     ) -> None:
         mock_df = pd.DataFrame()
-        manifest_path = helpers.get_data_path("mock_manifests/bulkrnaseq_test.csv")
+        manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
         manifest_df = helpers.get_data_frame(manifest_path)
         with (
             patch(
@@ -1204,7 +1204,7 @@ class TestManifestUpload:
                 return_value="mock_id_entities",
             ),
         ):
-            manifest_path = "mock_manifests/bulkrnaseq_test.csv"
+            manifest_path = "mock_manifests/test_BulkRNAseq.csv"
             manifest_id = synapse_store.associateMetadataWithFiles(
                 dmge=dmge,
                 metadataManifestPath=helpers.get_data_path(manifest_path),
