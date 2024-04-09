@@ -425,7 +425,18 @@ class GenerateError:
 
     def generate_no_value_in_manifest_error(
         dmge: DataModelGraphExplorer, attribute_name: str, val_rule: str
-    ):
+    ) -> tuple[list[str], list[str]]:
+        """ Raise a warning or error based on the messaging level, if target manifests have been found to
+        validate against but the manifest itself does not contain data (across the entire manifest,
+        not just the column being validated.)
+        Args:
+            dmge: DataModelGraphExplorer object
+            attribute_name, str: str, attribute being validated
+            val_rule: str, defined in the schema.
+        Returns:
+            Errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
+        """
         errors, warnings = [], []
         error_message = (
             f"Cross Manifest Validation: There were manifests found to match for attribute: {attribute_name} "
