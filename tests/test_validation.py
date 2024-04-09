@@ -120,23 +120,17 @@ class TestManifestValidation:
                 rootNode=root_node,
                 project_scope=[project_scope],
             )
-            try:
-                for attribute_name, val_rule in warning_rule_sets_2:
-                    assert GenerateError.generate_no_value_in_manifest_error(
-                        dmge=dmge,
-                        attribute_name=attribute_name,
-                        val_rule=val_rule)[1][0] in warnings
-            except:
-                breakpoint()
-            try:
-                
-                for attribute_name, val_rule in error_rule_sets:
-                    assert GenerateError.generate_no_value_in_manifest_error(
-                        dmge=dmge,
-                        attribute_name=attribute_name,
-                        val_rule=val_rule)[0][0] in errors
-            except:
-                breakpoint()
+            for attribute_name, val_rule in warning_rule_sets_2:
+                assert GenerateError.generate_no_value_in_manifest_error(
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[1][0] in warnings
+            
+            for attribute_name, val_rule in error_rule_sets:
+                assert GenerateError.generate_no_value_in_manifest_error(
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[0][0] in errors
 
 
     def test_invalid_manifest(self, helpers, dmge):
