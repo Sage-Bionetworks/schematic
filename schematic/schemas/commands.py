@@ -58,6 +58,10 @@ def schema():  # use as `schematic model ...`
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
 @click.option(
+    "--output_path",
+    help="Alias for --output_jsonld"
+)
+@click.option(
     "--output_type",
     "-ot",
     type=click.Choice(["jsonld", "graph", "all"], case_sensitive=False),
@@ -65,7 +69,7 @@ def schema():  # use as `schematic model ...`
     help=query_dict(schema_commands, ("schema", "convert", "output_type")),
 )
 def convert(
-    schema: str, data_model_labels: str, output_jsonld: str, output_type: str
+    schema: str, data_model_labels: str, output_jsonld: str, output_type: str, output_path: str
 ) -> str:
     """
     Running CLI to convert data model specification in CSV format to
@@ -114,6 +118,9 @@ def convert(
             elif isinstance(war, list):
                 for w in war:
                     logger.warning(w)
+
+    if output_path:
+        output_jsonld = output_path
 
     if output_jsonld is None:
         output_file_no_ext = re.sub("[.](jsonld|csv|pickle)$", "", schema)
