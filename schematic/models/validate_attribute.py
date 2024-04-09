@@ -1472,7 +1472,7 @@ class ValidateAttribute(object):
         target_manifest_empty: list[bool],
         column_names: dict[str, str],
     ) -> list[bool]:
-        """  If a target manifest is found with the attribute column of interest check to see if the manifest is empty.
+        """If a target manifest is found with the attribute column of interest check to see if the manifest is empty.
         Args:
             target_manifest, pd.core.series.Series: Current target manifest
             target_manifest_empty, list[bool]: a list of booleans recording if the target manifest are emtpy or not.
@@ -1595,11 +1595,7 @@ class ValidateAttribute(object):
         target_manifest: pd.core.series.Series,
         target_attribute_in_manifest_list: list[bool],
         target_manifest_empty: list[bool],
-    ) -> tuple[
-          pd.core.series.Series,
-          list[bool],
-          list[bool],
-        ]:
+    ) -> tuple[pd.core.series.Series, list[bool], list[bool],]:
         """A helper function for creating a concatenating all target attribute columns across all target manifest.
             This function checks if the target attribute is in the current target manifest. If it is, and is the
             first manifest with this column, start recording it, if it has already been recorded from
@@ -1716,10 +1712,25 @@ class ValidateAttribute(object):
         val_rule: str,
         manifest_col: pd.core.series.Series,
         target_column: pd.core.series.Series,
-    ) -> tuple[float, Union[Union[
-                    tuple[dict[str, pd.core.series.Series], list[str], dict[str, pd.core.series.Series]],
-                    tuple[dict[str, pd.core.series.Series], dict[str, pd.core.series.Series],
-                        dict[str, pd.core.series.Series]], bool, str]]]:
+    ) -> tuple[
+        float,
+        Union[
+            Union[
+                tuple[
+                    dict[str, pd.core.series.Series],
+                    list[str],
+                    dict[str, pd.core.series.Series],
+                ],
+                tuple[
+                    dict[str, pd.core.series.Series],
+                    dict[str, pd.core.series.Series],
+                    dict[str, pd.core.series.Series],
+                ],
+                bool,
+                str,
+            ]
+        ],
+    ]:
         """Run cross manifest validation from a source manifest, across all relevant target manifests,
             based on scope. Output start time and validation outputs..
         Args:
@@ -1731,7 +1742,7 @@ class ValidateAttribute(object):
             target_column, pd.core.series.Series: Empty target_column to fill out in this function
         Returns:
             start_time, float: start time in fractional seconds
-            valdiation_output: 
+            valdiation_output:
                 Union:
                     target_attribute_in_manifest, bool: will return a false boolean if no target manfiest are found.
                     "values not recorded in targets stored", str, will return a string if targets were found, but there
