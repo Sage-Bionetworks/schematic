@@ -323,8 +323,10 @@ def migrate_manifests(
             )
     return
 
+
 @manifest.command(
-    "download", short_help=query_dict(manifest_commands, ("manifest", "download", "short_help"))
+    "download",
+    short_help=query_dict(manifest_commands, ("manifest", "download", "short_help")),
 )
 @click_log.simple_verbosity_option(logger)
 # define the optional arguments
@@ -336,26 +338,30 @@ def migrate_manifests(
 @click.option(
     "-nmn",
     "--new_manifest_name",
-    default='',
+    default="",
     help=query_dict(manifest_commands, ("manifest", "download", "new_manifest_name")),
 )
 @click.pass_obj
 def download_manifest(ctx, dataset_id, new_manifest_name):
-    master_fileview = CONFIG['synapse']['master_fileview']
-    
+    master_fileview = CONFIG["synapse"]["master_fileview"]
+
     # use Synapse Storage
     store = SynapseStorage()
 
     # download existing file
-    manifest_data = store.getDatasetManifest(datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name)
+    manifest_data = store.getDatasetManifest(
+        datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name
+    )
 
     if not manifest_data:
-        logger.error("'Dataset_id provided is not able to return a manifest, please check that the id is the parent folder containing the manifest.")
+        logger.error(
+            "'Dataset_id provided is not able to return a manifest, please check that the id is the parent folder containing the manifest."
+        )
         sys.exit(1)
 
-    #return local file path
-    manifest_local_file_path = manifest_data['path']
+    # return local file path
+    manifest_local_file_path = manifest_data["path"]
     logger.info(
         f"The manifest has been downloaded to the following location: {manifest_local_file_path}"
-        )
+    )
     return manifest_local_file_path
