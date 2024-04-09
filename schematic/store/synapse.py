@@ -239,7 +239,6 @@ class SynapseStorage(BaseStorage):
             dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
             # if 1 GB has already been taken, purge cache before 15 min
             if dir_size_bytes >= maximum_storage_allowed_cache_bytes:
-                logging.warning("TEST")
                 num_of_deleted_files = clear_synapse_cache(
                     self.syn.cache, minutes=minute_buffer
                 )

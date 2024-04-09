@@ -1,23 +1,23 @@
+"""Tests for store module"""
+
 from __future__ import annotations
 
 import logging
 import math
 import os
 from time import sleep
-from unittest.mock import Mock, patch
+from unittest.mock import patch
+import shutil
 
 import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
-from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.entity import File
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_relationships import DataModelRelationships
 
-from schematic.models.metadata import MetadataModel
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import (
     DatasetFileView,
@@ -94,17 +94,25 @@ class TestBaseStorage:
 
 
 class TestSynapseStorage:
+    "Tests the SynapseStorage class"
+
     def test_init(self, synapse_store:SynapseStorage) -> None:
+        """Tests SynapseStorage.__init__"""
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
         assert synapse_store.root_synapse_cache.endswith(".synapseCache")
 
-    def test__purge_synapse_cache(self, synapse_store:SynapseStorage) -> None:
+    def test__purge_synapse_cache(self) -> None:
         """Tests SynapseStorage._purge_synapse_cache"""
+        synapse_store = SynapseStorage(synapse_cache_path="test_cache_dir")
         size_before_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
-        synapse_store._purge_synapse_cache(maximum_storage_allowed_cache_gb=0.000001, minute_buffer=0)
+        synapse_store._purge_synapse_cache(
+            maximum_storage_allowed_cache_gb=0.000001,
+            minute_buffer=0
+        )
         size_after_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
         assert size_before_purge > size_after_purge
+        shutil.rmtree("test_cache_dir")
 
     def test_login(self) -> None:
         """Tests SynapseStorage.login"""
@@ -112,9 +120,9 @@ class TestSynapseStorage:
         assert synapse_client.cache.cache_root_dir.endswith(".synapseCache")
         synapse_client = SynapseStorage.login("test_cache_dir")
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
-        os.rmdir("test_cache_dir")
+        shutil.rmtree("test_cache_dir")
 
-    def test_getFileAnnotations(self, synapse_store):
+    def test_getFileAnnotations(self, synapse_store:SynapseStorage) -> None:
         expected_dict = {
             "author": "bruno, milen, sujay",
             "impact": "42.9",
