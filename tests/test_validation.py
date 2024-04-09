@@ -53,11 +53,6 @@ class TestManifestValidation:
         os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
     @pytest.mark.parametrize(
-        "project_scope",
-        ["syn54126707", "syn55250368", "syn55271234"],
-        ids=["project_scope_with_manifests", "project_scope_without_manifests", "project_scope_with_empty_manifest"],
-    )
-    @pytest.mark.parametrize(
         ("model_name", "manifest_name", "root_node"),
         [
             ("example.model.csv","mock_manifests/Valid_Test_Manifest.csv", "MockComponent"),
@@ -66,14 +61,32 @@ class TestManifestValidation:
         ],
         ids=["example_model", "example_with_no_entry_for_cond_required_columns", "example_with_nones"],
     )
-    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str, root_node:str, project_scope:str, dmge:DataModelGraph):
-        """ Run the valid manifest in various situations, some of which will generate errors or warnings, if there are "issues" with target manifests on manifests.
-        Project Scopes:
-            project_scope_with_manifests, is a scope that contains all the necessary manifests with the proper entries, for the Valid_Test_Manifest.csv to pass validation
-            project_scope_without_manifests, is a scope that does not contain any manifests. For each cross manifest validation run, there will be a warning raised that validation will pass and its assumed the manifest is the first one being submitted.
-            project_scope_with_empty_manifest, is a scope that contains a single empty MockComponent manifest, depending on messaging level, a warning or error will be raised to alert users that the target manifest is empty.
-        """
+    @pytest.mark.parametrize(
+        "project_scope",
+        ["syn54126707", "syn55250368", "syn55271234"],
+        ids=["project_scope_with_manifests", "project_scope_without_manifests", "project_scope_with_empty_manifest"],
+    )
+    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str,
+            root_node:str, project_scope:str, dmge:DataModelGraph):
+        """ Run the valid manifest in various situations, some of which will generate errors or warnings,
+            if there are "issues" with target manifests on manifests. Since there are so many parameters, limit
+            the combinations that are being run to the ones that are relevant.
+        Args:
+            project_scope: scope to limit cross manifest validation
+                project_scope_with_manifests, is a scope that contains all the necessary manifests with the proper
+                entries, for the Valid_Test_Manifest.csv to pass validation
+                project_scope_without_manifests, is a scope that does not contain any manifests. For each cross manifest
+                    validation run, there will be a warning raised that validation will pass and its assumed the
+                    manifest is the first one being submitted.
+                project_scope_with_empty_manifest, is a scope that contains a single empty MockComponent manifest,
+                    depending on messaging level, a warning or error will be raised to alert users that the
+                    target manifest is empty.
+            model_name, str: csv model used for validation, located in tests/data
+            manifest_name, str: valid manifest being validated
+            root_node, str:
+                Component name for the manifest being validated
 
+        """
         manifest_path = helpers.get_data_path(manifest_name)
 
         warning_rule_sets_1 = [
@@ -88,6 +101,7 @@ class TestManifestValidation:
                 ('Check Match None values', 'matchNone MockComponent.checkMatchNonevalues value error'),
             ]
 
+        # For the standard project scope, models and manifest should pass without warnings or errors
         if project_scope == "syn54126707":
             metadataModel = get_metadataModel(helpers, model_name)
             errors, warnings = metadataModel.validateModelManifest(
@@ -96,9 +110,11 @@ class TestManifestValidation:
                 project_scope=[project_scope],
             )
             assert (errors, warnings) == ([], [])
-        # When submitting the first manifest for cross manifest validation, check that proper warning (to alert
-        # users that no validation will be run), is raised. The manifest is still valid to submit.
-        if project_scope == "syn55250368" and root_node=="MockComponent" and model_name in ["example.model.csv", "example_test_nones.model.csv"]:
+
+        # When submitting the first manifest for cross manifest validation (MockComponent), check that proper warning
+        # (to alert users that no validation will be run), is raised. The manifest is still valid to submit.
+        if (project_scope == "syn55250368" and root_node=="MockComponent" and
+            model_name in ["example.model.csv", "example_test_nones.model.csv"]):
             metadataModel = get_metadataModel(helpers, model_name)
             errors, warnings = metadataModel.validateModelManifest(
                 manifestPath=manifest_path,
@@ -112,7 +128,9 @@ class TestManifestValidation:
                     attribute_name=attribute_name,
                     val_rule=val_rule)[0] in warnings
             assert errors == []
-
+        
+        # When submitting a manifest to a project that contains a manifest without data, ensure that the proper
+        # warnings/errors are raised.
         elif project_scope == "syn55271234" and root_node=="MockComponent" and model_name == "example.model.csv":
             metadataModel = get_metadataModel(helpers, model_name)
             errors, warnings = metadataModel.validateModelManifest(
