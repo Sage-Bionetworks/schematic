@@ -856,7 +856,7 @@ class TestManifestUpload:
     """Test manifest upload"""
 
     @pytest.mark.parametrize(
-        "original_manifest_df, files_in_dataset, expected_entity_ids, expected_filenames",
+        "original_manifest, files_in_dataset, expected_entity_ids, expected_filenames",
         [
             # there are new files in dataset folders after a manifest gets generated
             # but the expected behavior is to add entity ID to existing "filename" column
@@ -920,7 +920,7 @@ class TestManifestUpload:
             helpers (fixture): a pytest fixture
             synapse_store (SynapseStorage): mock synapse store
             dmge (DataModelGraphExplorer): data model grpah explorer object
-            original_manifest_df (Dataframe): the dataframe of manifest that you want to submit
+            original_manifest (Dictionary): the dataframe of manifest that you want to submit
             files_in_dataset (str): mock entityid and file name returned by getFilesInStorageDataset function
             expected_filenames (list(str)): expected list of file names
             expected_entity_ids (list(str)): expected list of entity ids
