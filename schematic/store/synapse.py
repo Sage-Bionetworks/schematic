@@ -1704,7 +1704,7 @@ class SynapseStorage(BaseStorage):
         table_manipulation: str,
         table_column_names: str,
         annotation_keys: str,
-        file_annotations_upload: Optional[bool] = True,
+        file_annotations_upload: bool = True,
     ):
         """Upload manifest to Synapse as a table and csv.
         Args:
@@ -1794,7 +1794,7 @@ class SynapseStorage(BaseStorage):
         hideBlanks,
         component_name,
         annotation_keys: str,
-        file_annotations_upload: Optional[bool] = True,
+        file_annotations_upload: bool = True,
     ):
         """Upload manifest to Synapse as a csv only.
         Args:
@@ -1855,7 +1855,7 @@ class SynapseStorage(BaseStorage):
         table_manipulation,
         table_column_names: str,
         annotation_keys: str,
-        file_annotations_upload: Optional[bool] = True,
+        file_annotations_upload: bool = True,
     ):
         """Upload manifest to Synapse as a table and CSV with entities.
         Args:
@@ -1941,7 +1941,7 @@ class SynapseStorage(BaseStorage):
         table_manipulation: str = "replace",
         table_column_names: str = "class_label",
         annotation_keys: str = "class_label",
-        file_annotations_upload: Optional[bool] = True,
+        file_annotations_upload: bool = True,
     ) -> str:
         """Associate metadata with files in a storage dataset already on Synapse.
         Upload metadataManifest in the storage dataset folder on Synapse as well. Return synapseId of the uploaded manifest file.

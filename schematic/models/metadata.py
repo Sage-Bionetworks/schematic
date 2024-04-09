@@ -323,7 +323,7 @@ class MetadataModel(object):
         restrict_rules: bool,
         access_token: Optional[str] = None,
         validate_component: Optional[str] = None,
-        file_annotations_upload: Optional[bool] = True,
+        file_annotations_upload: bool = True,
         hide_blanks: bool = False,
         project_scope: List = None,
         table_manipulation: str = "replace",

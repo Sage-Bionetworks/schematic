@@ -393,7 +393,7 @@ def submit_manifest_route(
     project_scope=None,
     table_column_names=None,
     annotation_keys=None,
-    file_annotations_upload:Optional[bool]=True,
+    file_annotations_upload:bool=True,
 ):
     # call config_handler()
     config_handler(asset_view=asset_view)
