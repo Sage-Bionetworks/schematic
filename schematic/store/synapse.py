@@ -239,10 +239,6 @@ class SynapseStorage(BaseStorage):
             )
             nbytes = get_dir_size(self.root_synapse_cache)
             dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
-            import logging
-
-            logging.warning(dir_size_bytes)
-            logging.warning(maximum_storage_allowed_cache_bytes)
             # if 1 GB has already been taken, purge cache before 15 min
             if dir_size_bytes >= maximum_storage_allowed_cache_bytes:
                 logging.warning("TEST")
