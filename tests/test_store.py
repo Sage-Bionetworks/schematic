@@ -4,7 +4,7 @@ import logging
 import math
 import os
 from time import sleep
-from typing import Generator
+from typing import Generator, Any
 from unittest.mock import patch
 
 import pandas as pd
@@ -907,10 +907,9 @@ class TestManifestUpload:
     )
     def test_add_annotations_to_entities_files(
         self,
-        helpers: Helpers,
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
-        original_manifest_df: dict,
+        original_manifest: dict[str, Any],
         files_in_dataset: str,
         expected_filenames: list[str],
         expected_entity_ids: list[str],
@@ -930,7 +929,7 @@ class TestManifestUpload:
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
             return_value=files_in_dataset,
         ):
-            manifest_df = pd.DataFrame(original_manifest_df)
+            manifest_df = pd.DataFrame(original_manifest)
 
             new_df = synapse_store.add_annotations_to_entities_files(
                 dmge,
