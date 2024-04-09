@@ -116,9 +116,9 @@ def convert(
                     logger.warning(w)
 
     if output_jsonld is None:
-        output_file_no_ext = re.sub("[.](jsonld|csv)$", "", schema)
+        output_file_no_ext = re.sub("[.](jsonld|csv|pickle)$", "", schema)
     else:
-        output_file_no_ext = re.sub("[.](jsonld|csv)$", "", output_jsonld)
+        output_file_no_ext = re.sub("[.](jsonld|csv|pickle)$", "", output_jsonld)
 
     logger.info(
         "By default, the JSON-LD output will be stored alongside the first "
