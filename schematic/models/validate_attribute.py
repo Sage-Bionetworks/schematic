@@ -426,7 +426,7 @@ class GenerateError:
     def generate_no_value_in_manifest_error(
         dmge: DataModelGraphExplorer, attribute_name: str, val_rule: str
     ) -> tuple[list[str], list[str]]:
-        """ Raise a warning or error based on the messaging level, if target manifests have been found to
+        """Raise a warning or error based on the messaging level, if target manifests have been found to
         validate against but the manifest itself does not contain data (across the entire manifest,
         not just the column being validated.)
         Args:
