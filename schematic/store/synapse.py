@@ -1,9 +1,8 @@
+"""Synapse storage class"""
+
 import atexit
-from collections import OrderedDict
 from copy import deepcopy
-from datetime import datetime, timedelta
 from dataclasses import dataclass
-import json
 import logging
 import numpy as np
 import pandas as pd
@@ -40,7 +39,6 @@ from synapseclient import (
 )
 from synapseclient.entity import File
 from synapseclient.table import CsvFileTable, build_table, Schema
-from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import (
     SynapseHTTPError,
     SynapseAuthenticationError,
@@ -49,8 +47,6 @@ from synapseclient.core.exceptions import (
 )
 import synapseutils
 from synapseutils.copy_functions import changeFileMetaData
-
-import uuid
 
 from schematic_db.rdb.synapse_database import SynapseDatabase
 
@@ -68,14 +64,12 @@ from schematic.utils.general import (
     create_temp_folder,
     check_synapse_cache_size,
     clear_synapse_cache,
-    profile,
-    calculate_datetime,
 )
 
 from schematic.utils.schema_utils import get_class_label_from_display_name
 
 from schematic.store.base import BaseStorage
-from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
+from schematic.exceptions import AccessCredentialsError
 from schematic.configuration.configuration import CONFIG
 
 logger = logging.getLogger("Synapse storage")
@@ -228,12 +222,13 @@ class SynapseStorage(BaseStorage):
         self._query_fileview()
 
     def _purge_synapse_cache(
-        self, maximum_storage_allowed_cache_gb=1, minute_buffer: int = 15
-    ):
+        self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
+    ) -> None:
         """
         Purge synapse cache if it exceeds a certain size. Default to 1GB.
         Args:
-            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 1 GB.
+            maximum_storage_allowed_cache_gb (int): the maximum storage allowed
+              before purging cache. Default is 1 GB.
             minute_buffer (int): All files created this amount of time or older will be deleted
         """
         # try clearing the cache
