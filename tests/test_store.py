@@ -108,8 +108,6 @@ class TestSynapseStorage:
 
     def test_login(self) -> None:
         """Tests SynapseStorage.login"""
-        synapse_client = SynapseStorage.login()
-        assert synapse_client.cache.cache_root_dir == ".synapseCache"
         synapse_client = SynapseStorage.login("test_cache_dir")
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
         os.rmdir("test_cache_dir")

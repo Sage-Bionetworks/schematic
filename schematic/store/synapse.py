@@ -276,7 +276,7 @@ class SynapseStorage(BaseStorage):
 
     @staticmethod
     def login(
-        synapse_cache_path: str = ".synapseCache",
+        synapse_cache_path: str = "/root/.synapseCache",
         token: Optional[str] = None,
         access_token: Optional[str] = None,
     ) -> synapseclient.Synapse:
