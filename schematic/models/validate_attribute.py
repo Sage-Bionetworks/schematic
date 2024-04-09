@@ -1511,7 +1511,7 @@ class ValidateAttribute(object):
     ) -> tuple[
         tuple[
             dict[str, pd.core.series.Series],
-            dict[str, pd.core.series.Series],
+            list[str],
             dict[str, pd.core.series.Series],
         ],
         list[bool],
@@ -1726,9 +1726,9 @@ class ValidateAttribute(object):
                     dict[str, pd.core.series.Series],
                     dict[str, pd.core.series.Series],
                 ],
-                bool,
-                str,
-            ]
+            ],
+            bool,
+            str,
         ],
     ]:
         """Run cross manifest validation from a source manifest, across all relevant target manifests,
