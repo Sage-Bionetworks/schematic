@@ -97,7 +97,7 @@ class TestSynapseStorage:
     def test_init(self, synapse_store:SynapseStorage) -> None:
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
-        assert synapse_store.root_synapse_cache == ".synapseCache"
+        assert synapse_store.root_synapse_cache.endswith(".synapseCache")
 
     def test__purge_synapse_cache(self, synapse_store:SynapseStorage) -> None:
         """Tests SynapseStorage._purge_synapse_cache"""
@@ -108,6 +108,8 @@ class TestSynapseStorage:
 
     def test_login(self) -> None:
         """Tests SynapseStorage.login"""
+        synapse_client = SynapseStorage.login()
+        assert synapse_client.cache.cache_root_dir.endswith(".synapseCache")
         synapse_client = SynapseStorage.login("test_cache_dir")
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
         os.rmdir("test_cache_dir")

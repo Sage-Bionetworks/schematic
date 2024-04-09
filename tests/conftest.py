@@ -123,8 +123,8 @@ def config():
 def synapse_store(request):
     access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
     if access_token:
-        synapse_store = SynapseStorage(access_token=access_token, synapse_cache_path=".synapseCache")
+        synapse_store = SynapseStorage(access_token=access_token)
     else:
-        synapse_store = SynapseStorage(synapse_cache_path=".synapseCache")
+        synapse_store = SynapseStorage()
 
     yield synapse_store

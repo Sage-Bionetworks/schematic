@@ -197,28 +197,27 @@ class SynapseStorage(BaseStorage):
         token: Optional[str] = None,  # optional parameter retrieved from browser cookie
         access_token: Optional[str] = None,
         project_scope: Optional[list] = None,
-        synapse_cache_path: str = "/root/.synapseCache",
+        synapse_cache_path: Optional[str] = None,
     ) -> None:
         """Initializes a SynapseStorage object.
+
         Args:
-            syn: an object of type synapseclient.
-            token: optional token parameter (typically a 'str') as found in browser cookie upon login to synapse.
-            access_token: optional access token (personal or oauth)
-            synapse_cache_path: location of synapse cache
-            TODO: move away from specific project setup and work with an interface that Synapse specifies (e.g. based on schemas).
-        Exceptions:
-            KeyError: when the 'storage' config object is missing values for essential keys.
-            AttributeError: when the 'storageFileview' attribute (of class SynapseStorage) does not have a value associated with it.
-            synapseclient.core.exceptions.SynapseHTTPError: check if the current user has permission to access the Synapse entity.
-            ValueError: when Admin fileview cannot be found (describe further).
-        Typical usage example:
-            syn_store = SynapseStorage()
+            token (Optional[str], optional):
+              Optional token parameter as found in browser cookie upon login to synapse.
+              Defaults to None.
+            access_token (Optional[list], optional): 
+              Optional access token (personal or oauth). 
+              Defaults to None.
+            project_scope (Optional[list], optional): Defaults to None.
+            synapse_cache_path (Optional[str], optional):
+              Location of synapse cache. 
+              Defaults to None.
         """
         self.syn = self.login(synapse_cache_path, token, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
-        self.root_synapse_cache = synapse_cache_path
+        self.root_synapse_cache = self.syn.cache.cache_root_dir
         self._query_fileview()
 
     def _purge_synapse_cache(
@@ -272,7 +271,7 @@ class SynapseStorage(BaseStorage):
 
     @staticmethod
     def login(
-        synapse_cache_path: str = "/root/.synapseCache",
+        synapse_cache_path: Optional[str] = None,
         token: Optional[str] = None,
         access_token: Optional[str] = None,
     ) -> synapseclient.Synapse:
@@ -281,7 +280,7 @@ class SynapseStorage(BaseStorage):
         Args:
             token (Optional[str], optional): A Synapse token. Defaults to None.
             access_token (Optional[str], optional): A synapse access token. Defaults to None.
-            synapse_cache_path (str): location of synapse cache
+            synapse_cache_path (Optional[str]): location of synapse cache
 
         Raises:
             ValueError: If unable to login with token
@@ -297,7 +296,6 @@ class SynapseStorage(BaseStorage):
         # login using a token
         if token:
             syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
-
             try:
                 syn.login(sessionToken=token, silent=True)
             except SynapseHTTPError as exc:
