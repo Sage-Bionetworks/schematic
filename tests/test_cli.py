@@ -47,11 +47,12 @@ class TestSchemaCli:
             pass
 
     @pytest.mark.parametrize(
-        "model, output, expected",
+        "output_path",
         [
-            ("tests/data/example.model.csv", "tests/data/example.model.pickle", 0),
-            ("tests/data/example.model.csv", "tests/data/example.model.jsonld", 0)
-        ]
+            "tests/data/example.model.pickle",
+            "tests/data/example.model.jsonld"
+        ],
+        ids=["output_path_pickle", "output_path_jsonld"]
     )
     @pytest.mark.parametrize(
         "output_type",
@@ -59,10 +60,13 @@ class TestSchemaCli:
             "jsonld",
             "graph",
             "all"
-        ]
+        ],
+        ids=["output_type_jsonld", "output_type_graph", "output_type_all"]
     )
-    def test_schema_convert_cli(self, runner, model, output, output_type, expected):
+    def test_schema_convert_cli(self, runner, output_path, output_type):
+        model = "tests/data/example.model.csv"
         label_type = "class_label"
+        expected = 0
 
         resultOne = runner.invoke(
             schema,
@@ -80,7 +84,7 @@ class TestSchemaCli:
                 "convert",
                 model,
                 "--output_path",
-                output
+                output_path
             ]
         )
 
@@ -106,7 +110,7 @@ class TestSchemaCli:
                 "--output_type",
                 output_type,
                 "--output_jsonld",
-                output
+                output_path
             ]
         )
 
@@ -118,7 +122,7 @@ class TestSchemaCli:
                 "convert",
                 model,
                 "--output_jsonld",
-                output,
+                output_path,
                 "--data_model_labels",
                 label_type,
             ]
