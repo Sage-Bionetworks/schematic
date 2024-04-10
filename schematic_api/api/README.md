@@ -30,7 +30,7 @@ Note: this approach only works for unix OSs users or windows user with WSL
 See steps below: 
 1) Comment out the first part of `docker-compose.yml` and focus only on building container `schematic-aws`.
 
-2) Get `service_account_creds.json` by doing `schematic init --config /path/to/config.yml`. 
+2) Get `schematic_service_account_creds.json` by following these [instructions](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA)
 
 3) Make a copy of `env.example` and rename it as `.env` and keep it in the same directory as `env.example`. By default, schematic uses port 81. If port 81 is not available, please update `USE_LISTEN_PORT` in `.env` file. 
 
@@ -54,14 +54,7 @@ By default, this command builds up two containers (`schematic` and `schematic-aw
 pip install connexion['swagger=ui']
 ```
 
-2. Please also consider following these [instructions](https://sage-schematic.readthedocs.io/en/develop/cli_reference.html) to fill in configuration file and run the following command to obtain `credentials.json` and `token.pickle`:
-```bash 
-schematic init --config ~/path/to/config.yml
-```
-
-Note: credentials.json and token.pickle have to be in the same directory as run_api.py. If you have obtained credentials.json before (but credentials.json is a different directory), please put config.yml and .synapseConfig in the same directory as run_api.py and run the above command again. 
-
-After running the command above, please follow instructions in your console and visit the URL to authorize schematic. After putting in the authorization code, token.pickle and credentials.json should be automatically downloaded in your local directory. 
+2. Please also consider following these [instructions](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA) to obtain `schematic_service_account_creds.json`. Please specify the path of `schematic_service_account_creds.json` in config.yml (see google_sheets > service_acct_creds)
 
 ## Access Results
 Access the Swagger UI docs at this location:
@@ -88,7 +81,7 @@ Before trying out the API endpoints, please make sure that you have obtained `sc
 
 This endpoint functions similarly to the following: 
 ```bash
-schematic manifest -c ~/path/to/config.yml get -d <synapse id> -s -oauth
+schematic manifest -c ~/path/to/config.yml get -d <synapse id>
 ```
 
 Examples: 
@@ -100,7 +93,7 @@ Examples:
 
 * Step 1:  Make sure you have credentials to download the desired manifest from Synapse. The "download" button should be disabled if you don't have credentials. 
 
-* Step 2: Make sure you set asset_view to the right value. For Synapse, asset_view is the same as master_fileview in config.yml. 
+* Step 2: Make sure you set asset_view to the right value. For Synapse, asset_view is the same as master_fileview_id in config.yml. 
 
 * Step 3: Use parent id of the manifest for "dataset_id" parameter
     
@@ -108,7 +101,7 @@ Note: if the dataset_id you provided is invalid, it will generate an empty manif
 
 ### POST /model/submit
     
-* For the access_token parameter, please use the value of `auth token` in your `.synapseConfig`
+* For authorization, please use the value of `auth token` in your `.synapseConfig`
 
 * For the dataset_id parameter, please create a test folder on synapse and use its synapse ID
 
