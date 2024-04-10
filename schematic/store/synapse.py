@@ -1,9 +1,8 @@
+"""Synapse storage class"""
+
 import atexit
-from collections import OrderedDict
 from copy import deepcopy
-from datetime import datetime, timedelta
 from dataclasses import dataclass
-import json
 import logging
 import numpy as np
 import pandas as pd
@@ -40,16 +39,14 @@ from synapseclient import (
 )
 from synapseclient.entity import File
 from synapseclient.table import CsvFileTable, build_table, Schema
-from synapseclient.annotations import from_synapse_annotations
 from synapseclient.core.exceptions import (
     SynapseHTTPError,
     SynapseAuthenticationError,
     SynapseUnmetAccessRestrictions,
+    SynapseHTTPError,
 )
 import synapseutils
 from synapseutils.copy_functions import changeFileMetaData
-
-import uuid
 
 from schematic_db.rdb.synapse_database import SynapseDatabase
 
@@ -71,7 +68,7 @@ from schematic.utils.general import (
 from schematic.utils.schema_utils import get_class_label_from_display_name
 
 from schematic.store.base import BaseStorage
-from schematic.exceptions import MissingConfigValueError, AccessCredentialsError
+from schematic.exceptions import AccessCredentialsError
 from schematic.configuration.configuration import CONFIG
 
 logger = logging.getLogger("Synapse storage")
@@ -199,34 +196,38 @@ class SynapseStorage(BaseStorage):
         token: Optional[str] = None,  # optional parameter retrieved from browser cookie
         access_token: Optional[str] = None,
         project_scope: Optional[list] = None,
+        synapse_cache_path: Optional[str] = None,
     ) -> None:
         """Initializes a SynapseStorage object.
+
         Args:
-            syn: an object of type synapseclient.
-            token: optional token parameter (typically a 'str') as found in browser cookie upon login to synapse.
-            access_token: optional access token (personal or oauth)
-            TODO: move away from specific project setup and work with an interface that Synapse specifies (e.g. based on schemas).
-        Exceptions:
-            KeyError: when the 'storage' config object is missing values for essential keys.
-            AttributeError: when the 'storageFileview' attribute (of class SynapseStorage) does not have a value associated with it.
-            synapseclient.core.exceptions.SynapseHTTPError: check if the current user has permission to access the Synapse entity.
-            ValueError: when Admin fileview cannot be found (describe further).
-        Typical usage example:
-            syn_store = SynapseStorage()
+            token (Optional[str], optional):
+              Optional token parameter as found in browser cookie upon login to synapse.
+              Defaults to None.
+            access_token (Optional[list], optional):
+              Optional access token (personal or oauth).
+              Defaults to None.
+            project_scope (Optional[list], optional): Defaults to None.
+            synapse_cache_path (Optional[str], optional):
+              Location of synapse cache.
+              Defaults to None.
         """
-        # TODO: turn root_synapse_cache to a parameter in init
-        self.syn = self.login(token, access_token)
+        self.syn = self.login(synapse_cache_path, token, access_token)
         self.project_scope = project_scope
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
-        self.root_synapse_cache = "/root/.synapseCache"
+        self.root_synapse_cache = self.syn.cache.cache_root_dir
         self._query_fileview()
 
-    def _purge_synapse_cache(self, maximum_storage_allowed_cache_gb=1):
+    def _purge_synapse_cache(
+        self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
+    ) -> None:
         """
         Purge synapse cache if it exceeds a certain size. Default to 1GB.
         Args:
-            maximum_storage_allowed_cache_gb: the maximum storage allowed before purging cache. Default is 1 GB.
+            maximum_storage_allowed_cache_gb (int): the maximum storage allowed
+              before purging cache. Default is 1 GB.
+            minute_buffer (int): All files created this amount of time or older will be deleted
         """
         # try clearing the cache
         # scan a directory and check size of files
@@ -238,7 +239,9 @@ class SynapseStorage(BaseStorage):
             dir_size_bytes = check_synapse_cache_size(directory=self.root_synapse_cache)
             # if 1 GB has already been taken, purge cache before 15 min
             if dir_size_bytes >= maximum_storage_allowed_cache_bytes:
-                num_of_deleted_files = clear_synapse_cache(self.syn.cache, minutes=15)
+                num_of_deleted_files = clear_synapse_cache(
+                    self.syn.cache, minutes=minute_buffer
+                )
                 logger.info(
                     f"{num_of_deleted_files}  files have been deleted from {self.root_synapse_cache}"
                 )
@@ -265,30 +268,52 @@ class SynapseStorage(BaseStorage):
             raise AccessCredentialsError(self.storageFileview)
 
     @staticmethod
-    def login(token=None, access_token=None):
+    def login(
+        synapse_cache_path: Optional[str] = None,
+        token: Optional[str] = None,
+        access_token: Optional[str] = None,
+    ) -> synapseclient.Synapse:
+        """Login to Synapse
+
+        Args:
+            token (Optional[str], optional): A Synapse token. Defaults to None.
+            access_token (Optional[str], optional): A synapse access token. Defaults to None.
+            synapse_cache_path (Optional[str]): location of synapse cache
+
+        Raises:
+            ValueError: If unable to login with token
+            ValueError: If unable to loging with access token
+
+        Returns:
+            synapseclient.Synapse: A Synapse object that is logged in
+        """
         # If no token is provided, try retrieving access token from environment
         if not token and not access_token:
             access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
 
         # login using a token
         if token:
-            syn = synapseclient.Synapse()
-
+            syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
             try:
                 syn.login(sessionToken=token, silent=True)
-            except synapseclient.core.exceptions.SynapseHTTPError:
-                raise ValueError("Please make sure you are logged into synapse.org.")
+            except SynapseHTTPError as exc:
+                raise ValueError(
+                    "Please make sure you are logged into synapse.org."
+                ) from exc
         elif access_token:
             try:
-                syn = synapseclient.Synapse()
+                syn = synapseclient.Synapse(cache_root_dir=synapse_cache_path)
                 syn.default_headers["Authorization"] = f"Bearer {access_token}"
-            except synapseclient.core.exceptions.SynapseHTTPError:
+            except SynapseHTTPError as exc:
                 raise ValueError(
                     "No access to resources. Please make sure that your token is correct"
-                )
+                ) from exc
         else:
             # login using synapse credentials provided by user in .synapseConfig (default) file
-            syn = synapseclient.Synapse(configPath=CONFIG.synapse_configuration_path)
+            syn = synapseclient.Synapse(
+                configPath=CONFIG.synapse_configuration_path,
+                cache_root_dir=synapse_cache_path,
+            )
             syn.login(silent=True)
         return syn
 
