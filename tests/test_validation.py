@@ -55,25 +55,101 @@ class TestManifestValidation:
     @pytest.mark.parametrize(
         ("model_name", "manifest_name", "root_node"),
         [
-            ("example.model.jsonld","mock_manifests/Valid_Test_Manifest.csv", "MockComponent"),
-            ("example.model.jsonld", "mock_manifests/Patient_test_no_entry_for_cond_required_column.csv", "Patient"),
-            ("example_test_nones.model.jsonld","mock_manifests/Valid_Test_Manifest_with_nones.csv", "MockComponent"),
+            ("example.model.csv","mock_manifests/Valid_Test_Manifest.csv", "MockComponent"),
+            ("example.model.csv", "mock_manifests/Patient_test_no_entry_for_cond_required_column.csv", "Patient"),
+            ("example_test_nones.model.csv","mock_manifests/Valid_Test_Manifest_with_nones.csv", "MockComponent"),
         ],
         ids=["example_model", "example_with_no_entry_for_cond_required_columns", "example_with_nones"],
     )
+    @pytest.mark.parametrize(
+        "project_scope",
+        ["syn54126707", "syn55250368", "syn55271234"],
+        ids=["project_scope_with_manifests", "project_scope_without_manifests", "project_scope_with_empty_manifest"],
+    )
+    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str,
+            root_node:str, project_scope:str, dmge:DataModelGraph):
+        """ Run the valid manifest in various situations, some of which will generate errors or warnings,
+            if there are "issues" with target manifests on manifests. Since there are so many parameters, limit
+            the combinations that are being run to the ones that are relevant.
+        Args:
+            project_scope: scope to limit cross manifest validation
+                project_scope_with_manifests, is a scope that contains all the necessary manifests with the proper
+                entries, for the Valid_Test_Manifest.csv to pass validation
+                project_scope_without_manifests, is a scope that does not contain any manifests. For each cross manifest
+                    validation run, there will be a warning raised that validation will pass and its assumed the
+                    manifest is the first one being submitted.
+                project_scope_with_empty_manifest, is a scope that contains a single empty MockComponent manifest,
+                    depending on messaging level, a warning or error will be raised to alert users that the
+                    target manifest is empty.
+            model_name, str: csv model used for validation, located in tests/data
+            manifest_name, str: valid manifest being validated
+            root_node, str:
+                Component name for the manifest being validated
 
-    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str, root_node:str):
-        manifestPath = helpers.get_data_path(manifest_name)
+        """
+        manifest_path = helpers.get_data_path(manifest_name)
 
-        metadataModel = get_metadataModel(helpers, model_name)
-        errors, warnings = metadataModel.validateModelManifest(
-            manifestPath=manifestPath,
-            rootNode=root_node,
-            project_scope=["syn54126707"],
-        )
+        warning_rule_sets_1 = [
+                ('Check Match at Least', 'matchAtLeastOne Patient.PatientID set'),
+                ('Check Match at Least values', 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value'),
+                ('Check Match Exactly', 'matchExactlyOne MockComponent.checkMatchExactly set'),
+                ('Check Match Exactly values', 'matchExactlyOne MockComponent.checkMatchExactlyvalues value'),
+            ]
+        warning_rule_sets_2 = warning_rule_sets_1[1:]
+        error_rule_sets = [
+                ('Check Match None', 'matchNone MockComponent.checkMatchNone set error'),
+                ('Check Match None values', 'matchNone MockComponent.checkMatchNonevalues value error'),
+            ]
 
-        assert errors == []
-        assert warnings == []
+        # For the standard project scope, models and manifest should pass without warnings or errors
+        if project_scope == "syn54126707":
+            metadataModel = get_metadataModel(helpers, model_name)
+            errors, warnings = metadataModel.validateModelManifest(
+                manifestPath=manifest_path,
+                rootNode=root_node,
+                project_scope=[project_scope],
+            )
+            assert (errors, warnings) == ([], [])
+
+        # When submitting the first manifest for cross manifest validation (MockComponent), check that proper warning
+        # (to alert users that no validation will be run), is raised. The manifest is still valid to submit.
+        if (project_scope == "syn55250368" and root_node=="MockComponent" and
+            model_name in ["example.model.csv", "example_test_nones.model.csv"]):
+            metadataModel = get_metadataModel(helpers, model_name)
+            errors, warnings = metadataModel.validateModelManifest(
+                manifestPath=manifest_path,
+                rootNode=root_node,
+                project_scope=[project_scope],
+            )
+            
+            for attribute_name, val_rule in warning_rule_sets_1:
+                assert GenerateError.generate_no_cross_warning(
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[0] in warnings
+            assert errors == []
+        
+        # When submitting a manifest to a project that contains a manifest without data, ensure that the proper
+        # warnings/errors are raised.
+        elif project_scope == "syn55271234" and root_node=="MockComponent" and model_name == "example.model.csv":
+            metadataModel = get_metadataModel(helpers, model_name)
+            errors, warnings = metadataModel.validateModelManifest(
+                manifestPath=manifest_path,
+                rootNode=root_node,
+                project_scope=[project_scope],
+            )
+            for attribute_name, val_rule in warning_rule_sets_2:
+                assert GenerateError.generate_no_value_in_manifest_error(
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[1][0] in warnings
+            
+            for attribute_name, val_rule in error_rule_sets:
+                assert GenerateError.generate_no_value_in_manifest_error(
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[0][0] in errors
+
 
     def test_invalid_manifest(self, helpers, dmge):
         metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
