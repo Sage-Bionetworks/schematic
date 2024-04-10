@@ -17,7 +17,6 @@ from synapseclient.entity import File
 from pandas.testing import assert_frame_equal
 
 from schematic.configuration.configuration import Configuration
-from schematic.models.metadata import MetadataModel
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from tests.conftest import Helpers
