@@ -1,9 +1,14 @@
-import os
 import logging
+import os
+import shutil
+from typing import Optional, Generator
+from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
 from schematic.models.metadata import MetadataModel
+from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -17,6 +22,28 @@ def metadata_model(helpers, data_model_labels):
     )
 
     return metadata_model
+
+
+@pytest.fixture
+def test_bulkrnaseq(helpers: Helpers) -> Generator[Path, None, None]:
+    """create temporary copy of test_BulkRNAseq.csv
+    This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file
+    After test, the copied file is removed.
+    Args:
+        helpers (Helpers): Helpers fixture
+
+    Yields:
+        Generator[Path, None, None]: temporary file path of the copied version test_BulkRNAseq.csv
+    """
+    # original bulkrnaseq csv
+    original_test_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
+    # Copy the original CSV file to a temporary directory
+    temp_csv_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq2.csv")
+    shutil.copyfile(original_test_path, temp_csv_path)
+    yield temp_csv_path
+    # Teardown
+    if os.path.exists(temp_csv_path):
+        os.remove(temp_csv_path)
 
 
 class TestMetadataModel:
@@ -93,3 +120,45 @@ class TestMetadataModel:
             os.remove(output_path)
         except:
             pass
+
+    @pytest.mark.parametrize("file_annotations_upload", [True, False])
+    @pytest.mark.parametrize("restrict_rules", [True, False])
+    @pytest.mark.parametrize("hide_blanks", [True, False])
+    @pytest.mark.parametrize(
+        "data_model_labels",
+        ["display_label", "class_label"],
+        ids=["data_model_labels-display_label", "data_model_labels-class_label"],
+    )
+    @pytest.mark.parametrize("validate_component", [None, "BulkRNA-seqAssay"])
+    def test_submit_metadata_manifest(
+        self,
+        test_bulkrnaseq: Path,
+        helpers: Helpers,
+        file_annotations_upload: bool,
+        restrict_rules: bool,
+        data_model_labels: str,
+        hide_blanks: bool,
+        validate_component: Optional[str],
+    ) -> None:
+        meta_data_model = metadata_model(helpers, data_model_labels)
+        with patch(
+            "schematic.models.metadata.MetadataModel.validateModelManifest",
+            return_value=([], []),
+        ):
+            with patch(
+                "schematic.store.synapse.SynapseStorage.associateMetadataWithFiles",
+                return_value="mock manifest id",
+            ):
+                mock_manifest_path = test_bulkrnaseq
+                data_model_jsonld = helpers.get_data_path("example.model.jsonld")
+                mock_manifest_id = meta_data_model.submit_metadata_manifest(
+                    manifest_path=mock_manifest_path,
+                    path_to_json_ld=data_model_jsonld,
+                    validate_component=validate_component,
+                    dataset_id="mock dataset id",
+                    manifest_record_type="file_only",
+                    restrict_rules=restrict_rules,
+                    file_annotations_upload=file_annotations_upload,
+                    hide_blanks=hide_blanks,
+                )
+                assert mock_manifest_id == "mock manifest id"
