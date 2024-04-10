@@ -50,11 +50,67 @@ class TestSchemaCli:
         "model, output, expected",
         [
             ("tests/data/example.model.csv", "tests/data/example.model.pickle", 0),
-            ("tests/data/example.model.csv", "tests/data/example.model.jsonld", 0),
-        ],
+            ("tests/data/example.model.csv", "tests/data/example.model.jsonld", 0)
+        ]
     )
-    def test_schema_convert_cli(self, runner, helpers, model, output, expected):
+    @pytest.mark.parametrize(
+        "output_type",
+        [
+            "jsonld",
+            "graph",
+            "all"
+        ]
+    )
+    def test_schema_convert_cli(self, runner, model, output, output_type, expected):
         label_type = "class_label"
+
+        resultOne = runner.invoke(
+            schema,
+            [
+                "convert",
+                model
+            ]
+        )
+
+        assert resultOne.exit_code == expected
+
+        resultTwo = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_path",
+                output
+            ]
+        )
+
+        assert resultTwo.exit_code == expected
+
+        resultThree = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_type",
+                output_type
+            ]
+        )
+
+        assert resultThree.exit_code == expected
+
+        resultFour = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_type",
+                output_type,
+                "--output_jsonld",
+                output
+            ]
+        )
+
+        assert resultFour.exit_code == expected
 
         result = runner.invoke(
             schema,
@@ -65,7 +121,7 @@ class TestSchemaCli:
                 output,
                 "--data_model_labels",
                 label_type,
-            ],
+            ]
         )
 
         assert result.exit_code == expected
