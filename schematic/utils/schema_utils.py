@@ -6,6 +6,7 @@ import json
 import logging
 import string
 from typing import Literal, Union, Optional
+import pickle
 
 import inflection
 
@@ -480,3 +481,14 @@ def strip_context(context_value: str) -> tuple[str, str]:
     elif "@" in context_value:
         context, value = context_value.split("@")
     return context, value
+
+def export_graph(schema, file_path: str) -> None:
+    try:
+        with open(file_path, "wb") as f:
+            pickle.dump(schema, f)
+        logger.info(f"The graph was created and saved to '{file_path}'.")
+    except SystemExit as e:
+        logger.error(
+            f"The graph failed to save to '{file_path}'. Please check your file path again."
+        )
+        raise e
