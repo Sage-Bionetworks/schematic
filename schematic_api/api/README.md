@@ -54,7 +54,7 @@ By default, this command builds up two containers (`schematic` and `schematic-aw
 pip install connexion['swagger=ui']
 ```
 
-2. Please also consider following these [instructions](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA) to obtain `schematic_service_account_creds.json`. Please specify the path of `schematic_service_account_creds.json` in config.yml (see google_sheets > service_acct_creds)
+2. Due to security concerns, running `schematic init` is no longer supported. Please follow these [instructions](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA) to obtain `schematic_service_account_creds.json`. Please specify the path of `schematic_service_account_creds.json` in config.yml (see google_sheets > service_acct_creds) if you intend to use the configuration file. 
 
 ## Access Results
 Access the Swagger UI docs at this location:
