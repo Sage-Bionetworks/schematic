@@ -86,6 +86,7 @@ class DataModelJSONSchema:
 
         return schema_node_range
 
+
     def get_json_validation_schema(
         self, source_node: str, schema_name: str
     ) -> Dict[str, dict[str, Any]]:
@@ -170,14 +171,11 @@ class DataModelJSONSchema:
                         range_domain_map[n] = []
                     range_domain_map[n].append(node_display_name)
 
-                # can this node be map to the empty set (if required no; if not required yes)
-                # TODO: change "required" to different term, required may be a bit misleading (i.e. is the node required in the schema)
-                node_required = self.dmge.get_node_required(node_label=process_node)
+                # Get node validation rules for the current node, and the given component
+                node_validation_rules = self.dmge.get_component_node_validation_rules(manifest_component=source_node, node_display_name=node_display_name)
 
-                # get any additional validation rules associated with this node (e.g. can this node be mapped to a list of other nodes)
-                node_validation_rules = self.dmge.get_node_validation_rules(
-                    node_display_name=node_display_name
-                )
+                # Get if the node is required for the given component
+                node_required = self.dmge.get_component_node_required(manifest_component=source_node, node_display_name=node_display_name)
 
                 if node_display_name in reverse_dependencies:
                     # if node has conditionals set schema properties and conditional dependencies
@@ -211,7 +209,6 @@ class DataModelJSONSchema:
                     # set schema conditional dependencies
                     for node in reverse_dependencies[node_display_name]:
                         # set all of the conditional nodes that require this process node
-
                         # get node domain if any
                         # ow this node is a conditional requirement
                         if node in range_domain_map:
