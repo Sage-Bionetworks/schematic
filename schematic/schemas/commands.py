@@ -6,7 +6,6 @@ import logging
 import sys
 import time
 import re
-import pickle
 from typing import get_args
 
 from schematic.schemas.data_model_parser import DataModelParser
@@ -16,7 +15,7 @@ from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_t
 
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.cli_utils import query_dict
-from schematic.utils.schema_utils import export_schema
+from schematic.utils.schema_utils import export_schema, export_graph
 from schematic.help import schema_commands
 
 logger = logging.getLogger("schematic")
@@ -137,13 +136,8 @@ def convert(
         logger.info("Export graph to pickle.")
         output_graph = output_file_no_ext + ".pickle"
         try:
-            with open(output_graph, "wb") as file:
-                pickle.dump(graph_data_model, file)
-            logger.info(f"The graph was created and saved to '{output_graph}'.")
+            export_graph(graph_data_model, output_graph)
         except SystemExit as e:
-            logger.error(
-                f"The graph failed to save to '{output_graph}'. Please check your file path again."
-            )
             raise e
 
     if output_type == "graph":
