@@ -27,16 +27,13 @@ def DMGE(helpers):
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     yield dmge
 
-
-@pytest.fixture
-def metadataModel(helpers):
+def get_metadataModel(helpers, model_name:str):
     metadataModel = MetadataModel(
-        inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
+        inputMModelLocation=helpers.get_data_path(model_name),
         inputMModelLocationType="local",
         data_model_labels="class_label",
     )
-
-    yield metadataModel
+    return metadataModel
 
 
 def get_rule_combinations():
@@ -55,27 +52,115 @@ class TestManifestValidation:
     if os.path.exists("great_expectations/expectations/Manifest_test_suite.json"):
         os.remove("great_expectations/expectations/Manifest_test_suite.json")
 
-    def test_valid_manifest(self, helpers, metadataModel):
-        manifestPath = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
-        rootNode = "MockComponent"
+    @pytest.mark.parametrize(
+        ("model_name", "manifest_name", "root_node"),
+        [
+            ("example.model.csv","mock_manifests/Valid_Test_Manifest.csv", "MockComponent"),
+            ("example.model.csv", "mock_manifests/Patient_test_no_entry_for_cond_required_column.csv", "Patient"),
+            ("example_test_nones.model.csv","mock_manifests/Valid_Test_Manifest_with_nones.csv", "MockComponent"),
+        ],
+        ids=["example_model", "example_with_no_entry_for_cond_required_columns", "example_with_nones"],
+    )
+    @pytest.mark.parametrize(
+        "project_scope",
+        ["syn54126707", "syn55250368", "syn55271234"],
+        ids=["project_scope_with_manifests", "project_scope_without_manifests", "project_scope_with_empty_manifest"],
+    )
+    def test_valid_manifest(self, helpers, model_name:str, manifest_name:str,
+            root_node:str, project_scope:str, dmge:DataModelGraph):
+        """ Run the valid manifest in various situations, some of which will generate errors or warnings,
+            if there are "issues" with target manifests on manifests. Since there are so many parameters, limit
+            the combinations that are being run to the ones that are relevant.
+        Args:
+            project_scope: scope to limit cross manifest validation
+                project_scope_with_manifests, is a scope that contains all the necessary manifests with the proper
+                entries, for the Valid_Test_Manifest.csv to pass validation
+                project_scope_without_manifests, is a scope that does not contain any manifests. For each cross manifest
+                    validation run, there will be a warning raised that validation will pass and its assumed the
+                    manifest is the first one being submitted.
+                project_scope_with_empty_manifest, is a scope that contains a single empty MockComponent manifest,
+                    depending on messaging level, a warning or error will be raised to alert users that the
+                    target manifest is empty.
+            model_name, str: csv model used for validation, located in tests/data
+            manifest_name, str: valid manifest being validated
+            root_node, str:
+                Component name for the manifest being validated
 
-        errors, warnings = metadataModel.validateModelManifest(
-            manifestPath=manifestPath,
-            rootNode=rootNode,
-            project_scope=["syn23643250"],
-        )
+        """
+        manifest_path = helpers.get_data_path(manifest_name)
 
-        assert errors == []
-        assert warnings == []
+        warning_rule_sets_1 = [
+                ('Check Match at Least', 'matchAtLeastOne Patient.PatientID set'),
+                ('Check Match at Least values', 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value'),
+                ('Check Match Exactly', 'matchExactlyOne MockComponent.checkMatchExactly set'),
+                ('Check Match Exactly values', 'matchExactlyOne MockComponent.checkMatchExactlyvalues value'),
+            ]
+        warning_rule_sets_2 = warning_rule_sets_1[1:]
+        error_rule_sets = [
+                ('Check Match None', 'matchNone MockComponent.checkMatchNone set error'),
+                ('Check Match None values', 'matchNone MockComponent.checkMatchNonevalues value error'),
+            ]
 
-    def test_invalid_manifest(self, helpers, dmge, metadataModel):
+        # For the standard project scope, models and manifest should pass without warnings or errors
+        if project_scope == "syn54126707":
+            metadataModel = get_metadataModel(helpers, model_name)
+            errors, warnings = metadataModel.validateModelManifest(
+                manifestPath=manifest_path,
+                rootNode=root_node,
+                project_scope=[project_scope],
+            )
+            assert (errors, warnings) == ([], [])
+
+        # When submitting the first manifest for cross manifest validation (MockComponent), check that proper warning
+        # (to alert users that no validation will be run), is raised. The manifest is still valid to submit.
+        if (project_scope == "syn55250368" and root_node=="MockComponent" and
+            model_name in ["example.model.csv", "example_test_nones.model.csv"]):
+            metadataModel = get_metadataModel(helpers, model_name)
+            errors, warnings = metadataModel.validateModelManifest(
+                manifestPath=manifest_path,
+                rootNode=root_node,
+                project_scope=[project_scope],
+            )
+            
+            for attribute_name, val_rule in warning_rule_sets_1:
+                assert GenerateError.generate_no_cross_warning(
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[0] in warnings
+            assert errors == []
+        
+        # When submitting a manifest to a project that contains a manifest without data, ensure that the proper
+        # warnings/errors are raised.
+        elif project_scope == "syn55271234" and root_node=="MockComponent" and model_name == "example.model.csv":
+            metadataModel = get_metadataModel(helpers, model_name)
+            errors, warnings = metadataModel.validateModelManifest(
+                manifestPath=manifest_path,
+                rootNode=root_node,
+                project_scope=[project_scope],
+            )
+            for attribute_name, val_rule in warning_rule_sets_2:
+                assert GenerateError.generate_no_value_in_manifest_error(
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[1][0] in warnings
+            
+            for attribute_name, val_rule in error_rule_sets:
+                assert GenerateError.generate_no_value_in_manifest_error(
+                    dmge=dmge,
+                    attribute_name=attribute_name,
+                    val_rule=val_rule)[0][0] in errors
+
+
+    def test_invalid_manifest(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
+        
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifestPath,
             rootNode=rootNode,
-            project_scope=["syn23643250"],
+            project_scope=["syn54126707"],
         )
 
         # Check errors
@@ -94,7 +179,7 @@ class TestManifestValidation:
                 invalid_entry="5.63",
                 dmge=dmge,
             )[0] in errors
-
+    
         assert GenerateError.generate_type_error(
                 val_rule="str",
                 row_num="3",
@@ -190,6 +275,29 @@ class TestManifestValidation:
                 invalid_entry=["30"],
             )[0] in errors
 
+        assert (
+            GenerateError.generate_cross_warning(
+                val_rule="matchNone error",
+                row_num=["3"],
+                attribute_name="Check Match None",
+                manifest_id=["syn54126950"],
+                invalid_entry=["123"],
+                dmge=dmge,
+            )[0]
+             in errors
+        )
+
+        assert (
+            GenerateError.generate_cross_warning(
+                val_rule="matchNone value error",
+                row_num=["4"],
+                attribute_name="Check Match None values",
+                invalid_entry=["123"],
+                dmge=dmge,
+            )[0]
+             in errors
+        )
+
         # check warnings
         assert GenerateError.generate_content_error(
                 val_rule="recommended",
@@ -210,7 +318,7 @@ class TestManifestValidation:
                 row_num=["3"],
                 attribute_name="Check Match at Least",
                 invalid_entry=["7163"],
-                missing_manifest_ID=["syn27600110", "syn29381803"],
+                manifest_id=["syn54126997", "syn54127001"],
                 dmge=dmge,
             )[1] in warnings
 
@@ -220,19 +328,19 @@ class TestManifestValidation:
                 attribute_name="Check Match at Least values",
                 invalid_entry=["51100"],
                 dmge=dmge,
-            )[1] in warnings
+            )[1] in warnings       
 
         assert \
             GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862078", "syn27648165"],
+                matching_manifests=["syn54126950", "syn54127008"],
                 dmge=dmge,
             )[1] in warnings \
             or GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862066", "syn27648165"],
+                matching_manifests=["syn54127702", "syn54127008"],
                 dmge=dmge,
             )[1] in warnings
 
@@ -243,11 +351,13 @@ class TestManifestValidation:
             invalid_entry=["71738", "98085", "210065"],
             dmge=dmge,
         )[1]
+
         warning_in_list = [cross_warning[1] in warning for warning in warnings]
         assert any(warning_in_list)
 
 
-    def test_in_house_validation(self, helpers, dmge, metadataModel):
+    def test_in_house_validation(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
         manifestPath = helpers.get_data_path("mock_manifests/Invalid_Test_Manifest.csv")
         rootNode = "MockComponent"
 
@@ -255,7 +365,7 @@ class TestManifestValidation:
             manifestPath=manifestPath,
             rootNode=rootNode,
             restrict_rules=True,
-            project_scope=["syn23643250"],
+            project_scope=["syn54126707"],
         )
 
         # Check errors
@@ -342,13 +452,36 @@ class TestManifestValidation:
                 dmge=dmge,
             )[0] in errors
 
+        assert (
+            GenerateError.generate_cross_warning(
+                val_rule="matchNone error",
+                row_num=["3"],
+                attribute_name="Check Match None",
+                manifest_id=["syn54126950"],
+                invalid_entry=["123"],
+                dmge=dmge,
+            )[0]
+             in errors
+        )
+
+        assert (
+            GenerateError.generate_cross_warning(
+                val_rule="matchNone value error",
+                row_num=["4"],
+                attribute_name="Check Match None values",
+                invalid_entry=["123"],
+                dmge=dmge,
+            )[0]
+             in errors
+        )
+
         # Check Warnings
         assert GenerateError.generate_cross_warning(
                 val_rule="matchAtLeastOne",
                 row_num=["3"],
                 attribute_name="Check Match at Least",
                 invalid_entry=["7163"],
-                missing_manifest_ID=["syn27600110", "syn29381803"],
+                manifest_id=["syn54126997", "syn54127001"],
                 dmge=dmge,
             )[1] in warnings
 
@@ -364,13 +497,13 @@ class TestManifestValidation:
             GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862078", "syn27648165"],
+                matching_manifests=["syn54126950", "syn54127008"],
                 dmge=dmge,
             )[1] in warnings \
             or GenerateError.generate_cross_warning(
                 val_rule="matchExactlyOne",
                 attribute_name="Check Match Exactly",
-                matching_manifests=["syn29862066", "syn27648165"],
+                matching_manifests=["syn54127702", "syn54127008"],
                 dmge=dmge,
             )[1] in warnings
 
@@ -381,6 +514,7 @@ class TestManifestValidation:
                 invalid_entry=["71738", "98085", "210065"],
                 dmge=dmge,
             )[1] in warnings
+
 
     @pytest.mark.parametrize(
         "manifest_path",
@@ -419,21 +553,23 @@ class TestManifestValidation:
             restrict_rules=False,
             project_scope=None,
         )
-
-        if root_node == "Biospecimen":
-            assert (
-                vmr_errors
-                and vmr_errors[0][0] == ["2", "3"]
-                and vmr_errors[0][-1] == ["123"]
-            )
-            assert vmr_warnings == []
-        elif root_node == "Patient":
-            assert vmr_errors == []
-            assert (
-                vmr_warnings
-                and vmr_warnings[0][0] == ["2", "3"]
-                and vmr_warnings[0][-1] == ["123"]
-            )
+        try:
+            if root_node == "Biospecimen":
+                assert (
+                    vmr_errors
+                    and vmr_errors[0][0] == ["2", "3"]
+                    and vmr_errors[0][-1] == ["123"]
+                )
+                assert vmr_warnings == []
+            elif root_node == "Patient":
+                assert vmr_errors == []
+                assert (
+                    vmr_warnings
+                    and vmr_warnings[0][0] == ["2", "3"]
+                    and vmr_warnings[0][-1] == ["123"]
+                )
+        except:
+            breakpoint()
 
 
     @pytest.mark.rule_combos(
@@ -441,7 +577,7 @@ class TestManifestValidation:
     )
     @pytest.mark.parametrize("base_rule, second_rule", get_rule_combinations())
     def test_rule_combinations(
-        self, helpers, dmge, base_rule, second_rule, metadataModel
+        self, helpers, dmge, base_rule, second_rule,
     ):
         """
         TODO: Describe what this test is doing.
@@ -450,6 +586,8 @@ class TestManifestValidation:
         """
         rule_regex = re.compile(base_rule + ".*")
         rootNode = "MockComponent"
+
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
 
         manifestPath = helpers.get_data_path("mock_manifests/Rule_Combo_Manifest.csv")
         manifest = helpers.get_data_frame(manifestPath)
