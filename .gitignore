@@ -177,7 +177,6 @@ tests/data/schema.gpickle
 # Created during testting
 Example*
 manifests/*
-.synapseCache
 
 # schematic config file
 config.yml
