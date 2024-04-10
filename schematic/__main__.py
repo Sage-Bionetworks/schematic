@@ -31,6 +31,7 @@ def main():
     logger.info("Starting schematic...")
     logger.debug("Existing sub-commands need to be used with schematic.")
 
+
 main.add_command(manifest_cli)  # add manifest commands
 main.add_command(model_cli)  # add model commands
 main.add_command(schema_cli)  # add schema commands
