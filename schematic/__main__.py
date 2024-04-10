@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import logging
 import click
 import click_log
@@ -14,7 +13,6 @@ from schematic.schemas.commands import (
 from schematic.visualization.commands import (
     viz as viz_cli,
 )  # viz generation commands
-from schematic import init as init_cli  # schematic initialization commands
 
 logger = logging.getLogger()
 click_log.basic_config(logger)
@@ -33,8 +31,6 @@ def main():
     logger.info("Starting schematic...")
     logger.debug("Existing sub-commands need to be used with schematic.")
 
-
-main.add_command(init_cli)  # add init commands
 main.add_command(manifest_cli)  # add manifest commands
 main.add_command(model_cli)  # add model commands
 main.add_command(schema_cli)  # add schema commands

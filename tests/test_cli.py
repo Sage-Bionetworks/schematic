@@ -4,7 +4,6 @@ import pytest
 
 from click.testing import CliRunner
 
-# from schematic import init
 from schematic.schemas.commands import schema
 from schematic.manifest.commands import manifest
 from schematic.configuration.configuration import Configuration
