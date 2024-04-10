@@ -166,7 +166,7 @@ class TestSchemaCli:
         if with_annotations:
             annotation_opt = "-fa"
         else:
-            annotation_opt = "--no-fa"
+            annotation_opt = "-no-fa"
 
         with patch("schematic.models.metadata.MetadataModel.submit_metadata_manifest"):
             result = runner.invoke(
