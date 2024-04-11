@@ -5,6 +5,7 @@ import os
 from typing import Optional, no_type_check
 import numpy as np
 import pandas as pd
+import networkx as nx
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -26,6 +27,7 @@ class AttributesExplorer:
         data_model_grapher: Optional[DataModelGraph] = None,
         data_model_graph_explorer: Optional[DataModelGraphExplorer] = None,
         parsed_data_model: Optional[dict] = None,
+        graph_data_model: Optional[nx.MultiDiGraph] = None,
     ) -> None:
         self.path_to_jsonld = path_to_jsonld
 
