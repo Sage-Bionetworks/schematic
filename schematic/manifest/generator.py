@@ -1633,6 +1633,7 @@ class ManifestGenerator(object):
         title: Optional[str] = None,
         strict: Optional[bool] = True,
         use_annotations: Optional[bool] = False,
+        graph_data_model: Optional[nx.MultiDiGraph] = None,
     ) -> Union[List[str], List[pd.DataFrame]]:
         """Create multiple manifests
 
@@ -1668,16 +1669,17 @@ class ManifestGenerator(object):
                     "Please check your submission and try again."
                 )
 
-        data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+        if not graph_data_model:
+            data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
 
-        # Parse Model
-        parsed_data_model = data_model_parser.parse_model()
+            # Parse Model
+            parsed_data_model = data_model_parser.parse_model()
 
-        # Instantiate DataModelGraph
-        data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
+            # Instantiate DataModelGraph
+            data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
-        # Generate graph
-        graph_data_model = data_model_grapher.graph
+            # Generate graph
+            graph_data_model = data_model_grapher.graph
 
         # Gather all returned result urls
         all_results = []
