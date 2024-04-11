@@ -292,6 +292,9 @@ class ValidateManifest(object):
         warnings = []
         col_attr = {}  # save the mapping between column index and attribute name
 
+        # Replace nans with empty strings so jsonschema
+        manifest = manifest.replace({np.nan: ""})
+
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(
             include=[int, np.int64, float, np.float64]
