@@ -266,7 +266,7 @@ class DataModelJSONLDParser:
         self,
         rel_entry: Any,
         id_jsonld_key: str,
-        dn_label_dict: dict[str,str], # pylint:disable=unused-argument
+        dn_label_dict: dict[str, str],  # pylint:disable=unused-argument
         model_jsonld: list[dict],
     ) -> Any:
         """Parse an input entry based on certain attributes
