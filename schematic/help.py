@@ -171,6 +171,9 @@ model_commands = {
                 "class_label, display_label, display_name, default, class_label. When true annotations and table columns will be uploaded with the display name formatting with blacklisted characters removed. "
                 "To use for tables, use in conjunction with the use_schema_label flag."
             ),
+            "file_annotations_upload": (
+                "This is a boolean flag. Default to True. If False, annotations will not be added to files during submission."
+            ),
             "data_model_labels": DATA_MODEL_LABELS_HELP,
         },
         "validate": {
