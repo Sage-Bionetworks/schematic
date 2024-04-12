@@ -597,11 +597,6 @@ class TestManifestValidation:
                     "bulk_rnaseq_cbr_error_2":{
                         "row_num":"4",
                         "attribute_name":"File Format",
-                        "error_message": "'' is not of type 'array'",
-                        "invalid_entry":""},
-                    "bulk_rnaseq_cbr_error_3":{
-                        "row_num":"4",
-                        "attribute_name":"File Format",
                         "error_message":"'' is not one of ['CSV/TSV', 'CRAM', 'FASTQ', 'BAM']",
                         "invalid_entry":""},
             }
@@ -627,27 +622,30 @@ class TestManifestValidation:
 
         if "BulkRNAseq_component_based_required_rule_test" in manifest_name:
             message_key = "bulk_rnaseq_cbr_error_1"
-            try:
-                assert GenerateError.generate_schema_error(
-                        row_num=messages[message_key]["row_num"],
-                        attribute_name=messages[message_key]["attribute_name"],
-                        error_message=messages[message_key]["error_message"],
-                        invalid_entry=messages[message_key]["invalid_entry"],
-                        dmge=dmge,
-                    )[0] in errors
+            assert GenerateError.generate_schema_error(
+                    row_num=messages[message_key]["row_num"],
+                    attribute_name=messages[message_key]["attribute_name"],
+                    error_message=messages[message_key]["error_message"],
+                    invalid_entry=messages[message_key]["invalid_entry"],
+                    dmge=dmge,
+                )[0] in errors
 
-                message_key = "bulk_rnaseq_cbr_error_2"
-                # Only check a portion of the error message is correct since the order of the FASTQ entries can change.
-                assert GenerateError.generate_schema_error(
-                        row_num=messages[message_key]["row_num"],
-                        attribute_name=messages[message_key]["attribute_name"],
-                        error_message=messages[message_key]["error_message"],
-                        invalid_entry=messages[message_key]["invalid_entry"],
-                        dmge=dmge,
-                    )[0][1] in errors[1]
-            except:
-                breakpoint()
+            message_key = "bulk_rnaseq_cbr_error_2"
+            expected_error = GenerateError.generate_schema_error(
+                    row_num=messages[message_key]["row_num"],
+                    attribute_name=messages[message_key]["attribute_name"],
+                    error_message=messages[message_key]["error_message"],
+                    invalid_entry=messages[message_key]["invalid_entry"],
+                    dmge=dmge,
+                )[0]
 
+            # since the valid value order isnt set in error reporting, check a portion of the expected output
+            # Check the error row is expected
+            assert expected_error[1] in errors[1]
+            # Check that one of the values for the expected valid values is present
+            # Extract a valid value
+            valid_value = expected_error[2].split(',')[-1].split(']')[0].strip(' ').strip("\'")
+            assert  valid_value in errors[1][2]
             assert warnings==[]
 
         return
