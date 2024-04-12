@@ -20,9 +20,10 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 # Installation
 ## Installation Requirements
-* Python version 3.9.0≤x<3.11.0 
+* Python version 3.9.0≤x<3.11.0
+* You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/)
 
-Note: You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have the right permissions to download the Google credentials files from Synapse.
+Note: Our credential policy for Google credentials in order to create Google sheet files from Schematic, see tutorial ['HERE'](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA), ensure the saved JSON file is saved in the location indicated in your config file.
 
 
 ## Installation guide for data curator app
