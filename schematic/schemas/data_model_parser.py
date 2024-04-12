@@ -249,25 +249,32 @@ class DataModelJSONLDParser:
         rel_entry: any,
         id_jsonld_key: str,
         dn_label_dict: dict[str:str],
-        model_jsonld: dict,
+        model_jsonld: list[dict],
     ) -> Any:
         """Parse an input entry based on certain attributes
         Args:
             rel_entry: Given a single entry and relationship in a JSONLD data model, the recorded value
             id_jsonld_key, str: the jsonld key for id
+            dn_label_dict, dict[str:str]:dict of model labels to display names
+            model_jsonld, list[dict]: list of dictionaries, each dictionary is an entry in the jsonld data model
         Returns:
             parsed_rel_entry: an entry that has been parsed base on its input type and characteristics.
         """
-        # Retrieve ID from single value dictionary
-        if type(rel_entry) == dict and len(rel_entry.keys()) == 1:
-            parsed_rel_entry = rel_entry["@id"]
+        # Parse dictionary entries
+        if isinstance(rel_entry, dict):
+            # Retrieve ID from single value dictionary
+            if set(rel_entry.keys())=={'@id'}:
+                parsed_rel_entry = rel_entry["@id"]
+            # Parse any remaining dictionaries
+            else:
+                parsed_rel_entry = self.convert_entry_to_dn_label(rel_entry, model_jsonld)
         # Parse list of dictionaries to make a list of entries with context stripped (will update this section when contexts added.)
-        elif type(rel_entry) == list and type(rel_entry[0]) == dict:
+        elif isinstance(rel_entry, list) and isinstance(rel_entry[0], dict):
             parsed_rel_entry = self.convert_entry_to_dn_label(
                 [r[id_jsonld_key].split(":")[1] for r in rel_entry], model_jsonld
             )
         # Strip context from string and convert true/false to bool
-        elif type(rel_entry) == str:
+        elif isinstance(rel_entry, str):
             # Remove contexts and treat strings as appropriate.
             if ":" in rel_entry and "http:" not in rel_entry:
                 parsed_rel_entry = rel_entry.split(":")[1]
@@ -316,12 +323,12 @@ class DataModelJSONLDParser:
         # Get a dictionary of display_names mapped to labels
         dn_label_dict = self.label_to_dn_dict(model_jsonld=model_jsonld)
         # Handle if using the display name as the label
-        if type(parsed_rel_entry) == list:
+        if isinstance(parsed_rel_entry, list):
             parsed_rel_entry = [
                 dn_label_dict.get(entry) if dn_label_dict.get(entry) else entry
                 for entry in parsed_rel_entry
             ]
-        elif type(parsed_rel_entry) == str:
+        elif isinstance(parsed_rel_entry, str):
             converted_label = dn_label_dict.get(parsed_rel_entry)
             if converted_label:
                 parsed_rel_entry = dn_label_dict.get(parsed_rel_entry)
