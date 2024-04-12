@@ -110,7 +110,7 @@ jobs:
         run: |
           # ran only on certain files for now
           # add here when checked
-          poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py
+          poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py schematic/schemas/*.py
 
       #----------------------------------------------
       #              run test suite
