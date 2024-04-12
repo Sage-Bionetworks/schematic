@@ -13,7 +13,7 @@ Sample ID,,,,,TRUE,DataProperty,,,
 Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,
 Bulk RNA-seq Assay,,,"Filename, Sample ID, File Format, Component",,FALSE,DataType,Biospecimen,,
 Filename,,,,,TRUE,DataProperty,,,
-File Format,,"FASTQ, BAM, CRAM, CSV/TSV",,,FALSE,DataProperty,,,^^#BulkRNA-seqAssay list required
+File Format,,"FASTQ, BAM, CRAM, CSV/TSV",,,FALSE,DataProperty,,,^^#BulkRNA-seqAssay required
 BAM,,,Genome Build,,FALSE,ValidValue,,,
 CRAM,,,"Genome Build, Genome FASTA",,FALSE,ValidValue,,,
 CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
