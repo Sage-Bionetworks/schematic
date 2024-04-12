@@ -1,0 +1,21 @@
+Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules
+Component,,,,,TRUE,,,,
+Patient,,,"Patient ID, Sex, Year of Birth, Diagnosis, Component",,FALSE,DataType,,,
+Patient ID,,,,,FALSE,DataProperty,,,#Patient unique warning^^#Biospecimen unique required error
+Sex,,"Female, Male, Other",,,TRUE,DataProperty,,,
+Year of Birth,,,,,FALSE,DataProperty,,,
+Diagnosis,,"Healthy, Cancer",,,TRUE,DataProperty,,,
+Cancer,,,"Cancer Type, Family History",,FALSE,ValidValue,,,
+Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,
+Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list strict
+Biospecimen,,,"Sample ID, Patient ID, Tissue Status, Component",,FALSE,DataType,Patient,,
+Sample ID,,,,,TRUE,DataProperty,,,
+Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,
+Bulk RNA-seq Assay,,,"Filename, Sample ID, File Format, Component",,FALSE,DataType,Biospecimen,,
+Filename,,,,,TRUE,DataProperty,,,
+File Format,,"FASTQ, BAM, CRAM, CSV/TSV",,,FALSE,DataProperty,,,^^#BulkRNA-seqAssay list required
+BAM,,,Genome Build,,FALSE,ValidValue,,,
+CRAM,,,"Genome Build, Genome FASTA",,FALSE,ValidValue,,,
+CSV/TSV,,,Genome Build,,FALSE,ValidValue,,,
+Genome Build,,"GRCh37, GRCh38, GRCm38, GRCm39",,,TRUE,DataProperty,,,
+Genome FASTA,,,,,TRUE,DataProperty,,,
