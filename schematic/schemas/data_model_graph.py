@@ -230,8 +230,9 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         return list(nodes)
 
     def get_component_node_validation_rules(
-        self, manifest_component: str, node_display_name: str)-> list[str]:
-        """ Get valdation rules for a given node and component.
+        self, manifest_component: str, node_display_name: str
+    ) -> list[str]:
+        """Get valdation rules for a given node and component.
         Args:
             manifest_component, str: manifest component display name that the node belongs to.
             node_display_name, str: node display name for the node being queried.
@@ -251,29 +252,36 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             )
         return node_validation_rules
 
-    def get_component_node_required(self, manifest_component, node_display_name)-> bool:
-        """ Check if a node is required taking into account the manifest component it is defined in (requirements can be set in validaiton rule as well as required column)
+    def get_component_node_required(
+        self, manifest_component, node_display_name
+    ) -> bool:
+        """Check if a node is required taking into account the manifest component it is defined in (requirements can be set in validaiton rule as well as required column)
         Args:
             manifest_component, str: manifest component display name that the node belongs to.
             node_display_name, str: node display name for the node being queried.
         Returns:
             True, if node is required, False if not
         """
-        node_required=False
+        node_required = False
         # Get node validation rules for a given component
         node_validation_rules = self.get_component_node_validation_rules(
-            manifest_component=manifest_component, node_display_name=node_display_name)
+            manifest_component=manifest_component, node_display_name=node_display_name
+        )
 
         # Check if the valdation rule specifies that the node is required for this particular component.
         if rule_in_rule_list("required", node_validation_rules):
-            node_required=True
+            node_required = True
             # To prevent any unintended errors, ensure the Required field for this node is False
-            if self.get_node_required(node_display_name=node_display_name) and node_required:
+            if (
+                self.get_node_required(node_display_name=node_display_name)
+                and node_required
+            ):
                 logger.error(
                     f"For component: {manifest_component} and attribute: {node_display_name} ",
                     "requirements are being specified in both the Required field and in the Validation Rules. ",
                     "If you desire to use validation rules to set component specific requirements for this attribute ",
-                    "then the Required field needs to be set to False.")
+                    "then the Required field needs to be set to False.",
+                )
         else:
             # If requirements are not being set in the validaiton rule, then just pull the standard node requirements from the model
             node_required = self.get_node_required(node_display_name=node_display_name)

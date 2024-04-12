@@ -95,7 +95,6 @@ class DataModelJSONSchema:
 
         return schema_node_range
 
-
     def get_json_validation_schema(
         self, source_node: str, schema_name: str
     ) -> dict[str, dict[str, Any]]:
@@ -189,10 +188,14 @@ class DataModelJSONSchema:
                     range_domain_map[node].append(node_display_name)
 
                 # Get node validation rules for the current node, and the given component
-                node_validation_rules = self.dmge.get_component_node_validation_rules(manifest_component=source_node, node_display_name=node_display_name)
+                node_validation_rules = self.dmge.get_component_node_validation_rules(
+                    manifest_component=source_node, node_display_name=node_display_name
+                )
 
                 # Get if the node is required for the given component
-                node_required = self.dmge.get_component_node_required(manifest_component=source_node, node_display_name=node_display_name)
+                node_required = self.dmge.get_component_node_required(
+                    manifest_component=source_node, node_display_name=node_display_name
+                )
 
                 if node_display_name in reverse_dependencies:
                     # if node has conditionals set schema properties and conditional dependencies
