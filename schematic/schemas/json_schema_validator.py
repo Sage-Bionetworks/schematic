@@ -1,16 +1,13 @@
+"""Json Schema Validator"""
+
 import os
 from jsonschema import validate
 
-from schematic.utils.io_utils import load_schemaorg, load_json, load_default
+from schematic.utils.io_utils import load_schemaorg, load_json
 from schematic.utils.general import str2list, dict2list, find_duplicates
 from schematic.utils.curie_utils import (
     expand_curies_in_schema,
     extract_name_from_uri_or_curie,
-)
-from schematic.utils.validate_utils import (
-    validate_class_schema,
-    validate_property_schema,
-    validate_schema,
 )
 
 
@@ -34,15 +31,18 @@ class SchemaValidator:
           word for a class;
         > the value of "rdfs:subClassOf" should be present in the schema or in
           the core vocabulary
-        > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
+        > sms:displayName ideally should contain capitalized words separated by space,
+          but that's not enforced by validation
       > Property specific
         > rdfs:label field should be cammelCase
         > the value of "schema:domainIncludes" should be present in the schema
           or in the core vocabulary
         > the value of "schema:rangeIncludes" should be present in the schema
           or in the core vocabulary
-        > sms:displayName ideally should contain capitalized words separated by space, but that's not enforced by validation
-        TODO: add dependencies and component dependencies to class structure documentation; as well as value range and required property
+        > sms:displayName ideally should contain capitalized words separated
+          by space, but that's not enforced by validation
+        TODO: add dependencies and component dependencies to class
+          structure documentation; as well as value range and required property
 
     """
 
@@ -85,18 +85,17 @@ class SchemaValidator:
         for record in subclassof_value:
             assert record["@id"] in self.all_classes
 
-    def validate_domainIncludes_field(self, domainincludes_value):
+    def validate_domain_includes_field(self, domainincludes_value):
         """Check if the value of "domainincludes" is included in the schema
         file
         """
         domainincludes_value = dict2list(domainincludes_value)
         for record in domainincludes_value:
-            assert record["@id"] in self.all_classes, (
-                "value of domainincludes not recorded in schema: %r"
-                % domainincludes_value
-            )
+            assert (
+                record["@id"] in self.all_classes
+            ), f"value of domainincludes not recorded in schema: {domainincludes_value}"
 
-    def validate_rangeIncludes_field(self, rangeincludes_value):
+    def validate_range_includes_field(self, rangeincludes_value):
         """Check if the value of "rangeincludes" is included in the schema
         file
         """
@@ -107,7 +106,7 @@ class SchemaValidator:
     def check_whether_atid_and_label_match(self, record):
         """Check if @id field matches with the "rdfs:label" field"""
         _id = extract_name_from_uri_or_curie(record["@id"])
-        assert _id == record["rdfs:label"], "id and label not match: %r" % record
+        assert _id == record["rdfs:label"], f"id and label not match: {record}"
 
     def check_duplicate_labels(self):
         """Check for duplication in the schema"""
@@ -116,10 +115,8 @@ class SchemaValidator:
             for _record in self.extension_schema["schema"]["@graph"]
         ]
         duplicates = find_duplicates(labels)
-        try:
-            assert len(duplicates) == 0
-        except:
-            raise Exception("Duplicates detected in graph: ", duplicates)
+        if len(duplicates) == 0:
+            raise ValueError("Duplicates detected in graph: ", duplicates)
 
     def validate_schema(self, schema):
         """Validate schema against SchemaORG standard"""
@@ -142,6 +139,7 @@ class SchemaValidator:
         return validate(schema, json_schema)
 
     def validate_full_schema(self):
+        """validate full schema"""
         self.check_duplicate_labels()
         for record in self.extension_schema["schema"]["@graph"]:
             self.check_whether_atid_and_label_match(record)
@@ -151,10 +149,10 @@ class SchemaValidator:
             elif record["@type"] == "rdf:Property":
                 self.validate_property_schema(record)
                 self.validate_property_label(record["@id"])
-                self.validate_domainIncludes_field(
+                self.validate_domain_includes_field(
                     record["http://schema.org/domainIncludes"]
                 )
                 if "http://schema.org/rangeIncludes" in record:
-                    self.validate_rangeIncludes_field(
+                    self.validate_range_includes_field(
                         record["http://schema.org/rangeIncludes"]
                     )

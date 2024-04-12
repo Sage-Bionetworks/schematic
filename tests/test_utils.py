@@ -1063,7 +1063,7 @@ class TestCsvUtils:
         graph_data_model = data_model_grapher.graph
 
         # Convert graph to JSONLD
-        jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
+        jsonld_data_model = convert_graph_to_jsonld(graph=graph_data_model)
 
         # saving updated schema.org schema
         actual_jsonld_path = tmp_path / "example.from_csv.model.jsonld"
