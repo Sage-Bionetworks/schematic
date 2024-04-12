@@ -1256,7 +1256,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Test that __init__ is being set up properly
         assert type(data_model_jsonld.graph) == nx.MultiDiGraph
@@ -1338,7 +1338,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Get empty template
         if template_type == "property":
@@ -1411,7 +1411,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Get empty template
         if template_type == "property":
@@ -1447,7 +1447,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Get empty template
         class_template = ClassTemplate()
@@ -1493,7 +1493,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Get empty template
         class_template = ClassTemplate()
@@ -1532,7 +1532,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
         jsonld_dm = data_model_jsonld.generate_jsonld_object()
 
         assert list(jsonld_dm.keys()) == ["@context", "@graph", "@id"]
@@ -1548,6 +1548,6 @@ class TestDataModelJsonLd:
         )
 
         # Generate JSONLD
-        jsonld_dm = convert_graph_to_jsonld(Graph=graph_data_model)
+        jsonld_dm = convert_graph_to_jsonld(graph=graph_data_model)
         assert list(jsonld_dm.keys()) == ["@context", "@graph", "@id"]
         assert len(jsonld_dm["@graph"]) > 1

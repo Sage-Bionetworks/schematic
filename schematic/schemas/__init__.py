@@ -1,3 +1,5 @@
+"Schema init file"
+
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
