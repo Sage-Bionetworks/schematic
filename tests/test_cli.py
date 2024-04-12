@@ -1,13 +1,15 @@
 import os
 
 import pytest
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
-# from schematic import init
 from schematic.schemas.commands import schema
 from schematic.manifest.commands import manifest
+from schematic.models.commands import model
 from schematic.configuration.configuration import Configuration
+from tests.conftest import Helpers
 
 
 @pytest.fixture
@@ -49,10 +51,18 @@ class TestSchemaCli:
 
         output_path = helpers.get_data_path("example.model.jsonld")
 
-        label_type = 'class_label'
+        label_type = "class_label"
 
         result = runner.invoke(
-            schema, ["convert", data_model_csv_path, "--output_jsonld", output_path, "--data_model_labels", label_type]
+            schema,
+            [
+                "convert",
+                data_model_csv_path,
+                "--output_jsonld",
+                output_path,
+                "--data_model_labels",
+                label_type,
+            ],
         )
 
         assert result.exit_code == 0
@@ -139,3 +149,41 @@ class TestSchemaCli:
 
         assert result.exit_code == 0
         self.assert_expected_file(result, output_path)
+
+    @pytest.mark.parametrize("with_annotations", [True, False])
+    def test_submit_file_based_manifest(
+        self,
+        runner: CliRunner,
+        helpers: Helpers,
+        with_annotations: bool,
+        config: Configuration,
+    ) -> None:
+        manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
+        config.load_config("config_example.yml")
+        config.synapse_master_fileview_id = "syn1234"
+
+        if with_annotations:
+            annotation_opt = "-fa"
+        else:
+            annotation_opt = "-no-fa"
+
+        with patch("schematic.models.metadata.MetadataModel.submit_metadata_manifest"):
+            result = runner.invoke(
+                model,
+                [
+                    "-c",
+                    config.config_path,
+                    "submit",
+                    "-mrt",
+                    "file_only",
+                    "-d",
+                    "syn12345",
+                    "-vc",
+                    "BulkRNA-seqAssay",
+                    "-mp",
+                    manifest_path,
+                    annotation_opt,
+                ],
+            )
+
+            assert result.exit_code == 0

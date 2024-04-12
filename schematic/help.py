@@ -105,6 +105,16 @@ manifest_commands = {
                 "Migration information for testing purposes will be logged to the INFO level."
             ),
         },
+        "download": {
+            "short_help": ("Function to download manifest from asset store (Synapse)."),
+            "dataset_id": (
+                "Specify the synID of a dataset folder on Synapse. If there is an exisiting manifest already present "
+                "in that folder, then it will be pulled with the existing annotations for further annotation/modification. "
+            ),
+            "new_manifest_name": (
+                "Specify the new name to download the manifest file as."
+            ),
+        },
     }
 }
 
@@ -161,6 +171,9 @@ model_commands = {
                 "class_label, display_label, display_name, default, class_label. When true annotations and table columns will be uploaded with the display name formatting with blacklisted characters removed. "
                 "To use for tables, use in conjunction with the use_schema_label flag."
             ),
+            "file_annotations_upload": (
+                "This is a boolean flag. Default to True. If False, annotations will not be added to files during submission."
+            ),
             "data_model_labels": DATA_MODEL_LABELS_HELP,
         },
         "validate": {
@@ -205,17 +218,6 @@ schema_commands = {
             ),
             "data_model_labels": DATA_MODEL_LABELS_HELP,
         }
-    }
-}
-
-
-# `schematic init` command description
-init_command = {
-    "init": {
-        "short_help": ("Initialize authentication for schematic."),
-        "config": (
-            "Specify the path to the `config.yml` using this option. This is a required argument."
-        ),
     }
 }
 
