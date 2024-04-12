@@ -439,6 +439,144 @@ class TestManifestValidation:
                 dmge=dmge,
             )[1] in warnings
 
+    @pytest.mark.parametrize(
+        "model_name",
+        [
+            "example.model.csv",
+            "example_required_vr_test.model.csv",
+        ],
+        ids=["example_model", "example_with_requirements_from_vr"],
+    )
+
+    @pytest.mark.parametrize(
+        ["manifest_name", "root_node",],
+        [
+            ("mock_manifests/Biospecimen_required_vr_test_fail.manifest.csv", "Biospecimen"),
+            ("mock_manifests/Biospecimen_required_vr_test_pass.manifest.csv", "Biospecimen"),
+            ("mock_manifests/Patient_required_vr_test_pass.manifest.csv", "Patient"),
+            ("mock_manifests/Patient_test_no_entry_for_cond_required_column.manifest.csv", "Patient"),
+            ("mock_manifests/BulkRNAseq_component_based_required_rule_test.manifest.csv", "BulkRNA-seqAssay"),
+        ],
+        ids=["biospeciment_required_vr_empty", "biospecimen_required_filled", "patient_not_required_empty", "patient_conditionally_required_not_filled", "bulk_rna_seq_component_based_rule_test"],
+    )
+    def test_required_validation_rule(self, helpers, model_name:str, manifest_name:str, root_node:str, dmge:DataModelGraphExplorer) -> None:
+        """
+        Args:
+            model_name, str: model to run test validation against
+                Model Difference:
+                    - example.model.csv:
+                        PatientID attribute:
+                            Required=True
+                        FileFormat attribute:
+                            Required = True, Genome Build/ Genome Fasta are conditionally required
+
+                    - example_required_vr_test.model.csv,
+                        PatientID attribute
+                            Required=False,
+                            validation rule: #Patient unique warning^^#Biospecimen unique required error
+                                meaning PatientID is required for the Biospecimen manifest (but not Patient)
+                        FileFormat attribute:
+                            Required = False
+                            validation rule: ^^#BulkRNA-seqAssay list required
+                                meaning for BulkRNA=seqAssay (only) FileFormat is conditionally required.
+                                Genome Build/ Genome Fasta are conditionally required
+            manifest_name, str: manfiest to run validation with
+                What Each Manifest is Testing:
+                    -Biospecimen_required_vr_test_fail: PatentID is required for Biospecimen in each model (through different routes) and not provided
+                    -Biospecimen_required_vr_test_pass: PatentID is required for Biospecimen in each model (through different routes) and provided
+                    -Patient_required_vr_test_pass: PatentID not provided, will fail for example model and pass for vr test model (where it is not required)
+                    -Patient_test_no_entry_for_cond_required_column: Tests conditionally required value not required if preceeding condition not met (helps test an edge case)
+                    -BulkRNAseq_component_based_required_rule_test: FileFormat, this manifest checks conditional requirements, provided for some rows and not for others
+
+            root_node, str: component for the given manifest
+            dmge, DataModelGraphExplorer Object
+        """
+
+        manifestPath = helpers.get_data_path(manifest_name)
+        metadataModel = get_metadataModel(helpers, model_name)
+
+        errors, warnings = metadataModel.validateModelManifest(
+            manifestPath=manifestPath,
+            rootNode=root_node,
+        )
+
+        error_and_warning_free_manifests = ["Biospecimen_required_vr_test_pass", "Patient_test_no_entry_for_cond_required_column", ""]
+        
+        # For each model, these manifest should pass, bc either the value is being passed as requierd, or its not currently required 
+        for manifest in error_and_warning_free_manifests:
+            if manifest_name in manifest:
+                assert errors == []
+                assert warnings == []
+ 
+
+        messages = {"patient_id_empty_warning": {
+                        "row_num":"2",
+                        "attribute_name":"Patient ID",
+                        "error_message":"'' should be non-empty",
+                        "invalid_entry":""},
+                    "bulk_rnaseq_cbr_error_1":{
+                        "row_num":"3",
+                        "attribute_name":"Genome FASTA",
+                        "error_message":"'' should be non-empty",
+                        "invalid_entry":""},
+                    "bulk_rnaseq_cbr_error_2":{
+                        "row_num":"4",
+                        "attribute_name":"File Format",
+                        "error_message": "'' is not of type 'array'",
+                        "invalid_entry":""},
+                    "bulk_rnaseq_cbr_error_3":{
+                        "row_num":"4",
+                        "attribute_name":"File Format",
+                        "error_message":"'' is not one of ['CSV/TSV', 'CRAM', 'FASTQ', 'BAM']",
+                        "invalid_entry":""},
+            }
+        
+        # This manifest should fail in the example_model bc the manifest Required=False, and in the example_with_requirements_from_vr
+        # bc the requirments are set to false in the validation rule
+        if (("Biospecimen_required_vr_test_fail" in manifest_name) or
+             ("Patient_required_vr_test_pass" in manifest_name and model_name == "example.model.csv")
+             ):
+            message_key = "patient_id_empty_warning"
+            assert GenerateError.generate_schema_error(
+                        row_num=messages[message_key]["row_num"],
+                        attribute_name=messages[message_key]["attribute_name"],
+                        error_message=messages[message_key]["error_message"],
+                        invalid_entry=messages[message_key]["invalid_entry"],
+                        dmge=dmge,
+                    )[0] in errors
+            assert warnings == []
+
+        if "Patient_required_vr_test_pass" in manifest_name and model_name == "example_required_vr_test.model.csv":
+            assert errors == []
+            assert warnings == []
+
+        if "BulkRNAseq_component_based_required_rule_test" in manifest_name:
+            message_key = "bulk_rnaseq_cbr_error_1"
+            try:
+                assert GenerateError.generate_schema_error(
+                        row_num=messages[message_key]["row_num"],
+                        attribute_name=messages[message_key]["attribute_name"],
+                        error_message=messages[message_key]["error_message"],
+                        invalid_entry=messages[message_key]["invalid_entry"],
+                        dmge=dmge,
+                    )[0] in errors
+
+                message_key = "bulk_rnaseq_cbr_error_2"
+                # Only check a portion of the error message is correct since the order of the FASTQ entries can change.
+                assert GenerateError.generate_schema_error(
+                        row_num=messages[message_key]["row_num"],
+                        attribute_name=messages[message_key]["attribute_name"],
+                        error_message=messages[message_key]["error_message"],
+                        invalid_entry=messages[message_key]["invalid_entry"],
+                        dmge=dmge,
+                    )[0][1] in errors[1]
+            except:
+                breakpoint()
+
+            assert warnings==[]
+
+        return
+
 
     @pytest.mark.parametrize(
         "manifest_path",
