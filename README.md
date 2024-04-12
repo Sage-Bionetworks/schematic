@@ -140,8 +140,6 @@ model:
 
 # This section is for using google sheets with Schematic
 google_sheets:
-  # The Synapse id of the Google service account credentials.
-  service_acct_creds_synapse_id: "syn25171627"
   # Path to the synapse config file, either absolute or relative to this file
   service_acct_creds: "schematic_service_account_creds.json"
   # When doing google sheet validation (regex match) with the validation rules.
