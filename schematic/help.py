@@ -221,17 +221,6 @@ schema_commands = {
     }
 }
 
-
-# `schematic init` command description
-init_command = {
-    "init": {
-        "short_help": ("Initialize authentication for schematic."),
-        "config": (
-            "Specify the path to the `config.yml` using this option. This is a required argument."
-        ),
-    }
-}
-
 viz_commands = {
     "visualization": {
         "config": (

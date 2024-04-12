@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 
-# from schematic import init
 from schematic.schemas.commands import schema
 from schematic.manifest.commands import manifest
 from schematic.models.commands import model
