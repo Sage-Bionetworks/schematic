@@ -501,13 +501,12 @@ class TestManifestValidation:
         )
 
         error_and_warning_free_manifests = ["Biospecimen_required_vr_test_pass", "Patient_test_no_entry_for_cond_required_column", ""]
-        
-        # For each model, these manifest should pass, bc either the value is being passed as requierd, or its not currently required 
+
+        # For each model, these manifest should pass, bc either the value is being passed as requierd, or its not currently required
         for manifest in error_and_warning_free_manifests:
             if manifest_name in manifest:
                 assert errors == []
                 assert warnings == []
- 
 
         messages = {"patient_id_empty_warning": {
                         "row_num":"2",
@@ -530,7 +529,7 @@ class TestManifestValidation:
                         "error_message":"'' is not one of ['CSV/TSV', 'CRAM', 'FASTQ', 'BAM']",
                         "invalid_entry":""},
             }
-        
+
         # This manifest should fail in the example_model bc the manifest Required=False, and in the example_with_requirements_from_vr
         # bc the requirments are set to false in the validation rule
         if (("Biospecimen_required_vr_test_fail" in manifest_name) or
