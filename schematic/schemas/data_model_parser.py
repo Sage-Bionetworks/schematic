@@ -263,11 +263,13 @@ class DataModelJSONLDParser:
         # Parse dictionary entries
         if isinstance(rel_entry, dict):
             # Retrieve ID from single value dictionary
-            if set(rel_entry.keys())=={'@id'}:
+            if set(rel_entry.keys()) == {"@id"}:
                 parsed_rel_entry = rel_entry["@id"]
             # Parse any remaining dictionaries
             else:
-                parsed_rel_entry = self.convert_entry_to_dn_label(rel_entry, model_jsonld)
+                parsed_rel_entry = self.convert_entry_to_dn_label(
+                    rel_entry, model_jsonld
+                )
         # Parse list of dictionaries to make a list of entries with context stripped (will update this section when contexts added.)
         elif isinstance(rel_entry, list) and isinstance(rel_entry[0], dict):
             parsed_rel_entry = self.convert_entry_to_dn_label(
