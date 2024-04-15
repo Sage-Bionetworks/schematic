@@ -89,10 +89,6 @@ class TestManifestValidation:
         """
         manifest_path = helpers.get_data_path(manifest_name)
 
-        # Check that the manifest exists as expected
-        assert os.path.exists(manifest_path) == True
-
-
         warning_rule_sets_1 = [
                 ('Check Match at Least', 'matchAtLeastOne Patient.PatientID set'),
                 ('Check Match at Least values', 'matchAtLeastOne MockComponent.checkMatchatLeastvalues value'),
@@ -575,9 +571,6 @@ class TestManifestValidation:
         manifest_path = helpers.get_data_path(manifest_name)
         metadataModel = get_metadataModel(helpers, model_name)
 
-        # Check that the manifest exists as expected
-        assert os.path.exists(manifest_path) == True
-
         errors, warnings = metadataModel.validateModelManifest(
             manifestPath=manifest_path,
             rootNode=root_node,
@@ -695,23 +688,21 @@ class TestManifestValidation:
             restrict_rules=False,
             project_scope=None,
         )
-        try:
-            if root_node == "Biospecimen":
-                assert (
-                    vmr_errors
-                    and vmr_errors[0][0] == ["2", "3"]
-                    and vmr_errors[0][-1] == ["123"]
-                )
-                assert vmr_warnings == []
-            elif root_node == "Patient":
-                assert vmr_errors == []
-                assert (
-                    vmr_warnings
-                    and vmr_warnings[0][0] == ["2", "3"]
-                    and vmr_warnings[0][-1] == ["123"]
-                )
-        except:
-            breakpoint()
+
+        if root_node == "Biospecimen":
+            assert (
+                vmr_errors
+                and vmr_errors[0][0] == ["2", "3"]
+                and vmr_errors[0][-1] == ["123"]
+            )
+            assert vmr_warnings == []
+        elif root_node == "Patient":
+            assert vmr_errors == []
+            assert (
+                vmr_warnings
+                and vmr_warnings[0][0] == ["2", "3"]
+                and vmr_warnings[0][-1] == ["123"]
+            )
 
 
     @pytest.mark.rule_combos(
