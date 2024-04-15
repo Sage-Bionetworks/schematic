@@ -56,7 +56,7 @@ class TestManifestValidation:
         ("model_name", "manifest_name", "root_node"),
         [
             ("example.model.csv","mock_manifests/Valid_Test_Manifest.csv", "MockComponent"),
-            ("example.model.csv", "mock_manifests/Patient_test_no_entry_for_cond_required_column.csv", "Patient"),
+            ("example.model.csv", "mock_manifests/Patient_test_no_entry_for_cond_required_column.manifest.csv", "Patient"),
             ("example_test_nones.model.csv","mock_manifests/Valid_Test_Manifest_with_nones.csv", "MockComponent"),
         ],
         ids=["example_model", "example_with_no_entry_for_cond_required_columns", "example_with_nones"],
@@ -88,6 +88,10 @@ class TestManifestValidation:
 
         """
         manifest_path = helpers.get_data_path(manifest_name)
+
+        # Check that the manifest exists as expected
+        assert os.path.exists(manifest_path) == True
+
 
         warning_rule_sets_1 = [
                 ('Check Match at Least', 'matchAtLeastOne Patient.PatientID set'),
@@ -568,11 +572,14 @@ class TestManifestValidation:
             dmge, DataModelGraphExplorer Object
         """
 
-        manifestPath = helpers.get_data_path(manifest_name)
+        manifest_path = helpers.get_data_path(manifest_name)
         metadataModel = get_metadataModel(helpers, model_name)
 
+        # Check that the manifest exists as expected
+        assert os.path.exists(manifest_path) == True
+
         errors, warnings = metadataModel.validateModelManifest(
-            manifestPath=manifestPath,
+            manifestPath=manifest_path,
             rootNode=root_node,
         )
 
