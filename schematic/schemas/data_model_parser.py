@@ -262,7 +262,9 @@ class DataModelJSONLDParser:
         # Load relationships dictionary.
         self.rel_dict = self.dmr.define_data_model_relationships()
 
-    def parse_jsonld_dicts(self, re_entry) -> Union[str, dict[str, str]]:
+    def parse_jsonld_dicts(
+        self, rel_entry: dict[str, str]
+    ) -> Union[str, dict[str, str]]:
         """Parse incoming JSONLD dictionaries, only supported dictionaries are non-edge dictionaries.
         Note:
             The only two dictionaries we expect are a single entry dictionary containing id information
