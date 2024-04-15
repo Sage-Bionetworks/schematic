@@ -276,8 +276,7 @@ class DataModelJSONLDParser:
             dict, JSONLD dictionary entry returned.
         """
 
-        #
-
+        # Retrieve ID from a dictionary recording the ID
         if set(rel_entry.keys()) == {"@id"}:
             return rel_entry["@id"]
         # Parse any remaining dictionaries
