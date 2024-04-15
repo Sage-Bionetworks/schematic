@@ -231,7 +231,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
     def get_component_node_validation_rules(
         self, manifest_component: str, node_display_name: str
-    ) -> list[str]:
+    ) -> list:
         """Get valdation rules for a given node and component.
         Args:
             manifest_component, str: manifest component display name that the node belongs to.
@@ -239,7 +239,8 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             validation_rules, list[str]: validation rules list for a given node and component.
         """
-        # get any additional validation rules associated with this node (e.g. can this node be mapped to a list of other nodes)
+        # get any additional validation rules associated with this node (e.g. can this node
+        # be mapped to a list of other nodes)
         node_validation_rules = self.get_node_validation_rules(
             node_display_name=node_display_name
         )
@@ -268,22 +269,22 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             manifest_component=manifest_component, node_display_name=node_display_name
         )
 
-        # Check if the valdation rule specifies that the node is required for this particular component.
+        # Check if the valdation rule specifies that the node is required for this particular
+        # component.
         if rule_in_rule_list("required", node_validation_rules):
             node_required = True
             # To prevent any unintended errors, ensure the Required field for this node is False
-            if (
-                self.get_node_required(node_display_name=node_display_name)
-                and node_required
-            ):
+            if self.get_node_required(node_display_name=node_display_name):
                 logger.error(
                     f"For component: {manifest_component} and attribute: {node_display_name} ",
-                    "requirements are being specified in both the Required field and in the Validation Rules. ",
-                    "If you desire to use validation rules to set component specific requirements for this attribute ",
+                    "requirements are being specified in both the Required field and in the ",
+                    "Validation Rules. If you desire to use validation rules to set component ",
+                    "specific requirements for this attribute ",
                     "then the Required field needs to be set to False.",
                 )
         else:
-            # If requirements are not being set in the validaiton rule, then just pull the standard node requirements from the model
+            # If requirements are not being set in the validaiton rule, then just pull the
+            # standard node requirements from the model
             node_required = self.get_node_required(node_display_name=node_display_name)
         return node_required
 
@@ -732,7 +733,7 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
     def get_node_validation_rules(
         self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
-    ) -> list:
+    ) -> Union[list, dict[str,str]]:
         """Get validation rules associated with a node,
 
         Args:
