@@ -304,7 +304,7 @@ class DataModelJSONLDParser:
         """
         # Parse dictionary entries
         if isinstance(rel_entry, dict):
-            parsed_rel_entry = self.parse_jsonld_dicts(re_entry)
+            parsed_rel_entry = self.parse_jsonld_dicts(rel_entry)
 
         # Parse list of dictionaries to make a list of entries with context stripped (will update
         # this section when contexts added.)
