@@ -265,14 +265,17 @@ class DataModelJSONLDParser:
     def parse_jsonld_dicts(
         self, rel_entry: dict[str, str]
     ) -> Union[str, dict[str, str]]:
-        """Parse incoming JSONLD dictionaries, only supported dictionaries are non-edge dictionaries.
+        """Parse incoming JSONLD dictionaries, only supported dictionaries are non-edge
+            dictionaries.
         Note:
-            The only two dictionaries we expect are a single entry dictionary containing id information
-            And dictionaries where the key is the attribute label (and it is expected to stay as the label)
-            The individual rules per component are not attached per node but rather parsed later in
-            validation rule parsing. So the keys do not need to be converted to display names.
+            The only two dictionaries we expect are a single entry dictionary containing
+            id information and dictionaries where the key is the attribute label
+            (and it is expected to stay as the label). The individual rules per component are not
+            attached to nodes but rather parsed later in validation rule parsing.
+            So the keys do not need to be converted to display names.
         Args:
-            rel_entry, Any: Given a single entry and relationship in a JSONLD data model, the recorded value
+            rel_entry, Any: Given a single entry and relationship in a JSONLD data model,
+                the recorded value
         Returns:
             str, the JSONLD entry ID
             dict, JSONLD dictionary entry returned.
@@ -280,10 +283,11 @@ class DataModelJSONLDParser:
 
         # Retrieve ID from a dictionary recording the ID
         if set(rel_entry.keys()) == {"@id"}:
-            return rel_entry["@id"]
+            parsed_rel_entry = rel_entry["@id"]
         # Parse any remaining dictionaries
         else:
-            return rel_entry
+            parsed_rel_entry = rel_entry
+        return parsed_rel_entry
 
     def parse_entry(
         self,
@@ -294,10 +298,11 @@ class DataModelJSONLDParser:
         """Parse an input entry based on certain attributes
 
         Args:
-            rel_entry: Given a single entry and relationship in a JSONLD data model, the recorded value
-            id_jsonld_key, str: the jsonld key for id
-            dn_label_dict, dict[str:str]:dict of model labels to display names
-            model_jsonld, list[dict]: list of dictionaries, each dictionary is an entry in the jsonld data model
+            rel_entry: Given a single entry and relationship in a JSONLD data model,
+                the recorded value
+            id_jsonld_key: str, the jsonld key for id
+            model_jsonld: list[dict], list of dictionaries, each dictionary is an entry
+                in the jsonld data model
         Returns:
             Any: n entry that has been parsed base on its input type and
               characteristics.
