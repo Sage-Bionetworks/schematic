@@ -256,7 +256,8 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
     def get_component_node_required(
         self, manifest_component, node_display_name
     ) -> bool:
-        """Check if a node is required taking into account the manifest component it is defined in (requirements can be set in validaiton rule as well as required column)
+        """Check if a node is required taking into account the manifest component it is defined in
+        (requirements can be set in validaiton rule as well as required column)
         Args:
             manifest_component, str: manifest component display name that the node belongs to.
             node_display_name, str: node display name for the node being queried.
@@ -275,13 +276,14 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
             node_required = True
             # To prevent any unintended errors, ensure the Required field for this node is False
             if self.get_node_required(node_display_name=node_display_name):
-                logger.error(
+                error_str = (
                     f"For component: {manifest_component} and attribute: {node_display_name} ",
                     "requirements are being specified in both the Required field and in the ",
                     "Validation Rules. If you desire to use validation rules to set component ",
                     "specific requirements for this attribute ",
                     "then the Required field needs to be set to False.",
                 )
+                logger.error(error_str)
         else:
             # If requirements are not being set in the validaiton rule, then just pull the
             # standard node requirements from the model
