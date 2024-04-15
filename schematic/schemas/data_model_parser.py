@@ -409,9 +409,6 @@ class DataModelJSONLDParser:
             self.rel_dict[key]["jsonld_key"] for key in jsonld_keys_to_extract
         ]
 
-        # Get a dictionary of display names to labels to identify values explicitly recorded
-        dn_label_dict = self.label_to_dn_dict(model_jsonld=model_jsonld)
-
         # Build the attr_rel_dictionary
         attr_rel_dictionary = {}
         # Move through each entry in the jsonld model
