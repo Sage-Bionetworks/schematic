@@ -262,11 +262,32 @@ class DataModelJSONLDParser:
         # Load relationships dictionary.
         self.rel_dict = self.dmr.define_data_model_relationships()
 
+    def parse_jsonld_dicts(self, re_entry) -> Union[str, dict[str, str]]:
+        """Parse incoming JSONLD dictionaries, only supported dictionaries are non-edge dictionaries.
+        Note:
+            The only two dictionaries we expect are a single entry dictionary containing id information
+            And dictionaries where the key is the attribute label (and it is expected to stay as the label)
+            The individual rules per component are not attached per node but rather parsed later in
+            validation rule parsing. So the keys do not need to be converted to display names.
+        Args:
+            rel_entry, Any: Given a single entry and relationship in a JSONLD data model, the recorded value
+        Returns:
+            str, the JSONLD entry ID
+            dict, JSONLD dictionary entry returned.
+        """
+
+        #
+
+        if set(rel_entry.keys()) == {"@id"}:
+            return rel_entry["@id"]
+        # Parse any remaining dictionaries
+        else:
+            return rel_entry
+
     def parse_entry(
         self,
         rel_entry: Any,
         id_jsonld_key: str,
-        dn_label_dict: dict[str, str],  # pylint:disable=unused-argument
         model_jsonld: list[dict],
     ) -> Any:
         """Parse an input entry based on certain attributes
@@ -282,14 +303,8 @@ class DataModelJSONLDParser:
         """
         # Parse dictionary entries
         if isinstance(rel_entry, dict):
-            # Retrieve ID from single value dictionary
-            if set(rel_entry.keys()) == {"@id"}:
-                parsed_rel_entry = rel_entry["@id"]
-            # Parse any remaining dictionaries
-            else:
-                parsed_rel_entry = self.convert_entry_to_dn_label(
-                    rel_entry, model_jsonld
-                )
+            parsed_rel_entry = self.parse_jsonld_dicts(re_entry)
+
         # Parse list of dictionaries to make a list of entries with context stripped (will update
         # this section when contexts added.)
         elif isinstance(rel_entry, list) and isinstance(rel_entry[0], dict):
@@ -429,7 +444,6 @@ class DataModelJSONLDParser:
                         parsed_rel_entry = self.parse_entry(
                             rel_entry=rel_entry,
                             id_jsonld_key=id_jsonld_key,
-                            dn_label_dict=dn_label_dict,
                             model_jsonld=model_jsonld,
                         )
                         rel_csv_header = rel_vals["csv_header"]
@@ -502,7 +516,6 @@ class DataModelJSONLDParser:
                         parsed_rel_entry = self.parse_entry(
                             rel_entry=rel_entry,
                             id_jsonld_key=id_jsonld_key,
-                            dn_label_dict=dn_label_dict,
                             model_jsonld=model_jsonld,
                         )
                         # Add relationships for each attribute and relationship to the dictionary
