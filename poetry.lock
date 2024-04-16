@@ -323,7 +323,7 @@ css = ["tinycss2 (>=1.1.0,<1.3)"]
 name = "blinker"
 version = "1.7.0"
 description = "Fast, simple object-to-object and broadcast signaling"
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "blinker-1.7.0-py3-none-any.whl", hash = "sha256:c3f865d4d54db7abc53758a01601cf343fe55b84c1de4e3fa910e420b438d5b9"},
@@ -4828,4 +4828,4 @@ aws = ["uWSGI"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "cb0a607dcb9df3cee8ef4f496a89e009da2c59c0dc0a9c4e7d0bb7abe561777d"
+content-hash = "dedc9bef22b21ada0f7d482bc8fcf9d6fa25d576c06ac5d0f5edc1bf3a107ab0"
