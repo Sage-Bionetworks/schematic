@@ -176,8 +176,8 @@ class GreatExpectationsHelpers(object):
         # so log a warning, but let user proceed.
         if rule_parts == ['required']:
             warning_message = " ".join([
-                f"It looks like required was set as a single rule, with modifiers attached",\
-                f"for Attribute: {attribute}.",\
+                f"For Attribute: {attribute}, it looks like required was set as a single rule,"
+                f"with modifiers attached.",\
                 f"Rule modifiers do not work in conjunction with the required validation rule.",\
                 f"Please reformat your rule.",\
                 ])
