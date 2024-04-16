@@ -185,7 +185,10 @@ class GreatExpectationsHelpers(object):
                     base_rule = rule.split(" ")[0]
 
                     # check if rule has an implemented expectation
-                    if rule_in_rule_list(rule, self.unimplemented_expectations):
+                    if (
+                        rule_in_rule_list(rule, self.unimplemented_expectations)
+                        or rule == "required"
+                    ):
                         continue
 
                     args["column"] = col
