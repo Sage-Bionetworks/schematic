@@ -242,9 +242,14 @@ class TestSynapseStorage:
         dmge: DataModelGraphExplorer,
     ):
         """Test annotation submission"""
+        # Make copy of manifest file in case columns are added to it
+        full_manifest_path = helpers.get_data_path(manifest_path)
+        copy_path = f"{full_manifest_path}.copy"
+        shutil.copyfile(full_manifest_path, copy_path)
+
         synapse_store.associateMetadataWithFiles(
             dmge=dmge,
-            metadataManifestPath=helpers.get_data_path(manifest_path),
+            metadataManifestPath=copy_path,
             datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
             hideBlanks=True,
@@ -252,8 +257,11 @@ class TestSynapseStorage:
         )
 
         # Retrive annotations
-        entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
+        entity_id = helpers.get_data_frame(copy_path)["entityId"][0]
         annotations = synapse_store.getFileAnnotations(entity_id)
+
+        # remove file copy
+        os.remove(copy_path)
 
         # Check annotations of interest
         for key in test_annotations.keys():
