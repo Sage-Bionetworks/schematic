@@ -38,6 +38,7 @@ from schematic.utils.validate_utils import (
     rule_in_rule_list,
     np_array_to_str_list,
     iterable_to_str_list,
+    required_is_only_rule
 )
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,25 @@ logger = logging.getLogger(__name__)
 # as additional modifiers are added will need to update this list
 
 RULE_MODIFIERS = ["error", "warning", "strict", "like", "set", "value"]
+VALIDATION_EXPECTATION = {
+            "int": "expect_column_values_to_be_in_type_list",
+            "float": "expect_column_values_to_be_in_type_list",
+            "str": "expect_column_values_to_be_of_type",
+            "num": "expect_column_values_to_be_in_type_list",
+            "date": "expect_column_values_to_be_dateutil_parseable",
+            "recommended": "expect_column_values_to_not_be_null",
+            "protectAges": "expect_column_values_to_be_between",
+            "unique": "expect_column_values_to_be_unique",
+            "inRange": "expect_column_values_to_be_between",
+            "IsNA": "expect_column_values_to_match_regex_list",
+            # To be implemented rules with possible expectations
+            # "list": "expect_column_values_to_not_match_regex_list",
+            # "regex": "expect_column_values_to_match_regex",
+            # "url": "expect_column_values_to_be_valid_urls",
+            # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+            # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+            # "matchNone": "expect_compound_columns_to_be_unique",
+        }
 
 
 class GreatExpectationsHelpers(object):
@@ -127,67 +147,7 @@ class GreatExpectationsHelpers(object):
         # self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
 
-    def required_is_only_rule(
-        self, rule: str, validation_expectation: dict[str, str], attribute: str
-    ) -> bool:
-        """Need to determine if required is the only rule being set. Do this way so we dont have
-        to enforce a position for it (ie, it can only be before message and after the rule).
-        This ensures that 'required' is not treated like a real rule, in the case it is
-        accidentally combined with a rule modifier. The required rule is t
-
-        Args:
-            rule: str, the validation rule string
-            validation_expectation: dict[str, str], currently implemented expectations.
-        Returns:
-            bool, True, if required is the only rule, false if it is not.
-        """
-        # convert rule to lowercase to ensure punctuation does not throw off determination.
-        rule = rule.lower()
-
-        # If required is not in the rule, it cant be the only rule, return False
-        if "required" not in rule:
-            return False
-
-        # If the entire rule is just 'required' then it is easily determined to be the only rule
-        if rule == "required":
-            return True
-
-        # Try to find an expectation rule in the rule, if there is one there log it and
-        # continue
-        # This function is called as part of an if that is already looking for in house rules
-        # so don't worry about looking for them.
-        rule_parts = rule.split(" ")
-        for idx, rule_part in enumerate(rule_parts):
-            if rule_part in validation_expectation:
-                return False
-
-        # identify then remove all rule modifiers, all that should be left is required in the
-        # case that someone used a standard modifier with required
-        idx_to_remove = []
-        if "required" in rule_parts:
-            only_rule = True
-            for idx, rule_part in enumerate(rule_parts):
-                if rule_part in RULE_MODIFIERS:
-                    idx_to_remove.append(idx)
-
-        if idx_to_remove:
-            for idx in sorted(idx_to_remove, reverse=True):
-                del rule_parts[idx]
-
-        # In this case, rule modifiers have been added to required. This is not the expected use
-        # so log a warning, but let user proceed.
-        if rule_parts == ["required"]:
-            warning_message = " ".join(
-                [
-                    f"For Attribute: {attribute}, it looks like required was set as a single rule,"
-                    f"with modifiers attached.",
-                    f"Rule modifiers do not work in conjunction with the required validation rule.",
-                    f"Please reformat your rule.",
-                ]
-            )
-            logger.warning(warning_message)
-            return True
-
+    
         # Return false if no other condition has been met. In this case if the rule is not a real
         # rule an error will be raised from the containing function.
         return False
@@ -205,25 +165,7 @@ class GreatExpectationsHelpers(object):
             saves expectation suite and identifier to self
 
         """
-        validation_expectation = {
-            "int": "expect_column_values_to_be_in_type_list",
-            "float": "expect_column_values_to_be_in_type_list",
-            "str": "expect_column_values_to_be_of_type",
-            "num": "expect_column_values_to_be_in_type_list",
-            "date": "expect_column_values_to_be_dateutil_parseable",
-            "recommended": "expect_column_values_to_not_be_null",
-            "protectAges": "expect_column_values_to_be_between",
-            "unique": "expect_column_values_to_be_unique",
-            "inRange": "expect_column_values_to_be_between",
-            "IsNA": "expect_column_values_to_match_regex_list",
-            # To be implemented rules with possible expectations
-            # "list": "expect_column_values_to_not_match_regex_list",
-            # "regex": "expect_column_values_to_match_regex",
-            # "url": "expect_column_values_to_be_valid_urls",
-            # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            # "matchNone": "expect_compound_columns_to_be_unique",
-        }
+        
 
         # create blank expectation suite
         self.expectation_suite_name = "Manifest_test_suite"
@@ -258,10 +200,11 @@ class GreatExpectationsHelpers(object):
                     # check if rule has an implemented expectation
                     if rule_in_rule_list(
                         rule, self.unimplemented_expectations
-                    ) or self.required_is_only_rule(
+                    ) or required_is_only_rule(
                         rule=rule,
-                        validation_expectation=validation_expectation,
                         attribute=col,
+                        rule_modifiers=RULE_MODIFIERS,
+                        validation_expectation=VALIDATION_EXPECTATION,
                     ):
                         continue
 
@@ -405,7 +348,7 @@ class GreatExpectationsHelpers(object):
                         rule=rule,
                         args=args,
                         meta=meta,
-                        validation_expectation=validation_expectation,
+                        validation_expectation=VALIDATION_EXPECTATION,
                     )
 
         self.context.update_expectation_suite(
@@ -445,7 +388,7 @@ class GreatExpectationsHelpers(object):
         # Create an Expectation
         expectation_configuration = ExpectationConfiguration(
             # Name of expectation type being added
-            expectation_type=validation_expectation[rule.split(" ")[0]],
+            expectation_type=VALIDATION_EXPECTATION[rule.split(" ")[0]],
             # add arguments and meta message
             kwargs={**args},
             meta={**meta},
