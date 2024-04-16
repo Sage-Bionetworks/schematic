@@ -519,7 +519,7 @@ class DataModelJsonLD:
         return json_ld_template
 
 
-def convert_graph_to_jsonld(graph) -> dict:
+def convert_graph_to_jsonld(graph: nx.MultiDiGraph) -> dict:
     """convert graph to jsonld"""
     # Make the JSONLD object
     data_model_jsonld_converter = DataModelJsonLD(graph=graph)

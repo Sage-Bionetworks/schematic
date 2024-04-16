@@ -14,7 +14,7 @@ from schematic.utils.schema_utils import (
     convert_bool_to_str,
     parse_validation_rules,
     DisplayLabelType,
-    EntryType
+    EntryType,
 )
 
 
@@ -134,7 +134,7 @@ class DataModelNodes:
             EntryType: returns 'property' or 'class' based on data model specifications.
         """
         if node_display_name in self.properties:
-            entry_type:EntryType = "property"
+            entry_type: EntryType = "property"
         else:
             entry_type = "class"
         return entry_type
@@ -146,7 +146,7 @@ class DataModelNodes:
         key: str = "",
         attr_relationships: Optional[dict] = None,
         csv_header: str = "",
-        entry_type:EntryType="class",
+        entry_type: EntryType = "class",
         data_model_labels: DisplayLabelType = "class_label",
     ) -> Any:
         """
