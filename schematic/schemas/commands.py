@@ -3,7 +3,7 @@
 import logging
 import time
 import re
-from typing import get_args, Optional
+from typing import get_args, Optional, Any
 
 import click
 import click_log  # type: ignore
@@ -59,7 +59,7 @@ def schema() -> None:  # use as `schematic model ...`
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
-def convert(schema, data_model_labels: DisplayLabelType, output_jsonld: Optional[str]) -> None:
+def convert(schema: Any, data_model_labels: DisplayLabelType, output_jsonld: Optional[str]) -> None:
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.

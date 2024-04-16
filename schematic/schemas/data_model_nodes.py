@@ -1,6 +1,6 @@
 """Data model Nodes"""
 
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
 
 from inspect import isfunction
 import networkx as nx  # type: ignore
@@ -20,7 +20,7 @@ from schematic.utils.schema_utils import (
 class DataModelNodes:
     """Data model Nodes"""
 
-    def __init__(self, attribute_relationships_dict):
+    def __init__(self, attribute_relationships_dict: dict):
         self.namespaces = {
             "rdf": Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#")
         }
@@ -141,11 +141,11 @@ class DataModelNodes:
         rel_func: Callable,
         node_display_name: str = "",
         key: str = "",
-        attr_relationships=None,
-        csv_header="",
+        attr_relationships: Optional[dict] = None,
+        csv_header: str = "",
         entry_type="",
         data_model_labels: DisplayLabelType = "class_label",
-    ):
+    ) -> Any:
         """
         This function exists to centralzie handling of functions for filling out node information,
           makes sure all the proper parameters are passed to each function.
@@ -259,7 +259,9 @@ class DataModelNodes:
         # Look through relationship types that represent values (i.e. do not define edges)
         for key, csv_header in self.value_relationships.items():
             # Get key and defalt values current relationship type.
-            rel_key, rel_node_dict = self.get_rel_node_dict_info(key)
+            rel_node = self.get_rel_node_dict_info(key)
+            assert rel_node is not None
+            rel_key, rel_node_dict = rel_node
 
             # If we have information to add about this particular node, get it
             if csv_header in attr_relationships.keys():
@@ -322,6 +324,6 @@ class DataModelNodes:
         graph.add_node(node_dict["label"], **node_dict)
         return graph
 
-    def edit_node(self):
+    def edit_node(self) -> None:
         """Stub for future node editor."""
         return
