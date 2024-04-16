@@ -147,10 +147,6 @@ class GreatExpectationsHelpers(object):
         # self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
 
-        # Return false if no other condition has been met. In this case if the rule is not a real
-        # rule an error will be raised from the containing function.
-        return False
-
     def build_expectation_suite(
         self,
     ):

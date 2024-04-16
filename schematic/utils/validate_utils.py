@@ -172,3 +172,7 @@ def required_is_only_rule(
         )
         logger.warning(warning_message)
         return True
+
+    # Return false if no other condition has been met. In this case if the rule is not a real
+    # rule an error will be raised from the containing function.
+    return False
