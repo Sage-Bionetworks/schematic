@@ -214,7 +214,7 @@ class TestSynapseStorage:
             assert len(files_and_Ids["entityId"]) == 2
 
     @pytest.mark.parametrize(
-        "manifest_path, test_annotations, datasetId, manifest_record_type",
+        "manifest_path, test_annotations, dataset_id, manifest_record_type",
         [
             (
                 "mock_manifests/annotations_test_manifest.csv",
@@ -233,19 +233,19 @@ class TestSynapseStorage:
     )
     def test_annotation_submission(
         self,
-        synapse_store,
+        synapse_store: SynapseStorage,
         helpers,
-        manifest_path,
-        test_annotations,
-        datasetId,
-        manifest_record_type,
-        config: Configuration,
+        manifest_path: str,
+        test_annotations: dict[str, str],
+        dataset_id: str,
+        manifest_record_type: str,
         dmge: DataModelGraphExplorer,
     ):
-        manifest_id = synapse_store.associateMetadataWithFiles(
+        """Test annotation submission"""
+        synapse_store.associateMetadataWithFiles(
             dmge=dmge,
             metadataManifestPath=helpers.get_data_path(manifest_path),
-            datasetId=datasetId,
+            datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
             hideBlanks=True,
             restrict_manifest=False,
@@ -264,7 +264,7 @@ class TestSynapseStorage:
             assert "CheckRecommended" not in annotations.keys()
         elif manifest_path.endswith("test_BulkRNAseq.csv"):
             entity = synapse_store.syn.get(entity_id)
-            assert type(entity) == File
+            assert isinstance(entity, File)
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
