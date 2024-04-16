@@ -6,7 +6,7 @@ import re
 import numpy as np
 
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List
+from typing import Any, Dict, Optional, Text, List, Literal
 from urllib.parse import urlparse
 from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
 from urllib.request import Request
@@ -42,6 +42,11 @@ from schematic.utils.validate_utils import (
 
 logger = logging.getLogger(__name__)
 
+
+# List of modifiers that users can add to a rule, that arent rules themselves.
+# as additional modifiers are added will need to update this list
+
+RULE_MODIFIERS = ['error', 'warning', 'strict', 'like', 'set', 'value']
 
 class GreatExpectationsHelpers(object):
     """
@@ -121,6 +126,69 @@ class GreatExpectationsHelpers(object):
         # self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
 
+    def required_is_only_rule(self, rule:str, validation_expectation:dict[str,str],
+        attribute:str) -> bool:
+        """ Need to determine if required is the only rule being set. Do this way so we dont have
+        to enforce a position for it (ie, it can only be before message and after the rule).
+        This ensures that 'required' is not treated like a real rule, in the case it is
+        accidentally combined with a rule modifier. The required rule is t
+
+        Args:
+            rule: str, the validation rule string
+            validation_expectation: dict[str, str], currently implemented expectations.
+        Returns:
+            bool, True, if required is the only rule, false if it is not.
+        """
+        # convert rule to lowercase to ensure punctuation does not throw off determination.
+        rule = rule.lower()
+
+        # If required is not in the rule, it cant be the only rule, return False
+        if "required" not in rule:
+            return False
+
+        # If the entire rule is just 'required' then it is easily determined to be the only rule
+        if rule == "required":
+            return True
+
+        # Try to find an expectation rule in the rule, if there is one there log it and
+        # continue
+        # This function is called as part of an if that is already looking for in house rules
+        # so don't worry about looking for them.
+        rule_parts = rule.split(' ')
+        for idx, rule_part in enumerate(rule_parts):
+            if rule_part in validation_expectation:
+                return  False
+             
+        # identify then remove all rule modifiers, all that should be left is required in the
+        # case that someone used a standard modifier with required
+        idx_to_remove = []  
+        if "required" in rule_parts:
+            only_rule = True
+            for idx, rule_part in enumerate(rule_parts):
+                if rule_part in RULE_MODIFIERS:
+                    idx_to_remove.append(idx)
+        
+        if idx_to_remove:
+            for idx in sorted(idx_to_remove, reverse=True):
+                del rule_parts[idx]
+        
+        # In this case, rule modifiers have been added to required. This is not the expected use
+        # so log a warning, but let user proceed.
+        if rule_parts == ['required']:
+            warning_message = " ".join([
+                f"It looks like required was set as a single rule, with modifiers attached",\
+                f"for Attribute: {attribute}.",\
+                f"Rule modifiers do not work in conjunction with the required validation rule.",\
+                f"Please reformat your rule.",\
+                ])
+            logger.warning(warning_message)
+            return True
+        
+        # Return false if no other condition has been met. In this case if the rule is not a real
+        # rule an error will be raised from the containing function.
+        return False
+
+
     def build_expectation_suite(
         self,
     ):
@@ -187,9 +255,12 @@ class GreatExpectationsHelpers(object):
                     # check if rule has an implemented expectation
                     if (
                         rule_in_rule_list(rule, self.unimplemented_expectations)
-                        or rule == "required"
+                        or self.required_is_only_rule(rule=rule, 
+                            validation_expectation=validation_expectation, 
+                            attribute=col)
                     ):
                         continue
+
 
                     args["column"] = col
                     args["result_format"] = "COMPLETE"
