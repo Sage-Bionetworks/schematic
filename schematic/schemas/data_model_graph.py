@@ -29,13 +29,15 @@ class DataModelGraphMeta:  # pylint: disable=too-few-public-methods
 
     _instances: dict = {}
 
-    def __call__(cls, *args: Any, **kwargs: Any):  # pylint: disable=no-self-argument
+    def __call__(  # pylint: disable=no-self-argument
+        cls, *args: Any, **kwargs: Any
+    ) -> Any:
         """
         Possible changes to the value of the `__init__` argument do not affect
         the returned instance.
         """
         if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)  # pylint: disable=no-member
+            instance = super().__call__(*args, **kwargs)  # type: ignore # pylint: disable=no-member
             cls._instances[cls] = instance
         return cls._instances[cls]
 
@@ -247,14 +249,17 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
 
         # Parse the validation rules per component if applicable
         if node_validation_rules and isinstance(node_validation_rules, dict):
-            node_validation_rules = extract_component_validation_rules(
+            node_validation_rules_list = extract_component_validation_rules(
                 manifest_component=manifest_component,
-                validation_rules_dict=node_validation_rules,
+                validation_rules_dict=node_validation_rules,  # type: ignore
             )
-        return node_validation_rules
+        else:
+            assert isinstance(node_validation_rules, list)
+            node_validation_rules_list = node_validation_rules
+        return node_validation_rules_list
 
     def get_component_node_required(
-        self, manifest_component, node_display_name
+        self, manifest_component: str, node_display_name: str
     ) -> bool:
         """Check if a node is required taking into account the manifest component it is defined in
         (requirements can be set in validaiton rule as well as required column)
@@ -802,7 +807,9 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
         Returns:
             list of children to the schema_class.
         """
-        return unlist(list(self.graph.successors(schema_class)))
+        child_classes = unlist(list(self.graph.successors(schema_class)))
+        assert isinstance(child_classes, list)
+        return child_classes
 
     def find_class_specific_properties(self, schema_class: str) -> list[str]:
         """Find properties specifically associated with a given class
