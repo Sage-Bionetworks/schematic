@@ -123,7 +123,7 @@ def required_is_only_rule(
     Args:
         rule: str, the validation rule string
         attribute: str, attribute the validation rule is set to
-        rule_modifiers, list[str], list of rule modifiers available to add to rules
+        rule_modifiers: list[str], list of rule modifiers available to add to rules
         validation_expectation: dict[str, str], currently implemented expectations.
     Returns:
         bool, True, if required is the only rule, false if it is not.
