@@ -16,8 +16,6 @@ from schematic import LOADER
 logger = logging.getLogger(__name__)
 
 
-
-
 def validate_schema(schema: Union[Mapping, bool]) -> None:
     """Validate schema against schema.org standard"""
     data_path = "validation_schemas/model.schema.json"
@@ -110,64 +108,67 @@ def iterable_to_str_list(obj: Union[str, Number, Iterable]) -> list[str]:
     # to string and wrap as a list
     return [str(item) for item in obj]
 
+
 def required_is_only_rule(
-        rule: str, attribute: str, rule_modifiers: list[str], validation_expectation: dict[str,str],
-    ) -> bool:
-        """Need to determine if required is the only rule being set. Do this way so we dont have
-        to enforce a position for it (ie, it can only be before message and after the rule).
-        This ensures that 'required' is not treated like a real rule, in the case it is
-        accidentally combined with a rule modifier. The required rule is t
+    rule: str,
+    attribute: str,
+    rule_modifiers: list[str],
+    validation_expectation: dict[str, str],
+) -> bool:
+    """Need to determine if required is the only rule being set. Do this way so we dont have
+    to enforce a position for it (ie, it can only be before message and after the rule).
+    This ensures that 'required' is not treated like a real rule, in the case it is
+    accidentally combined with a rule modifier. The required rule is t
 
-        Args:
-            rule: str, the validation rule string
-            validation_expectation: dict[str, str], currently implemented expectations.
-        Returns:
-            bool, True, if required is the only rule, false if it is not.
-        """
-        # convert rule to lowercase to ensure punctuation does not throw off determination.
-        rule = rule.lower()
+    Args:
+        rule: str, the validation rule string
+        validation_expectation: dict[str, str], currently implemented expectations.
+    Returns:
+        bool, True, if required is the only rule, false if it is not.
+    """
+    # convert rule to lowercase to ensure punctuation does not throw off determination.
+    rule = rule.lower()
 
-        # If required is not in the rule, it cant be the only rule, return False
-        if "required" not in rule:
+    # If required is not in the rule, it cant be the only rule, return False
+    if "required" not in rule:
+        return False
+
+    # If the entire rule is just 'required' then it is easily determined to be the only rule
+    if rule == "required":
+        return True
+
+    # Try to find an expectation rule in the rule, if there is one there log it and
+    # continue
+    # This function is called as part of an if that is already looking for in house rules
+    # so don't worry about looking for them.
+    rule_parts = rule.split(" ")
+    for idx, rule_part in enumerate(rule_parts):
+        if rule_part in validation_expectation:
             return False
 
-        # If the entire rule is just 'required' then it is easily determined to be the only rule
-        if rule == "required":
-            return True
-
-        # Try to find an expectation rule in the rule, if there is one there log it and
-        # continue
-        # This function is called as part of an if that is already looking for in house rules
-        # so don't worry about looking for them.
-        rule_parts = rule.split(" ")
+    # identify then remove all rule modifiers, all that should be left is required in the
+    # case that someone used a standard modifier with required
+    idx_to_remove = []
+    if "required" in rule_parts:
+        only_rule = True
         for idx, rule_part in enumerate(rule_parts):
-            if rule_part in validation_expectation:
-                return False
+            if rule_part in rule_modifiers:
+                idx_to_remove.append(idx)
 
-        # identify then remove all rule modifiers, all that should be left is required in the
-        # case that someone used a standard modifier with required
-        idx_to_remove = []
-        if "required" in rule_parts:
-            only_rule = True
-            for idx, rule_part in enumerate(rule_parts):
-                if rule_part in rule_modifiers:
-                    idx_to_remove.append(idx)
+    if idx_to_remove:
+        for idx in sorted(idx_to_remove, reverse=True):
+            del rule_parts[idx]
 
-        if idx_to_remove:
-            for idx in sorted(idx_to_remove, reverse=True):
-                del rule_parts[idx]
-
-        # In this case, rule modifiers have been added to required. This is not the expected use
-        # so log a warning, but let user proceed.
-        if rule_parts == ["required"]:
-            warning_message = " ".join(
-                [
-                    f"For Attribute: {attribute}, it looks like required was set as a single rule,"
-                    f"with modifiers attached.",
-                    f"Rule modifiers do not work in conjunction with the required validation rule.",
-                    f"Please reformat your rule.",
-                ]
-            )
-            logger.warning(warning_message)
-            return True
-
+    # In this case, rule modifiers have been added to required. This is not the expected use
+    # so log a warning, but let user proceed.
+    if rule_parts == ["required"]:
+        warning_message = " ".join(
+            [
+                f"For Attribute: {attribute}, it looks like required was set as a single rule,"
+                f"with modifiers attached.",
+                f"Rule modifiers do not work in conjunction with the required validation rule.",
+                f"Please reformat your rule.",
+            ]
+        )
+        logger.warning(warning_message)
+        return True

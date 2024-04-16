@@ -38,7 +38,7 @@ from schematic.utils.validate_utils import (
     rule_in_rule_list,
     np_array_to_str_list,
     iterable_to_str_list,
-    required_is_only_rule
+    required_is_only_rule,
 )
 
 logger = logging.getLogger(__name__)
@@ -49,24 +49,24 @@ logger = logging.getLogger(__name__)
 
 RULE_MODIFIERS = ["error", "warning", "strict", "like", "set", "value"]
 VALIDATION_EXPECTATION = {
-            "int": "expect_column_values_to_be_in_type_list",
-            "float": "expect_column_values_to_be_in_type_list",
-            "str": "expect_column_values_to_be_of_type",
-            "num": "expect_column_values_to_be_in_type_list",
-            "date": "expect_column_values_to_be_dateutil_parseable",
-            "recommended": "expect_column_values_to_not_be_null",
-            "protectAges": "expect_column_values_to_be_between",
-            "unique": "expect_column_values_to_be_unique",
-            "inRange": "expect_column_values_to_be_between",
-            "IsNA": "expect_column_values_to_match_regex_list",
-            # To be implemented rules with possible expectations
-            # "list": "expect_column_values_to_not_match_regex_list",
-            # "regex": "expect_column_values_to_match_regex",
-            # "url": "expect_column_values_to_be_valid_urls",
-            # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            # "matchNone": "expect_compound_columns_to_be_unique",
-        }
+    "int": "expect_column_values_to_be_in_type_list",
+    "float": "expect_column_values_to_be_in_type_list",
+    "str": "expect_column_values_to_be_of_type",
+    "num": "expect_column_values_to_be_in_type_list",
+    "date": "expect_column_values_to_be_dateutil_parseable",
+    "recommended": "expect_column_values_to_not_be_null",
+    "protectAges": "expect_column_values_to_be_between",
+    "unique": "expect_column_values_to_be_unique",
+    "inRange": "expect_column_values_to_be_between",
+    "IsNA": "expect_column_values_to_match_regex_list",
+    # To be implemented rules with possible expectations
+    # "list": "expect_column_values_to_not_match_regex_list",
+    # "regex": "expect_column_values_to_match_regex",
+    # "url": "expect_column_values_to_be_valid_urls",
+    # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+    # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+    # "matchNone": "expect_compound_columns_to_be_unique",
+}
 
 
 class GreatExpectationsHelpers(object):
@@ -147,7 +147,6 @@ class GreatExpectationsHelpers(object):
         # self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
 
-    
         # Return false if no other condition has been met. In this case if the rule is not a real
         # rule an error will be raised from the containing function.
         return False
@@ -165,7 +164,6 @@ class GreatExpectationsHelpers(object):
             saves expectation suite and identifier to self
 
         """
-        
 
         # create blank expectation suite
         self.expectation_suite_name = "Manifest_test_suite"
