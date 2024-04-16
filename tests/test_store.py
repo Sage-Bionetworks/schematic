@@ -490,6 +490,7 @@ class TestSynapseStorage:
                     "entityId": ["syn123", "syn456"],
                 }
 
+
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
         assert dataset_fileview.datasetId == dataset_id
