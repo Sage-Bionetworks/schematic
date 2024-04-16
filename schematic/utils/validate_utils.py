@@ -122,6 +122,8 @@ def required_is_only_rule(
 
     Args:
         rule: str, the validation rule string
+        attribute: str, attribute the validation rule is set to
+        rule_modifiers, list[str], list of rule modifiers available to add to rules
         validation_expectation: dict[str, str], currently implemented expectations.
     Returns:
         bool, True, if required is the only rule, false if it is not.
@@ -150,7 +152,6 @@ def required_is_only_rule(
     # case that someone used a standard modifier with required
     idx_to_remove = []
     if "required" in rule_parts:
-        only_rule = True
         for idx, rule_part in enumerate(rule_parts):
             if rule_part in rule_modifiers:
                 idx_to_remove.append(idx)
@@ -165,9 +166,9 @@ def required_is_only_rule(
         warning_message = " ".join(
             [
                 f"For Attribute: {attribute}, it looks like required was set as a single rule,"
-                f"with modifiers attached.",
-                f"Rule modifiers do not work in conjunction with the required validation rule.",
-                f"Please reformat your rule.",
+                "with modifiers attached.",
+                "Rule modifiers do not work in conjunction with the required validation rule.",
+                "Please reformat your rule.",
             ]
         )
         logger.warning(warning_message)
