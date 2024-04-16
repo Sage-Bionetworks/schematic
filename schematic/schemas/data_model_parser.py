@@ -372,15 +372,17 @@ class DataModelJSONLDParser:
         dn_label_dict = self.label_to_dn_dict(model_jsonld=model_jsonld)
         # Handle if using the display name as the label
         if isinstance(parsed_rel_entry, list):
-            parsed_rel_entry = [
+            dn_label: Union[str, list, None] = [
                 dn_label_dict.get(entry) if dn_label_dict.get(entry) else entry
                 for entry in parsed_rel_entry
             ]
         elif isinstance(parsed_rel_entry, str):
             converted_label = dn_label_dict.get(parsed_rel_entry)
             if converted_label:
-                parsed_rel_entry = dn_label_dict.get(parsed_rel_entry)
-        return parsed_rel_entry
+                dn_label = dn_label_dict.get(parsed_rel_entry)
+            else:
+                dn_label = parsed_rel_entry
+        return dn_label
 
     def gather_jsonld_attributes_relationships(self, model_jsonld: list[dict]) -> dict:
         """
