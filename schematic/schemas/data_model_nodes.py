@@ -14,6 +14,7 @@ from schematic.utils.schema_utils import (
     convert_bool_to_str,
     parse_validation_rules,
     DisplayLabelType,
+    EntryType
 )
 
 
@@ -123,15 +124,17 @@ class DataModelNodes:
         properties = list(set(properties))
         return properties
 
-    def get_entry_type(self, node_display_name: str) -> str:
+    def get_entry_type(self, node_display_name: str) -> EntryType:
         """Get the entry type of the node, property or class.
+
         Args:
-            node_display_name, str: display name of target node.
+            node_display_name (str): display name of target node.
+
         Returns:
-            entry_type, str: returns 'property' or 'class' based on data model specifications.
+            EntryType: returns 'property' or 'class' based on data model specifications.
         """
         if node_display_name in self.properties:
-            entry_type = "property"
+            entry_type:EntryType = "property"
         else:
             entry_type = "class"
         return entry_type
@@ -143,7 +146,7 @@ class DataModelNodes:
         key: str = "",
         attr_relationships: Optional[dict] = None,
         csv_header: str = "",
-        entry_type="",
+        entry_type:EntryType="class",
         data_model_labels: DisplayLabelType = "class_label",
     ) -> Any:
         """
