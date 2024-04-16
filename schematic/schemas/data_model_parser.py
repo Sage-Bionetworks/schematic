@@ -262,29 +262,55 @@ class DataModelJSONLDParser:
         # Load relationships dictionary.
         self.rel_dict = self.dmr.define_data_model_relationships()
 
+    def parse_jsonld_dicts(
+        self, rel_entry: dict[str, str]
+    ) -> Union[str, dict[str, str]]:
+        """Parse incoming JSONLD dictionaries, only supported dictionaries are non-edge
+            dictionaries.
+        Note:
+            The only two dictionaries we expect are a single entry dictionary containing
+            id information and dictionaries where the key is the attribute label
+            (and it is expected to stay as the label). The individual rules per component are not
+            attached to nodes but rather parsed later in validation rule parsing.
+            So the keys do not need to be converted to display names.
+        Args:
+            rel_entry, Any: Given a single entry and relationship in a JSONLD data model,
+                the recorded value
+        Returns:
+            str, the JSONLD entry ID
+            dict, JSONLD dictionary entry returned.
+        """
+
+        # Retrieve ID from a dictionary recording the ID
+        if set(rel_entry.keys()) == {"@id"}:
+            parsed_rel_entry = rel_entry["@id"]
+        # Parse any remaining dictionaries
+        else:
+            parsed_rel_entry = rel_entry
+        return parsed_rel_entry
+
     def parse_entry(
         self,
         rel_entry: Any,
         id_jsonld_key: str,
-        dn_label_dict: dict[str, str],  # pylint:disable=unused-argument
-        model_jsonld: dict,
+        model_jsonld: list[dict],
     ) -> Any:
         """Parse an input entry based on certain attributes
 
         Args:
-            rel_entry (Any): Given a single entry and relationship in a JSONLD data model,
-              the recorded value
-            id_jsonld_key (str): the jsonld key for id
-            dn_label_dict (_type_): Not used
-            model_jsonld (dict): _description_
-
+            rel_entry: Given a single entry and relationship in a JSONLD data model,
+                the recorded value
+            id_jsonld_key: str, the jsonld key for id
+            model_jsonld: list[dict], list of dictionaries, each dictionary is an entry
+                in the jsonld data model
         Returns:
             Any: n entry that has been parsed base on its input type and
               characteristics.
         """
-        # Retrieve ID from single value dictionary
-        if isinstance(rel_entry, dict) and len(rel_entry.keys()) == 1:
-            parsed_rel_entry = rel_entry["@id"]
+        # Parse dictionary entries
+        if isinstance(rel_entry, dict):
+            parsed_rel_entry = self.parse_jsonld_dicts(rel_entry)
+
         # Parse list of dictionaries to make a list of entries with context stripped (will update
         # this section when contexts added.)
         elif isinstance(rel_entry, list) and isinstance(rel_entry[0], dict):
@@ -388,9 +414,6 @@ class DataModelJSONLDParser:
             self.rel_dict[key]["jsonld_key"] for key in jsonld_keys_to_extract
         ]
 
-        # Get a dictionary of display names to labels to identify values explicitly recorded
-        dn_label_dict = self.label_to_dn_dict(model_jsonld=model_jsonld)
-
         # Build the attr_rel_dictionary
         attr_rel_dictionary = {}
         # Move through each entry in the jsonld model
@@ -424,7 +447,6 @@ class DataModelJSONLDParser:
                         parsed_rel_entry = self.parse_entry(
                             rel_entry=rel_entry,
                             id_jsonld_key=id_jsonld_key,
-                            dn_label_dict=dn_label_dict,
                             model_jsonld=model_jsonld,
                         )
                         rel_csv_header = rel_vals["csv_header"]
@@ -497,7 +519,6 @@ class DataModelJSONLDParser:
                         parsed_rel_entry = self.parse_entry(
                             rel_entry=rel_entry,
                             id_jsonld_key=id_jsonld_key,
-                            dn_label_dict=dn_label_dict,
                             model_jsonld=model_jsonld,
                         )
                         # Add relationships for each attribute and relationship to the dictionary
