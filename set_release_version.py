@@ -13,12 +13,7 @@ TODAYS_YEAR = str(TODAY.year)[-2:]
 TODAYS_MONTH = str(TODAY.month)
 
 tags = os.getenv("TAGS")
-print(tags)
-print(type(tags))
-assert isinstance(tags, list)
-for tag in tags:
-    assert isinstance(tag, dict)
-    assert "ref" in tag
+
 '''
 tags = [
     {
