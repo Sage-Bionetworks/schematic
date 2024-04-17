@@ -38,7 +38,7 @@ jobs:
           poetry config virtualenvs.create true;
           poetry config virtualenvs.in-project true;
 
-      #----------------------------------------------
+      #-----python-----------------------------------------
       #       load cached venv if cache exists      
       #----------------------------------------------
       - name: Load cached venv
@@ -60,8 +60,7 @@ jobs:
       #----------------------------------------------      
       - name: Override version tag
         run: |
-          poetry shell  
-          TAGS=${{ steps.get_latest_release.outputs.data }} python3 set_release_version.py
+          poetry run python3 set_release_version.py
         shell: sh
 
 
