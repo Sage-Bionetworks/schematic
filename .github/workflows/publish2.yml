@@ -59,7 +59,9 @@ jobs:
       #    set release version tag 
       #----------------------------------------------      
       - name: Override version tag
-        run: poetry run  TAGS=${{ steps.get_latest_release.outputs.data }} python3 set_release_version.py
+        run: |
+          poetry shell  
+          TAGS=${{ steps.get_latest_release.outputs.data }} python3 set_release_version.py
         shell: sh
 
 
