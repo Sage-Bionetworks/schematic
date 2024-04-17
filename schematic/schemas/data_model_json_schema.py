@@ -1,5 +1,6 @@
 "Data Model Json Schema"
 
+import json
 import logging
 import os
 from typing import Any, Optional
@@ -396,4 +397,17 @@ class DataModelJSONSchema:
             prefix_root, prefix_ext = os.path.splitext(prefix)
             if prefix_ext == ".model":
                 prefix = prefix_root
+            json_schema_log_file = f"{prefix}.{source_node}.schema.json"
+
+        if json_schema_log_file is None:
+            logger.info(
+                "The JSON schema file can be inspected by setting the following "
+                "nested key in the configuration: (model > location)."
+            )
+        else:
+            json_schema_dirname = os.path.dirname(json_schema_log_file)
+            if json_schema_dirname != '':
+                os.makedirs(json_schema_dirname, exist_ok=True)
+            with open(json_schema_log_file, "w") as js_f:
+                json.dump(json_schema, js_f, indent=2)
         return json_schema
