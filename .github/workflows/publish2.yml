@@ -63,7 +63,7 @@ jobs:
       #    override version tag 
       #----------------------------------------------      
       - name: Override version tag
-        run: poetry run python3 override_version.py
+        run: poetry run python3 set_release_version.py
         shell: sh
 
       #----------------------------------------------
