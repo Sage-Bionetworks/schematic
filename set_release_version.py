@@ -12,8 +12,9 @@ TODAY = date.today()
 TODAYS_YEAR = str(TODAY.year)[-2:]
 TODAYS_MONTH = str(TODAY.month)
 
-'''
 tags = os.getenv("TAGS")
+print(tags)
+print(type(tags))
 assert isinstance(tags, list)
 for tag in tags:
     assert isinstance(tag, dict)
@@ -33,6 +34,7 @@ tags = [
         'other': "x"
     }
 ]
+'''
 
 
 version_strings = [os.path.basename(tag_dict["ref"]) for tag_dict in tags]
