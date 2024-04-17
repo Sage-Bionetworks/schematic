@@ -22,7 +22,7 @@ ref_list: list[str] = [tag_dict["ref"] for tag_dict in tag_list]
 for ref in ref_list:
     version = os.path.basename(ref)
     print(version)
-    print(re.match("^[0-9]+\.[0-9]+\.[0-9]+$", version))
+    print(re.match("^v[0-9]+\.[0-9]+\.[0-9]+$", version))
 
 
 
