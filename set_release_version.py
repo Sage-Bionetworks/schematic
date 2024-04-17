@@ -5,7 +5,7 @@ Changes pyproject.toml file to have thew release date
 
 import os
 from datetime import date
-
+import json
 import toml
 
 TODAY = date.today()
@@ -13,6 +13,11 @@ TODAYS_YEAR = str(TODAY.year)[-2:]
 TODAYS_MONTH = str(TODAY.month)
 
 tags = os.getenv("TAGS")
+assert isinstance(tags, str)
+print(type(tags))
+tags = json.loads(tags)
+print(type(tags))
+print(tags)
 
 '''
 tags = [
