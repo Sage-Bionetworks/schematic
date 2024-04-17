@@ -48,5 +48,6 @@ data = toml.load("pyproject.toml")
 data['tool']['poetry']['version']=RELEASE_VERSION
 print('the version number of this release is: ', RELEASE_VERSION)
 
-with open("pyproject.toml", encoding="utf-8") as file:
-    toml.dump(data, file)
+f = open("pyproject.toml",'w')
+toml.dump(data, f)
+f.close()

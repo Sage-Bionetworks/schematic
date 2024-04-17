@@ -8,8 +8,8 @@ name: Test schematic
 on:
   push:
     branches: ['main']
-  pull_request:
-    branches: ['*']
+  #pull_request:
+    #branches: ['*']
   workflow_dispatch:  # Allow manually triggering the workflow
 concurrency:
   # cancel the current running workflow from the same branch, PR when a new workflow is triggered
