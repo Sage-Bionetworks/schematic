@@ -63,7 +63,7 @@ jobs:
           poetry run python3 set_release_version.py
         shell: sh
         env:
-          tags: Mona
+          TAGS: Mona
 
 
 
