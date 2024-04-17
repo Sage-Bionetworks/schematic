@@ -7,6 +7,7 @@ import os
 from datetime import date
 import json
 import toml
+import re
 
 TODAY = date.today()
 TODAYS_YEAR = str(TODAY.year)[-2:]
@@ -14,30 +15,20 @@ TODAYS_MONTH = str(TODAY.month)
 
 tags = os.getenv("TAGS")
 assert isinstance(tags, str)
-print(type(tags))
-tags = json.loads(tags)
-print(type(tags))
-print(tags)
+tag_list = json.loads(tags)
+assert isinstance(tag_list, list)
+
+ref_list: list[str] = [tag_dict["ref"] for tag_dict in tag_list]
+for ref in ref_list:
+    version = os.path.basename(ref)
+    print(version)
+    print(re.match("^[0-9]+\.[0-9]+\.[0-9]+$", version))
+
+
+
 
 '''
-tags = [
-    {
-        'ref': 'refs/tags/24.4.1',
-        'other': "x"
-    },
-    {
-        'ref': 'refs/tags/24.4.2',
-        'other': "x"
-    },
-    {
-        'ref': 'refs/tags/24.3.1',
-        'other': "x"
-    }
-]
-'''
-
-
-version_strings = [os.path.basename(tag_dict["ref"]) for tag_dict in tags]
+version_strings = [os.path.basename(tag_dict["ref"]) for tag_dict in tag_list]
 NUM_VERSIONS = 0
 for string in version_strings:
     year, month, number = string.split(".")
@@ -53,3 +44,4 @@ print('the version number of this release is: ', RELEASE_VERSION)
 f = open("pyproject.toml",'w')
 toml.dump(data, f)
 f.close()
+'''
