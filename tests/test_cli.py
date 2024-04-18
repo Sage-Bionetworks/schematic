@@ -130,6 +130,39 @@ class TestSchemaCli:
 
         assert result.exit_code == expected
 
+    def test_schema_convert_cli(self, runner):
+        model = "tests/data/example.model.csv"
+        label_type = "class_label"
+        expected = 0
+
+        result = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_jsonld",
+                "tests/data/example.model.pickle",
+                "--output_path",
+                "tests/data/example.model.pickle"
+            ]
+        )
+
+        assert result.exit_code == expected
+
+        resultTwo = runner.invoke(
+            schema,
+            [
+                "convert",
+                model,
+                "--output_jsonld",
+                "",
+                "--output_path",
+                ""
+            ]
+        )
+
+        assert resultTwo.exit_code == expected
+
     # get manifest by default
     # by default this should download the manifest as a CSV file
     @pytest.mark.google_credentials_needed
