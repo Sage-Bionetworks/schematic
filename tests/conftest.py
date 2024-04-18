@@ -1,18 +1,16 @@
-from multiprocessing.sharedctypes import Value
+"""Fixtures and helpers for use across all tests"""
 import os
 import logging
 import sys
+from typing import Generator
+from pathlib import Path
 
 import shutil
 import pytest
-import pandas as pd
-from dotenv import load_dotenv, find_dotenv
-from time import perf_counter
+from dotenv import load_dotenv
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_nodes import DataModelNodes
-from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 
 from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
@@ -128,3 +126,24 @@ def synapse_store(request):
         synapse_store = SynapseStorage()
 
     yield synapse_store
+
+@pytest.fixture
+def test_bulkrnaseq(helpers: Helpers) -> Generator[Path, None, None]:
+    """create temporary copy of test_BulkRNAseq.csv
+    This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file
+    After test, the copied file is removed.
+    Args:
+        helpers (Helpers): Helpers fixture
+
+    Yields:
+        Generator[Path, None, None]: temporary file path of the copied version test_BulkRNAseq.csv
+    """
+    # original bulkrnaseq csv
+    original_test_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
+    # Copy the original CSV file to a temporary directory
+    temp_csv_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq2.csv")
+    shutil.copyfile(original_test_path, temp_csv_path)
+    yield temp_csv_path
+    # Teardown
+    if os.path.exists(temp_csv_path):
+        os.remove(temp_csv_path)
