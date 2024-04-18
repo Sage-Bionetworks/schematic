@@ -65,4 +65,5 @@ year, month = get_date_string()
 num_tags_this_month = get_num_tags_this_month(tag_list, year, month)
 
 
-print (f"{year}.{month}.{num_tags_this_month + 1}")
+#print (f"{year}.{month}.{num_tags_this_month + 1}")
+print("1.1.1-test")

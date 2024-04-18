@@ -66,6 +66,21 @@ jobs:
         shell: sh
         env:
           TAGS: ${{ steps.get_latest_release.outputs.data }}
+
+      #----------------------------------------------
+      #    Create release
+      #----------------------------------------------  
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.release_version.outputs.RELEASE_VERSION }}
+          release_name: ${{ steps.release_version.outputs.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
                   
       #----------------------------------------------
       #    Set release version
