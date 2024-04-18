@@ -130,12 +130,7 @@ class TestSchemaCli:
 
         assert result.exit_code == expected
 
-    def test_schema_convert_cli(self, runner):
-        model = "tests/data/example.model.csv"
-        label_type = "class_label"
-        expected = 0
-
-        result = runner.invoke(
+        resultFive = runner.invoke(
             schema,
             [
                 "convert",
@@ -147,9 +142,9 @@ class TestSchemaCli:
             ]
         )
 
-        assert result.exit_code == expected
+        assert resultFive.exit_code == expected
 
-        resultTwo = runner.invoke(
+        resultSix = runner.invoke(
             schema,
             [
                 "convert",
@@ -161,7 +156,7 @@ class TestSchemaCli:
             ]
         )
 
-        assert resultTwo.exit_code == expected
+        assert resultSix.exit_code == expected
 
     # get manifest by default
     # by default this should download the manifest as a CSV file
