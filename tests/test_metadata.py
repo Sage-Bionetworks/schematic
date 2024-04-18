@@ -1,4 +1,4 @@
-"""Tests for Metada class"""
+"""Tests for Metadata class"""
 
 import logging
 import os
