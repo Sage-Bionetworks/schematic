@@ -21,6 +21,4 @@ year, month = get_date_strings()
 version_list = get_version_list_from_tags(tag_string)
 num_tags_this_month = get_number_of_versions_this_month(version_list, year, month)
 
-
-#print (f"{year}.{month}.{num_tags_this_month + 1}")
-print("1.1.1.dev")
+print (f"{year}.{month}.{num_tags_this_month + 1}")
