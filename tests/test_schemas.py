@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import pytest
 import random
+from typing import Optional
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
@@ -475,6 +476,90 @@ class TestDataModelGraphExplorer:
     def test_get_adjacent_nodes_by_relationship(self):
         return
 
+    @pytest.mark.parametrize(
+        "data_model",
+        ["example_required_vr_test.model.csv", "example_required_vr_test.model.jsonld"],
+        ids=["csv", "jsonld"],
+    )
+    @pytest.mark.parametrize(
+        ["manifest_component", "node_required"],
+        [
+        ["Patient", False],
+        ["Biospecimen", True],
+        ],
+        ids=["Patient_Component", "Biospecimen_Component"],
+    )
+    @pytest.mark.parametrize(
+        ["node_label", "node_display_name"],
+        [["PatientID", None],
+        [None, "Patient ID"]],
+        ids=["use_node_label", "use_node_display_name"],
+    )
+    @pytest.mark.parametrize(
+        "provide_vrs",
+        [True, False],
+        ids=["provide_vrs_True", "provide_vrs_False"],
+    )
+    def test_get_component_node_required(
+        self, helpers, data_model:str, manifest_component: str, node_required:bool, provide_vrs: bool, node_label: str,
+        node_display_name: str,
+    ):
+        # Get graph explorer
+        DMGE = helpers.get_data_model_graph_explorer(path=data_model)
+
+
+        # Get validation rules, if indicated to do so
+        node_validation_rules = None
+        if provide_vrs:
+            node_validation_rules = DMGE.get_component_node_validation_rules(
+                manifest_component=manifest_component,
+                node_label=node_label,
+                node_display_name=node_display_name
+            )
+
+        # Find if component node is required then compare to expectations
+        component_node_required = DMGE.get_component_node_required(
+            manifest_component=manifest_component,
+            node_validation_rules=node_validation_rules,
+            node_label=node_label,
+            node_display_name=node_display_name,
+            )
+
+        assert component_node_required == node_required
+
+    @pytest.mark.parametrize(
+        "data_model",
+        ["example_required_vr_test.model.csv", "example_required_vr_test.model.jsonld"],
+        ids=["csv", "jsonld"],
+    )
+    @pytest.mark.parametrize(
+        ["manifest_component","node_vrs"],
+        [
+        ["Patient", "unique warning"],
+        ["Biospecimen", "unique required error"],
+        ],
+        ids=["Patient_Component", "Biospecimen_Component"],
+    )
+    @pytest.mark.parametrize(
+        ["node_label", "node_display_name"],
+        [["PatientID", None],
+        [None, "Patient ID"]],
+        ids=["use_node_label", "use_node_display_name"],
+    )
+    def test_get_component_node_validation_rules(self, helpers, data_model:str, manifest_component: str, node_vrs: str, node_label: str,
+        node_display_name: str):
+        # Get graph explorer
+        DMGE = helpers.get_data_model_graph_explorer(path=data_model)
+
+        # Get component node validation rules and compare to expectations
+        node_validation_rules = DMGE.get_component_node_validation_rules(
+            manifest_component=manifest_component,
+            node_label=node_label,
+            node_display_name=node_display_name
+        )
+
+        assert node_validation_rules == [node_vrs]
+
     def test_get_component_requirements(self):
         return
 
@@ -533,6 +618,11 @@ class TestDataModelGraphExplorer:
         return
 
     @pytest.mark.parametrize(
+        "data_model",
+        ["example.model.csv", "example.model.jsonld"],
+        ids=["csv", "jsonld"],
+    )
+    @pytest.mark.parametrize(
         "class_name, expected_in_schema",
         [
             ("Patient", True),
@@ -541,13 +631,13 @@ class TestDataModelGraphExplorer:
             ("InvalidComponent", False),
         ],
     )
-    def test_is_class_in_schema(self, helpers, class_name, expected_in_schema):
+    def test_is_class_in_schema(self, helpers, class_name, expected_in_schema, data_model):
         """
         Test to cover checking if a given class is in a schema.
         `is_class_in_schema` should return `True` if the class is in the schema
         and `False` if it is not.
         """
-        DMGE = helpers.get_data_model_graph_explorer(path="example.model.csv")
+        DMGE = helpers.get_data_model_graph_explorer(path=data_model)
         # Check if class is in schema
         class_in_schema = DMGE.is_class_in_schema(class_name)
 
