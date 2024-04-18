@@ -23,4 +23,4 @@ num_tags_this_month = get_number_of_versions_this_month(version_list, year, mont
 
 
 #print (f"{year}.{month}.{num_tags_this_month + 1}")
-print("1.1.1-test")
+print("1.1.1.dev")
