@@ -196,7 +196,7 @@ class DataModelJSONSchema:
                 node_required = self.dmge.get_component_node_required(
                     manifest_component=source_node,
                     node_validation_rules=node_validation_rules,
-                    node_display_name=node_display_name
+                    node_display_name=node_display_name,
                 )
 
                 if node_display_name in reverse_dependencies:
