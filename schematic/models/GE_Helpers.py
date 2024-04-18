@@ -6,7 +6,7 @@ import re
 import numpy as np
 
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List, Literal
+from typing import Any, Dict, Optional, Text, List
 from urllib.parse import urlparse
 from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
 from urllib.request import Request
