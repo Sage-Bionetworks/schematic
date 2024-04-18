@@ -214,16 +214,16 @@ class TestSynapseStorage:
             assert len(files_and_Ids["entityId"]) == 2
 
     @pytest.mark.parametrize(
-        "manifest_path, test_annotations, dataset_id, manifest_record_type",
+        "manifest, test_annotations, dataset_id, manifest_record_type",
         [
             (
-                "mock_manifests/annotations_test_manifest.csv",
+                "annotations_manifest",
                 {"CheckInt": "7", "CheckList": "valid, list, values"},
                 "syn34295552",
                 "file_and_entities",
             ),
             (
-                "mock_manifests/test_BulkRNAseq.csv",
+                "bulk_rna_seq_manifest",
                 {"FileFormat": "BAM", "GenomeBuild": "GRCh38"},
                 "syn39241199",
                 "table_and_file",
@@ -235,17 +235,20 @@ class TestSynapseStorage:
         self,
         synapse_store: SynapseStorage,
         helpers,
-        manifest_path: str,
+        manifest: str,
         test_annotations: dict[str, str],
         dataset_id: str,
         manifest_record_type: str,
         dmge: DataModelGraphExplorer,
+        test_bulkrnaseq: str,
+        test_annotations_manifest: str,
     ):
         """Test annotation submission"""
-        # Make copy of manifest file in case columns are added to it
-        full_manifest_path = helpers.get_data_path(manifest_path)
-        copy_path = f"{full_manifest_path}.copy"
-        shutil.copyfile(full_manifest_path, copy_path)
+        if manifest == "annotations_manifest":
+            copy_path = test_annotations_manifest
+        else:
+            copy_path = test_bulkrnaseq
+
 
         synapse_store.associateMetadataWithFiles(
             dmge=dmge,
@@ -268,9 +271,9 @@ class TestSynapseStorage:
             assert key in annotations.keys()
             assert annotations[key] == test_annotations[key]
 
-        if manifest_path.endswith("annotations_test_manifest.csv"):
+        if copy_path.endswith("annotations_test_manifest.csv"):
             assert "CheckRecommended" not in annotations.keys()
-        elif manifest_path.endswith("test_BulkRNAseq.csv"):
+        elif copy_path.endswith("test_BulkRNAseq.csv"):
             entity = synapse_store.syn.get(entity_id)
             assert isinstance(entity, File)
 

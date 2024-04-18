@@ -3,7 +3,6 @@ import os
 import logging
 import sys
 from typing import Generator
-from pathlib import Path
 
 import shutil
 import pytest
@@ -127,8 +126,13 @@ def synapse_store(request):
 
     yield synapse_store
 
-@pytest.fixture
-def test_bulkrnaseq(helpers: Helpers) -> Generator[Path, None, None]:
+
+# These fixtures make copies of existing test manifests.
+# These copies can the be altered by a given test, and the copy will eb destroyed at the 
+# end of the test
+
+@pytest.fixture(scope="function")
+def test_bulkrnaseq(helpers: Helpers) -> Generator[str, None, None]:
     """create temporary copy of test_BulkRNAseq.csv
     This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file
     After test, the copied file is removed.
@@ -145,5 +149,25 @@ def test_bulkrnaseq(helpers: Helpers) -> Generator[Path, None, None]:
     shutil.copyfile(original_test_path, temp_csv_path)
     yield temp_csv_path
     # Teardown
+    if os.path.exists(temp_csv_path):
+        os.remove(temp_csv_path)
+
+
+@pytest.fixture(scope="function")
+def test_annotations_manifest(helpers: Helpers) -> Generator[str, None, None]:
+    """
+    Create temporary copy of annotations_test_manifest.csv
+    This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file
+    After test, the copied file is removed.
+    Args:
+        helpers (Helpers): Helpers fixture
+
+    Yields:
+        Generator[Path, None, None]: temporary file path of the copied manifest
+    """
+    original_test_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
+    temp_csv_path = helpers.get_data_path("mock_manifests/annotations_test_manifest2.csv")
+    shutil.copyfile(original_test_path, temp_csv_path)
+    yield temp_csv_path
     if os.path.exists(temp_csv_path):
         os.remove(temp_csv_path)
