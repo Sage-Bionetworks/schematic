@@ -406,7 +406,7 @@ class DataModelJSONSchema:
             )
         else:
             json_schema_dirname = os.path.dirname(json_schema_log_file)
-            if json_schema_dirname != '':
+            if json_schema_dirname != "":
                 os.makedirs(json_schema_dirname, exist_ok=True)
             with open(json_schema_log_file, "w") as js_f:
                 json.dump(json_schema, js_f, indent=2)
