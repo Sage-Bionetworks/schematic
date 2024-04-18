@@ -54,16 +54,28 @@ jobs:
       - name: Install dependencies and root project
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --all-extras
-                  
+
       #----------------------------------------------
-      #    set release version tag 
+      #    Construct release version
       #----------------------------------------------      
-      - name: Override version tag
+      - name: Construct release version
+        id: release_version
         run: |
-          poetry run python3 set_release_version.py
+           VAR=$(poetry run python3.10 github_scripts/construct_release_version.py)
+           echo "RELEASE_VERSION=$VAR" >> "$GITHUB_OUTPUT"
         shell: sh
         env:
           TAGS: ${{ steps.get_latest_release.outputs.data }}
+                  
+      #----------------------------------------------
+      #    Set release version
+      #----------------------------------------------      
+      - name: Set release version
+        run: |
+          poetry run python3 github_scripts/update_toml_version.py
+        shell: sh
+        env:
+          RELEASE_VERSION: ${{ steps.release_version.outputs.RELEASE_VERSION }}
 
 
 
