@@ -65,6 +65,36 @@ class ValidateManifest(object):
             error_val = f"Multiple Rules: list not first"
         return ["NA", error_col, error_message, error_val]
 
+    def check_max_rule_num(
+        self,
+        validation_rules: list[str],
+        col: pd.core.series.Series,
+        errors: list[list[str]],
+    ) -> list[list[str]]:
+        """Check that user isnt applying more rule combinations than allowed. Do not consider certain rules as a part of this rule limit.
+        Args:
+            validation_rules, list: Validation rules for current manifest column/attribute being evaluated
+            col, pd.core.series.Series: the current manifest column being evaluated
+            errors, list[list[str]]: list of errors being compiled.
+        Returns:
+            errors, list[list[str]]: list of errors being compiled, with additional error list being appended if appropriate
+        """
+        # Check that attribute rules conform to limits:
+        # IsNa is operates differently than most rules, do not consider it as a rule for evaluating
+        # if the number of rule pairs has been exceeded.
+        if "IsNa" in validation_rules:
+            validation_rules.remove("IsNa")
+
+        # no more than two rules for an attribute.
+        # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?
+        if len(validation_rules) > 2:
+            errors.append(
+                self.get_multiple_types_error(
+                    validation_rules, col, error_type="too_many_rules"
+                )
+            )
+        return errors
+
     def validate_manifest_rules(
         self,
         manifest: pd.core.frame.DataFrame,
@@ -195,18 +225,13 @@ class ValidateManifest(object):
             if validation_rules and isinstance(validation_rules, dict):
                 validation_rules = extract_component_validation_rules(
                     manifest_component=manifest["Component"][0],
-                    validation_rules=validation_rules,
+                    validation_rules_dict=validation_rules,
                 )
 
-            # Check that attribute rules conform to limits:
-            # no more than two rules for an attribute.
-            # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?
-            if len(validation_rules) > 2:
-                errors.append(
-                    self.get_multiple_types_error(
-                        validation_rules, col, error_type="too_many_rules"
-                    )
-                )
+            # Check for max rule allowance
+            errors = self.check_max_rule_num(
+                validation_rules=validation_rules, col=col, errors=errors
+            )
 
             # Given a validation rule, run validation. Skip validations already performed by GE
             for rule in validation_rules:
@@ -214,6 +239,9 @@ class ValidateManifest(object):
                 if rule_in_rule_list(rule, unimplemented_expectations) or (
                     rule_in_rule_list(rule, in_house_rules) and restrict_rules
                 ):
+                    # Note rules not listed in unimplemented_expectations or inhouse rules will not be run through
+                    # the validation steps. IsNA is not a true rule, so it will not have any validation run,
+                    # it is handled in validate_attribute
                     if not rule_in_rule_list(rule, in_house_rules):
                         logger.warning(
                             f"Validation rule {rule.split(' ')[0]} has not been implemented in house and cannnot be validated without Great Expectations."
@@ -263,6 +291,9 @@ class ValidateManifest(object):
         errors = []
         warnings = []
         col_attr = {}  # save the mapping between column index and attribute name
+
+        # Replace nans with empty strings so jsonschema
+        manifest = manifest.replace({np.nan: ""})
 
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(

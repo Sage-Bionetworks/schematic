@@ -326,22 +326,23 @@ def check_for_duplicate_components(
         )
 
 
-def parse_component_validation_rules(validation_rule_string: str) -> dict:
+def parse_component_validation_rules(
+    validation_rule_string: str,
+) -> dict[str, list[str]]:
     """
     If a validation rule is identified to be formatted as a component validation rule,
       parse to a dictionary of components:rules
 
     Args:
-        validation_rule_string (str): validation rule provided by user.
+        validation_rule_string (str):  validation rule provided by user.
 
     Returns:
-        dict: validation rules parsed to a dictionary where the key is the component name
-          (or 'all_other_components') and the value is the parsed validation rule for the
-          given component.
+        dict[str, list[str]]: validation rules parsed to a dictionary where the key
+          is the component name (or 'all_other_components') and the value is the parsed
+          validation rule for the given component.
     """
-
-    component_names = []
-    validation_rules = []
+    component_names: list[str] = []
+    validation_rules: list[list[str]] = []
 
     component_rules = validation_rule_string.split(COMPONENT_RULES_DELIMITER)
     # Extract component rules, per component
@@ -422,40 +423,41 @@ def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, d
 
 
 def extract_component_validation_rules(
-    manifest_component: str, validation_rules: dict[str, list]
-) -> list:
+    manifest_component: str, validation_rules_dict: dict[str, Union[list, str]]
+) -> list[Union[str, list]]:
     """
     Parse a component validation rule dictionary to pull out the rule (if any) for a given manifest
 
     Args:
         manifest_component, str: Component label, pulled from the manifest directly
-        validation_rules, dict[str, list[Union[list,str]]: Validation rules dictionary, where keys
-          are the manifest component label, and the value is a parsed set of validation rules.
+        validation_rules_dict, dict[str, list[Union[list,str]]: Validation rules dictionary,
+          where keys are the manifest component label, and the value is a parsed set of
+          validation rules.
     Returns:
         validation_rules, list[str]: rule for the provided manifest component if one is available,
             if a validation rule is not specified for a given component but "all_other_components"
             is specified (as a key), then pull that one, otherwise return an empty list.
     """
-    manifest_component_rule = validation_rules.get(manifest_component)
-    all_component_rules = validation_rules.get("all_other_components")
+    manifest_component_rule = validation_rules_dict.get(manifest_component)
+    all_component_rules = validation_rules_dict.get("all_other_components")
 
     # Capture situation where manifest_component rule is an empty string
     if manifest_component_rule is not None:
         if isinstance(manifest_component_rule, str):
             if manifest_component_rule == "":
-                validation_rules = []
+                validation_rules_list: list[Union[str, list]] = []
             else:
-                validation_rules = [manifest_component_rule]
+                validation_rules_list = [manifest_component_rule]
         elif isinstance(manifest_component_rule, list):
-            validation_rules = manifest_component_rule
+            validation_rules_list = manifest_component_rule
     elif all_component_rules:
         if isinstance(all_component_rules, str):
-            validation_rules = [all_component_rules]
+            validation_rules_list = [all_component_rules]
         elif isinstance(all_component_rules, list):
-            validation_rules = all_component_rules
+            validation_rules_list = all_component_rules
     else:
-        validation_rules = []
-    return validation_rules
+        validation_rules_list = []
+    return validation_rules_list
 
 
 def export_schema(schema: dict, file_path: str) -> None:

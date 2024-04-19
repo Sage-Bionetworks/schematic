@@ -140,7 +140,7 @@ class GreatExpectationsHelpers(object):
             "str": "expect_column_values_to_be_of_type",
             "num": "expect_column_values_to_be_in_type_list",
             "date": "expect_column_values_to_be_dateutil_parseable",
-            "recommended": "expect_column_values_to_not_match_regex_list",
+            "recommended": "expect_column_values_to_not_be_null",
             "protectAges": "expect_column_values_to_be_between",
             "unique": "expect_column_values_to_be_unique",
             "inRange": "expect_column_values_to_be_between",
@@ -178,7 +178,7 @@ class GreatExpectationsHelpers(object):
                 if isinstance(validation_rules, dict):
                     validation_rules = extract_component_validation_rules(
                         manifest_component=self.manifest["Component"][0],
-                        validation_rules=validation_rules,
+                        validation_rules_dict=validation_rules,
                     )
                 # iterate through all validation rules for an attribute
                 for rule in validation_rules:
@@ -255,7 +255,6 @@ class GreatExpectationsHelpers(object):
 
                     elif base_rule == ("recommended"):
                         args["mostly"] = 0.0000000001
-                        args["regex_list"] = ["^$"]
                         meta = {
                             "notes": {
                                 "format": "markdown",

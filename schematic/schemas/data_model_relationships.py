@@ -1,19 +1,22 @@
-from typing import Dict
+"""Data Model Relationships"""
+
 from schematic.utils.schema_utils import (
     get_label_from_display_name,
     get_attribute_display_name_from_label,
     convert_bool_to_str,
     parse_validation_rules,
 )
-from schematic.schemas.curie import uri2curie, curie2uri
 
 
 class DataModelRelationships:
+    """Data Model Relationships"""
+
     def __init__(self) -> None:
         self.relationships_dictionary = self.define_data_model_relationships()
 
-    def define_data_model_relationships(self) -> Dict:
-        """Define the relationships and their attributes so they can be accessed through other classes.
+    def define_data_model_relationships(self) -> dict:
+        """Define the relationships and their attributes so they can be accessed
+          through other classes.
         The key is how it the relationship will be referenced througout Schematic.
         Note: Though we could use other keys to determine which keys define nodes and edges,
             edge_rel is used as an explicit definition, for easier code readablity.
@@ -29,17 +32,20 @@ class DataModelRelationships:
                       False, if is a value relationship
                       Include in all sub-dictionaries.
             required_header: True, if relationship header is required for the csv
-            jsonld_default: Defines default values to fill for JSONLD generation.
-                        Used during func DataModelJsonLD.clean_template(), to fill value with a default, if not supplied in the data model.
-            node_attr_dict: This is used to add information to nodes in the model. Only include for nodes not edges.
-                            set default values for this relationship
-                                key is the node relationship name, value is the default value.
-                                If want to set default as a function create a nested dictionary.
-                                    {'default': default_function,
-                                     'standard': alternative function to call if relationship is present for a node}
-                                    }
-                                If adding new functions to node_dict will
-                                    need to modify data_model_nodes.generate_node_dict in
+            jsonld_default:
+                Defines default values to fill for JSONLD generation.
+                Used during func DataModelJsonLD.clean_template(), to fill value with a default,
+                  if not supplied in the data model.
+            node_attr_dict: This is used to add information to nodes in the model.
+                Only include for nodes not edges.
+                set default values for this relationship
+                key is the node relationship name, value is the default value.
+                If want to set default as a function create a nested dictionary.
+                    {'default': default_function,
+                     'standard': alternative function to call if relationship is present for a node
+                    }
+                If adding new functions to node_dict will
+                    need to modify data_model_nodes.generate_node_dict in
             edge_dir: str, 'in'/'out' is the edge an in or out edge. Define for edge relationships
             jsonld_dir: str, 'in'/out is the direction in or out in the JSONLD.
 
@@ -187,24 +193,32 @@ class DataModelRelationships:
         return map_data_model_relationships
 
     def define_required_csv_headers(self):
-        """Helper function to retrieve required CSV headers, alert if required header was not provided.
+        """
+        Helper function to retrieve required CSV headers, alert if required header was
+          not provided.
         Returns:
             required_headers: lst, Required CSV headers.
         """
         required_headers = []
-        for k, v in self.relationships_dictionary.items():
+        for key, value in self.relationships_dictionary.items():
             try:
-                if v["required_header"]:
-                    required_headers.append(v["csv_header"])
+                if value["required_header"]:
+                    required_headers.append(value["csv_header"])
             except KeyError:
                 print(
-                    f"Did not provide a 'required_header' key, value pair for the nested dictionary {k} : {key}"
+                    (
+                        "Did not provide a 'required_header' key, value pair for the "
+                        f"nested dictionary {key} : {value}"
+                    )
                 )
 
         return required_headers
 
-    def retreive_rel_headers_dict(self, edge: bool) -> Dict[str, str]:
-        """Helper function to retrieve CSV headers for edge and non-edge relationships defined by edge_type.
+    def retreive_rel_headers_dict(self, edge: bool) -> dict[str, str]:
+        """
+        Helper function to retrieve CSV headers for edge and non-edge relationships
+          defined by edge_type.
+
         Args:
             edge, bool: True if looking for edge relationships
         Returns:
@@ -215,7 +229,7 @@ class DataModelRelationships:
             if "edge_rel" in rel_dict:
                 if rel_dict["edge_rel"] and edge:
                     rel_headers_dict.update({rel: rel_dict["csv_header"]})
-                elif rel_dict["edge_rel"] == False and edge == False:
+                elif not rel_dict["edge_rel"] and not edge:
                     rel_headers_dict.update({rel: rel_dict["csv_header"]})
             else:
                 raise ValueError(f"Did not provide a 'edge_rel' for relationship {rel}")
