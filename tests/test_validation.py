@@ -648,8 +648,6 @@ class TestManifestValidation:
             assert  valid_value in errors[1][2]
             assert warnings==[]
 
-        return
-
 
     @pytest.mark.parametrize(
         "manifest_path",
