@@ -492,11 +492,11 @@ def export_graph(schema: dict, file_path: str) -> None:
         file_path, str: File to create
     """
     try:
-        with open(file_path, "wb") as f:
-            pickle.dump(schema, f)
+        with open(file_path, "wb") as file:
+            pickle.dump(schema, file)
         logger.info(f"The graph was created and saved to '{file_path}'.")
-    except SystemExit as e:
+    except SystemExit as error:
         logger.error(
             f"The graph failed to save to '{file_path}'. Please check your file path again."
         )
-        raise e
+        raise error

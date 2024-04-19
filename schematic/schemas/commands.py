@@ -145,8 +145,8 @@ def convert(
         output_graph = output_file_no_ext + ".pickle"
         try:
             export_graph(graph_data_model, output_graph)
-        except SystemExit as e:
-            raise e
+        except SystemExit as error:
+            raise error
 
     if output_type == "graph":
         return output_graph
