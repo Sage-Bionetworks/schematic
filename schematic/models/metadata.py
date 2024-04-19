@@ -395,35 +395,58 @@ class MetadataModel(object):
                 access_token=access_token,
             )
 
-            if val_errors != []:
+            # if there are no errors in validation process
+            if val_errors == []:
+                # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
+                if os.path.exists(censored_manifest_path):
+                    syn_store.associateMetadataWithFiles(
+                        dmge=self.dmge,
+                        metadataManifestPath=censored_manifest_path,
+                        datasetId=dataset_id,
+                        manifest_record_type=manifest_record_type,
+                        hideBlanks=hide_blanks,
+                        table_manipulation=table_manipulation,
+                        table_column_names=table_column_names,
+                        annotation_keys=annotation_keys,
+                        file_annotations_upload=file_annotations_upload,
+                    )
+                    restrict_maniest = True
+
+                manifest_id = syn_store.associateMetadataWithFiles(
+                    dmge=self.dmge,
+                    metadataManifestPath=manifest_path,
+                    datasetId=dataset_id,
+                    manifest_record_type=manifest_record_type,
+                    hideBlanks=hide_blanks,
+                    restrict_manifest=restrict_maniest,
+                    table_manipulation=table_manipulation,
+                    table_column_names=table_column_names,
+                    annotation_keys=annotation_keys,
+                    file_annotations_upload=file_annotations_upload,
+                )
+
+                logger.info("No validation errors occured during validation.")
+                return manifest_id
+
+            else:
                 raise ValidationError(
                     "Manifest could not be validated under provided data model. "
                     f"Validation failed with the following errors: {val_errors}"
                 )
 
-            # if there are no errors in validation process
-            # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
-            if os.path.exists(censored_manifest_path):
-                restrict_maniest = True
-
-            manifest_id = syn_store.associateMetadataWithFiles(
+        # no need to perform validation, just submit/associate the metadata manifest file
+        if os.path.exists(censored_manifest_path):
+            syn_store.associateMetadataWithFiles(
                 dmge=self.dmge,
-                metadataManifestPath=manifest_path,
+                metadataManifestPath=censored_manifest_path,
                 datasetId=dataset_id,
                 manifest_record_type=manifest_record_type,
                 hideBlanks=hide_blanks,
-                restrict_manifest=restrict_maniest,
                 table_manipulation=table_manipulation,
                 table_column_names=table_column_names,
                 annotation_keys=annotation_keys,
                 file_annotations_upload=file_annotations_upload,
             )
-
-            logger.info("No validation errors occured during validation.")
-            return manifest_id
-
-        # no need to perform validation, just submit/associate the metadata manifest file
-        if os.path.exists(censored_manifest_path):
             restrict_maniest = True
 
         manifest_id = syn_store.associateMetadataWithFiles(
