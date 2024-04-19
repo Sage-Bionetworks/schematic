@@ -484,6 +484,7 @@ def strip_context(context_value: str) -> tuple[str, str]:
         context, value = context_value.split("@")
     return context, value
 
+
 def export_graph(schema: dict, file_path: str) -> None:
     """Write object to a pickle file.
     Args:

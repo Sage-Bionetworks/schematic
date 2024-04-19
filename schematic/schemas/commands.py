@@ -59,10 +59,7 @@ def schema():  # use as `schematic model ...`
     metavar="<OUTPUT_PATH>",
     help=query_dict(schema_commands, ("schema", "convert", "output_jsonld")),
 )
-@click.option(
-    "--output_path",
-    help="Alias for --output_jsonld"
-)
+@click.option("--output_path", help="Alias for --output_jsonld")
 @click.option(
     "--output_type",
     "-ot",
@@ -71,7 +68,11 @@ def schema():  # use as `schematic model ...`
     help=query_dict(schema_commands, ("schema", "convert", "output_type")),
 )
 def convert(
-    schema: str, data_model_labels: str, output_jsonld: str, output_type: str, output_path: str
+    schema: str,
+    data_model_labels: str,
+    output_jsonld: str,
+    output_type: str,
+    output_path: str,
 ) -> str:
     """
     Running CLI to convert data model specification in CSV format to
