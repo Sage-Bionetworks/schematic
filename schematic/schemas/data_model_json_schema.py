@@ -10,6 +10,7 @@ import networkx as nx  # type: ignore
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.schema_utils import get_json_schema_log_file_name
 
 logger = logging.getLogger(__name__)
 
@@ -392,22 +393,16 @@ class DataModelJSONSchema:
         # If no config value and SchemaGenerator was initialized with
         # a JSON-LD path, construct
         if self.jsonld_path is not None:
-            self.jsonld_path_root, _ = os.path.splitext(self.jsonld_path)
-            prefix = self.jsonld_path_root
-            prefix_root, prefix_ext = os.path.splitext(prefix)
-            if prefix_ext == ".model":
-                prefix = prefix_root
-            json_schema_log_file = f"{prefix}.{source_node}.schema.json"
-
-        if json_schema_log_file is None:
+            json_schema_log_file_name = get_json_schema_log_file_name(data_model_path=self.jsonld_path, source_node=source_node)
+        if json_schema_log_file_name is None:
             logger.info(
                 "The JSON schema file can be inspected by setting the following "
                 "nested key in the configuration: (model > location)."
             )
         else:
-            json_schema_dirname = os.path.dirname(json_schema_log_file)
+            json_schema_dirname = os.path.dirname(json_schema_log_file_name)
             if json_schema_dirname != "":
                 os.makedirs(json_schema_dirname, exist_ok=True)
-            with open(json_schema_log_file, "w", encoding="UTF-8") as js_f:
+            with open(json_schema_log_file_name, "w", encoding="UTF-8") as js_f:
                 json.dump(json_schema, js_f, indent=2)
         return json_schema
