@@ -1086,7 +1086,7 @@ class TestManifestOperation:
             elif python_version == "3.9":
                 dataset_id = "syn52656104"
 
-            specific_params = {"asset_view": "syn23643253", "dataset_id": dataset_id}
+            specific_params = {"asset_view": "syn23643253", "dataset_id": dataset_id, "project_scope":["syn54126707"]}
 
         params.update(specific_params)
 

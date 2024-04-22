@@ -53,7 +53,9 @@ class MetadataModel(object):
             f"Initializing DataModelGraphExplorer object from {inputMModelLocation} schema."
         )
 
+        # self.inputMModelLocation remains for backwards compatibility
         self.inputMModelLocation = inputMModelLocation
+        self.path_to_json_ld = inputMModelLocation
 
         data_model_parser = DataModelParser(path_to_data_model=self.inputMModelLocation)
         # Parse Model
@@ -315,10 +317,9 @@ class MetadataModel(object):
             manifestPath, emptyManifestURL, return_excel=return_excel, title=title
         )
 
-    def submit_metadata_manifest(
+    def submit_metadata_manifest(  # pylint: disable=too-many-arguments, too-many-locals
         self,
         manifest_path: str,
-        path_to_json_ld: str,
         dataset_id: str,
         manifest_record_type: str,
         restrict_rules: bool,
@@ -326,25 +327,41 @@ class MetadataModel(object):
         validate_component: Optional[str] = None,
         file_annotations_upload: bool = True,
         hide_blanks: bool = False,
-        project_scope: List = None,
+        project_scope: Optional[list] = None,
         table_manipulation: str = "replace",
         table_column_names: str = "class_label",
         annotation_keys: str = "class_label",
     ) -> str:
-        """Wrap methods that are responsible for validation of manifests for a given component, and association of the
-        same manifest file with a specified dataset.
+        """
+        Wrap methods that are responsible for validation of manifests for a given component,
+          and association of the same manifest file with a specified dataset.
+
         Args:
-            manifest_path: Path to the manifest file, which contains the metadata.
-            dataset_id: Synapse ID of the dataset on Synapse containing the metadata manifest file.
-            validate_component: Component from the schema.org schema based on which the manifest template has been generated.
-            file_annotations_upload (bool): Default to True. If false, do not add annotations to files.
-        Returns:
-            Manifest ID: If both validation and association were successful.
-        Exceptions:
+            manifest_path (str): Path to the manifest file, which contains the metadata.
+            dataset_id (str): Synapse ID of the dataset on Synapse containing the
+              metadata manifest file.
+            manifest_record_type (str): How the manifest is stored in Synapse
+            restrict_rules (bool):
+              If True: bypass great expectations and restrict rule options to
+                those implemented in house
+            access_token (Optional[str], optional): Defaults to None.
+            validate_component (Optional[str], optional): Component from the schema.org
+              schema based on which the manifest template has been generated.
+            file_annotations_upload (bool, optional): Default to True. If false, do
+              not add annotations to files. Defaults to True.
+            hide_blanks (bool, optional): Defaults to False.
+            project_scope (Optional[list], optional): Defaults to None.
+            table_manipulation (str, optional): Defaults to "replace".
+            table_column_names (str, optional): Defaults to "class_label".
+            annotation_keys (str, optional): Defaults to "class_label".
+
+        Raises:
             ValueError: When validate_component is provided, but it cannot be found in the schema.
             ValidationError: If validation against data model was not successful.
-        """
 
+        Returns:
+            str: If both validation and association were successful.
+        """
         # TODO: avoid explicitly exposing Synapse store functionality
         # just instantiate a Store class and let it decide at runtime/config
         # the store type
@@ -352,25 +369,25 @@ class MetadataModel(object):
             access_token=access_token, project_scope=project_scope
         )
         manifest_id = None
-        censored_manifest_id = None
         restrict_maniest = False
         censored_manifest_path = manifest_path.replace(".csv", "_censored.csv")
         # check if user wants to perform validation or not
         if validate_component is not None:
             try:
-                # check if the component ("class" in schema) passed as argument is valid (present in schema) or not
+                # check if the component ("class" in schema) passed as argument is valid
+                # (present in schema) or not
                 self.dmge.is_class_in_schema(validate_component)
-            except:
-                # a KeyError exception is raised when validate_component fails in the try-block above
-                # here, we are suppressing the KeyError exception and replacing it with a more
-                # descriptive ValueError exception
+            except Exception as exc:
+                # a KeyError exception is raised when validate_component fails in the
+                # try-block above here, we are suppressing the KeyError exception and
+                # replacing it with a more descriptive ValueError exception
                 raise ValueError(
                     f"The component '{validate_component}' could not be found "
-                    f"in the schema here '{path_to_json_ld}'"
-                )
+                    f"in the schema here '{self.path_to_json_ld}'"
+                ) from exc
 
             # automatic JSON schema generation and validation with that JSON schema
-            val_errors, val_warnings = self.validateModelManifest(
+            val_errors, _ = self.validateModelManifest(
                 manifestPath=manifest_path,
                 rootNode=validate_component,
                 restrict_rules=restrict_rules,
@@ -382,7 +399,7 @@ class MetadataModel(object):
             if val_errors == []:
                 # upload manifest file from `manifest_path` path to entity with Syn ID `dataset_id`
                 if os.path.exists(censored_manifest_path):
-                    censored_manifest_id = syn_store.associateMetadataWithFiles(
+                    syn_store.associateMetadataWithFiles(
                         dmge=self.dmge,
                         metadataManifestPath=censored_manifest_path,
                         datasetId=dataset_id,
@@ -408,7 +425,7 @@ class MetadataModel(object):
                     file_annotations_upload=file_annotations_upload,
                 )
 
-                logger.info(f"No validation errors occured during validation.")
+                logger.info("No validation errors occured during validation.")
                 return manifest_id
 
             else:
@@ -419,7 +436,7 @@ class MetadataModel(object):
 
         # no need to perform validation, just submit/associate the metadata manifest file
         if os.path.exists(censored_manifest_path):
-            censored_manifest_id = syn_store.associateMetadataWithFiles(
+            syn_store.associateMetadataWithFiles(
                 dmge=self.dmge,
                 metadataManifestPath=censored_manifest_path,
                 datasetId=dataset_id,
