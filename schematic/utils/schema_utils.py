@@ -484,11 +484,18 @@ def strip_context(context_value: str) -> tuple[str, str]:
         context, value = context_value.split("@")
     return context, value
 
-def get_json_schema_log_file_name(data_model_path: str, source_node: str) -> str:
+def get_json_schema_log_file_path(data_model_path: str, source_node: str) -> str:
+    """ Get json schema log file name from the data_mdoel_path
+    Args:
+        data_model_path: str, path to the data model
+        source_node: str, root node to create the JSON schema for
+    Returns:
+        json_schema_log_file_path: str, file name for the log file
+    """
     data_model_path_root, _ = os.path.splitext(data_model_path)
     prefix = data_model_path_root
     prefix_root, prefix_ext = os.path.splitext(prefix)
     if prefix_ext == ".model":
         prefix = prefix_root
-    json_schema_log_file_name = f"{prefix}.{source_node}.schema.json"
-    return json_schema_log_file_name
+    json_schema_log_file_path = f"{prefix}.{source_node}.schema.json"
+    return json_schema_log_file_path
