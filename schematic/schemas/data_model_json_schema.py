@@ -393,7 +393,9 @@ class DataModelJSONSchema:
         # If no config value and SchemaGenerator was initialized with
         # a JSON-LD path, construct
         if self.jsonld_path is not None:
-            json_schema_log_file_path = get_json_schema_log_file_path(data_model_path=self.jsonld_path, source_node=source_node)
+            json_schema_log_file_path = get_json_schema_log_file_path(
+                data_model_path=self.jsonld_path, source_node=source_node
+            )
         if json_schema_log_file_path is None:
             logger.info(
                 "The JSON schema file can be inspected by setting the following "
