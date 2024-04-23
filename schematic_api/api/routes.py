@@ -439,7 +439,6 @@ def submit_manifest_route(
     access_token = get_access_token()
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld=data_model,
         manifest_path=temp_path,
         dataset_id=dataset_id,
         validate_component=validate_component,

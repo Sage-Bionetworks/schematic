@@ -38,9 +38,35 @@ from schematic.utils.validate_utils import (
     rule_in_rule_list,
     np_array_to_str_list,
     iterable_to_str_list,
+    required_is_only_rule,
 )
 
 logger = logging.getLogger(__name__)
+
+
+# List of modifiers that users can add to a rule, that arent rules themselves.
+# as additional modifiers are added will need to update this list
+
+RULE_MODIFIERS = ["error", "warning", "strict", "like", "set", "value"]
+VALIDATION_EXPECTATION = {
+    "int": "expect_column_values_to_be_in_type_list",
+    "float": "expect_column_values_to_be_in_type_list",
+    "str": "expect_column_values_to_be_of_type",
+    "num": "expect_column_values_to_be_in_type_list",
+    "date": "expect_column_values_to_be_dateutil_parseable",
+    "recommended": "expect_column_values_to_not_be_null",
+    "protectAges": "expect_column_values_to_be_between",
+    "unique": "expect_column_values_to_be_unique",
+    "inRange": "expect_column_values_to_be_between",
+    "IsNA": "expect_column_values_to_match_regex_list",
+    # To be implemented rules with possible expectations
+    # "list": "expect_column_values_to_not_match_regex_list",
+    # "regex": "expect_column_values_to_match_regex",
+    # "url": "expect_column_values_to_be_valid_urls",
+    # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+    # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
+    # "matchNone": "expect_compound_columns_to_be_unique",
+}
 
 
 class GreatExpectationsHelpers(object):
@@ -134,25 +160,6 @@ class GreatExpectationsHelpers(object):
             saves expectation suite and identifier to self
 
         """
-        validation_expectation = {
-            "int": "expect_column_values_to_be_in_type_list",
-            "float": "expect_column_values_to_be_in_type_list",
-            "str": "expect_column_values_to_be_of_type",
-            "num": "expect_column_values_to_be_in_type_list",
-            "date": "expect_column_values_to_be_dateutil_parseable",
-            "recommended": "expect_column_values_to_not_be_null",
-            "protectAges": "expect_column_values_to_be_between",
-            "unique": "expect_column_values_to_be_unique",
-            "inRange": "expect_column_values_to_be_between",
-            "IsNA": "expect_column_values_to_match_regex_list",
-            # To be implemented rules with possible expectations
-            # "list": "expect_column_values_to_not_match_regex_list",
-            # "regex": "expect_column_values_to_match_regex",
-            # "url": "expect_column_values_to_be_valid_urls",
-            # "matchAtLeastOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            # "matchExactlyOne": "expect_foreign_keys_in_column_a_to_exist_in_column_b",
-            # "matchNone": "expect_compound_columns_to_be_unique",
-        }
 
         # create blank expectation suite
         self.expectation_suite_name = "Manifest_test_suite"
@@ -185,7 +192,14 @@ class GreatExpectationsHelpers(object):
                     base_rule = rule.split(" ")[0]
 
                     # check if rule has an implemented expectation
-                    if rule_in_rule_list(rule, self.unimplemented_expectations):
+                    if rule_in_rule_list(
+                        rule, self.unimplemented_expectations
+                    ) or required_is_only_rule(
+                        rule=rule,
+                        attribute=col,
+                        rule_modifiers=RULE_MODIFIERS,
+                        validation_expectation=VALIDATION_EXPECTATION,
+                    ):
                         continue
 
                     args["column"] = col
@@ -328,7 +342,7 @@ class GreatExpectationsHelpers(object):
                         rule=rule,
                         args=args,
                         meta=meta,
-                        validation_expectation=validation_expectation,
+                        validation_expectation=VALIDATION_EXPECTATION,
                     )
 
         self.context.update_expectation_suite(
@@ -368,7 +382,7 @@ class GreatExpectationsHelpers(object):
         # Create an Expectation
         expectation_configuration = ExpectationConfiguration(
             # Name of expectation type being added
-            expectation_type=validation_expectation[rule.split(" ")[0]],
+            expectation_type=VALIDATION_EXPECTATION[rule.split(" ")[0]],
             # add arguments and meta message
             kwargs={**args},
             meta={**meta},
