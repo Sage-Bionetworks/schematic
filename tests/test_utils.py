@@ -65,6 +65,7 @@ from schematic.utils.schema_utils import (
     parse_validation_rules,
     extract_component_validation_rules,
     check_for_duplicate_components,
+    get_json_schema_log_file_path,
 )
 
 
@@ -160,6 +161,8 @@ TEST_DN_DICT = {
     "Bio-things": {"class": "Biothings", "property": "biothings"},
     "bio_things": {"class": "BioThings", "property": "bioThings"},
 }
+
+DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
 
 test_disk_storage = [
     (2, 4000, 16000),
@@ -988,6 +991,27 @@ class TestSchemaUtils:
                 return
         return
 
+    @pytest.mark.parametrize(
+        "data_model",
+        list(DATA_MODEL_DICT.keys()),
+        ids=list(DATA_MODEL_DICT.values())
+    )
+    @pytest.mark.parametrize(
+        "source_node",
+        ["Biospecimen", "Patient"],
+        ids=["biospecimen_source", "patient_source"],
+    )
+    def test_get_json_schema_log_file_path(self, helpers, data_model:str, source_node: str):
+        data_model_path = helpers.get_data_path(path=data_model)
+        json_schema_log_file_path = get_json_schema_log_file_path(
+            data_model_path=data_model_path,
+            source_node=source_node)
+
+        # Check that model is not included in the json_schema_log_file_path
+        assert '.model' not in "data_model"
+
+        # Check the file suffixs are what is expected.
+        assert ['schema', 'json'] == json_schema_log_file_path.split('.')[-2:]
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
