@@ -101,7 +101,7 @@ jobs:
           # add here when checked
           # poetry run mypy --install-types --non-interactive
           # add here when enforced
-          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization
+          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
 
       #----------------------------------------------
       #             linting
@@ -110,11 +110,7 @@ jobs:
         run: |
           # ran only on certain files for now
           # add here when checked
-          poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py
-          # do all utils but schema_utils.py
-          poetry run pylint schematic/utils/cli_utils.py schematic/utils/curie_utils.py schematic/utils/df_utils.py
-          poetry run pylint schematic/utils/general.py schematic/utils/google_api_utils.py schematic/utils/io_utils.py
-          poetry run pylint schematic/utils/validate_rules_utils.py schematic/utils/validate_utils.py schematic/utils/viz_utils.py
+          poetry run pylint schematic/visualization/* schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/utils/*.py schematic/schemas/*.py
 
       #----------------------------------------------
       #              run test suite

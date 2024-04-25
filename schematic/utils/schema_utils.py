@@ -1,22 +1,34 @@
-import inflection
+"""Schema utils"""
+
+# pylint: disable=logging-fstring-interpolation
+
 import json
 import logging
-import networkx as nx
-import re
 import string
-from typing import List, Literal, Dict, Tuple, Union
+from typing import Literal, Union, Optional
+
+import inflection
 
 
 logger = logging.getLogger(__name__)
 
 DisplayLabelType = Literal["class_label", "display_label"]
+EntryType = Literal["class", "property"]
 BLACKLISTED_CHARS = ["(", ")", ".", " ", "-"]
 COMPONENT_NAME_DELIMITER = "#"
 COMPONENT_RULES_DELIMITER = "^^"
 RULE_DELIMITER = "::"
 
 
-def attr_dict_template(key_name: str) -> Dict[str, dict[str, dict]]:
+def attr_dict_template(key_name: str) -> dict[str, dict[str, dict]]:
+    """Create a single empty attribute_dict template.
+
+    Args:
+        key_name (str): Attribute/node to use as the key in the dict.
+
+    Returns:
+        dict[str, dict[str, dict]]: template single empty attribute_relationships dictionary
+    """
     return {key_name: {"Relationships": {}}}
 
 
@@ -26,7 +38,8 @@ def get_property_label_from_display_name(
     """Convert a given display name string into a proper property label string
     Args:
         display_name, str: node display name
-        strict_camel_case, bool: Default, False; defines whether or not to use strict camel case or not for conversion.
+        strict_camel_case, bool: Default, False; defines whether or not to use
+          strict camel case or not for conversion.
     Returns:
         label, str: property label of display name
     """
@@ -51,7 +64,8 @@ def get_class_label_from_display_name(
     """Convert a given display name string into a proper class label string
     Args:
         display_name, str: node display name
-        strict_camel_case, bool: Default, False; defines whether or not to use strict camel case or not for conversion.
+        strict_camel_case, bool: Default, False; defines whether or not to
+         use strict camel case or not for conversion.
     Returns:
         label, str: class label of display name
     """
@@ -73,10 +87,14 @@ def get_class_label_from_display_name(
 def get_attribute_display_name_from_label(
     node_name: str, attr_relationships: dict
 ) -> str:
-    """Get attribute display name for a node, using the node label, requires the attr_relationships dicitonary from the data model parser
+    """
+    Get attribute display name for a node, using the node label, requires the attr_relationships
+      dictionary from the data model parser
+
     Args:
         node_name, str: node label
-        attr_relationships, dict: dictionary defining attributes and relationships, generated in data model parser.
+        attr_relationships, dict: dictionary defining attributes and relationships,
+          generated in data model parser.
     Returns:
         display_name, str: node display name, recorded in attr_relationships.
     """
@@ -89,34 +107,42 @@ def get_attribute_display_name_from_label(
 
 def check_if_display_name_is_valid_label(
     display_name: str,
-    blacklisted_chars: list[str] = BLACKLISTED_CHARS,
+    blacklisted_chars: Optional[list[str]] = None,
 ) -> bool:
     """Check if the display name can be used as a display label
+
     Args:
-        display_name, str: node display name
-        blacklisted_chars, list[str]: characters that are not permitted for synapse annotations uploads.
+        display_name (str): node display name
+        blacklisted_chars (Optional[list[str]], optional):
+          characters that are not permitted for synapse annotations uploads.
+          Defaults to None.
+
     Returns:
-        valid_label, bool: True, if the display name can be used as a label, False, if it cannot.
+        bool: True, if the display name can be used as a label, False, if it cannot.
     """
-    valid_label = True
-    if any(map(display_name.__contains__, blacklisted_chars)):
-        valid_label = False
+    if blacklisted_chars is None:
+        blacklisted_chars = BLACKLISTED_CHARS
+    valid_label = not any(char in display_name for char in blacklisted_chars)
     return valid_label
 
 
 def get_stripped_label(
     display_name: str,
-    entry_type: str,
-    blacklisted_chars: list[str] = BLACKLISTED_CHARS,
+    entry_type: EntryType,
+    blacklisted_chars: Optional[list[str]] = None,
 ) -> str:
     """
     Args:
         display_name, str: node display name
-        entry_type, str: 'class' or 'property', defines what type the entry is.
-        blacklisted_chars, list[str]: characters that are not permitted for synapse annotations uploads.
+        entry_type, EntryType: 'class' or 'property', defines what type the entry is.
+        blacklisted_chars, list[str]: characters that are not permitted for
+          synapse annotations uploads.
     Returns:
-        stripped_label, str: class or property label that has been stripped of blacklisted characters.
+        stripped_label, str: class or property label that has been stripped
+          of blacklisted characters.
     """
+    if blacklisted_chars is None:
+        blacklisted_chars = BLACKLISTED_CHARS
     if entry_type.lower() == "class":
         stripped_label = [
             get_class_label_from_display_name(str(display_name)).translate(
@@ -132,19 +158,25 @@ def get_stripped_label(
         ][0]
 
     logger.warning(
-        f"Cannot use display name {display_name} as the data model label, becaues it is not formatted properly. Please remove all spaces and blacklisted characters: {str(blacklisted_chars)}. The following label was assigned instead: {stripped_label}"
+        (
+            f"Cannot use display name {display_name} as the data model label, "
+            "because it is not formatted properly. Please remove all spaces and "
+            f"blacklisted characters: {str(blacklisted_chars)}. "
+            f"The following label was assigned instead: {stripped_label}"
+        )
     )
     return stripped_label
 
 
 def get_schema_label(
-    display_name: str, entry_type: str, strict_camel_case: bool
+    display_name: str, entry_type: EntryType, strict_camel_case: bool
 ) -> str:
     """Get the class or property label for a given display name
     Args:
         display_name, str: node display name
-        entry_type, str: 'class' or 'property', defines what type the entry is.
-        strict_camel_case, bool: Default, False; defines whether or not to use strict camel case or not for conversion.
+        entry_type, EntryType: 'class' or 'property', defines what type the entry is.
+        strict_camel_case, bool: Default, False; defines whether or not to use strict
+          camel case or not for conversion.
     Returns:
         label, str: class label of display name
     Raises:
@@ -161,22 +193,26 @@ def get_schema_label(
         )
     else:
         logger.error(
-            f"The entry type submitted: {entry_type}, is not one of the permitted types: 'class' or 'property'"
+            (
+                f"The entry type submitted: {entry_type}, is not one of the "
+                "permitted types: 'class' or 'property'"
+            )
         )
     return label
 
 
 def get_label_from_display_name(
     display_name: str,
-    entry_type: str,
+    entry_type: EntryType,
     strict_camel_case: bool = False,
     data_model_labels: DisplayLabelType = "class_label",
 ) -> str:
     """Get node label from provided display name, based on whether the node is a class or property
     Args:
         display_name, str: node display name
-        entry_type, str: 'class' or 'property', defines what type the entry is.
-        strict_camel_case, bool: Default, False; defines whether or not to use strict camel case or not for conversion.
+        entry_type, EntryType: 'class' or 'property', defines what type the entry is.
+        strict_camel_case, bool: Default, False; defines whether or not to use strict camel
+          case or not for conversion.
     Returns:
         label, str: label to be used for the provided display name.
     """
@@ -212,16 +248,14 @@ def convert_bool_to_str(provided_bool: bool) -> str:
     return str(provided_bool)
 
 
-def get_individual_rules(
-    rule: str, validation_rules: list[Union[str, None]]
-) -> Union[str, list]:
+def get_individual_rules(rule: str, validation_rules: list) -> list:
     """Extract individual rules from a string and add to a list of rules
     Args:
-        rule, str: valdation rule that has been parsed from a component rule.
-        validaiton_rules, list: list of rules being collected,
+        rule, str: validation rule that has been parsed from a component rule.
+        validation_rules, list: list of rules being collected,
             if this is the first time the list is being added to, it will be empty
     Returns:
-        validaiton_rules, list: list of rules being collected.
+        validation_rules, list: list of rules being collected.
     """
     # Separate multiple rules (defined by addition of the rule delimiter)
     if RULE_DELIMITER in rule:
@@ -233,17 +267,23 @@ def get_individual_rules(
 
 
 def get_component_name_rules(
-    component_names: list[Union[str, None]], component_rule: str
-) -> Tuple[list, str]:
-    """Get component name and rule from an string that was initilly split by the COMPONENT_RULES_DELIMITER
+    component_names: list[str], component_rule: str
+) -> tuple[list[str], str]:
+    """
+    Get component name and rule from an string that was initially split by the
+      COMPONENT_RULES_DELIMITER
+
     Args:
-        component_names, list[Union[str,None]]: list of components, will be empty if being added to for the first time.
-        component_rule, str: component rule string that has only been split by the COMPONENT_RULES_DELIMETER
+        component_names, list[str]: list of components, will be empty
+          if being added to for the first time.
+        component_rule, str: component rule string that has only been split by
+          the COMPONENT_RULES_DELIMITER
     Returns:
         Tuple[list,str]: list with the a new component name or 'all_other_components' appended,
             rule with the component name stripped off.
     Raises:
-        Error Logged if it looks like a component name should have been added to the list, but wass not.
+        Error Logged if it looks like a component name should have been added to the
+          list, but was not.
     """
     # If a component name is not attached to the rule, have it apply to all other components
     if COMPONENT_NAME_DELIMITER != component_rule[0]:
@@ -268,34 +308,40 @@ def get_component_name_rules(
 def check_for_duplicate_components(
     component_names: list[str], validation_rule_string: str
 ) -> None:
-    """Check if component names are repeated in a validation rule
+    """
+    Check if component names are repeated in a validation rule
+    Error Logged if a component name is duplicated.
+
     Args:
-        component_names, list[str]: list of components identified in the validation rule
-        validation_rule_str, str: validation rule, used if error needs to be raised.
-    Returns:
-        None
-    Raises: Error Logged if a component name is duplicated.
+        component_names (list[str]): list of components identified in the validation rule
+        validation_rule_string (str): validation rule, used if error needs to be raised.
     """
     duplicated_entries = [cn for cn in component_names if component_names.count(cn) > 1]
     if duplicated_entries:
         logger.error(
-            f"Oops, it looks like the following rule {validation_rule_string}, contains the same component "
-            f"name more than once. An attribute can only have a single rule applied per manifest/component."
+            f"Oops, it looks like the following rule {validation_rule_string}, "
+            "contains the same component name more than once. An attribute can "
+            "only have a single rule applied per manifest/component."
         )
-    return
 
 
-def parse_component_validation_rules(validation_rule_string: str) -> Dict:
-    """If a validation rule is identified to be fomatted as a component validation rule, parse to a dictionary of components:rules
-    Args:
-        validation_rule_string, str: validation rule provided by user.
-    Returns:
-        validation_rules_dict, dict: validation rules parsed to a dictionary where
-            the key is the component name (or 'all_other_components') and the value is the parsed validaiton rule for
-            the given component.
+def parse_component_validation_rules(
+    validation_rule_string: str,
+) -> dict[str, list[str]]:
     """
-    component_names = []
-    validation_rules = []
+    If a validation rule is identified to be formatted as a component validation rule,
+      parse to a dictionary of components:rules
+
+    Args:
+        validation_rule_string (str):  validation rule provided by user.
+
+    Returns:
+        dict[str, list[str]]: validation rules parsed to a dictionary where the key
+          is the component name (or 'all_other_components') and the value is the parsed
+          validation rule for the given component.
+    """
+    component_names: list[str] = []
+    validation_rules: list[list[str]] = []
 
     component_rules = validation_rule_string.split(COMPONENT_RULES_DELIMITER)
     # Extract component rules, per component
@@ -327,22 +373,21 @@ def parse_component_validation_rules(validation_rule_string: str) -> Dict:
     return validation_rules_dict
 
 
-def parse_single_set_validation_rules(validation_rule_string: str) -> list:
+def parse_single_set_validation_rules(validation_rule_string: str) -> list[str]:
     """Parse a single set of validation rules.
+
     Args:
-        validation_rule_string, str: validation rule provided by user.
+        validation_rule_string (str): validation rule provided by user.
+
     Returns:
-        list, the valiation rule string split by the rule delimiter
-    Raise:
-        ValueEror if the string contains a component name delimter in the beginning.
-            This would indicate that a user was trying to set component rules, but did so improperly.
+        list: the validation rule string split by the rule delimiter
     """
     # Try to catch an improperly formatted rule
     if COMPONENT_NAME_DELIMITER == validation_rule_string[0]:
         logger.error(
-            f"The provided validation rule {validation_rule_string}, looks to be formatted as a component "
-            f"based rule, but is missing the necessary formatting, "
-            f"please refer to the SchemaHub documentation for more details."
+            f"The provided validation rule {validation_rule_string}, looks to be formatted as a "
+            "component based rule, but is missing the necessary formatting, "
+            "please refer to the SchemaHub documentation for more details."
         )
 
     return validation_rule_string.split(RULE_DELIMITER)
@@ -350,70 +395,68 @@ def parse_single_set_validation_rules(validation_rule_string: str) -> list:
 
 def parse_validation_rules(validation_rules: Union[list, dict]) -> Union[list, dict]:
     """Split multiple validation rules based on :: delimiter
-    Args:
-        validation_rules, Any[List[str], Dict]: List or Dictionary of validation rules,
-            if list, contains a string validation rule; if dictionary, key is the component the
-            rule (value) is applied to
-    Returns:
-        validation_rules, Union[list,dict]: Parsed validation rules, component rules are output as a dictionary,
-            single sets are a list.
-    Raises:
-        Error Logged if Rule is not formatted properly
-    """
 
+    Args:
+        validation_rules (Union[list, dict]): List or Dictionary of validation rules,
+            if list:, contains a string validation rule
+            if dict:, key is the component the rule (value) is applied to
+
+    Returns:
+        Union[list, dict]: Parsed validation rules, component rules are output
+          as a dictionary, single sets are a list.
+    """
     if isinstance(validation_rules, dict):
         # Rules pulled in as a dict can be used directly
         return validation_rules
-    elif isinstance(validation_rules, list):
-        # If rules are already parsed from the JSONLD
-        if len(validation_rules) > 1 and isinstance(validation_rules[-1], str):
-            return validation_rules
-        # Parse rules set for a subset of components/manifests
-        elif COMPONENT_RULES_DELIMITER in validation_rules[0]:
-            return parse_component_validation_rules(
-                validation_rule_string=validation_rules[0]
-            )
-        # Parse rules that are set across *all* components/manifests
-        else:
-            return parse_single_set_validation_rules(
-                validation_rule_string=validation_rules[0]
-            )
-    return
+
+    # If rules are already parsed from the JSONLD
+    if len(validation_rules) > 1 and isinstance(validation_rules[-1], str):
+        return validation_rules
+    # Parse rules set for a subset of components/manifests
+    if COMPONENT_RULES_DELIMITER in validation_rules[0]:
+        return parse_component_validation_rules(
+            validation_rule_string=validation_rules[0]
+        )
+    # Parse rules that are set across *all* components/manifests
+    return parse_single_set_validation_rules(validation_rule_string=validation_rules[0])
 
 
 def extract_component_validation_rules(
-    manifest_component: str, validation_rules: dict[str, list]
-) -> list:
-    """Parse a component validation rule dictionary to pull out the rule (if any) for a given manifest
+    manifest_component: str, validation_rules_dict: dict[str, Union[list, str]]
+) -> list[Union[str, list]]:
+    """
+    Parse a component validation rule dictionary to pull out the rule (if any) for a given manifest
+
     Args:
         manifest_component, str: Component label, pulled from the manifest directly
-        validation_rules, dict[str, list[Union[list,str]]: Validation rules dictionary, where keys are the manifest component label,
-            and the value is a parsed set of validation rules.
+        validation_rules_dict, dict[str, list[Union[list,str]]: Validation rules dictionary,
+          where keys are the manifest component label, and the value is a parsed set of
+          validation rules.
     Returns:
         validation_rules, list[str]: rule for the provided manifest component if one is available,
-            if a validation rule is not specified for a given component but "all_other_components" is specified (as a key), then pull that one,
-            otherwise return an empty list.
+            if a validation rule is not specified for a given component but "all_other_components"
+            is specified (as a key), then pull that one, otherwise return an empty list.
     """
-    manifest_component_rule = validation_rules.get(manifest_component)
-    all_component_rules = validation_rules.get("all_other_components")
+    manifest_component_rule = validation_rules_dict.get(manifest_component)
+    all_component_rules = validation_rules_dict.get("all_other_components")
 
     # Capture situation where manifest_component rule is an empty string
     if manifest_component_rule is not None:
         if isinstance(manifest_component_rule, str):
             if manifest_component_rule == "":
-                validation_rules = []
+                validation_rules_list: list[Union[str, list]] = []
             else:
-                validation_rules = [manifest_component_rule]
+                validation_rules_list = [manifest_component_rule]
         elif isinstance(manifest_component_rule, list):
-            validation_rules = manifest_component_rule
+            validation_rules_list = manifest_component_rule
     elif all_component_rules:
         if isinstance(all_component_rules, str):
-            validation_rules = [all_component_rules]
+            validation_rules_list = [all_component_rules]
         elif isinstance(all_component_rules, list):
-            validation_rules = all_component_rules
+            validation_rules_list = all_component_rules
     else:
-        validation_rules = []
-    return validation_rules
+        validation_rules_list = []
+    return validation_rules_list
 
 
 def export_schema(schema: dict, file_path: str) -> None:
@@ -422,20 +465,20 @@ def export_schema(schema: dict, file_path: str) -> None:
         schema, dict: JSONLD schema
         filepath, str: path to store the schema
     """
-    with open(file_path, "w") as f:
-        json.dump(schema, f, sort_keys=True, indent=4, ensure_ascii=False)
+    with open(file_path, "w", encoding="utf-8") as json_file:
+        json.dump(schema, json_file, sort_keys=True, indent=4, ensure_ascii=False)
 
 
-def strip_context(context_value: str) -> tuple[str]:
+def strip_context(context_value: str) -> tuple[str, str]:
     """Strip contexts from str entry.
     Args:
         context_value, str: string from which to strip context from
     Returns:
         context, str: the original context
-        v, str: value separated from context
+        value, str: value separated from context
     """
     if ":" in context_value:
-        context, v = context_value.split(":")
+        context, value = context_value.split(":")
     elif "@" in context_value:
-        context, v = context_value.split("@")
-    return context, v
+        context, value = context_value.split("@")
+    return context, value

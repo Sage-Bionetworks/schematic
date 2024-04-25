@@ -1,24 +1,27 @@
 """viz utils"""
 
-from typing import Optional
+from typing import Optional, Iterable, Sequence
 import graphviz  # type: ignore
 
 
-def visualize(edges, size: Optional[float] = None) -> graphviz.Digraph:
-    """_summary_
+def visualize(
+    edges: Iterable[Sequence[str]], size: Optional[float] = None
+) -> graphviz.Digraph:
+    """Creates a digraph with an edge for every edge in the edges input
 
     Args:
-        edges (_type_): _description_
-        size (Optional[float], optional): _description_. Defaults to None.
+        edges (Iterable[Sequence[str]]): Any iterable type that contains
+          indexable types with at least two strings
+        size (Optional[float], optional): Defaults to None.
 
     Returns:
-        graphviz.Digraph: _description_
+        graphviz.Digraph:
     """
     if size:
         digraph = graphviz.Digraph(graph_attr=[("size", size)])
     else:
         digraph = graphviz.Digraph()
 
-    for _item in edges:
-        digraph.edge(_item[0], _item[1])
+    for item in edges:
+        digraph.edge(item[0], item[1])
     return digraph

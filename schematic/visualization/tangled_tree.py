@@ -71,7 +71,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
         # Generate graph
-        self.graph_data_model = data_model_grapher.generate_data_model_graph()
+        self.graph_data_model = data_model_grapher.graph
 
         # Instantiate Data Model Graph Explorer
         self.dmge = DataModelGraphExplorer(self.graph_data_model)
@@ -86,7 +86,11 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
 
         # Initialize AttributesExplorer
         self.attributes_explorer = AttributesExplorer(
-            self.path_to_json_ld, data_model_labels
+            self.path_to_json_ld,
+            data_model_labels,
+            data_model_grapher=data_model_grapher,
+            data_model_graph_explorer=self.dmge,
+            parsed_data_model=parsed_data_model,
         )
 
         # Create output paths.

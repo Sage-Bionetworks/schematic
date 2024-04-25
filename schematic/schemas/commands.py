@@ -1,17 +1,19 @@
-#!/usr/bin/env python3
+"""Schema Commands"""
 
-import click
-import click_log
 import logging
-import sys
 import time
 import re
 from typing import get_args
 
+import click
+import click_log  # type: ignore
+
+# pylint: disable=logging-fstring-interpolation
+
 from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_graph import DataModelGraph
 from schematic.schemas.data_model_validator import DataModelValidator
-from schematic.schemas.data_model_jsonld import DataModelJsonLD, convert_graph_to_jsonld
+from schematic.schemas.data_model_jsonld import convert_graph_to_jsonld
 
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.cli_utils import query_dict
@@ -21,16 +23,17 @@ from schematic.help import schema_commands
 logger = logging.getLogger("schematic")
 click_log.basic_config(logger)
 
-CONTEXT_SETTINGS = dict(help_option_names=["--help", "-h"])  # help options
+CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}  # help options
 
 
-# invoke_without_command=True -> forces the application not to show aids before losing them with a --h
+# invoke_without_command=True -> forces the application not to show aids before
+# losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 def schema():  # use as `schematic model ...`
     """
     Sub-commands for Schema related utilities/methods.
     """
-    pass
+    pass  # pylint: disable=unnecessary-pass
 
 
 # prototype based on submit_metadata_manifest()
@@ -61,11 +64,15 @@ def convert(schema, data_model_labels, output_jsonld):
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
 
-    Note: Currently, not configured to build off of base model, so removing --base_schema argument for now
+    Note: Currently, not configured to build off of base model, so removing --base_schema
+      argument for now
     """
+    # pylint: disable=too-many-locals
+    # pylint: disable=redefined-outer-name
+    # pylint: disable=too-many-branches
 
     # get the start time
-    st = time.time()
+    start_time = time.time()
 
     # Instantiate Parser
     data_model_parser = DataModelParser(schema)
@@ -78,9 +85,9 @@ def convert(schema, data_model_labels, output_jsonld):
     # Instantiate DataModelGraph
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
-    # Generate graph
+    # Generate graphschema
     logger.info("Generating data model graph.")
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     # Validate generated data model.
     logger.info("Validating the data model internally.")
@@ -93,8 +100,8 @@ def convert(schema, data_model_labels, output_jsonld):
             if isinstance(err, str):
                 logger.error(err)
             elif isinstance(err, list):
-                for e in err:
-                    logger.error(e)
+                for error in err:
+                    logger.error(error)
 
     # If there are warnings log them.
     if data_model_warnings:
@@ -102,11 +109,11 @@ def convert(schema, data_model_labels, output_jsonld):
             if isinstance(war, str):
                 logger.warning(war)
             elif isinstance(war, list):
-                for w in war:
-                    logger.warning(w)
+                for warning in war:
+                    logger.warning(warning)
 
     logger.info("Converting data model to JSON-LD")
-    jsonld_data_model = convert_graph_to_jsonld(Graph=graph_data_model)
+    jsonld_data_model = convert_graph_to_jsonld(graph=graph_data_model)
 
     # output JSON-LD file alongside CSV file by default, get path.
     if output_jsonld is None:
@@ -128,14 +135,17 @@ def convert(schema, data_model_labels, output_jsonld):
         click.echo(
             f"The Data Model was created and saved to '{output_jsonld}' location."
         )
-    except:
+    except:  # pylint: disable=bare-except
         click.echo(
-            f"The Data Model could not be created by using '{output_jsonld}' location. Please check your file path again"
+            (
+                f"The Data Model could not be created by using '{output_jsonld}' location. "
+                "Please check your file path again"
+            )
         )
 
     # get the end time
-    et = time.time()
+    end_time = time.time()
 
     # get the execution time
-    elapsed_time = time.strftime("%M:%S", time.gmtime(et - st))
+    elapsed_time = time.strftime("%M:%S", time.gmtime(end_time - start_time))
     click.echo(f"Execution time: {elapsed_time} (M:S)")

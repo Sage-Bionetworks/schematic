@@ -78,16 +78,13 @@ def test_manifest_json(helpers):
 
 @pytest.fixture(scope="class")
 def data_model_jsonld():
-    # data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
-    data_model_jsonld = "https://raw.githubusercontent.com/mialy-defelice/data_models/main/example.model.jsonld"
+    data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
     yield data_model_jsonld
 
 
 @pytest.fixture(scope="class")
 def benchmark_data_model_jsonld():
-    # benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
-    # Placeholder till the model is updated on develop
-    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/mialy-defelice/data_models/main/example.single_rule.model.jsonld"
+    benchmark_data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
     yield benchmark_data_model_jsonld
 
 
@@ -96,8 +93,7 @@ def get_MockComponent_attribute():
     Yield all of the mock conponent attributes one at a time
     TODO: pull in jsonld from fixture
     """
-    # schema_url = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
-    schema_url = "https://raw.githubusercontent.com/mialy-defelice/data_models/main/example.single_rule.model.jsonld"
+    schema_url = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld"
     data_model_parser = DataModelParser(path_to_data_model=schema_url)
     # Parse Model
     parsed_data_model = data_model_parser.parse_model()
@@ -106,10 +102,10 @@ def get_MockComponent_attribute():
     data_model_grapher = DataModelGraph(parsed_data_model)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     dmge = DataModelGraphExplorer(graph_data_model)
-    # sg = SchemaGenerator("https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.single_rule.model.jsonld")
+
     attributes = dmge.get_node_dependencies("MockComponent")
     attributes.remove("Component")
 
@@ -1090,7 +1086,7 @@ class TestManifestOperation:
             elif python_version == "3.9":
                 dataset_id = "syn52656104"
 
-            specific_params = {"asset_view": "syn23643253", "dataset_id": dataset_id}
+            specific_params = {"asset_view": "syn23643253", "dataset_id": dataset_id, "project_scope":["syn54126707"]}
 
         params.update(specific_params)
 

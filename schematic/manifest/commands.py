@@ -1,4 +1,6 @@
+import json
 import os
+import pandas as pd
 import logging
 from pathlib import Path
 import sys
@@ -13,6 +15,7 @@ from schematic.manifest.generator import ManifestGenerator
 from schematic.utils.schema_utils import DisplayLabelType
 from schematic.utils.cli_utils import log_value_from_config, query_dict, parse_syn_ids
 from schematic.utils.google_api_utils import export_manifest_csv
+
 from schematic.help import manifest_commands
 
 from schematic.store.synapse import SynapseStorage
@@ -154,7 +157,7 @@ def get_manifest(
 
     # Generate graph
     logger.info("Generating data model graph.")
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     def create_single_manifest(data_type, output_csv=None, output_xlsx=None):
         # create object of type ManifestGenerator
@@ -318,5 +321,47 @@ def migrate_manifests(
             synStore.move_entities_to_new_project(
                 project, archive_project, return_entities, dry_run
             )
-
     return
+
+
+@manifest.command(
+    "download",
+    short_help=query_dict(manifest_commands, ("manifest", "download", "short_help")),
+)
+@click_log.simple_verbosity_option(logger)
+# define the optional arguments
+@click.option(
+    "-d",
+    "--dataset_id",
+    help=query_dict(manifest_commands, ("manifest", "download", "dataset_id")),
+)
+@click.option(
+    "-nmn",
+    "--new_manifest_name",
+    default="",
+    help=query_dict(manifest_commands, ("manifest", "download", "new_manifest_name")),
+)
+@click.pass_obj
+def download_manifest(ctx, dataset_id, new_manifest_name):
+    master_fileview = CONFIG["synapse"]["master_fileview"]
+
+    # use Synapse Storage
+    store = SynapseStorage()
+
+    # download existing file
+    manifest_data = store.getDatasetManifest(
+        datasetId=dataset_id, downloadFile=True, newManifestName=new_manifest_name
+    )
+
+    if not manifest_data:
+        logger.error(
+            "'Dataset_id provided is not able to return a manifest, please check that the id is the parent folder containing the manifest."
+        )
+        sys.exit(1)
+
+    # return local file path
+    manifest_local_file_path = manifest_data["path"]
+    logger.info(
+        f"The manifest has been downloaded to the following location: {manifest_local_file_path}"
+    )
+    return manifest_local_file_path

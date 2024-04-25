@@ -1,7 +1,12 @@
 """Curie utils"""
 
 import logging
+from typing import Any, Union
 
+Context = dict[str, str]
+Record = dict[str, Union[str, list, dict, None]]
+Graph = list[Record]
+Schema = dict[str, Any]
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +20,7 @@ def extract_name_from_uri_or_curie(item: str) -> str:
     raise ValueError("Error extracting name from URI or Curie.")
 
 
-def expand_curie_to_uri(curie: str, context_info: dict[str, str]) -> str:
+def expand_curie_to_uri(curie: str, context_info: Context) -> str:
     """Expand curie to uri based on the context given
 
     parmas
@@ -36,27 +41,27 @@ def expand_curie_to_uri(curie: str, context_info: dict[str, str]) -> str:
     return curie
 
 
-def expand_curies_in_schema(schema):
+def expand_curies_in_schema(schema: Schema) -> Schema:
     """Expand all curies in a SchemaOrg JSON-LD file into URI"""
-    context = schema["@context"]
-    graph = schema["@graph"]
+    context: Context = schema["@context"]
+    graph: Graph = schema["@graph"]
     new_schema = {"@context": context, "@graph": [], "@id": schema["@id"]}
     for record in graph:
-        new_record = {}
+        new_record: Record = {}
         for key, value in record.items():
             if isinstance(value, str):
                 new_record[expand_curie_to_uri(key, context)] = expand_curie_to_uri(
                     value, context
                 )
             elif isinstance(value, list):
+                uri = expand_curie_to_uri(key, context)
                 if isinstance(value[0], dict):
-                    new_record[expand_curie_to_uri(key, context)] = []
+                    lst: list[dict[str, str]] = []
+                    new_record[uri] = lst
                     for _item in value:
-                        new_record[expand_curie_to_uri(key, context)].append(
-                            {"@id": expand_curie_to_uri(_item["@id"], context)}
-                        )
+                        lst.append({"@id": expand_curie_to_uri(_item["@id"], context)})
                 else:
-                    new_record[expand_curie_to_uri(key, context)] = [
+                    new_record[uri] = [
                         expand_curie_to_uri(_item, context) for _item in value
                     ]
             elif isinstance(value, dict) and "@id" in value:
@@ -69,7 +74,7 @@ def expand_curies_in_schema(schema):
     return new_schema
 
 
-def uri2label(uri, schema):
+def uri2label(uri: str, schema: Schema) -> list:
     """Given a URI, return the label"""
     return [
         record["rdfs:label"] for record in schema["@graph"] if record["@id"] == uri

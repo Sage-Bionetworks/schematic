@@ -97,6 +97,13 @@ def model(ctx, config):  # use as `schematic model ...`
     help=query_dict(model_commands, ("model", "validate", "restrict_rules")),
 )
 @click.option(
+    "--file_annotations_upload/--no-file_annotations_upload",
+    "-fa/-no-fa",
+    default=True,
+    is_flag=True,
+    help=query_dict(model_commands, ("model", "submit", "file_annotations_upload")),
+)
+@click.option(
     "-ps",
     "--project_scope",
     default=None,
@@ -147,6 +154,7 @@ def submit_manifest(
     data_model_labels,
     table_column_names,
     annotation_keys,
+    file_annotations_upload: bool,
 ):
     """
     Running CLI with manifest validation (optional) and submission options.
@@ -162,7 +170,6 @@ def submit_manifest(
     )
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld=jsonld,
         manifest_path=manifest_path,
         dataset_id=dataset_id,
         validate_component=validate_component,
@@ -173,6 +180,7 @@ def submit_manifest(
         table_manipulation=table_manipulation,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
+        file_annotations_upload=file_annotations_upload,
     )
 
     if manifest_id:

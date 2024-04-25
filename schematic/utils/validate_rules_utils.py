@@ -1,16 +1,25 @@
 """validate rules utils"""
 
 import logging
-from typing import Union
+from typing import TypedDict, Optional, Literal
+from typing_extensions import assert_never
 from jsonschema import ValidationError
 
 
 logger = logging.getLogger(__name__)
 
 
-def validation_rule_info() -> (
-    dict[str, dict[str, Union[tuple[int, int], str, list[str], None]]]
-):
+class Rule(TypedDict):
+    """A validation rule"""
+
+    arguments: tuple[int, int]
+    type: str
+    complementary_rules: Optional[list[str]]
+    default_message_level: Optional[str]
+    fixed_arg: Optional[list[str]]
+
+
+def validation_rule_info() -> dict[str, Rule]:
     """
     Function to return dict that holds information about each rule
     Will be pulled into validate_single_rule, validate_manifest_rules, validate_schema_rules
@@ -27,30 +36,35 @@ def validation_rule_info() -> (
             "type": "type_validation",
             "complementary_rules": ["inRange", "IsNA"],
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "float": {
             "arguments": (1, 0),
             "type": "type_validation",
             "complementary_rules": ["inRange", "IsNA"],
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "num": {
             "arguments": (1, 0),
             "type": "type_validation",
             "complementary_rules": ["inRange", "IsNA"],
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "str": {
             "arguments": (1, 0),
             "type": "type_validation",
             "complementary_rules": None,
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "date": {
             "arguments": (1, 0),
             "type": "content_validation",
             "complementary_rules": None,
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "regex": {
             "arguments": (3, 2),
@@ -64,30 +78,42 @@ def validation_rule_info() -> (
             "type": "url_validation",
             "complementary_rules": None,
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "list": {
             "arguments": (2, 0),
             "type": "list_validation",
             "complementary_rules": ["regex"],
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "matchAtLeastOne": {
             "arguments": (3, 2),
             "type": "cross_validation",
             "complementary_rules": None,
             "default_message_level": "warning",
+            "fixed_arg": None,
         },
         "matchExactlyOne": {
             "arguments": (3, 2),
             "type": "cross_validation",
             "complementary_rules": None,
             "default_message_level": "warning",
+            "fixed_arg": None,
+        },
+        "matchNone": {
+            "arguments": (3, 2),
+            "type": "cross_validation",
+            "complementary_rules": None,
+            "default_message_level": "warning",
+            "fixed_arg": None,
         },
         "recommended": {
             "arguments": (1, 0),
             "type": "content_validation",
             "complementary_rules": None,
             "default_message_level": "warning",
+            "fixed_arg": None,
         },
         "protectAges": {
             "arguments": (1, 0),
@@ -96,28 +122,32 @@ def validation_rule_info() -> (
                 "inRange",
             ],
             "default_message_level": "warning",
+            "fixed_arg": None,
         },
         "unique": {
             "arguments": (1, 0),
             "type": "content_validation",
             "complementary_rules": None,
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "inRange": {
             "arguments": (3, 2),
             "type": "content_validation",
             "complementary_rules": ["int", "float", "num", "protectAges"],
             "default_message_level": "error",
+            "fixed_arg": None,
         },
         "IsNA": {
-            "arguments": (1, 0),
+            "arguments": (0, 0),
             "type": "content_validation",
             "complementary_rules": [
                 "int",
                 "float",
                 "num",
             ],
-            "default_message_level": "warning",
+            "default_message_level": None,
+            "fixed_arg": None,
         },
     }
 
@@ -125,7 +155,9 @@ def validation_rule_info() -> (
 def get_error(
     validation_rules: str,
     attribute_name: str,
-    error_type: str,
+    error_type: Literal[
+        "delimiter", "not_rule", "args_not_allowed", "incorrect_num_args"
+    ],
     input_filetype: str,
 ) -> list[str]:
     """
@@ -145,7 +177,7 @@ def get_error(
         error_message = error_str
         error_val = "Multiple Rules: Delimiter"
 
-    if error_type == "not_rule":
+    elif error_type == "not_rule":
         error_str = (
             f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules "
@@ -156,7 +188,7 @@ def get_error(
         error_message = error_str
         error_val = "Not a Rule"
 
-    if error_type == "args_not_allowed":
+    elif error_type == "args_not_allowed":
         error_str = (
             f"The {input_filetype}, has an error in the validation rule "
             f"for the attribute: {attribute_name}, the provided validation rules "
@@ -166,7 +198,8 @@ def get_error(
         logging.error(error_str)
         error_message = error_str
         error_val = "Args not allowed."
-    if error_type == "incorrect_num_args":
+
+    elif error_type == "incorrect_num_args":
         rule_type = validation_rules.split(" ")[0]
 
         if rule_type in validation_rule_info():
@@ -189,10 +222,15 @@ def get_error(
         error_message = error_str
         error_val = "Incorrect num arguments."
 
+    else:
+        assert_never(error_type)
+
     return ["NA", error_col, error_message, error_val]
 
 
-def validate_single_rule(validation_rule: str, attribute: str, input_filetype: str):
+def validate_single_rule(
+    validation_rule: str, attribute: str, input_filetype: str
+) -> list[list[str]]:
     """
     Perform validation for a single rule to ensure it is specified
       correctly with an appropriate number of arguments
@@ -204,7 +242,7 @@ def validate_single_rule(validation_rule: str, attribute: str, input_filetype: s
     Returns:
         errors: List of errors
     """
-    errors = []
+    errors: list[list[str]] = []
     validation_types = validation_rule_info()
     validation_rule_with_args = [
         val_rule.strip() for val_rule in validation_rule.strip().split(" ")
@@ -239,9 +277,8 @@ def validate_single_rule(validation_rule: str, attribute: str, input_filetype: s
         assert len(arg_tuple) == 2
         arguments_allowed, arguments_required = arg_tuple
         # Remove any fixed args from our calc.
-        if "fixed_arg" in validation_types[rule_type]:
-            fixed_args = validation_types[rule_type]["fixed_arg"]
-            assert isinstance(fixed_args, list)
+        fixed_args = validation_types[rule_type]["fixed_arg"]
+        if fixed_args:
             num_args = (
                 len([vr for vr in validation_rule_with_args if vr not in fixed_args])
                 - 1

@@ -20,9 +20,10 @@ SCHEMATIC is an acronym for _Schema Engine for Manifest Ingress and Curation_. T
 
 # Installation
 ## Installation Requirements
-* Python version 3.9.0≤x<3.11.0 
+* Python version 3.9.0≤x<3.11.0
+* You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/)
 
-Note: You need to be a registered and certified user on [`synapse.org`](https://www.synapse.org/), and also have the right permissions to download the Google credentials files from Synapse.
+Note: Our credential policy for Google credentials in order to create Google sheet files from Schematic, see tutorial ['HERE'](https://scribehow.com/shared/Get_Credentials_for_Google_Drive_and_Google_Sheets_APIs_to_use_with_schematicpy__yqfcJz_rQVeyTcg0KQCINA). If you plan to use `config.yml`, please ensure that the path of `schematic_service_account_creds.json` is indicated there (see `google_sheets > service_account_creds` section)
 
 
 ## Installation guide for data curator app
@@ -169,13 +170,10 @@ On the CLI in your virtual environment, run the following command:
 ```
 synapse login -u <synapse username> -p <synapse password> --rememberMe
 ```
-Please make sure that you run the command before running `schematic init` below
 
 7. Obtain Google credential Files
-To obtain  ``schematic_service_account_creds.json``, please run: 
-```
-schematic init --config ~/path/to/config.yml
-```
+Running `schematic init` is no longer supported due to security concerns. To obtain  `schematic_service_account_creds.json`, please follow the instructions [here](https://scribehow.com/shared/Enable_Google_Drive_and_Google_Sheets_APIs_for_project__yqfcJz_rQVeyTcg0KQCINA). 
+
 > As v22.12.1 version of schematic, using `token` mode of authentication (in other words, using `token.pickle` and `credentials.json`) is no longer supported due to Google's decision to move away from using OAuth out-of-band (OOB) flow. Click [here](https://developers.google.com/identity/protocols/oauth2/resources/oob-migration) to learn more. 
 
 *Notes*: Use the ``schematic_service_account_creds.json`` file for the service
@@ -189,6 +187,13 @@ Most Google sheet functionality could be authenticated with service account. How
 requires token-based authentication. As browser support that requires the token-based authentication diminishes, we are hoping to deprecate
 token-based authentication and keep only service account authentication in the future. 
 
+8. Set up pre-commit hooks
+
+This repository is configured to utilize pre-commit hooks as part of the development process. To enable these hooks, please run the following command and look for the following success message:
+```
+$ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+```
 
 ### Development process instruction
 

@@ -1140,7 +1140,7 @@ class ManifestGenerator(object):
             )
             if isinstance(validation_rules, dict):
                 validation_rules = extract_component_validation_rules(
-                    validation_rules=validation_rules, manifest_component=self.root
+                    validation_rules_dict=validation_rules, manifest_component=self.root
                 )
 
             # Add regex match validaiton rule to Google Sheets.
@@ -1677,7 +1677,7 @@ class ManifestGenerator(object):
         data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
         # Generate graph
-        graph_data_model = data_model_grapher.generate_data_model_graph()
+        graph_data_model = data_model_grapher.graph
 
         # Gather all returned result urls
         all_results = []

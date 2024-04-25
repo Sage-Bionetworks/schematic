@@ -19,6 +19,7 @@ from flask import request
 
 import pandas as pd
 import json
+from typing import Optional
 
 from schematic.configuration.configuration import CONFIG
 from schematic.visualization.attributes_explorer import AttributesExplorer
@@ -209,7 +210,6 @@ def save_file(file_key="csv_file"):
 
     return temp_path
 
-
 def initalize_metadata_model(schema_url, data_model_labels):
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
@@ -393,6 +393,7 @@ def submit_manifest_route(
     project_scope=None,
     table_column_names=None,
     annotation_keys=None,
+    file_annotations_upload:bool=True,
 ):
     # call config_handler()
     config_handler(asset_view=asset_view)
@@ -438,7 +439,6 @@ def submit_manifest_route(
     access_token = get_access_token()
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld=data_model,
         manifest_path=temp_path,
         dataset_id=dataset_id,
         validate_component=validate_component,
@@ -450,6 +450,7 @@ def submit_manifest_route(
         project_scope=project_scope,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
+        file_annotations_upload=file_annotations_upload
     )
 
     return manifest_id
@@ -604,7 +605,7 @@ def get_viz_component_attributes_explorer(
 
     attributes_csv = AttributesExplorer(
         data_model, data_model_labels
-    ).parse_component_attributes(
+    )._parse_component_attributes(
         component, save_file=False, include_index=include_index
     )
 
@@ -769,7 +770,7 @@ def get_schema_pickle(schema_url, data_model_labels):
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     # write to local pickle file
     path = os.getcwd()
@@ -790,7 +791,7 @@ def get_subgraph_by_edge_type(schema_url, relationship, data_model_labels):
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     dmge = DataModelGraphExplorer(graph_data_model)
 
@@ -814,7 +815,7 @@ def find_class_specific_properties(schema_url, schema_class, data_model_labels):
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     dmge = DataModelGraphExplorer(graph_data_model)
 
@@ -856,7 +857,7 @@ def get_node_dependencies(
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     dmge = DataModelGraphExplorer(graph_data_model)
 
@@ -911,7 +912,7 @@ def get_node_range(
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     dmge = DataModelGraphExplorer(graph_data_model)
 
@@ -940,7 +941,7 @@ def get_if_node_required(
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     dmge = DataModelGraphExplorer(graph_data_model)
 
@@ -969,7 +970,7 @@ def get_node_validation_rules(
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     # Instantiate DataModelGraphExplorer
     dmge = DataModelGraphExplorer(graph_data_model)
@@ -1002,7 +1003,7 @@ def get_nodes_display_names(
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     # Instantiate DataModelGraphExplorer
     dmge = DataModelGraphExplorer(graph_data_model)

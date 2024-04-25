@@ -66,14 +66,17 @@ def str2list(item: Any) -> Optional[list]:
     return None
 
 
-def unlist(seq: Sequence) -> Any:
+X = TypeVar("X")
+
+
+def unlist(seq: Sequence[X]) -> Union[Sequence[X], X]:
     """Returns the first item of a sequence
 
     Args:
-        seq (Sequence): Any sequence
+        seq (Sequence[X]): A Sequence of any type
 
     Returns:
-        Any:
+        Union[Sequence[X], X]:
           if sequence is length one, return the first item
           otherwise return the sequence
     """
@@ -126,14 +129,14 @@ def calculate_datetime(
 
 def check_synapse_cache_size(
     directory: str = "/root/.synapseCache",
-) -> Union[float, int]:
+) -> float:
     """use du --sh command to calculate size of .synapseCache.
 
     Args:
         directory (str, optional): .synapseCache directory. Defaults to '/root/.synapseCache'
 
     Returns:
-        float or integer: returns size of .synapsecache directory in bytes
+        float: returns size of .synapsecache directory in bytes
     """
     # Note: this command might fail on windows user.
     # But since this command is primarily for running on AWS, it is fine.
@@ -152,11 +155,11 @@ def check_synapse_cache_size(
         byte_size = size_in_mb * 1000000
     elif "G" in size:
         size_in_gb = float(size.rstrip("G"))
-        byte_size = convert_gb_to_bytes(size_in_gb)
+        byte_size = size_in_gb * (1024**3)
     elif "B" in size:
         byte_size = float(size.rstrip("B"))
     else:
-        logger.error("Cannot recongize the file size unit")
+        logger.error("Cannot recognize the file size unit")
     return byte_size
 
 
@@ -175,15 +178,6 @@ def clear_synapse_cache(synapse_cache: cache.Cache, minutes: int) -> int:
     )
     num_of_deleted_files = synapse_cache.purge(before_date=minutes_earlier)
     return num_of_deleted_files
-
-
-def convert_gb_to_bytes(g_bytes: int) -> int:
-    """convert gb to bytes
-    Args:
-        g_bytes: number of gb
-    return: total number of bytes
-    """
-    return g_bytes * 1024 * 1024 * 1024
 
 
 def entity_type_mapping(syn: Synapse, entity_id: str) -> str:
@@ -275,9 +269,9 @@ def profile(
         Callable: Profile of the decorated function
     """
 
-    def inner(func):
+    def inner(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Callable:
             _output_file = output_file or func.__name__ + ".prof"
             profiler = Profile()
             profiler.enable()
@@ -299,7 +293,7 @@ def profile(
                         p_stats.sort_stats(*sort_by)
                     else:
                         p_stats.sort_stats(sort_by)
-                    p_stats.print_stats(lines_to_print)
+                    p_stats.print_stats(lines_to_print)  # type: ignore
             return retval
 
         return wrapper

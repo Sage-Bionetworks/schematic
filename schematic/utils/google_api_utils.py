@@ -5,10 +5,10 @@
 import os
 import logging
 import json
-from typing import Any, Union
+from typing import Any, Union, no_type_check, TypedDict
 
 import pandas as pd
-from googleapiclient.discovery import build  # type: ignore
+from googleapiclient.discovery import build, Resource  # type: ignore
 from google.oauth2 import service_account  # type: ignore
 from schematic.configuration.configuration import CONFIG
 from schematic.store.synapse import SynapseStorage
@@ -23,11 +23,18 @@ SCOPES = [
 ]
 
 
-def build_service_account_creds() -> dict[str, Any]:
+class GoogleServiceAcountCreds(TypedDict):
+    "Service account credentials for Google sheets"
+    sheet_service: Resource
+    drive_service: Resource
+    creds: service_account.Credentials
+
+
+def build_service_account_creds() -> GoogleServiceAcountCreds:
     """Build Google service account credentials
 
     Returns:
-        dict[str, Any]: The credentials
+        GoogleServiceAcountCreds: The credentials
     """
     if "SERVICE_ACCOUNT_CREDS" in os.environ:
         dict_creds = json.loads(os.environ["SERVICE_ACCOUNT_CREDS"])
@@ -48,15 +55,16 @@ def build_service_account_creds() -> dict[str, Any]:
         )
 
     # get a Google Sheet API service
-    sheet_service = build("sheets", "v4", credentials=credentials)
+    sheet_service: Resource = build("sheets", "v4", credentials=credentials)
     # get a Google Drive API service
-    drive_service = build("drive", "v3", credentials=credentials)
+    drive_service: Resource = build("drive", "v3", credentials=credentials)
 
-    return {
+    creds: GoogleServiceAcountCreds = {
         "sheet_service": sheet_service,
         "drive_service": drive_service,
         "creds": credentials,
     }
+    return creds
 
 
 def download_creds_file() -> None:
@@ -92,7 +100,8 @@ def download_creds_file() -> None:
         )
 
 
-def execute_google_api_requests(service: Any, requests_body: Any, **kwargs) -> Any:
+@no_type_check
+def execute_google_api_requests(service, requests_body, **kwargs) -> Any:
     """
     Execute google API requests batch; attempt to execute in parallel.
 

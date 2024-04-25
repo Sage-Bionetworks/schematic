@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import pytest
 import random
+from typing import Optional
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
@@ -18,7 +19,7 @@ from schematic.utils.schema_utils import (
     get_attribute_display_name_from_label,
     convert_bool_to_str,
     parse_validation_rules,
-    DisplayLabelType
+    DisplayLabelType,
 )
 from schematic.utils.io_utils import load_json
 
@@ -80,7 +81,9 @@ def get_data_model_parser(
 
 
 def generate_graph_data_model(
-    helpers, data_model_name: str, data_model_labels: DisplayLabelType = "class_label",
+    helpers,
+    data_model_name: str,
+    data_model_labels: DisplayLabelType = "class_label",
 ) -> nx.MultiDiGraph:
     """
     Simple helper function to generate a networkx graph data model from a CSV or JSONLD data model
@@ -99,13 +102,15 @@ def generate_graph_data_model(
     data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
     # Generate graph
-    graph_data_model = data_model_grapher.generate_data_model_graph()
+    graph_data_model = data_model_grapher.graph
 
     return graph_data_model
 
 
 def generate_data_model_nodes(
-    helpers, data_model_name: str, data_model_labels: DisplayLabelType = "class_label",
+    helpers,
+    data_model_name: str,
+    data_model_labels: DisplayLabelType = "class_label",
 ) -> DataModelNodes:
     # Instantiate Parser
     data_model_parser = get_data_model_parser(
@@ -475,6 +480,100 @@ class TestDataModelGraphExplorer:
     def test_get_adjacent_nodes_by_relationship(self):
         return
 
+    @pytest.mark.parametrize(
+        "data_model",
+        ["example_required_vr_test.model.csv", "example_required_vr_test.model.jsonld"],
+        ids=["csv", "jsonld"],
+    )
+    @pytest.mark.parametrize(
+        ["manifest_component", "node_required"],
+        [
+            ["Patient", False],
+            ["Biospecimen", True],
+        ],
+        ids=["Patient_Component", "Biospecimen_Component"],
+    )
+    @pytest.mark.parametrize(
+        ["node_label", "node_display_name"],
+        [["PatientID", None], [None, "Patient ID"]],
+        ids=["use_node_label", "use_node_display_name"],
+    )
+    @pytest.mark.parametrize(
+        "provide_vrs",
+        [True, False],
+        ids=["provide_vrs_True", "provide_vrs_False"],
+    )
+    def test_get_component_node_required(
+        self,
+        helpers,
+        data_model: str,
+        manifest_component: str,
+        node_required: bool,
+        provide_vrs: bool,
+        node_label: str,
+        node_display_name: str,
+    ):
+        # Get graph explorer
+        DMGE = helpers.get_data_model_graph_explorer(path=data_model)
+
+        # Get validation rules, if indicated to do so
+        node_validation_rules = None
+        if provide_vrs:
+            node_validation_rules = DMGE.get_component_node_validation_rules(
+                manifest_component=manifest_component,
+                node_label=node_label,
+                node_display_name=node_display_name,
+            )
+
+        # Find if component node is required then compare to expectations
+        component_node_required = DMGE.get_component_node_required(
+            manifest_component=manifest_component,
+            node_validation_rules=node_validation_rules,
+            node_label=node_label,
+            node_display_name=node_display_name,
+        )
+
+        assert component_node_required == node_required
+
+    @pytest.mark.parametrize(
+        "data_model",
+        ["example_required_vr_test.model.csv", "example_required_vr_test.model.jsonld"],
+        ids=["csv", "jsonld"],
+    )
+    @pytest.mark.parametrize(
+        ["manifest_component", "node_vrs"],
+        [
+            ["Patient", "unique warning"],
+            ["Biospecimen", "unique required error"],
+        ],
+        ids=["Patient_Component", "Biospecimen_Component"],
+    )
+    @pytest.mark.parametrize(
+        ["node_label", "node_display_name"],
+        [["PatientID", None], [None, "Patient ID"]],
+        ids=["use_node_label", "use_node_display_name"],
+    )
+    def test_get_component_node_validation_rules(
+        self,
+        helpers,
+        data_model: str,
+        manifest_component: str,
+        node_vrs: str,
+        node_label: str,
+        node_display_name: str,
+    ):
+        # Get graph explorer
+        DMGE = helpers.get_data_model_graph_explorer(path=data_model)
+
+        # Get component node validation rules and compare to expectations
+        node_validation_rules = DMGE.get_component_node_validation_rules(
+            manifest_component=manifest_component,
+            node_label=node_label,
+            node_display_name=node_display_name,
+        )
+
+        assert node_validation_rules == [node_vrs]
+
     def test_get_component_requirements(self):
         return
 
@@ -533,6 +632,11 @@ class TestDataModelGraphExplorer:
         return
 
     @pytest.mark.parametrize(
+        "data_model",
+        ["example.model.csv", "example.model.jsonld"],
+        ids=["csv", "jsonld"],
+    )
+    @pytest.mark.parametrize(
         "class_name, expected_in_schema",
         [
             ("Patient", True),
@@ -541,13 +645,15 @@ class TestDataModelGraphExplorer:
             ("InvalidComponent", False),
         ],
     )
-    def test_is_class_in_schema(self, helpers, class_name, expected_in_schema):
+    def test_is_class_in_schema(
+        self, helpers, class_name, expected_in_schema, data_model
+    ):
         """
         Test to cover checking if a given class is in a schema.
         `is_class_in_schema` should return `True` if the class is in the schema
         and `False` if it is not.
         """
-        DMGE = helpers.get_data_model_graph_explorer(path="example.model.csv")
+        DMGE = helpers.get_data_model_graph_explorer(path=data_model)
         # Check if class is in schema
         class_in_schema = DMGE.is_class_in_schema(class_name)
 
@@ -786,9 +892,12 @@ class TestDataModelNodes:
                 for ind, rule in enumerate(vrs):
                     if "::" in rule[0]:
                         assert parsed_vrs[ind] == rule[0].split("::")
-                    elif '^^' in rule[0]:
+                    elif "^^" in rule[0]:
                         component_rule_sets = rule[0].split("^^")
-                        components = [cr.split(' ')[0].replace('#', '') for cr in component_rule_sets]
+                        components = [
+                            cr.split(" ")[0].replace("#", "")
+                            for cr in component_rule_sets
+                        ]
                         assert components == [k for k in parsed_vrs[0].keys()]
                     else:
                         assert parsed_vrs[ind] == rule
@@ -1256,7 +1365,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Test that __init__ is being set up properly
         assert type(data_model_jsonld.graph) == nx.MultiDiGraph
@@ -1338,7 +1447,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Get empty template
         if template_type == "property":
@@ -1411,7 +1520,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Get empty template
         if template_type == "property":
@@ -1447,7 +1556,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Get empty template
         class_template = ClassTemplate()
@@ -1493,7 +1602,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
 
         # Get empty template
         class_template = ClassTemplate()
@@ -1532,7 +1641,7 @@ class TestDataModelJsonLd:
         )
 
         # Instantiate DataModelJsonLD
-        data_model_jsonld = DataModelJsonLD(Graph=graph_data_model)
+        data_model_jsonld = DataModelJsonLD(graph=graph_data_model)
         jsonld_dm = data_model_jsonld.generate_jsonld_object()
 
         assert list(jsonld_dm.keys()) == ["@context", "@graph", "@id"]
@@ -1548,6 +1657,6 @@ class TestDataModelJsonLd:
         )
 
         # Generate JSONLD
-        jsonld_dm = convert_graph_to_jsonld(Graph=graph_data_model)
+        jsonld_dm = convert_graph_to_jsonld(graph=graph_data_model)
         assert list(jsonld_dm.keys()) == ["@context", "@graph", "@id"]
         assert len(jsonld_dm["@graph"]) > 1
