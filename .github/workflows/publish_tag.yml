@@ -3,7 +3,6 @@ on:
   push:
     tags:
       - 'v[1-9][0-9].[0-9]+.[0-9].[a-z]+'
-    branches: [main]
 
 jobs:
   pypi_release:
@@ -96,22 +95,3 @@ jobs:
           PYPI_USERNAME: __token__
         run: |
           poetry publish --build --username $PYPI_USERNAME --password $PYPI_TOKEN
-
-      #----------------------------------------------
-      #    post a message to slack
-      #----------------------------------------------  
-
-      - name: Post to a Slack channel
-        if: steps.publish-to-pypi.outcome == 'success'
-        id: slack
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-          # Slack channel id, channel name, or user id to post message.
-          # See also: https://api.slack.com/methods/chat.postMessage#channels
-          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs.
-          # ibc-fair-data channel and data-curator-schematic channel
-          channel-id: 'C050YD75QRL,C01ANC02U59'
-          # For posting a simple plain text message
-          slack-message: "Schematic has just been released. Check out new version: ${{ github.ref_name }}"
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
