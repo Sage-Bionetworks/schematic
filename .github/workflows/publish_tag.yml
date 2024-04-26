@@ -1,23 +1,17 @@
 name: Publish to PyPI
 on:
   push:
-    branches: ['main']
     tags:
-    - 'v[1-9][0-9].[0-9]+.[0-9]+'
+      - 'v[1-9][0-9].[0-9]+.[0-9].[a-z]+'
+    branches: [main]
 
 jobs:
   pypi_release:
     runs-on: ubuntu-latest
     env:
       POETRY_VERSION:  1.3.0
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     steps:
-      - name: Get list of tags
-        uses: octokit/request-action@v2.x
-        id: get_latest_release
-        with:
-          route: GET /repos/${{ github.repository }}/git/matching-refs/tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #----------------------------------------------
       #       check-out repo and set-up python     
       #----------------------------------------------
@@ -55,49 +49,48 @@ jobs:
       - name: Install dependencies and root project
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --all-extras
-
+        
       #----------------------------------------------
-      #    Construct release version
+      #    get current pushed tag
       #----------------------------------------------      
-      - name: Construct release version
-        id: release_version
-        run: |
-           VAR=$(poetry run python3.10 github_scripts/construct_release_version.py)
-           echo "RELEASE_VERSION=$VAR" >> "$GITHUB_OUTPUT"
-        shell: sh
-        env:
-          TAGS: ${{ steps.get_latest_release.outputs.data }}
+      - name: Show GitHub ref
+        run: echo "$GITHUB_REF"
 
+      - name: Get current pushed tag
+        run:  |
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo ${{ env.RELEASE_VERSION }}
+          
       #----------------------------------------------
-      #    Create release
-      #----------------------------------------------  
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.release_version.outputs.RELEASE_VERSION }}
-          release_name: ${{ steps.release_version.outputs.RELEASE_VERSION }}
-          draft: false
-          prerelease: false
-                  
-      #----------------------------------------------
-      #    Set release version
+      #    override version tag 
       #----------------------------------------------      
-      - name: Set release version
-        run: |
-          poetry run python3 github_scripts/update_toml_version.py
+      - name: Override version tag
+        run: poetry run python3 override_version.py
         shell: sh
-        env:
-          RELEASE_VERSION: ${{ steps.release_version.outputs.RELEASE_VERSION }}
 
+      #----------------------------------------------
+      #    publish to testpypi
+      #----------------------------------------------      
+      # - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
+      # - run: poetry config pypi-token.testpypi ${{ secrets.TWINE_TEST_TOKEN }}
+      # - name: Publish package to test Pypi
+      #   run: poetry publish -vvvv --build -r testpypi
+
+      #----------------------------------------------
+      #    check tag
+      #----------------------------------------------      
+      - name: Check Tag
+        id: check-tag
+        run: |
+          if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo ::set-output name=match::true
+          fi
       #----------------------------------------------
       #    publish to pypi
       #----------------------------------------------  
       - name: Publish package to Pypi
         id: publish-to-pypi
+        if: steps.check-tag.outputs.match == 'true'
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
           PYPI_USERNAME: __token__
