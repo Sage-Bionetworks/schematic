@@ -70,10 +70,10 @@ jobs:
       #----------------------------------------------
       #    publish to testpypi
       #----------------------------------------------      
-      # - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
-      # - run: poetry config pypi-token.testpypi ${{ secrets.TWINE_TEST_TOKEN }}
-      # - name: Publish package to test Pypi
-      #   run: poetry publish -vvvv --build -r testpypi
+      - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
+      - run: poetry config pypi-token.testpypi ${{ secrets.TWINE_TEST_TOKEN }}
+      - name: Publish package to test Pypi
+        run: poetry publish -vvvv --build -r testpypi
 
       #----------------------------------------------
       #    check tag
@@ -86,12 +86,12 @@ jobs:
           fi
       #----------------------------------------------
       #    publish to pypi
-      #----------------------------------------------  
-      - name: Publish package to Pypi
-        id: publish-to-pypi
-        if: steps.check-tag.outputs.match == 'true'
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          PYPI_USERNAME: __token__
-        run: |
-          poetry publish --build --username $PYPI_USERNAME --password $PYPI_TOKEN
+      # #----------------------------------------------  
+      # - name: Publish package to Pypi
+      #   id: publish-to-pypi
+      #   if: steps.check-tag.outputs.match == 'true'
+      #   env:
+      #     PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      #     PYPI_USERNAME: __token__
+      #   run: |
+      #     poetry publish --build --username $PYPI_USERNAME --password $PYPI_TOKEN
