@@ -545,6 +545,30 @@ class TestManifestValidation:
                 dmge=dmge,
             )[1] in warnings
 
+
+    def test_missing_column(self, helpers,  dmge:DataModelGraph):
+        """ Test that a manifest missing a column returns the proper error.
+        """
+        model_name="example.model.csv"
+        manifest_name="mock_manifests/Invalid_Biospecimen_Missing_Column_Manifest.csv"
+        root_node="Biospecimen"
+        manifest_path = helpers.get_data_path(manifest_name)
+
+        metadataModel = get_metadataModel(helpers, model_name)
+        errors, warnings = metadataModel.validateModelManifest(
+            manifestPath=manifest_path,
+            rootNode=root_node,
+        )
+
+        assert GenerateError.generate_schema_error(
+                row_num='2',
+                attribute_name="Wrong schema",
+                error_message="'Tissue Status' is a required property",
+                invalid_entry="Wrong schema",
+                dmge=dmge,
+            )[0] in errors
+
+
     @pytest.mark.parametrize(
         "model_name",
         [
