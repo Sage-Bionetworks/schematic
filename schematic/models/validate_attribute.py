@@ -59,6 +59,7 @@ class GenerateError:
             error_col=attribute_name,
             error_message=error_message,
             error_val=invalid_entry,
+            message_level="error",
         )
 
         return error_list, warning_list
@@ -476,7 +477,12 @@ class GenerateError:
 
         is_schema_error = rule_name == "schema"
         col_is_recommended = rule_name == "recommended"
-        col_is_required = dmge.get_node_required(node_display_name=error_col_name)
+
+        if not is_schema_error:
+            col_is_required = dmge.get_node_required(node_display_name=error_col_name)
+        else:
+            col_is_required = False
+
         return (
             rule_parts,
             rule_name,

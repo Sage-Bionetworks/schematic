@@ -298,7 +298,6 @@ class ValidateManifest(object):
         # Replace nans with empty strings so jsonschema, address replace type infering depreciation.
         with pd.option_context("future.no_silent_downcasting", True):
             manifest = manifest.replace({np.nan: ""}).infer_objects(copy=False)
-        #manifest = manifest.replace({np.nan: ""})
 
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(
@@ -353,6 +352,7 @@ def validate_all(
     manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(
         manifest, dmge, restrict_rules, project_scope, access_token
     )
+
     if vmr_errors:
         errors.extend(vmr_errors)
     if vmr_warnings:
