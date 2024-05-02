@@ -70,14 +70,18 @@ def rule_in_rule_list(rule: str, rule_list: list[str]) -> Optional[re.Match[str]
     return re.search(rule_type, rule_list_str, flags=re.IGNORECASE)
 
 def get_list_robustness(val_rule:str) -> str:
+    """ Helper function to extract list robustness from the validation rule.
+    Args:
+        val_rule: str, validation rule string.
+    Returns:
+        list_robutness: str, list robustness extracted from validation rule.
+    """
     rule_parts = val_rule.lower().split(" ")
     if len(rule_parts) > 1:
         list_robustness = rule_parts[1]
     else:
         list_robustness = "strict"
     return list_robustness
-
-
 
 def parse_str_series_to_list(col: pd.Series, replace_null:bool=True) -> pd.Series:
     """
