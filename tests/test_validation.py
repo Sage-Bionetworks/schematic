@@ -189,22 +189,52 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="invalid list values",
+                val_rule="list",
+                list_string="9",
                 row_num="3",
                 attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="invalid list values",
+                invalid_entry="9",
                 dmge=dmge,
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="ab cd ef",
+                val_rule="list",
+                list_string="ab",
+                row_num="4",
+                attribute_name="Check List",
+                list_error="not_comma_delimited",
+                invalid_entry="ab",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a c f",
                 row_num="3",
                 attribute_name="Check Regex List",
                 list_error="not_comma_delimited",
-                invalid_entry="ab cd ef",
+                invalid_entry="a c f",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a",
+                row_num="4",
+                attribute_name="Check Regex List",
+                list_error="not_comma_delimited",
+                invalid_entry="a",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a",
+                row_num="4",
+                attribute_name="Check Regex List",
+                list_error="not_comma_delimited",
+                invalid_entry="a",
                 dmge=dmge,
             )[0] in errors
 
@@ -402,22 +432,22 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="invalid list values",
+                val_rule="list",
+                list_string="9",
                 row_num="3",
                 attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="invalid list values",
+                invalid_entry="9",
                 dmge=dmge,
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="ab cd ef",
-                row_num="3",
-                attribute_name="Check Regex List",
+                val_rule="list",
+                list_string="ab",
+                row_num="4",
+                attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="ab cd ef",
+                invalid_entry="ab",
                 dmge=dmge,
             )[0] in errors
 

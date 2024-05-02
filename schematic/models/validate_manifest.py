@@ -295,8 +295,10 @@ class ValidateManifest(object):
         warnings = []
         col_attr = {}  # save the mapping between column index and attribute name
 
-        # Replace nans with empty strings so jsonschema
-        manifest = manifest.replace({np.nan: ""})
+        # Replace nans with empty strings so jsonschema, address replace type infering depreciation.
+        with pd.option_context("future.no_silent_downcasting", True):
+            manifest = manifest.replace({np.nan: ""}).infer_objects(copy=False)
+        #manifest = manifest.replace({np.nan: ""})
 
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(

@@ -23,6 +23,7 @@ from schematic.utils.validate_utils import (
     np_array_to_str_list,
     iterable_to_str_list,
     rule_in_rule_list,
+    get_list_robustness,
 )
 
 from synapseclient.core.exceptions import SynapseNoCredentialsError
@@ -800,6 +801,7 @@ class ValidateAttribute(object):
         )
         return synStore, target_manifest_ids, target_dataset_ids
 
+
     def list_validation(
         self,
         val_rule: str,
@@ -823,16 +825,16 @@ class ValidateAttribute(object):
         # white spaces removed.
         errors = []
         warnings = []
+        replace_null = True
 
         csv_re = comma_separated_list_regex()
 
-        rule_parts = val_rule.lower().split(" ")
-        if len(rule_parts) > 1:
-            list_robustness = rule_parts[1]
-        else:
-            list_robustness = "strict"
+        list_robustness = get_list_robustness(val_rule=val_rule)
 
-        if list_robustness == "strict":
+        if list_robustness== 'like':
+            replace_null = False
+
+        elif list_robustness == "strict":
             manifest_col = manifest_col.astype(str)
 
             # This will capture any if an entry is not formatted properly. Only for strict lists
@@ -864,7 +866,7 @@ class ValidateAttribute(object):
                         warnings.append(vr_warnings)
 
         # Convert string to list.
-        manifest_col = parse_str_series_to_list(manifest_col)
+        manifest_col = parse_str_series_to_list(manifest_col, replace_null=replace_null)
 
         return errors, warnings, manifest_col
 

@@ -69,8 +69,17 @@ def rule_in_rule_list(rule: str, rule_list: list[str]) -> Optional[re.Match[str]
     rule_list_str = "|".join(rule_list)
     return re.search(rule_type, rule_list_str, flags=re.IGNORECASE)
 
+def get_list_robustness(val_rule:str) -> str:
+    rule_parts = val_rule.lower().split(" ")
+    if len(rule_parts) > 1:
+        list_robustness = rule_parts[1]
+    else:
+        list_robustness = "strict"
+    return list_robustness
 
-def parse_str_series_to_list(col: pd.Series) -> pd.Series:
+
+
+def parse_str_series_to_list(col: pd.Series, replace_null:bool=True) -> pd.Series:
     """
     Parse a pandas series of comma delimited strings
     into a series with values that are lists of strings
@@ -79,9 +88,14 @@ def parse_str_series_to_list(col: pd.Series) -> pd.Series:
         Output: ['a','b','c']
 
     """
-    col = col.apply(
-        lambda x: [s.strip() for s in str(x).split(",")] if not pd.isnull(x) else pd.NA
-    )
+    if replace_null:
+        col = col.apply(
+            lambda x: [s.strip() for s in str(x).split(",")] if not pd.isnull(x) else pd.NA
+        )
+    else:
+        col = col.apply(
+            lambda x: [s.strip() for s in str(x).split(",")] if (isinstance(x, np.ndarray) and not x.any()) or not pd.isnull(x) else [])
+
     return col
 
 
