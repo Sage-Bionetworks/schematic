@@ -807,7 +807,6 @@ class ValidateAttribute(object):
         )
         return synStore, target_manifest_ids, target_dataset_ids
 
-
     def list_validation(
         self,
         val_rule: str,
@@ -837,7 +836,7 @@ class ValidateAttribute(object):
 
         list_robustness = get_list_robustness(val_rule=val_rule)
 
-        if list_robustness== 'like':
+        if list_robustness == "like":
             replace_null = False
 
         elif list_robustness == "strict":
