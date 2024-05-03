@@ -25,7 +25,7 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from schematic.utils.validate_rules_utils import validation_rule_info
-from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.validate_utils import rule_in_rule_list, convert_nan_entries_to_empty_strings
 from schematic.utils.schema_utils import extract_component_validation_rules
 
 logger = logging.getLogger(__name__)
@@ -295,9 +295,7 @@ class ValidateManifest(object):
         warnings = []
         col_attr = {}  # save the mapping between column index and attribute name
 
-        # Replace nans with empty strings so jsonschema, address replace type infering depreciation.
-        with pd.option_context("future.no_silent_downcasting", True):
-            manifest = manifest.replace({np.nan: ""}).infer_objects(copy=False)
+        manifest = convert_nan_entries_to_empty_strings(manifest=manifest)
 
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(
