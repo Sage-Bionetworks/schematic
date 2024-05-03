@@ -72,12 +72,11 @@ def convert_nan_entries_to_empty_strings(
     """
     # Replace nans with empty strings so jsonschema, address replace type infering depreciation.
     with pd.option_context("future.no_silent_downcasting", True):
-        manifest = manifest.replace({np.nan: ""}).infer_objects(copy=False)
+        manifest = manifest.replace({np.nan: ""}).infer_objects(copy=False) # type: ignore
 
     for col in manifest.columns:
         for index, value in manifest[col].items():
             if value == ["<NA>"]:
-                # manifest[col][index] = [""]
                 manifest.loc[index, col] = [""]
     return manifest
 
