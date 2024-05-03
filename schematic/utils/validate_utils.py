@@ -53,7 +53,8 @@ def comma_separated_list_regex() -> Pattern[str]:
 
     return csv_list_regex
 
-def convert_nan_entries_to_empty_strings(manifest:pd.Series)->pd.Series:
+
+def convert_nan_entries_to_empty_strings(manifest: pd.Series) -> pd.Series:
     """
     Nans need to be converted to empty strings for JSON Schema Validation. This helper
     converts an a list with a single '<NA>' string or a single np.nan to empty strings.
@@ -63,12 +64,12 @@ def convert_nan_entries_to_empty_strings(manifest:pd.Series)->pd.Series:
     """
     # Replace nans with empty strings so jsonschema, address replace type infering depreciation.
     with pd.option_context("future.no_silent_downcasting", True):
-        manifest = manifest.replace({np.nan:""}).infer_objects(copy=False)
+        manifest = manifest.replace({np.nan: ""}).infer_objects(copy=False)
 
     for col in manifest.columns:
         for index, value in manifest[col].items():
-            if value == ['<NA>']:
-                #manifest[col][index] = [""]
+            if value == ["<NA>"]:
+                # manifest[col][index] = [""]
                 manifest.loc[index, col] = [""]
     return manifest
 
