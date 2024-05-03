@@ -77,7 +77,7 @@ def convert_nan_entries_to_empty_strings(
     for col in manifest.columns:
         for index, value in manifest[col].items():
             if value == ["<NA>"]:
-                manifest.loc[index, col] = [""]
+                manifest.loc[index, col] = [""]  # type: ignore
     return manifest
 
 
