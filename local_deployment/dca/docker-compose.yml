@@ -5,8 +5,6 @@ services:
     image: test
     restart: always
     environment:
-      # APP_HOST: "0.0.0.0"
-      # APP_PORT: "3001"
       DCA_SCHEMATIC_API_TYPE: rest
       DCA_API_HOST: ""
       # DCA_DCC_CONFIG: "https://raw.githubusercontent.com/Sage-Bionetworks/data_curator_config/shinyapps-io/dcc_config.csv"
@@ -19,8 +17,6 @@ services:
       - dca
     ports: 
       - "3838:3838"
-      # - "${USE_LISTEN_PORT}:80"
-      # - "443:443"
 networks:
   dca:
     name: dca

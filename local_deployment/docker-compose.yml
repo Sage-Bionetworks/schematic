@@ -2,10 +2,6 @@ version: "3.9"
 services:
   # run schematic APIs in a docker container with uWSGI and nginx
   schematic-aws:
-    # build: 
-    #   context: ../schematic
-    #   dockerfile: schematic_api/Dockerfile
-    # container_name: schematic-api-aws
     image: thomasvyu/schematic
     entrypoint: python run_app.py
     restart: always
@@ -26,8 +22,6 @@ services:
     image: thomasvyu/dca
     restart: always
     environment:
-      # APP_HOST: "0.0.0.0"
-      # APP_PORT: "3001"
       DCA_SCHEMATIC_API_TYPE: rest
       DCA_API_HOST: "http://schematic-aws:3001"
       # DCA_DCC_CONFIG: "https://raw.githubusercontent.com/Sage-Bionetworks/data_curator_config/shinyapps-io/dcc_config.csv"

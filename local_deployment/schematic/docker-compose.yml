@@ -2,10 +2,6 @@ version: "3.9"
 services:
   # run schematic APIs in a docker container with uWSGI and nginx
   schematic-aws:
-    # build: 
-    #   context: ../schematic
-    #   dockerfile: schematic_api/Dockerfile
-    # container_name: schematic-api-aws
     image: thomasvyu/schematic
     entrypoint: python run_app.py
     restart: always
