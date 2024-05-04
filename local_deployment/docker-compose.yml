@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+  # run schematic APIs in a docker container with uWSGI and nginx
+  schematic-aws:
+    # build: 
+    #   context: ../schematic
+    #   dockerfile: schematic_api/Dockerfile
+    # container_name: schematic-api-aws
+    image: thomasvyu/schematic
+    entrypoint: python run_app.py
+    restart: always
+    environment:
+      APP_HOST: "0.0.0.0"
+      APP_PORT: "3001"
+      SCHEMATIC_CONFIG_CONTENT: ${SCHEMATIC_CONFIG_CONTENT}
+      SERVICE_ACCOUNT_CREDS: ${SERVICE_ACCOUNT_CREDS}
+      GE_HOME: app/great_expectations/
+    networks:
+      - schematic
+    ports: 
+      - "3001:3001"
+      # - "${USE_LISTEN_PORT}:80"
+      # - "443:443"
+  dca-aws:
+    # image: ghcr.io/sage-bionetworks/data_curator:v24.2.1
+    image: thomasvyu/dca
+    restart: always
+    environment:
+      # APP_HOST: "0.0.0.0"
+      # APP_PORT: "3001"
+      DCA_SCHEMATIC_API_TYPE: rest
+      DCA_API_HOST: "http://schematic-aws:3001"
+      # DCA_DCC_CONFIG: "https://raw.githubusercontent.com/Sage-Bionetworks/data_curator_config/shinyapps-io/dcc_config.csv"
+      DCA_DCC_CONFIG: "https://raw.githubusercontent.com/Sage-Bionetworks/data_curator_config/prod/tenants.json"
+      DCA_SYNAPSE_PROJECT_API: false
+      DCA_CLIENT_ID: ${DCA_CLIENT_ID}
+      DCA_CLIENT_SECRET: ${DCA_CLIENT_SECRET}
+      DCA_APP_URL: http://127.0.0.1:3838
+    networks:
+      - schematic
+    ports: 
+      - "3838:3838"
+networks:
+  schematic:
+    name: schematic
