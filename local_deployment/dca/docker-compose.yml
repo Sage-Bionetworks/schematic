@@ -2,7 +2,7 @@ version: "3.9"
 services:
   dca-aws:
     # image: ghcr.io/sage-bionetworks/data_curator:v24.2.1
-    image: test
+    image: thomasvyu/dca
     restart: always
     environment:
       DCA_SCHEMATIC_API_TYPE: rest
