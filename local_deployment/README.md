@@ -6,4 +6,4 @@ DCA is the frontend application to schematic - this means that DCA and schematic
 docker compose up
 ```
 
-This will start both schematic and DCA. Notice `      DCA_API_HOST: "http://schematic-aws:3001"` in the `docker-compose.yml` file.  This is the host that DCA will use to connect to schematic via the Docker network.
+This will start both schematic and DCA. Notice `DCA_API_HOST: "http://schematic-aws:3001"` in the `docker-compose.yml` file.  This is the host that DCA will use to connect to schematic via the Docker network.
