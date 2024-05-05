@@ -22,7 +22,7 @@ services:
     restart: always
     environment:
       DCA_SCHEMATIC_API_TYPE: rest
-      DCA_API_HOST: "http://schematic-aws:3001"
+      DCA_API_HOST: "https://schematic-aws"
       # DCA_DCC_CONFIG: "https://raw.githubusercontent.com/Sage-Bionetworks/data_curator_config/shinyapps-io/dcc_config.csv"
       DCA_DCC_CONFIG: "https://raw.githubusercontent.com/Sage-Bionetworks/data_curator_config/prod/tenants.json"
       DCA_SYNAPSE_PROJECT_API: false
