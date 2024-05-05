@@ -2,7 +2,7 @@ version: "3.9"
 services:
   # run schematic APIs in a docker container with uWSGI and nginx
   schematic-aws:
-    image: thomasvyu/schematic
+    image: ghcr.io/sage-bionetworks/schematic:v24.4.1
     entrypoint: python run_app.py
     restart: always
     environment:
