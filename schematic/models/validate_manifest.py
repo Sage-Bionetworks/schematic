@@ -106,9 +106,9 @@ class ValidateManifest(object):
         manifest: pd.core.frame.DataFrame,
         dmge: DataModelGraphExplorer,
         restrict_rules: bool,
-        project_scope: List,
+        project_scope: list[str],
         access_token: Optional[str] = None,
-    ) -> (pd.core.frame.DataFrame, List[List[str]]):
+    ) -> (pd.core.frame.DataFrame, list[list[str]]):
         """
         Purpose:
             Take validation rules set for a particular attribute
@@ -349,6 +349,7 @@ def validate_all(
     project_scope: List,
     access_token: str,
 ):
+    # Run Validation Rules
     vm = ValidateManifest(errors, manifest, manifestPath, dmge, jsonSchema)
     manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(
         manifest, dmge, restrict_rules, project_scope, access_token
@@ -359,6 +360,7 @@ def validate_all(
     if vmr_warnings:
         warnings.extend(vmr_warnings)
 
+    # Run JSON Schema Validation
     vmv_errors, vmv_warnings = vm.validate_manifest_values(manifest, jsonSchema, dmge)
     if vmv_errors:
         errors.extend(vmv_errors)
