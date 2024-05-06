@@ -99,23 +99,42 @@ def rule_in_rule_list(rule: str, rule_list: list[str]) -> Optional[re.Match[str]
 
 def get_list_robustness(val_rule: str) -> str:
     """Helper function to extract list robustness from the validation rule.
+    List robustness defines if the input -must- be a list (several values
+    or a single value with a trailing comma),
+    or if a user is allowed to submit a single value.
+    List rules default to `strict` if not defined to be `like`
     Args:
         val_rule: str, validation rule string.
     Returns:
         list_robutness: str, list robustness extracted from validation rule.
     """
+    list_robustness_options = ["like", "strict"]
+    list_robustness = None
+    default_robustness = list_robustness_options[1]
+
+    # Get the parts of a single rule, list is assumed to be in the first position, based on
+    # requirements that can be found in documentation.
     rule_parts = val_rule.lower().split(" ")
+
     if len(rule_parts) > 1:
-        list_robustness = rule_parts[1]
-    else:
-        list_robustness = "strict"
+        # Check if list_robustness is defined in the rule, if not give them the default.
+        list_robustness_list = [
+            part for part in rule_parts if part in list_robustness_options
+        ]
+        if list_robustness_list:
+            list_robustness = list_robustness_list[0]
+
+    if not list_robustness:
+        # If no robustness has been defined by the user, set to the default.
+        list_robustness = default_robustness
     return list_robustness
 
 
 def parse_str_series_to_list(col: pd.Series, replace_null: bool = True) -> pd.Series:
     """
     Parse a pandas series of comma delimited strings
-    into a series with values that are lists of strings
+    into a series with values that are lists of strings. If replace_null, fill null values
+    with nan. If the type of the value needs to be an array, fill with empty list.
     ex.
         Input:  'a,b,c'
         Output: ['a','b','c']
