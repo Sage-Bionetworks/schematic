@@ -834,6 +834,7 @@ class ValidateAttribute(object):
 
         csv_re = comma_separated_list_regex()
 
+        # Check if lists -must- be a list, or can be a single value.
         list_robustness = get_list_robustness(val_rule=val_rule)
 
         if list_robustness == "like":
