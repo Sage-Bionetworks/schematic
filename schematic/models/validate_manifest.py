@@ -80,10 +80,13 @@ class ValidateManifest(object):
             errors, list[list[str]]: list of errors being compiled, with additional error list being appended if appropriate
         """
         # Check that attribute rules conform to limits:
-        # IsNa is operates differently than most rules, do not consider it as a rule for evaluating
+        # IsNa and required is operate differently than most rules, do not consider it as a rule for evaluating
         # if the number of rule pairs has been exceeded.
         if "IsNa" in validation_rules:
             validation_rules.remove("IsNa")
+
+        if "required" in validation_rules:
+            validation_rules.remove("required")
 
         # no more than two rules for an attribute.
         # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?
@@ -291,6 +294,9 @@ class ValidateManifest(object):
         errors = []
         warnings = []
         col_attr = {}  # save the mapping between column index and attribute name
+
+        # Replace nans with empty strings so jsonschema
+        manifest = manifest.replace({np.nan: ""})
 
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(
