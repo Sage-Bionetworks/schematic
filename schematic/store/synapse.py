@@ -1362,37 +1362,27 @@ class SynapseStorage(BaseStorage):
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
         csv_list_regex = comma_separated_list_regex()
-        for anno_k, anno_v in metadataSyn.items():
-            # Remove keys with nan or empty string values from dict of annotations to be uploaded
-            # if present on current data annotation
-            if hideBlanks and (
-                anno_v == "" or (isinstance(anno_v, float) and np.isnan(anno_v))
-            ):
-                annos.pop(anno_k) if anno_k in annos.keys() else annos
-            # Otherwise save annotation as approrpriate
+
+            for anno_k, anno_v in metadataSyn.items():
+        # Remove keys with nan or empty string values from dict of annotations to be uploaded
+        if hideBlanks and (anno_v == "" or (isinstance(anno_v, float) and np.isnan(anno_v))):
+            annos.pop(anno_k, None)
+        else:
+            if isinstance(anno_v, float) and np.isnan(anno_v):
+                annos[anno_k] = ""
+            elif (isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v) and 
+                rule_in_rule_list("list", dmge.get_node_validation_rules(anno_k))):
+                # Split the string, apply truncation if necessary, then reassign
+                elements = anno_v.split(',')
+                truncated_elements = [element if len(element) <= max_length else element[:max_length - len(truncate_message)] + truncate_message for element in elements]
+                annos[anno_k] = truncated_elements
             else:
-                if isinstance(anno_v, float) and np.isnan(anno_v):
-                    annos[anno_k] = ""
-                elif (
-                    isinstance(anno_v, str)
-                    and re.fullmatch(csv_list_regex, anno_v)
-                    and rule_in_rule_list(
-                        "list", dmge.get_node_validation_rules(anno_k)
-                    )
-                ):
-                    annos[anno_k] = anno_v.split(",")
-                    if len(annos[anno_k]) >= 500:
-                        annos[anno_k] = annos[anno_k][:472] + "[truncatedByDataCuratorApp]" 
-                    else annos[anno_k] for annos[anno_k] in annos[anno_k]
+                # General case for truncating long strings
+                if isinstance(anno_v, str) and len(anno_v) >= max_length:
+                    annos[anno_k] = anno_v[:max_length - len(truncate_message)] + truncate_message
                 else:
-                    # truncate annotation values to 500 characters if the
-                    # size of values is greater than equal to 500 characters
-                    # add an explicit [truncatedByDataCuratorApp] message at the end
-                    # of every truncated message to indicate that the cell value
-                    # has been truncated
-                    if isinstance(v, str) and len(v) >= 500:
-                        v = v[0:472] + "[truncatedByDataCuratorApp]"
                     annos[anno_k] = anno_v
+
 
         return annos
 
