@@ -1674,7 +1674,8 @@ class ManifestGenerator(object):
 
         if not graph_data_model:
             if data_model_graph_pickle:
-                graph_data_model = pickle.Unpickler(data_model_graph_pickle)
+                with open(data_model_graph_pickle, 'rb') as f:
+                    graph_data_model = pickle.load(f)
             else:
                 data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
 
