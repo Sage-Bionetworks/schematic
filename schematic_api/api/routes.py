@@ -40,9 +40,23 @@ from synapseclient.core.exceptions import (
 )
 from schematic.utils.general import entity_type_mapping
 from schematic.utils.schema_utils import get_property_label_from_display_name, DisplayLabelType
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
+
+trace.set_tracer_provider(
+    TracerProvider(
+        resource=Resource(attributes={SERVICE_NAME: "schematic"})
+    )
+)
+trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+tracer = trace.get_tracer("schematic-api")
+
 
 
 def config_handler(asset_view: str = None):
@@ -283,43 +297,55 @@ def get_manifest_route(
     Returns:
         Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
+    with tracer.start_as_current_span('generate-manifest-route') as span:
+        span.set_attribute('schema_url', schema_url)
+        span.set_attribute('use_annotations', use_annotations)
+        span.set_attribute('dataset_id', dataset_id)
+        span.set_attribute('asset_view', asset_view)
+        span.set_attribute('output_format', output_format)
+        span.set_attribute('title', title)
+        span.set_attribute('strict_validation', strict_validation)
+        span.set_attribute('data_model_labels', data_model_labels)
+        span.set_attribute('data_type', data_type)
 
-    # Get access token from request header
-    access_token = get_access_token()
 
-    config_handler(asset_view=asset_view)
 
-    all_results = ManifestGenerator.create_manifests(
-        path_to_data_model=schema_url,
-        output_format=output_format,
-        data_types=data_type,
-        title=title,
-        access_token=access_token,
-        dataset_ids=dataset_id,
-        strict=strict_validation,
-        use_annotations=use_annotations,
-        data_model_labels=data_model_labels,
-    )
+        # Get access token from request header
+        access_token = get_access_token()
 
-    # return an excel file if output_format is set to "excel"
-    if output_format == "excel":
-        # should only contain one excel spreadsheet path
-        if len(all_results) > 0:
-            result = all_results[0]
-            dir_name = os.path.dirname(result)
-            file_name = os.path.basename(result)
-            mimetype = (
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            return send_from_directory(
-                directory=dir_name,
-                path=file_name,
-                as_attachment=True,
-                mimetype=mimetype,
-                max_age=0,
-            )
+        config_handler(asset_view=asset_view)
 
-    return all_results
+        all_results = ManifestGenerator.create_manifests(
+            path_to_data_model=schema_url,
+            output_format=output_format,
+            data_types=data_type,
+            title=title,
+            access_token=access_token,
+            dataset_ids=dataset_id,
+            strict=strict_validation,
+            use_annotations=use_annotations,
+            data_model_labels=data_model_labels,
+        )
+
+        # return an excel file if output_format is set to "excel"
+        if output_format == "excel":
+            # should only contain one excel spreadsheet path
+            if len(all_results) > 0:
+                result = all_results[0]
+                dir_name = os.path.dirname(result)
+                file_name = os.path.basename(result)
+                mimetype = (
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+                return send_from_directory(
+                    directory=dir_name,
+                    path=file_name,
+                    as_attachment=True,
+                    mimetype=mimetype,
+                    max_age=0,
+                )
+
+        return all_results
 
 
 #####profile validate manifest route function
