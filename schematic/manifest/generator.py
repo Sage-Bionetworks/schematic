@@ -11,6 +11,7 @@ from pathlib import Path
 import pygsheets as ps
 from tempfile import NamedTemporaryFile
 from typing import Any, Dict, List, Optional, Tuple, Union, BinaryIO, Literal
+import pickle
 
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
@@ -1634,11 +1635,13 @@ class ManifestGenerator(object):
         strict: Optional[bool] = True,
         use_annotations: Optional[bool] = False,
         graph_data_model: Optional[nx.MultiDiGraph] = None,
+        data_model_graph_pickle: str = None
     ) -> Union[List[str], List[pd.DataFrame]]:
         """Create multiple manifests
 
         Args:
             path_to_data_model (str): str path to data model
+            data_model_graph_pickle (str): A data model graph as csv or pickle
             data_types (list): a list of data types
             access_token (str, optional): synapse access token. Required when getting an existing manifest. Defaults to None.
             dataset_ids (list, optional): a list of dataset ids when generating an existing manifest. Defaults to None.
@@ -1670,16 +1673,19 @@ class ManifestGenerator(object):
                 )
 
         if not graph_data_model:
-            data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+            if data_model_graph_pickle:
+                graph_data_model = pickle.Unpickler(data_model_graph_pickle)
+            else:
+                data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
 
-            # Parse Model
-            parsed_data_model = data_model_parser.parse_model()
+                # Parse Model
+                parsed_data_model = data_model_parser.parse_model()
 
-            # Instantiate DataModelGraph
-            data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
+                # Instantiate DataModelGraph
+                data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
 
-            # Generate graph
-            graph_data_model = data_model_grapher.graph
+                # Generate graph
+                graph_data_model = data_model_grapher.graph
 
         # Gather all returned result urls
         all_results = []
