@@ -6,6 +6,7 @@ from typing import Optional, no_type_check
 import numpy as np
 import pandas as pd
 import networkx as nx
+import pickle
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -28,6 +29,7 @@ class AttributesExplorer:
         data_model_graph_explorer: Optional[DataModelGraphExplorer] = None,
         parsed_data_model: Optional[dict] = None,
         graph_data_model: Optional[nx.MultiDiGraph] = None,
+        data_model_graph_pickle: Optional[str] = None,
     ) -> None:
         self.path_to_jsonld = path_to_jsonld
 
@@ -39,6 +41,10 @@ class AttributesExplorer:
                 path_to_data_model=self.path_to_jsonld,
             )
             parsed_data_model = data_model_parser.parse_model()
+
+        if data_model_graph_pickle:
+            with open(data_model_graph_pickle, 'rb') as f:
+                parsed_data_model = pickle.load(f)
 
         # Instantiate DataModelGraph
         if not data_model_grapher:
