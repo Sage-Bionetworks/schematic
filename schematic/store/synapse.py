@@ -1345,9 +1345,7 @@ class SynapseStorage(BaseStorage):
         # columns with special characters are outside of the schema
         metadataSyn = {}
         blacklist_chars = ["(", ")", ".", " ", "-"]
-        truncate_message = "[truncatedByDataCuratorApp]"
-        max_length = 500
-    
+
         for k, v in row.to_dict().items():
             if annotation_keys == "display_label":
                 keySyn = str(k).translate({ord(x): "" for x in blacklist_chars})
@@ -1375,16 +1373,25 @@ class SynapseStorage(BaseStorage):
             else:
                 if isinstance(anno_v, float) and np.isnan(anno_v):
                     annos[anno_k] = ""
-                elif (isinstance(anno_v, str) and re.fullmatch(csv_list_regex, anno_v) and 
-                      rule_in_rule_list("list", dmge.get_node_validation_rules(anno_k))):
-                          annos[anno_k] = anno_v.split(',')
+                elif (
+                    isinstance(anno_v, str)
+                    and re.fullmatch(csv_list_regex, anno_v)
+                    and rule_in_rule_list(
+                        "list", dmge.get_node_validation_rules(anno_k)
+                    )
+                ):
+                    annos[anno_k] = anno_v.split(",")
                 else:
-                    # General case for truncating long strings
-                    if isinstance(anno_v, str) and len(anno_v) >= max_length:
-                        annos[anno_k] = anno_v[:max_length - len(truncate_message)] + truncate_message
-                    else:
-                        annos[anno_k] = anno_v
-
+                    
+                        # truncate annotation values to 500 characters if the
+                        # size of values is greater than equal to 500 characters
+                        # add an explicit [truncatedByDataCuratorApp] message at the end
+                        # of every truncated message to indicate that the cell value
+                        # has been truncated
+                    if isinstance(anno_v, str) and len(anno_v) >= 500:
+                        anno_v = anno_v[0:472] + "[truncatedByDataCuratorApp]"
+                        
+                    annos[anno_k] = anno_v
 
         return annos
 
