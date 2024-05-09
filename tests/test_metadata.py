@@ -130,10 +130,9 @@ class TestMetadataModel:
                 return_value="mock manifest id",
             ):
                 mock_manifest_path = temporary_file_copy
-                data_model_jsonld = helpers.get_data_path("example.model.jsonld")
+
                 mock_manifest_id = meta_data_model.submit_metadata_manifest(
                     manifest_path=mock_manifest_path,
-                    path_to_json_ld=data_model_jsonld,
                     validate_component=validate_component,
                     dataset_id="mock dataset id",
                     manifest_record_type="file_only",

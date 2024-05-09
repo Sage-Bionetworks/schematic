@@ -1,0 +1,4 @@
+Filename,Sample ID,File Format,Component,Genome Build,Genome FASTA
+test/file/name.png,fake_id,BAM,BulkRNA-seqAssay,GRCh37,
+test/file/name_2.png,fake_id_2,CRAM,BulkRNA-seqAssay,GRCh38,
+test/file/name_3.png,fake_id_3,,BulkRNA-seqAssay,,

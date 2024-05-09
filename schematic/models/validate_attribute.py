@@ -23,6 +23,7 @@ from schematic.utils.validate_utils import (
     np_array_to_str_list,
     iterable_to_str_list,
     rule_in_rule_list,
+    get_list_robustness,
 )
 
 from synapseclient.core.exceptions import SynapseNoCredentialsError
@@ -58,6 +59,7 @@ class GenerateError:
             error_col=attribute_name,
             error_message=error_message,
             error_val=invalid_entry,
+            message_level="error",
         )
 
         return error_list, warning_list
@@ -475,7 +477,12 @@ class GenerateError:
 
         is_schema_error = rule_name == "schema"
         col_is_recommended = rule_name == "recommended"
-        col_is_required = dmge.get_node_required(node_display_name=error_col_name)
+
+        if not is_schema_error:
+            col_is_required = dmge.get_node_required(node_display_name=error_col_name)
+        else:
+            col_is_required = False
+
         return (
             rule_parts,
             rule_name,
@@ -823,16 +830,17 @@ class ValidateAttribute(object):
         # white spaces removed.
         errors = []
         warnings = []
+        replace_null = True
 
         csv_re = comma_separated_list_regex()
 
-        rule_parts = val_rule.lower().split(" ")
-        if len(rule_parts) > 1:
-            list_robustness = rule_parts[1]
-        else:
-            list_robustness = "strict"
+        # Check if lists -must- be a list, or can be a single value.
+        list_robustness = get_list_robustness(val_rule=val_rule)
 
-        if list_robustness == "strict":
+        if list_robustness == "like":
+            replace_null = False
+
+        elif list_robustness == "strict":
             manifest_col = manifest_col.astype(str)
 
             # This will capture any if an entry is not formatted properly. Only for strict lists
@@ -864,7 +872,7 @@ class ValidateAttribute(object):
                         warnings.append(vr_warnings)
 
         # Convert string to list.
-        manifest_col = parse_str_series_to_list(manifest_col)
+        manifest_col = parse_str_series_to_list(manifest_col, replace_null=replace_null)
 
         return errors, warnings, manifest_col
 

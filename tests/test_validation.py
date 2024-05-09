@@ -56,7 +56,7 @@ class TestManifestValidation:
         ("model_name", "manifest_name", "root_node"),
         [
             ("example.model.csv","mock_manifests/Valid_Test_Manifest.csv", "MockComponent"),
-            ("example.model.csv", "mock_manifests/Patient_test_no_entry_for_cond_required_column.csv", "Patient"),
+            ("example.model.csv", "mock_manifests/Patient_test_no_entry_for_cond_required_column.manifest.csv", "Patient"),
             ("example_test_nones.model.csv","mock_manifests/Valid_Test_Manifest_with_nones.csv", "MockComponent"),
         ],
         ids=["example_model", "example_with_no_entry_for_cond_required_columns", "example_with_nones"],
@@ -189,22 +189,52 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="invalid list values",
+                val_rule="list",
+                list_string="9",
                 row_num="3",
                 attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="invalid list values",
+                invalid_entry="9",
                 dmge=dmge,
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="ab cd ef",
+                val_rule="list",
+                list_string="ab",
+                row_num="4",
+                attribute_name="Check List",
+                list_error="not_comma_delimited",
+                invalid_entry="ab",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a c f",
                 row_num="3",
                 attribute_name="Check Regex List",
                 list_error="not_comma_delimited",
-                invalid_entry="ab cd ef",
+                invalid_entry="a c f",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a",
+                row_num="4",
+                attribute_name="Check Regex List",
+                list_error="not_comma_delimited",
+                invalid_entry="a",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a",
+                row_num="4",
+                attribute_name="Check Regex List",
+                list_error="not_comma_delimited",
+                invalid_entry="a",
                 dmge=dmge,
             )[0] in errors
 
@@ -402,22 +432,22 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="invalid list values",
+                val_rule="list",
+                list_string="9",
                 row_num="3",
                 attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="invalid list values",
+                invalid_entry="9",
                 dmge=dmge,
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="ab cd ef",
-                row_num="3",
-                attribute_name="Check Regex List",
+                val_rule="list",
+                list_string="ab",
+                row_num="4",
+                attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="ab cd ef",
+                invalid_entry="ab",
                 dmge=dmge,
             )[0] in errors
 
@@ -516,6 +546,163 @@ class TestManifestValidation:
             )[1] in warnings
 
 
+    def test_missing_column(self, helpers,  dmge:DataModelGraph):
+        """ Test that a manifest missing a column returns the proper error.
+        """
+        model_name="example.model.csv"
+        manifest_name="mock_manifests/Invalid_Biospecimen_Missing_Column_Manifest.csv"
+        root_node="Biospecimen"
+        manifest_path = helpers.get_data_path(manifest_name)
+
+        metadataModel = get_metadataModel(helpers, model_name)
+        errors, warnings = metadataModel.validateModelManifest(
+            manifestPath=manifest_path,
+            rootNode=root_node,
+        )
+
+        assert GenerateError.generate_schema_error(
+                row_num='2',
+                attribute_name="Wrong schema",
+                error_message="'Tissue Status' is a required property",
+                invalid_entry="Wrong schema",
+                dmge=dmge,
+            )[0] in errors
+
+
+    @pytest.mark.parametrize(
+        "model_name",
+        [
+            "example.model.csv",
+            "example_required_vr_test.model.csv",
+        ],
+        ids=["example_model", "example_with_requirements_from_vr"],
+    )
+
+    @pytest.mark.parametrize(
+        ["manifest_name", "root_node",],
+        [
+            ("mock_manifests/Biospecimen_required_vr_test_fail.manifest.csv", "Biospecimen"),
+            ("mock_manifests/Biospecimen_required_vr_test_pass.manifest.csv", "Biospecimen"),
+            ("mock_manifests/Patient_required_vr_test_pass.manifest.csv", "Patient"),
+            ("mock_manifests/Patient_test_no_entry_for_cond_required_column.manifest.csv", "Patient"),
+            ("mock_manifests/BulkRNAseq_component_based_required_rule_test.manifest.csv", "BulkRNA-seqAssay"),
+        ],
+        ids=["biospeciment_required_vr_empty", "biospecimen_required_filled", "patient_not_required_empty", "patient_conditionally_required_not_filled", "bulk_rna_seq_component_based_rule_test"],
+    )
+    def test_required_validation_rule(self, helpers, model_name:str, manifest_name:str, root_node:str, dmge:DataModelGraphExplorer) -> None:
+        """
+        Args:
+            model_name, str: model to run test validation against
+                Model Difference:
+                    - example.model.csv:
+                        PatientID attribute:
+                            Required=True
+                        FileFormat attribute:
+                            Required = True, Genome Build/ Genome Fasta are conditionally required
+
+                    - example_required_vr_test.model.csv,
+                        PatientID attribute
+                            Required=False,
+                            validation rule: #Patient unique warning^^#Biospecimen unique required error
+                                meaning PatientID is required for the Biospecimen manifest (but not Patient)
+                        FileFormat attribute:
+                            Required = False
+                            validation rule: ^^#BulkRNA-seqAssay list required
+                                meaning for BulkRNA=seqAssay (only) FileFormat is conditionally required.
+                                Genome Build/ Genome Fasta are conditionally required
+            manifest_name, str: manfiest to run validation with
+                What Each Manifest is Testing:
+                    -Biospecimen_required_vr_test_fail: PatentID is required for Biospecimen in each model (through different routes) and not provided
+                    -Biospecimen_required_vr_test_pass: PatentID is required for Biospecimen in each model (through different routes) and provided
+                    -Patient_required_vr_test_pass: PatentID not provided, will fail for example model and pass for vr test model (where it is not required)
+                    -Patient_test_no_entry_for_cond_required_column: Tests conditionally required value not required if preceeding condition not met (helps test an edge case)
+                    -BulkRNAseq_component_based_required_rule_test: FileFormat, this manifest checks conditional requirements, provided for some rows and not for others
+
+            root_node, str: component for the given manifest
+            dmge, DataModelGraphExplorer Object
+        """
+
+        manifest_path = helpers.get_data_path(manifest_name)
+        metadataModel = get_metadataModel(helpers, model_name)
+
+        errors, warnings = metadataModel.validateModelManifest(
+            manifestPath=manifest_path,
+            rootNode=root_node,
+        )
+
+        error_and_warning_free_manifests = ["Biospecimen_required_vr_test_pass", "Patient_test_no_entry_for_cond_required_column", ""]
+
+        # For each model, these manifest should pass, bc either the value is being passed as requierd, or its not currently required
+        for manifest in error_and_warning_free_manifests:
+            if manifest_name in manifest:
+                assert errors == []
+                assert warnings == []
+
+        messages = {"patient_id_empty_warning": {
+                        "row_num":"2",
+                        "attribute_name":"Patient ID",
+                        "error_message":"'' should be non-empty",
+                        "invalid_entry":""},
+                    "bulk_rnaseq_cbr_error_1":{
+                        "row_num":"3",
+                        "attribute_name":"Genome FASTA",
+                        "error_message":"'' should be non-empty",
+                        "invalid_entry":""},
+                    "bulk_rnaseq_cbr_error_2":{
+                        "row_num":"4",
+                        "attribute_name":"File Format",
+                        "error_message":"'' is not one of ['CSV/TSV', 'CRAM', 'FASTQ', 'BAM']",
+                        "invalid_entry":""},
+            }
+
+        # This manifest should fail in the example_model bc the manifest Required=False, and in the example_with_requirements_from_vr
+        # bc the requirments are set to false in the validation rule
+        if (("Biospecimen_required_vr_test_fail" in manifest_name) or
+             ("Patient_required_vr_test_pass" in manifest_name and model_name == "example.model.csv")
+             ):
+            message_key = "patient_id_empty_warning"
+            assert GenerateError.generate_schema_error(
+                        row_num=messages[message_key]["row_num"],
+                        attribute_name=messages[message_key]["attribute_name"],
+                        error_message=messages[message_key]["error_message"],
+                        invalid_entry=messages[message_key]["invalid_entry"],
+                        dmge=dmge,
+                    )[0] in errors
+            assert warnings == []
+
+        if "Patient_required_vr_test_pass" in manifest_name and model_name == "example_required_vr_test.model.csv":
+            assert errors == []
+            assert warnings == []
+
+        if "BulkRNAseq_component_based_required_rule_test" in manifest_name:
+            message_key = "bulk_rnaseq_cbr_error_1"
+            assert GenerateError.generate_schema_error(
+                    row_num=messages[message_key]["row_num"],
+                    attribute_name=messages[message_key]["attribute_name"],
+                    error_message=messages[message_key]["error_message"],
+                    invalid_entry=messages[message_key]["invalid_entry"],
+                    dmge=dmge,
+                )[0] in errors
+
+            message_key = "bulk_rnaseq_cbr_error_2"
+            expected_error = GenerateError.generate_schema_error(
+                    row_num=messages[message_key]["row_num"],
+                    attribute_name=messages[message_key]["attribute_name"],
+                    error_message=messages[message_key]["error_message"],
+                    invalid_entry=messages[message_key]["invalid_entry"],
+                    dmge=dmge,
+                )[0]
+
+            # since the valid value order isnt set in error reporting, check a portion of the expected output
+            # Check the error row is expected
+            assert expected_error[1] in errors[1]
+            # Check that one of the values for the expected valid values is present
+            # Extract a valid value
+            valid_value = expected_error[2].split(',')[-1].split(']')[0].strip(' ').strip("\'")
+            assert  valid_value in errors[1][2]
+            assert warnings==[]
+
+
     @pytest.mark.parametrize(
         "manifest_path",
         [
@@ -553,23 +740,21 @@ class TestManifestValidation:
             restrict_rules=False,
             project_scope=None,
         )
-        try:
-            if root_node == "Biospecimen":
-                assert (
-                    vmr_errors
-                    and vmr_errors[0][0] == ["2", "3"]
-                    and vmr_errors[0][-1] == ["123"]
-                )
-                assert vmr_warnings == []
-            elif root_node == "Patient":
-                assert vmr_errors == []
-                assert (
-                    vmr_warnings
-                    and vmr_warnings[0][0] == ["2", "3"]
-                    and vmr_warnings[0][-1] == ["123"]
-                )
-        except:
-            breakpoint()
+
+        if root_node == "Biospecimen":
+            assert (
+                vmr_errors
+                and vmr_errors[0][0] == ["2", "3"]
+                and vmr_errors[0][-1] == ["123"]
+            )
+            assert vmr_warnings == []
+        elif root_node == "Patient":
+            assert vmr_errors == []
+            assert (
+                vmr_warnings
+                and vmr_warnings[0][0] == ["2", "3"]
+                and vmr_warnings[0][-1] == ["123"]
+            )
 
 
     @pytest.mark.rule_combos(
