@@ -1345,7 +1345,9 @@ class SynapseStorage(BaseStorage):
         # columns with special characters are outside of the schema
         metadataSyn = {}
         blacklist_chars = ["(", ")", ".", " ", "-"]
-
+        truncate_message = "[truncatedByDataCuratorApp]"
+        max_length = 500
+    
         for k, v in row.to_dict().items():
             if annotation_keys == "display_label":
                 keySyn = str(k).translate({ord(x): "" for x in blacklist_chars})
