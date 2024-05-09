@@ -1382,15 +1382,6 @@ class SynapseStorage(BaseStorage):
                 ):
                     annos[anno_k] = anno_v.split(",")
                 else:
-                    
-                        # truncate annotation values to 500 characters if the
-                        # size of values is greater than equal to 500 characters
-                        # add an explicit [truncatedByDataCuratorApp] message at the end
-                        # of every truncated message to indicate that the cell value
-                        # has been truncated
-                    if isinstance(anno_v, str) and len(anno_v) >= 500:
-                        anno_v = anno_v[0:472] + "[truncatedByDataCuratorApp]"
-                        
                     annos[anno_k] = anno_v
 
         return annos
