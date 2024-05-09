@@ -132,42 +132,17 @@ def synapse_store(request):
 # end of the test
 
 @pytest.fixture(scope="function")
-def test_bulkrnaseq(helpers: Helpers) -> Generator[str, None, None]:
-    """create temporary copy of test_BulkRNAseq.csv
-    This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file
-    After test, the copied file is removed.
-    Args:
-        helpers (Helpers): Helpers fixture
-
-    Yields:
-        Generator[Path, None, None]: temporary file path of the copied version test_BulkRNAseq.csv
-    """
-    # original bulkrnaseq csv
-    original_test_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
+def temporary_file_copy(request, helpers: Helpers) -> Generator[str, None, None]:
+    file_name = request.param
+    # original file copy
+    original_test_path = helpers.get_data_path(f"mock_manifests/{file_name}")
+    # get filename without extension
+    file_name_no_extension=file_name.split(".")[0]
     # Copy the original CSV file to a temporary directory
-    temp_csv_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq2.csv")
+    temp_csv_path = helpers.get_data_path(f"mock_manifests/{file_name_no_extension}_copy.csv")
+    
     shutil.copyfile(original_test_path, temp_csv_path)
     yield temp_csv_path
     # Teardown
-    if os.path.exists(temp_csv_path):
-        os.remove(temp_csv_path)
-
-
-@pytest.fixture(scope="function")
-def test_annotations_manifest(helpers: Helpers) -> Generator[str, None, None]:
-    """
-    Create temporary copy of annotations_test_manifest.csv
-    This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file
-    After test, the copied file is removed.
-    Args:
-        helpers (Helpers): Helpers fixture
-
-    Yields:
-        Generator[Path, None, None]: temporary file path of the copied manifest
-    """
-    original_test_path = helpers.get_data_path("mock_manifests/annotations_test_manifest.csv")
-    temp_csv_path = helpers.get_data_path("mock_manifests/annotations_test_manifest2.csv")
-    shutil.copyfile(original_test_path, temp_csv_path)
-    yield temp_csv_path
     if os.path.exists(temp_csv_path):
         os.remove(temp_csv_path)
