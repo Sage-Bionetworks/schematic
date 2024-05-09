@@ -1377,7 +1377,7 @@ class SynapseStorage(BaseStorage):
                           # Split the string, apply truncation if necessary, then reassign
                           elements = anno_v.split(',')
                           truncated_elements = [element if len(element) <= max_length else element[:max_length - len(truncate_message)] + truncate_message for element in elements]
-                         annos[anno_k] = truncated_elements
+                          annos[anno_k] = truncated_elements
                 else:
                     # General case for truncating long strings
                     if isinstance(anno_v, str) and len(anno_v) >= max_length:
