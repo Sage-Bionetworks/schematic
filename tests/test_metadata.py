@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Optional
+from typing import Optional, Generator
 from pathlib import Path
 from unittest.mock import patch
 
@@ -109,9 +109,10 @@ class TestMetadataModel:
         ids=["data_model_labels-display_label", "data_model_labels-class_label"],
     )
     @pytest.mark.parametrize("validate_component", [None, "BulkRNA-seqAssay"])
+    @pytest.mark.parametrize("temporary_file_copy", ["test_BulkRNAseq.csv"], indirect=True)
     def test_submit_metadata_manifest(
         self,
-        test_bulkrnaseq: Path,
+        temporary_file_copy: Generator[str, None, None], 
         helpers: Helpers,
         file_annotations_upload: bool,
         restrict_rules: bool,
@@ -128,7 +129,7 @@ class TestMetadataModel:
                 "schematic.store.synapse.SynapseStorage.associateMetadataWithFiles",
                 return_value="mock manifest id",
             ):
-                mock_manifest_path = test_bulkrnaseq
+                mock_manifest_path = temporary_file_copy
                 data_model_jsonld = helpers.get_data_path("example.model.jsonld")
                 mock_manifest_id = meta_data_model.submit_metadata_manifest(
                     manifest_path=mock_manifest_path,
