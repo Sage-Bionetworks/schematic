@@ -1358,14 +1358,6 @@ class SynapseStorage(BaseStorage):
             if keySyn in ["Filename", "ETag", "eTag"]:
                 continue
 
-            # truncate annotation values to 500 characters if the
-            # size of values is greater than equal to 500 characters
-            # add an explicit [truncatedByDataCuratorApp] message at the end
-            # of every truncated message to indicate that the cell value
-            # has been truncated
-            if isinstance(v, str) and len(v) >= 500:
-                v = v[0:472] + "[truncatedByDataCuratorApp]"
-
             metadataSyn[keySyn] = v
         # set annotation(s) for the various objects/items in a dataset on Synapse
         annos = self.syn.get_annotations(entityId)
