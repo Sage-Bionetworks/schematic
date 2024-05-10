@@ -1,6 +1,7 @@
+"""Tests for Metadata class"""
+
 import logging
 import os
-import shutil
 from typing import Optional, Generator
 from pathlib import Path
 from unittest.mock import patch
@@ -22,28 +23,6 @@ def metadata_model(helpers, data_model_labels):
     )
 
     return metadata_model
-
-
-@pytest.fixture
-def test_bulkrnaseq(helpers: Helpers) -> Generator[Path, None, None]:
-    """create temporary copy of test_BulkRNAseq.csv
-    This fixture creates a temporary copy of the original 'test_BulkRNAseq.csv' file
-    After test, the copied file is removed.
-    Args:
-        helpers (Helpers): Helpers fixture
-
-    Yields:
-        Generator[Path, None, None]: temporary file path of the copied version test_BulkRNAseq.csv
-    """
-    # original bulkrnaseq csv
-    original_test_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
-    # Copy the original CSV file to a temporary directory
-    temp_csv_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq2.csv")
-    shutil.copyfile(original_test_path, temp_csv_path)
-    yield temp_csv_path
-    # Teardown
-    if os.path.exists(temp_csv_path):
-        os.remove(temp_csv_path)
 
 
 class TestMetadataModel:
@@ -130,9 +109,10 @@ class TestMetadataModel:
         ids=["data_model_labels-display_label", "data_model_labels-class_label"],
     )
     @pytest.mark.parametrize("validate_component", [None, "BulkRNA-seqAssay"])
+    @pytest.mark.parametrize("temporary_file_copy", ["test_BulkRNAseq.csv"], indirect=True)
     def test_submit_metadata_manifest(
         self,
-        test_bulkrnaseq: Path,
+        temporary_file_copy: Generator[str, None, None], 
         helpers: Helpers,
         file_annotations_upload: bool,
         restrict_rules: bool,
@@ -149,7 +129,8 @@ class TestMetadataModel:
                 "schematic.store.synapse.SynapseStorage.associateMetadataWithFiles",
                 return_value="mock manifest id",
             ):
-                mock_manifest_path = test_bulkrnaseq
+                mock_manifest_path = temporary_file_copy
+
                 mock_manifest_id = meta_data_model.submit_metadata_manifest(
                     manifest_path=mock_manifest_path,
                     validate_component=validate_component,
