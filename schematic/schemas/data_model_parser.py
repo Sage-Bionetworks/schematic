@@ -13,8 +13,11 @@ from schematic.utils.schema_utils import attr_dict_template
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 from schematic import LOADER
+from opentelemetry import trace
 
-logger = logging.getLogger("Synapse storage")
+logger = logging.getLogger("Schemas")
+
+tracer = trace.get_tracer("Schemas::DataModelParser")
 
 
 class DataModelParser:
@@ -84,6 +87,7 @@ class DataModelParser:
         base_model = jsonld_parser.parse_jsonld_model(base_model_path)
         return base_model
 
+    @tracer.start_as_current_span("DataModelParser::parse_model")
     def parse_model(self) -> dict[str, dict[str, Any]]:
         """Given a data model type, instantiate and call the appropriate data model parser.
         Returns:
@@ -230,6 +234,7 @@ class DataModelCSVParser:
                     )
         return attr_rel_dictionary
 
+    @tracer.start_as_current_span("Schemas::DataModelCSVParser::parse_csv_model")
     def parse_csv_model(
         self,
         path_to_data_model: str,
@@ -527,6 +532,7 @@ class DataModelJSONLDParser:
                         )
         return attr_rel_dictionary
 
+    @tracer.start_as_current_span("Schemas::DataModelJSONLDParser::parse_jsonld_model")
     def parse_jsonld_model(
         self,
         path_to_data_model: str,
