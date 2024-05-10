@@ -438,7 +438,7 @@ class TestDataModelGraph:
             )
         assert expected_valid_values == [
             k
-            for k, v in graph["CheckList"].items()
+            for k, v in graph["CheckListEnum"].items()
             for vk, vv in v.items()
             if vk == "rangeValue"
         ]
@@ -447,9 +447,9 @@ class TestDataModelGraph:
 
         # Check that all relationships recorded between 'CheckList' and 'Ab' are present
         assert (
-            "rangeValue" and "parentOf" in graph["CheckList"][expected_valid_values[0]]
+            "rangeValue" and "parentOf" in graph["CheckListEnum"][expected_valid_values[0]]
         )
-        assert "requiresDependency" not in graph["CheckList"][expected_valid_values[0]]
+        assert "requiresDependency" not in graph["CheckListEnum"][expected_valid_values[0]]
 
         # Check nodes:
         assert "Patient" in graph.nodes
@@ -457,9 +457,10 @@ class TestDataModelGraph:
 
         # Check weights
         assert graph["Sex"]["Female"]["rangeValue"]["weight"] == 0
+
         assert (
             graph["MockComponent"]["CheckRegexFormat"]["requiresDependency"]["weight"]
-            == 4
+            == 11
         )
 
         # Check Edge directions

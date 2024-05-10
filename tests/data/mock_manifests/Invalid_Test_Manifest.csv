@@ -1,5 +1,5 @@
-Component,Check List,Check Regex List,Check Regex Single,Check Regex Format,Check Regex Integer,Check Num,Check Float,Check Int,Check String,Check URL,Check Match at Least,Check Match at Least values,Check Match Exactly,Check Match Exactly values,Check Match None,Check Match None values,Check Recommended,Check Ages,Check Unique,Check Range,Check Date,Check NA
-MockComponent,"ab,cd","ab,cd,ef",a,a,5.4,6,99.65,7,valid,https://www.google.com/,1738,1738,8085,98085,1911,334,,6549,str1,70,32-984,7
-MockComponent,invalid list values,ab cd ef,q,m,0,c,99,5.63,94,http://googlef.com/,7163,51100,9965,71738,123,717,,32851,str1,30,notADate,9.5
-MockComponent,"ab,cd","ab,cd,ef",b,b,683902,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,8085,8085,1738,210065,1427,123,,6550,str1,90,84-43-094,Not Applicable
-,,,,,,,,,,,,,,,,,,,,,
+Component,Check List,Check List Enum,Check List Like,Check List Like Enum,Check List Strict,Check List Enum Strict,Check Regex List,Check Regex List Like,Check Regex List Strict,Check List,Check Regex List,Check Regex Single,Check Regex Format,Check Regex Integer,Check Num,Check Float,Check Int,Check String,Check URL,Check Match at Least,Check Match at Least values,Check Match Exactly,Check Match Exactly values,Check Match None,Check Match None values,Check Recommended,Check Ages,Check Unique,Check Range,Check Date,Check NA
+MockComponent,"ab,cd","ab,cd",ab,ab,"ab,cd","ab,cd","a,c,f","a,c,f","a,c,f","ab,cd","ab,cd,ef",a,a,5.4,6,99.65,7,valid,https://www.google.com/,1738,1738,8085,98085,1911,334,,6549,str1,70,32-984,7
+MockComponent,9,a,c,c,ab cd,ab,a c f,a c f,a c f,invalid list values,ab cd ef,q,m,0,c,99,5.63,94,http://googlef.com/,7163,51100,9965,71738,123,717,,32851,str1,30,notADate,9.5
+MockComponent,ab,ab,"cd, ab","cd, ab",ab,"a, b",a,a,a,"ab,cd","ab,cd,ef",b,b,683902,6.5,62.3,2,valid,https://github.com/Sage-Bionetworks/schematic,8085,8085,1738,210065,1427,123,,6550,str1,90,84-43-094,Not Applicable
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
