@@ -3,10 +3,12 @@
 import json
 import logging
 import copy
+from typing import Union
+
 from dataclasses import dataclass, field
 from dataclasses_json import config, dataclass_json
 
-import networkx as nx
+import networkx as nx  # type: ignore
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
@@ -125,17 +127,17 @@ class DataModelJsonLD:
         # Gather the templates
         base_template = BaseTemplate()
         self.base_jsonld_template = json.loads(
-            base_template.to_json()  # pylint:disable=no-member
+            base_template.to_json()  # type: ignore # pylint:disable=no-member
         )
 
         property_template = PropertyTemplate()
         self.property_template = json.loads(
-            property_template.to_json()  # pylint:disable=no-member
+            property_template.to_json()  # type: ignore # pylint:disable=no-member
         )
 
         class_template = ClassTemplate()
         self.class_template = json.loads(
-            class_template.to_json()  # pylint:disable=no-member
+            class_template.to_json()  # type: ignore # pylint:disable=no-member
         )
 
     def get_edges_associated_with_node(
@@ -177,9 +179,9 @@ class DataModelJsonLD:
                     node_edges.append((node, node_2, edge_dict[edge_key]))
         return node_edges
 
-    def add_edge_rels_to_template(
+    def add_edge_rels_to_template(  # pylint:disable=too-many-branches
         self, template: dict, rel_vals: dict, node: str
-    ):  # pylint:disable=too-many-branches
+    ) -> dict:
         """
         Args:
             template, dict: single class or property JSONLD template that is in the process of being
@@ -271,7 +273,9 @@ class DataModelJsonLD:
                                         )
         return template
 
-    def add_node_info_to_template(self, template, rel_vals, node):
+    def add_node_info_to_template(
+        self, template: dict, rel_vals: dict, node: str
+    ) -> dict:
         """For a given node and relationship, add relevant value to template
         Args:
             template, dict: single class or property JSONLD template that is in the process
@@ -473,7 +477,9 @@ class DataModelJsonLD:
                     )
 
                 edge_weights_dict = {edge: i for i, edge in enumerate(sorted_edges)}
-                ordered_edges = [0] * len(edge_weights_dict.keys())
+                ordered_edges: list[Union[int, dict]] = [0] * len(
+                    edge_weights_dict.keys()
+                )
                 for edge, normalized_weight in edge_weights_dict.items():
                     ordered_edges[normalized_weight] = {"@id": "bts:" + edge}
 
@@ -488,7 +494,7 @@ class DataModelJsonLD:
                 template[jsonld_key] = ordered_edges
         return template
 
-    def generate_jsonld_object(self):
+    def generate_jsonld_object(self) -> dict:
         """Create the JSONLD object.
         Returns:
             jsonld_object, dict: JSONLD object containing all nodes and related information
@@ -513,7 +519,7 @@ class DataModelJsonLD:
         return json_ld_template
 
 
-def convert_graph_to_jsonld(graph):
+def convert_graph_to_jsonld(graph: nx.MultiDiGraph) -> dict:
     """convert graph to jsonld"""
     # Make the JSONLD object
     data_model_jsonld_converter = DataModelJsonLD(graph=graph)

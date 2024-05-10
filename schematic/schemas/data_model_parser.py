@@ -119,7 +119,7 @@ class DataModelParser:
 class DataModelCSVParser:
     """DataModelCSVParser"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Instantiate DataModelRelationships
         self.dmr = DataModelRelationships()
         # Load relationships dictionary.
@@ -233,7 +233,7 @@ class DataModelCSVParser:
     def parse_csv_model(
         self,
         path_to_data_model: str,
-    ):
+    ) -> dict[str, dict[str, Any]]:
         """Load csv data model and parse into an attributes:relationships dictionary
         Args:
             path_to_data_model, str: path to data model
@@ -256,7 +256,7 @@ class DataModelJSONLDParser:
 
     def __init__(
         self,
-    ):
+    ) -> None:
         # Instantiate DataModelRelationships
         self.dmr = DataModelRelationships()
         # Load relationships dictionary.
@@ -283,7 +283,7 @@ class DataModelJSONLDParser:
 
         # Retrieve ID from a dictionary recording the ID
         if set(rel_entry.keys()) == {"@id"}:
-            parsed_rel_entry = rel_entry["@id"]
+            parsed_rel_entry: Union[str, dict[str, str]] = rel_entry["@id"]
         # Parse any remaining dictionaries
         else:
             parsed_rel_entry = rel_entry
@@ -309,7 +309,7 @@ class DataModelJSONLDParser:
         """
         # Parse dictionary entries
         if isinstance(rel_entry, dict):
-            parsed_rel_entry = self.parse_jsonld_dicts(rel_entry)
+            parsed_rel_entry: Any = self.parse_jsonld_dicts(rel_entry)
 
         # Parse list of dictionaries to make a list of entries with context stripped (will update
         # this section when contexts added.)
@@ -338,7 +338,7 @@ class DataModelJSONLDParser:
 
         return parsed_rel_entry
 
-    def label_to_dn_dict(self, model_jsonld: list[dict]):
+    def label_to_dn_dict(self, model_jsonld: list[dict]) -> dict:
         """
         Generate a dictionary of labels to display name, so can easily look up
           display names using the label.
@@ -358,7 +358,7 @@ class DataModelJSONLDParser:
 
     def convert_entry_to_dn_label(
         self, parsed_rel_entry: Union[str, list], model_jsonld: list[dict]
-    ) -> Union[str, list]:
+    ) -> Union[str, list, None]:
         """Convert a parsed entry to display name, taking into account the entry type
         Args:
             parsed_rel_entry: an entry that has been parsed base on its input type
@@ -372,15 +372,17 @@ class DataModelJSONLDParser:
         dn_label_dict = self.label_to_dn_dict(model_jsonld=model_jsonld)
         # Handle if using the display name as the label
         if isinstance(parsed_rel_entry, list):
-            parsed_rel_entry = [
+            dn_label: Union[str, list, None] = [
                 dn_label_dict.get(entry) if dn_label_dict.get(entry) else entry
                 for entry in parsed_rel_entry
             ]
         elif isinstance(parsed_rel_entry, str):
             converted_label = dn_label_dict.get(parsed_rel_entry)
             if converted_label:
-                parsed_rel_entry = dn_label_dict.get(parsed_rel_entry)
-        return parsed_rel_entry
+                dn_label = dn_label_dict.get(parsed_rel_entry)
+            else:
+                dn_label = parsed_rel_entry
+        return dn_label
 
     def gather_jsonld_attributes_relationships(self, model_jsonld: list[dict]) -> dict:
         """
@@ -460,7 +462,7 @@ class DataModelJSONLDParser:
                             for parsed_val in parsed_rel_entry:
                                 attr_in_dict = False
                                 # Get propert/parent key (displayName)
-                                p_attr_key = ""
+                                p_attr_key: Any = ""
                                 # Check if the parsed value is already a part of the
                                 # attr_rel_dictionary
                                 for attr_dn in attr_rel_dictionary:
@@ -530,7 +532,7 @@ class DataModelJSONLDParser:
     def parse_jsonld_model(
         self,
         path_to_data_model: str,
-    ):
+    ) -> dict:
         """Convert raw JSONLD data model to attributes relationship dictionary.
         Args:
             path_to_data_model: str, path to JSONLD data model
