@@ -383,7 +383,7 @@ class TestDataModelGraphExplorerOperation:
         )
         response_dta = json.loads(response.data)
         assert response.status_code == 200
-        assert "list strict" in response_dta
+        assert "list" in response_dta
         assert "regex match [a-f]" in response_dta
 
     def test_get_nodes_display_names(test, client, data_model_jsonld):

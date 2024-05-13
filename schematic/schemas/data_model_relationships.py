@@ -192,7 +192,7 @@ class DataModelRelationships:
 
         return map_data_model_relationships
 
-    def define_required_csv_headers(self):
+    def define_required_csv_headers(self) -> list:
         """
         Helper function to retrieve required CSV headers, alert if required header was
           not provided.

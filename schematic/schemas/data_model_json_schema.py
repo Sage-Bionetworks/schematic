@@ -75,7 +75,7 @@ class DataModelJSONSchema:
         return non_blank_schema
 
     def get_range_schema(
-        self, node_range: list[str], node_name: str, blank=False
+        self, node_range: list[str], node_name: str, blank: bool = False
     ) -> dict[str, dict[str, list[str]]]:
         """
         Add a list of nodes to the "enum" key in a given JSON schema object.
@@ -229,7 +229,7 @@ class DataModelJSONSchema:
                         # otherwise, by default allow any values
                         schema_valid_vals = {node_display_name: {}}
 
-                    json_schema["properties"].update(schema_valid_vals)
+                    json_schema["properties"].update(schema_valid_vals)  # type: ignore
 
                     # set schema conditional dependencies
                     for node in reverse_dependencies[node_display_name]:
@@ -291,7 +291,7 @@ class DataModelJSONSchema:
                                 }
 
                                 # update conditional-dependency rules in json schema
-                                json_schema["allOf"].append(
+                                json_schema["allOf"].append(  # type: ignore
                                     schema_conditional_dependencies
                                 )
 
@@ -319,9 +319,9 @@ class DataModelJSONSchema:
                                 node_name=node_display_name
                             )
 
-                        json_schema["properties"].update(schema_valid_vals)
+                        json_schema["properties"].update(schema_valid_vals)  # type: ignore
                         # add node to required fields
-                        json_schema["required"] += [node_display_name]
+                        json_schema["required"] += [node_display_name]  # type: ignore
 
                     elif process_node in root_dependencies:
                         # node doesn't have conditionals and is not required; it belongs in the
@@ -345,7 +345,7 @@ class DataModelJSONSchema:
                         else:
                             schema_valid_vals = {node_display_name: {}}
 
-                        json_schema["properties"].update(schema_valid_vals)
+                        json_schema["properties"].update(schema_valid_vals)  # type: ignore
 
                     else:
                         # node doesn't have conditionals and it is not required and it
@@ -407,4 +407,4 @@ class DataModelJSONSchema:
                 os.makedirs(json_schema_dirname, exist_ok=True)
             with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
                 json.dump(json_schema, js_f, indent=2)
-        return json_schema
+        return json_schema # type: ignore

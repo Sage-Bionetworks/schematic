@@ -101,7 +101,7 @@ jobs:
           # add here when checked
           # poetry run mypy --install-types --non-interactive
           # add here when enforced
-          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/configuration/*.py schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
+          poetry run mypy --disallow-untyped-defs --install-types --non-interactive schematic/schemas/ schematic/configuration/ schematic/exceptions.py schematic/help.py schematic/loader.py schematic/version.py schematic/visualization schematic/utils/
 
       #----------------------------------------------
       #             linting
