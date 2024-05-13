@@ -44,21 +44,37 @@ from schematic.utils.schema_utils import get_property_label_from_display_name, D
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 trace.set_tracer_provider(
     TracerProvider(
-        resource=Resource(attributes={SERVICE_NAME: "schematic"})
+        resource=Resource(attributes={SERVICE_NAME: "schematic-api"})
     )
 )
-trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
-tracer = trace.get_tracer("schematic-api")
 
+
+class FileSpanExporter(ConsoleSpanExporter):
+    """Create an exporter for OTEL data to a file."""
+
+    def __init__(self, file_path) -> None:
+        """Init with a path."""
+        self.file_path = file_path
+
+    def export(self, spans) -> None:
+        """Export the spans to the file."""
+        with open(self.file_path, "a", encoding="utf-8") as f:
+            for span in spans:
+                span_json_one_line = span.to_json().replace("\n", "") + "\n"
+                f.write(span_json_one_line)
+
+trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+processor = SimpleSpanProcessor(FileSpanExporter("otel_spans_schemati_api.json"))
+trace.get_tracer_provider().add_span_processor(processor)
+tracer = trace.get_tracer("schematic-api")
 
 def trace_function_params():
     def decorator(func):
