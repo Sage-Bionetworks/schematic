@@ -407,4 +407,4 @@ class DataModelJSONSchema:
                 os.makedirs(json_schema_dirname, exist_ok=True)
             with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
                 json.dump(json_schema, js_f, indent=2)
-        return json_schema # type: ignore
+        return json_schema  # type: ignore
