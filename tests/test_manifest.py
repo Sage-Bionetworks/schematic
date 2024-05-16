@@ -692,3 +692,25 @@ class TestManifestGenerator:
             all_results = simple_manifest_generator.create_manifests(path_to_data_model=json_ld_path, data_types=test_data_types, dataset_ids=dataset_ids, output_format="google_sheet", use_annotations=False, data_model_labels='class_label')
             assert all_results == expected_result
     
+
+class TestManifestGenerator2: #pylint:disable=too-few-public-methods
+    """This is for testing the data model that has database specific columns"""
+    def test_get_empty_manifest(self):
+        """Tests the creation of the object"""
+        data_model_parser = DataModelParser(
+            path_to_data_model="tests/data/database_model.csv",
+        )
+        parsed_data_model = data_model_parser.parse_model()
+        data_model_graph = DataModelGraph(parsed_data_model)
+        graph_data_model = data_model_graph.graph
+
+
+        generator = ManifestGenerator(
+            graph=graph_data_model,
+            title="mock_title",
+            path_to_data_model="tests/data/database_model.csv",
+            root="Patient",
+        )
+
+        link = generator.get_empty_manifest(strict=True)
+        assert link
