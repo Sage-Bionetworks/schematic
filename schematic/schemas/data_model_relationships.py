@@ -201,7 +201,7 @@ class DataModelRelationships:
                     "default": "id",
                     "standard": "id",
                 },
-            }
+            },
         }
 
         return map_data_model_relationships
@@ -241,16 +241,18 @@ class DataModelRelationships:
         headers = []
         for header_name, header_dict in self.relationships_dictionary.items():
             if "required_header" not in header_dict:
-                raise ValueError (
+                raise ValueError(
                     "Did not provide a 'required_header' key, value pair for the "
                     f"nested dictionary {header_name} : {header_dict}"
                 )
             if "csv_header" not in header_dict:
-                raise ValueError (
+                raise ValueError(
                     "Did not provide a 'csv_header' key, value pair for the "
                     f"nested dictionary {header_name} : {header_dict}"
                 )
-            if not header_dict["required_header"] and isinstance(header_dict["csv_header"], str):
+            if not header_dict["required_header"] and isinstance(
+                header_dict["csv_header"], str
+            ):
                 headers.append(header_dict["csv_header"])
 
         return headers

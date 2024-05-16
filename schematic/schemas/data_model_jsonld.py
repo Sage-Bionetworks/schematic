@@ -361,14 +361,14 @@ class DataModelJsonLD:
         # pylint:disable=comparison-with-callable
         for jsonld_key in template.keys():
             # Retrieve the relationships key using the jsonld_key
-            rel_key = []
+            rel_key_list: list[str] = []
 
             for rel, rel_vals in self.rel_dict.items():
                 if "jsonld_key" in rel_vals and jsonld_key == rel_vals["jsonld_key"]:
-                    rel_key.append(rel)
+                    rel_key_list.append(rel)
 
-            if rel_key:
-                rel_key = rel_key[0]
+            if rel_key_list:
+                rel_key = rel_key_list[0]
                 # If the current relationship can be defined with a 'node_attr_dict'
                 if "node_attr_dict" in self.rel_dict[rel_key].keys():
                     try:

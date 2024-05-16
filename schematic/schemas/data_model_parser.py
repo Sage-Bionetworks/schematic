@@ -217,7 +217,6 @@ class DataModelCSVParser:
         # get attributes from Attribute column
         attributes = model_df[headers].to_dict("records")
 
-        
         # Build attribute/relationship dictionary
         relationship_types = self.required_headers
         attr_rel_dictionary = {}
