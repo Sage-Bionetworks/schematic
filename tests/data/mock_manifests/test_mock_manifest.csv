@@ -1,4 +1,0 @@
-Filename,Sample ID,File Format,Component,Genome Build,Genome FASTA,Id,entityId
-Test sub folder/sample_file_one.txt,1,BAM,BulkRNA-seqAssay,GRCh37,,mock1,syn1224
-Test sub folder/sample_file_three.txt,2,BAM,BulkRNA-seqAssay,GRCh37,,mock2,syn1225
-Test sub folder/sample_file_two.txt,3,BAM,BulkRNA-seqAssay,GRCh37,,mock3,syn1226
