@@ -937,3 +937,25 @@ class DataModelGraphExplorer:  # pylint: disable=too-many-public-methods
                     edges.append((_path[i], _path[i + 1]))
             return visualize(edges, size=size)
         return None
+
+    def is_node_primary_key(
+        self, node_label: Optional[str] = None, node_display_name: Optional[str] = None
+    ) -> bool:
+        """
+        Check if a given node is listed as the primary key.
+        This is used for building a database with this data model.
+
+        Args:
+            node_label: Label of the node for which you need to look up.
+            node_display_name: Display name of the node for which you want look up.
+        Returns:
+            True: If the given node is a "required" node.
+            False: If the given node is not a "required" (i.e., an "optional") node.
+        """
+        if not node_label:
+            assert node_display_name is not None
+            node_label = self.get_node_label(node_display_name)
+
+        rel_node_label = self.rel_dict["primaryKey"]["node_label"]
+        node_required = self.graph.nodes[node_label][rel_node_label]
+        return node_required

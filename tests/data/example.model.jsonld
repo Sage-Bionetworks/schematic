@@ -21,6 +21,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Component",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -38,6 +39,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Patient",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -72,6 +74,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Patient ID",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": {
                 "Biospecimen": "unique error",
@@ -103,6 +106,7 @@
                 }
             ],
             "sms:displayName": "Sex",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -120,6 +124,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Year of Birth",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -145,6 +150,7 @@
                 }
             ],
             "sms:displayName": "Diagnosis",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -162,6 +168,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "DataType",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -179,6 +186,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "DataProperty",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -196,6 +204,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Female",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -213,6 +222,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Male",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -230,6 +240,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Other",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -250,6 +261,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Healthy",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -270,6 +282,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Cancer",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -312,6 +325,7 @@
                 }
             ],
             "sms:displayName": "Cancer Type",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -346,6 +360,7 @@
                 }
             ],
             "sms:displayName": "Family History",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list strict"
@@ -365,6 +380,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "ValidValue",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -385,6 +401,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Breast",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -405,6 +422,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Colorectal",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -425,6 +443,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Lung",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -445,6 +464,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Prostate",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -465,6 +485,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Skin",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -482,6 +503,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Biospecimen",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
@@ -518,6 +540,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Sample ID",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -543,6 +566,7 @@
                 }
             ],
             "sms:displayName": "Tissue Status",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -560,6 +584,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Malignant",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -577,6 +602,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Bulk RNA-seq Assay",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresComponent": [
                 {
@@ -613,6 +639,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Filename",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -644,6 +671,7 @@
                 }
             ],
             "sms:displayName": "File Format",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -661,6 +689,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "FASTQ",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -681,6 +710,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "BAM",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -706,6 +736,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "CRAM",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -734,6 +765,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "CSV/TSV",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -770,6 +802,7 @@
                 }
             ],
             "sms:displayName": "Genome Build",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -787,6 +820,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Genome FASTA",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         },
@@ -804,6 +838,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "GRCh37",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -821,6 +856,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "GRCh38",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -838,6 +874,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "GRCm38",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -855,6 +892,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "GRCm39",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -872,6 +910,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "MockComponent",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -981,6 +1020,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check List",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list"
@@ -1014,6 +1054,7 @@
                 }
             ],
             "sms:displayName": "Check List Enum",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list"
@@ -1033,6 +1074,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check List Like",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list like"
@@ -1066,6 +1108,7 @@
                 }
             ],
             "sms:displayName": "Check List Like Enum",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list like"
@@ -1085,6 +1128,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check List Strict",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list strict"
@@ -1118,6 +1162,7 @@
                 }
             ],
             "sms:displayName": "Check List Enum Strict",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list strict"
@@ -1137,6 +1182,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex List",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list",
@@ -1157,6 +1203,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex List Like",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list like",
@@ -1177,6 +1224,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex List Strict",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "list strict",
@@ -1197,6 +1245,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex Single",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "regex search [a-f]"
@@ -1216,6 +1265,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex Format",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "regex match [a-f]"
@@ -1235,6 +1285,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Regex Integer",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "regex search ^\\d+$"
@@ -1254,6 +1305,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Num",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "num"
@@ -1273,6 +1325,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Float",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "float"
@@ -1292,6 +1345,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Int",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "int"
@@ -1311,6 +1365,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check String",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "str"
@@ -1330,6 +1385,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check URL",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "url"
@@ -1349,6 +1405,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match at Least",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "matchAtLeastOne Patient.PatientID set"
@@ -1368,6 +1425,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match at Least values",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "matchAtLeastOne MockComponent.checkMatchatLeastvalues value"
@@ -1387,6 +1445,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match Exactly",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "matchExactlyOne MockComponent.checkMatchExactly set"
@@ -1406,6 +1465,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match Exactly values",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "matchExactlyOne MockComponent.checkMatchExactlyvalues value"
@@ -1425,6 +1485,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match None",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "matchNone MockComponent.checkMatchNone set error"
@@ -1444,6 +1505,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Match None values",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "matchNone MockComponent.checkMatchNonevalues value error"
@@ -1463,6 +1525,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Recommended",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": [
                 "recommended"
@@ -1482,6 +1545,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Ages",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "protectAges"
@@ -1501,6 +1565,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Unique",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "unique error"
@@ -1520,6 +1585,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Range",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "inRange 50 100 error"
@@ -1539,6 +1605,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check Date",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "date"
@@ -1558,6 +1625,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "Check NA",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "int",
@@ -1584,6 +1652,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "ab",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -1607,6 +1676,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "cd",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -1630,6 +1700,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "ef",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -1653,6 +1724,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "gh",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:validationRules": []
         },
@@ -1670,6 +1742,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "MockRDB",
+            "sms:primaryKey": "id",
             "sms:required": "sms:false",
             "sms:requiresDependency": [
                 {
@@ -1698,6 +1771,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "MockRDB_id",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": [
                 "int"
@@ -1717,6 +1791,7 @@
                 "@id": "http://schema.biothings.io"
             },
             "sms:displayName": "SourceManifest",
+            "sms:primaryKey": "id",
             "sms:required": "sms:true",
             "sms:validationRules": []
         }

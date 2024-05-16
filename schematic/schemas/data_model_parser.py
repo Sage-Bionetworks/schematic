@@ -130,6 +130,7 @@ class DataModelCSVParser:
         )
         # Load required csv headers
         self.required_headers = self.dmr.define_required_csv_headers()
+        self.optional_headers = self.dmr.define_optional_csv_headers()
         # Get the type for each value that needs to be submitted.
         # using csv_headers as keys to match required_headers/relationship_types
         self.rel_val_types = {
@@ -208,9 +209,15 @@ class DataModelCSVParser:
         # Check csv schema follows expectations.
         self.check_schema_definition(model_df)
 
-        # get attributes from Attribute column
-        attributes = model_df[list(self.required_headers)].to_dict("records")
+        headers = self.required_headers
+        for header in self.optional_headers:
+            if header in model_df.columns:
+                headers.append(header)
 
+        # get attributes from Attribute column
+        attributes = model_df[headers].to_dict("records")
+
+        
         # Build attribute/relationship dictionary
         relationship_types = self.required_headers
         attr_rel_dictionary = {}

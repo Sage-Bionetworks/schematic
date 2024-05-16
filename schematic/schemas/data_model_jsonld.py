@@ -32,6 +32,7 @@ class BaseTemplate:
 
     magic_context: dict[str, str] = field(
         default_factory=lambda: {
+            # "sms": "for things created at Sage Bionetworks"
             "bts": "http://schema.biothings.io/",
             "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
             "rdfs": "http://www.w3.org/2000/01/rdf-schema#",

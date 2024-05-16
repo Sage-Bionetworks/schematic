@@ -1,5 +1,7 @@
 """Data Model Relationships"""
 
+from typing import Any
+
 from schematic.utils.schema_utils import (
     get_label_from_display_name,
     get_attribute_display_name_from_label,
@@ -14,7 +16,7 @@ class DataModelRelationships:
     def __init__(self) -> None:
         self.relationships_dictionary = self.define_data_model_relationships()
 
-    def define_data_model_relationships(self) -> dict:
+    def define_data_model_relationships(self) -> dict[str, dict[str, Any]]:
         """Define the relationships and their attributes so they can be accessed
           through other classes.
         The key is how it the relationship will be referenced througout Schematic.
@@ -52,7 +54,7 @@ class DataModelRelationships:
         TODO:
             - Use class inheritance to set up
         """
-        map_data_model_relationships = {
+        map_data_model_relationships: dict[str, dict[str, Any]] = {
             "displayName": {
                 "jsonld_key": "sms:displayName",
                 "csv_header": "Attribute",
@@ -188,11 +190,23 @@ class DataModelRelationships:
                     "standard": get_label_from_display_name,
                 },
             },
+            "primaryKey": {
+                "jsonld_key": "sms:primaryKey",
+                "csv_header": "Primary Key",
+                "node_label": "primarykey",
+                "type": str,
+                "edge_rel": False,
+                "required_header": False,
+                "node_attr_dict": {
+                    "default": "id",
+                    "standard": "id",
+                },
+            }
         }
 
         return map_data_model_relationships
 
-    def define_required_csv_headers(self) -> list:
+    def define_required_csv_headers(self) -> list[str]:
         """
         Helper function to retrieve required CSV headers, alert if required header was
           not provided.
@@ -213,6 +227,33 @@ class DataModelRelationships:
                 )
 
         return required_headers
+
+    def define_optional_csv_headers(self) -> list[str]:
+        """Retrieves the optional CSV headers.
+
+        Raises:
+            ValueError: When 'required_header' isn't a key in the header dictionary
+            ValueError: When 'csv_header' isn't a key in the header dictionary
+
+        Returns:
+            list[Optional[str]]: A list of optional csv headers the data model has
+        """
+        headers = []
+        for header_name, header_dict in self.relationships_dictionary.items():
+            if "required_header" not in header_dict:
+                raise ValueError (
+                    "Did not provide a 'required_header' key, value pair for the "
+                    f"nested dictionary {header_name} : {header_dict}"
+                )
+            if "csv_header" not in header_dict:
+                raise ValueError (
+                    "Did not provide a 'csv_header' key, value pair for the "
+                    f"nested dictionary {header_name} : {header_dict}"
+                )
+            if not header_dict["required_header"] and isinstance(header_dict["csv_header"], str):
+                headers.append(header_dict["csv_header"])
+
+        return headers
 
     def retreive_rel_headers_dict(self, edge: bool) -> dict[str, str]:
         """

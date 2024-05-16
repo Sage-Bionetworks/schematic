@@ -1,13 +1,13 @@
 from copy import deepcopy
 import json
 import logging
-import networkx as nx
-import numpy as np
 import os
+import random
+
+import networkx as nx
 import pandas as pd
 import pytest
-import random
-from typing import Optional
+
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
@@ -24,10 +24,7 @@ from schematic.utils.schema_utils import (
 from schematic.utils.io_utils import load_json
 
 from schematic.schemas.data_model_graph import DataModelGraph
-from schematic.schemas.data_model_nodes import DataModelNodes
-from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.schemas.data_model_jsonld import (
     DataModelJsonLD,
     convert_graph_to_jsonld,
@@ -228,21 +225,26 @@ class TestDataModelParser:
         assert "Attribute" in attr_rel_dictionary[attribute_key]["Relationships"]
 
 
-@pytest.mark.parametrize("data_model", ["example.model.csv"], ids=["csv"])
 class TestDataModelCsvParser:
+    """Tests for DataModelCsvParser"""
     def test_check_schema_definition(
-        self, helpers, data_model: str, csv_parser: DataModelCSVParser
+        self, helpers, csv_parser: DataModelCSVParser
     ):
-        """If the csv schema contains the required headers, then this function should not return anything. Check that this is so."""
+        """If the csv schema contains the required headers,
+          then this function should not return anything. Check that this is so.
+        """
         # path_to_data_model = helpers.get_data_path(path=data_model)
-        model_df = helpers.get_data_frame(path=data_model, data_model=True)
-        assert None == (csv_parser.check_schema_definition(model_df=model_df))
+        model_df = helpers.get_data_frame(path="example.model.csv", data_model=True)
+        assert csv_parser.check_schema_definition(model_df=model_df) is None
 
     def test_gather_csv_attributes_relationships(
-        self, helpers, data_model: str, csv_parser: DataModelCSVParser
+        self, helpers, csv_parser: DataModelCSVParser
     ):
-        """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
-        path_to_data_model = helpers.get_data_path(path=data_model)
+        """
+        The output of the function is a attributes relationship dictionary,
+          check that it is formatted properly.
+        """
+        path_to_data_model = helpers.get_data_path(path="example.model.csv")
         model_df = load_df(path_to_data_model, data_model=True)
 
         # Get output of the function:
@@ -255,17 +257,66 @@ class TestDataModelCsvParser:
         attribute_key = list(attr_rel_dict.keys())[0]
 
         # Check that the structure of the model dictionary conforms to expectations.
-        assert type(attr_rel_dict) == dict
+        assert isinstance(attr_rel_dict, dict)
         assert attribute_key in attr_rel_dict.keys()
         assert "Relationships" in attr_rel_dict[attribute_key]
         assert "Attribute" in attr_rel_dict[attribute_key]["Relationships"]
 
-    def test_parse_csv_model(
-        self, helpers, data_model: str, csv_parser: DataModelCSVParser
+    def test_gather_database_csv_attributes_relationships(
+        self, csv_parser: DataModelCSVParser
     ):
-        """The output of the function is a attributes relationship dictionary, check that it is formatted properly."""
-        path_to_data_model = helpers.get_data_path(path=data_model)
-        model_df = load_df(path_to_data_model, data_model=True)
+        """Check for missing database specific columns"""
+        model_df = load_df("tests/data/example.model.csv", data_model=True)
+
+        # Get output of the function:
+        attr_rel_dict = csv_parser.gather_csv_attributes_relationships(
+            model_df=model_df
+        )
+        assert "Patient" in attr_rel_dict
+        assert "Relationships" in attr_rel_dict["Patient"]
+        assert "Primary Key" not in attr_rel_dict["Patient"]["Relationships"]
+
+        assert "Cancer" in attr_rel_dict
+        assert "Relationships" in attr_rel_dict["Cancer"]
+        assert "Primary Key" not in attr_rel_dict["Cancer"]["Relationships"]
+
+        assert "Biospecimen" in attr_rel_dict
+        assert "Relationships" in attr_rel_dict["Biospecimen"]
+        assert "Primary Key" not in attr_rel_dict["Biospecimen"]["Relationships"]
+
+    def test_gather_database_csv_attributes_relationships2(
+        self, csv_parser: DataModelCSVParser
+    ):
+        """Check for database specific columns"""
+        model_df = load_df("tests/data/database_model.csv", data_model=True)
+
+        # Get output of the function:
+        attr_rel_dict = csv_parser.gather_csv_attributes_relationships(
+            model_df=model_df
+        )
+        assert "Patient" in attr_rel_dict
+        assert "Relationships" in attr_rel_dict["Patient"]
+        assert "Primary Key" in attr_rel_dict["Patient"]["Relationships"]
+        assert attr_rel_dict["Patient"]["Relationships"]["Primary Key"] == "Patient ID"
+
+        assert "Cancer" in attr_rel_dict
+        assert "Relationships" in attr_rel_dict["Cancer"]
+        assert "Primary Key" not in attr_rel_dict["Cancer"]["Relationships"]
+
+        assert "Biospecimen" in attr_rel_dict
+        assert "Relationships" in attr_rel_dict["Biospecimen"]
+        assert "Primary Key" in attr_rel_dict["Biospecimen"]["Relationships"]
+        assert attr_rel_dict["Biospecimen"]["Relationships"]["Primary Key"] == "Sample ID"
+
+
+    def test_parse_csv_model(
+        self, helpers, csv_parser: DataModelCSVParser
+    ):
+        """
+        The output of the function is a attributes relationship dictionary, 
+          check that it is formatted properly.
+        """
+        path_to_data_model = helpers.get_data_path(path="example.model.csv")
 
         # Get output of the function:
         attr_rel_dictionary = csv_parser.parse_csv_model(
@@ -277,7 +328,7 @@ class TestDataModelCsvParser:
         attribute_key = list(attr_rel_dictionary.keys())[0]
 
         # Check that the structure of the model dictionary conforms to expectations.
-        assert type(attr_rel_dictionary) == dict
+        assert isinstance(attr_rel_dictionary, dict)
         assert attribute_key in attr_rel_dictionary.keys()
         assert "Relationships" in attr_rel_dictionary[attribute_key]
         assert "Attribute" in attr_rel_dictionary[attribute_key]["Relationships"]
@@ -375,7 +426,13 @@ class TestDataModelRelationships:
             "Parent",
             "Validation Rules",
             "Properties",
-            "Source",
+            "Source"
+        ]
+
+    def test_define_optional_csv_headers(self, DMR: DataModelRelationships):
+        """Tests method returns correct values"""
+        assert DMR.define_optional_csv_headers() == [
+            "Primary Key"
         ]
 
     @pytest.mark.parametrize("edge", [True, False], ids=["True", "False"])
@@ -398,6 +455,7 @@ class TestDataModelRelationships:
                 "validationRules": "Validation Rules",
                 "isPartOf": None,
                 "id": "Source",
+                "primaryKey": "Primary Key"
             }
 
 
@@ -663,6 +721,32 @@ class TestDataModelGraphExplorer:
 
     def test_sub_schema_graph(self):
         return
+    
+    def test_is_node_primary_key1(self):
+        "Tests data model with primary key column"
+        data_model_parser = DataModelParser(
+            path_to_data_model="tests/data/database_model.csv",
+        )
+        parsed_data_model = data_model_parser.parse_model()
+        data_model_graph = DataModelGraph(parsed_data_model)
+        graph_data_model = data_model_graph.graph
+        dmge =  DataModelGraphExplorer(graph_data_model)
+        assert dmge.is_node_primary_key("Patient") == "Patient ID"
+        assert dmge.is_node_primary_key("Biospecimen") == "Sample ID"
+        assert dmge.is_node_primary_key("Cancer") == "id"
+
+    def test_is_node_primary_key2(self):
+        "Tests data model with no primary key column"
+        data_model_parser = DataModelParser(
+            path_to_data_model="tests/data/example.model.csv",
+        )
+        parsed_data_model = data_model_parser.parse_model()
+        data_model_graph = DataModelGraph(parsed_data_model)
+        graph_data_model = data_model_graph.graph
+        dmge =  DataModelGraphExplorer(graph_data_model)
+        assert dmge.is_node_primary_key("Patient") == "id"
+        assert dmge.is_node_primary_key("Biospecimen") == "id"
+        assert dmge.is_node_primary_key("Cancer") == "id"
 
 
 @pytest.mark.parametrize(
@@ -1484,6 +1568,7 @@ class TestDataModelJsonLd:
                     "sms:displayName",
                     "sms:required",
                     "sms:validationRules",
+                    "sms:primaryKey"
                 ]
             elif template_type == "class":
                 expected_keys = [
@@ -1497,6 +1582,7 @@ class TestDataModelJsonLd:
                     "sms:required",
                     "sms:requiresDependency",
                     "sms:validationRules",
+                    "sms:primaryKey"
                 ]
 
             assert (set(actual_keys) - set(expected_keys)) == (
