@@ -1,5 +1,6 @@
 "Data Model Json Schema"
 
+import json
 import logging
 import os
 from typing import Any, Optional
@@ -9,6 +10,7 @@ import networkx as nx  # type: ignore
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.schemas.data_model_relationships import DataModelRelationships
 from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.schema_utils import get_json_schema_log_file_path
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +75,7 @@ class DataModelJSONSchema:
         return non_blank_schema
 
     def get_range_schema(
-        self, node_range: list[str], node_name: str, blank=False
+        self, node_range: list[str], node_name: str, blank: bool = False
     ) -> dict[str, dict[str, list[str]]]:
         """
         Add a list of nodes to the "enum" key in a given JSON schema object.
@@ -187,15 +189,16 @@ class DataModelJSONSchema:
                         range_domain_map[node] = []
                     range_domain_map[node].append(node_display_name)
 
-                # can this node be map to the empty set (if required no; if not required yes)
-                # TODO: change "required" to different term, required may be a bit misleading
-                # (i.e. is the node required in the schema)
-                node_required = self.dmge.get_node_required(node_label=process_node)
+                # Get node validation rules for the current node, and the given component
+                node_validation_rules = self.dmge.get_component_node_validation_rules(
+                    manifest_component=source_node, node_display_name=node_display_name
+                )
 
-                # get any additional validation rules associated with this node (e.g. can this node
-                # be mapped to a list of other nodes)
-                node_validation_rules = self.dmge.get_node_validation_rules(
-                    node_display_name=node_display_name
+                # Get if the node is required for the given component
+                node_required = self.dmge.get_component_node_required(
+                    manifest_component=source_node,
+                    node_validation_rules=node_validation_rules,
+                    node_display_name=node_display_name,
                 )
 
                 if node_display_name in reverse_dependencies:
@@ -226,12 +229,11 @@ class DataModelJSONSchema:
                         # otherwise, by default allow any values
                         schema_valid_vals = {node_display_name: {}}
 
-                    json_schema["properties"].update(schema_valid_vals)
+                    json_schema["properties"].update(schema_valid_vals)  # type: ignore
 
                     # set schema conditional dependencies
                     for node in reverse_dependencies[node_display_name]:
                         # set all of the conditional nodes that require this process node
-
                         # get node domain if any
                         # ow this node is a conditional requirement
                         if node in range_domain_map:
@@ -289,7 +291,7 @@ class DataModelJSONSchema:
                                 }
 
                                 # update conditional-dependency rules in json schema
-                                json_schema["allOf"].append(
+                                json_schema["allOf"].append(  # type: ignore
                                     schema_conditional_dependencies
                                 )
 
@@ -317,9 +319,9 @@ class DataModelJSONSchema:
                                 node_name=node_display_name
                             )
 
-                        json_schema["properties"].update(schema_valid_vals)
+                        json_schema["properties"].update(schema_valid_vals)  # type: ignore
                         # add node to required fields
-                        json_schema["required"] += [node_display_name]
+                        json_schema["required"] += [node_display_name]  # type: ignore
 
                     elif process_node in root_dependencies:
                         # node doesn't have conditionals and is not required; it belongs in the
@@ -343,7 +345,7 @@ class DataModelJSONSchema:
                         else:
                             schema_valid_vals = {node_display_name: {}}
 
-                        json_schema["properties"].update(schema_valid_vals)
+                        json_schema["properties"].update(schema_valid_vals)  # type: ignore
 
                     else:
                         # node doesn't have conditionals and it is not required and it
@@ -391,9 +393,18 @@ class DataModelJSONSchema:
         # If no config value and SchemaGenerator was initialized with
         # a JSON-LD path, construct
         if self.jsonld_path is not None:
-            self.jsonld_path_root, _ = os.path.splitext(self.jsonld_path)
-            prefix = self.jsonld_path_root
-            prefix_root, prefix_ext = os.path.splitext(prefix)
-            if prefix_ext == ".model":
-                prefix = prefix_root
-        return json_schema
+            json_schema_log_file_path = get_json_schema_log_file_path(
+                data_model_path=self.jsonld_path, source_node=source_node
+            )
+        if json_schema_log_file_path is None:
+            logger.info(
+                "The JSON schema file can be inspected by setting the following "
+                "nested key in the configuration: (model > location)."
+            )
+        else:
+            json_schema_dirname = os.path.dirname(json_schema_log_file_path)
+            if json_schema_dirname != "":
+                os.makedirs(json_schema_dirname, exist_ok=True)
+            with open(json_schema_log_file_path, "w", encoding="UTF-8") as js_f:
+                json.dump(json_schema, js_f, indent=2)
+        return json_schema  # type: ignore

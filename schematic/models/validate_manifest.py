@@ -25,7 +25,10 @@ from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.synapse import SynapseStorage
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
 from schematic.utils.validate_rules_utils import validation_rule_info
-from schematic.utils.validate_utils import rule_in_rule_list
+from schematic.utils.validate_utils import (
+    rule_in_rule_list,
+    convert_nan_entries_to_empty_strings,
+)
 from schematic.utils.schema_utils import extract_component_validation_rules
 
 logger = logging.getLogger(__name__)
@@ -80,10 +83,13 @@ class ValidateManifest(object):
             errors, list[list[str]]: list of errors being compiled, with additional error list being appended if appropriate
         """
         # Check that attribute rules conform to limits:
-        # IsNa is operates differently than most rules, do not consider it as a rule for evaluating
+        # IsNa and required is operate differently than most rules, do not consider it as a rule for evaluating
         # if the number of rule pairs has been exceeded.
         if "IsNa" in validation_rules:
             validation_rules.remove("IsNa")
+
+        if "required" in validation_rules:
+            validation_rules.remove("required")
 
         # no more than two rules for an attribute.
         # As more combinations get added, may want to bring out into its own function / or use validate_rules_utils?
@@ -100,9 +106,9 @@ class ValidateManifest(object):
         manifest: pd.core.frame.DataFrame,
         dmge: DataModelGraphExplorer,
         restrict_rules: bool,
-        project_scope: List,
+        project_scope: list[str],
         access_token: Optional[str] = None,
-    ) -> (pd.core.frame.DataFrame, List[List[str]]):
+    ) -> (pd.core.frame.DataFrame, list[list[str]]):
         """
         Purpose:
             Take validation rules set for a particular attribute
@@ -292,8 +298,7 @@ class ValidateManifest(object):
         warnings = []
         col_attr = {}  # save the mapping between column index and attribute name
 
-        # Replace nans with empty strings so jsonschema
-        manifest = manifest.replace({np.nan: ""})
+        manifest = convert_nan_entries_to_empty_strings(manifest=manifest)
 
         # numerical values need to be type string for the jsonValidator
         for col in manifest.select_dtypes(
@@ -344,15 +349,18 @@ def validate_all(
     project_scope: List,
     access_token: str,
 ):
+    # Run Validation Rules
     vm = ValidateManifest(errors, manifest, manifestPath, dmge, jsonSchema)
     manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(
         manifest, dmge, restrict_rules, project_scope, access_token
     )
+
     if vmr_errors:
         errors.extend(vmr_errors)
     if vmr_warnings:
         warnings.extend(vmr_warnings)
 
+    # Run JSON Schema Validation
     vmv_errors, vmv_warnings = vm.validate_manifest_values(manifest, jsonSchema, dmge)
     if vmv_errors:
         errors.extend(vmv_errors)

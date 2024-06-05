@@ -170,7 +170,6 @@ def submit_manifest(
     )
 
     manifest_id = metadata_model.submit_metadata_manifest(
-        path_to_json_ld=jsonld,
         manifest_path=manifest_path,
         dataset_id=dataset_id,
         validate_component=validate_component,

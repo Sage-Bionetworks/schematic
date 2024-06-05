@@ -214,45 +214,46 @@ class TestSynapseStorage:
             assert len(files_and_Ids["entityId"]) == 2
 
     @pytest.mark.parametrize(
-        "manifest_path, test_annotations, datasetId, manifest_record_type",
+        "test_annotations, dataset_id, manifest_record_type, temporary_file_copy",
         [
             (
-                "mock_manifests/annotations_test_manifest.csv",
                 {"CheckInt": "7", "CheckList": "valid, list, values"},
                 "syn34295552",
                 "file_and_entities",
+                "annotations_test_manifest.csv"
             ),
             (
-                "mock_manifests/test_BulkRNAseq.csv",
                 {"FileFormat": "BAM", "GenomeBuild": "GRCh38"},
                 "syn39241199",
                 "table_and_file",
+                "test_BulkRNAseq.csv"
             ),
         ],
         ids=["non file-based", "file-based"],
+        indirect=["temporary_file_copy"]
     )
     def test_annotation_submission(
         self,
-        synapse_store,
+        synapse_store: SynapseStorage,
         helpers,
-        manifest_path,
-        test_annotations,
-        datasetId,
-        manifest_record_type,
-        config: Configuration,
+        test_annotations: dict[str, str],
+        dataset_id: str,
+        manifest_record_type: str,
         dmge: DataModelGraphExplorer,
+        temporary_file_copy: Generator[str, None, None],
     ):
-        manifest_id = synapse_store.associateMetadataWithFiles(
+        """Test annotation submission"""
+        synapse_store.associateMetadataWithFiles(
             dmge=dmge,
-            metadataManifestPath=helpers.get_data_path(manifest_path),
-            datasetId=datasetId,
+            metadataManifestPath=temporary_file_copy,
+            datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
             hideBlanks=True,
             restrict_manifest=False,
         )
 
         # Retrive annotations
-        entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
+        entity_id = helpers.get_data_frame(temporary_file_copy)["entityId"][0]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         # Check annotations of interest
@@ -260,11 +261,11 @@ class TestSynapseStorage:
             assert key in annotations.keys()
             assert annotations[key] == test_annotations[key]
 
-        if manifest_path.endswith("annotations_test_manifest.csv"):
+        if temporary_file_copy.endswith("annotations_test_manifest_copy.csv"):
             assert "CheckRecommended" not in annotations.keys()
-        elif manifest_path.endswith("test_BulkRNAseq.csv"):
+        elif temporary_file_copy.endswith("test_BulkRNAseq_copy.csv"):
             entity = synapse_store.syn.get(entity_id)
-            assert type(entity) == File
+            assert isinstance(entity, File)
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
@@ -481,6 +482,7 @@ class TestSynapseStorage:
                     ],
                     "entityId": ["syn123", "syn456"],
                 }
+
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):

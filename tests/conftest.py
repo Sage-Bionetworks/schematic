@@ -1,18 +1,15 @@
-from multiprocessing.sharedctypes import Value
+"""Fixtures and helpers for use across all tests"""
 import os
 import logging
 import sys
+from typing import Generator
 
 import shutil
 import pytest
-import pandas as pd
-from dotenv import load_dotenv, find_dotenv
-from time import perf_counter
+from dotenv import load_dotenv
 
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-from schematic.schemas.data_model_nodes import DataModelNodes
-from schematic.schemas.data_model_json_schema import DataModelJSONSchema
 
 from schematic.configuration.configuration import CONFIG
 from schematic.utils.df_utils import load_df
@@ -128,3 +125,24 @@ def synapse_store(request):
         synapse_store = SynapseStorage()
 
     yield synapse_store
+
+
+# These fixtures make copies of existing test manifests.
+# These copies can the be altered by a given test, and the copy will eb destroyed at the 
+# end of the test
+
+@pytest.fixture(scope="function")
+def temporary_file_copy(request, helpers: Helpers) -> Generator[str, None, None]:
+    file_name = request.param
+    # original file copy
+    original_test_path = helpers.get_data_path(f"mock_manifests/{file_name}")
+    # get filename without extension
+    file_name_no_extension=file_name.split(".")[0]
+    # Copy the original CSV file to a temporary directory
+    temp_csv_path = helpers.get_data_path(f"mock_manifests/{file_name_no_extension}_copy.csv")
+    
+    shutil.copyfile(original_test_path, temp_csv_path)
+    yield temp_csv_path
+    # Teardown
+    if os.path.exists(temp_csv_path):
+        os.remove(temp_csv_path)

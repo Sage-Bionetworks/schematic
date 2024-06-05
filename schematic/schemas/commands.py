@@ -3,7 +3,7 @@
 import logging
 import time
 import re
-from typing import get_args
+from typing import get_args, Optional, Any
 
 import click
 import click_log  # type: ignore
@@ -29,7 +29,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}  # help options
 # invoke_without_command=True -> forces the application not to show aids before
 # losing them with a --h
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
-def schema():  # use as `schematic model ...`
+def schema() -> None:  # use as `schematic model ...`
     """
     Sub-commands for Schema related utilities/methods.
     """
@@ -68,12 +68,15 @@ def schema():  # use as `schematic model ...`
     help=query_dict(schema_commands, ("schema", "convert", "output_type")),
 )
 def convert(
-    schema: str,
-    data_model_labels: str,
-    output_jsonld: str,
-    output_type: str,
-    output_path: str,
+    schema: Any,
+    data_model_labels: DisplayLabelType,
+    output_jsonld: Optional[str],
+    output_type: Optional[str],
+    output_path: Optional[str],
 ) -> str:
+def convert(
+    schema: Any, data_model_labels: DisplayLabelType, output_jsonld: Optional[str]
+) -> None:
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.

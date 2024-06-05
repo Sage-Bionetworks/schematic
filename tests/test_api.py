@@ -383,7 +383,7 @@ class TestDataModelGraphExplorerOperation:
         )
         response_dta = json.loads(response.data)
         assert response.status_code == 200
-        assert "list strict" in response_dta
+        assert "list" in response_dta
         assert "regex match [a-f]" in response_dta
 
     def test_get_nodes_display_names(test, client, data_model_jsonld):
@@ -1086,7 +1086,7 @@ class TestManifestOperation:
             elif python_version == "3.9":
                 dataset_id = "syn52656104"
 
-            specific_params = {"asset_view": "syn23643253", "dataset_id": dataset_id}
+            specific_params = {"asset_view": "syn23643253", "dataset_id": dataset_id, "project_scope":["syn54126707"]}
 
         params.update(specific_params)
 
