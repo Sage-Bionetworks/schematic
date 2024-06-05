@@ -74,9 +74,6 @@ def convert(
     output_type: Optional[str],
     output_path: Optional[str],
 ) -> str:
-def convert(
-    schema: Any, data_model_labels: DisplayLabelType, output_jsonld: Optional[str]
-) -> None:
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
