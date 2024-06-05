@@ -21,6 +21,14 @@ ENV PYTHONFAULTHANDLER=1 \
     NGINX_WORKER_PROCESSES=1 \
     VERSION=$TAG
 
+
+
+LABEL maintainer="Lingling Peng <lingling.peng@sagebase.org>\
+                Andrew Lamb <andrew.lamb@sagebase.org>\
+                Gianna Jordan <gianna.jordan@sagebase.org>"
+
+
+                    
 # Note: 
 # The starting number of uWSGI processes is controlled by the variable UWSGI_CHEAPER, by default set to 2.
 # The maximum number of uWSGI processes is controlled by the variable UWSGI_PROCESSES, by default set to 16
