@@ -485,6 +485,7 @@ def strip_context(context_value: str) -> tuple[str, str]:
         context, value = context_value.split("@")
     return context, value
 
+
 def get_json_schema_log_file_path(data_model_path: str, source_node: str) -> str:
     """Get json schema log file name from the data_mdoel_path
     Args:
@@ -500,6 +501,7 @@ def get_json_schema_log_file_path(data_model_path: str, source_node: str) -> str
         prefix = prefix_root
     json_schema_log_file_path = f"{prefix}.{source_node}.schema.json"
     return json_schema_log_file_path
+
 
 def export_graph(schema: dict, file_path: str) -> None:
     """Write object to a pickle file.
