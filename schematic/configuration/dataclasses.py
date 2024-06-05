@@ -124,12 +124,9 @@ class GoogleSheetsConfig:
     strict_validation: When doing google sheet validation (regex match) with the validation rules.
       True is alerting the user and not allowing entry of bad values.
       False is warning but allowing the entry on to the sheet.
-    service_acct_creds_synapse_id: The Synapse id of the Google service account credentials.
     service_acct_creds: Path to the Google service account credentials,
      either absolute or relative to this file
     """
-
-    service_acct_creds_synapse_id: str = "syn25171627"
     service_acct_creds: str = "schematic_service_account_creds.json"
     strict_validation: bool = True
 
@@ -150,8 +147,7 @@ class GoogleSheetsConfig:
         if not value:
             raise ValueError(f"{value} is an empty string")
         return value
-
-    @validator("service_acct_creds_synapse_id")
+    
     @classmethod
     def validate_synapse_id(cls, value: str) -> str:
         """Check if string is a valid synapse id

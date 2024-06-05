@@ -80,7 +80,6 @@ class TestDataclasses:
         assert isinstance(
             GoogleSheetsConfig(
                 service_acct_creds="file_name",
-                service_acct_creds_synapse_id="syn1",
                 strict_validation=True,
             ),
             GoogleSheetsConfig,
@@ -88,19 +87,16 @@ class TestDataclasses:
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
                 service_acct_creds="file_name",
-                service_acct_creds_synapse_id="syn1",
                 strict_validation="tru",
             )
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
                 service_acct_creds="",
-                service_acct_creds_synapse_id="syn1",
                 strict_validation=True,
             )
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
                 service_acct_creds="file_name",
-                service_acct_creds_synapse_id="syn",
                 strict_validation=True,
             )
 
