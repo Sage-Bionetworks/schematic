@@ -127,6 +127,7 @@ class GoogleSheetsConfig:
     service_acct_creds: Path to the Google service account credentials,
      either absolute or relative to this file
     """
+
     service_acct_creds: str = "schematic_service_account_creds.json"
     strict_validation: bool = True
 
@@ -147,7 +148,7 @@ class GoogleSheetsConfig:
         if not value:
             raise ValueError(f"{value} is an empty string")
         return value
-    
+
     @classmethod
     def validate_synapse_id(cls, value: str) -> str:
         """Check if string is a valid synapse id
