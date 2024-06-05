@@ -73,7 +73,7 @@ def convert(
     output_jsonld: Optional[str],
     output_type: Optional[str],
     output_path: Optional[str],
-) -> str:
+) -> int:
     """
     Running CLI to convert data model specification in CSV format to
     data model in JSON-LD format.
@@ -149,7 +149,8 @@ def convert(
             raise error
 
     if output_type == "graph":
-        return output_graph
+        click.echo(f"Graph created {output_graph}")
+        return 0
 
     logger.info("Converting data model to JSON-LD")
     jsonld_data_model = convert_graph_to_jsonld(graph=graph_data_model)
