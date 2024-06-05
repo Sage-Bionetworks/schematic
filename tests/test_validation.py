@@ -189,22 +189,52 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="invalid list values",
+                val_rule="list",
+                list_string="9",
                 row_num="3",
                 attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="invalid list values",
+                invalid_entry="9",
                 dmge=dmge,
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="ab cd ef",
+                val_rule="list",
+                list_string="ab",
+                row_num="4",
+                attribute_name="Check List",
+                list_error="not_comma_delimited",
+                invalid_entry="ab",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a c f",
                 row_num="3",
                 attribute_name="Check Regex List",
                 list_error="not_comma_delimited",
-                invalid_entry="ab cd ef",
+                invalid_entry="a c f",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a",
+                row_num="4",
+                attribute_name="Check Regex List",
+                list_error="not_comma_delimited",
+                invalid_entry="a",
+                dmge=dmge,
+            )[0] in errors
+
+        assert GenerateError.generate_list_error(
+                val_rule="list",
+                list_string="a",
+                row_num="4",
+                attribute_name="Check Regex List",
+                list_error="not_comma_delimited",
+                invalid_entry="a",
                 dmge=dmge,
             )[0] in errors
 
@@ -402,22 +432,22 @@ class TestManifestValidation:
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="invalid list values",
+                val_rule="list",
+                list_string="9",
                 row_num="3",
                 attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="invalid list values",
+                invalid_entry="9",
                 dmge=dmge,
             )[0] in errors
 
         assert GenerateError.generate_list_error(
-                val_rule="list strict",
-                list_string="ab cd ef",
-                row_num="3",
-                attribute_name="Check Regex List",
+                val_rule="list",
+                list_string="ab",
+                row_num="4",
+                attribute_name="Check List",
                 list_error="not_comma_delimited",
-                invalid_entry="ab cd ef",
+                invalid_entry="ab",
                 dmge=dmge,
             )[0] in errors
 
@@ -514,6 +544,30 @@ class TestManifestValidation:
                 invalid_entry=["71738", "98085", "210065"],
                 dmge=dmge,
             )[1] in warnings
+
+
+    def test_missing_column(self, helpers,  dmge:DataModelGraph):
+        """ Test that a manifest missing a column returns the proper error.
+        """
+        model_name="example.model.csv"
+        manifest_name="mock_manifests/Invalid_Biospecimen_Missing_Column_Manifest.csv"
+        root_node="Biospecimen"
+        manifest_path = helpers.get_data_path(manifest_name)
+
+        metadataModel = get_metadataModel(helpers, model_name)
+        errors, warnings = metadataModel.validateModelManifest(
+            manifestPath=manifest_path,
+            rootNode=root_node,
+        )
+
+        assert GenerateError.generate_schema_error(
+                row_num='2',
+                attribute_name="Wrong schema",
+                error_message="'Tissue Status' is a required property",
+                invalid_entry="Wrong schema",
+                dmge=dmge,
+            )[0] in errors
+
 
     @pytest.mark.parametrize(
         "model_name",
