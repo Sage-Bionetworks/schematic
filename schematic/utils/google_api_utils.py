@@ -11,7 +11,6 @@ import pandas as pd
 from googleapiclient.discovery import build, Resource  # type: ignore
 from google.oauth2 import service_account  # type: ignore
 from schematic.configuration.configuration import CONFIG
-from schematic.store.synapse import SynapseStorage
 
 logger = logging.getLogger(__name__)
 
