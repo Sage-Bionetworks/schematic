@@ -1575,8 +1575,10 @@ class ManifestGenerator(object):
         # Default return a DataFrame
         else:
             return dataframe
-
+        
+    
     @staticmethod
+    @tracer.start_as_current_span("ManifestGenerator::create_single_manifest")
     def create_single_manifest(
         path_to_data_model: str,
         graph_data_model: nx.MultiDiGraph,
@@ -1630,6 +1632,7 @@ class ManifestGenerator(object):
         return result
 
     @staticmethod
+    @tracer.start_as_current_span("ManifestGenerator::create_manifests")
     def create_manifests(
         path_to_data_model: str,
         data_types: list,
@@ -1757,7 +1760,8 @@ class ManifestGenerator(object):
                     return result
 
         return all_results
-
+    
+    @tracer.start_as_current_span("ManifestGenerator::get_manifest")
     def get_manifest(
         self,
         dataset_id: str = None,
