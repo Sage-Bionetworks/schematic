@@ -36,12 +36,7 @@ def build_service_account_creds() -> GoogleServiceAcountCreds:
     Returns:
         GoogleServiceAcountCreds: The credentials
     """
-    # del os.environ['SERVICE_ACCOUNT_CREDS']
     if "SERVICE_ACCOUNT_CREDS" in os.environ:
-        del os.environ["SERVICE_ACCOUNT_CREDS"]
-
-    if "SERVICE_ACCOUNT_CREDS" in os.environ:
-        breakpoint()
         dict_creds = json.loads(os.environ["SERVICE_ACCOUNT_CREDS"])
         credentials = service_account.Credentials.from_service_account_info(
             dict_creds, scopes=SCOPES
