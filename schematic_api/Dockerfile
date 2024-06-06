@@ -23,8 +23,7 @@ ENV PYTHONFAULTHANDLER=1 \
 
 
 
-LABEL maintainer="Lingling Peng <lingling.peng@sagebase.org> Andrew Lamb <andrew.lamb@sagebase.org>"
-                
+LABEL maintainer="Lingling Peng <lingling.peng@sagebase.org> Andrew Lamb <andrew.lamb@sagebase.org> Gianna Jordan <gianna.jordan@sagebase.org>"
 LABEL version=$TAG 
 
                     
