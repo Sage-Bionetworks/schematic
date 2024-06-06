@@ -1635,7 +1635,7 @@ class ManifestGenerator(object):
         strict: Optional[bool] = True,
         use_annotations: Optional[bool] = False,
         graph_data_model: Optional[nx.MultiDiGraph] = None,
-        data_model_graph_pickle: str = None
+        data_model_graph_pickle: str = None,
     ) -> Union[List[str], List[pd.DataFrame]]:
         """Create multiple manifests
 
@@ -1674,16 +1674,20 @@ class ManifestGenerator(object):
 
         if not graph_data_model:
             if data_model_graph_pickle:
-                with open(data_model_graph_pickle, 'rb') as f:
+                with open(data_model_graph_pickle, "rb") as f:
                     graph_data_model = pickle.load(f)
             else:
-                data_model_parser = DataModelParser(path_to_data_model=path_to_data_model)
+                data_model_parser = DataModelParser(
+                    path_to_data_model=path_to_data_model
+                )
 
                 # Parse Model
                 parsed_data_model = data_model_parser.parse_model()
 
                 # Instantiate DataModelGraph
-                data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
+                data_model_grapher = DataModelGraph(
+                    parsed_data_model, data_model_labels
+                )
 
                 # Generate graph
                 graph_data_model = data_model_grapher.graph
