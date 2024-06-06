@@ -8,9 +8,9 @@ import json
 import logging
 import os
 from os import path
+import pickle
 from typing import Optional, Literal, TypedDict, Union
 from typing_extensions import assert_never
-import pickle
 
 import networkx as nx  # type: ignore
 from networkx.classes.reportviews import NodeView, EdgeDataView  # type: ignore
@@ -44,7 +44,7 @@ class Node(TypedDict):
     children: list[str]
 
 
-class TangledTree:  # pylint: disable=too-many-instance-attributes
+class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-many-arguments
     """Tangled tree class"""
 
     def __init__(
@@ -53,7 +53,6 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         figure_type: FigureType,
         data_model_labels: DisplayLabelType,
         data_model_graph_pickle: Optional[str] = None,
-        graph_data_model: Optional[nx.MultiDiGraph] = None,
     ) -> None:
         # Load jsonld
         self.path_to_json_ld = path_to_json_ld
@@ -78,8 +77,8 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             self.graph_data_model = data_model_grapher.graph
 
         else:
-            with open(data_model_graph_pickle, "rb") as f:
-                self.graph_data_model = pickle.load(f)
+            with open(data_model_graph_pickle, "rb") as file:
+                self.graph_data_model = pickle.load(file)
 
         # Instantiate Data Model Graph Explorer
         self.dmge = DataModelGraphExplorer(self.graph_data_model)
