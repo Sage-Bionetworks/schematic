@@ -52,37 +52,33 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         path_to_json_ld: str,
         figure_type: FigureType,
         data_model_labels: DisplayLabelType,
-        graph_data_model: Optional[nx.MultiDiGraph] = None,
         data_model_graph_pickle: Optional[str] = None,
     ) -> None:
-        if graph_data_model:
-            self.graph_data_model = graph_data_model
+        # Load jsonld
+        self.path_to_json_ld = path_to_json_ld
+        self.json_data_model = load_json(self.path_to_json_ld)
+
+        # Parse schema name
+        self.schema_name = path.basename(self.path_to_json_ld).split(".model.jsonld")[0]
+
+        # Instantiate Data Model Parser
+        if not data_model_graph_pickle:
+            data_model_parser = DataModelParser(
+                path_to_data_model=self.path_to_json_ld,
+            )
+
+            # Parse Model
+            parsed_data_model = data_model_parser.parse_model()
+
+            # Instantiate DataModelGraph
+            data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
+
+            # Generate graph
+            self.graph_data_model = data_model_grapher.graph
+
         else:
-            # Load jsonld
-            self.path_to_json_ld = path_to_json_ld
-            self.json_data_model = load_json(self.path_to_json_ld)
-
-            # Parse schema name
-            self.schema_name = path.basename(self.path_to_json_ld).split(".model.jsonld")[0]
-
-            # Instantiate Data Model Parser
-            if not data_model_graph_pickle:
-                data_model_parser = DataModelParser(
-                    path_to_data_model=self.path_to_json_ld,
-                )
-
-                # Parse Model
-                parsed_data_model = data_model_parser.parse_model()
-
-                # Instantiate DataModelGraph
-                data_model_grapher = DataModelGraph(parsed_data_model, data_model_labels)
-
-                # Generate graph
-                self.graph_data_model = data_model_grapher.graph
-
-            else:
-                with open(data_model_graph_pickle, 'rb') as f:
-                    self.graph_data_model = pickle.load(f)
+            with open(data_model_graph_pickle, 'rb') as f:
+                self.graph_data_model = pickle.load(f)
 
         # Instantiate Data Model Graph Explorer
         self.dmge = DataModelGraphExplorer(self.graph_data_model)
@@ -102,7 +98,8 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             data_model_grapher=data_model_grapher,
             data_model_graph_explorer=self.dmge,
             parsed_data_model=parsed_data_model,
-            graph_data_model=graph_data_model,
+            graph_data_model=self.graph_data_model,
+            data_model_graph_pickle=data_model_graph_pickle,
         )
 
         # Create output paths.
