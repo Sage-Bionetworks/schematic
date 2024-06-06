@@ -2,8 +2,6 @@ import os
 
 import connexion
 
-from schematic import CONFIG
-import jsonify
 import traceback
 
 def create_app():
