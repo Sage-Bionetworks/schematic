@@ -1,6 +1,7 @@
 import os
 
 import connexion
+from typing import Tuple
 
 import traceback
 from synapseclient.core.exceptions import (
@@ -42,12 +43,12 @@ def create_app():
             return last_line, 500
 
     @app.errorhandler(SynapseAuthenticationError)
-    def handle_synapse_auth_error(e):
+    def handle_synapse_auth_error(e: Exception) -> Tuple[str, int]:
         """handle synapse authentication error"""
         return str(e), 401
 
     @app.errorhandler(AccessCredentialsError)
-    def handle_synapse_access_error(e):
+    def handle_synapse_access_error(e: Exception) -> Tuple[str, int]:
         """handle synapse access error"""
         return str(e), 403
 
