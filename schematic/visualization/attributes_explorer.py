@@ -34,6 +34,9 @@ class AttributesExplorer:
         self.path_to_jsonld = path_to_jsonld
 
         self.jsonld = load_json(self.path_to_jsonld)
+        if data_model_graph_pickle:
+            with open(data_model_graph_pickle, 'rb') as f:
+                graph_data_model = pickle.load(f)
 
         # Parse Model
         if not parsed_data_model:
@@ -41,10 +44,6 @@ class AttributesExplorer:
                 path_to_data_model=self.path_to_jsonld,
             )
             parsed_data_model = data_model_parser.parse_model()
-
-        if data_model_graph_pickle:
-            with open(data_model_graph_pickle, 'rb') as f:
-                parsed_data_model = pickle.load(f)
 
         # Instantiate DataModelGraph
         if not data_model_grapher:
