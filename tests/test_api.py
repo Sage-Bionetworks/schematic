@@ -791,6 +791,19 @@ class TestManifestOperation:
             ]
         )
 
+    def test_generate_manifest_data_type_not_found(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "wrong data type",
+            "use_annotations": False,
+        }
+        response = client.get(
+            "http://localhost:3001/v1/manifest/generate", query_string=params
+        )
+
+        assert response.status_code == 500
+        assert "LookupError" in str(response.data)
+
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
         test_manifest_data = open(test_manifest_csv, "rb")
