@@ -27,6 +27,7 @@ def attributes_explorer(helpers):
     )
     yield attributes_explorer
 
+
 @pytest.fixture
 def tangled_tree(helpers):
     figure_type = "component"

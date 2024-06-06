@@ -77,7 +77,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
             self.graph_data_model = data_model_grapher.graph
 
         else:
-            with open(data_model_graph_pickle, 'rb') as f:
+            with open(data_model_graph_pickle, "rb") as f:
                 self.graph_data_model = pickle.load(f)
 
         # Instantiate Data Model Graph Explorer
