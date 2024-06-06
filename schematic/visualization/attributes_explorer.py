@@ -34,7 +34,7 @@ class AttributesExplorer:
         self.path_to_jsonld = path_to_jsonld
 
         self.jsonld = load_json(self.path_to_jsonld)
-        if data_model_graph_pickle:
+        if data_model_graph_pickle and not graph_data_model:
             with open(data_model_graph_pickle, "rb") as f:
                 graph_data_model = pickle.load(f)
 

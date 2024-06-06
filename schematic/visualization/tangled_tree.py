@@ -53,6 +53,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes
         figure_type: FigureType,
         data_model_labels: DisplayLabelType,
         data_model_graph_pickle: Optional[str] = None,
+        graph_data_model: Optional[nx.MultiDiGraph] = None,
     ) -> None:
         # Load jsonld
         self.path_to_json_ld = path_to_json_ld
