@@ -1708,16 +1708,6 @@ files = [
 ]
 
 [[package]]
-name = "jsonify"
-version = "0.5"
-description = "A csv to json converter"
-optional = false
-python-versions = "*"
-files = [
-    {file = "jsonify-0.5.tar.gz", hash = "sha256:f340032753577575e9777835809b283fdc9b251867d5d5600389131647f8bfe1"},
-]
-
-[[package]]
 name = "jsonpatch"
 version = "1.33"
 description = "Apply JSON-Patches (RFC 6902)"
@@ -4861,4 +4851,4 @@ aws = ["uWSGI"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "98bab32c3d26e455ed16a6ab56a14af398b9516c4de6616e1bf7de3281ffb839"
+content-hash = "c380beeada202005657c611f9035bb7e7f7ffba721ff2d893d0f890a6d0b225e"
