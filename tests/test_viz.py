@@ -17,14 +17,15 @@ logger = logging.getLogger(__name__)
 def attributes_explorer(helpers):
     # Get JSONLD file path
     path_to_jsonld = helpers.get_data_path("example.model.jsonld")
+    path_to_graph = helpers.get_data_path("example.model.pickle")
 
     # Initialize TangledTree
     attributes_explorer = AttributesExplorer(
         path_to_jsonld,
+        data_model_graph_pickle=path_to_graph,
         data_model_labels="class_label",
     )
     yield attributes_explorer
-
 
 @pytest.fixture
 def tangled_tree(helpers):
