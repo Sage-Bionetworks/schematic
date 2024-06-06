@@ -74,6 +74,7 @@ Flask = {version = "2.1.3", optional = true}
 Flask-Cors = {version = "^3.0.10", optional = true}
 uWSGI = {version = "^2.0.21", optional = true}
 Jinja2 = {version = ">2.11.3", optional = true}
+jsonify = "^0.5"
 
 [tool.poetry.extras]
 api = ["connexion", "Flask", "Flask-Cors", "Jinja2", "pyopenssl"]
