@@ -43,10 +43,12 @@ def create_app():
 
     @app.errorhandler(SynapseAuthenticationError)
     def handle_synapse_auth_error(e):
+        """handle synapse authentication error"""
         return str(e), 401
 
     @app.errorhandler(AccessCredentialsError)
     def handle_synapse_access_error(e):
+        """handle synapse access error"""
         return str(e), 403
 
     return app
