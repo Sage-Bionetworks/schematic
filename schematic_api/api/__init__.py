@@ -29,7 +29,7 @@ def create_app():
 
     # handle exceptions in schematic when an exception gets raised
     @app.errorhandler(Exception)
-    def handle_exception(e):
+    def handle_exception(e: Exception) -> Tuple[str, int]:
         """handle exceptions in schematic APIs"""
         # Ensure the application context is available
         with app.app_context():
