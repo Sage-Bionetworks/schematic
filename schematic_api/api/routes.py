@@ -259,6 +259,7 @@ def save_file(file_key="csv_file"):
 
     return temp_path
 
+@tracer.start_as_current_span("routes:initalize_metadata_model")
 def initalize_metadata_model(schema_url, data_model_labels):
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
@@ -430,6 +431,7 @@ def validate_manifest_route(
 
 #####profile validate manifest route function
 # @profile(sort_by='cumulative', strip_dirs=True)
+@trace_function_params()
 def submit_manifest_route(
     schema_url,
     data_model_labels: str,

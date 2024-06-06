@@ -1408,6 +1408,7 @@ class SynapseStorage(BaseStorage):
         return annos
 
     @missing_entity_handler
+    @tracer.start_as_current_span("SynapseStorage::format_manifest_annotations")
     def format_manifest_annotations(self, manifest, manifest_synapse_id):
         """
         Set annotations for the manifest (as a whole) so they can be applied to the manifest table or csv.
