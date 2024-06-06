@@ -3,6 +3,9 @@ import os
 import connexion
 
 import traceback
+from synapseclient.core.exceptions import (
+    SynapseAuthenticationError,
+)
 
 def create_app():
     connexionapp = connexion.FlaskApp(__name__, specification_dir="openapi/")
@@ -29,12 +32,16 @@ def create_app():
         with app.app_context():
             # Get the last line of error from the traceback
             last_line = traceback.format_exc().strip().split('\n')[-1]
-
+            
             # Log the full trace
             app.logger.error(traceback.format_exc())
 
             # Return a JSON response with the last line of the error
             return last_line, 500
+    
+    @app.errorhandler(SynapseAuthenticationError)
+    def handle_synapse_auth_error(e):
+         return str(e), 401
 
     return app
 
