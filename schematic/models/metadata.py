@@ -40,7 +40,7 @@ class MetadataModel(object):
         inputMModelLocation: str,
         inputMModelLocationType: str,
         data_model_labels: str,
-        data_model_graph_pickle: Optional[str] = None
+        data_model_graph_pickle: Optional[str] = None,
     ) -> None:
         """Instantiates a MetadataModel object.
 
@@ -61,10 +61,13 @@ class MetadataModel(object):
 
         # Use graph, if provided. Otherwise parse data model for graph.
         if data_model_graph_pickle:
-            with open(data_model_graph_pickle, 'rb') as f:
+            with open(data_model_graph_pickle, "rb") as f:
                 self.graph_data_model = pickle.load(f)
+            self.dmge = DataModelGraphExplorer(self.graph_data_model)
         else:
-            data_model_parser = DataModelParser(path_to_data_model=self.inputMModelLocation)
+            data_model_parser = DataModelParser(
+                path_to_data_model=self.inputMModelLocation
+            )
             # Parse Model
             parsed_data_model = data_model_parser.parse_model()
 
