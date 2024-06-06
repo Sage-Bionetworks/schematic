@@ -3,6 +3,24 @@ import os
 import connexion
 
 from schematic import CONFIG
+from jaeger_client import Config
+from flask_opentracing import FlaskTracer
+import traceback
+import jsonify
+
+config = Config(
+    config={
+        'enabled': True,
+        'sampler': {
+            'type': 'const',
+            'param': 1
+        },
+        'logging': True,
+    },
+    service_name="schema-api",
+)
+jaeger_tracer = config.initialize_tracer
+
 
 def create_app():
     connexionapp = connexion.FlaskApp(__name__, specification_dir="openapi/")
@@ -34,8 +52,10 @@ def create_app():
 
 app = create_app()
 
+flask_tracer = FlaskTracer(jaeger_tracer, True, app, ['url', 'url_rule', 'environ.HTTP_X_REAL_IP', 'path'])
+
 
 # def route_code():
 #     import flask_schematic as sc
 #     sc.method1()
-#
+#]
