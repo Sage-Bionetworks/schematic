@@ -3,6 +3,8 @@ import os
 import connexion
 
 from schematic import CONFIG
+import jsonify
+import traceback
 
 def create_app():
     connexionapp = connexion.FlaskApp(__name__, specification_dir="openapi/")
@@ -20,15 +22,19 @@ def create_app():
     app.config["SCHEMATIC_CONFIG"] = schematic_config
     app.config["SCHEMATIC_CONFIG_CONTENT"] = schematic_config_content
 
-    # Configure flask app
-    # app.config[] = schematic[]
-    # app.config[] = schematic[]
-    # app.config[] = schematic[]
+    # handle exceptions in schematic when an exception gets raised
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Ensure the application context is available
+        with app.app_context():
+            # Get the last line of error from the traceback
+            last_line = traceback.format_exc().strip().split('\n')[-1]
 
-    # Initialize extension schematic
-    # import MyExtension
-    # myext = MyExtension()
-    # myext.init_app(app)
+            # Log the full trace 
+            app.logger.error(traceback.format_exc())
+
+            # Return a JSON response with the last line of the error
+            return last_line, 500
 
     return app
 
