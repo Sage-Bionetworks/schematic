@@ -25,12 +25,14 @@ def create_app():
     # handle exceptions in schematic when an exception gets raised
     @app.errorhandler(Exception)
     def handle_exception(e):
+        """handle exceptions in schematic APIs
+        """
         # Ensure the application context is available
         with app.app_context():
             # Get the last line of error from the traceback
             last_line = traceback.format_exc().strip().split('\n')[-1]
 
-            # Log the full trace 
+            # Log the full trace
             app.logger.error(traceback.format_exc())
 
             # Return a JSON response with the last line of the error
