@@ -5,7 +5,7 @@ import os
 from typing import Optional, no_type_check
 import numpy as np
 import pandas as pd
-import networkx as nx
+import networkx as nx  # type: ignore
 import pickle
 
 from schematic.schemas.data_model_parser import DataModelParser
