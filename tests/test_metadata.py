@@ -20,7 +20,6 @@ def metadata_model(helpers, data_model_labels):
         inputMModelLocation=helpers.get_data_path("example.model.jsonld"),
         data_model_labels=data_model_labels,
         inputMModelLocationType="local",
-        data_model_graph_pickle=helpers.get_data_path("example.model.pickle"),
     )
 
     return metadata_model
