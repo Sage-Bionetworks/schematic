@@ -68,6 +68,8 @@ from schematic.utils.schema_utils import get_class_label_from_display_name
 from schematic.store.base import BaseStorage
 from schematic.exceptions import AccessCredentialsError
 from schematic.configuration.configuration import CONFIG
+from synapseclient.annotations import Annotations
+import asyncio
 
 logger = logging.getLogger("Synapse storage")
 
@@ -1634,6 +1636,33 @@ class SynapseStorage(BaseStorage):
             self.syn.set_annotations(annos)
         return
 
+    async def _add_annotations_async(
+        self,
+        dmge: DataModelGraphExplorer,
+        row: pd.Series,
+        entityId: str,
+        hideBlanks: bool,
+        annotation_keys: str,
+    ) -> None:
+        """add annotations to entity ids in an asynchronous way 
+
+        Args:
+            dmge: DataModelGraphExplorer object,
+            row: current row of manifest being processed
+            entityId (str): synapseId of entity to add annotations to
+            hideBlanks: Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
+            annotation_keys:  (str) display_label/class_label(default), Determines labeling syle for annotation keys. class_label will format the display
+                name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
+                display label formatting while ensuring the label is formatted properly for Synapse annotations.
+        """
+        # Format annotations for Synapse
+        annos = self.format_row_annotations(
+            dmge, row, entityId, hideBlanks, annotation_keys
+        )
+
+        if annos:
+            await annos.store_async()
+
     def _create_entity_id(self, idx, row, manifest, datasetId):
         """Helper function to generate an entityId and add it to the appropriate row in the manifest.
         Args:
@@ -1653,7 +1682,7 @@ class SynapseStorage(BaseStorage):
         manifest.loc[idx, "entityId"] = entityId
         return manifest, entityId
 
-    def add_annotations_to_entities_files(
+    async def add_annotations_to_entities_files(
         self,
         dmge,
         manifest,
@@ -1694,6 +1723,7 @@ class SynapseStorage(BaseStorage):
             ).drop("entityId_x", axis=1)
 
         # Fill `entityId` for each row if missing and annotate entity as appropriate
+        set_annotations_requests=[]
         for idx, row in manifest.iterrows():
             if not row["entityId"] and (
                 manifest_record_type == "file_and_entities"
@@ -1713,8 +1743,11 @@ class SynapseStorage(BaseStorage):
 
             # Adding annotations to connected files.
             if entityId:
-                self._add_annotations(dmge, row, entityId, hideBlanks, annotation_keys)
+                #self._add_annotations(dmge, row, entityId, hideBlanks, annotation_keys)
+                set_annotations_requests.append(asyncio.create_task(self._add_annotations_async(dmge, row, entityId, hideBlanks, annotation_keys)))
                 logger.info(f"Added annotations to entity: {entityId}")
+        # execute all requests of setting annotations
+        responses = await asyncio.gather(*set_annotations_requests, return_exceptions=True)
         return manifest
 
     def upload_manifest_as_table(
@@ -1767,7 +1800,7 @@ class SynapseStorage(BaseStorage):
         )
 
         if file_annotations_upload:
-            manifest = self.add_annotations_to_entities_files(
+            manifest = asyncio.run(self.add_annotations_to_entities_files(
                 dmge,
                 manifest,
                 manifest_record_type,
@@ -1775,7 +1808,7 @@ class SynapseStorage(BaseStorage):
                 hideBlanks,
                 manifest_synapse_table_id,
                 annotation_keys,
-            )
+            ))
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
             manifest,
@@ -1840,14 +1873,14 @@ class SynapseStorage(BaseStorage):
             manifest_synapse_file_id (str): SynID of manifest csv uploaded to synapse.
         """
         if file_annotations_upload:
-            manifest = self.add_annotations_to_entities_files(
+            manifest = asyncio.run(self.add_annotations_to_entities_files(
                 dmge,
                 manifest,
                 manifest_record_type,
                 datasetId,
                 hideBlanks,
                 annotation_keys=annotation_keys,
-            )
+            ))
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
@@ -1917,7 +1950,7 @@ class SynapseStorage(BaseStorage):
         )
 
         if file_annotations_upload:
-            manifest = self.add_annotations_to_entities_files(
+            manifest = asyncio.run(self.add_annotations_to_entities_files(
                 dmge,
                 manifest,
                 manifest_record_type,
@@ -1925,7 +1958,7 @@ class SynapseStorage(BaseStorage):
                 hideBlanks,
                 manifest_synapse_table_id,
                 annotation_keys=annotation_keys,
-            )
+            ))
 
         # Load manifest to synapse as a CSV File
         manifest_synapse_file_id = self.upload_manifest_file(
