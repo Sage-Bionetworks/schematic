@@ -1369,16 +1369,7 @@ class SynapseStorage(BaseStorage):
 
             metadataSyn[keySyn] = v
         # set annotation(s) for the various objects/items in a dataset on Synapse
-        print('entity id to get annotations', entityId)
         annos = self.syn.get_annotations(entityId)
-        annos_new = Annotations.from_dict(synapse_annotations=annos)
-        print('annos', annos)
-        print('annos new', annos_new)
-
-        print(type(annos_new))
-        breakpoint()
-        
-
         csv_list_regex = comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
             # Remove keys with nan or empty string values from dict of annotations to be uploaded
@@ -1667,9 +1658,9 @@ class SynapseStorage(BaseStorage):
         annos = self.format_row_annotations(
             dmge, row, entityId, hideBlanks, annotation_keys
         )
-
         if annos:
-            await annos.store_async()
+            annotation_class=Annotations(annotations=dict(annos), id=annos.id, etag=annos.etag)
+            await annotation_class.store_async(synapse_client=self.syn)
 
     def _create_entity_id(self, idx, row, manifest, datasetId):
         """Helper function to generate an entityId and add it to the appropriate row in the manifest.
@@ -1759,7 +1750,8 @@ class SynapseStorage(BaseStorage):
 
         # handle errors 
         for response in responses:
-            print('repsonse', response)
+            if response:
+                logger.error(response)
         return manifest
 
     def upload_manifest_as_table(
