@@ -68,7 +68,7 @@ from schematic.utils.schema_utils import get_class_label_from_display_name
 from schematic.store.base import BaseStorage
 from schematic.exceptions import AccessCredentialsError
 from schematic.configuration.configuration import CONFIG
-from synapseclient.annotations import Annotations
+from synapseclient.models.annotations import Annotations
 import asyncio
 
 logger = logging.getLogger("Synapse storage")
@@ -702,7 +702,6 @@ class SynapseStorage(BaseStorage):
             new_files = self._get_file_entityIds(
                 dataset_files=dataset_files, only_new_files=True, manifest=manifest
             )
-
             # update manifest so that it contains new dataset files
             new_files = pd.DataFrame(new_files)
             manifest = (
@@ -1370,7 +1369,16 @@ class SynapseStorage(BaseStorage):
 
             metadataSyn[keySyn] = v
         # set annotation(s) for the various objects/items in a dataset on Synapse
+        print('entity id to get annotations', entityId)
         annos = self.syn.get_annotations(entityId)
+        annos_new = Annotations.from_dict(synapse_annotations=annos)
+        print('annos', annos)
+        print('annos new', annos_new)
+
+        print(type(annos_new))
+        breakpoint()
+        
+
         csv_list_regex = comma_separated_list_regex()
         for anno_k, anno_v in metadataSyn.items():
             # Remove keys with nan or empty string values from dict of annotations to be uploaded
@@ -1748,6 +1756,10 @@ class SynapseStorage(BaseStorage):
                 logger.info(f"Added annotations to entity: {entityId}")
         # execute all requests of setting annotations
         responses = await asyncio.gather(*set_annotations_requests, return_exceptions=True)
+
+        # handle errors 
+        for response in responses:
+            print('repsonse', response)
         return manifest
 
     def upload_manifest_as_table(
