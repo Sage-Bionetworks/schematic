@@ -5,8 +5,6 @@ import connexion
 from schematic import CONFIG
 from jaeger_client import Config
 from flask_opentracing import FlaskTracer
-import traceback
-import jsonify
 
 config = Config(
     config={
