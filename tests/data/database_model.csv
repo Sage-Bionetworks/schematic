@@ -1,0 +1,15 @@
+Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules,Primary Key
+Component,,,,,TRUE,,,,,
+Patient,,,"Patient ID, Sex, Year of Birth, Diagnosis, Component",,FALSE,DataType,,,,Patient ID
+Patient ID,,,,,TRUE,DataProperty,,,#Patient unique warning^^#Biospecimen unique error,
+Sex,,"Female, Male, Other",,,TRUE,DataProperty,,,,
+Year of Birth,,,,,FALSE,DataProperty,,,,
+Diagnosis,,"Healthy, Cancer",,,TRUE,DataProperty,,,,
+Cancer,,,"Cancer Type, Family History",,FALSE,ValidValue,,,,
+Cancer Type,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,,
+Family History,,"Breast, Colorectal, Lung, Prostate, Skin",,,TRUE,DataProperty,,,list strict,
+Biospecimen,,,"Sample ID, Patient ID, Tissue Status, Component",,FALSE,DataType,Patient,,,Sample ID
+Sample ID,,,,,TRUE,DataProperty,,,,
+Tissue Status,,"Healthy, Malignant",,,TRUE,DataProperty,,,,
+Bulk RNA-seq Assay,,,"Filename, Sample ID, File Format, Component",,FALSE,DataType,Biospecimen,,,
+Filename,,,,,TRUE,DataProperty,,,,
