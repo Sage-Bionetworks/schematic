@@ -24,7 +24,7 @@ from tenacity import (
 from time import sleep
 
 # allows specifying explicit variable types
-from typing import Dict, List, Tuple, Sequence, Union, Optional
+from typing import Dict, List, Tuple, Sequence, Union, Optional, Any
 
 from synapseclient import (
     Synapse,
@@ -1337,12 +1337,29 @@ class SynapseStorage(BaseStorage):
 
         return manifest_synapse_file_id
     
-    async def get_async_annotation(self, synapse_id):
+    async def get_async_annotation(self, synapse_id: str) -> Dict[str, Any]:
+        """get annotations asynchronously
+
+        Args:
+            synapse_id (str): synapse id of the entity that the annotation belongs 
+
+        Returns:
+            Dict[str, Any]: The requested entity bundle matching
+            <https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/entitybundle/v2/EntityBundle.html>
+        """
         return await get_entity_id_bundle2(
             entity_id=synapse_id, request={"includeAnnotations": True}, synapse_client=self.syn
         )
     
-    async def store_async_annotation(self, annotation_dict) -> Annotations:
+    async def store_async_annotation(self, annotation_dict: dict) -> Annotations:
+        """store annotation in an async way
+
+        Args:
+            annotation_dict (dict): annotation in a dictionary format
+
+        Returns:
+            Annotations: The stored annotations.
+        """
         annotation_data = Annotations.from_dict(
             synapse_annotations=annotation_dict["annotations"]["annotations"]
         )
