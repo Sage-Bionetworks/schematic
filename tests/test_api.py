@@ -132,8 +132,30 @@ def request_headers(syn_token):
     yield headers
 
 
+@pytest.fixture
+def request_invalid_headers():
+    headers = {"Authorization": "Bearer invalid headers"}
+    yield headers
+
+
 @pytest.mark.schematic_api
 class TestSynapseStorage:
+    def test_invalid_authentication(self, client, request_invalid_headers):
+        response = client.get(
+            "http://localhost:3001/v1/storage/assets/tables",
+            query_string = {"asset_view": "syn23643253", "return_type": "csv"},
+            headers=request_invalid_headers,
+        )
+        assert response.status_code == 401
+
+    def test_insufficent_auth(self, client, request_headers):
+        response = client.get(
+            "http://localhost:3001/v1/storage/assets/tables",
+            query_string = {"asset_view": "syn23643252", "return_type": "csv"},
+            headers=request_headers,
+        )
+        assert response.status_code == 403
+
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("return_type", ["json", "csv"])
     def test_get_storage_assets_tables(self, client, return_type, request_headers):
@@ -790,6 +812,19 @@ class TestManifestOperation:
                 "Family History",
             ]
         )
+
+    def test_generate_manifest_data_type_not_found(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "wrong data type",
+            "use_annotations": False,
+        }
+        response = client.get(
+            "http://localhost:3001/v1/manifest/generate", query_string=params
+        )
+
+        assert response.status_code == 500
+        assert "LookupError" in str(response.data)
 
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
