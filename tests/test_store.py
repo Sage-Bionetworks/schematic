@@ -28,6 +28,7 @@ from schematic.store.synapse import (
     SynapseStorage
 )
 from schematic.utils.general import check_synapse_cache_size
+from unittest.mock import AsyncMock
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -482,6 +483,20 @@ class TestSynapseStorage:
                     ],
                     "entityId": ["syn123", "syn456"],
                 }
+
+    async def test_get_async_annotation(self, synapse_store):
+        mock_syn_id = "syn1234"
+
+        with patch("schematic.store.synapse.get_entity_id_bundle2", new_callable=AsyncMock, return_value="mock") as mock_get_entity_id_bundle2:
+            mock_get_entity_id_bundle2.return_value="mock"
+            result = await synapse_store.get_async_annotation(synapse_id=mock_syn_id)
+
+            mock_get_entity_id_bundle2.assert_called_once_with(
+                entity_id=mock_syn_id,
+                request={"includeAnnotations": True},
+                synapse_client=synapse_store.syn,
+            )
+            assert result == "mock"
 
 
 class TestDatasetFileView:
