@@ -1775,8 +1775,9 @@ class SynapseStorage(BaseStorage):
                         else:
                             # remove special characters in annotations
                             entity_id = annos["EntityId"]
-                            logger.info(f"Got annotations for {entity_id} entity")
-                            requests.add(asyncio.create_task(self.store_async_annotation(annotation_dict=annos)))
+                            logger.info(f"Obtained and processed annotations for {entity_id} entity")
+                            if annos:
+                                requests.add(asyncio.create_task(self.store_async_annotation(annotation_dict=annos)))
 
                     except Exception as e:
                         raise RuntimeError(f"failed with { repr(e) }.")
