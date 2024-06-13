@@ -4331,13 +4331,13 @@ Jinja2 = ">=2.0"
 
 [[package]]
 name = "synapseclient"
-version = "4.2.0"
+version = "4.3.0"
 description = "A client for Synapse, a collaborative, open-source research platform that allows teams to share data, track analyses, and collaborate."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "synapseclient-4.2.0-py3-none-any.whl", hash = "sha256:ab5bc9c2bf5b90f271f1a9478eff7e9fca3e573578401ac706383ddb984d7a13"},
-    {file = "synapseclient-4.2.0.tar.gz", hash = "sha256:89222661125de1795b1a096cf8c58b8115c19d6b0fa5846ed2a41cdb394ef773"},
+    {file = "synapseclient-4.3.0-py3-none-any.whl", hash = "sha256:5d8107cfff4031a0a46d60a3c9a8120300190fa27df4983d883dc951d8bd885f"},
+    {file = "synapseclient-4.3.0.tar.gz", hash = "sha256:a1149a64b3281669d42c69e210677a902478b8f6b302966d518473c7384f6387"},
 ]
 
 [package.dependencies]
@@ -4357,11 +4357,11 @@ urllib3 = ">=1.26.18,<2"
 
 [package.extras]
 boto3 = ["boto3 (>=1.7.0,<2.0)"]
-dev = ["black", "flake8 (>=3.7.0,<4.0)", "func-timeout (>=4.3,<5.0)", "pre-commit", "pytest (>=6.0.0,<7.0)", "pytest-asyncio (>=0.19,<1.0)", "pytest-cov (>=4.1.0,<4.2.0)", "pytest-mock (>=3.0,<4.0)", "pytest-rerunfailures (>=12.0,<13.0)", "pytest-socket (>=0.6.0,<0.7.0)", "pytest-xdist[psutil] (>=2.2,<3.0.0)"]
+dev = ["black", "flake8 (>=3.7.0,<4.0)", "func-timeout (>=4.3,<5.0)", "pandas (>=1.5,<3.0)", "pre-commit", "pytest (>=7.0.0,<8.0)", "pytest-asyncio (>=0.23.6,<1.0)", "pytest-cov (>=4.1.0,<4.2.0)", "pytest-mock (>=3.0,<4.0)", "pytest-rerunfailures (>=12.0,<13.0)", "pytest-socket (>=0.6.0,<0.7.0)", "pytest-xdist[psutil] (>=2.2,<3.0.0)"]
 docs = ["markdown-include (>=0.8.1,<0.9.0)", "mkdocs (>=1.5.3)", "mkdocs-material (>=9.4.14)", "mkdocs-open-in-new-tab (>=1.0.3,<1.1.0)", "mkdocstrings (>=0.24.0)", "mkdocstrings-python (>=1.7.5)", "termynal (>=0.11.1)"]
 pandas = ["pandas (>=1.5,<3.0)"]
 pysftp = ["pysftp (>=0.2.8,<0.3)"]
-tests = ["flake8 (>=3.7.0,<4.0)", "func-timeout (>=4.3,<5.0)", "pytest (>=6.0.0,<7.0)", "pytest-asyncio (>=0.19,<1.0)", "pytest-cov (>=4.1.0,<4.2.0)", "pytest-mock (>=3.0,<4.0)", "pytest-rerunfailures (>=12.0,<13.0)", "pytest-socket (>=0.6.0,<0.7.0)", "pytest-xdist[psutil] (>=2.2,<3.0.0)"]
+tests = ["flake8 (>=3.7.0,<4.0)", "func-timeout (>=4.3,<5.0)", "pandas (>=1.5,<3.0)", "pytest (>=7.0.0,<8.0)", "pytest-asyncio (>=0.23.6,<1.0)", "pytest-cov (>=4.1.0,<4.2.0)", "pytest-mock (>=3.0,<4.0)", "pytest-rerunfailures (>=12.0,<13.0)", "pytest-socket (>=0.6.0,<0.7.0)", "pytest-xdist[psutil] (>=2.2,<3.0.0)"]
 
 [[package]]
 name = "tabulate"
