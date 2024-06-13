@@ -1733,7 +1733,7 @@ class SynapseStorage(BaseStorage):
             ).drop("entityId_x", axis=1)
 
         # Fill `entityId` for each row if missing and annotate entity as appropriate
-        requests=set()
+        requests = set()
         for idx, row in manifest.iterrows():
             if not row["entityId"] and (
                 manifest_record_type == "file_and_entities"
@@ -1753,15 +1753,18 @@ class SynapseStorage(BaseStorage):
 
             # Adding annotations to connected files.
             if entityId:
-
                 # Format annotations for Synapse
-                annos_task = asyncio.create_task(self.format_row_annotations(
-                    dmge, row, entityId, hideBlanks, annotation_keys
-                ))
+                annos_task = asyncio.create_task(
+                    self.format_row_annotations(
+                        dmge, row, entityId, hideBlanks, annotation_keys
+                    )
+                )
                 requests.add(annos_task)
 
                 while requests:
-                    done_tasks, pending_tasks = await asyncio.wait(requests, return_when=asyncio.FIRST_COMPLETED)
+                    done_tasks, pending_tasks = await asyncio.wait(
+                        requests, return_when=asyncio.FIRST_COMPLETED
+                    )
                     requests = pending_tasks
 
                 for completed_task in done_tasks:
@@ -1771,13 +1774,23 @@ class SynapseStorage(BaseStorage):
                         if isinstance(annos, Annotations):
                             annos_dict = asdict(annos)
                             entity_id = annos_dict["id"]
-                            logger.info(f"Successfully stored annotations for {entity_id}")
+                            logger.info(
+                                f"Successfully stored annotations for {entity_id}"
+                            )
                         else:
                             # remove special characters in annotations
                             entity_id = annos["EntityId"]
-                            logger.info(f"Obtained and processed annotations for {entity_id} entity")
+                            logger.info(
+                                f"Obtained and processed annotations for {entity_id} entity"
+                            )
                             if annos:
-                                requests.add(asyncio.create_task(self.store_async_annotation(annotation_dict=annos)))
+                                requests.add(
+                                    asyncio.create_task(
+                                        self.store_async_annotation(
+                                            annotation_dict=annos
+                                        )
+                                    )
+                                )
 
                     except Exception as e:
                         raise RuntimeError(f"failed with { repr(e) }.")
