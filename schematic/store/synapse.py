@@ -1692,6 +1692,40 @@ class SynapseStorage(BaseStorage):
         manifest.loc[idx, "entityId"] = entityId
         return manifest, entityId
 
+    async def _store_annos(self, requests):
+        while requests:
+            done_tasks, pending_tasks = await asyncio.wait(
+                        requests, return_when=asyncio.FIRST_COMPLETED
+                    )
+            requests = pending_tasks
+
+            for completed_task in done_tasks:
+                try:
+                    annos = completed_task.result()
+
+                    if isinstance(annos, Annotations):
+                        annos_dict = asdict(annos)
+                        entity_id = annos_dict["id"]
+                        logger.info(
+                            f"Successfully stored annotations for {entity_id}"
+                        )
+                    else:
+                        # remove special characters in annotations
+                        entity_id = annos["EntityId"]
+                        logger.info(
+                            f"Obtained and processed annotations for {entity_id} entity"
+                        )
+                        if annos:
+                            requests.add(
+                                asyncio.create_task(
+                                    self.store_async_annotation(
+                                        annotation_dict=annos
+                                    )
+                                )
+                            )
+                except Exception as e:
+                    raise RuntimeError(f"failed with { repr(e) }.") from e
+
     async def add_annotations_to_entities_files(
         self,
         dmge,
@@ -1760,40 +1794,8 @@ class SynapseStorage(BaseStorage):
                     )
                 )
                 requests.add(annos_task)
+                self._store_annos(requests)
 
-                while requests:
-                    done_tasks, pending_tasks = await asyncio.wait(
-                        requests, return_when=asyncio.FIRST_COMPLETED
-                    )
-                    requests = pending_tasks
-
-                for completed_task in done_tasks:
-                    try:
-                        annos = completed_task.result()
-
-                        if isinstance(annos, Annotations):
-                            annos_dict = asdict(annos)
-                            entity_id = annos_dict["id"]
-                            logger.info(
-                                f"Successfully stored annotations for {entity_id}"
-                            )
-                        else:
-                            # remove special characters in annotations
-                            entity_id = annos["EntityId"]
-                            logger.info(
-                                f"Obtained and processed annotations for {entity_id} entity"
-                            )
-                            if annos:
-                                requests.add(
-                                    asyncio.create_task(
-                                        self.store_async_annotation(
-                                            annotation_dict=annos
-                                        )
-                                    )
-                                )
-
-                    except Exception as e:
-                        raise RuntimeError(f"failed with { repr(e) }.")
         return manifest
 
     def upload_manifest_as_table(
