@@ -1695,8 +1695,8 @@ class SynapseStorage(BaseStorage):
     async def _store_annos(self, requests):
         while requests:
             done_tasks, pending_tasks = await asyncio.wait(
-                        requests, return_when=asyncio.FIRST_COMPLETED
-                    )
+                requests, return_when=asyncio.FIRST_COMPLETED
+            )
             requests = pending_tasks
 
             for completed_task in done_tasks:
@@ -1706,9 +1706,7 @@ class SynapseStorage(BaseStorage):
                     if isinstance(annos, Annotations):
                         annos_dict = asdict(annos)
                         entity_id = annos_dict["id"]
-                        logger.info(
-                            f"Successfully stored annotations for {entity_id}"
-                        )
+                        logger.info(f"Successfully stored annotations for {entity_id}")
                     else:
                         # remove special characters in annotations
                         entity_id = annos["EntityId"]
@@ -1718,9 +1716,7 @@ class SynapseStorage(BaseStorage):
                         if annos:
                             requests.add(
                                 asyncio.create_task(
-                                    self.store_async_annotation(
-                                        annotation_dict=annos
-                                    )
+                                    self.store_async_annotation(annotation_dict=annos)
                                 )
                             )
                 except Exception as e:
@@ -1794,8 +1790,7 @@ class SynapseStorage(BaseStorage):
                     )
                 )
                 requests.add(annos_task)
-                self._store_annos(requests)
-
+        await self._store_annos(requests)
         return manifest
 
     def upload_manifest_as_table(
