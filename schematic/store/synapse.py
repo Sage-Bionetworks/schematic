@@ -24,7 +24,7 @@ from tenacity import (
 from time import sleep
 
 # allows specifying explicit variable types
-from typing import Dict, List, Tuple, Sequence, Union, Optional, Any
+from typing import Dict, List, Tuple, Sequence, Union, Optional, Any, Set
 
 from synapseclient import (
     Synapse,
@@ -1692,7 +1692,15 @@ class SynapseStorage(BaseStorage):
         manifest.loc[idx, "entityId"] = entityId
         return manifest, entityId
 
-    async def _store_annos(self, requests):
+    async def _process_store_annos(self, requests: Set[asyncio.Task]) -> None:
+        """Process annotations and store them on synapse asynchronously
+
+        Args:
+            requests (Set[asyncio.Task]): a set of tasks of formatting annotations created by format_row_annotations function in previous step
+
+        Raises:
+            RuntimeError: raise a run time error if a task failed to complete
+        """
         while requests:
             done_tasks, pending_tasks = await asyncio.wait(
                 requests, return_when=asyncio.FIRST_COMPLETED
@@ -1790,7 +1798,7 @@ class SynapseStorage(BaseStorage):
                     )
                 )
                 requests.add(annos_task)
-        await self._store_annos(requests)
+        await self._process_store_annos(requests)
         return manifest
 
     def upload_manifest_as_table(
