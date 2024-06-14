@@ -22,13 +22,10 @@ from schematic.schemas.data_model_parser import DataModelParser
 from tests.conftest import Helpers
 
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import (
-    DatasetFileView,
-    ManifestDownload,
-    SynapseStorage
-)
+from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
 from schematic.utils.general import check_synapse_cache_size
 from unittest.mock import AsyncMock
+from synapseclient.models import Annotations
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -132,7 +129,7 @@ class TestBaseStorage:
 class TestSynapseStorage:
     "Tests the SynapseStorage class"
 
-    def test_init(self, synapse_store:SynapseStorage) -> None:
+    def test_init(self, synapse_store: SynapseStorage) -> None:
         """Tests SynapseStorage.__init__"""
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
@@ -143,8 +140,7 @@ class TestSynapseStorage:
         synapse_store = SynapseStorage(synapse_cache_path="test_cache_dir")
         size_before_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
         synapse_store._purge_synapse_cache(
-            maximum_storage_allowed_cache_gb=0.000001,
-            minute_buffer=0
+            maximum_storage_allowed_cache_gb=0.000001, minute_buffer=0
         )
         size_after_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
         assert size_before_purge > size_after_purge
@@ -158,7 +154,7 @@ class TestSynapseStorage:
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
         shutil.rmtree("test_cache_dir")
 
-    def test_getFileAnnotations(self, synapse_store:SynapseStorage) -> None:
+    def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
             "author": "bruno, milen, sujay",
             "impact": "42.9",
@@ -221,17 +217,17 @@ class TestSynapseStorage:
                 {"CheckInt": "7", "CheckList": "valid, list, values"},
                 "syn34295552",
                 "file_and_entities",
-                "annotations_test_manifest.csv"
+                "annotations_test_manifest.csv",
             ),
             (
                 {"FileFormat": "BAM", "GenomeBuild": "GRCh38"},
                 "syn39241199",
                 "table_and_file",
-                "test_BulkRNAseq.csv"
+                "test_BulkRNAseq.csv",
             ),
         ],
         ids=["non file-based", "file-based"],
-        indirect=["temporary_file_copy"]
+        indirect=["temporary_file_copy"],
     )
     def test_annotation_submission(
         self,
@@ -484,11 +480,16 @@ class TestSynapseStorage:
                     "entityId": ["syn123", "syn456"],
                 }
 
-    async def test_get_async_annotation(self, synapse_store):
+    async def test_get_async_annotation(self, synapse_store: SynapseStorage) -> None:
+        """test get annotation async function"""
         mock_syn_id = "syn1234"
 
-        with patch("schematic.store.synapse.get_entity_id_bundle2", new_callable=AsyncMock, return_value="mock") as mock_get_entity_id_bundle2:
-            mock_get_entity_id_bundle2.return_value="mock"
+        with patch(
+            "schematic.store.synapse.get_entity_id_bundle2",
+            new_callable=AsyncMock,
+            return_value="mock",
+        ) as mock_get_entity_id_bundle2:
+            mock_get_entity_id_bundle2.return_value = "mock"
             result = await synapse_store.get_async_annotation(synapse_id=mock_syn_id)
 
             mock_get_entity_id_bundle2.assert_called_once_with(
@@ -497,6 +498,46 @@ class TestSynapseStorage:
                 synapse_client=synapse_store.syn,
             )
             assert result == "mock"
+
+    async def test_store_async_annotation(self, synapse_store: SynapseStorage) -> None:
+        """test store annotations async function"""
+        annos_dict = {
+            "annotations": {
+                "id": "mock_syn_id",
+                "etag": "mock etag",
+                "annotations": {
+                    "Id": {"type": "STRING", "value": ["mock value"]},
+                    "EntityId": {"type": "STRING", "value": ["mock_syn_id"]},
+                    "SampleID": {"type": "STRING", "value": [""]},
+                    "Component": {"type": "STRING", "value": ["mock value"]},
+                },
+            },
+            "FileFormat": "mock format",
+            "Component": "mock component",
+            "Id": "mock_string",
+            "EntityId": "mock_id",
+        }
+        expected_dict = Annotations(
+            annotations={
+                "Id": ["mock_string"],
+                "EntityId": ["mock_syn_id"],
+                "SampleID": [""],
+                "Component": ["mock value"],
+                "FileFormat": ["mock_format"],
+            },
+            etag="mock etag",
+            id="mock syn_id",
+        )
+
+        with patch(
+            "schematic.store.synapse.Annotations.store_async",
+            new_callable=AsyncMock,
+            return_value=expected_dict,
+        ) as mock_store_async:
+            result = await synapse_store.store_async_annotation(annos_dict)
+
+            mock_store_async.assert_called_once_with(synapse_store.syn)
+            assert isinstance(result, Annotations)
 
 
 class TestDatasetFileView:
