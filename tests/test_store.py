@@ -9,6 +9,7 @@ from time import sleep
 from typing import Generator, Any
 from unittest.mock import patch
 import shutil
+import asyncio
 
 import pandas as pd
 import pytest
@@ -540,6 +541,89 @@ class TestSynapseStorage:
             assert result == expected_dict
             assert isinstance(result, Annotations)
 
+
+    async def test_process_store_annos_failure(self, synapse_store: SynapseStorage) -> None:
+        """test _process_store_annos function when there's an error either getting or storing annotations
+        """
+        async def mock_failure_coro():
+            await asyncio.sleep(0.1)
+            raise ValueError("sample error")
+        
+        # create tasks that will fail
+        tasks = set()
+        tasks.add(asyncio.create_task(mock_failure_coro()))
+        
+        synapse_store._process_store_annos
+        # make sure error message can be raised
+        with pytest.raises(RuntimeError, match="failed with"):
+            await synapse_store._process_store_annos(tasks)
+
+    async def test_process_store_annos_success_store(self, synapse_store: SynapseStorage) -> None:
+        """test _process_store_annos function and make sure that annotations can be stored after successfully getting annotations.
+        """
+        # mock annotation obtained after async_store
+        stored_annos = Annotations(
+                annotations={
+                    "Id": ["mock_string"],
+                    "EntityId": ["mock_syn_id"],
+                    "SampleID": [""],
+                    "Component": ["mock value"],
+                    "FileFormat": ["mock_format"],
+                },
+                etag="mock etag",
+                id="mock_syn_id")
+        
+        async def mock_success_coro():
+            await asyncio.sleep(0.1)
+            return stored_annos
+        
+        with patch("schematic.store.synapse.SynapseStorage.store_async_annotation",new_callable=AsyncMock) as mock_store_async1:
+            tasks = set()
+            tasks.add(asyncio.create_task(mock_success_coro()))
+            await synapse_store._process_store_annos(tasks)
+            # make sure that the if statement is working 
+            mock_store_async1.assert_not_called()
+    
+
+    async def test_process_store_annos_success_get(self, synapse_store: SynapseStorage) -> None:
+        """test _process_store_annos function and make sure that task of storing annotations can be triggered
+        """
+        # mock annotation obtained after get_async
+        mock_annos_dict = {
+            "annotations": {
+                "id": "mock_syn_id",
+                "etag": "mock etag",
+                "annotations": {
+                    "Id": {"type": "STRING", "value": ["mock value"]},
+                    "EntityId": {"type": "STRING", "value": ["mock_syn_id"]},
+                    "SampleID": {"type": "STRING", "value": [""]},
+                    "Component": {"type": "STRING", "value": ["mock value"]},
+                },
+            },
+            "FileFormat": "mock format",
+            "Component": "mock component",
+            "Id": "mock_string",
+            "EntityId": "mock_id",
+        }
+
+        mock_stored_annos = Annotations(
+                annotations={
+                    "Id": ["mock_string"],
+                    "EntityId": ["mock_syn_id"],
+                },
+                etag="mock etag",
+                id="mock_syn_id")
+        
+        async def mock_success_coro():
+            await asyncio.sleep(0.1)
+            return mock_annos_dict
+
+        # make sure that the else statement is working 
+        new_tasks = set()
+        with patch("schematic.store.synapse.SynapseStorage.store_async_annotation",new_callable=AsyncMock, return_value=mock_stored_annos) as mock_store_async2:
+            new_tasks.add(asyncio.create_task(mock_success_coro()))
+            await synapse_store._process_store_annos(new_tasks)
+            mock_store_async2.assert_called_once()
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):

@@ -1716,7 +1716,6 @@ class SynapseStorage(BaseStorage):
                         entity_id = annos_dict["id"]
                         logger.info(f"Successfully stored annotations for {entity_id}")
                     else:
-                        # remove special characters in annotations
                         entity_id = annos["EntityId"]
                         logger.info(
                             f"Obtained and processed annotations for {entity_id} entity"
