@@ -80,8 +80,12 @@ def trace_function_params():
     """capture all the parameters of API requests
     """
     def decorator(func):
+        """create a decorator
+        """
         @wraps(func)
         def wrapper(**kwargs: Any):
+            """create a wrapper function
+            """
             tracer = trace.get_tracer(__name__)
             # Start a new span with the function's name
             with tracer.start_as_current_span(func.__name__) as span:
