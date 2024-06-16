@@ -1643,36 +1643,6 @@ class SynapseStorage(BaseStorage):
             table_name = "synapse_storage_manifest_table"
         return table_name, component_name
 
-    def _add_annotations(
-        self,
-        dmge,
-        row,
-        entityId: str,
-        hideBlanks: bool,
-        annotation_keys: str,
-    ):
-        """Helper function to format and add annotations to entities in Synapse.
-        Args:
-            dmge: DataModelGraphExplorer object,
-            row: current row of manifest being processed
-            entityId (str): synapseId of entity to add annotations to
-            hideBlanks: Boolean flag that does not upload annotation keys with blank values when true. Uploads Annotation keys with empty string values when false.
-            annotation_keys:  (str) display_label/class_label(default), Determines labeling syle for annotation keys. class_label will format the display
-                name as upper camelcase, and strip blacklisted characters, display_label will strip blacklisted characters including spaces, to retain
-                display label formatting while ensuring the label is formatted properly for Synapse annotations.
-        Returns:
-            Annotations are added to entities in Synapse, no return.
-        """
-        # Format annotations for Synapse
-        annos = self.format_row_annotations(
-            dmge, row, entityId, hideBlanks, annotation_keys
-        )
-
-        if annos:
-            # Store annotations for an entity folder
-            self.syn.set_annotations(annos)
-        return
-
     def _create_entity_id(self, idx, row, manifest, datasetId):
         """Helper function to generate an entityId and add it to the appropriate row in the manifest.
         Args:
