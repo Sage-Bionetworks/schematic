@@ -35,7 +35,7 @@ from schematic.utils.google_api_utils import export_manifest_drive_service
 from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
-tracer = trace.get_tracer("generator::ManifestGenerator")
+tracer = trace.get_tracer("Schematic")
 
 
 class ManifestGenerator(object):
@@ -1575,8 +1575,7 @@ class ManifestGenerator(object):
         # Default return a DataFrame
         else:
             return dataframe
-        
-    
+
     @staticmethod
     @tracer.start_as_current_span("ManifestGenerator::create_single_manifest")
     def create_single_manifest(
@@ -1760,7 +1759,7 @@ class ManifestGenerator(object):
                     return result
 
         return all_results
-    
+
     @tracer.start_as_current_span("ManifestGenerator::get_manifest")
     def get_manifest(
         self,

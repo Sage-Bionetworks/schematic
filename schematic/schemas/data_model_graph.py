@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 logger = logging.getLogger(__name__)
-tracer = trace.get_tracer("schemas::DataModelGraph")
+tracer = trace.get_tracer("Schematic")
 
 
 class DataModelGraphMeta:  # pylint: disable=too-few-public-methods

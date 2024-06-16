@@ -56,7 +56,7 @@ trace.set_tracer_provider(
     )
 )
 
-
+# borrowed from: https://github.com/Sage-Bionetworks/synapsePythonClient/blob/develop/tests/integration/conftest.py
 class FileSpanExporter(ConsoleSpanExporter):
     """Create an exporter for OTEL data to a file."""
 
@@ -72,11 +72,13 @@ class FileSpanExporter(ConsoleSpanExporter):
                 f.write(span_json_one_line)
 
 trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
-processor = SimpleSpanProcessor(FileSpanExporter("otel_spans_schemati_api.json"))
-trace.get_tracer_provider().add_span_processor(processor)
-tracer = trace.get_tracer("schematic-api")
+# processor = SimpleSpanProcessor(FileSpanExporter("otel_spans_schemati_api.json"))
+# trace.get_tracer_provider().add_span_processor(processor)
+tracer = trace.get_tracer("Schematic")
 
 def trace_function_params():
+    """capture all the parameters of API requests
+    """
     def decorator(func):
         @wraps(func)
         def wrapper(**kwargs):
@@ -91,7 +93,6 @@ def trace_function_params():
                 return result
         return wrapper
     return decorator
-
 
 
 def config_handler(asset_view: str = None):
@@ -372,8 +373,7 @@ def get_manifest_route(
     return all_results
 
 
-#####profile validate manifest route function
-# @profile(sort_by='cumulative', strip_dirs=True)
+@trace_function_params()
 def validate_manifest_route(
     schema_url,
     data_type,
@@ -430,7 +430,6 @@ def validate_manifest_route(
 
 
 #####profile validate manifest route function
-# @profile(sort_by='cumulative', strip_dirs=True)
 @trace_function_params()
 def submit_manifest_route(
     schema_url,
@@ -726,7 +725,6 @@ def download_manifest(manifest_id, new_manifest_name="", as_json=True):
         return manifest_local_file_path
 
 
-# @profile(sort_by='cumulative', strip_dirs=True)
 def download_dataset_manifest(dataset_id, asset_view, as_json, new_manifest_name=""):
     # Access token now stored in request header
     access_token = get_access_token()

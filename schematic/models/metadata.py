@@ -23,7 +23,8 @@ from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
 
-tracer = trace.get_tracer("metadata::MetadataModel")
+tracer = trace.get_tracer("Schematic")
+
 
 class MetadataModel(object):
     """Metadata model wrapper around schema.org specification graph.

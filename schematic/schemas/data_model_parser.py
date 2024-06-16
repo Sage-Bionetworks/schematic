@@ -17,7 +17,7 @@ from opentelemetry import trace
 
 logger = logging.getLogger("Schemas")
 
-tracer = trace.get_tracer("Schemas::DataModelParser")
+tracer = trace.get_tracer("Schematic")
 
 
 class DataModelParser:
