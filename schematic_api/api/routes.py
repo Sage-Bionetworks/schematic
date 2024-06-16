@@ -44,7 +44,7 @@ from schematic.utils.schema_utils import get_property_label_from_display_name, D
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor, Span
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
 logger = logging.getLogger(__name__)
@@ -60,11 +60,11 @@ trace.set_tracer_provider(
 class FileSpanExporter(ConsoleSpanExporter):
     """Create an exporter for OTEL data to a file."""
 
-    def __init__(self, file_path) -> None:
+    def __init__(self, file_path: str) -> None:
         """Init with a path."""
         self.file_path = file_path
 
-    def export(self, spans) -> None:
+    def export(self, spans: List[Span]) -> None:
         """Export the spans to the file."""
         with open(self.file_path, "a", encoding="utf-8") as f:
             for span in spans:
@@ -81,7 +81,7 @@ def trace_function_params():
     """
     def decorator(func):
         @wraps(func)
-        def wrapper(**kwargs):
+        def wrapper(**kwargs: Any):
             tracer = trace.get_tracer(__name__)
             # Start a new span with the function's name
             with tracer.start_as_current_span(func.__name__) as span:
