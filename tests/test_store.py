@@ -1077,7 +1077,7 @@ class TestManifestUpload:
             ),
         ],
     )
-    def test_add_annotations_to_entities_files(
+    async def test_add_annotations_to_entities_files(
         self,
         synapse_store: SynapseStorage,
         dmge: DataModelGraphExplorer,
@@ -1097,27 +1097,40 @@ class TestManifestUpload:
             expected_filenames (list(str)): expected list of file names
             expected_entity_ids (list(str)): expected list of entity ids
         """
+        async def mock_format_row_annos():
+            await asyncio.sleep(0.1)
+        
+        async def mock_process_store_annos(requests):
+            await asyncio.sleep(0.1)
+
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
             return_value=files_in_dataset,
         ):
-            manifest_df = pd.DataFrame(original_manifest)
+            with patch('schematic.store.synapse.SynapseStorage.format_row_annotations', return_value=mock_format_row_annos, new_callable=AsyncMock) as mock_format_row:
+                with patch('schematic.store.synapse.SynapseStorage._process_store_annos', return_value=mock_process_store_annos, new_callable=AsyncMock) as mock_process_store:
+                    manifest_df = pd.DataFrame(original_manifest)
 
-            new_df = synapse_store.add_annotations_to_entities_files(
-                dmge,
-                manifest_df,
-                manifest_record_type="entity",
-                datasetId="mock id",
-                hideBlanks=True,
-            )
-            file_names_lst = new_df["Filename"].tolist()
-            entity_ids_lst = new_df["entityId"].tolist()
+                    new_df = await synapse_store.add_annotations_to_entities_files(
+                        dmge,
+                        manifest_df,
+                        manifest_record_type="entity",
+                        datasetId="mock id",
+                        hideBlanks=True,
+                    )
 
-            # test entityId and Id columns get added
-            assert "entityId" in new_df.columns
-            assert "Id" in new_df.columns
-            assert file_names_lst == expected_filenames
-            assert entity_ids_lst == expected_entity_ids
+                    file_names_lst = new_df["Filename"].tolist()
+                    entity_ids_lst = new_df["entityId"].tolist()
+
+                    # test entityId and Id columns get added
+                    assert "entityId" in new_df.columns
+                    assert "Id" in new_df.columns
+                    assert file_names_lst == expected_filenames
+                    assert entity_ids_lst == expected_entity_ids
+
+                    # make sure async function gets called as expected
+                    assert mock_format_row.call_count == len(expected_entity_ids)
+                    assert mock_process_store.call_count == 1
 
     @pytest.mark.parametrize(
         "mock_manifest_file_path",
