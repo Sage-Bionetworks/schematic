@@ -19,7 +19,7 @@ from flask import request
 
 import pandas as pd
 import json
-from typing import Optional
+from typing import Optional, List, Any
 from functools import wraps
 
 from schematic.configuration.configuration import CONFIG
