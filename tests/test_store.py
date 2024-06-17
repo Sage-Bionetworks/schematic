@@ -22,11 +22,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 from tests.conftest import Helpers
 
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import (
-    DatasetFileView,
-    ManifestDownload,
-    SynapseStorage
-)
+from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
 from schematic.utils.general import check_synapse_cache_size
 
 logging.basicConfig(level=logging.DEBUG)
@@ -131,7 +127,7 @@ class TestBaseStorage:
 class TestSynapseStorage:
     "Tests the SynapseStorage class"
 
-    def test_init(self, synapse_store:SynapseStorage) -> None:
+    def test_init(self, synapse_store: SynapseStorage) -> None:
         """Tests SynapseStorage.__init__"""
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
@@ -142,8 +138,7 @@ class TestSynapseStorage:
         synapse_store = SynapseStorage(synapse_cache_path="test_cache_dir")
         size_before_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
         synapse_store._purge_synapse_cache(
-            maximum_storage_allowed_cache_gb=0.000001,
-            minute_buffer=0
+            maximum_storage_allowed_cache_gb=0.000001, minute_buffer=0
         )
         size_after_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
         assert size_before_purge > size_after_purge
@@ -157,7 +152,7 @@ class TestSynapseStorage:
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
         shutil.rmtree("test_cache_dir")
 
-    def test_getFileAnnotations(self, synapse_store:SynapseStorage) -> None:
+    def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
             "author": "bruno, milen, sujay",
             "impact": "42.9",
@@ -220,17 +215,17 @@ class TestSynapseStorage:
                 {"CheckInt": "7", "CheckList": "valid, list, values"},
                 "syn34295552",
                 "file_and_entities",
-                "annotations_test_manifest.csv"
+                "annotations_test_manifest.csv",
             ),
             (
                 {"FileFormat": "BAM", "GenomeBuild": "GRCh38"},
                 "syn39241199",
                 "table_and_file",
-                "test_BulkRNAseq.csv"
+                "test_BulkRNAseq.csv",
             ),
         ],
         ids=["non file-based", "file-based"],
-        indirect=["temporary_file_copy"]
+        indirect=["temporary_file_copy"],
     )
     def test_annotation_submission(
         self,

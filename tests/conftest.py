@@ -128,8 +128,9 @@ def synapse_store(request):
 
 
 # These fixtures make copies of existing test manifests.
-# These copies can the be altered by a given test, and the copy will eb destroyed at the 
+# These copies can the be altered by a given test, and the copy will eb destroyed at the
 # end of the test
+
 
 @pytest.fixture(scope="function")
 def temporary_file_copy(request, helpers: Helpers) -> Generator[str, None, None]:
@@ -137,10 +138,12 @@ def temporary_file_copy(request, helpers: Helpers) -> Generator[str, None, None]
     # original file copy
     original_test_path = helpers.get_data_path(f"mock_manifests/{file_name}")
     # get filename without extension
-    file_name_no_extension=file_name.split(".")[0]
+    file_name_no_extension = file_name.split(".")[0]
     # Copy the original CSV file to a temporary directory
-    temp_csv_path = helpers.get_data_path(f"mock_manifests/{file_name_no_extension}_copy.csv")
-    
+    temp_csv_path = helpers.get_data_path(
+        f"mock_manifests/{file_name_no_extension}_copy.csv"
+    )
+
     shutil.copyfile(original_test_path, temp_csv_path)
     yield temp_csv_path
     # Teardown
