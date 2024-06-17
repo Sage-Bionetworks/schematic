@@ -39,7 +39,10 @@ from synapseclient.core.exceptions import (
     SynapseTimeoutError,
 )
 from schematic.utils.general import entity_type_mapping
-from schematic.utils.schema_utils import get_property_label_from_display_name, DisplayLabelType
+from schematic.utils.schema_utils import (
+    get_property_label_from_display_name,
+    DisplayLabelType,
+)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -209,6 +212,7 @@ def save_file(file_key="csv_file"):
     manifest_file.save(temp_path)
 
     return temp_path
+
 
 def initalize_metadata_model(schema_url, data_model_labels):
     # get path to temp data model file (csv or jsonld) as appropriate
@@ -393,7 +397,7 @@ def submit_manifest_route(
     project_scope=None,
     table_column_names=None,
     annotation_keys=None,
-    file_annotations_upload:bool=True,
+    file_annotations_upload: bool = True,
 ):
     # call config_handler()
     config_handler(asset_view=asset_view)
@@ -450,7 +454,7 @@ def submit_manifest_route(
         project_scope=project_scope,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
-        file_annotations_upload=file_annotations_upload
+        file_annotations_upload=file_annotations_upload,
     )
 
     return manifest_id
@@ -728,6 +732,7 @@ def get_asset_view_table(asset_view, return_type):
         export_path = os.path.join(path, "tests/data/file_view_table.csv")
         file_view_table_df.to_csv(export_path, index=False)
         return export_path
+
 
 def get_project_manifests(project_id, asset_view):
     # Access token now stored in request header
