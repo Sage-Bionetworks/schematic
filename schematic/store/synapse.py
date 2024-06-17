@@ -1343,7 +1343,10 @@ class SynapseStorage(BaseStorage):
         ).id
 
         synapseutils.copy_functions.changeFileMetaData(
-            syn=self.syn, entity=manifest_synapse_file_id, downloadAs=file_name_new
+            syn=self.syn,
+            entity=manifest_synapse_file_id,
+            downloadAs=file_name_new,
+            forceVersion=False,
         )
 
         return manifest_synapse_file_id
