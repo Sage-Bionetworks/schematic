@@ -83,17 +83,20 @@ def trace_function_params():
         """create a decorator
         """
         @wraps(func)
-        def wrapper(**kwargs: Any):
-            """create a wrapper function
+        def wrapper(*args, **kwargs):
+            """create a wrapper function. Any number of positional arguments and keyword arguments can be passed here.
             """
             tracer = trace.get_tracer(__name__)
             # Start a new span with the function's name
             with tracer.start_as_current_span(func.__name__) as span:
                 # Set values of parameters as tags 
+                for i, arg in enumerate(args):
+                    span.set_attribute(f'arg{i}', arg)
+
                 for name, value in kwargs.items():
                     span.set_attribute(name, value)
                 # Call the actual function
-                result = func(**kwargs)
+                result = func(*args, **kwargs)
                 return result
         return wrapper
     return decorator
