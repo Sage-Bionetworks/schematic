@@ -5,6 +5,7 @@ from typing import Any, Union, Optional
 
 import logging
 import pandas as pd
+from opentelemetry import trace
 
 from schematic.utils.df_utils import load_df
 from schematic.utils.io_utils import load_json
@@ -13,7 +14,6 @@ from schematic.utils.schema_utils import attr_dict_template
 from schematic.schemas.data_model_relationships import DataModelRelationships
 
 from schematic import LOADER
-from opentelemetry import trace
 
 logger = logging.getLogger("Schemas")
 

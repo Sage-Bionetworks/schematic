@@ -5,6 +5,7 @@ from typing import Optional, Union, Any
 
 import networkx as nx  # type: ignore
 import graphviz  # type: ignore
+from opentelemetry import trace
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
@@ -19,7 +20,6 @@ from schematic.utils.schema_utils import (
 from schematic.utils.general import unlist
 from schematic.utils.viz_utils import visualize
 from schematic.utils.validate_utils import rule_in_rule_list
-from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
 
