@@ -61,7 +61,9 @@ def manifest_generator(helpers, request):
 
     # Get graph data model
     graph_data_model = generate_graph_data_model(
-        helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
+        helpers,
+        path_to_data_model=path_to_data_model,
+        data_model_labels="class_label",
     )
 
     manifest_generator = ManifestGenerator(
@@ -111,10 +113,12 @@ def manifest(dataset_id, manifest_generator, request):
 
     yield manifest, use_annotations, data_type, sheet_url
 
+
 @pytest.fixture(scope="class")
 def app():
     app = create_app()
     yield app
+
 
 class TestManifestGenerator:
     def test_init(self, helpers):
@@ -122,7 +126,9 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
         )
 
         generator = ManifestGenerator(
@@ -157,7 +163,9 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
         )
 
         # A LookupError should be raised and include message when the component cannot be found
@@ -242,7 +250,9 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
         )
 
         generator = ManifestGenerator(
@@ -300,7 +310,9 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
         )
 
         # Instantiate object with use_annotations set to True
@@ -416,7 +428,9 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
         )
 
         manifest_generator = ManifestGenerator(
@@ -453,7 +467,9 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
         )
 
         manifest_generator = ManifestGenerator(
@@ -537,7 +553,9 @@ class TestManifestGenerator:
 
         # Get graph data model
         graph_data_model = generate_graph_data_model(
-            helpers, path_to_data_model=path_to_data_model, data_model_labels='class_label',
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
         )
 
         # Instantiate the Manifest Generator.
@@ -661,38 +679,89 @@ class TestManifestGenerator:
 
         # remove file
         os.remove(dummy_output_path)
-    
-    @pytest.mark.parametrize("return_output", ["Mock excel file path", "Mock google sheet link"])
-    def test_create_single_manifest(self, simple_manifest_generator, helpers, return_output):
-        with patch("schematic.manifest.generator.ManifestGenerator.get_manifest", return_value=return_output):
+
+    @pytest.mark.parametrize(
+        "return_output", ["Mock excel file path", "Mock google sheet link"]
+    )
+    def test_create_single_manifest(
+        self, simple_manifest_generator, helpers, return_output
+    ):
+        with patch(
+            "schematic.manifest.generator.ManifestGenerator.get_manifest",
+            return_value=return_output,
+        ):
             json_ld_path = helpers.get_data_path("example.model.jsonld")
             data_type = "Patient"
 
-            graph_data_model = generate_graph_data_model(helpers, path_to_data_model=json_ld_path, data_model_labels='class_label')
+            graph_data_model = generate_graph_data_model(
+                helpers,
+                path_to_data_model=json_ld_path,
+                data_model_labels="class_label",
+            )
 
-            result = simple_manifest_generator.create_single_manifest(path_to_data_model=json_ld_path, graph_data_model=graph_data_model, data_type=data_type, output_format="google_sheet", use_annotations=False)
+            result = simple_manifest_generator.create_single_manifest(
+                path_to_data_model=json_ld_path,
+                graph_data_model=graph_data_model,
+                data_type=data_type,
+                output_format="google_sheet",
+                use_annotations=False,
+            )
             assert result == return_output
-    
-    @pytest.mark.parametrize("test_data_types", [["Patient", "Biospecimen"], ["all manifests"]])
-    def test_create_manifests_raise_errors(self, simple_manifest_generator, helpers, test_data_types):
-        with pytest.raises(ValueError) as exception_info: 
+
+    @pytest.mark.parametrize(
+        "test_data_types", [["Patient", "Biospecimen"], ["all manifests"]]
+    )
+    def test_create_manifests_raise_errors(
+        self, simple_manifest_generator, helpers, test_data_types
+    ):
+        with pytest.raises(ValueError) as exception_info:
             json_ld_path = helpers.get_data_path("example.model.jsonld")
             data_types = test_data_types
-            dataset_ids=["syn123456"]
+            dataset_ids = ["syn123456"]
 
-            simple_manifest_generator.create_manifests(path_to_data_model=json_ld_path, data_types=data_types, dataset_ids=dataset_ids, output_format="google_sheet", use_annotations=False, data_model_labels='class_label')
-    
-    @pytest.mark.parametrize("test_data_types, dataset_ids, expected_result", [
-        (["Patient", "Biospecimen"], ["mock dataset id1", "mock dataset id2"], ["mock google sheet link", "mock google sheet link"]),
-        (["Patient"], ["mock dataset id1"], ["mock google sheet link"]),
-        ])
-    def test_create_manifests(self, simple_manifest_generator, helpers, test_data_types, dataset_ids, expected_result):
-        with patch("schematic.manifest.generator.ManifestGenerator.create_single_manifest", return_value="mock google sheet link"):
+            simple_manifest_generator.create_manifests(
+                path_to_data_model=json_ld_path,
+                data_types=data_types,
+                dataset_ids=dataset_ids,
+                output_format="google_sheet",
+                use_annotations=False,
+                data_model_labels="class_label",
+            )
+
+    @pytest.mark.parametrize(
+        "test_data_types, dataset_ids, expected_result",
+        [
+            (
+                ["Patient", "Biospecimen"],
+                ["mock dataset id1", "mock dataset id2"],
+                ["mock google sheet link", "mock google sheet link"],
+            ),
+            (["Patient"], ["mock dataset id1"], ["mock google sheet link"]),
+        ],
+    )
+    def test_create_manifests(
+        self,
+        simple_manifest_generator,
+        helpers,
+        test_data_types,
+        dataset_ids,
+        expected_result,
+    ):
+        with patch(
+            "schematic.manifest.generator.ManifestGenerator.create_single_manifest",
+            return_value="mock google sheet link",
+        ):
             json_ld_path = helpers.get_data_path("example.model.jsonld")
-            all_results = simple_manifest_generator.create_manifests(path_to_data_model=json_ld_path, data_types=test_data_types, dataset_ids=dataset_ids, output_format="google_sheet", use_annotations=False, data_model_labels='class_label')
+            all_results = simple_manifest_generator.create_manifests(
+                path_to_data_model=json_ld_path,
+                data_types=test_data_types,
+                dataset_ids=dataset_ids,
+                output_format="google_sheet",
+                use_annotations=False,
+                data_model_labels="class_label",
+            )
             assert all_results == expected_result
     
-
     def test_get_record_based_manifest_with_files(self, helpers):
         """
         Test to ensure that when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
