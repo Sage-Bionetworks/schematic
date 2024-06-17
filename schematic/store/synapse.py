@@ -244,7 +244,7 @@ class SynapseStorage(BaseStorage):
                     self.syn.cache, minutes=minute_buffer
                 )
                 logger.info(
-                    f"{num_of_deleted_files}  files have been d eleted from {self.root_synapse_cache}"
+                    f"{num_of_deleted_files}  files have been deleted from {self.root_synapse_cache}"
                 )
             else:
                 # on AWS, OS takes around 14-17% of our ephemeral storage (20GiB)
