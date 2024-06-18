@@ -90,7 +90,7 @@ jobs:
         run: |
           # ran only on certain files for now
           # add here when checked
-          poetry run black schematic --check
+          poetry run black schematic tests schematic_api --check
 
       #----------------------------------------------
       #             type checking/enforcement
