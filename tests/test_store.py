@@ -546,8 +546,7 @@ class TestSynapseStorage:
         """test _process_store_annos function when there's an error either getting or storing annotations
         """
         async def mock_failure_coro():
-            await asyncio.sleep(0.1)
-            raise ValueError("sample error")
+            raise ValueError("sample error") 
         
         # create tasks that will fail
         tasks = set()
@@ -572,9 +571,8 @@ class TestSynapseStorage:
                 },
                 etag="mock etag",
                 id="mock_syn_id")
-        
+
         async def mock_success_coro():
-            await asyncio.sleep(0.1)
             return stored_annos
         
         with patch("schematic.store.synapse.SynapseStorage.store_async_annotation",new_callable=AsyncMock) as mock_store_async1:
@@ -615,7 +613,6 @@ class TestSynapseStorage:
                 id="mock_syn_id")
         
         async def mock_success_coro():
-            await asyncio.sleep(0.1)
             return mock_annos_dict
 
         # make sure that the else statement is working 
@@ -1098,10 +1095,10 @@ class TestManifestUpload:
             expected_entity_ids (list(str)): expected list of entity ids
         """
         async def mock_format_row_annos():
-            await asyncio.sleep(0.1)
+            return
         
         async def mock_process_store_annos(requests):
-            await asyncio.sleep(0.1)
+            return
 
         with patch(
             "schematic.store.synapse.SynapseStorage.getFilesInStorageDataset",
