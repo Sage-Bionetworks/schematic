@@ -761,7 +761,7 @@ class TestManifestGenerator:
                 data_model_labels="class_label",
             )
             assert all_results == expected_result
-    
+
     def test_get_record_based_manifest_with_files(self, helpers):
         """
         Test to ensure that when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
