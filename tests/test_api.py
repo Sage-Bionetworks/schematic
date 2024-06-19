@@ -78,7 +78,7 @@ def test_manifest_json(helpers):
 
 @pytest.fixture(scope="class")
 def data_model_jsonld():
-    data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
+    data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
     yield data_model_jsonld
 
 
@@ -143,7 +143,7 @@ class TestSynapseStorage:
     def test_invalid_authentication(self, client, request_invalid_headers):
         response = client.get(
             "http://localhost:3001/v1/storage/assets/tables",
-            query_string = {"asset_view": "syn23643253", "return_type": "csv"},
+            query_string={"asset_view": "syn23643253", "return_type": "csv"},
             headers=request_invalid_headers,
         )
         assert response.status_code == 401
@@ -151,7 +151,7 @@ class TestSynapseStorage:
     def test_insufficent_auth(self, client, request_headers):
         response = client.get(
             "http://localhost:3001/v1/storage/assets/tables",
-            query_string = {"asset_view": "syn23643252", "return_type": "csv"},
+            query_string={"asset_view": "syn23643252", "return_type": "csv"},
             headers=request_headers,
         )
         assert response.status_code == 403
@@ -370,8 +370,7 @@ class TestUtilsOperation:
 @pytest.mark.schematic_api
 class TestDataModelGraphExplorerOperation:
     def test_get_schema(self, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld,
-                  "data_model_labels": 'class_label'}
+        params = {"schema_url": data_model_jsonld, "data_model_labels": "class_label"}
         response = client.get(
             "http://localhost:3001/v1/schemas/get/schema", query_string=params
         )
@@ -385,7 +384,11 @@ class TestDataModelGraphExplorerOperation:
             os.remove(response_dt)
 
     def test_if_node_required(test, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld, "node_display_name": "FamilyHistory", "data_model_labels": "class_label"}
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_display_name": "FamilyHistory",
+            "data_model_labels": "class_label",
+        }
 
         response = client.get(
             "http://localhost:3001/v1/schemas/is_node_required", query_string=params
@@ -1121,7 +1124,11 @@ class TestManifestOperation:
             elif python_version == "3.9":
                 dataset_id = "syn52656104"
 
-            specific_params = {"asset_view": "syn23643253", "dataset_id": dataset_id, "project_scope":["syn54126707"]}
+            specific_params = {
+                "asset_view": "syn23643253",
+                "dataset_id": dataset_id,
+                "project_scope": ["syn54126707"],
+            }
 
         params.update(specific_params)
 
