@@ -1014,17 +1014,32 @@ class TestManifestUpload:
             }
         )
         with patch("synapseclient.Synapse.store") as syn_store_mock, patch(
-            "synapseutils.copy_functions.changeFileMetaData"
-        ):
+            "schematic.store.synapse.synapseutils.copy_functions.changeFileMetaData"
+        ) as mock_change_file_metadata:
             syn_store_mock.return_value.id = "mock manifest id"
+            mock_component_name = "BulkRNA-seqAssay"
             mock_file_path = helpers.get_data_path(mock_manifest_file_path)
             mock_manifest_synapse_file_id = synapse_store.upload_manifest_file(
                 manifest=test_df,
                 metadataManifestPath=mock_file_path,
                 datasetId="mock dataset id",
                 restrict_manifest=True,
+                component_name=mock_component_name,
             )
+            if "censored" in mock_manifest_file_path:
+                file_name = (
+                    f"synapse_storage_manifest_{mock_component_name}_censored.csv"
+                )
+            else:
+                file_name = f"synapse_storage_manifest_{mock_component_name}.csv"
+
             assert mock_manifest_synapse_file_id == "mock manifest id"
+            mock_change_file_metadata.assert_called_once_with(
+                forceVersion=False,
+                syn=synapse_store.syn,
+                entity=syn_store_mock.return_value.id,
+                downloadAs=file_name,
+            )
 
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
     @pytest.mark.parametrize("hide_blanks", [True, False])
