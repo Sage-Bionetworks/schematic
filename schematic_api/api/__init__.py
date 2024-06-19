@@ -15,12 +15,9 @@ from flask_opentracing import FlaskTracer
 
 config = Config(
     config={
-        'enabled': True,
-        'sampler': {
-            'type': 'const',
-            'param': 1
-        },
-        'logging': True,
+        "enabled": True,
+        "sampler": {"type": "const", "param": 1},
+        "logging": True,
     },
     service_name="schema-api",
 )
@@ -74,11 +71,13 @@ def create_app():
 
 app = create_app()
 
-flask_tracer = FlaskTracer(jaeger_tracer, True, app, ['url', 'url_rule', 'environ.HTTP_X_REAL_IP', 'path'])
+flask_tracer = FlaskTracer(
+    jaeger_tracer, True, app, ["url", "url_rule", "environ.HTTP_X_REAL_IP", "path"]
+)
 
 
 # def route_code():
 #     import flask_schematic as sc
 #     sc.method1()
-#]
+# ]
 #

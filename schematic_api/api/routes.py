@@ -25,7 +25,11 @@ from functools import wraps
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor, Span
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    ConsoleSpanExporter,
+    Span,
+)
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
 from schematic.configuration.configuration import CONFIG
@@ -46,19 +50,22 @@ from synapseclient.core.exceptions import (
     SynapseTimeoutError,
 )
 from schematic.utils.general import entity_type_mapping
-from schematic.utils.schema_utils import get_property_label_from_display_name, DisplayLabelType
 from schematic.utils.schema_utils import (
     get_property_label_from_display_name,
     DisplayLabelType,
+)
+from schematic.utils.schema_utils import (
+    get_property_label_from_display_name,
+    DisplayLabelType,
+)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 trace.set_tracer_provider(
-    TracerProvider(
-        resource=Resource(attributes={SERVICE_NAME: "schematic-api"})
-    )
+    TracerProvider(resource=Resource(attributes={SERVICE_NAME: "schematic-api"}))
 )
+
 
 # borrowed from: https://github.com/Sage-Bionetworks/synapsePythonClient/blob/develop/tests/integration/conftest.py
 class FileSpanExporter(ConsoleSpanExporter):
@@ -75,34 +82,37 @@ class FileSpanExporter(ConsoleSpanExporter):
                 span_json_one_line = span.to_json().replace("\n", "") + "\n"
                 f.write(span_json_one_line)
 
+
 trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
 # processor = SimpleSpanProcessor(FileSpanExporter("otel_spans_schemati_api.json"))
 # trace.get_tracer_provider().add_span_processor(processor)
 tracer = trace.get_tracer("Schematic")
 
+
 def trace_function_params():
-    """capture all the parameters of API requests
-    """
+    """capture all the parameters of API requests"""
+
     def decorator(func):
-        """create a decorator
-        """
+        """create a decorator"""
+
         @wraps(func)
         def wrapper(*args, **kwargs):
-            """create a wrapper function. Any number of positional arguments and keyword arguments can be passed here.
-            """
+            """create a wrapper function. Any number of positional arguments and keyword arguments can be passed here."""
             tracer = trace.get_tracer(__name__)
             # Start a new span with the function's name
             with tracer.start_as_current_span(func.__name__) as span:
-                # Set values of parameters as tags 
+                # Set values of parameters as tags
                 for i, arg in enumerate(args):
-                    span.set_attribute(f'arg{i}', arg)
+                    span.set_attribute(f"arg{i}", arg)
 
                 for name, value in kwargs.items():
                     span.set_attribute(name, value)
                 # Call the actual function
                 result = func(*args, **kwargs)
                 return result
+
         return wrapper
+
     return decorator
 
 
@@ -270,6 +280,7 @@ def save_file(file_key="csv_file"):
     manifest_file.save(temp_path)
 
     return temp_path
+
 
 @tracer.start_as_current_span("routes:initalize_metadata_model")
 def initalize_metadata_model(schema_url, data_model_labels):
