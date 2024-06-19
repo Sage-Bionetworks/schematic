@@ -78,7 +78,7 @@ def test_manifest_json(helpers):
 
 @pytest.fixture(scope="class")
 def data_model_jsonld():
-    data_model_jsonld ="https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
+    data_model_jsonld = "https://raw.githubusercontent.com/Sage-Bionetworks/schematic/develop/tests/data/example.model.jsonld"
     yield data_model_jsonld
 
 
@@ -132,8 +132,30 @@ def request_headers(syn_token):
     yield headers
 
 
+@pytest.fixture
+def request_invalid_headers():
+    headers = {"Authorization": "Bearer invalid headers"}
+    yield headers
+
+
 @pytest.mark.schematic_api
 class TestSynapseStorage:
+    def test_invalid_authentication(self, client, request_invalid_headers):
+        response = client.get(
+            "http://localhost:3001/v1/storage/assets/tables",
+            query_string={"asset_view": "syn23643253", "return_type": "csv"},
+            headers=request_invalid_headers,
+        )
+        assert response.status_code == 401
+
+    def test_insufficent_auth(self, client, request_headers):
+        response = client.get(
+            "http://localhost:3001/v1/storage/assets/tables",
+            query_string={"asset_view": "syn23643252", "return_type": "csv"},
+            headers=request_headers,
+        )
+        assert response.status_code == 403
+
     @pytest.mark.synapse_credentials_needed
     @pytest.mark.parametrize("return_type", ["json", "csv"])
     def test_get_storage_assets_tables(self, client, return_type, request_headers):
@@ -348,8 +370,7 @@ class TestUtilsOperation:
 @pytest.mark.schematic_api
 class TestDataModelGraphExplorerOperation:
     def test_get_schema(self, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld,
-                  "data_model_labels": 'class_label'}
+        params = {"schema_url": data_model_jsonld, "data_model_labels": "class_label"}
         response = client.get(
             "http://localhost:3001/v1/schemas/get/schema", query_string=params
         )
@@ -363,7 +384,11 @@ class TestDataModelGraphExplorerOperation:
             os.remove(response_dt)
 
     def test_if_node_required(test, client, data_model_jsonld):
-        params = {"schema_url": data_model_jsonld, "node_display_name": "FamilyHistory", "data_model_labels": "class_label"}
+        params = {
+            "schema_url": data_model_jsonld,
+            "node_display_name": "FamilyHistory",
+            "data_model_labels": "class_label",
+        }
 
         response = client.get(
             "http://localhost:3001/v1/schemas/is_node_required", query_string=params
@@ -791,6 +816,19 @@ class TestManifestOperation:
             ]
         )
 
+    def test_generate_manifest_data_type_not_found(self, client, data_model_jsonld):
+        params = {
+            "schema_url": data_model_jsonld,
+            "data_type": "wrong data type",
+            "use_annotations": False,
+        }
+        response = client.get(
+            "http://localhost:3001/v1/manifest/generate", query_string=params
+        )
+
+        assert response.status_code == 500
+        assert "LookupError" in str(response.data)
+
     def test_populate_manifest(self, client, data_model_jsonld, test_manifest_csv):
         # test manifest
         test_manifest_data = open(test_manifest_csv, "rb")
@@ -1086,7 +1124,11 @@ class TestManifestOperation:
             elif python_version == "3.9":
                 dataset_id = "syn52656104"
 
-            specific_params = {"asset_view": "syn23643253", "dataset_id": dataset_id, "project_scope":["syn54126707"]}
+            specific_params = {
+                "asset_view": "syn23643253",
+                "dataset_id": dataset_id,
+                "project_scope": ["syn54126707"],
+            }
 
         params.update(specific_params)
 

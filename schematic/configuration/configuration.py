@@ -165,14 +165,6 @@ class Configuration:
         return self._model_config.location
 
     @property
-    def service_account_credentials_synapse_id(self) -> str:
-        """
-        Returns:
-            str: The Synapse id of the Google service account credentials.
-        """
-        return self._google_sheets_config.service_acct_creds_synapse_id
-
-    @property
     def service_account_credentials_path(self) -> str:
         """
         Returns:

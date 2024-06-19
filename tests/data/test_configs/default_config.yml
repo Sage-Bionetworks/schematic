@@ -16,6 +16,5 @@ model:
   location: 'tests/data/example.model.jsonld'
 
 google_sheets:
-  service_acct_creds_synapse_id: 'syn25171627'
   service_acct_creds: "schematic_service_account_creds.json"
   strict_validation: true

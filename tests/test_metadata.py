@@ -109,10 +109,12 @@ class TestMetadataModel:
         ids=["data_model_labels-display_label", "data_model_labels-class_label"],
     )
     @pytest.mark.parametrize("validate_component", [None, "BulkRNA-seqAssay"])
-    @pytest.mark.parametrize("temporary_file_copy", ["test_BulkRNAseq.csv"], indirect=True)
+    @pytest.mark.parametrize(
+        "temporary_file_copy", ["test_BulkRNAseq.csv"], indirect=True
+    )
     def test_submit_metadata_manifest(
         self,
-        temporary_file_copy: Generator[str, None, None], 
+        temporary_file_copy: Generator[str, None, None],
         helpers: Helpers,
         file_annotations_upload: bool,
         restrict_rules: bool,
