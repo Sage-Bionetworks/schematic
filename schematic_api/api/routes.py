@@ -22,6 +22,12 @@ import json
 from typing import Optional, List, Any
 from functools import wraps
 
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor, Span
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
 from schematic.configuration.configuration import CONFIG
 from schematic.visualization.attributes_explorer import AttributesExplorer
 from schematic.visualization.tangled_tree import TangledTree
@@ -41,11 +47,9 @@ from synapseclient.core.exceptions import (
 )
 from schematic.utils.general import entity_type_mapping
 from schematic.utils.schema_utils import get_property_label_from_display_name, DisplayLabelType
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter, SimpleSpanProcessor, Span
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from schematic.utils.schema_utils import (
+    get_property_label_from_display_name,
+    DisplayLabelType,
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -450,7 +454,7 @@ def submit_manifest_route(
     project_scope=None,
     table_column_names=None,
     annotation_keys=None,
-    file_annotations_upload:bool=True,
+    file_annotations_upload: bool = True,
 ):
     # call config_handler()
     config_handler(asset_view=asset_view)
@@ -507,7 +511,7 @@ def submit_manifest_route(
         project_scope=project_scope,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
-        file_annotations_upload=file_annotations_upload
+        file_annotations_upload=file_annotations_upload,
     )
 
     return manifest_id
@@ -784,6 +788,7 @@ def get_asset_view_table(asset_view, return_type):
         export_path = os.path.join(path, "tests/data/file_view_table.csv")
         file_view_table_df.to_csv(export_path, index=False)
         return export_path
+
 
 def get_project_manifests(project_id, asset_view):
     # Access token now stored in request header
