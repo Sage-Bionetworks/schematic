@@ -19,8 +19,11 @@ from schematic.store.synapse import SynapseStorage
 from schematic.utils.df_utils import load_df
 
 from schematic.models.validate_manifest import validate_all
+from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
+
+tracer = trace.get_tracer("Schematic")
 
 
 class MetadataModel(object):
@@ -317,6 +320,7 @@ class MetadataModel(object):
             manifestPath, emptyManifestURL, return_excel=return_excel, title=title
         )
 
+    @tracer.start_as_current_span("MetadataModel::submit_metadata_manifest")
     def submit_metadata_manifest(  # pylint: disable=too-many-arguments, too-many-locals
         self,
         manifest_path: str,
