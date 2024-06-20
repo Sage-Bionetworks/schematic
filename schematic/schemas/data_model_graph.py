@@ -5,6 +5,7 @@ from typing import Optional, Union, Any
 
 import networkx as nx  # type: ignore
 import graphviz  # type: ignore
+from opentelemetry import trace
 
 from schematic.schemas.data_model_edges import DataModelEdges
 from schematic.schemas.data_model_nodes import DataModelNodes
@@ -20,8 +21,11 @@ from schematic.utils.general import unlist
 from schematic.utils.viz_utils import visualize
 from schematic.utils.validate_utils import rule_in_rule_list
 
+logger = logging.getLogger(__name__)
+
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer("Schematic")
 
 
 class DataModelGraphMeta:  # pylint: disable=too-few-public-methods
@@ -85,6 +89,7 @@ class DataModelGraph:  # pylint: disable=too-few-public-methods
             )
         self.graph = self.generate_data_model_graph()
 
+    @tracer.start_as_current_span("DataModelGraph::generate_data_model_graph")
     def generate_data_model_graph(self) -> nx.MultiDiGraph:
         """
         Generate NetworkX Graph from the Relationships/attributes dictionary, the graph is built
