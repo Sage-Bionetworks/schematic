@@ -761,3 +761,32 @@ class TestManifestGenerator:
                 data_model_labels="class_label",
             )
             assert all_results == expected_result
+
+    def test_get_record_based_manifest_with_files(self, helpers):
+        """
+        Test to ensure that when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
+        """
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+
+        graph_data_model = generate_graph_data_model(
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
+        )
+
+        generator = ManifestGenerator(
+            path_to_data_model=path_to_data_model,
+            graph=graph_data_model,
+            root="Biospecimen",
+            use_annotations=True,
+        )
+
+        manifest = generator.get_manifest(
+            dataset_id="syn61260107", output_format="dataframe"
+        )
+
+        filename_not_in_manifest_columns = "Filename" not in manifest.columns
+        n_rows = manifest.shape[0]
+
+        assert filename_not_in_manifest_columns
+        assert n_rows == 4
