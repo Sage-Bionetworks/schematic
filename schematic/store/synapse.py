@@ -746,22 +746,26 @@ class SynapseStorage(BaseStorage):
 
         manifest_filepath = self.syn.get(manifest_id).path
         manifest = load_df(manifest_filepath)
+        manifest_is_file_based = "Filename" in manifest.columns
 
-        # update manifest with additional filenames, if any
-        # note that if there is an existing manifest and there are files in the dataset
-        # the columns Filename and entityId are assumed to be present in manifest schema
-        # TODO: use idiomatic panda syntax
+        if manifest_is_file_based:
+            # update manifest with additional filenames, if any
+            # note that if there is an existing manifest and there are files in the dataset
+            # the columns Filename and entityId are assumed to be present in manifest schema
+            # TODO: use idiomatic panda syntax
 
-        dataset_files, manifest = self.fill_in_entity_id_filename(datasetId, manifest)
-        if dataset_files:
-            # update the manifest file, so that it contains the relevant entity IDs
-            if store:
-                manifest.to_csv(manifest_filepath, index=False)
+            dataset_files, manifest = self.fill_in_entity_id_filename(
+                datasetId, manifest
+            )
+            if dataset_files:
+                # update the manifest file, so that it contains the relevant entity IDs
+                if store:
+                    manifest.to_csv(manifest_filepath, index=False)
 
-                # store manifest and update associated metadata with manifest on Synapse
-                manifest_id = self.associateMetadataWithFiles(
-                    dmge, manifest_filepath, datasetId
-                )
+                    # store manifest and update associated metadata with manifest on Synapse
+                    manifest_id = self.associateMetadataWithFiles(
+                        dmge, manifest_filepath, datasetId
+                    )
 
         return manifest_id, manifest
 
