@@ -765,8 +765,9 @@ class TestManifestGenerator:
     @pytest.mark.parametrize(
         "component,datasetId",
         [("Biospecimen", "syn61260107"), ("BulkRNA-seqAssay", "syn61374924")],
+        ids=["Record based", "File based"],
     )
-    def test_get_record_based_manifest_with_files(self, helpers, component, datasetId):
+    def test_get_manifest_with_files(self, helpers, component, datasetId):
         """
         Test to ensure that when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
         """
