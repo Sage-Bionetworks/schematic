@@ -1232,9 +1232,14 @@ class TestManifestUpload:
         hide_blanks: bool,
         restrict: bool,
     ) -> None:
+        async def mock_add_annotations_to_entities_files():
+            return
+
         with (
             patch(
-                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files",
+                return_value=mock_add_annotations_to_entities_files,
+                new_callable=AsyncMock,
             ) as add_anno_mock,
             patch(
                 "schematic.store.synapse.SynapseStorage.upload_manifest_file",
@@ -1282,13 +1287,19 @@ class TestManifestUpload:
         manifest_record_type: str,
     ) -> None:
         mock_df = pd.DataFrame()
+
+        async def mock_add_annotations_to_entities_files():
+            return
+
         with (
             patch(
                 "schematic.store.synapse.SynapseStorage.uploadDB",
                 return_value=["mock_table_id", mock_df, "mock_table_manifest"],
             ) as update_db_mock,
             patch(
-                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files",
+                return_value=mock_add_annotations_to_entities_files,
+                new_callable=AsyncMock,
             ) as add_anno_mock,
             patch(
                 "schematic.store.synapse.SynapseStorage.upload_manifest_file",
@@ -1342,13 +1353,19 @@ class TestManifestUpload:
         mock_df = pd.DataFrame()
         manifest_path = helpers.get_data_path("mock_manifests/test_BulkRNAseq.csv")
         manifest_df = helpers.get_data_frame(manifest_path)
+
+        async def mock_add_annotations_to_entities_files():
+            return
+
         with (
             patch(
                 "schematic.store.synapse.SynapseStorage.uploadDB",
                 return_value=["mock_table_id", mock_df, "mock_table_manifest"],
             ) as update_db_mock,
             patch(
-                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files"
+                "schematic.store.synapse.SynapseStorage.add_annotations_to_entities_files",
+                return_value=mock_add_annotations_to_entities_files,
+                new_callable=AsyncMock,
             ) as add_anno_mock,
             patch(
                 "schematic.store.synapse.SynapseStorage.upload_manifest_file",
