@@ -20,7 +20,7 @@ from schematic.utils.schema_utils import (
     convert_bool_to_str,
     parse_validation_rules,
     DisplayLabelType,
-    get_json_schema_log_file_path
+    get_json_schema_log_file_path,
 )
 from schematic.utils.io_utils import load_json
 
@@ -448,9 +448,12 @@ class TestDataModelGraph:
 
         # Check that all relationships recorded between 'CheckList' and 'Ab' are present
         assert (
-            "rangeValue" and "parentOf" in graph["CheckListEnum"][expected_valid_values[0]]
+            "rangeValue"
+            and "parentOf" in graph["CheckListEnum"][expected_valid_values[0]]
         )
-        assert "requiresDependency" not in graph["CheckListEnum"][expected_valid_values[0]]
+        assert (
+            "requiresDependency" not in graph["CheckListEnum"][expected_valid_values[0]]
+        )
 
         # Check nodes:
         assert "Patient" in graph.nodes
@@ -1325,8 +1328,8 @@ class TestDataModelJsonSchema:
 
         data_model_path = helpers.get_data_path(path=data_model)
         json_schema_log_file_path = get_json_schema_log_file_path(
-            data_model_path=data_model_path,
-            source_node=source_node)
+            data_model_path=data_model_path, source_node=source_node
+        )
 
         # Remove json schema log file if it already exists.
         if os.path.exists(json_schema_log_file_path):
