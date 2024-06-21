@@ -761,3 +761,41 @@ class TestManifestGenerator:
                 data_model_labels="class_label",
             )
             assert all_results == expected_result
+
+    @pytest.mark.parametrize(
+        "component,datasetId",
+        [("Biospecimen", "syn61260107"), ("BulkRNA-seqAssay", "syn61374924")],
+        ids=["Record based", "File based"],
+    )
+    def test_get_manifest_with_files(self, helpers, component, datasetId):
+        """
+        Test to ensure that when generating a record based manifset that has files in the dataset that the files are not added to the manifest as well
+        """
+        path_to_data_model = helpers.get_data_path("example.model.jsonld")
+
+        graph_data_model = generate_graph_data_model(
+            helpers,
+            path_to_data_model=path_to_data_model,
+            data_model_labels="class_label",
+        )
+
+        generator = ManifestGenerator(
+            path_to_data_model=path_to_data_model,
+            graph=graph_data_model,
+            root=component,
+            use_annotations=True,
+        )
+
+        manifest = generator.get_manifest(
+            dataset_id=datasetId, output_format="dataframe"
+        )
+
+        filename_in_manifest_columns = "Filename" in manifest.columns
+        n_rows = manifest.shape[0]
+
+        if component == "Biospecimen":
+            assert not filename_in_manifest_columns
+            assert n_rows == 4
+        elif component == "BulkRNA-seqAssay":
+            assert filename_in_manifest_columns
+            assert n_rows == 3
