@@ -1,4 +1,4 @@
-# borrowed from mono repo: https://github.com/Sage-Bionetworks/sage-monorepo/blob/main/.github/workflows/scan-repo.yml
+# Modified from mono repo: https://github.com/Sage-Bionetworks/sage-monorepo/blob/main/.github/workflows/scan-repo.yml
 name: Scan Git repo
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
           ignore-unfixed: true
           format: 'sarif'
           output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL,HIGH,MEDIUM'
           limit-severities-for-sarif: true
 
       - name: Upload Trivy scan results to GitHub Security tab
