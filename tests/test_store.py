@@ -2,31 +2,31 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 import os
-from time import sleep
-from typing import Generator, Any
-from unittest.mock import patch
 import shutil
-import asyncio
+from time import sleep
+from typing import Any, Generator
+from unittest.mock import AsyncMock, patch
 
 import pandas as pd
 import pytest
+from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.entity import File
-from pandas.testing import assert_frame_equal
+from synapseclient.models import Annotations
 
 from schematic.configuration.configuration import Configuration
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_graph import (DataModelGraph,
+                                                DataModelGraphExplorer)
 from schematic.schemas.data_model_parser import DataModelParser
-from tests.conftest import Helpers
-
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
+from schematic.store.synapse import (DatasetFileView, ManifestDownload,
+                                     SynapseStorage)
 from schematic.utils.general import check_synapse_cache_size
-from unittest.mock import AsyncMock
-from synapseclient.models import Annotations
+from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -632,6 +632,57 @@ class TestSynapseStorage:
             new_tasks.add(asyncio.create_task(mock_success_coro()))
             await synapse_store._process_store_annos(new_tasks)
             mock_store_async2.assert_called_once()
+
+    async def test_process_store_annos_success_get_entity_id_variants(
+        self, synapse_store: SynapseStorage
+    ) -> None:
+        "mock annotations obtained after gettinng annotations have different annotations and formatting"
+        annotations_variants = [
+            {"EntityId": ["mock_syn_id"], "Id": ["mock_string"]},
+            {"entityId": ["mock_syn_id"], "id": ["mock_string"]},
+            {"entityid": ["mock_syn_id"], "id": ["mock_string"]},
+            {"ENTITYID": ["mock_syn_id"], "ID": ["mock_string"]},
+        ]
+        for anno_variant in annotations_variants:
+            mock_annos_dict = {
+                "annotations": {
+                    "id": "mock_syn_id",
+                    "etag": "mock etag",
+                    "annotations": {
+                        "Id": {"type": "STRING", "value": ["mock value"]},
+                        "EntityId": {"type": "STRING", "value": ["mock_syn_id"]},
+                        "SampleID": {"type": "STRING", "value": [""]},
+                        "Component": {"type": "STRING", "value": ["mock value"]},
+                    },
+                },
+                "FileFormat": "mock format",
+                "Component": "mock component",
+                **anno_variant,
+            }
+            mock_stored_annos = Annotations(
+                annotations={
+                    **anno_variant,
+                    "SampleID": [""],
+                    "Component": ["mock value"],
+                    "FileFormat": ["mock_format"],
+                },
+                etag="mock etag",
+                id="mock syn_id",
+            )
+
+            async def mock_success_coro():
+                return mock_annos_dict
+
+            # make sure that the else statement is working
+            new_tasks = set()
+            with patch(
+                "schematic.store.synapse.SynapseStorage.store_async_annotation",
+                new_callable=AsyncMock,
+                return_value=mock_stored_annos,
+            ) as mock_store_async2:
+                new_tasks.add(asyncio.create_task(mock_success_coro()))
+                await synapse_store._process_store_annos(new_tasks)
+                mock_store_async2.assert_called_once()
 
 
 class TestDatasetFileView:
