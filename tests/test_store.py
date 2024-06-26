@@ -19,12 +19,10 @@ from synapseclient.entity import File
 from synapseclient.models import Annotations
 
 from schematic.configuration.configuration import Configuration
-from schematic.schemas.data_model_graph import (DataModelGraph,
-                                                DataModelGraphExplorer)
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import (DatasetFileView, ManifestDownload,
-                                     SynapseStorage)
+from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
 from schematic.utils.general import check_synapse_cache_size
 from tests.conftest import Helpers
 
