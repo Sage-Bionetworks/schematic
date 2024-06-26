@@ -337,6 +337,19 @@ class SynapseStorage(BaseStorage):
 
         return wrapper
 
+    def async_missing_entity_handler(method):
+        async def wrapper(*args, **kwargs):
+            try:
+                return await method(*args, **kwargs)
+            except SynapseHTTPError as ex:
+                str_message = str(ex).replace("\n", "")
+                if "trash" in str_message or "does not exist" in str_message:
+                    logging.warning(str_message)
+                    return None
+                else:
+                    raise ex
+        return wrapper
+
     def getStorageFileviewTable(self):
         """Returns the storageFileviewTable obtained during initialization."""
         return self.storageFileviewTable
@@ -1393,7 +1406,7 @@ class SynapseStorage(BaseStorage):
         )
         return await annotation_class.store_async(self.syn)
 
-    @missing_entity_handler
+    @async_missing_entity_handler
     async def format_row_annotations(
         self, dmge, row, entityId: str, hideBlanks: bool, annotation_keys: str
     ):
@@ -1707,16 +1720,16 @@ class SynapseStorage(BaseStorage):
                         entity_id = annos_dict["id"]
                         logger.info(f"Successfully stored annotations for {entity_id}")
                     else:
-                        entity_id = annos["EntityId"]
-                        logger.info(
-                            f"Obtained and processed annotations for {entity_id} entity"
-                        )
-                        if annos:
-                            requests.add(
-                                asyncio.create_task(
-                                    self.store_async_annotation(annotation_dict=annos)
-                                )
+                        if annos: 
+                            entity_id = annos["EntityId"]
+                            logger.info(
+                                f"Obtained and processed annotations for {entity_id} entity"
                             )
+                            requests.add(
+                                    asyncio.create_task(
+                                        self.store_async_annotation(annotation_dict=annos)
+                                    )
+                                )
                 except Exception as e:
                     raise RuntimeError(f"failed with { repr(e) }.") from e
 
