@@ -16,6 +16,5 @@ model:
   location: "model.jsonld"
 
 google_sheets:
-  service_acct_creds_synapse_id: "syn1"
   service_acct_creds: "creds.json"
   strict_validation: false

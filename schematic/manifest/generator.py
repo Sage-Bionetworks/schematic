@@ -33,8 +33,10 @@ from schematic.store.synapse import SynapseStorage
 from schematic.configuration.configuration import CONFIG
 from schematic.utils.google_api_utils import export_manifest_drive_service
 
+from opentelemetry import trace
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer("Schematic")
 
 
 class ManifestGenerator(object):
@@ -1290,6 +1292,7 @@ class ManifestGenerator(object):
         )
         return required_metadata_fields
 
+    @tracer.start_as_current_span("ManifestGenerator::get_empty_manifest")
     def get_empty_manifest(
         self,
         strict: Optional[bool],
@@ -1335,6 +1338,7 @@ class ManifestGenerator(object):
         """
         return set(headers_1) - set(headers_2)
 
+    @tracer.start_as_current_span("ManifestGenerator::set_dataframe_by_url")
     def set_dataframe_by_url(
         self,
         manifest_url: str,
@@ -1426,6 +1430,7 @@ class ManifestGenerator(object):
         # Use the above dictionary to rename columns in question
         return annotations.rename(columns=label_map)
 
+    @tracer.start_as_current_span("ManifestGenerator::get_manifest_with_annotations")
     def get_manifest_with_annotations(
         self, annotations: pd.DataFrame, strict: Optional[bool] = None
     ) -> Tuple[ps.Spreadsheet, pd.DataFrame]:
@@ -1466,6 +1471,7 @@ class ManifestGenerator(object):
 
         return manifest_url, manifest_df
 
+    @tracer.start_as_current_span("ManifestGenerator::export_sheet_to_excel")
     def export_sheet_to_excel(
         self, title: str = None, manifest_url: str = None, output_location: str = None
     ) -> str:
@@ -1515,6 +1521,7 @@ class ManifestGenerator(object):
 
         return output_excel_file_path
 
+    @tracer.start_as_current_span("ManifestGenerator::_handle_output_format_logic")
     def _handle_output_format_logic(
         self,
         output_format: str = None,
@@ -1571,6 +1578,7 @@ class ManifestGenerator(object):
             return dataframe
 
     @staticmethod
+    @tracer.start_as_current_span("ManifestGenerator::create_single_manifest")
     def create_single_manifest(
         path_to_data_model: str,
         graph_data_model: nx.MultiDiGraph,
@@ -1624,6 +1632,7 @@ class ManifestGenerator(object):
         return result
 
     @staticmethod
+    @tracer.start_as_current_span("ManifestGenerator::create_manifests")
     def create_manifests(
         path_to_data_model: str,
         data_types: list,
@@ -1764,6 +1773,7 @@ class ManifestGenerator(object):
 
         return all_results
 
+    @tracer.start_as_current_span("ManifestGenerator::get_manifest")
     def get_manifest(
         self,
         dataset_id: str = None,
@@ -2011,6 +2021,9 @@ class ManifestGenerator(object):
         )
         return worksheet
 
+    @tracer.start_as_current_span(
+        "ManifestGenerator::populate_existing_excel_spreadsheet"
+    )
     def populate_existing_excel_spreadsheet(
         self, existing_excel_path: str = None, additional_df: pd.DataFrame = None
     ):
