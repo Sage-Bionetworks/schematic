@@ -348,6 +348,7 @@ class SynapseStorage(BaseStorage):
                     return None
                 else:
                     raise ex
+
         return wrapper
 
     def getStorageFileviewTable(self):
@@ -1720,16 +1721,16 @@ class SynapseStorage(BaseStorage):
                         entity_id = annos_dict["id"]
                         logger.info(f"Successfully stored annotations for {entity_id}")
                     else:
-                        if annos: 
+                        if annos:
                             entity_id = annos["EntityId"]
                             logger.info(
                                 f"Obtained and processed annotations for {entity_id} entity"
                             )
                             requests.add(
-                                    asyncio.create_task(
-                                        self.store_async_annotation(annotation_dict=annos)
-                                    )
+                                asyncio.create_task(
+                                    self.store_async_annotation(annotation_dict=annos)
                                 )
+                            )
                 except Exception as e:
                     raise RuntimeError(f"failed with { repr(e) }.") from e
 
