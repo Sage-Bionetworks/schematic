@@ -469,7 +469,7 @@ class TestSynapseStorage:
         synapse_store: SynapseStorage,
         hideBlanks: bool,
         annotation_keys: str,
-    ):
+    ) -> None:
         """make sure that missing_entity_handler gets triggered when entity is in the trash can"""
         with patch(
             "schematic.store.synapse.SynapseStorage.get_async_annotation",
@@ -683,7 +683,7 @@ class TestSynapseStorage:
 
         # make sure that the else statement is working
         # and that the task of storing annotations is not triggered when annotations are empty
-        async def mock_success_coro():
+        async def mock_success_coro() -> None:
             return None
 
         with patch(
