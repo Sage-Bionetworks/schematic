@@ -338,7 +338,9 @@ class SynapseStorage(BaseStorage):
         return wrapper
 
     def async_missing_entity_handler(method):
-        async def wrapper(*args, **kwargs):
+        """Decorator to handle missing entities in async methods."""
+
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return await method(*args, **kwargs)
             except SynapseHTTPError as ex:
