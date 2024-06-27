@@ -463,7 +463,7 @@ class TestSynapseStorage:
         ],
     )
     async def test_format_row_annotations_entity_id_trash_can(
-        self, caplog, dmge, synapse_store, hideBlanks, annotation_keys
+        self, caplog:pytest.LogCaptureFixture, dmge: DataModelGraph, synapse_store: SynapseStorage, hideBlanks: bool, annotation_keys: str
     ):
         """make sure that missing_entity_handler gets triggered when entity is in the trash can"""
         with patch(
