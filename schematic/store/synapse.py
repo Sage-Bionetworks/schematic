@@ -1738,6 +1738,7 @@ class SynapseStorage(BaseStorage):
                         entity_id = annos_dict["id"]
                         logger.info(f"Successfully stored annotations for {entity_id}")
                     else:
+                        # store annotations if they are not None
                         if annos:
                             entity_id = annos["EntityId"]
                             logger.info(

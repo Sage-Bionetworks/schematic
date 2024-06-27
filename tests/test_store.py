@@ -671,6 +671,25 @@ class TestSynapseStorage:
             await synapse_store._process_store_annos(new_tasks)
             mock_store_async2.assert_called_once()
 
+    async def test_process_store_annos_get_annos_empty(
+        self, synapse_store: SynapseStorage
+    ) -> None:
+        """ "test _process_store_annos function and make sure that task of storing annotations wont be triggered when annotations are empty"""
+
+        # make sure that the else statement is working
+        # and that the task of storing annotations is not triggered when annotations are empty
+        async def mock_success_coro():
+            return None
+
+        with patch(
+            "schematic.store.synapse.SynapseStorage.store_async_annotation",
+            new_callable=AsyncMock,
+        ) as mock_store_async:
+            new_tasks = set()
+            new_tasks.add(asyncio.create_task(mock_success_coro()))
+            await synapse_store._process_store_annos(new_tasks)
+            mock_store_async.assert_not_called()
+
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
