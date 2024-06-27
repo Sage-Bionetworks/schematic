@@ -330,6 +330,22 @@ class SynapseStorage(BaseStorage):
 
         return wrapper
 
+    def async_missing_entity_handler(method):
+        """Decorator to handle missing entities in async methods."""
+
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                return await method(*args, **kwargs)
+            except SynapseHTTPError as ex:
+                str_message = str(ex).replace("\n", "")
+                if "trash" in str_message or "does not exist" in str_message:
+                    logging.warning(str_message)
+                    return None
+                else:
+                    raise ex
+
+        return wrapper
+
     def getStorageFileviewTable(self):
         """Returns the storageFileviewTable obtained during initialization."""
         return self.storageFileviewTable
@@ -1386,10 +1402,27 @@ class SynapseStorage(BaseStorage):
         )
         return await annotation_class.store_async(self.syn)
 
-    @missing_entity_handler
+    @async_missing_entity_handler
     async def format_row_annotations(
-        self, dmge, row, entityId: str, hideBlanks: bool, annotation_keys: str
-    ):
+        self,
+        dmge: DataModelGraphExplorer,
+        row: pd.Series,
+        entityId: str,
+        hideBlanks: bool,
+        annotation_keys: str,
+    ) -> Union[None, Dict[str, Any]]:
+        """Format row annotations
+
+        Args:
+            dmge (DataModelGraphExplorer): data moodel graph explorer object
+            row (pd.Series): row of the manifest
+            entityId (str): entity id of the manifest
+            hideBlanks (bool): when true, does not upload annotation keys with blank values. When false, upload Annotation keys with empty string values
+            annotation_keys (str): display_label/class_label
+
+        Returns:
+            Union[None, Dict[str,]]: if entity id is in trash can, return None. Otherwise, return the annotations
+        """
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
@@ -1701,12 +1734,13 @@ class SynapseStorage(BaseStorage):
                         entity_id = normalized_annos["id"]
                         logger.info(f"Successfully stored annotations for {entity_id}")
                     else:
-                        normalized_annos = {k.lower(): v for k, v in annos.items()}
-                        entity_id = normalized_annos["entityid"]
-                        logger.info(
-                            f"Obtained and processed annotations for {entity_id} entity"
-                        )
+                        # store annotations if they are not None
                         if annos:
+                            normalized_annos = {k.lower(): v for k, v in annos.items()}
+                            entity_id = normalized_annos["entityid"]
+                            logger.info(
+                                f"Obtained and processed annotations for {entity_id} entity"
+                            )
                             requests.add(
                                 asyncio.create_task(
                                     self.store_async_annotation(annotation_dict=annos)

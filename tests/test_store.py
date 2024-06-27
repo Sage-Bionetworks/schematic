@@ -17,6 +17,9 @@ from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.entity import File
 from synapseclient.models import Annotations
+from synapseclient.core.exceptions import SynapseHTTPError
+from pandas.testing import assert_frame_equal
+
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -449,6 +452,47 @@ class TestSynapseStorage:
             )
             assert_frame_equal(manifest_to_return, expected_df)
 
+    @pytest.mark.parametrize(
+        "hideBlanks, annotation_keys",
+        [
+            (True, "display_label"),
+            (False, "display_label"),
+            (True, "class_label"),
+            (False, "class_label"),
+        ],
+    )
+    async def test_format_row_annotations_entity_id_trash_can(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        dmge: DataModelGraph,
+        synapse_store: SynapseStorage,
+        hideBlanks: bool,
+        annotation_keys: str,
+    ) -> None:
+        """make sure that missing_entity_handler gets triggered when entity is in the trash can"""
+        with patch(
+            "schematic.store.synapse.SynapseStorage.get_async_annotation",
+            side_effect=SynapseHTTPError("entity syn123 is in the trash can"),
+            new_callable=AsyncMock,
+        ):
+            mock_row_dict = {
+                "Component": "MockComponent",
+                "Mock_id": 1,
+                "Id": "Mock_id",
+                "entityId": "mock_syn_id",
+            }
+            mock_row = pd.Series(mock_row_dict)
+            with caplog.at_level(logging.WARNING):
+                formatted_annotations = await synapse_store.format_row_annotations(
+                    dmge,
+                    mock_row,
+                    entityId="mock_syn_id",
+                    hideBlanks=hideBlanks,
+                    annotation_keys=annotation_keys,
+                )
+                assert "entity syn123 is in the trash can" in caplog.text
+                assert formatted_annotations == None
+
     def test_get_files_metadata_from_dataset(self, synapse_store):
         patch_get_children = [
             ("syn123", "parent_folder/test_A.txt"),
@@ -681,6 +725,24 @@ class TestSynapseStorage:
                 new_tasks.add(asyncio.create_task(mock_success_coro()))
                 await synapse_store._process_store_annos(new_tasks)
                 mock_store_async2.assert_called_once()
+    async def test_process_store_annos_get_annos_empty(
+        self, synapse_store: SynapseStorage
+    ) -> None:
+        """ "test _process_store_annos function and make sure that task of storing annotations wont be triggered when annotations are empty"""
+
+        # make sure that the else statement is working
+        # and that the task of storing annotations is not triggered when annotations are empty
+        async def mock_success_coro() -> None:
+            return None
+
+        with patch(
+            "schematic.store.synapse.SynapseStorage.store_async_annotation",
+            new_callable=AsyncMock,
+        ) as mock_store_async:
+            new_tasks = set()
+            new_tasks.add(asyncio.create_task(mock_success_coro()))
+            await synapse_store._process_store_annos(new_tasks)
+            mock_store_async.assert_not_called()
 
 
 class TestDatasetFileView:
