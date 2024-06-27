@@ -668,7 +668,7 @@ class TestSynapseStorage:
                 id="mock syn_id",
             )
 
-            async def mock_success_coro():
+            async def mock_success_coro() -> dict[str, Any]:
                 return mock_annos_dict
 
             # make sure that the else statement is working
