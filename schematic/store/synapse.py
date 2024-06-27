@@ -1,71 +1,78 @@
 """Synapse storage class"""
 
-import asyncio
 import atexit
+from copy import deepcopy
+from dataclasses import dataclass
 import logging
+import numpy as np
+import pandas as pd
 import os
 import re
 import secrets
 import shutil
-import uuid  # used to generate unique names for entities
-from copy import deepcopy
-from dataclasses import asdict, dataclass
-from time import sleep
-
-# allows specifying explicit variable types
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
-
-import numpy as np
-import pandas as pd
 import synapseclient
-import synapseutils
-from opentelemetry import trace
-from schematic_db.rdb.synapse_database import SynapseDatabase
-from synapseclient import (
-    Column,
-    EntityViewSchema,
-    EntityViewType,
-    File,
-    Folder,
-    Schema,
-    Synapse,
-    Table,
-    as_table_columns,
-)
 from synapseclient.api import get_entity_id_bundle2
-from synapseclient.core.exceptions import (
-    SynapseAuthenticationError,
-    SynapseHTTPError,
-    SynapseUnmetAccessRestrictions,
-)
-from synapseclient.entity import File
-from synapseclient.models.annotations import Annotations
-from synapseclient.table import CsvFileTable, Schema, build_table
+import uuid  # used to generate unique names for entities
+
 from tenacity import (
     retry,
-    retry_if_exception_type,
     stop_after_attempt,
     wait_chain,
     wait_fixed,
+    retry_if_exception_type,
 )
+from time import sleep
 
-from schematic.configuration.configuration import CONFIG
-from schematic.exceptions import AccessCredentialsError
+# allows specifying explicit variable types
+from typing import Dict, List, Tuple, Sequence, Union, Optional, Any, Set
+
+from synapseclient import (
+    Synapse,
+    File,
+    Folder,
+    Table,
+    Schema,
+    EntityViewSchema,
+    EntityViewType,
+    Column,
+    as_table_columns,
+)
+from synapseclient.entity import File
+from synapseclient.table import CsvFileTable, build_table, Schema
+from synapseclient.core.exceptions import (
+    SynapseHTTPError,
+    SynapseAuthenticationError,
+    SynapseUnmetAccessRestrictions,
+    SynapseHTTPError,
+)
+import synapseutils
+
+from schematic_db.rdb.synapse_database import SynapseDatabase
+
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-from schematic.store.base import BaseStorage
-from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
+
+from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
+from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
 # Please do not remove these import statements
 from schematic.utils.general import (
-    check_synapse_cache_size,
-    clear_synapse_cache,
-    create_temp_folder,
     entity_type_mapping,
     get_dir_size,
+    create_temp_folder,
+    check_synapse_cache_size,
+    clear_synapse_cache,
 )
+
 from schematic.utils.schema_utils import get_class_label_from_display_name
-from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+
+from schematic.store.base import BaseStorage
+from schematic.exceptions import AccessCredentialsError
+from schematic.configuration.configuration import CONFIG
+from synapseclient.models.annotations import Annotations
+import asyncio
+from dataclasses import asdict
+from opentelemetry import trace
 
 logger = logging.getLogger("Synapse storage")
 
@@ -1402,13 +1409,20 @@ class SynapseStorage(BaseStorage):
 
     @async_missing_entity_handler
     async def format_row_annotations(
-        self,
-        dmge: DataModelGraphExplorer,
-        row: pd.Series,
-        entityId: str,
-        hideBlanks: bool,
-        annotation_keys: str,
-    ):
+        self, dmge:DataModelGraphExplorer, row:pd.Series, entityId:str, hideBlanks: bool, annotation_keys: str
+    ) -> Union[None, Dict[str,Any]]:
+        """Format row annotations 
+
+        Args:
+            dmge (DataModelGraphExplorer): data moodel graph explorer object
+            row (pd.Series): row of the manifest 
+            entityId (str): entity id of the manifest
+            hideBlanks (bool): when true, does not upload annotation keys with blank values. When false, upload Annotation keys with empty string values 
+            annotation_keys (str): display_label/class_label
+
+        Returns:
+            Union[None, Dict[str,]]: if entity id is in trash can, return None. Otherwise, return the annotations
+        """
         # prepare metadata for Synapse storage (resolve display name into a name that Synapse annotations support (e.g no spaces, parenthesis)
         # note: the removal of special characters, will apply only to annotation keys; we are not altering the manifest
         # this could create a divergence between manifest column and annotations. this should be ok for most use cases.
