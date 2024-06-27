@@ -15,7 +15,9 @@ import pandas as pd
 import pytest
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.entity import File
+from synapseclient.core.exceptions import SynapseHTTPError
 from pandas.testing import assert_frame_equal
+
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
@@ -450,6 +452,42 @@ class TestSynapseStorage:
                 }
             )
             assert_frame_equal(manifest_to_return, expected_df)
+
+    @pytest.mark.parametrize(
+        "hideBlanks, annotation_keys",
+        [
+            (True, "display_label"),
+            (False, "display_label"),
+            (True, "class_label"),
+            (False, "class_label"),
+        ],
+    )
+    async def test_format_row_annotations_entity_id_trash_can(
+        self, caplog, dmge, synapse_store, hideBlanks, annotation_keys
+    ):
+        """make sure that missing_entity_handler gets triggered when entity is in the trash can"""
+        with patch(
+            "schematic.store.synapse.SynapseStorage.get_async_annotation",
+            side_effect=SynapseHTTPError("entity syn123 is in the trash can"),
+            new_callable=AsyncMock,
+        ):
+            mock_row_dict = {
+                "Component": "MockComponent",
+                "Mock_id": 1,
+                "Id": "Mock_id",
+                "entityId": "mock_syn_id",
+            }
+            mock_row = pd.Series(mock_row_dict)
+            with caplog.at_level(logging.WARNING):
+                formatted_annotations = await synapse_store.format_row_annotations(
+                    dmge,
+                    mock_row,
+                    entityId="mock_syn_id",
+                    hideBlanks=hideBlanks,
+                    annotation_keys=annotation_keys,
+                )
+                assert "entity syn123 is in the trash can" in caplog.text
+                assert formatted_annotations == None
 
     def test_get_files_metadata_from_dataset(self, synapse_store):
         patch_get_children = [
