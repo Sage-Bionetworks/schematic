@@ -1409,15 +1409,20 @@ class SynapseStorage(BaseStorage):
 
     @async_missing_entity_handler
     async def format_row_annotations(
-        self, dmge:DataModelGraphExplorer, row:pd.Series, entityId:str, hideBlanks: bool, annotation_keys: str
-    ) -> Union[None, Dict[str,Any]]:
-        """Format row annotations 
+        self,
+        dmge: DataModelGraphExplorer,
+        row: pd.Series,
+        entityId: str,
+        hideBlanks: bool,
+        annotation_keys: str,
+    ) -> Union[None, Dict[str, Any]]:
+        """Format row annotations
 
         Args:
             dmge (DataModelGraphExplorer): data moodel graph explorer object
-            row (pd.Series): row of the manifest 
+            row (pd.Series): row of the manifest
             entityId (str): entity id of the manifest
-            hideBlanks (bool): when true, does not upload annotation keys with blank values. When false, upload Annotation keys with empty string values 
+            hideBlanks (bool): when true, does not upload annotation keys with blank values. When false, upload Annotation keys with empty string values
             annotation_keys (str): display_label/class_label
 
         Returns:
