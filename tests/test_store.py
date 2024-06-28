@@ -725,6 +725,7 @@ class TestSynapseStorage:
                 new_tasks.add(asyncio.create_task(mock_success_coro()))
                 await synapse_store._process_store_annos(new_tasks)
                 mock_store_async2.assert_called_once()
+
     async def test_process_store_annos_get_annos_empty(
         self, synapse_store: SynapseStorage
     ) -> None:
