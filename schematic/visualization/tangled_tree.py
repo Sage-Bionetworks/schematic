@@ -61,6 +61,8 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-m
         # Parse schema name
         self.schema_name = path.basename(self.path_to_json_ld).split(".model.jsonld")[0]
 
+        parsed_data_model = None
+
         # Instantiate Data Model Parser
         if not data_model_graph_pickle:
             data_model_parser = DataModelParser(
@@ -79,6 +81,7 @@ class TangledTree:  # pylint: disable=too-many-instance-attributes disable=too-m
         else:
             with open(data_model_graph_pickle, "rb") as file:
                 self.graph_data_model = pickle.load(file)
+                data_model_grapher = self.graph_data_model
 
         # Instantiate Data Model Graph Explorer
         self.dmge = DataModelGraphExplorer(self.graph_data_model)
