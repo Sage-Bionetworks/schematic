@@ -50,6 +50,7 @@ class MetadataModel(object):
         Args:
             inputMModelLocation: local path, uri, synapse entity id (e.g. gs://, syn123, /User/x/…); present location
             inputMModelLocationType: specifier to indicate where the metadata model resource can be found (e.g. 'local' if file/JSON-LD is on local machine)
+            data_model_graph_pickle: filepath to a data model graph stored as pickle file.
         """
         # extract extension of 'inputMModelLocation'
         # ensure that it is necessarily pointing to a '.jsonld' file
