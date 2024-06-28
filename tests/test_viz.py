@@ -12,19 +12,30 @@ from schematic.visualization.tangled_tree import TangledTree
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
-@pytest.fixture
-def attributes_explorer(helpers):
+@pytest.fixture(params=[
+    ("example.model.jsonld", "example.model.pickle"),
+    ("example.model.jsonld", ""),
+    pytest.param(("", ""), marks = pytest.mark.xfail),
+    pytest.param(("", "example.model.pickle"), marks = pytest.mark.xfail)
+])
+def attributes_explorer(request, helpers):
     # Get JSONLD file path
-    path_to_jsonld = helpers.get_data_path("example.model.jsonld")
-    path_to_graph = helpers.get_data_path("example.model.pickle")
+    param1, param2 = request.param
+    path_to_jsonld = helpers.get_data_path(param1)
+    path_to_graph = helpers.get_data_path(param2)
 
     # Initialize TangledTree
-    attributes_explorer = AttributesExplorer(
-        path_to_jsonld,
-        data_model_graph_pickle=path_to_graph,
-        data_model_labels="class_label",
-    )
+    if param2 != "":
+        attributes_explorer = AttributesExplorer(
+            path_to_jsonld,
+            data_model_graph_pickle=path_to_graph,
+            data_model_labels="class_label",
+        )
+    else:
+        attributes_explorer = AttributesExplorer(
+            path_to_jsonld,
+            data_model_labels="class_label",
+        )
     yield attributes_explorer
 
 
