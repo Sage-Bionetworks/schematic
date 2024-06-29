@@ -21,51 +21,31 @@ import synapseclient
 import synapseutils
 from opentelemetry import trace
 from schematic_db.rdb.synapse_database import SynapseDatabase
-from synapseclient import (
-    Column,
-    EntityViewSchema,
-    EntityViewType,
-    File,
-    Folder,
-    Schema,
-    Synapse,
-    Table,
-    as_table_columns,
-)
+from synapseclient import (Column, EntityViewSchema, EntityViewType, File,
+                           Folder, Schema, Synapse, Table, as_table_columns)
 from synapseclient.api import get_entity_id_bundle2
-from synapseclient.core.exceptions import (
-    SynapseAuthenticationError,
-    SynapseHTTPError,
-    SynapseUnmetAccessRestrictions,
-)
+from synapseclient.core.exceptions import (SynapseAuthenticationError,
+                                           SynapseHTTPError,
+                                           SynapseUnmetAccessRestrictions)
 from synapseclient.entity import File
 from synapseclient.models.annotations import Annotations
 from synapseclient.table import CsvFileTable, Schema, build_table
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_chain,
-    wait_fixed,
-)
+from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
+                      wait_chain, wait_fixed)
 
 from schematic.configuration.configuration import CONFIG
 from schematic.exceptions import AccessCredentialsError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
 from schematic.store.base import BaseStorage
 from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
-
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
 # Please do not remove these import statements
-from schematic.utils.general import (
-    check_synapse_cache_size,
-    clear_synapse_cache,
-    create_temp_folder,
-    entity_type_mapping,
-    get_dir_size,
-)
+from schematic.utils.general import (check_synapse_cache_size,
+                                     clear_synapse_cache, create_temp_folder,
+                                     entity_type_mapping, get_dir_size)
 from schematic.utils.schema_utils import get_class_label_from_display_name
-from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+from schematic.utils.validate_utils import (comma_separated_list_regex,
+                                            rule_in_rule_list)
 
 logger = logging.getLogger("Synapse storage")
 
@@ -720,6 +700,7 @@ class SynapseStorage(BaseStorage):
             new_files = self._get_file_entityIds(
                 dataset_files=dataset_files, only_new_files=True, manifest=manifest
             )
+
             # update manifest so that it contains new dataset files
             new_files = pd.DataFrame(new_files)
             manifest = (
