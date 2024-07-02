@@ -1,63 +1,55 @@
-import os
-from json.decoder import JSONDecodeError
-import shutil
-import tempfile
-import shutil
-import urllib.request
+import json
 import logging
+import os
 import pathlib
 import pickle
+import shutil
+import tempfile
+import time
+import urllib.request
+from functools import wraps
+from json.decoder import JSONDecodeError
+from typing import Any, List, Optional
 
 import connexion
-from connexion.decorators.uri_parsing import Swagger2URIParser
-from werkzeug.debug import DebuggedApplication
-
-from flask_cors import cross_origin
-from flask import send_from_directory
-from flask import current_app as app
-from flask import request
-
 import pandas as pd
-import json
-from typing import Optional, List, Any
-from functools import wraps
-
+from connexion.decorators.uri_parsing import Swagger2URIParser
+from flask import current_app as app
+from flask import request, send_from_directory
+from flask_cors import cross_origin
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
+    SimpleSpanProcessor,
     Span,
 )
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-
-from schematic.configuration.configuration import CONFIG
-from schematic.visualization.attributes_explorer import AttributesExplorer
-from schematic.visualization.tangled_tree import TangledTree
-from schematic.manifest.generator import ManifestGenerator
-from schematic.models.metadata import MetadataModel
-
-from schematic.schemas.data_model_parser import DataModelParser
-from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
-
-from schematic.store.synapse import SynapseStorage, ManifestDownload
+from opentelemetry.sdk.trace.sampling import ALWAYS_OFF
 from synapseclient.core.exceptions import (
-    SynapseHTTPError,
     SynapseAuthenticationError,
-    SynapseUnmetAccessRestrictions,
+    SynapseHTTPError,
     SynapseNoCredentialsError,
     SynapseTimeoutError,
+    SynapseUnmetAccessRestrictions,
 )
+from werkzeug.debug import DebuggedApplication
+
+from schematic.configuration.configuration import CONFIG
+from schematic.manifest.generator import ManifestGenerator
+from schematic.models.metadata import MetadataModel
+from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.store.synapse import ManifestDownload, SynapseStorage
 from schematic.utils.general import entity_type_mapping
 from schematic.utils.schema_utils import (
-    get_property_label_from_display_name,
     DisplayLabelType,
-)
-from schematic.utils.schema_utils import (
     get_property_label_from_display_name,
-    DisplayLabelType,
 )
+from schematic.visualization.attributes_explorer import AttributesExplorer
+from schematic.visualization.tangled_tree import TangledTree
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -83,9 +75,24 @@ class FileSpanExporter(ConsoleSpanExporter):
                 f.write(span_json_one_line)
 
 
-trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
-# processor = SimpleSpanProcessor(FileSpanExporter("otel_spans_schemati_api.json"))
-# trace.get_tracer_provider().add_span_processor(processor)
+def set_up_tracing():
+    """Set up tracing for the API."""
+    tracing_export = os.environ.get("TRACING_EXPORT", None)
+    if tracing_export == "otlp":
+        trace.get_tracer_provider().add_span_processor(
+            BatchSpanProcessor(OTLPSpanExporter())
+        )
+    elif tracing_export == "file":
+        timestamp_millis = int(time.time() * 1000)
+        file_name = f"otel_spans_integration_testing_{timestamp_millis}.ndjson"
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
+        processor = SimpleSpanProcessor(FileSpanExporter(file_path))
+        trace.get_tracer_provider().add_span_processor(processor)
+    else:
+        trace.set_tracer_provider(TracerProvider(sampler=ALWAYS_OFF))
+
+
+set_up_tracing()
 tracer = trace.get_tracer("Schematic")
 
 
