@@ -75,13 +75,14 @@ class FileSpanExporter(ConsoleSpanExporter):
                 f.write(span_json_one_line)
 
 
-def set_up_tracing():
+def set_up_tracing() -> None:
     """Set up tracing for the API."""
     tracing_export = os.environ.get("TRACING_EXPORT_FORMAT", None)
     if tracing_export == "otlp":
         trace.get_tracer_provider().add_span_processor(
             BatchSpanProcessor(OTLPSpanExporter())
         )
+        print("going through here")
     elif tracing_export == "file":
         timestamp_millis = int(time.time() * 1000)
         file_name = f"otel_spans_integration_testing_{timestamp_millis}.ndjson"
