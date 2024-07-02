@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Union, Generator
 from _pytest.fixtures import FixtureRequest
 
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -69,6 +70,7 @@ from schematic.utils.schema_utils import (
     parse_validation_rules,
     extract_component_validation_rules,
     check_for_duplicate_components,
+    get_json_schema_log_file_path,
 )
 
 
@@ -186,6 +188,8 @@ TEST_DN_DICT = {
     "bio_things": {"class": "BioThings", "property": "bioThings"},
 }
 
+DATA_MODEL_DICT = {"example.model.csv": "CSV", "example.model.jsonld": "JSONLD"}
+
 test_disk_storage = [
     (2, 4000, 16000),
     (1000, 4000, 16000),
@@ -193,7 +197,8 @@ test_disk_storage = [
     (1073741825, 1073741824, 1181116006.4),
 ]
 
-def get_metadataModel(helpers, model_name:str):
+
+def get_metadataModel(helpers, model_name: str):
     metadataModel = MetadataModel(
         inputMModelLocation=helpers.get_data_path(model_name),
         inputMModelLocationType="local",
@@ -1021,6 +1026,28 @@ class TestSchemaUtils:
                 return
         return
 
+    @pytest.mark.parametrize(
+        "data_model", list(DATA_MODEL_DICT.keys()), ids=list(DATA_MODEL_DICT.values())
+    )
+    @pytest.mark.parametrize(
+        "source_node",
+        ["Biospecimen", "Patient"],
+        ids=["biospecimen_source", "patient_source"],
+    )
+    def test_get_json_schema_log_file_path(
+        self, helpers, data_model: str, source_node: str
+    ):
+        data_model_path = helpers.get_data_path(path=data_model)
+        json_schema_log_file_path = get_json_schema_log_file_path(
+            data_model_path=data_model_path, source_node=source_node
+        )
+
+        # Check that model is not included in the json_schema_log_file_path
+        assert ".model" not in "data_model"
+
+        # Check the file suffixs are what is expected.
+        assert ["schema", "json"] == json_schema_log_file_path.split(".")[-2:]
+
 
 class TestValidateUtils:
     def test_validate_schema(self, helpers):
@@ -1074,13 +1101,22 @@ class TestValidateUtils:
 
     @pytest.mark.parametrize(
         ("manifest", "model", "root_node"),
-        [("mock_manifests/Patient_test_no_entry_for_cond_required_column.manifest.csv",
-            "example.model.csv", "Patient"),
-        ("mock_manifests/Valid_Test_Manifest_with_nones.csv",
-            "example_test_nones.model.csv", "MockComponent")]
-        )
+        [
+            (
+                "mock_manifests/Patient_test_no_entry_for_cond_required_column.manifest.csv",
+                "example.model.csv",
+                "Patient",
+            ),
+            (
+                "mock_manifests/Valid_Test_Manifest_with_nones.csv",
+                "example_test_nones.model.csv",
+                "MockComponent",
+            ),
+        ],
+    )
     def test_convert_nan_entries_to_empty_strings(
-            self, helpers, manifest, model, root_node):
+        self, helpers, manifest, model, root_node
+    ):
         # Get manifest and data model path
         manifest_path = helpers.get_data_path(manifest)
         model_path = helpers.get_data_path(model)
@@ -1104,37 +1140,37 @@ class TestValidateUtils:
             manifest_path,
             preserve_raw_input=False,
             allow_na_values=True,
-            **load_args,)
+            **load_args,
+        )
 
         metadataModel = get_metadataModel(helpers, model)
 
         # Instantiate Validate manifest, and run manifest validation
-        # In this step the manifest is modified while running rule 
+        # In this step the manifest is modified while running rule
         # validation so need to do this step to get the updated manfest.
-        vm = ValidateManifest(
-                errors, manifest, manifest_path, dmge, json_schema)
+        vm = ValidateManifest(errors, manifest, manifest_path, dmge, json_schema)
         manifest, vmr_errors, vmr_warnings = vm.validate_manifest_rules(
-            manifest, dmge, restrict_rules=False, project_scope=["syn54126707"],
+            manifest,
+            dmge,
+            restrict_rules=False,
+            project_scope=["syn54126707"],
         )
 
         # Run convert nan function
-        output = validate_utils.convert_nan_entries_to_empty_strings(
-            manifest=manifest
-        )
+        output = validate_utils.convert_nan_entries_to_empty_strings(manifest=manifest)
 
         # Compare post rule validation manifest with output manifest looking
         # for expected nan to empty string conversion
-        if root_node == 'Patient':
-            assert manifest['Family History'][0] == ['<NA>']
-            assert output['Family History'][0] == ['']
-        elif root_node == 'MockComponent':
-            assert manifest['Check List'][2] == ['<NA>']
-            assert manifest['Check List Like Enum'][2] == []
-            assert type(manifest['Check NA'][2]) == type(pd.NA)
+        if root_node == "Patient":
+            assert manifest["Family History"][0] == ["<NA>"]
+            assert output["Family History"][0] == [""]
+        elif root_node == "MockComponent":
+            assert manifest["Check List"][2] == ["<NA>"]
+            assert manifest["Check List Like Enum"][2] == []
+            assert type(manifest["Check NA"][2]) == type(pd.NA)
 
-            assert output['Check List'][2] == ['']
-            assert output['Check List Like Enum'][2] == []
-
+            assert output["Check List"][2] == [""]
+            assert output["Check List Like Enum"][2] == []
 
     def test_get_list_robustness(self, helpers):
         return

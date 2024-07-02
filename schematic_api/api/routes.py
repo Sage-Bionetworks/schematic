@@ -19,7 +19,18 @@ from flask import request
 
 import pandas as pd
 import json
-from typing import Optional
+from typing import Optional, List, Any
+from functools import wraps
+
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    ConsoleSpanExporter,
+    Span,
+)
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
 from schematic.configuration.configuration import CONFIG
 from schematic.visualization.attributes_explorer import AttributesExplorer
@@ -39,10 +50,70 @@ from synapseclient.core.exceptions import (
     SynapseTimeoutError,
 )
 from schematic.utils.general import entity_type_mapping
-from schematic.utils.schema_utils import get_property_label_from_display_name, DisplayLabelType
+from schematic.utils.schema_utils import (
+    get_property_label_from_display_name,
+    DisplayLabelType,
+)
+from schematic.utils.schema_utils import (
+    get_property_label_from_display_name,
+    DisplayLabelType,
+)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
+
+trace.set_tracer_provider(
+    TracerProvider(resource=Resource(attributes={SERVICE_NAME: "schematic-api"}))
+)
+
+
+# borrowed from: https://github.com/Sage-Bionetworks/synapsePythonClient/blob/develop/tests/integration/conftest.py
+class FileSpanExporter(ConsoleSpanExporter):
+    """Create an exporter for OTEL data to a file."""
+
+    def __init__(self, file_path: str) -> None:
+        """Init with a path."""
+        self.file_path = file_path
+
+    def export(self, spans: List[Span]) -> None:
+        """Export the spans to the file."""
+        with open(self.file_path, "a", encoding="utf-8") as f:
+            for span in spans:
+                span_json_one_line = span.to_json().replace("\n", "") + "\n"
+                f.write(span_json_one_line)
+
+
+trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+# processor = SimpleSpanProcessor(FileSpanExporter("otel_spans_schemati_api.json"))
+# trace.get_tracer_provider().add_span_processor(processor)
+tracer = trace.get_tracer("Schematic")
+
+
+def trace_function_params():
+    """capture all the parameters of API requests"""
+
+    def decorator(func):
+        """create a decorator"""
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            """create a wrapper function. Any number of positional arguments and keyword arguments can be passed here."""
+            tracer = trace.get_tracer(__name__)
+            # Start a new span with the function's name
+            with tracer.start_as_current_span(func.__name__) as span:
+                # Set values of parameters as tags
+                for i, arg in enumerate(args):
+                    span.set_attribute(f"arg{i}", arg)
+
+                for name, value in kwargs.items():
+                    span.set_attribute(name, value)
+                # Call the actual function
+                result = func(*args, **kwargs)
+                return result
+
+        return wrapper
+
+    return decorator
 
 
 def config_handler(asset_view: str = None):
@@ -210,6 +281,7 @@ def save_file(file_key="csv_file"):
 
     return temp_path
 
+
 def initalize_metadata_model(schema_url, data_model_labels):
     # get path to temp data model file (csv or jsonld) as appropriate
     data_model = get_temp_model_path(schema_url)
@@ -259,6 +331,7 @@ def get_temp_model_path(schema_url):
 
 
 # @before_request
+@trace_function_params()
 def get_manifest_route(
     schema_url: str,
     use_annotations: bool,
@@ -283,7 +356,6 @@ def get_manifest_route(
     Returns:
         Googlesheet URL (if sheet_url is True), or pandas dataframe (if sheet_url is False).
     """
-
     # Get access token from request header
     access_token = get_access_token()
 
@@ -322,8 +394,7 @@ def get_manifest_route(
     return all_results
 
 
-#####profile validate manifest route function
-# @profile(sort_by='cumulative', strip_dirs=True)
+@trace_function_params()
 def validate_manifest_route(
     schema_url,
     data_type,
@@ -380,7 +451,7 @@ def validate_manifest_route(
 
 
 #####profile validate manifest route function
-# @profile(sort_by='cumulative', strip_dirs=True)
+@trace_function_params()
 def submit_manifest_route(
     schema_url,
     data_model_labels: str,
@@ -393,7 +464,7 @@ def submit_manifest_route(
     project_scope=None,
     table_column_names=None,
     annotation_keys=None,
-    file_annotations_upload:bool=True,
+    file_annotations_upload: bool = True,
 ):
     # call config_handler()
     config_handler(asset_view=asset_view)
@@ -450,7 +521,7 @@ def submit_manifest_route(
         project_scope=project_scope,
         table_column_names=table_column_names,
         annotation_keys=annotation_keys,
-        file_annotations_upload=file_annotations_upload
+        file_annotations_upload=file_annotations_upload,
     )
 
     return manifest_id
@@ -675,7 +746,6 @@ def download_manifest(manifest_id, new_manifest_name="", as_json=True):
         return manifest_local_file_path
 
 
-# @profile(sort_by='cumulative', strip_dirs=True)
 def download_dataset_manifest(dataset_id, asset_view, as_json, new_manifest_name=""):
     # Access token now stored in request header
     access_token = get_access_token()
@@ -728,6 +798,7 @@ def get_asset_view_table(asset_view, return_type):
         export_path = os.path.join(path, "tests/data/file_view_table.csv")
         file_view_table_df.to_csv(export_path, index=False)
         return export_path
+
 
 def get_project_manifests(project_id, asset_view):
     # Access token now stored in request header

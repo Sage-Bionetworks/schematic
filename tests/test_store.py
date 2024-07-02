@@ -22,11 +22,7 @@ from schematic.schemas.data_model_parser import DataModelParser
 from tests.conftest import Helpers
 
 from schematic.store.base import BaseStorage
-from schematic.store.synapse import (
-    DatasetFileView,
-    ManifestDownload,
-    SynapseStorage
-)
+from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
 from schematic.utils.general import check_synapse_cache_size
 
 logging.basicConfig(level=logging.DEBUG)
@@ -131,7 +127,7 @@ class TestBaseStorage:
 class TestSynapseStorage:
     "Tests the SynapseStorage class"
 
-    def test_init(self, synapse_store:SynapseStorage) -> None:
+    def test_init(self, synapse_store: SynapseStorage) -> None:
         """Tests SynapseStorage.__init__"""
         assert synapse_store.storageFileview == "syn23643253"
         assert isinstance(synapse_store.storageFileviewTable, pd.DataFrame)
@@ -142,8 +138,7 @@ class TestSynapseStorage:
         synapse_store = SynapseStorage(synapse_cache_path="test_cache_dir")
         size_before_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
         synapse_store._purge_synapse_cache(
-            maximum_storage_allowed_cache_gb=0.000001,
-            minute_buffer=0
+            maximum_storage_allowed_cache_gb=0.000001, minute_buffer=0
         )
         size_after_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
         assert size_before_purge > size_after_purge
@@ -157,7 +152,7 @@ class TestSynapseStorage:
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
         shutil.rmtree("test_cache_dir")
 
-    def test_getFileAnnotations(self, synapse_store:SynapseStorage) -> None:
+    def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
             "author": "bruno, milen, sujay",
             "impact": "42.9",
@@ -214,45 +209,46 @@ class TestSynapseStorage:
             assert len(files_and_Ids["entityId"]) == 2
 
     @pytest.mark.parametrize(
-        "manifest_path, test_annotations, datasetId, manifest_record_type",
+        "test_annotations, dataset_id, manifest_record_type, temporary_file_copy",
         [
             (
-                "mock_manifests/annotations_test_manifest.csv",
                 {"CheckInt": "7", "CheckList": "valid, list, values"},
                 "syn34295552",
                 "file_and_entities",
+                "annotations_test_manifest.csv",
             ),
             (
-                "mock_manifests/test_BulkRNAseq.csv",
                 {"FileFormat": "BAM", "GenomeBuild": "GRCh38"},
                 "syn39241199",
                 "table_and_file",
+                "test_BulkRNAseq.csv",
             ),
         ],
         ids=["non file-based", "file-based"],
+        indirect=["temporary_file_copy"],
     )
     def test_annotation_submission(
         self,
-        synapse_store,
+        synapse_store: SynapseStorage,
         helpers,
-        manifest_path,
-        test_annotations,
-        datasetId,
-        manifest_record_type,
-        config: Configuration,
+        test_annotations: dict[str, str],
+        dataset_id: str,
+        manifest_record_type: str,
         dmge: DataModelGraphExplorer,
+        temporary_file_copy: Generator[str, None, None],
     ):
-        manifest_id = synapse_store.associateMetadataWithFiles(
+        """Test annotation submission"""
+        synapse_store.associateMetadataWithFiles(
             dmge=dmge,
-            metadataManifestPath=helpers.get_data_path(manifest_path),
-            datasetId=datasetId,
+            metadataManifestPath=temporary_file_copy,
+            datasetId=dataset_id,
             manifest_record_type=manifest_record_type,
             hideBlanks=True,
             restrict_manifest=False,
         )
 
         # Retrive annotations
-        entity_id = helpers.get_data_frame(manifest_path)["entityId"][0]
+        entity_id = helpers.get_data_frame(temporary_file_copy)["entityId"][0]
         annotations = synapse_store.getFileAnnotations(entity_id)
 
         # Check annotations of interest
@@ -260,11 +256,11 @@ class TestSynapseStorage:
             assert key in annotations.keys()
             assert annotations[key] == test_annotations[key]
 
-        if manifest_path.endswith("annotations_test_manifest.csv"):
+        if temporary_file_copy.endswith("annotations_test_manifest_copy.csv"):
             assert "CheckRecommended" not in annotations.keys()
-        elif manifest_path.endswith("test_BulkRNAseq.csv"):
+        elif temporary_file_copy.endswith("test_BulkRNAseq_copy.csv"):
             entity = synapse_store.syn.get(entity_id)
-            assert type(entity) == File
+            assert isinstance(entity, File)
 
     @pytest.mark.parametrize("force_batch", [True, False], ids=["batch", "non_batch"])
     def test_getDatasetAnnotations(self, dataset_id, synapse_store, force_batch):
@@ -481,6 +477,7 @@ class TestSynapseStorage:
                     ],
                     "entityId": ["syn123", "syn456"],
                 }
+
 
 class TestDatasetFileView:
     def test_init(self, dataset_id, dataset_fileview, synapse_store):
@@ -1017,17 +1014,32 @@ class TestManifestUpload:
             }
         )
         with patch("synapseclient.Synapse.store") as syn_store_mock, patch(
-            "synapseutils.copy_functions.changeFileMetaData"
-        ):
+            "schematic.store.synapse.synapseutils.copy_functions.changeFileMetaData"
+        ) as mock_change_file_metadata:
             syn_store_mock.return_value.id = "mock manifest id"
+            mock_component_name = "BulkRNA-seqAssay"
             mock_file_path = helpers.get_data_path(mock_manifest_file_path)
             mock_manifest_synapse_file_id = synapse_store.upload_manifest_file(
                 manifest=test_df,
                 metadataManifestPath=mock_file_path,
                 datasetId="mock dataset id",
                 restrict_manifest=True,
+                component_name=mock_component_name,
             )
+            if "censored" in mock_manifest_file_path:
+                file_name = (
+                    f"synapse_storage_manifest_{mock_component_name}_censored.csv"
+                )
+            else:
+                file_name = f"synapse_storage_manifest_{mock_component_name}.csv"
+
             assert mock_manifest_synapse_file_id == "mock manifest id"
+            mock_change_file_metadata.assert_called_once_with(
+                forceVersion=False,
+                syn=synapse_store.syn,
+                entity=syn_store_mock.return_value.id,
+                downloadAs=file_name,
+            )
 
     @pytest.mark.parametrize("file_annotations_upload", [True, False])
     @pytest.mark.parametrize("hide_blanks", [True, False])

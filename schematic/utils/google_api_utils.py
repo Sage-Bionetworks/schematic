@@ -11,7 +11,6 @@ import pandas as pd
 from googleapiclient.discovery import build, Resource  # type: ignore
 from google.oauth2 import service_account  # type: ignore
 from schematic.configuration.configuration import CONFIG
-from schematic.store.synapse import SynapseStorage
 
 logger = logging.getLogger(__name__)
 
@@ -65,39 +64,6 @@ def build_service_account_creds() -> GoogleServiceAcountCreds:
         "creds": credentials,
     }
     return creds
-
-
-def download_creds_file() -> None:
-    """Download google credentials file"""
-    syn = SynapseStorage.login()
-
-    # if file path of service_account does not exist
-    # and if an environment variable related to service account is not found
-    # regenerate service_account credentials
-    if (
-        not os.path.exists(CONFIG.service_account_credentials_path)
-        and "SERVICE_ACCOUNT_CREDS" not in os.environ
-    ):
-        # synapse ID of the 'schematic_service_account_creds.json' file
-        api_creds = CONFIG.service_account_credentials_synapse_id
-
-        # Download in parent directory of SERVICE_ACCT_CREDS to
-        # ensure same file system for os.rename()
-        creds_dir = os.path.dirname(CONFIG.service_account_credentials_path)
-
-        creds_file = syn.get(api_creds, downloadLocation=creds_dir)
-        os.rename(creds_file.path, CONFIG.service_account_credentials_path)
-
-        logger.info(
-            "The credentials file has been downloaded "
-            f"to '{CONFIG.service_account_credentials_path}'"
-        )
-
-    elif "SERVICE_ACCOUNT_CREDS" in os.environ:
-        # remind users that "SERVICE_ACCOUNT_CREDS" as an environment variable is being used
-        logger.info(
-            "Using environment variable SERVICE_ACCOUNT_CREDS as the credential file."
-        )
 
 
 @no_type_check

@@ -20,6 +20,7 @@ from schematic.utils.schema_utils import (
     convert_bool_to_str,
     parse_validation_rules,
     DisplayLabelType,
+    get_json_schema_log_file_path,
 )
 from schematic.utils.io_utils import load_json
 
@@ -447,9 +448,12 @@ class TestDataModelGraph:
 
         # Check that all relationships recorded between 'CheckList' and 'Ab' are present
         assert (
-            "rangeValue" and "parentOf" in graph["CheckListEnum"][expected_valid_values[0]]
+            "rangeValue"
+            and "parentOf" in graph["CheckListEnum"][expected_valid_values[0]]
         )
-        assert "requiresDependency" not in graph["CheckListEnum"][expected_valid_values[0]]
+        assert (
+            "requiresDependency" not in graph["CheckListEnum"][expected_valid_values[0]]
+        )
 
         # Check nodes:
         assert "Patient" in graph.nodes
@@ -987,10 +991,7 @@ class TestDataModelNodes:
 
         # Check that the display name matches the label
         if data_model_labels == "display_label":
-            try:
-                assert node_display_name == node_dict["label"]
-            except:
-                breakpoint()
+            assert node_display_name == node_dict["label"]
 
     def test_generate_node(self, helpers, data_model):
         # Test adding a dummy node
@@ -1296,6 +1297,7 @@ class TestDataModelJsonSchema:
     @pytest.mark.parametrize("blank", [True, False], ids=["True_blank", "False_blank"])
     def test_get_range_schema(self, helpers, data_model, node_range, node_name, blank):
         dmjs = get_data_model_json_schema(helpers=helpers, data_model_name=data_model)
+
         range_schema = dmjs.get_range_schema(
             node_range=node_range, node_name=node_name, blank=blank
         )
@@ -1324,6 +1326,16 @@ class TestDataModelJsonSchema:
     ):
         dmjs = get_data_model_json_schema(helpers=helpers, data_model_name=data_model)
 
+        data_model_path = helpers.get_data_path(path=data_model)
+        json_schema_log_file_path = get_json_schema_log_file_path(
+            data_model_path=data_model_path, source_node=source_node
+        )
+
+        # Remove json schema log file if it already exists.
+        if os.path.exists(json_schema_log_file_path):
+            os.remove(json_schema_log_file_path)
+        assert os.path.exists(json_schema_log_file_path) == False
+
         try:
             # Get validation schema
             json_validation_schema = dmjs.get_json_validation_schema(
@@ -1349,6 +1361,13 @@ class TestDataModelJsonSchema:
             # Check contents of validation schema
             assert "Diagnosis" in json_validation_schema["properties"]
             assert "Cancer" in json_validation_schema["properties"]["Diagnosis"]["enum"]
+
+            # Check that log file is saved
+            assert os.path.exists(json_schema_log_file_path) == True
+
+            # Remove the log file that was created.
+            os.remove(json_schema_log_file_path)
+
         except:
             # Should only fail if no source node is provided.
             assert source_node == ""

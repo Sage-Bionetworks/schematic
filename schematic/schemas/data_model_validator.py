@@ -85,7 +85,7 @@ class DataModelValidator:
                 )
         return error
 
-    def run_cycles(self):
+    def run_cycles(self) -> None:
         """run_cycles"""
         cycles = nx.simple_cycles(self.graph)
         if cycles:  # pylint:disable=using-constant-test
@@ -188,27 +188,27 @@ class DataModelValidator:
                 )
         return error
 
-    def check_namespace_overlap(self):
+    def check_namespace_overlap(self) -> list:
         """
         Check if name is repeated.
         Implement in the future
         """
-        warning = []
+        warning: list = []
         return warning
 
-    def check_for_orphan_attributes(self):
+    def check_for_orphan_attributes(self) -> list:
         """
         Check if attribute is specified but not connected to another attribute or component.
         Implement in future
         """
-        warning = []
+        warning: list = []
         return warning
 
-    def check_namespace_similarity(self):
+    def check_namespace_similarity(self) -> list:
         """
         Using AI, check if submitted attributes or valid values are similar to other ones,
           warn users.
         Implement in future
         """
-        warning = []
+        warning: list = []
         return warning

@@ -80,7 +80,6 @@ class TestDataclasses:
         assert isinstance(
             GoogleSheetsConfig(
                 service_acct_creds="file_name",
-                service_acct_creds_synapse_id="syn1",
                 strict_validation=True,
             ),
             GoogleSheetsConfig,
@@ -88,19 +87,11 @@ class TestDataclasses:
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
                 service_acct_creds="file_name",
-                service_acct_creds_synapse_id="syn1",
                 strict_validation="tru",
             )
         with pytest.raises(ValidationError):
             GoogleSheetsConfig(
                 service_acct_creds="",
-                service_acct_creds_synapse_id="syn1",
-                strict_validation=True,
-            )
-        with pytest.raises(ValidationError):
-            GoogleSheetsConfig(
-                service_acct_creds="file_name",
-                service_acct_creds_synapse_id="syn",
                 strict_validation=True,
             )
 
@@ -120,7 +111,6 @@ class TestConfiguration:
         assert config.manifest_title == "example"
         assert config.manifest_data_type == ["Biospecimen", "Patient"]
         assert config.model_location == "tests/data/example.model.jsonld"
-        assert config.service_account_credentials_synapse_id
         assert (
             config.service_account_credentials_path
             != "schematic_service_account_creds.json"
@@ -158,7 +148,6 @@ class TestConfiguration:
         assert config.manifest_title == "example"
         assert config.manifest_data_type == ["Biospecimen", "Patient"]
         assert config.model_location == "tests/data/example.model.jsonld"
-        assert config.service_account_credentials_synapse_id
         assert (
             config.service_account_credentials_path
             != "schematic_service_account_creds.json"
@@ -188,7 +177,6 @@ class TestConfiguration:
         assert config.manifest_title == "title"
         assert config.manifest_data_type == ["data_type"]
         assert config.model_location == "model.jsonld"
-        assert config.service_account_credentials_synapse_id
         assert os.path.basename(config.service_account_credentials_path) == "creds.json"
         assert config.google_sheets_master_template_id == (
             "1LYS5qE4nV9jzcYw5sXwCza25slDfRA1CIg3cs-hCdpU"
