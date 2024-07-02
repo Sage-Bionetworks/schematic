@@ -77,7 +77,7 @@ class FileSpanExporter(ConsoleSpanExporter):
 
 def set_up_tracing():
     """Set up tracing for the API."""
-    tracing_export = os.environ.get("TRACING_EXPORT", None)
+    tracing_export = os.environ.get("TRACING_EXPORT_FORMAT", None)
     if tracing_export == "otlp":
         trace.get_tracer_provider().add_span_processor(
             BatchSpanProcessor(OTLPSpanExporter())
