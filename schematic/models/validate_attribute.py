@@ -4,7 +4,7 @@ import re
 from time import perf_counter
 
 # allows specifying explicit variable types
-from typing import Any, Optional, Literal, Union
+from typing import Any, Literal, Optional, Union
 from urllib import error
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -12,21 +12,19 @@ from urllib.request import Request, urlopen
 import numpy as np
 import pandas as pd
 from jsonschema import ValidationError
+from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-
 from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 from schematic.utils.validate_utils import (
     comma_separated_list_regex,
-    parse_str_series_to_list,
-    np_array_to_str_list,
-    iterable_to_str_list,
-    rule_in_rule_list,
     get_list_robustness,
+    iterable_to_str_list,
+    np_array_to_str_list,
+    parse_str_series_to_list,
+    rule_in_rule_list,
 )
-
-from synapseclient.core.exceptions import SynapseNoCredentialsError
 
 logger = logging.getLogger(__name__)
 
@@ -731,6 +729,17 @@ class ValidateAttribute(object):
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
         self.dmge = dmge
 
+    def _login(self, project_scope: list[str], access_token: str = None):
+        # login
+        try:
+            self.synStore = SynapseStorage(
+                access_token=access_token, project_scope=project_scope
+            )
+        except SynapseNoCredentialsError as e:
+            raise ValueError(
+                "No Synapse credentials were provided. Credentials must be provided to utilize cross-manfiest validation functionality."
+            ) from e
+
     def get_no_entry(self, entry: str, node_display_name: str) -> bool:
         """Helper function to check if the entry is blank or contains a not applicable type string (and NA is permitted)
         Args:
@@ -777,22 +786,14 @@ class ValidateAttribute(object):
         target_manifest_ids = []
         target_dataset_ids = []
 
-        # login
-        try:
-            synStore = SynapseStorage(
-                access_token=access_token, project_scope=project_scope
-            )
-        except SynapseNoCredentialsError as e:
-            raise ValueError(
-                "No Synapse credentials were provided. Credentials must be provided to utilize cross-manfiest validation functionality."
-            ) from e
+        self._login(project_scope=project_scope, access_token=access_token)
 
         # Get list of all projects user has access to
-        projects = synStore.getStorageProjects(project_scope=project_scope)
+        projects = self.synStore.getStorageProjects(project_scope=project_scope)
 
         for project in projects:
             # get all manifests associated with datasets in the projects
-            target_datasets = synStore.getProjectManifests(projectId=project[0])
+            target_datasets = self.synStore.getProjectManifests(projectId=project[0])
 
             # If the manifest includes the target component, include synID in list
             for target_dataset in target_datasets:
@@ -805,7 +806,7 @@ class ValidateAttribute(object):
         logger.debug(
             f"Cross manifest gathering elapsed time {perf_counter()-t_manifest_search}"
         )
-        return synStore, target_manifest_ids, target_dataset_ids
+        return target_manifest_ids, target_dataset_ids
 
     def list_validation(
         self,
@@ -1779,7 +1780,6 @@ class ValidateAttribute(object):
 
         # Get IDs of manifests with target component
         (
-            synStore,
             target_manifest_ids,
             target_dataset_ids,
         ) = self.get_target_manifests(target_component, project_scope, access_token)
@@ -1793,7 +1793,7 @@ class ValidateAttribute(object):
             target_manifest_ids, target_dataset_ids
         ):
             # Pull manifest from Synapse
-            entity = synStore.getDatasetManifest(
+            entity = self.synStore.getDatasetManifest(
                 datasetId=target_dataset_id, downloadFile=True
             )
             # Load manifest
