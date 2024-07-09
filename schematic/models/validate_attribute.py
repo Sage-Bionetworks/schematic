@@ -1959,4 +1959,6 @@ class ValidateAttribute(object):
         project_scope,
         access_token,
     ):
+        self._login(project_scope=project_scope, access_token=access_token)
+
         return
