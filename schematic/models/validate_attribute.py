@@ -1951,3 +1951,12 @@ class ValidateAttribute(object):
         logger.debug(f"cross manifest validation time {perf_counter()-start_time}")
 
         return errors, warnings
+
+    def content_validation(
+        self,
+        val_rule,
+        manifest,
+        project_scope,
+        access_token,
+    ):
+        return
