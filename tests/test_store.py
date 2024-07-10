@@ -5,25 +5,24 @@ from __future__ import annotations
 import logging
 import math
 import os
-from time import sleep
-from typing import Generator, Any
-from unittest.mock import patch
 import shutil
+from time import sleep
+from typing import Any, Generator
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
+from pandas.testing import assert_frame_equal
 from synapseclient import EntityViewSchema, Folder
 from synapseclient.entity import File
-from pandas.testing import assert_frame_equal
 
 from schematic.configuration.configuration import Configuration
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_parser import DataModelParser
-from tests.conftest import Helpers
-
 from schematic.store.base import BaseStorage
 from schematic.store.synapse import DatasetFileView, ManifestDownload, SynapseStorage
 from schematic.utils.general import check_synapse_cache_size
+from tests.conftest import Helpers
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -151,6 +150,44 @@ class TestSynapseStorage:
         synapse_client = SynapseStorage.login("test_cache_dir")
         assert synapse_client.cache.cache_root_dir == "test_cache_dir"
         shutil.rmtree("test_cache_dir")
+
+    @pytest.mark.parametrize(
+        "project_scope,columns,where_clauses,expected",
+        [
+            ([], [], [], "SELECT * FROM syn23643253 ;"),
+            (
+                ["syn23643250"],
+                [],
+                [],
+                "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
+            ),
+            (
+                ["syn23643250"],
+                ["name", "id", "path"],
+                [],
+                "SELECT name,id,path FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
+            ),
+            (
+                ["syn23643250"],
+                ["name", "id", "path"],
+                ["parentId='syn61682648'", "type='file'"],
+                "SELECT name,id,path FROM syn23643253 WHERE parentId='syn61682648' AND type='file' AND projectId IN ('syn23643250', '') ;",
+            ),
+        ],
+    )
+    def test_build_query(
+        self,
+        synapse_store: SynapseStorage,
+        project_scope: list,
+        columns: list,
+        where_clauses: list,
+        expected: str,
+    ) -> None:
+        assert synapse_store.storageFileview == "syn23643253"
+        if project_scope:
+            synapse_store.project_scope = project_scope
+        query = synapse_store._build_query(columns, where_clauses)
+        assert query == expected
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
