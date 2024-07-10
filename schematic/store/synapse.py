@@ -1,74 +1,69 @@
 """Synapse storage class"""
 
 import atexit
-from copy import deepcopy
-from dataclasses import dataclass
 import logging
-import numpy as np
-import pandas as pd
 import os
 import re
 import secrets
 import shutil
-import synapseclient
 import uuid  # used to generate unique names for entities
+from copy import deepcopy
+from dataclasses import dataclass
+from sys import getsizeof
+from time import perf_counter, sleep
 
+# allows specifying explicit variable types
+from typing import Dict, List, Optional, Sequence, Tuple, Union
+
+import numpy as np
+import pandas as pd
+import synapseclient
+import synapseutils
+from opentelemetry import trace
+from schematic_db.rdb.synapse_database import SynapseDatabase
+from synapseclient import (
+    Column,
+    EntityViewSchema,
+    EntityViewType,
+    File,
+    Folder,
+    Schema,
+    Synapse,
+    Table,
+    as_table_columns,
+)
+from synapseclient.core.exceptions import (
+    SynapseAuthenticationError,
+    SynapseHTTPError,
+    SynapseUnmetAccessRestrictions,
+)
+from synapseclient.entity import File
+from synapseclient.table import CsvFileTable, Schema, build_table
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_chain,
     wait_fixed,
-    retry_if_exception_type,
 )
-from time import sleep
 
-# allows specifying explicit variable types
-from typing import Dict, List, Tuple, Sequence, Union, Optional
-
-from synapseclient import (
-    Synapse,
-    File,
-    Folder,
-    Table,
-    Schema,
-    EntityViewSchema,
-    EntityViewType,
-    Column,
-    as_table_columns,
-)
-from synapseclient.entity import File
-from synapseclient.table import CsvFileTable, build_table, Schema
-from synapseclient.core.exceptions import (
-    SynapseHTTPError,
-    SynapseAuthenticationError,
-    SynapseUnmetAccessRestrictions,
-    SynapseHTTPError,
-)
-import synapseutils
-
-from schematic_db.rdb.synapse_database import SynapseDatabase
-
+from schematic.configuration.configuration import CONFIG
+from schematic.exceptions import AccessCredentialsError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-
-from schematic.utils.df_utils import update_df, load_df, col_in_dataframe
-from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
+from schematic.store.base import BaseStorage
+from schematic.utils.df_utils import col_in_dataframe, load_df, update_df
 
 # entity_type_mapping, get_dir_size, create_temp_folder, check_synapse_cache_size, and clear_synapse_cache functions are used for AWS deployment
 # Please do not remove these import statements
 from schematic.utils.general import (
-    entity_type_mapping,
-    get_dir_size,
-    create_temp_folder,
     check_synapse_cache_size,
     clear_synapse_cache,
+    create_temp_folder,
+    entity_type_mapping,
+    get_dir_size,
 )
-
 from schematic.utils.schema_utils import get_class_label_from_display_name
-
-from schematic.store.base import BaseStorage
-from schematic.exceptions import AccessCredentialsError
-from schematic.configuration.configuration import CONFIG
-from opentelemetry import trace
+from schematic.utils.validate_utils import comma_separated_list_regex, rule_in_rule_list
 
 logger = logging.getLogger("Synapse storage")
 
@@ -218,7 +213,7 @@ class SynapseStorage(BaseStorage):
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
         self.root_synapse_cache = self.syn.cache.cache_root_dir
-        self._query_fileview()
+        self.query_fileview()
 
     def _purge_synapse_cache(
         self, maximum_storage_allowed_cache_gb: int = 1, minute_buffer: int = 15
@@ -251,23 +246,45 @@ class SynapseStorage(BaseStorage):
                 # instead of guessing how much space that we left, print out .synapseCache here
                 logger.info(f"the total size of .synapseCache is: {nbytes} bytes")
 
-    @tracer.start_as_current_span("SynapseStorage::_query_fileview")
-    def _query_fileview(self):
+    @tracer.start_as_current_span("SynapseStorage::query_fileview")
+    def query_fileview(
+        self,
+        columns: List = [],
+        where_clauses: List = [],
+    ):
         self._purge_synapse_cache()
+
+        self.storageFileview = CONFIG.synapse_master_fileview_id
+        self.manifest = CONFIG.synapse_manifest_basename
+
+        fileview_query = self._build_query(columns=columns, where_clauses=where_clauses)
+
         try:
-            self.storageFileview = CONFIG.synapse_master_fileview_id
-            self.manifest = CONFIG.synapse_manifest_basename
-            if self.project_scope:
-                self.storageFileviewTable = self.syn.tableQuery(
-                    f"SELECT * FROM {self.storageFileview} WHERE projectId IN {tuple(self.project_scope + [''])}"
-                ).asDataFrame()
-            else:
-                # get data in administrative fileview for this pipeline
-                self.storageFileviewTable = self.syn.tableQuery(
-                    "SELECT * FROM " + self.storageFileview
-                ).asDataFrame()
+            self.storageFileviewTable = self.syn.tableQuery(
+                query=fileview_query,
+            ).asDataFrame()
         except SynapseHTTPError:
             raise AccessCredentialsError(self.storageFileview)
+
+    def _build_query(self, columns: list = [], where_clauses: list = []):
+        if self.project_scope:
+            project_scope_clause = f"projectId IN {tuple(self.project_scope + [''])}"
+            where_clauses.append(project_scope_clause)
+
+        if where_clauses:
+            where_clauses = " AND ".join(where_clauses)
+            where_clauses = f"WHERE {where_clauses} ;"
+        else:
+            where_clauses = ";"
+
+        if columns:
+            columns = ",".join(columns)
+        else:
+            columns = "*"
+
+        query = f"SELECT {columns} FROM {self.storageFileview} {where_clauses}"
+
+        return query
 
     @staticmethod
     def login(
@@ -2294,7 +2311,7 @@ class SynapseStorage(BaseStorage):
         # re-query if no datasets found
         if dataset_row.empty:
             sleep(5)
-            self._query_fileview()
+            self.query_fileview()
             # Subset main file view
             dataset_index = self.storageFileviewTable["id"] == datasetId
             dataset_row = self.storageFileviewTable[dataset_index]
