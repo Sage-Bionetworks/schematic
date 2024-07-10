@@ -54,7 +54,7 @@ pygsheets = "^2.0.4"
 PyYAML = "^6.0.0"
 rdflib = "^6.0.0"
 setuptools = "^66.0.0"
-synapseclient = "^4.1.0"
+synapseclient = "4.3.1.3084"
 tenacity = "^8.0.1"
 toml = "^0.10.2"
 great-expectations = "^0.15.0"
@@ -169,3 +169,8 @@ markers = [
     send empty credentials in the request
     """
 ]
+
+[[tool.poetry.source]]
+name = "test-pypi"
+url = "https://test.pypi.org/simple/"
+priority = "supplemental"
