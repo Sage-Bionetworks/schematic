@@ -165,17 +165,17 @@ class TestSynapseStorage:
     @pytest.mark.parametrize(
         "project_scope,columns,where_clauses,expected",
         [
-            ([], [], [], "SELECT * FROM syn23643253 ;"),
+            (None, None, None, "SELECT * FROM syn23643253 ;"),
             (
                 ["syn23643250"],
-                [],
-                [],
+                None,
+                None,
                 "SELECT * FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
             ),
             (
                 ["syn23643250"],
                 ["name", "id", "path"],
-                [],
+                None,
                 "SELECT name,id,path FROM syn23643253 WHERE projectId IN ('syn23643250', '') ;",
             ),
             (
