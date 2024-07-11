@@ -4343,13 +4343,13 @@ Jinja2 = ">=2.0"
 
 [[package]]
 name = "synapseclient"
-version = "4.3.1.3084"
+version = "4.3.1"
 description = "A client for Synapse, a collaborative, open-source research platform that allows teams to share data, track analyses, and collaborate."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "synapseclient-4.3.1.3084-py3-none-any.whl", hash = "sha256:e3c0151775b9f70452ed179075072b0e8e5080222e1fd3e9a3ab25aefdebe37b"},
-    {file = "synapseclient-4.3.1.3084.tar.gz", hash = "sha256:930624c95fd768cdcf28723c5bcb63126c775606ace5af97b95207a3dc06787a"},
+    {file = "synapseclient-4.3.1-py3-none-any.whl", hash = "sha256:515fff80092c4acee010e272ae313533ae31f7cbe0a590f540f98fd10a18177b"},
+    {file = "synapseclient-4.3.1.tar.gz", hash = "sha256:9d1c2cd1d6fe4fabb386290c0eed20944ab7e44e6713db40f19cf28babe3be3c"},
 ]
 
 [package.dependencies]
@@ -4373,11 +4373,6 @@ docs = ["markdown-include (>=0.8.1,<0.9.0)", "mkdocs (>=1.5.3)", "mkdocs-materia
 pandas = ["pandas (>=1.5,<3.0)"]
 pysftp = ["pysftp (>=0.2.8,<0.3)"]
 tests = ["flake8 (>=3.7.0,<4.0)", "func-timeout (>=4.3,<5.0)", "pandas (>=1.5,<3.0)", "pytest (>=7.0.0,<8.0)", "pytest-asyncio (>=0.23.6,<1.0)", "pytest-cov (>=4.1.0,<4.2.0)", "pytest-mock (>=3.0,<4.0)", "pytest-rerunfailures (>=12.0,<13.0)", "pytest-socket (>=0.6.0,<0.7.0)", "pytest-xdist[psutil] (>=2.2,<3.0.0)"]
-
-[package.source]
-type = "legacy"
-url = "https://test.pypi.org/simple"
-reference = "test-pypi"
 
 [[package]]
 name = "tabulate"
@@ -4912,4 +4907,4 @@ aws = ["uWSGI"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "fbf110a0b039409faef647b76381018891db5d5f0edd1772ce1cb82519140590"
+content-hash = "61526696735bc7541a2ce5d42c5408aaed48ffa4adc910b4d77b267ae6337476"
