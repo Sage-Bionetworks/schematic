@@ -1,21 +1,17 @@
-from statistics import mode
-from tabnanny import check
 import logging
 import os
 import re
-import numpy as np
+from statistics import mode
+from tabnanny import check
 
 # allows specifying explicit variable types
-from typing import Any, Dict, Optional, Text, List
-from urllib.parse import urlparse
-from urllib.request import urlopen, OpenerDirector, HTTPDefaultErrorHandler
-from urllib.request import Request
+from typing import Any, Dict, List, Optional, Text
 from urllib import error
+from urllib.parse import urlparse
+from urllib.request import HTTPDefaultErrorHandler, OpenerDirector, Request, urlopen
+
+import numpy as np
 from attr import attr
-
-from ruamel import yaml
-
-import great_expectations as ge
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 from great_expectations.data_context import BaseDataContext
 from great_expectations.data_context.types.base import (
@@ -27,18 +23,17 @@ from great_expectations.data_context.types.resource_identifiers import (
     ExpectationSuiteIdentifier,
 )
 from great_expectations.exceptions.exceptions import GreatExpectationsError
+from ruamel import yaml
 
-
+import great_expectations as ge
 from schematic.models.validate_attribute import GenerateError
 from schematic.schemas.data_model_graph import DataModelGraphExplorer
-
 from schematic.utils.schema_utils import extract_component_validation_rules
-
 from schematic.utils.validate_utils import (
-    rule_in_rule_list,
-    np_array_to_str_list,
     iterable_to_str_list,
+    np_array_to_str_list,
     required_is_only_rule,
+    rule_in_rule_list,
 )
 
 logger = logging.getLogger(__name__)
@@ -147,6 +142,29 @@ class GreatExpectationsHelpers(object):
         # self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
 
+    def add_expectation_suite_if_not_exists(self):
+        """
+        Purpose:
+            Add expectation suite if it does not exist
+        Input:
+        Returns:
+            saves expectation suite and identifier to self
+        """
+        self.expectation_suite_name = "Manifest_test_suite"
+        suite_names = self.context.list_expectation_suite_names()
+        print("suite name", suite_names)
+        if self.expectation_suite_name not in suite_names:
+            self.suite = self.context.add_expectation_suite(
+                expectation_suite_name=self.expectation_suite_name,
+            )
+        # in gh actions, sometimes the suite has already been added.
+        # if that's the case, get the existing one
+        else:
+            self.suite = self.context.get_expectation_suite(
+                expectation_suite_name=self.expectation_suite_name
+            )
+        return self.suite
+
     def build_expectation_suite(
         self,
     ):
@@ -162,10 +180,7 @@ class GreatExpectationsHelpers(object):
         """
 
         # create blank expectation suite
-        self.expectation_suite_name = "Manifest_test_suite"
-        self.suite = self.context.add_expectation_suite(
-            expectation_suite_name=self.expectation_suite_name,
-        )
+        self.suite = self.add_expectation_suite_if_not_exists()
 
         # build expectation configurations for each expectation
         for col in self.manifest.columns:
