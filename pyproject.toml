@@ -169,8 +169,3 @@ markers = [
     send empty credentials in the request
     """
 ]
-
-[[tool.poetry.source]]
-name = "test-pypi"
-url = "https://test.pypi.org/simple/"
-priority = "supplemental"
