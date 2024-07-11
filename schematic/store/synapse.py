@@ -264,11 +264,11 @@ class SynapseStorage(BaseStorage):
         self.storageFileview = CONFIG.synapse_master_fileview_id
         self.manifest = CONFIG.synapse_manifest_basename
 
-        fileview_query = self._build_query(columns=columns, where_clauses=where_clauses)
+        self._build_query(columns=columns, where_clauses=where_clauses)
 
         try:
             self.storageFileviewTable = self.syn.tableQuery(
-                query=fileview_query,
+                query=self.fileview_query,
             ).asDataFrame()
         except SynapseHTTPError:
             raise AccessCredentialsError(self.storageFileview)
@@ -284,8 +284,6 @@ class SynapseStorage(BaseStorage):
             self.storageFileview (str): Synapse FileView ID
             self.project_scope (Optional[list], optional): List of project IDs to be used to scope the query. Defaults to None.
                 Gets added to where_clauses, more included for backwards compatability and as a more user friendly way of subsetting the view in a simple way.
-        Returns:
-            query (str): A query string to be used to query the Synapse FileView
         """
         if columns is None:
             columns = []
@@ -307,9 +305,11 @@ class SynapseStorage(BaseStorage):
         else:
             columns = "*"
 
-        query = f"SELECT {columns} FROM {self.storageFileview} {where_clauses}"
+        self.fileview_query = (
+            f"SELECT {columns} FROM {self.storageFileview} {where_clauses}"
+        )
 
-        return query
+        return
 
     @staticmethod
     def login(
