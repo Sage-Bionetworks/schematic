@@ -113,6 +113,17 @@ def dmge(
     yield dmge
 
 
+@pytest.fixture
+def synapse_store_special_scope(request):
+    access_token = os.getenv("SYNAPSE_ACCESS_TOKEN")
+    if access_token:
+        synapse_store = SynapseStorage(access_token=access_token)
+    else:
+        synapse_store = SynapseStorage()
+
+    yield synapse_store
+
+
 def raise_final_error(retry_state):
     return retry_state.outcome.result()
 
@@ -177,17 +188,17 @@ class TestSynapseStorage:
     )
     def test_build_query(
         self,
-        synapse_store: SynapseStorage,
+        synapse_store_special_scope: SynapseStorage,
         project_scope: list,
         columns: list,
         where_clauses: list,
         expected: str,
     ) -> None:
-        assert synapse_store.storageFileview == "syn23643253"
+        assert synapse_store_special_scope.storageFileview == "syn23643253"
         if project_scope:
-            synapse_store.project_scope = project_scope
-        query = synapse_store._build_query(columns, where_clauses)
-        assert query == expected
+            synapse_store_special_scope.project_scope = project_scope
+        synapse_store_special_scope._build_query(columns, where_clauses)
+        assert synapse_store_special_scope.fileview_query == expected
 
     def test_getFileAnnotations(self, synapse_store: SynapseStorage) -> None:
         expected_dict = {
