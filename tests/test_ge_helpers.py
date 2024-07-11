@@ -1,13 +1,18 @@
+from typing import Generator
 from unittest.mock import MagicMock
 
 import pandas as pd
 import pytest
 
 from schematic.models.GE_Helpers import GreatExpectationsHelpers
+from tests.conftest import Helpers
 
 
 @pytest.fixture(scope="class")
-def mock_ge_helpers(helpers):
+def mock_ge_helpers(
+    helpers: Helpers,
+) -> Generator[GreatExpectationsHelpers, None, None]:
+    """Fixture for creating a GreatExpectationsHelpers object"""
     dmge = helpers.get_data_model_graph_explorer(path="example.model.jsonld")
     unimplemented_expectations = ["url"]
     test_manifest_path = helpers.get_data_path("mock_manifests/Valid_Test_Manifest.csv")
@@ -23,7 +28,10 @@ def mock_ge_helpers(helpers):
 
 
 class TestGreatExpectationsHelpers:
-    def test_add_expectation_suite_if_not_exists_does_not_exist(self, mock_ge_helpers):
+    def test_add_expectation_suite_if_not_exists_does_not_exist(
+        self, mock_ge_helpers: Generator[GreatExpectationsHelpers, None, None]
+    ) -> None:
+        """test add_expectation_suite_if_not_exists method when the expectation suite does not exists"""
         # mock context provided by ge_helpers
         mock_ge_helpers.context = MagicMock()
         mock_ge_helpers.context.list_expectation_suite_names.return_value = []
@@ -37,7 +45,10 @@ class TestGreatExpectationsHelpers:
             expectation_suite_name="Manifest_test_suite"
         )
 
-    def test_add_expectation_suite_if_not_exists_does_exist(self, mock_ge_helpers):
+    def test_add_expectation_suite_if_not_exists_does_exist(
+        self, mock_ge_helpers: Generator[GreatExpectationsHelpers, None, None]
+    ) -> None:
+        """test add_expectation_suite_if_not_exists method when the expectation suite does exists"""
         # mock context provided by ge_helpers
         mock_ge_helpers.context = MagicMock()
         mock_ge_helpers.context.list_expectation_suite_names.return_value = [
