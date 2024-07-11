@@ -786,7 +786,8 @@ class ValidateAttribute(object):
         target_manifest_ids = []
         target_dataset_ids = []
 
-        self._login(project_scope=project_scope, access_token=access_token)
+        if not hasattr(self, "synStore"):
+            self._login(project_scope=project_scope, access_token=access_token)
 
         # Get list of all projects user has access to
         projects = self.synStore.getStorageProjects(project_scope=project_scope)
@@ -1960,5 +1961,9 @@ class ValidateAttribute(object):
         access_token,
     ):
         self._login(project_scope=project_scope, access_token=access_token)
+
+        # filename in dataset?
+
+        # filenames match with entity IDs in dataset
 
         return
