@@ -152,7 +152,6 @@ class GreatExpectationsHelpers(object):
         """
         self.expectation_suite_name = "Manifest_test_suite"
         suite_names = self.context.list_expectation_suite_names()
-        print("suite name", suite_names)
         if self.expectation_suite_name not in suite_names:
             self.suite = self.context.add_expectation_suite(
                 expectation_suite_name=self.expectation_suite_name,
