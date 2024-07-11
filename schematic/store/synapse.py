@@ -249,8 +249,8 @@ class SynapseStorage(BaseStorage):
     @tracer.start_as_current_span("SynapseStorage::query_fileview")
     def query_fileview(
         self,
-        columns: List = [],
-        where_clauses: List = [],
+        columns: Optional[list] = None,
+        where_clauses: Optional[list] = None,
     ):
         self._purge_synapse_cache()
 
@@ -266,7 +266,14 @@ class SynapseStorage(BaseStorage):
         except SynapseHTTPError:
             raise AccessCredentialsError(self.storageFileview)
 
-    def _build_query(self, columns: list = [], where_clauses: list = []):
+    def _build_query(
+        self, columns: Optional[list] = None, where_clauses: Optional[list] = None
+    ):
+        if columns is None:
+            columns = []
+        if where_clauses is None:
+            where_clauses = []
+
         if self.project_scope:
             project_scope_clause = f"projectId IN {tuple(self.project_scope + [''])}"
             where_clauses.append(project_scope_clause)
