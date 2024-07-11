@@ -251,7 +251,14 @@ class SynapseStorage(BaseStorage):
         self,
         columns: Optional[list] = None,
         where_clauses: Optional[list] = None,
-    ):
+    ) -> None:
+        """
+        Method to query the Synapse FileView and store the results in a pandas DataFrame. The results are stored in the storageFileviewTable attribute.
+        Is called once during initialization of the SynapseStorage object and can be called again later to specify a specific, more limited scope for validation purposes.
+        Args:
+            columns (Optional[list], optional): List of columns to be selected from the table. Defaults behavior is to request all columns.
+            where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
+        """
         self._purge_synapse_cache()
 
         self.storageFileview = CONFIG.synapse_master_fileview_id
@@ -269,6 +276,16 @@ class SynapseStorage(BaseStorage):
     def _build_query(
         self, columns: Optional[list] = None, where_clauses: Optional[list] = None
     ):
+        """
+        Method to build a query for Synapse FileViews
+        Args:
+            columns (Optional[list], optional): List of columns to be selected from the table. Defaults behavior is to request all columns.
+            where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
+            self.storageFileview (str): Synapse FileView ID
+            self.project_scope (Optional[list], optional): List of project IDs to be used to scope the query. Defaults to None. Gets added to where_clauses, more included for backwards compatability and as a more user friendly way of subsetting the view in a simple way.
+        Returns:
+            query (str): A query string to be used to query the Synapse FileView
+        """
         if columns is None:
             columns = []
         if where_clauses is None:
