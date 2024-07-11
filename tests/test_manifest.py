@@ -1,16 +1,16 @@
+import logging
 import os
 import shutil
-import logging
-import pytest
+from unittest.mock import MagicMock, Mock, patch
+
 import pandas as pd
-from unittest.mock import Mock
-from unittest.mock import patch
-from unittest.mock import MagicMock
+import pytest
+
+from schematic.configuration.configuration import Configuration
 from schematic.manifest.generator import ManifestGenerator
-from schematic.schemas.data_model_parser import DataModelParser
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-from schematic.configuration.configuration import Configuration
+from schematic.schemas.data_model_parser import DataModelParser
 from schematic.utils.google_api_utils import execute_google_api_requests
 from schematic_api.api import create_app
 
@@ -213,9 +213,9 @@ class TestManifestGenerator:
 
         # Confirm contents of Filename column
         assert output["Filename"].tolist() == [
-            "TestDataset-Annotations-v3/Sample_A.txt",
-            "TestDataset-Annotations-v3/Sample_B.txt",
-            "TestDataset-Annotations-v3/Sample_C.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
+            "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
         ]
 
         # Test dimensions of data frame
