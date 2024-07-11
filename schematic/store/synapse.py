@@ -526,6 +526,8 @@ class SynapseStorage(BaseStorage):
             self.syn, datasetId, includeTypes=["folder", "file"]
         )
 
+        project = self.getDatasetProject(datasetId)
+        project_name = self.syn.get(project, downloadFile=False).name
         file_list = []
 
         # iterate over all results
@@ -541,7 +543,10 @@ class SynapseStorage(BaseStorage):
 
                     if fullpath:
                         # append directory path to filename
-                        filename = (dirpath[0] + "/" + filename[0], filename[1])
+                        filename = (
+                            project_name + "/" + dirpath[0] + "/" + filename[0],
+                            filename[1],
+                        )
 
                     # add file name file id tuple, rearranged so that id is first and name follows
                     file_list.append(filename[::-1])
