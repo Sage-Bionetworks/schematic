@@ -282,7 +282,8 @@ class SynapseStorage(BaseStorage):
             columns (Optional[list], optional): List of columns to be selected from the table. Defaults behavior is to request all columns.
             where_clauses (Optional[list], optional): List of where clauses to be used to scope the query. Defaults to None.
             self.storageFileview (str): Synapse FileView ID
-            self.project_scope (Optional[list], optional): List of project IDs to be used to scope the query. Defaults to None. Gets added to where_clauses, more included for backwards compatability and as a more user friendly way of subsetting the view in a simple way.
+            self.project_scope (Optional[list], optional): List of project IDs to be used to scope the query. Defaults to None.
+                Gets added to where_clauses, more included for backwards compatability and as a more user friendly way of subsetting the view in a simple way.
         Returns:
             query (str): A query string to be used to query the Synapse FileView
         """
