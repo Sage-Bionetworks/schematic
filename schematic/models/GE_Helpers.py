@@ -12,6 +12,7 @@ from urllib.request import HTTPDefaultErrorHandler, OpenerDirector, Request, url
 
 import numpy as np
 from attr import attr
+from great_expectations.core import ExpectationSuite
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 from great_expectations.data_context import BaseDataContext
 from great_expectations.data_context.types.base import (
@@ -142,7 +143,7 @@ class GreatExpectationsHelpers(object):
         # self.context.test_yaml_config(yaml.dump(datasource_config))
         self.context.add_datasource(**datasource_config)
 
-    def add_expectation_suite_if_not_exists(self):
+    def add_expectation_suite_if_not_exists(self) -> ExpectationSuite:
         """
         Purpose:
             Add expectation suite if it does not exist
