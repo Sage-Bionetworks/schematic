@@ -315,7 +315,7 @@ class TestSynapseStorage:
         expected_df = pd.DataFrame.from_records(
             [
                 {
-                    "Filename": "TestDataset-Annotations-v3/Sample_A.txt",
+                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_A.txt",
                     "author": "bruno, milen, sujay",
                     "impact": "42.9",
                     "confidence": "high",
@@ -325,13 +325,13 @@ class TestSynapseStorage:
                     "IsImportantText": "TRUE",
                 },
                 {
-                    "Filename": "TestDataset-Annotations-v3/Sample_B.txt",
+                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_B.txt",
                     "confidence": "low",
                     "FileFormat": "csv",
                     "date": "2020-02-01",
                 },
                 {
-                    "Filename": "TestDataset-Annotations-v3/Sample_C.txt",
+                    "Filename": "schematic - main/TestDataset-Annotations-v3/Sample_C.txt",
                     "FileFormat": "fastq",
                     "IsImportantBool": "False",
                     "IsImportantText": "FALSE",
