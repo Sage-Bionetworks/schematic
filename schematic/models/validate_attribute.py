@@ -1953,17 +1953,11 @@ class ValidateAttribute(object):
 
         return errors, warnings
 
-    def content_validation(
+    def filename_validation(
         self,
         val_rule,
         manifest,
         project_scope,
         access_token,
     ):
-        self._login(project_scope=project_scope, access_token=access_token)
-
-        # filename in dataset?
-
-        # filenames match with entity IDs in dataset
-
         return

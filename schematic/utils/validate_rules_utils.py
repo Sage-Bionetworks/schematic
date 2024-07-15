@@ -151,7 +151,7 @@ def validation_rule_info() -> dict[str, Rule]:
         },
         "filenameExists": {
             "arguments": (1, 1),
-            "type": "content_validation",
+            "type": "filename_validation",
             "complementary_rules": None,
             "default_message_level": "error",
             "fixed_arg": None,
