@@ -586,17 +586,6 @@ click = ">=4.0"
 PyYAML = ">=3.11"
 
 [[package]]
-name = "cloudpickle"
-version = "3.0.0"
-description = "Pickler class to extend the standard pickle.Pickler functionality"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "cloudpickle-3.0.0-py3-none-any.whl", hash = "sha256:246ee7d0c295602a036e86369c77fecda4ab17b506496730f2f576d9016fd9c7"},
-    {file = "cloudpickle-3.0.0.tar.gz", hash = "sha256:996d9a482c6fb4f33c1a35335cf8afd065d2a56e973270364840712d9131a882"},
-]
-
-[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -2090,20 +2079,6 @@ files = [
     {file = "lazy_object_proxy-1.10.0-cp39-cp39-win_amd64.whl", hash = "sha256:a899b10e17743683b293a729d3a11f2f399e8a90c73b089e29f5d0fe3509f0dd"},
     {file = "lazy_object_proxy-1.10.0-pp310.pp311.pp312.pp38.pp39-none-any.whl", hash = "sha256:80fa48bd89c8f2f456fc0765c11c23bf5af827febacd2f523ca5bc1893fcc09d"},
 ]
-
-[[package]]
-name = "loky"
-version = "3.0.0"
-description = "A robust implementation of concurrent.futures.ProcessPoolExecutor"
-optional = false
-python-versions = "*"
-files = [
-    {file = "loky-3.0.0-py2.py3-none-any.whl", hash = "sha256:1d5a4d778c7ff09c919aa3fbf2d879a2c7ac936a545c615af40e080a1c902b82"},
-    {file = "loky-3.0.0.tar.gz", hash = "sha256:fd8750b24b283a579bafaf0631d114aa4487c682aef6fce01fa3635336297fdf"},
-]
-
-[package.dependencies]
-cloudpickle = "*"
 
 [[package]]
 name = "makefun"
@@ -4399,13 +4374,13 @@ Jinja2 = ">=2.0"
 
 [[package]]
 name = "synapseclient"
-version = "4.3.0"
+version = "4.3.1"
 description = "A client for Synapse, a collaborative, open-source research platform that allows teams to share data, track analyses, and collaborate."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "synapseclient-4.3.0-py3-none-any.whl", hash = "sha256:5d8107cfff4031a0a46d60a3c9a8120300190fa27df4983d883dc951d8bd885f"},
-    {file = "synapseclient-4.3.0.tar.gz", hash = "sha256:a1149a64b3281669d42c69e210677a902478b8f6b302966d518473c7384f6387"},
+    {file = "synapseclient-4.3.1-py3-none-any.whl", hash = "sha256:515fff80092c4acee010e272ae313533ae31f7cbe0a590f540f98fd10a18177b"},
+    {file = "synapseclient-4.3.1.tar.gz", hash = "sha256:9d1c2cd1d6fe4fabb386290c0eed20944ab7e44e6713db40f19cf28babe3be3c"},
 ]
 
 [package.dependencies]
@@ -4413,7 +4388,6 @@ async-lru = ">=2.0.4,<2.1.0"
 asyncio-atexit = ">=1.0.1,<1.1.0"
 deprecated = ">=1.2.4,<2.0"
 httpx = ">=0.27.0,<0.28.0"
-loky = ">=3.0.0,<3.1.0"
 nest-asyncio = ">=1.6.0,<1.7.0"
 opentelemetry-api = ">=1.21.0,<1.22.0"
 opentelemetry-exporter-otlp-proto-http = ">=1.21.0,<1.22.0"
@@ -4964,4 +4938,4 @@ aws = ["uWSGI"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9.0,<3.11"
-content-hash = "a3048c0808e73fd19f5175897e9dda47a2a593422dd4744886615ac453a42139"
+content-hash = "9904142a9dec88658394b216905455419b80b58d242a1bd9b1e2ffe9c3cff40d"
