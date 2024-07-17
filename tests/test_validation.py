@@ -1,21 +1,20 @@
-import os
-import logging
-import re
-import networkx as nx
-import jsonschema
-import pytest
-from pathlib import Path
 import itertools
+import logging
+import os
+import re
+from pathlib import Path
 
-from schematic.models.validate_attribute import ValidateAttribute, GenerateError
-from schematic.models.validate_manifest import ValidateManifest
+import jsonschema
+import networkx as nx
+import pytest
+
 from schematic.models.metadata import MetadataModel
-from schematic.store.synapse import SynapseStorage
-
-from schematic.schemas.data_model_parser import DataModelParser
+from schematic.models.validate_attribute import GenerateError, ValidateAttribute
+from schematic.models.validate_manifest import ValidateManifest
 from schematic.schemas.data_model_graph import DataModelGraph, DataModelGraphExplorer
 from schematic.schemas.data_model_json_schema import DataModelJSONSchema
-
+from schematic.schemas.data_model_parser import DataModelParser
+from schematic.store.synapse import SynapseStorage
 from schematic.utils.validate_rules_utils import validation_rule_info
 
 logging.basicConfig(level=logging.DEBUG)
@@ -690,6 +689,45 @@ class TestManifestValidation:
                 dmge=dmge,
             )[1]
             in warnings
+        )
+
+    def test_filename_manifest(self, helpers, dmge):
+        metadataModel = get_metadataModel(helpers, model_name="example.model.jsonld")
+
+        manifestPath = helpers.get_data_path(
+            "mock_manifests/InvalidFilenameManifest.csv"
+        )
+        rootNode = "MockFilename"
+
+        errors, warnings = metadataModel.validateModelManifest(
+            manifestPath=manifestPath,
+            rootNode=rootNode,
+            project_scope=["syn23643250"],
+        )
+
+        # Check errors
+        assert (
+            GenerateError.generate_filename_error(
+                val_rule="filenameExists syn61682648",
+                attribute_name="Filename",
+                row_num="3",
+                invalid_entry="schematic - main/MockFilenameComponent/txt4.txt",
+                error_type="mismatched entityId",
+                dmge=dmge,
+            )[0]
+            in errors
+        )
+
+        assert (
+            GenerateError.generate_filename_error(
+                val_rule="filenameExists syn61682648",
+                attribute_name="Filename",
+                row_num="4",
+                invalid_entry="schematic - main/MockFilenameComponent/txt5.txt",
+                error_type="path does not exist",
+                dmge=dmge,
+            )[0]
+            in errors
         )
 
     def test_missing_column(self, helpers, dmge: DataModelGraph):
