@@ -1,6 +1,7 @@
 import builtins
 import logging
 import re
+from copy import deepcopy
 from time import perf_counter
 
 # allows specifying explicit variable types
@@ -455,6 +456,30 @@ class GenerateError:
         if nv_warnings:
             warnings.append(nv_warnings)
         return errors, warnings
+
+    def generate_filename_error(
+        val_rule: str,
+        attribute_name: str,
+        row_num: str,
+        invalid_entry: Any,
+        error_type: str,
+        dmge: DataModelGraphExplorer,
+    ) -> tuple[list[str], list[str]]:
+        if error_type == "path does not exist":
+            error_message = f"The file path '{invalid_entry}' on row {row_num} does not exist in the file view."
+        elif error_type == "mismatched entityId":
+            error_message = f"The entityId for file path '{invalid_entry}' on row {row_num} does not match the entityId for the file in the file view"
+
+        error_list, warning_list = GenerateError.raise_and_store_message(
+            dmge=dmge,
+            val_rule=val_rule,
+            error_row=row_num,
+            error_col=attribute_name,
+            error_message=error_message,
+            error_val=invalid_entry,
+        )
+
+        return error_list, warning_list
 
     def _get_rule_attributes(
         val_rule: str, error_col_name: str, dmge: DataModelGraphExplorer
@@ -1960,4 +1985,48 @@ class ValidateAttribute(object):
         project_scope,
         access_token,
     ):
-        return
+        errors = []
+        warnings = []
+
+        where_clauses = []
+        self._login(project_scope=project_scope, access_token=access_token)
+        rule_parts = val_rule.split(" ")
+
+        dataset_clause = f"parentId='{rule_parts[1]}'"
+        where_clauses.append(dataset_clause)
+
+        self.synStore.query_fileview(
+            columns=["id", "path"], where_clauses=where_clauses
+        )
+        fileview = self.synStore.storageFileviewTable.reset_index(drop=True)
+        # filename in dataset?
+        files_in_view = manifest["Filename"].isin(fileview["path"])
+        # filenames match with entity IDs in dataset
+        joined_df = manifest.merge(
+            fileview, how="outer", left_on="Filename", right_on="path"
+        )
+        entity_id_match = joined_df["id"] == joined_df["entityId"]
+
+        manifest_with_errors = deepcopy(manifest)
+        manifest_with_errors["Error"] = pd.NA
+
+        manifest_with_errors.loc[~entity_id_match, "Error"] = "mismatched entityId"
+        manifest_with_errors.loc[~files_in_view, "Error"] = "path does not exist"
+
+        invalid_entries = manifest_with_errors.loc[
+            manifest_with_errors["Error"].notna()
+        ]
+        for index, data in invalid_entries.iterrows():
+            vr_errors, vr_warnings = GenerateError.generate_filename_error(
+                val_rule=val_rule,
+                attribute_name="Filename",
+                row_num=str(index),
+                invalid_entry=data["Filename"],
+                error_type=data["Error"],
+                dmge=self.dmge,
+            )
+            if vr_errors:
+                errors.append(vr_errors)
+            if vr_warnings:
+                warnings.append(vr_warnings)
+        return errors, warnings
