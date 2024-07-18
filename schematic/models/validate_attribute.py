@@ -763,7 +763,7 @@ class ValidateAttribute(object):
     See functions for more details.
     TODO:
         - Add year validator
-        - Add string length validator
+        - Add string length validatorn
     """
 
     def __init__(self, dmge: DataModelGraphExplorer) -> None:
@@ -778,7 +778,7 @@ class ValidateAttribute(object):
     ):
         # login
         if hasattr(self, "synStore"):
-            if self.synstore.project_scope != project_scope:
+            if self.synStore.project_scope != project_scope:
                 self.synStore.project_scope = project_scope
             self.synStore.query_fileview(columns=columns, where_clauses=where_clauses)
         else:
