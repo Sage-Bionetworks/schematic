@@ -465,6 +465,21 @@ class GenerateError:
         error_type: str,
         dmge: DataModelGraphExplorer,
     ) -> tuple[list[str], list[str]]:
+        """
+        Purpose:
+            Generate an logging error as well as a stored error message, when
+            a filename error is encountered.
+        Args:
+            val_rule: str, rule as defined in the schema for the component.
+            attribute_name: str, attribute being validated
+            row_num: str, row where the error was detected
+            invalid_entry: str, value that caused the error
+            error_type: str, type of error encountered
+            dmge: DataModelGraphExplorer object
+        Returns:
+            Errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
+        """
         if error_type == "path does not exist":
             error_message = f"The file path '{invalid_entry}' on row {row_num} does not exist in the file view."
         elif error_type == "mismatched entityId":
@@ -1980,11 +1995,23 @@ class ValidateAttribute(object):
 
     def filename_validation(
         self,
-        val_rule,
-        manifest,
-        project_scope,
-        access_token,
+        val_rule: str,
+        manifest: pd.core.frame.DataFrame,
+        access_token: str,
+        project_scope: Optional[list] = None,
     ):
+        """
+        Purpose:
+            Validate the filenames in the manifest against the data paths in the fileview.
+        Args:
+            val_rule: str, Validation rule for the component
+            manifest: pd.core.frame.DataFrame, manifest
+            access_token: str, Asset Store access token
+            project_scope: Optional[list] = None: Projects to limit the scope of cross manifest validation to.
+        Returns:
+            errors: list[str] Error details for further storage.
+            warnings: list[str] Warning details for further storage.
+        """
         errors = []
         warnings = []
 
